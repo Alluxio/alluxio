@@ -16,8 +16,10 @@ import java.util.Arrays;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Where to store a block within a block store. Currently, this is a wrapper on an integer
- * representing the tier to put this block.
+ * Where to store a block within a block store. It describes the block storage location in three
+ * dimensions, tierAlias, dir index within the tier and the medium type of the storage location.
+ * Currently, there is an assumption that the medium type and the tier alias are not set at the
+ * same time.
  */
 @ThreadSafe
 public final class BlockStoreLocation {
