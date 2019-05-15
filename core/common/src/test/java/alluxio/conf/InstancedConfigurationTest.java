@@ -16,12 +16,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
+import alluxio.TestLoggerRule;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.util.ConfigurationUtils;
 
@@ -41,6 +43,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -50,7 +53,7 @@ import java.util.regex.Pattern;
 /**
  * Unit tests for the {@link alluxio.conf.InstancedConfiguration} class.
  */
-public class ConfigurationTest {
+public class InstancedConfigurationTest {
 
   private  InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
   @Rule
@@ -58,6 +61,9 @@ public class ConfigurationTest {
 
   @Rule
   public final TemporaryFolder mFolder = new TemporaryFolder();
+
+  @Rule
+  public final TestLoggerRule mLogger = new TestLoggerRule();
 
   @Before
   public void before() {
@@ -760,7 +766,6 @@ public class ConfigurationTest {
     // Test if the resolvedMap include all kinds of properties
     assertTrue(resolvedMap.containsKey("alluxio.debug"));
     assertTrue(resolvedMap.containsKey("alluxio.fuse.fs.name"));
-    assertTrue(resolvedMap.containsKey("alluxio.logserver.logs.dir"));
     assertTrue(resolvedMap.containsKey("alluxio.master.journal.folder"));
     assertTrue(resolvedMap.containsKey("alluxio.proxy.web.port"));
     assertTrue(resolvedMap.containsKey("alluxio.security.authentication.type"));
@@ -932,6 +937,83 @@ public class ConfigurationTest {
       assertEquals("foo",
           mConfiguration.get(Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY
               .format("fs.obs.endpoint")));
+    }
+  }
+
+  @Test
+  public void validateDefaultConfiguration() {
+    mConfiguration.validate();
+  }
+
+  @Test
+  public void removedKeyThrowsException() {
+    try {
+      mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY),
+          "true");
+      mConfiguration.validate();
+      fail("Should have thrown a runtime exception when validating with a removed key");
+    } catch (RuntimeException e) {
+      assertTrue(e.getMessage().contains(
+          String.format("%s is no longer a valid property",
+              RemovedKey.Name.TEST_REMOVED_KEY)));
+    }
+    mConfiguration = ConfigurationTestUtils.defaults();
+    try {
+      mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY), "true");
+      mConfiguration.validate();
+      fail("Should have thrown a runtime exception when validating with a removed key");
+    } catch (RuntimeException e) {
+      assertTrue(e.getMessage().contains(
+          String.format("%s is no longer a valid property",
+              RemovedKey.Name.TEST_REMOVED_KEY)));
+    }
+  }
+
+  @Test
+  public void testDeprecatedKey() {
+    mConfiguration.set(PropertyKey.TEST_DEPRECATED_KEY, "true");
+    mConfiguration.validate();
+    String logString = String.format("%s is deprecated", PropertyKey.TEST_DEPRECATED_KEY);
+    assertTrue(mLogger.wasLogged(logString));
+    assertEquals(1, mLogger.logCount(logString));
+  }
+
+  @Test
+  public void testDeprecatedKeysNotLogged() {
+    mConfiguration.validate();
+    assertFalse(mLogger.wasLogged(" is deprecated"));
+  }
+
+  @Test
+  public void unknownTieredStorageAlias() throws Exception {
+    for (String alias : Arrays.asList("mem", "ssd", "hdd", "unknown")) {
+      try (Closeable p = new SystemPropertyRule("alluxio.worker.tieredstore.level0.alias", alias)
+          .toResource()) {
+        resetConf();
+        mConfiguration.validate();
+        fail("Should have thrown a runtime exception when using an unknown tier alias");
+      } catch (RuntimeException e) {
+        assertTrue(e.getMessage().contains(
+            String.format("Alias \"%s\" on tier 0 on worker (configured by %s) is not found "
+                + "in global tiered", alias, Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0))
+        ));
+      }
+    }
+  }
+
+  @Test
+  public void wrongTieredStorageLevel() throws Exception {
+    try (Closeable p =
+             new SystemPropertyRule(ImmutableMap.of("alluxio.master.tieredstore.global.levels", "1",
+                 "alluxio.worker.tieredstore.levels", "2")).toResource()) {
+      resetConf();
+      mConfiguration.validate();
+      fail("Should have thrown a runtime exception when setting an unknown tier level");
+    } catch (RuntimeException e) {
+      assertTrue(e.getMessage().contains(
+          String.format("%s tiers on worker (configured by %s), larger than global %s tiers "
+                  + "(configured by %s) ", 2, PropertyKey.WORKER_TIERED_STORE_LEVELS, 1,
+              PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS)));
     }
   }
 }

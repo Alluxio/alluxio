@@ -319,11 +319,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
+      String mediumType = loc.mediumType();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
-          length);
+      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), mediumType,
+          blockId, length);
     } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
@@ -345,9 +346,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
+  public String createBlock(long sessionId, long blockId, String tierAlias,
+      String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc;
+    if (medium.isEmpty()) {
+      loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    } else {
+      loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
+    }
     TempBlockMeta createdBlock;
     try {
       createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
@@ -361,9 +368,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void createBlockRemote(long sessionId, long blockId, String tierAlias, long initialBytes)
+  public void createBlockRemote(long sessionId, long blockId, String tierAlias,
+      String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc;
+    if (medium.isEmpty()) {
+      loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    } else {
+      loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
+    }
     mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
   }
 

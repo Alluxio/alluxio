@@ -155,6 +155,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 import alluxio.util.proto.ProtoUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.CommandType;
@@ -2660,6 +2661,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             .setShared(context.getOptions().getShared())
             .createMountSpecificConf(context.getOptions().getPropertiesMap()));
     try {
+      MountPOptions.Builder mountOption = context.getOptions();
       try (CloseableResource<UnderFileSystem> ufsResource =
           mUfsManager.get(mountId).acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
@@ -2667,6 +2669,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
               ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+        }
+
+        if (UnderFileSystemUtils.isWeb(ufs)) {
+          mountOption.setReadOnly(true);
         }
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
@@ -3469,7 +3475,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     Inode inode = inodePath.getInode();
     SetAttributePOptions.Builder protoOptions = context.getOptions();
     if (protoOptions.hasPinned()) {
-      mInodeTree.setPinned(rpcContext, inodePath, context.getOptions().getPinned(), opTimeMs);
+      mInodeTree.setPinned(rpcContext, inodePath, context.getOptions().getPinned(),
+          context.getOptions().getPinnedMediaList(), opTimeMs);
     }
     UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder().setId(inode.getId());
     if (protoOptions.hasReplicationMax() || protoOptions.hasReplicationMin()) {

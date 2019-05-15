@@ -41,7 +41,7 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mBlockWorker = Mockito.mock(BlockWorker.class);
     Mockito.doNothing().when(mBlockWorker)
         .createBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(),
-            Mockito.anyLong());
+            Mockito.anyString(), Mockito.anyLong());
     Mockito.doNothing().when(mBlockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
     Mockito.doNothing().when(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());

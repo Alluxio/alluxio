@@ -23,6 +23,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Base class for read only inodes.
@@ -127,6 +128,11 @@ public abstract class Inode implements InodeView {
   @Override
   public DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException {
     return mDelegate.getDefaultACL();
+  }
+
+  @Override
+  public Set<String> getMediumTypes() {
+    return mDelegate.getMediumTypes();
   }
 
   @Override

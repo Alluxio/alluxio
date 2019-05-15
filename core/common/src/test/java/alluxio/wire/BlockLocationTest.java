@@ -52,10 +52,12 @@ public final class BlockLocationTest {
     long workerId = random.nextLong();
     WorkerNetAddress workerAddress = WorkerNetAddressTest.createRandom();
     String tierAlias = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    String mediumType = CommonUtils.randomAlphaNumString(random.nextInt(3));
 
     result.setWorkerId(workerId);
     result.setWorkerAddress(workerAddress);
     result.setTierAlias(tierAlias);
+    result.setMediumType(mediumType);
 
     return result;
   }

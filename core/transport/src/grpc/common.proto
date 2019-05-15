@@ -40,6 +40,7 @@ message BlockLocation {
   optional int64 workerId = 1;
   optional WorkerNetAddress workerAddress = 2;
   optional string tierAlias = 3;
+  optional string mediumType = 4;
 }
 
 /**

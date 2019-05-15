@@ -85,7 +85,8 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1}, new String[] {"MEM", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
-        new long[][]{new long[]{0}, new long[]{0}}, "/");
+        new long[][]{new long[]{0}, new long[]{0}},
+        new String[][]{new String[]{"MEM"}, new String[]{"HDD"}}, "/");
 
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.81",
@@ -126,7 +127,9 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
-        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
+        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}},
+        new String[][]{new String[]{"MEM"}, new String[]{"SSD"}, new String[]{"HDD"}},
+        "/");
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.9");
@@ -172,7 +175,8 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[]{"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
-        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
+        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}},
+        new String[][]{new String[]{"MEM"}, new String[]{"SSD"}, new String[]{"HDD"}}, "/");
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.9");
@@ -219,7 +223,8 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[]{"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
-        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
+        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}},
+        new String[][]{new String[]{"MEM"}, new String[]{"SSD"}, new String[]{"HDD"}}, "/");
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.4");

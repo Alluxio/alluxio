@@ -197,6 +197,7 @@ message CommitBlockPRequest {
   /** the length of the block being committed */
   optional int64 length = 5;
   optional CommitBlockPOptions options = 6;
+  optional string mediumType = 7;
 }
 
 message CommitBlockPOptions {}

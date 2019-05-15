@@ -111,9 +111,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       config.setMock(true);
       config.setMockAllowEveryone(true);
     } else {
-      if (conf.isSet(PropertyKey.SWIFT_API_KEY)) {
-        config.setPassword(conf.get(PropertyKey.SWIFT_API_KEY));
-      } else if (conf.isSet(PropertyKey.SWIFT_PASSWORD_KEY)) {
+      if (conf.isSet(PropertyKey.SWIFT_PASSWORD_KEY)) {
         config.setPassword(conf.get(PropertyKey.SWIFT_PASSWORD_KEY));
       }
       config.setAuthUrl(conf.get(PropertyKey.SWIFT_AUTH_URL_KEY));

@@ -48,6 +48,8 @@ public class AllocatorTestBase {
   public static final String[] TIER_ALIAS = {"MEM", "SSD", "HDD"};
   public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
       {"/disk1", "/disk2", "/disk3"}};
+  public static final String[][] TIER_MEDIA_TYPE = {{"MEM"}, {"SSD", "SSD"},
+      {"HDD", "HDD", "HDD"}};
   public static final long[][] TIER_CAPACITY_BYTES = {{DEFAULT_RAM_SIZE},
       {DEFAULT_SSD_SIZE, DEFAULT_SSD_SIZE},
       {DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE}};
@@ -82,7 +84,7 @@ public class AllocatorTestBase {
   protected void resetManagerView() throws Exception {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupConfWithMultiTier(alluxioHome, TIER_LEVEL, TIER_ALIAS,
-        TIER_PATH, TIER_CAPACITY_BYTES, null);
+        TIER_PATH, TIER_CAPACITY_BYTES, TIER_MEDIA_TYPE, null);
     mManager = BlockMetadataManager.createBlockMetadataManager();
   }
 
