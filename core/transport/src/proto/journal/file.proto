@@ -155,7 +155,7 @@ enum PTtlAction {
   FREE = 1;
 }
 
-// next available id: 27
+// next available id: 28
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -182,11 +182,8 @@ message InodeFileEntry {
   optional string temp_ufs_path = 23;
   optional int32 replication_durable = 24;
   optional string path = 25;
-<<<<<<< HEAD
-  optional int64 should_persist_time = 26;
-=======
   repeated string medium_type = 26;
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
+  optional int64 should_persist_time = 27;
 }
 
 // next available id: 3

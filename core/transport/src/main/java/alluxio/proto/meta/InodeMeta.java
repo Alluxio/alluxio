@@ -297,11 +297,11 @@ public final class InodeMeta {
     int getReplicationMin();
 
     /**
-     * <code>optional int64 should_persist_time = 27;</code>
+     * <code>optional int64 should_persist_time = 28;</code>
      */
     boolean hasShouldPersistTime();
     /**
-     * <code>optional int64 should_persist_time = 27;</code>
+     * <code>optional int64 should_persist_time = 28;</code>
      */
     long getShouldPersistTime();
 
@@ -341,7 +341,7 @@ public final class InodeMeta {
    **
    * General inode metadata. This includes most inode metadata, but does not include the inode's
    * children or time of last modification.
-   * next available id: 28
+   * next available id: 29
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.meta.Inode}
@@ -587,11 +587,6 @@ public final class InodeMeta {
               childCount_ = input.readInt64();
               break;
             }
-<<<<<<< HEAD
-            case 216: {
-              bitField0_ |= 0x00800000;
-              shouldPersistTime_ = input.readInt64();
-=======
             case 218: {
               com.google.protobuf.ByteString bs = input.readBytes();
               if (!((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
@@ -599,7 +594,11 @@ public final class InodeMeta {
                 mutable_bitField0_ |= 0x00001000;
               }
               mediumType_.add(bs);
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
+              break;
+            }
+            case 224: {
+              bitField0_ |= 0x00800000;
+              shouldPersistTime_ = input.readInt64();
               break;
             }
           }
@@ -1139,16 +1138,16 @@ public final class InodeMeta {
       return replicationMin_;
     }
 
-    public static final int SHOULD_PERSIST_TIME_FIELD_NUMBER = 27;
+    public static final int SHOULD_PERSIST_TIME_FIELD_NUMBER = 28;
     private long shouldPersistTime_;
     /**
-     * <code>optional int64 should_persist_time = 27;</code>
+     * <code>optional int64 should_persist_time = 28;</code>
      */
     public boolean hasShouldPersistTime() {
       return ((bitField0_ & 0x00800000) == 0x00800000);
     }
     /**
-     * <code>optional int64 should_persist_time = 27;</code>
+     * <code>optional int64 should_persist_time = 28;</code>
      */
     public long getShouldPersistTime() {
       return shouldPersistTime_;
@@ -1309,13 +1308,11 @@ public final class InodeMeta {
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         output.writeInt64(26, childCount_);
       }
-<<<<<<< HEAD
-      if (((bitField0_ & 0x00800000) == 0x00800000)) {
-        output.writeInt64(27, shouldPersistTime_);
-=======
       for (int i = 0; i < mediumType_.size(); i++) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 27, mediumType_.getRaw(i));
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
+      }
+      if (((bitField0_ & 0x00800000) == 0x00800000)) {
+        output.writeInt64(28, shouldPersistTime_);
       }
       unknownFields.writeTo(output);
     }
@@ -1430,11 +1427,6 @@ public final class InodeMeta {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(26, childCount_);
       }
-<<<<<<< HEAD
-      if (((bitField0_ & 0x00800000) == 0x00800000)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(27, shouldPersistTime_);
-=======
       {
         int dataSize = 0;
         for (int i = 0; i < mediumType_.size(); i++) {
@@ -1442,7 +1434,10 @@ public final class InodeMeta {
         }
         size += dataSize;
         size += 2 * getMediumTypeList().size();
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
+      }
+      if (((bitField0_ & 0x00800000) == 0x00800000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(28, shouldPersistTime_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1830,7 +1825,7 @@ public final class InodeMeta {
      **
      * General inode metadata. This includes most inode metadata, but does not include the inode's
      * children or time of last modification.
-     * next available id: 28
+     * next available id: 29
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.meta.Inode}
@@ -1926,16 +1921,14 @@ public final class InodeMeta {
         bitField0_ = (bitField0_ & ~0x00400000);
         replicationMax_ = 0;
         bitField0_ = (bitField0_ & ~0x00800000);
-<<<<<<< HEAD
-        shouldPersistTime_ = 0L;
-=======
         replicationMin_ = 0;
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
         bitField0_ = (bitField0_ & ~0x01000000);
-        persistJobId_ = 0L;
+        shouldPersistTime_ = 0L;
         bitField0_ = (bitField0_ & ~0x02000000);
-        persistJobTempUfsPath_ = "";
+        persistJobId_ = 0L;
         bitField0_ = (bitField0_ & ~0x04000000);
+        persistJobTempUfsPath_ = "";
+        bitField0_ = (bitField0_ & ~0x08000000);
         return this;
       }
 
@@ -2073,17 +2066,12 @@ public final class InodeMeta {
         if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
           to_bitField0_ |= 0x00800000;
         }
-<<<<<<< HEAD
         result.shouldPersistTime_ = shouldPersistTime_;
-        if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
-=======
-        result.persistJobId_ = persistJobId_;
         if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
           to_bitField0_ |= 0x01000000;
         }
         result.persistJobId_ = persistJobId_;
-        if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
+        if (((from_bitField0_ & 0x08000000) == 0x08000000)) {
           to_bitField0_ |= 0x02000000;
         }
         result.persistJobTempUfsPath_ = persistJobTempUfsPath_;
@@ -2231,7 +2219,7 @@ public final class InodeMeta {
           setPersistJobId(other.getPersistJobId());
         }
         if (other.hasPersistJobTempUfsPath()) {
-          bitField0_ |= 0x04000000;
+          bitField0_ |= 0x08000000;
           persistJobTempUfsPath_ = other.persistJobTempUfsPath_;
           onChanged();
         }
@@ -3500,31 +3488,31 @@ public final class InodeMeta {
 
       private long shouldPersistTime_ ;
       /**
-       * <code>optional int64 should_persist_time = 27;</code>
+       * <code>optional int64 should_persist_time = 28;</code>
        */
       public boolean hasShouldPersistTime() {
-        return ((bitField0_ & 0x01000000) == 0x01000000);
+        return ((bitField0_ & 0x02000000) == 0x02000000);
       }
       /**
-       * <code>optional int64 should_persist_time = 27;</code>
+       * <code>optional int64 should_persist_time = 28;</code>
        */
       public long getShouldPersistTime() {
         return shouldPersistTime_;
       }
       /**
-       * <code>optional int64 should_persist_time = 27;</code>
+       * <code>optional int64 should_persist_time = 28;</code>
        */
       public Builder setShouldPersistTime(long value) {
-        bitField0_ |= 0x01000000;
+        bitField0_ |= 0x02000000;
         shouldPersistTime_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 should_persist_time = 27;</code>
+       * <code>optional int64 should_persist_time = 28;</code>
        */
       public Builder clearShouldPersistTime() {
-        bitField0_ = (bitField0_ & ~0x01000000);
+        bitField0_ = (bitField0_ & ~0x02000000);
         shouldPersistTime_ = 0L;
         onChanged();
         return this;
@@ -3539,7 +3527,7 @@ public final class InodeMeta {
        * <code>optional int64 persist_job_id = 23;</code>
        */
       public boolean hasPersistJobId() {
-        return ((bitField0_ & 0x02000000) == 0x02000000);
+        return ((bitField0_ & 0x04000000) == 0x04000000);
       }
       /**
        * <pre>
@@ -3559,7 +3547,7 @@ public final class InodeMeta {
        * <code>optional int64 persist_job_id = 23;</code>
        */
       public Builder setPersistJobId(long value) {
-        bitField0_ |= 0x02000000;
+        bitField0_ |= 0x04000000;
         persistJobId_ = value;
         onChanged();
         return this;
@@ -3572,7 +3560,7 @@ public final class InodeMeta {
        * <code>optional int64 persist_job_id = 23;</code>
        */
       public Builder clearPersistJobId() {
-        bitField0_ = (bitField0_ & ~0x02000000);
+        bitField0_ = (bitField0_ & ~0x04000000);
         persistJobId_ = 0L;
         onChanged();
         return this;
@@ -3583,7 +3571,7 @@ public final class InodeMeta {
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
        */
       public boolean hasPersistJobTempUfsPath() {
-        return ((bitField0_ & 0x04000000) == 0x04000000);
+        return ((bitField0_ & 0x08000000) == 0x08000000);
       }
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
@@ -3626,7 +3614,7 @@ public final class InodeMeta {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x04000000;
+  bitField0_ |= 0x08000000;
         persistJobTempUfsPath_ = value;
         onChanged();
         return this;
@@ -3635,7 +3623,7 @@ public final class InodeMeta {
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
        */
       public Builder clearPersistJobTempUfsPath() {
-        bitField0_ = (bitField0_ & ~0x04000000);
+        bitField0_ = (bitField0_ & ~0x08000000);
         persistJobTempUfsPath_ = getDefaultInstance().getPersistJobTempUfsPath();
         onChanged();
         return this;
@@ -3648,7 +3636,7 @@ public final class InodeMeta {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x04000000;
+  bitField0_ |= 0x08000000;
         persistJobTempUfsPath_ = value;
         onChanged();
         return this;
@@ -3718,11 +3706,7 @@ public final class InodeMeta {
     java.lang.String[] descriptorData = {
       "\n\033proto/meta/inode_meta.proto\022\022alluxio.p" +
       "roto.meta\032\021grpc/common.proto\032\026proto/shar" +
-<<<<<<< HEAD
-      "ed/acl.proto\"\330\005\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020cr" +
-=======
-      "ed/acl.proto\"\320\005\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020cr" +
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
+      "ed/acl.proto\"\355\005\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020cr" +
       "eation_time_ms\030\002 \001(\003\022\024\n\014is_directory\030\003 \001" +
       "(\010\022\013\n\003ttl\030\004 \001(\003\022+\n\nttl_action\030\005 \001(\0162\027.al" +
       "luxio.grpc.TtlAction\022\030\n\020last_modified_ms" +
@@ -3730,19 +3714,6 @@ public final class InodeMeta {
       "\031\n\021persistence_state\030\010 \001(\t\022\021\n\tis_pinned\030" +
       "\t \001(\010\022;\n\naccess_acl\030\n \001(\0132\'.alluxio.prot" +
       "o.shared.AccessControlList\022\027\n\017ufs_finger" +
-<<<<<<< HEAD
-      "print\030\013 \001(\t\022\026\n\016is_mount_point\030\014 \001(\010\022\"\n\032h" +
-      "as_direct_children_loaded\030\r \001(\010\022\023\n\013child" +
-      "_count\030\032 \001(\003\022<\n\013default_acl\030\016 \001(\0132\'.allu" +
-      "xio.proto.shared.AccessControlList\022\030\n\020bl" +
-      "ock_size_bytes\030\017 \001(\003\022\016\n\006blocks\030\020 \003(\003\022\024\n\014" +
-      "is_cacheable\030\021 \001(\010\022\024\n\014is_completed\030\022 \001(\010" +
-      "\022\016\n\006length\030\023 \001(\003\022\033\n\023replication_durable\030" +
-      "\024 \001(\005\022\027\n\017replication_max\030\025 \001(\005\022\027\n\017replic" +
-      "ation_min\030\026 \001(\005\022\033\n\023should_persist_time\030\033" +
-      " \001(\003\022\026\n\016persist_job_id\030\027 \001(\003\022!\n\031persist_" +
-      "job_temp_ufs_path\030\030 \001(\t"
-=======
       "print\030\013 \001(\t\022\023\n\013medium_type\030\033 \003(\t\022\026\n\016is_m" +
       "ount_point\030\014 \001(\010\022\"\n\032has_direct_children_" +
       "loaded\030\r \001(\010\022\023\n\013child_count\030\032 \001(\003\022<\n\013def" +
@@ -3751,10 +3722,10 @@ public final class InodeMeta {
       "\003\022\016\n\006blocks\030\020 \003(\003\022\024\n\014is_cacheable\030\021 \001(\010\022" +
       "\024\n\014is_completed\030\022 \001(\010\022\016\n\006length\030\023 \001(\003\022\033\n" +
       "\023replication_durable\030\024 \001(\005\022\027\n\017replicatio" +
-      "n_max\030\025 \001(\005\022\027\n\017replication_min\030\026 \001(\005\022\026\n\016" +
-      "persist_job_id\030\027 \001(\003\022!\n\031persist_job_temp" +
-      "_ufs_path\030\030 \001(\t"
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
+      "n_max\030\025 \001(\005\022\027\n\017replication_min\030\026 \001(\005\022\033\n\023" +
+      "should_persist_time\030\034 \001(\003\022\026\n\016persist_job" +
+      "_id\030\027 \001(\003\022!\n\031persist_job_temp_ufs_path\030\030" +
+      " \001(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3775,11 +3746,7 @@ public final class InodeMeta {
     internal_static_alluxio_proto_meta_Inode_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_meta_Inode_descriptor,
-<<<<<<< HEAD
-        new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "IsMountPoint", "HasDirectChildrenLoaded", "ChildCount", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "ShouldPersistTime", "PersistJobId", "PersistJobTempUfsPath", });
-=======
-        new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "MediumType", "IsMountPoint", "HasDirectChildrenLoaded", "ChildCount", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "PersistJobId", "PersistJobTempUfsPath", });
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
+        new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "MediumType", "IsMountPoint", "HasDirectChildrenLoaded", "ChildCount", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "ShouldPersistTime", "PersistJobId", "PersistJobTempUfsPath", });
     alluxio.grpc.CommonProto.getDescriptor();
     alluxio.proto.shared.Acl.getDescriptor();
   }

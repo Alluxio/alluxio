@@ -527,12 +527,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMax(inode.getReplicationMax())
         .setReplicationMin(inode.getReplicationMin())
         .setPersistJobId(inode.getPersistJobId())
-<<<<<<< HEAD
         .setShouldPersistTime(inode.getShouldPersistTime())
-        .setTempUfsPath(inode.getPersistJobTempUfsPath());
-=======
         .setTempUfsPath(inode.getPersistJobTempUfsPath())
         .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
->>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
   }
 }

@@ -11,7 +11,7 @@ import "proto/shared/acl.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
- * next available id: 28
+ * next available id: 29
  */
 message Inode {
     optional int64 id = 1;
@@ -45,7 +45,7 @@ message Inode {
     optional int32 replication_durable = 20;
     optional int32 replication_max = 21;
     optional int32 replication_min = 22;
-    optional int64 should_persist_time = 27;
+    optional int64 should_persist_time = 28;
 
     // Used for recovering in-progress file persist jobs on master start.
     optional int64 persist_job_id = 23;
