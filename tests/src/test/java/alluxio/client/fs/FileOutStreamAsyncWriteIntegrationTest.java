@@ -42,7 +42,12 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @Test
   public void asyncWrite() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    createTwoBytesFile(filePath, Constants.NO_AUTO_PERSIST);
+    FileOutStream os = mFileSystem.createFile(filePath,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
+        .setRecursive(true).build());
+    os.write((byte) 0);
+    os.write((byte) 1);
+    os.close();
 
     CommonUtils.sleepMs(1);
     checkPersistStateAndWaitForPersist(filePath, 2);

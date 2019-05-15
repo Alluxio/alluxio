@@ -114,15 +114,18 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    // Parse arguments.
+    // Parse arguments
     int parallelism = FileSystemShellUtils.getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
     int timeoutMs = (int) FileSystemShellUtils.getMsArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
     long persistenceWaitTimeMs = FileSystemShellUtils.getMsArg(cl, WAIT_OPTION, DEFAULT_WAIT_TIME);
 
-    if (persistenceWaitTimeMs < 0) {
-      System.out.println("Persistence initial wait time should be bigger than or equal to 0.");
+    // Validate arguments
+    if ((persistenceWaitTimeMs > timeoutMs && timeoutMs != -1) || persistenceWaitTimeMs < 0) {
+      System.out.println("Persistence initial wait time should be smaller than persist timeout "
+          + "and bigger than zero");
       return -1;
     }
+
     String[] args = cl.getArgs();
 
     // Gather files to persist and enqueue them.
