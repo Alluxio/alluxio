@@ -29,7 +29,6 @@ import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -256,22 +255,6 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
       }
     }
     return null;
-  }
-
-  /**
-   * Resets the singleton {@link alluxio.security.LoginUser} to null.
-   */
-  protected void clearLoginUser() {
-    LoginUserTestUtils.resetLoginUser();
-  }
-
-  /**
-   * Clears the {@link alluxio.security.LoginUser} and logs in with new user.
-   *
-   * @param user the new user
-   */
-  protected void clearAndLogin(String user) throws IOException {
-    LoginUserTestUtils.resetLoginUser(user);
   }
 
   /**

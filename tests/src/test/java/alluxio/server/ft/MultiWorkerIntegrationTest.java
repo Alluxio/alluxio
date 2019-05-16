@@ -191,8 +191,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
-    AlluxioBlockStore store =
-        AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
+    FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+    AlluxioBlockStore store = AlluxioBlockStore.create(fsContext);
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
     List<BlockWorkerInfo> workers = store.getAllWorkers();
@@ -206,7 +206,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .get()
           .getNetAddress();
       try (OutputStream outStream = store.getOutStream(blockInfo.getBlockId(),
-          blockInfo.getLength(), dest, OutStreamOptions.defaults(ServerConfiguration.global())
+          blockInfo.getLength(), dest, OutStreamOptions.defaults(fsContext.getClientContext())
               .setBlockSizeBytes(8 * Constants.MB).setWriteType(WriteType.MUST_CACHE))) {
         try (InputStream inStream = store.getInStream(blockInfo.getBlockId(),
             new InStreamOptions(status, ServerConfiguration.global()))) {

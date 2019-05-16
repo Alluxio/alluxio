@@ -19,6 +19,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
@@ -28,8 +29,6 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
-import alluxio.security.LoginUser;
-import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -391,9 +390,9 @@ public abstract class AbstractClient implements Client {
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())
-          && LoginUser.get(mContext.getClusterConf()) != null) {
+          && mContext.getUserState().getUser() != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            LoginUser.get(mContext.getClusterConf()).getName());
+            mContext.getUserState().getUser().getName());
       } else {
         return metricName;
       }

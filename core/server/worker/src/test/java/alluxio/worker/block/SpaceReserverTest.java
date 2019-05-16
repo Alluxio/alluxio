@@ -24,6 +24,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.security.user.UserState;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -54,10 +55,13 @@ public class SpaceReserverTest {
   public ManuallyScheduleHeartbeat mSchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.WORKER_SPACE_RESERVER);
 
+  private UserState mUserState;
+
   @Before
   public void before() {
     mExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("space-reserver-test", true));
+    mUserState = UserState.Factory.create(ServerConfiguration.global());
   }
 
   @After
@@ -93,7 +97,7 @@ public class SpaceReserverTest {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0, ServerConfiguration.global()));
+          spaceReserver, 0, ServerConfiguration.global(), mUserState));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -139,7 +143,7 @@ public class SpaceReserverTest {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0, ServerConfiguration.global()));
+          spaceReserver, 0, ServerConfiguration.global(), mUserState));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -186,7 +190,7 @@ public class SpaceReserverTest {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0, ServerConfiguration.global()));
+          spaceReserver, 0, ServerConfiguration.global(), mUserState));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -234,7 +238,7 @@ public class SpaceReserverTest {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0, ServerConfiguration.global()));
+          spaceReserver, 0, ServerConfiguration.global(), mUserState));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);

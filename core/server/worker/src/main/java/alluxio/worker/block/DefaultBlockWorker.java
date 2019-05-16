@@ -33,6 +33,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -223,18 +224,18 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), ServerUserState.global()));
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), ServerUserState.global()));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), ServerUserState.global()));
 
     // Setup storage checker
     if (ServerConfiguration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
@@ -242,7 +243,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, mStorageChecker,
               (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-                  ServerConfiguration.global()));
+                  ServerConfiguration.global(), ServerUserState.global()));
     }
 
     // Start the session cleanup checker to perform the periodical checking

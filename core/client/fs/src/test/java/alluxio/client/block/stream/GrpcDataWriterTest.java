@@ -75,6 +75,7 @@ public final class GrpcDataWriterTest {
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private ClientContext mClientContext;
 
   @Rule
   public ConfigurationRule mConfigurationRule =
@@ -83,14 +84,15 @@ public final class GrpcDataWriterTest {
 
   @Before
   public void before() throws Exception {
+    mClientContext = ClientContext.create(mConf);
+
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = mock(WorkerNetAddress.class);
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
-    PowerMockito.when(mContext.getClientContext())
-        .thenReturn(ClientContext.create(mConf));
+    PowerMockito.when(mContext.getClientContext()).thenReturn(mClientContext);
     PowerMockito.when(mContext.getClusterConf()).thenReturn(mConf);
     PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
     PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
@@ -190,7 +192,7 @@ public final class GrpcDataWriterTest {
     DataWriter writer =
         GrpcDataWriter.create(mContext, mAddress, BLOCK_ID, length,
             RequestType.ALLUXIO_BLOCK,
-            OutStreamOptions.defaults(mConf).setWriteTier(TIER));
+            OutStreamOptions.defaults(mClientContext).setWriteTier(TIER));
     return writer;
   }
 

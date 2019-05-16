@@ -18,9 +18,11 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
+import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import org.hamcrest.core.StringStartsWith;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,7 +52,8 @@ public class GrpcSecurityTest {
   @Test
   public void testServerUnsupportedAuthentication() {
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage("Authentication type not supported:" + AuthType.KERBEROS.name());
+    mThrown.expectMessage(new StringStartsWith(
+        "No factory could create a UserState with authType: " + AuthType.KERBEROS.name()));
     createServer(AuthType.KERBEROS);
   }
 
@@ -58,8 +61,10 @@ public class GrpcSecurityTest {
   public void testSimpleAuthentication() throws Exception {
     GrpcServer server = createServer(AuthType.SIMPLE);
     server.start();
+    UserState us = UserState.Factory.create(mConfiguration);
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
+            .setSubject(us.getSubject());
     channelBuilder.build();
     server.shutdown();
   }
@@ -137,8 +142,9 @@ public class GrpcSecurityTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, authType.name());
     InetSocketAddress bindAddress = new InetSocketAddress(NetworkAddressUtils.getLocalHostName(
         (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0);
+    UserState us = UserState.Factory.create(mConfiguration);
     GrpcServerBuilder serverBuilder =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, mConfiguration);
+        GrpcServerBuilder.forAddress("localhost", bindAddress, mConfiguration, us);
     return serverBuilder.build();
   }
 

@@ -24,7 +24,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -195,7 +194,6 @@ public abstract class AbstractLocalAlluxioCluster {
   public void stop() throws Exception {
     stopFS();
     reset();
-    LoginUserTestUtils.resetLoginUser();
     ServerConfiguration.reset();
   }
 
