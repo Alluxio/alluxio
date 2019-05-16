@@ -154,6 +154,9 @@ message TierList {
   repeated int64 tiers = 1;
 }
 
+message BlockIdList {
+  repeated int64 blockId = 1;
+}
 /**
  * A list of lost storage paths inside a worker
  */
@@ -166,6 +169,18 @@ message BlockHeartbeatPOptions {
   repeated grpc.Metric metrics = 1;
   map<string, int64> capacityBytesOnTiers = 2;
 }
+
+message BlockStoreLocationProto {
+  optional string tierAlias = 1;
+  optional int64 dirIndex = 2;
+  optional string mediumType = 3;
+}
+
+message LocationBlockIdListEntry {
+  optional BlockStoreLocationProto key= 1;
+  optional BlockIdList value = 2;
+}
+
 message BlockHeartbeatPRequest {
   /** the id of the worker */
   optional int64 workerId = 1;
@@ -173,11 +188,13 @@ message BlockHeartbeatPRequest {
   map<string, int64> usedBytesOnTiers = 2;
   /** the list of removed block ids */
   repeated int64 removedBlockIds = 3;
-  /** the map of added blocks on all tiers */
+  /** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) */
   map<string, TierList> addedBlocksOnTiers = 4;
   optional BlockHeartbeatPOptions options = 5;
   /** the map of lost storage paths on all tiers */
   map<string, StorageList> lostStorage = 6;
+  /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
+  repeated LocationBlockIdListEntry addedBlocks = 7;
 }
 
 message BlockHeartbeatPResponse {
@@ -234,11 +251,13 @@ message RegisterWorkerPRequest {
   map<string, int64> totalBytesOnTiers = 3;
   /** the map of used bytes on each tier */
   map<string, int64> usedBytesOnTiers = 4;
-  /** the map of list of blocks on each tier */
+  /** the map of list of blocks on each tier (deprecated since 2.0, replaced by currentBlocks*/
   map<string, TierList> currentBlocksOnTiers = 5;
   optional RegisterWorkerPOptions options = 6;
   /** the map of tier alias to a list of lost storage paths. */
   map<string, StorageList> lostStorage = 7;
+  /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
+  repeated LocationBlockIdListEntry currentBlocks = 8;
 }
 message RegisterWorkerPResponse {}
 

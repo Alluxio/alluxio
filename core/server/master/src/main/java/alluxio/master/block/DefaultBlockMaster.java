@@ -851,7 +851,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<String, List<Long>> addedBlocksOnTiers,
+      Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -865,7 +865,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
-      processWorkerAddedBlocks(worker, addedBlocksOnTiers);
+      processWorkerAddedBlocks(worker, addedBlocks);
       processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
       worker.addLostStorage(lostStorage);
@@ -925,8 +925,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    */
   @GuardedBy("workerInfo")
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
-      Map<String, List<Long>> addedBlockIds) {
-    for (Map.Entry<String, List<Long>> entry : addedBlockIds.entrySet()) {
+      Map<BlockLocation, List<Long>> addedBlockIds) {
+    for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
       for (long blockId : entry.getValue()) {
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
@@ -934,7 +934,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             workerInfo.addBlock(blockId);
             mBlockStore.addLocation(blockId, BlockLocation.newBuilder()
                 .setWorkerId(workerInfo.getId())
-                .setTier(entry.getKey())
+                .setTier(entry.getKey().getTier())
+                .setMediumType(entry.getKey().getMediumType())
+                .setDirIndex(entry.getKey().getDirIndex())
                 .build());
             mLostBlocks.remove(blockId);
           } else {

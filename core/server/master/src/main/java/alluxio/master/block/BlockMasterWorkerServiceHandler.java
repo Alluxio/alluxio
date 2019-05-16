@@ -15,12 +15,14 @@ import alluxio.RpcUtils;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
+import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -28,6 +30,7 @@ import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.grpc.GrpcUtils;
 
+import alluxio.proto.meta.Block;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -67,16 +70,21 @@ public final class BlockMasterWorkerServiceHandler
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
-    final Map<String, List<Long>> addedBlocksOnTiersMap = request.getAddedBlocksOnTiersMap()
-        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e -> e.getValue().getTiersList()));
+    final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
+        request.getAddedBlocksList().stream()
+            .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
+                    .setTier(e.getKey().getTierAlias())
+                    .setMediumType(e.getKey().getMediumType())
+                    .setDirIndex(e.getKey().getDirIndex())
+                    .build(),
+            e -> e.getValue().getBlockIdList()));
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiersMap,
+          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
         "blockHeartbeat", "request=%s", responseObserver, request);
   }
