@@ -131,9 +131,18 @@
       <configuration>
         <apiSources>
           <apiSource>
+            <springmvc>false</springmvc>
+            <schemes>http</schemes>
+            <host>[Alluxio Job Master Hostname]</host>
+            <basePath>/api/v1</basePath>
+            <info>
+              <version>v1</version>
+              <title>Alluxio Job Master REST API Documentation</title>
+              <description>The Alluxio Job Master is a component of the Job Service that coordinates Alluxio Job Workers to execute distributed tasks scheduled by the Alluxio system.</description>
+            </info>
             <locations>alluxio.master</locations>
             <templatePath>${project.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
-            <outputPath>${project.parent.parent.basedir}/generated/job/document.html</outputPath>
+            <outputPath>${project.parent.parent.basedir}/generated/job/index.html</outputPath>
             <swaggerDirectory>${project.parent.parent.basedir}/generated/job/swagger-ui</swaggerDirectory>
           </apiSource>
         </apiSources>

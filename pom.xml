@@ -979,33 +979,6 @@
           <groupId>com.github.kongchen</groupId>
           <artifactId>swagger-maven-plugin</artifactId>
           <version>3.1.1</version>
-          <configuration>
-            <apiSources>
-              <apiSource>
-                <springmvc>false</springmvc>
-                <schemes>http,https</schemes>
-                <host>[Alluxio Master Hostname]</host>
-                <basePath>/api/v1</basePath>
-                <info>
-                  <title>Alluxio REST API Documentation</title>
-                  <version>v1</version>
-                  <termsOfService>
-                    http://www.github.com/alluxio/alluxio
-                  </termsOfService>
-                  <description>Documentation for Alluxio RESTful APIs</description>
-                  <contact>
-                    <email>haoyuan@alluxio.com</email>
-                    <name>Haoyuan Li</name>
-                    <url>www.alluxio.io</url>
-                  </contact>
-                  <license>
-                    <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-                    <name>Apache 2.0</name>
-                  </license>
-                </info>
-              </apiSource>
-            </apiSources>
-          </configuration>
           <executions>
             <execution>
               <phase>compile</phase>
