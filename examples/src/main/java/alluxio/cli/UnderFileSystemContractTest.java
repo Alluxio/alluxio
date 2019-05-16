@@ -27,21 +27,24 @@ import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
  * Integration tests for Alluxio under filesystems. It describes the contract of Alluxio
  * with the UFS through the UFS interface.
+ *
+ * This class will run all tests (with "Test" suffix in the method name)
+ * in {@link UnderFileSystemCommonOperations}. If the given ufs path is a S3 path,
+ * all tests in {@link S3ASpecificOperations} will also be run.
  */
 public final class UnderFileSystemContractTest {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemContractTest.class);
@@ -61,8 +64,6 @@ public final class UnderFileSystemContractTest {
   private UnderFileSystemFactory mFactory;
   private UnderFileSystem mUfs;
 
-  private boolean mIsS3Ufs;
-
   private UnderFileSystemContractTest() {}
 
   private void run() throws Exception {
@@ -74,16 +75,17 @@ public final class UnderFileSystemContractTest {
       System.exit(1);
     }
 
+    // Set common properties
     mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, "50");
     mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
     // Increase the buffer time of journal writes to speed up tests
     mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
 
     createUnderFileSystem();
-    mIsS3Ufs = mUfs.getUnderFSType().equals(S3_IDENTIFIER);
+
     runCommonOperations();
 
-    if (mIsS3Ufs) {
+    if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
       runS3AOperations();
     }
     CliUtils.printPassInfo(true);
@@ -101,14 +103,14 @@ public final class UnderFileSystemContractTest {
     mConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED, "true");
     mConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     mConf.set(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
-
     createUnderFileSystem();
+
     String testDir = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
     loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);
   }
 
   /**
-   * Loads and runs the tests.
+   * Loads and runs the tests in the target operations class.
    *
    * @param operationsToTest the class that contains the tests to run
    * @param testDir the test directory to run tests against
@@ -128,12 +130,8 @@ public final class UnderFileSystemContractTest {
           try {
             test.invoke(operationsToTest);
           } catch (InvocationTargetException e) {
-            if (mIsS3Ufs) {
-              List<String> operations = getRelatedS3AOperations(testName);
-              if (operations.size() > 0) {
-                LOG.info("Related S3 operations: "
-                    + StringUtils.join(operations, ","));
-              }
+            if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
+              logRelatedS3Operations(test);
             }
             throw new IOException(e.getTargetException());
           }
@@ -178,113 +176,19 @@ public final class UnderFileSystemContractTest {
   }
 
   /**
-   * Gets the S3A operations related to the failed test. This method
+   * Logs the S3 operations related to the failed test. This method
    * should only be called when the ufs is S3A.
    *
-   * @param testName the name of the failed test
-   * @return the related S3A operations
+   * @param test the test to log
    */
-  private List<String> getRelatedS3AOperations(String testName) {
-    List<String> operations = new ArrayList<>();
-    switch (testName) {
-      case "createFileLessThanOnePartTest":
-        operations.add("AmazonS3Client.initiateMultipartUpload()");
-        operations.add("AmazonS3Client.uploadPart()");
-        operations.add("AmazonS3Client.completeMultipartUpload()");
-        break;
-      case "createMultipartFileTest":
-        operations.add("AmazonS3Client.initiateMultipartUpload()");
-        operations.add("AmazonS3Client.uploadPart()");
-        operations.add("AmazonS3Client.completeMultipartUpload()");
-        operations.add("AmazonS3Client.listObjects()");
-        break;
-      case "createAndAbortMultipartFileTest":
-        operations.add("AmazonS3Client.initiateMultipartUpload()");
-        operations.add("AmazonS3Client.uploadPart()");
-        operations.add("TransferManager.abortMultipartUploads()");
-        break;
-      case "createAtomicTest":
-      case "createEmptyTest":
-      case "createParentTest":
-      case "createThenGetExistingFileStatusTest":
-      case "createThenGetExistingStatusTest":
-      case "getFileSizeTest":
-      case "getFileStatusTest":
-      case "getModTimeTest":
-        operations.add("TransferManager.upload()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "createOpenTest":
-      case "createOpenAtPositionTest":
-      case "createOpenEmptyTest":
-      case "createOpenExistingLargeFileTest":
-      case "createOpenLargeTest":
-        operations.add("TransferManager.upload()");
-        operations.add("AmazonS3Client.getObject()");
-        break;
-      case "deleteFileTest":
-        operations.add("TransferManager.upload()");
-        operations.add("AmazonS3Client.deleteObject()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "deleteDirTest":
-      case "deleteLargeDirectoryTest":
-      case "createThenDeleteExistingDirectoryTest":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("AmazonS3Client.deleteObjects()");
-        operations.add("AmazonS3Client.listObjectsV2()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "createDeleteFileConjuctionTest":
-        operations.add("TransferManager.upload()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        operations.add("AmazonS3Client.deleteObject()");
-        break;
-      case "existsTest":
-      case "getDirectoryStatusTest":
-      case "createThenGetExistingDirectoryStatus":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "isFileTest":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("AmazonS3Client.deleteObject()");
-        break;
-      case "listStatusTest":
-      case "listStatusEmptyTest":
-      case "listStatusFileTest":
-      case "listLargeDirectoryTest":
-      case "listStatusRecursiveTest":
-      case "mkdirsTest":
-      case "objectCommonPrefixesIsDirectoryTest":
-      case "objectCommonPrefixesListStatusNonRecursiveTest":
-      case "objectCommonPrefixesListStatusRecursiveTest":
-      case "objectNestedDirsListStatusRecursiveTest":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("AmazonS3Client.listObjectsV2()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "renameFileTest":
-      case "renameRenamableFileTest":
-        operations.add("TransferManager.upload()");
-        operations.add("TransferManager.copyObject()");
-        operations.add("AmazonS3Client.deleteObject()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "renameDirectoryTest":
-      case "renameDirectoryDeepTest":
-      case "renameLargeDirectoryTest":
-      case "renameRenameableDirectoryTest":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("TransferManager.upload()");
-        operations.add("TransferManager.copyObject()");
-        operations.add("AmazonS3Client.listObjectsV2()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      default:
-        break;
+  private void logRelatedS3Operations(Method test) {
+    RelatedS3Operations annotation = test.getAnnotation(RelatedS3Operations.class);
+    if (annotation != null) {
+      String[] ops = annotation.operations();
+      if (ops.length > 0) {
+        LOG.info("Related S3 operations: " + String.join(", ", ops));
+      }
     }
-    return operations;
   }
 
   private static String getHelpMessage() {
@@ -321,5 +225,16 @@ public final class UnderFileSystemContractTest {
     } else {
       test.run();
     }
+  }
+
+  /**
+   * Annotates methods with related S3 operations.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface RelatedS3Operations {
+    /**
+     * @return related S3 operations
+     */
+    String[] operations();
   }
 }

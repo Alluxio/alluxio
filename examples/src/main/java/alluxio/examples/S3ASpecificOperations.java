@@ -12,6 +12,7 @@
 package alluxio.examples;
 
 import alluxio.Constants;
+import alluxio.cli.UnderFileSystemContractTest.RelatedS3Operations;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -72,6 +73,8 @@ public final class S3ASpecificOperations {
   /**
    * Test for creating file less than one part.
    */
+  @RelatedS3Operations(operations
+      = {"initiateMultipartUpload", "uploadPart", "completeMultipartUpload"})
   public void createFileLessThanOnePartTest() throws IOException {
     String testFile = PathUtils.concatPath(mTestDirectory, "createOpen");
     byte[] buf;
@@ -89,6 +92,8 @@ public final class S3ASpecificOperations {
   /**
    * Test for creating multipart file.
    */
+  @RelatedS3Operations(operations
+      = {"initiateMultipartUpload", "uploadPart", "completeMultipartUpload", "listObjects"})
   public void createMultipartFileTest() throws IOException {
     String testParent = PathUtils.concatPath(mTestDirectory, "createParent");
     String testFile = PathUtils.concatPath(testParent, "createOpenLarge");
@@ -128,6 +133,8 @@ public final class S3ASpecificOperations {
   /**
    * Test for creating and aborting multipart file.
    */
+  @RelatedS3Operations(operations = {"initiateMultipartUpload", "uploadPart",
+      "abortMultipartUploads"})
   public void createAndAbortMultipartFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTestDirectory, "createAndAbort");
     OutputStream outputStream = mUfs.create(testFile);

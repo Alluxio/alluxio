@@ -11,6 +11,7 @@
 
 package alluxio.examples;
 
+import alluxio.cli.UnderFileSystemContractTest.RelatedS3Operations;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
@@ -28,9 +29,6 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,7 +40,6 @@ import java.util.Arrays;
  * The class should contain all the Alluxio ufs semantics.
  */
 public final class UnderFileSystemCommonOperations {
-  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemCommonOperations.class);
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   private static final String FILE_CONTENT_INCORRECT
@@ -87,6 +84,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating file atomic.
    */
+  @RelatedS3Operations(operations = {"upload", "getObjectMetadata"})
   public void createAtomicTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createAtomic");
     OutputStream stream = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
@@ -104,6 +102,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating empty file.
    */
+  @RelatedS3Operations(operations = {"upload", "getObjectMetadata"})
   public void createEmptyTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createEmpty");
     createEmptyFile(testFile);
@@ -115,6 +114,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating file without parent.
    */
+  @RelatedS3Operations(operations = {})
   public void createNoParentTest() throws IOException {
     // Run the test only for local UFS. Other UFSs succeed if no parents are present
     if (!UnderFileSystemUtils.isLocal(mUfs)) {
@@ -137,6 +137,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating file with parent.
    */
+  @RelatedS3Operations(operations = {"upload", "getObjectMetadata"})
   public void createParentTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createParent/testFile");
     OutputStream o = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
@@ -150,6 +151,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating and opening file.
    */
+  @RelatedS3Operations(operations = {"upload", "getObject"})
   public void createOpenTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpen");
     createTestBytesFile(testFile);
@@ -163,6 +165,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating and opening empty file.
    */
+  @RelatedS3Operations(operations = {"upload", "getObject"})
   public void createOpenEmptyTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenEmpty");
     createEmptyFile(testFile);
@@ -182,6 +185,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating file and opening at position.
    */
+  @RelatedS3Operations(operations = {"upload", "getObject"})
   public void createOpenAtPositionTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenAtPosition");
     prepareMultiBlockFile(testFile);
@@ -198,6 +202,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating and opening large file.
    */
+  @RelatedS3Operations(operations = {"upload", "getObject"})
   public void createOpenLargeTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenLarge");
     int numCopies = prepareMultiBlockFile(testFile);
@@ -227,6 +232,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating and open existing large file.
    */
+  @RelatedS3Operations(operations = {"upload", "getObject"})
   public void createOpenExistingLargeFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenExistingLargeFile");
     int numCopies = prepareMultiBlockFile(testFile);
@@ -246,6 +252,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for deleting file.
    */
+  @RelatedS3Operations(operations = {"upload", "deleteObject", "getObjectMetadata"})
   public void deleteFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "deleteFile");
     createEmptyFile(testFile);
@@ -261,6 +268,8 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for deleting directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "deleteObjects",
+      "listObjectsV2", "getObjectMetadata"})
   public void deleteDirTest() throws IOException {
     String testDirEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "deleteDirTestDirEmpty");
     String testDirNonEmpty = PathUtils
@@ -301,6 +310,8 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for deleting large directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "deleteObjects",
+      "listObjectsV2", "getObjectMetadata"})
   public void deleteLargeDirectoryTest() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectory();
     mUfs.deleteDirectory(config.getTopLevelDirectory(),
@@ -308,7 +319,7 @@ public final class UnderFileSystemCommonOperations {
 
     String[] children = config.getChildren();
     for (String child : children) {
-      // Retry for some time to allow list operation eventual consistency for S3 and GCS.
+      // Retry for some time to allow list operations eventual consistency for S3 and GCS.
       // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
       // https://cloud.google.com/storage/docs/consistency for more details.
       // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
@@ -329,6 +340,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating and deleting file conjunction.
    */
+  @RelatedS3Operations(operations = {"upload", "getObjectMetadata", "deleteObject"})
   public void createDeleteFileConjuctionTest() throws IOException {
     String testFile = PathUtils
         .concatPath(mTopLevelTestDirectory, "deleteThenCreateNonexistingFile");
@@ -356,6 +368,8 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating and deleting existing directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "deleteObjects",
+      "listObjectsV2", "getObjectMetadata"})
   public void createThenDeleteExistingDirectoryTest() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectory();
     if (!mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
@@ -367,6 +381,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for checking file existence.
    */
+  @RelatedS3Operations(operations = {"putObject", "getObjectMetadata"})
   public void existsTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     if (mUfs.isFile(testFile)) {
@@ -389,6 +404,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for getting directory status.
    */
+  @RelatedS3Operations(operations = {"putObject", "getObjectMetadata"})
   public void getDirectoryStatusTest() throws IOException {
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "testDir");
     mUfs.mkdirs(testDir);
@@ -402,6 +418,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for getting existing directory status.
    */
+  @RelatedS3Operations(operations = {"putObject", "getObjectMetadata"})
   public void createThenGetExistingDirectoryStatusTest() throws IOException {
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "testDir");
     mUfs.mkdirs(testDir);
@@ -414,6 +431,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for getting file size.
    */
+  @RelatedS3Operations(operations = {"upload", "getObjectMetadata"})
   public void getFileSizeTest() throws IOException {
     String testFileEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "testFileEmpty");
     String testFileNonEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "testFileNonEmpty");
@@ -428,6 +446,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for getting existing file status.
    */
+  @RelatedS3Operations(operations = {"upload", "getObjectMetadata"})
   public void createThenGetExistingFileStatusTest() throws IOException {
     String testFileNonEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "testFileNonEmpty");
     String testFileLarge = PathUtils.concatPath(mTopLevelTestDirectory, "testFileLarge");
@@ -443,6 +462,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for getting file status.
    */
+  @RelatedS3Operations(operations = {"upload", "getObjectMetadata"})
   public void getFileStatusTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     createEmptyFile(testFile);
@@ -456,6 +476,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for getting existing status.
    */
+  @RelatedS3Operations(operations = {})
   public void createThenGetExistingStatusTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     createTestBytesFile(testFile);
@@ -469,6 +490,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for getting modification time.
    */
+  @RelatedS3Operations(operations = {"upload", "getObjectMetadata"})
   public void getModTimeTest() throws IOException {
     long slack = 5000; // Some file systems may report nearest second.
     long start = System.currentTimeMillis();
@@ -484,6 +506,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for checking file is actual file.
    */
+  @RelatedS3Operations(operations = {"putObject", "deleteObject"})
   public void isFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "testDir");
@@ -503,6 +526,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for listing status.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void listStatusTest() throws IOException {
     String testDirNonEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "testDirNonEmpty1");
     String testDirNonEmptyChildDir = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
@@ -542,6 +566,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for listing empty directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void listStatusEmptyTest() throws IOException {
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "listStatusEmpty");
     mUfs.mkdirs(testDir);
@@ -554,6 +579,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for listing status on file.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void listStatusFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "listStatusFile");
     createEmptyFile(testFile);
@@ -565,11 +591,12 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for listing large directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void listLargeDirectoryTest() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectory();
     String[] children = config.getChildren();
 
-    // Retry for some time to allow list operation eventual consistency for S3 and GCS.
+    // Retry for some time to allow list operations eventual consistency for S3 and GCS.
     // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
     // https://cloud.google.com/storage/docs/consistency for more details.
     // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
@@ -598,6 +625,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for listing status recursively.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void listStatusRecursiveTest() throws IOException {
     String root = mTopLevelTestDirectory;
     // TODO(andrew): Should this directory be created in LocalAlluxioCluster creation code?
@@ -658,6 +686,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for creating directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void mkdirsTest() throws IOException {
     // make sure the underfs address dir exists already
     mUfs.mkdirs(mTopLevelTestDirectory);
@@ -682,6 +711,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for checking directory in object storage.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void objectCommonPrefixesIsDirectoryTest() throws IOException {
     // Only run test for an object store
     if (!mUfs.isObjectStorage()) {
@@ -707,6 +737,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for listing status non recursively in object storage.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void objectCommonPrefixesListStatusNonRecursiveTest() throws IOException {
     // Only run test for an object store
     if (!mUfs.isObjectStorage()) {
@@ -750,6 +781,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for listing status recursively in object storage.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void objectCommonPrefixesListStatusRecursiveTest() throws IOException {
     // Only run test for an object store
     if (!mUfs.isObjectStorage()) {
@@ -809,6 +841,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for listing status recursively in nested directory in object storage.
    */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
   public void objectNestedDirsListStatusRecursiveTest() throws IOException {
     // Only run test for an object store
     if (!mUfs.isObjectStorage()) {
@@ -861,6 +894,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for renaming file.
    */
+  @RelatedS3Operations(operations = {"upload", "copyObject", "deleteObject", "getObjectMetadata"})
   public void renameFileTest() throws IOException {
     String testFileSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileSrc");
     String testFileDst = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileDst");
@@ -877,6 +911,7 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for renaming renamable file.
    */
+  @RelatedS3Operations(operations = {"upload", "copyObject", "deleteObject", "getObjectMetadata"})
   public void renameRenamableFileTest() throws IOException {
     String testFileSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileSrc");
     String testFileDst = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileDst");
@@ -893,6 +928,8 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for renaming directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "upload", "copyObject",
+      "listObjectsV2", "getObjectMetadata"})
   public void renameDirectoryTest() throws IOException {
     String testDirSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameDirectorySrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
@@ -918,6 +955,8 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for renaming deep directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "upload", "copyObject",
+      "listObjectsV2", "getObjectMetadata"})
   public void renameDirectoryDeepTest() throws IOException {
     String testDirSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameDirectoryDeepSrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
@@ -954,6 +993,8 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for renaming renamable directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "upload", "copyObject",
+      "listObjectsV2", "getObjectMetadata"})
   public void renameRenamableDirectoryTest() throws IOException {
     String testDirSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameRenamableDirectorySrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
@@ -990,6 +1031,8 @@ public final class UnderFileSystemCommonOperations {
   /**
    * Test for renaming large directory.
    */
+  @RelatedS3Operations(operations = {"putObject", "upload", "copyObject",
+      "listObjectsV2", "getObjectMetadata"})
   public void renameLargeDirectoryTest() throws Exception {
     LargeDirectoryConfig config = prepareLargeDirectory();
     String dstTopLevelDirectory = PathUtils.concatPath(mTopLevelTestDirectory, "topLevelDirMoved");
@@ -997,7 +1040,7 @@ public final class UnderFileSystemCommonOperations {
     // 1. Check the src directory no longer exists
     String[] srcChildren = config.getChildren();
     for (String src : srcChildren) {
-      // Retry for some time to allow list operation eventual consistency for S3 and GCS.
+      // Retry for some time to allow list operations eventual consistency for S3 and GCS.
       // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
       // https://cloud.google.com/storage/docs/consistency for more details.
       CommonUtils.waitFor("list after delete consistency", () -> {
