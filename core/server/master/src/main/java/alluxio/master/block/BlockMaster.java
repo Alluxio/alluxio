@@ -175,15 +175,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    *        hierarchy
    * @param totalBytesOnTiers a mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
-   * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
-   * @param options the options that may contain worker configuration
+   * @param currentBlocksOnLocation a mapping from storage tier alias to a list of blocks
    * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
+   * @param options the options that may contain worker configuration
    * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers, Map<String, StorageList> lostStorage,
-      RegisterWorkerPOptions options) throws NotFoundException;
+      Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+      throws NotFoundException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.

@@ -806,8 +806,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers, Map<String, StorageList> lostStorage,
-      RegisterWorkerPOptions options) throws NotFoundException {
+      Map<BlockLocation, List<Long>> currentBlocksOnLocation,
+      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+      throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
@@ -821,7 +822,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
     // Gather all blocks on this worker.
     HashSet<Long> blocks = new HashSet<>();
-    for (List<Long> blockIds : currentBlocksOnTiers.values()) {
+    for (List<Long> blockIds : currentBlocksOnLocation.values()) {
       blocks.addAll(blockIds);
     }
 
@@ -831,7 +832,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
       processWorkerRemovedBlocks(worker, removedBlocks);
-      processWorkerAddedBlocks(worker, currentBlocksOnTiers);
+      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
       processWorkerOrphanedBlocks(worker);
       worker.addLostStorage(lostStorage);
     }

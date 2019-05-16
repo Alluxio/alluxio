@@ -42,8 +42,11 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
   /** Mapping from storage tier alias to used bytes. */
   private final Map<String, Long> mUsedBytesOnTiers = new HashMap<>();
 
-  /** Mapping from storage tier alias to capacity bytes. */
+  /** Mapping from storage tier alias to block id list. */
   private final Map<String, List<Long>> mBlockIdsOnTiers;
+
+  /** Mapping from BlockStoreLocation to block id list. */
+  private final Map<BlockStoreLocation, List<Long>> mBlockIdsOnLocations;
 
   /** Mapping from storage dir tier and path to total capacity. */
   private final Map<Pair<String, String>, Long> mCapacityBytesOnDirs = new HashMap<>();
@@ -62,6 +65,14 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
 
     return mBlockIdsOnTiers;
   }
+
+  @Override
+  public Map<BlockStoreLocation, List<Long>> getBlockListByStorageLocation() {
+    Preconditions.checkNotNull(mBlockIdsOnLocations, "mBlockIdsOnLocations");
+
+    return mBlockIdsOnLocations;
+  }
+
 
   @Override
   public long getCapacityBytes() {
@@ -153,9 +164,14 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
 
     if (shouldIncludeBlockIds) {
       mBlockIdsOnTiers = new HashMap<>();
+      mBlockIdsOnLocations = new HashMap<>();
       for (StorageTier tier : manager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           List<Long> blockIds;
+          BlockStoreLocation location
+              = new BlockStoreLocation(tier.getTierAlias(), dir.getDirIndex(), dir.getDirMedium());
+          List<Long> blockIdsForLocation = new ArrayList<>(dir.getBlockIds());
+          mBlockIdsOnLocations.put(location, blockIdsForLocation);
           if (mBlockIdsOnTiers.containsKey(tier.getTierAlias())) {
             blockIds = mBlockIdsOnTiers.get(tier.getTierAlias());
           } else {
@@ -167,6 +183,7 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
       }
     } else {
       mBlockIdsOnTiers = null;
+      mBlockIdsOnLocations = null;
     }
 
     for (StorageTier tier : manager.getTiers()) {

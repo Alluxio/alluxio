@@ -132,6 +132,26 @@ public final class BlockMasterClient extends AbstractMasterClient {
     });
   }
 
+  private List<LocationBlockIdListEntry> convertBlockListMapToProto
+      (Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
+    final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
+    for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockListOnLocation.entrySet()) {
+      BlockStoreLocation loc = entry.getKey();
+      List<Long> entryValue = entry.getValue();
+      BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
+          .setTierAlias(loc.tierAlias())
+          .setDirIndex(loc.dir())
+          .setMediumType(loc.mediumType())
+          .build();
+
+      BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(entryValue).build();
+      LocationBlockIdListEntry listEntry = LocationBlockIdListEntry.newBuilder()
+          .setKey(locationProto).setValue(blockIdList).build();
+      entryList.add(listEntry);
+    }
+
+    return entryList;
+  }
   /**
    * The method the worker should periodically execute to heartbeat back to the master.
    *
@@ -152,21 +172,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
         .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
 
-    final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
-    for (Map.Entry<BlockStoreLocation, List<Long>> entry : addedBlocks.entrySet()) {
-      BlockStoreLocation loc = entry.getKey();
-      List<Long> entryValue = entry.getValue();
-      BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
-          .setTierAlias(loc.tierAlias())
-          .setDirIndex(loc.dir())
-          .setMediumType(loc.mediumType())
-          .build();
-
-      BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(entryValue).build();
-      LocationBlockIdListEntry listEntry = LocationBlockIdListEntry.newBuilder()
-          .setKey(locationProto).setValue(blockIdList).build();
-      entryList.add(listEntry);
-    }
+    final List<LocationBlockIdListEntry> entryList = convertBlockListMapToProto(addedBlocks);
 
     final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey,
@@ -187,23 +193,21 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param storageTierAliases a list of storage tier aliases in ordinal order
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
-   * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
+   * @param currentBlocksOnLocation mapping from storage tier alias to the list of list of blocks
    * @param lostStorage mapping from storage tier alias to the list of lost storage paths
    * @param configList a list of configurations
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers,
+      final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
       final Map<String, List<String>> lostStorage,
       final List<ConfigProperty> configList) throws IOException {
 
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
 
-    final Map<String, TierList> currentBlockOnTiersMap = currentBlocksOnTiers.entrySet()
-        .stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e -> TierList.newBuilder().addAllTiers(e.getValue()).build()));
+    final List<LocationBlockIdListEntry> currentBlocks = convertBlockListMapToProto(currentBlocksOnLocation);
 
     final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey,
@@ -211,7 +215,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
 
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
-        .putAllUsedBytesOnTiers(usedBytesOnTiers).putAllCurrentBlocksOnTiers(currentBlockOnTiersMap)
+        .putAllUsedBytesOnTiers(usedBytesOnTiers)
+        .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
         .setOptions(options).build();
 
