@@ -235,8 +235,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   protected void startMasters() throws IOException {
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/election");
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/alluxio/election");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/alluxio/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
       ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR,

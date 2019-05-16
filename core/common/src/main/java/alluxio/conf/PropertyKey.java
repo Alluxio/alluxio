@@ -467,7 +467,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey ZOOKEEPER_ELECTION_PATH =
       new Builder(Name.ZOOKEEPER_ELECTION_PATH)
-          .setDefaultValue("/election")
+          .setDefaultValue("/alluxio/election")
           .setDescription("Election directory in ZooKeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
@@ -485,7 +485,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey ZOOKEEPER_LEADER_PATH =
       new Builder(Name.ZOOKEEPER_LEADER_PATH)
-          .setDefaultValue("/leader")
+          .setDefaultValue("/alluxio/leader")
           .setDescription("Leader directory in ZooKeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
