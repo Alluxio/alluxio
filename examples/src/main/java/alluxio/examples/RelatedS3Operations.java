@@ -15,7 +15,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * A annotation for methods with related S3 operations.
+ * An annotation for methods with related S3 operations.
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RelatedS3Operations {
