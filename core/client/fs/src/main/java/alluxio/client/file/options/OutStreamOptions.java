@@ -47,6 +47,7 @@ public final class OutStreamOptions {
   private String mGroup;
   private Mode mMode;
   private AccessControlList mAcl;
+  private long mPersistenceWaitTime;
   private int mReplicationDurable;
   private int mReplicationMax;
   private int mReplicationMin;
@@ -79,6 +80,9 @@ public final class OutStreamOptions {
     }
     if (options.hasMode()) {
       mMode = Mode.fromProto(options.getMode());
+    }
+    if (options.hasPersistenceWaitTime()) {
+      mPersistenceWaitTime = options.getPersistenceWaitTime();
     }
     if (options.hasReplicationDurable()) {
       mReplicationDurable = options.getReplicationDurable();
@@ -116,6 +120,7 @@ public final class OutStreamOptions {
     mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf
         .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     mMountId = IdUtils.INVALID_MOUNT_ID;
+    mPersistenceWaitTime = alluxioConf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME);
     mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
@@ -190,6 +195,13 @@ public final class OutStreamOptions {
    */
   public Mode getMode() {
     return mMode;
+  }
+
+  /**
+   * @return the persistence initial wait time
+   */
+  public long getPersistenceWaitTime() {
+    return mPersistenceWaitTime;
   }
 
   /**
@@ -343,6 +355,15 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @param persistenceWaitTime the persistence initial wait time
+   * @return the updated options object
+   */
+  public OutStreamOptions setPersistenceWaitTime(long persistenceWaitTime) {
+    mPersistenceWaitTime = persistenceWaitTime;
+    return this;
+  }
+
+  /**
    * @param replicationDurable the number of block replication for durable write
    * @return the updated options object
    */
@@ -396,6 +417,7 @@ public final class OutStreamOptions {
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mMountId, that.mMountId)
         && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mPersistenceWaitTime, that.mPersistenceWaitTime)
         && Objects.equal(mReplicationDurable, that.mReplicationDurable)
         && Objects.equal(mReplicationMax, that.mReplicationMax)
         && Objects.equal(mReplicationMin, that.mReplicationMin)
@@ -416,6 +438,7 @@ public final class OutStreamOptions {
         mMode,
         mMountId,
         mOwner,
+        mPersistenceWaitTime,
         mReplicationDurable,
         mReplicationMax,
         mReplicationMin,
@@ -440,6 +463,7 @@ public final class OutStreamOptions {
         .add("ufsPath", mUfsPath)
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
+        .add("persistenceWaitTime", mPersistenceWaitTime)
         .add("replicationDurable", mReplicationDurable)
         .add("replicationMax", mReplicationMax)
         .add("replicationMin", mReplicationMin)
