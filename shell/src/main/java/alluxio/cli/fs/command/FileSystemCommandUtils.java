@@ -20,6 +20,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -56,10 +57,14 @@ public final class FileSystemCommandUtils {
    * @param fs The {@link FileSystem} client
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param pinned the state to be set
+   * @param mediumTypes a list of medium types to pin to
    */
-  public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned)
+  public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned,
+      List<String> mediumTypes)
       throws AlluxioException, IOException {
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned)
+        .addAllPinnedMedia(mediumTypes)
+        .build();
     fs.setAttribute(path, options);
   }
 }

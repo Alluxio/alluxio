@@ -95,4 +95,13 @@ public interface CreateFilePOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 9;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
+
+  /**
+   * <code>optional int64 persistenceWaitTime = 10;</code>
+   */
+  boolean hasPersistenceWaitTime();
+  /**
+   * <code>optional int64 persistenceWaitTime = 10;</code>
+   */
+  long getPersistenceWaitTime();
 }

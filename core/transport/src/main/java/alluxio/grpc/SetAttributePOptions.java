@@ -23,6 +23,7 @@ private static final long serialVersionUID = 0L;
     recursive_ = false;
     replicationMax_ = 0;
     replicationMin_ = 0;
+    pinnedMedia_ = com.google.protobuf.LazyStringArrayList.EMPTY;
   }
 
   @java.lang.Override
@@ -119,6 +120,15 @@ private static final long serialVersionUID = 0L;
             bitField0_ |= 0x00000100;
             break;
           }
+          case 82: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            if (!((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
+              pinnedMedia_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000200;
+            }
+            pinnedMedia_.add(bs);
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -127,6 +137,9 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
+        pinnedMedia_ = pinnedMedia_.getUnmodifiableView();
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -345,6 +358,35 @@ private static final long serialVersionUID = 0L;
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
 
+  public static final int PINNEDMEDIA_FIELD_NUMBER = 10;
+  private com.google.protobuf.LazyStringList pinnedMedia_;
+  /**
+   * <code>repeated string pinnedMedia = 10;</code>
+   */
+  public com.google.protobuf.ProtocolStringList
+      getPinnedMediaList() {
+    return pinnedMedia_;
+  }
+  /**
+   * <code>repeated string pinnedMedia = 10;</code>
+   */
+  public int getPinnedMediaCount() {
+    return pinnedMedia_.size();
+  }
+  /**
+   * <code>repeated string pinnedMedia = 10;</code>
+   */
+  public java.lang.String getPinnedMedia(int index) {
+    return pinnedMedia_.get(index);
+  }
+  /**
+   * <code>repeated string pinnedMedia = 10;</code>
+   */
+  public com.google.protobuf.ByteString
+      getPinnedMediaBytes(int index) {
+    return pinnedMedia_.getByteString(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -390,6 +432,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000100) == 0x00000100)) {
       output.writeMessage(9, getCommonOptions());
     }
+    for (int i = 0; i < pinnedMedia_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 10, pinnedMedia_.getRaw(i));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -431,6 +476,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000100) == 0x00000100)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(9, getCommonOptions());
+    }
+    {
+      int dataSize = 0;
+      for (int i = 0; i < pinnedMedia_.size(); i++) {
+        dataSize += computeStringSizeNoTag(pinnedMedia_.getRaw(i));
+      }
+      size += dataSize;
+      size += 1 * getPinnedMediaList().size();
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -493,6 +546,8 @@ private static final long serialVersionUID = 0L;
       result = result && getCommonOptions()
           .equals(other.getCommonOptions());
     }
+    result = result && getPinnedMediaList()
+        .equals(other.getPinnedMediaList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -542,6 +597,10 @@ private static final long serialVersionUID = 0L;
     if (hasCommonOptions()) {
       hash = (37 * hash) + COMMONOPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getCommonOptions().hashCode();
+    }
+    if (getPinnedMediaCount() > 0) {
+      hash = (37 * hash) + PINNEDMEDIA_FIELD_NUMBER;
+      hash = (53 * hash) + getPinnedMediaList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -700,6 +759,8 @@ private static final long serialVersionUID = 0L;
         commonOptionsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000100);
+      pinnedMedia_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000200);
       return this;
     }
 
@@ -768,6 +829,11 @@ private static final long serialVersionUID = 0L;
       } else {
         result.commonOptions_ = commonOptionsBuilder_.build();
       }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        pinnedMedia_ = pinnedMedia_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000200);
+      }
+      result.pinnedMedia_ = pinnedMedia_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -840,6 +906,16 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasCommonOptions()) {
         mergeCommonOptions(other.getCommonOptions());
+      }
+      if (!other.pinnedMedia_.isEmpty()) {
+        if (pinnedMedia_.isEmpty()) {
+          pinnedMedia_ = other.pinnedMedia_;
+          bitField0_ = (bitField0_ & ~0x00000200);
+        } else {
+          ensurePinnedMediaIsMutable();
+          pinnedMedia_.addAll(other.pinnedMedia_);
+        }
+        onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1420,6 +1496,99 @@ private static final long serialVersionUID = 0L;
         commonOptions_ = null;
       }
       return commonOptionsBuilder_;
+    }
+
+    private com.google.protobuf.LazyStringList pinnedMedia_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensurePinnedMediaIsMutable() {
+      if (!((bitField0_ & 0x00000200) == 0x00000200)) {
+        pinnedMedia_ = new com.google.protobuf.LazyStringArrayList(pinnedMedia_);
+        bitField0_ |= 0x00000200;
+       }
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public com.google.protobuf.ProtocolStringList
+        getPinnedMediaList() {
+      return pinnedMedia_.getUnmodifiableView();
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public int getPinnedMediaCount() {
+      return pinnedMedia_.size();
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public java.lang.String getPinnedMedia(int index) {
+      return pinnedMedia_.get(index);
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPinnedMediaBytes(int index) {
+      return pinnedMedia_.getByteString(index);
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public Builder setPinnedMedia(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensurePinnedMediaIsMutable();
+      pinnedMedia_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public Builder addPinnedMedia(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensurePinnedMediaIsMutable();
+      pinnedMedia_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public Builder addAllPinnedMedia(
+        java.lang.Iterable<java.lang.String> values) {
+      ensurePinnedMediaIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, pinnedMedia_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public Builder clearPinnedMedia() {
+      pinnedMedia_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000200);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public Builder addPinnedMediaBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensurePinnedMediaIsMutable();
+      pinnedMedia_.add(value);
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

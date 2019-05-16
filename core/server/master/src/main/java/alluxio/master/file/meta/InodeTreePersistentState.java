@@ -403,6 +403,18 @@ public class InodeTreePersistentState implements Journaled {
     if (entry.hasPinned() && inode.isFile()) {
       if (entry.getPinned()) {
         MutableInodeFile file = inode.asFile();
+        List<String> mediaList = ServerConfiguration.getList(
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES, ",");
+        if (entry.getMediumTypeList().isEmpty()) {
+          // if user does not specify a pinned media list, any location is OK
+          file.setMediumTypes(new HashSet<>());
+        } else {
+          for (String medium : entry.getMediumTypeList()) {
+            if (mediaList.contains(medium)) {
+              file.getMediumTypes().add(medium);
+            }
+          }
+        }
         // when we pin a file with default min replication (zero), we bump the min replication
         // to one in addition to setting pinned flag, and adjust the max replication if it is
         // smaller than min replication.

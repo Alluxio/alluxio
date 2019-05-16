@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -130,6 +131,13 @@ public final class JobUtils {
     // renamed, the job is still working on the correct file.
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
+    Set<String> pinnedLocation = status.getPinnedMediumTypes();
+    if (pinnedLocation.size() > 1) {
+      throw new AlluxioException(ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(path));
+    }
+    // since there is only one element in the set, we take the first element in the set
+    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next();
+
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
 
@@ -140,6 +148,7 @@ public final class JobUtils {
         LocalFirstPolicy.class.getCanonicalName(), conf));
 
     OutStreamOptions outOptions = OutStreamOptions.defaults(conf);
+    outOptions.setMediumType(medium);
     // Set write location policy always to local first for loading blocks for job tasks
     outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class.getCanonicalName(), conf));

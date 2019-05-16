@@ -29,6 +29,7 @@ import com.google.protobuf.ByteString;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.HashSet;
 
 /**
  * Alluxio file system's directory representation in the file system master.
@@ -144,6 +145,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAcl(mAcl);
     ret.setDefaultAcl(mDefaultAcl);
+    ret.setMediumTypes(getMediumTypes());
     return ret;
   }
 
@@ -206,9 +208,14 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
     }
+<<<<<<< HEAD
     if (entry.getXAttrCount() > 0) {
       ret.setXAttr(entry.getXAttrMap());
     }
+=======
+
+    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+>>>>>>> master
     return ret;
   }
 
@@ -252,11 +259,17 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setAcl(ProtoUtils.toProto(mAcl))
+<<<<<<< HEAD
         .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl));
     Map<String, ByteString> vals;
     if ((vals = getXAttr()) != null) {
       inodeDirectory.putAllXAttr(vals);
     }
+=======
+        .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
+        .addAllMediumType(getMediumTypes())
+        .build();
+>>>>>>> master
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
 
@@ -296,6 +309,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount())
         .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
+<<<<<<< HEAD
         .setXAttr(inode.getXAttrMap());
+=======
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+>>>>>>> master
   }
 }

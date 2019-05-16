@@ -61,6 +61,7 @@ public final class TieredBlockStoreTest {
   private static final long BLOCK_ID1 = 1000;
   private static final long BLOCK_ID2 = 1001;
   private static final long TEMP_BLOCK_ID = 1003;
+  private static final long TEMP_BLOCK_ID2 = 1004;
   private static final long BLOCK_SIZE = 512;
   private static final long FREE_SPACE_TIMEOUT_MS = 100;
   private static final String FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
@@ -71,6 +72,7 @@ public final class TieredBlockStoreTest {
   private StorageDir mTestDir1;
   private StorageDir mTestDir2;
   private StorageDir mTestDir3;
+  private StorageDir mTestDir4;
   private Evictor mEvictor;
 
   /** Rule to create a new temporary folder during each test. */
@@ -106,6 +108,7 @@ public final class TieredBlockStoreTest {
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
     mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
     mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(1);
+    mTestDir4 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(2);
   }
 
   /**
@@ -358,7 +361,8 @@ public final class TieredBlockStoreTest {
     for (int i = 0; i < threadAmount; i++) {
       runnables.add(() -> {
         try {
-          mBlockStore.freeSpace(SESSION_ID1, 0, new BlockStoreLocation("MEM", 0));
+          mBlockStore.freeSpace(SESSION_ID1, 0,
+              new BlockStoreLocation("MEM", 0, BlockStoreLocation.ANY_MEDIUM));
         } catch (Exception e) {
           fail();
         }
@@ -392,6 +396,21 @@ public final class TieredBlockStoreTest {
         mTestDir1.toBlockStoreLocation(), 1);
     assertEquals(1, tempBlockMeta.getBlockSize());
     assertEquals(mTestDir1, tempBlockMeta.getParentDir());
+  }
+
+  @Test
+  public void createBlockMetaWithMediumType() throws Exception {
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTierWithMedium("MEM");
+    TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
+        loc, 1);
+    assertEquals(1, tempBlockMeta.getBlockSize());
+    assertEquals(mTestDir2, tempBlockMeta.getParentDir());
+
+    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInTierWithMedium("SSD");
+    TempBlockMeta tempBlockMeta2 = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID2,
+        loc2, 1);
+    assertEquals(1, tempBlockMeta2.getBlockSize());
+    assertEquals(mTestDir4, tempBlockMeta2.getParentDir());
   }
 
   /**

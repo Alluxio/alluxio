@@ -47,11 +47,13 @@ public final class OutStreamOptions {
   private String mGroup;
   private Mode mMode;
   private AccessControlList mAcl;
+  private long mPersistenceWaitTime;
   private int mReplicationDurable;
   private int mReplicationMax;
   private int mReplicationMin;
   private String mUfsPath;
   private long mMountId;
+  private String mMediumType;
 
   /**
    * @param alluxioConf Alluxio configuration
@@ -78,6 +80,9 @@ public final class OutStreamOptions {
     }
     if (options.hasMode()) {
       mMode = Mode.fromProto(options.getMode());
+    }
+    if (options.hasPersistenceWaitTime()) {
+      mPersistenceWaitTime = options.getPersistenceWaitTime();
     }
     if (options.hasReplicationDurable()) {
       mReplicationDurable = options.getReplicationDurable();
@@ -115,9 +120,18 @@ public final class OutStreamOptions {
     mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf
         .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     mMountId = IdUtils.INVALID_MOUNT_ID;
+    mPersistenceWaitTime = alluxioConf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME);
     mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
+    mMediumType = "";
+  }
+
+  /**
+   * @return the write medium type
+   */
+  public String getMediumType() {
+    return mMediumType;
   }
 
   /**
@@ -184,6 +198,13 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @return the persistence initial wait time
+   */
+  public long getPersistenceWaitTime() {
+    return mPersistenceWaitTime;
+  }
+
+  /**
    * @return the number of block replication for durable write
    */
   public int getReplicationDurable() {
@@ -230,6 +251,17 @@ public final class OutStreamOptions {
    */
   public WriteType getWriteType() {
     return mWriteType;
+  }
+
+  /**
+   * Set the write medium type of the file.
+   *
+   * @param mediumType write medium type
+   * @return the updated options object
+   */
+  public OutStreamOptions setMediumType(String mediumType) {
+    mMediumType = mediumType;
+    return this;
   }
 
   /**
@@ -323,6 +355,15 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @param persistenceWaitTime the persistence initial wait time
+   * @return the updated options object
+   */
+  public OutStreamOptions setPersistenceWaitTime(long persistenceWaitTime) {
+    mPersistenceWaitTime = persistenceWaitTime;
+    return this;
+  }
+
+  /**
    * @param replicationDurable the number of block replication for durable write
    * @return the updated options object
    */
@@ -372,9 +413,11 @@ public final class OutStreamOptions {
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mMediumType, that.mMediumType)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mMountId, that.mMountId)
         && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mPersistenceWaitTime, that.mPersistenceWaitTime)
         && Objects.equal(mReplicationDurable, that.mReplicationDurable)
         && Objects.equal(mReplicationMax, that.mReplicationMax)
         && Objects.equal(mReplicationMin, that.mReplicationMin)
@@ -391,9 +434,11 @@ public final class OutStreamOptions {
         mCommonOptions,
         mGroup,
         mLocationPolicy,
+        mMediumType,
         mMode,
         mMountId,
         mOwner,
+        mPersistenceWaitTime,
         mReplicationDurable,
         mReplicationMax,
         mReplicationMin,
@@ -411,12 +456,14 @@ public final class OutStreamOptions {
         .add("commonOptions", mCommonOptions)
         .add("group", mGroup)
         .add("locationPolicy", mLocationPolicy)
+        .add("mediumType", mMediumType)
         .add("mode", mMode)
         .add("mountId", mMountId)
         .add("owner", mOwner)
         .add("ufsPath", mUfsPath)
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
+        .add("persistenceWaitTime", mPersistenceWaitTime)
         .add("replicationDurable", mReplicationDurable)
         .add("replicationMax", mReplicationMax)
         .add("replicationMin", mReplicationMin)

@@ -23,9 +23,13 @@ import alluxio.grpc.TtlAction;
 import com.google.protobuf.ByteString;
 
 import java.util.List;
+<<<<<<< HEAD
 import java.util.Map;
 
 import javax.annotation.Nullable;
+=======
+import java.util.Set;
+>>>>>>> master
 
 /**
  * Read-only view of an inode.
@@ -117,6 +121,11 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
    * @return true if the file has persisted, false otherwise
    */
   boolean isPersisted();
+
+  /**
+   * @return the pinned medium types set
+   */
+  Set<String> getMediumTypes();
 
   /**
    * @return the UFS fingerprint

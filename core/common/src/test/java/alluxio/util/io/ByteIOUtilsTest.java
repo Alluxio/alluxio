@@ -11,7 +11,8 @@
 
 package alluxio.util.io;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 /**
@@ -29,7 +30,7 @@ public final class ByteIOUtilsTest {
     for (long i : values) {
       byte v = (byte) i;
       ByteIOUtils.writeByte(mBuf, 0, v);
-      Assert.assertEquals(v, ByteIOUtils.readByte(mBuf, 0));
+      assertEquals(v, ByteIOUtils.readByte(mBuf, 0));
     }
   }
 
@@ -42,9 +43,9 @@ public final class ByteIOUtilsTest {
     for (long i : values) {
       short v = (short) i;
       ByteIOUtils.writeShort(mBuf, 0, v);
-      Assert.assertEquals(v, ByteIOUtils.readShort(mBuf, 0));
+      assertEquals(v, ByteIOUtils.readShort(mBuf, 0));
       ByteIOUtils.writeShort(mBuf, 1, v);
-      Assert.assertEquals(v, ByteIOUtils.readShort(mBuf, 1));
+      assertEquals(v, ByteIOUtils.readShort(mBuf, 1));
     }
   }
 
@@ -58,7 +59,7 @@ public final class ByteIOUtilsTest {
       int v = (int) i;
       for (int pos = 0; pos < 4; pos++) {
         ByteIOUtils.writeInt(mBuf, pos, v);
-        Assert.assertEquals(v, ByteIOUtils.readInt(mBuf, pos));
+        assertEquals(v, ByteIOUtils.readInt(mBuf, pos));
       }
     }
   }
@@ -74,7 +75,7 @@ public final class ByteIOUtilsTest {
     for (long v : values) {
       for (int pos = 0; pos < 8; pos++) {
         ByteIOUtils.writeLong(mBuf, 0, v);
-        Assert.assertEquals(v, ByteIOUtils.readLong(mBuf, 0));
+        assertEquals(v, ByteIOUtils.readLong(mBuf, 0));
       }
     }
   }

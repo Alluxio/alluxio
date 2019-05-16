@@ -41,6 +41,7 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
@@ -104,7 +105,6 @@ public final class PersistenceTest {
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, 0);
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
     mJournalFolder = tmpFolder.newFolder();
     mSafeModeManager = new DefaultSafeModeManager();
@@ -148,7 +148,8 @@ public final class PersistenceTest {
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // schedule the async persistence, checking the internal state.
-    mFileSystemMaster.scheduleAsyncPersistence(testFile);
+    mFileSystemMaster.scheduleAsyncPersistence(testFile,
+        ScheduleAsyncPersistenceContext.defaults());
     checkPersistenceRequested(testFile);
 
     // Mock the job service interaction.
@@ -223,7 +224,8 @@ public final class PersistenceTest {
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // schedule the async persistence, checking the internal state.
-    mFileSystemMaster.scheduleAsyncPersistence(testFile);
+    mFileSystemMaster.scheduleAsyncPersistence(testFile,
+        ScheduleAsyncPersistenceContext.defaults());
     checkPersistenceRequested(testFile);
 
     // Mock the job service interaction.
@@ -262,7 +264,8 @@ public final class PersistenceTest {
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // schedule the async persistence, checking the internal state.
-    mFileSystemMaster.scheduleAsyncPersistence(testFile);
+    mFileSystemMaster.scheduleAsyncPersistence(testFile,
+        ScheduleAsyncPersistenceContext.defaults());
     checkPersistenceRequested(testFile);
 
     // Mock the job service interaction.
@@ -320,7 +323,8 @@ public final class PersistenceTest {
     mFileSystemMaster.completeFile(alluxioFileSrc, CompleteFileContext.defaults());
 
     // Schedule the async persistence, checking the internal state.
-    mFileSystemMaster.scheduleAsyncPersistence(alluxioFileSrc);
+    mFileSystemMaster.scheduleAsyncPersistence(alluxioFileSrc,
+        ScheduleAsyncPersistenceContext.defaults());
     checkPersistenceRequested(alluxioFileSrc);
 
     // Mock the job service interaction.
@@ -393,7 +397,8 @@ public final class PersistenceTest {
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // schedule the async persistence, checking the internal state.
-    mFileSystemMaster.scheduleAsyncPersistence(testFile);
+    mFileSystemMaster.scheduleAsyncPersistence(testFile,
+        ScheduleAsyncPersistenceContext.defaults());
     checkPersistenceRequested(testFile);
 
     // Simulate restart.
@@ -414,7 +419,8 @@ public final class PersistenceTest {
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // schedule the async persistence, checking the internal state.
-    mFileSystemMaster.scheduleAsyncPersistence(testFile);
+    mFileSystemMaster.scheduleAsyncPersistence(testFile,
+        ScheduleAsyncPersistenceContext.defaults());
     checkPersistenceRequested(testFile);
 
     // Mock the job service interaction.

@@ -174,9 +174,9 @@ public class LRUEvictorTest extends EvictorTestBase {
     // First Tier 0, 0
     // Second Tier 10000, 20000, 200500
     BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier("MEM");
-    BlockStoreLocation firstDirSecondTier = new BlockStoreLocation("SSD", 0);
-    BlockStoreLocation secondDirSecondTier = new BlockStoreLocation("SSD", 1);
-    BlockStoreLocation thirdDirSecondTier = new BlockStoreLocation("SSD", 2);
+    BlockStoreLocation firstDirSecondTier = new BlockStoreLocation("SSD", 0, "SSD");
+    BlockStoreLocation secondDirSecondTier = new BlockStoreLocation("SSD", 1, "SSD");
+    BlockStoreLocation thirdDirSecondTier = new BlockStoreLocation("SSD", 2, "SSD");
 
     EvictionPlan plan = mEvictor.freeSpaceWithView(blockSize * 2, anyDirInFirstTier, mManagerView);
     assertNotNull(plan);

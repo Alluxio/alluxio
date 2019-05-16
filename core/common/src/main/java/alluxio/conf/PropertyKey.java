@@ -588,6 +588,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
+      new Builder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
+          .setDefaultValue("EEE, dd MMM yyyy HH:mm:ss zzz")
+          .setDescription("Date format of last modified for a http response header.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_WEB_CONNECTION_TIMEOUT =
+      new Builder(Name.UNDERFS_WEB_CONNECTION_TIMEOUT)
+          .setDefaultValue("60s")
+          .setDescription("Default timeout for a http connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_WEB_PARENT_NAMES =
+      new Builder(Name.UNDERFS_WEB_PARENT_NAMES)
+          .setDefaultValue("Parent Directory,..,../")
+          .setDescription("The text of the http link for the parent directory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_WEB_TITLES =
+      new Builder(Name.UNDERFS_WEB_TITLES)
+          .setDefaultValue("Index of ,Directory listing for ")
+          .setDescription("The title of the content for a http url.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
       new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
           .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
@@ -1516,14 +1544,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS)
           .setDefaultValue(Constants.SECOND_MS)
           .build();
-  public static final PropertyKey MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =
-      new Builder(Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS)
-          .setDefaultValue("5min")
-          .setDescription(String.format("Time to wait before starting the persistence job. "
-              + "When %s is set to %s, set to a big enough value "
-              + "to avoid conflicts between cache and through job.",
-              Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH))
-          .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_INTERVAL_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_INTERVAL_MS)
           .setDefaultValue(Constants.HOUR_MS)
@@ -1617,6 +1637,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS)
           .setDefaultValue(3)
           .setDescription("The total number of storage tiers in the system.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES =
+      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES)
+          .setDefaultValue("MEM, SSD, HDD")
+          .setDescription("The list of medium types we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -2263,6 +2290,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIATYPE =
+      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
+          .setDefaultValue("MEM")
+          .setDescription("The media type for the top storage tier directories ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
           .setDefaultValue("${alluxio.worker.memory.size}")
@@ -2298,6 +2332,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIATYPE =
+      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
+          .setDefaultValue("SSD")
+          .setDescription("The media type for the second storage tier directories ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 1)
           .setDescription("The capacity of the second storage tier.")
@@ -2329,6 +2370,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
           .setDescription("The path of storage directory for the third storage tier.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_MEDIATYPE =
+      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
+          .setDefaultValue("HDD")
+          .setDescription("The media type for the third storage tier directories ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2729,6 +2777,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "renamed. This is helpful when working with compute frameworks which use rename "
               + "to commit results.")
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME =
+      new Builder(Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME)
+          .setDefaultValue("0")
+          .setDescription(String.format("Time to wait before starting the persistence job. "
+              + "When the value is set to -1, the file will be persisted by rename operation "
+              + "or persist CLI but will not be automatically persisted in other cases. "
+              + "This is to avoid the heavy object copy in rename operation when %s is set to %s. "
+              + "This value should be smaller than the value of %s",
+              Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH,
+              Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS))
           .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       new Builder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
@@ -3566,6 +3625,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
+        "alluxio.underfs.web.header.last.modified";
+    public static final String UNDERFS_WEB_CONNECTION_TIMEOUT =
+        "alluxio.underfs.web.connnection.timeout";
+    public static final String UNDERFS_WEB_PARENT_NAMES = "alluxio.underfs.web.parent.names";
+    public static final String UNDERFS_WEB_TITLES = "alluxio.underfs.web.titles";
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
@@ -3747,8 +3812,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metrics.time.series.interval";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
         "alluxio.master.persistence.initial.interval.ms";
-    public static final String MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =
-        "alluxio.master.persistence.initial.wait.time.ms";
     public static final String MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
         "alluxio.master.persistence.max.total.wait.time.ms";
     public static final String MASTER_PERSISTENCE_MAX_INTERVAL_MS =
@@ -3783,6 +3846,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.level2.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
         "alluxio.master.tieredstore.global.levels";
+    public static final String MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES =
+        "alluxio.master.tieredstore.global.media";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
     public static final String MASTER_ACTIVE_UFS_SYNC_INTERVAL =
@@ -4009,6 +4074,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.load.ttl.action";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
     public static final String USER_FILE_PERSIST_ON_RENAME = "alluxio.user.file.persist.on.rename";
+    public static final String USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME =
+        "alluxio.user.file.persistence.initial.wait.time";
     public static final String USER_FILE_REPLICATION_MAX = "alluxio.user.file.replication.max";
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
     public static final String USER_FILE_REPLICATION_DURABLE =
@@ -4206,6 +4273,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
     WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.path"),
+    WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE("alluxio.worker.tieredstore.level%d.dirs.mediumtype",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.mediumtype"),
     WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA("alluxio.worker.tieredstore.level%d.dirs.quota",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
     WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO(

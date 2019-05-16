@@ -24,9 +24,13 @@ import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 
 import java.util.List;
+<<<<<<< HEAD
 import java.util.Map;
 
 import javax.annotation.Nullable;
+=======
+import java.util.Set;
+>>>>>>> master
 
 /**
  * Base class for read only inodes.
@@ -137,6 +141,11 @@ public abstract class Inode implements InodeView {
   @Override
   public DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException {
     return mDelegate.getDefaultACL();
+  }
+
+  @Override
+  public Set<String> getMediumTypes() {
+    return mDelegate.getMediumTypes();
   }
 
   @Override

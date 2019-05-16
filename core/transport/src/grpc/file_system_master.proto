@@ -92,6 +92,7 @@ message CreateFilePOptions {
   optional int32 writeTier = 7;
   optional WritePType writeType = 8;
   optional FileSystemMasterCommonPOptions commonOptions = 9;
+  optional int64 persistenceWaitTime = 10;
 }
 message CreateFilePRequest {
   /** the path of the file */
@@ -348,6 +349,7 @@ message SetAttributePOptions {
   optional int32 replicationMax = 7;
   optional int32 replicationMin = 8;
   optional FileSystemMasterCommonPOptions commonOptions = 9;
+  repeated string pinnedMedia = 10;
 }
 message SetAttributePRequest {
   /** the path of the file */
@@ -382,6 +384,7 @@ message SetAclPRequest {
 message ScheduleAsyncPersistencePResponse {}
 message ScheduleAsyncPersistencePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional int64 persistenceWaitTime = 2;
 }
 message ScheduleAsyncPersistencePRequest {
   /** the path of the file */

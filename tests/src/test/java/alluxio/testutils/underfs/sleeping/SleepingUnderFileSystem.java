@@ -219,7 +219,7 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     sleepIfNecessary(mOptions.getSupportsFlushMs());
     return super.supportsFlush();
   }

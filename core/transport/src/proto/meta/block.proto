@@ -18,9 +18,10 @@ message BlockMeta {
 /**
  * Location metadata describing a block's location in a certain storage tier of a certain worker.
  *
- * next available id: 3
+ * next available id: 4
  */
 message BlockLocation {
     optional int64 worker_id = 1;
     optional string tier = 2;
+    optional string mediumType = 3;
 }
