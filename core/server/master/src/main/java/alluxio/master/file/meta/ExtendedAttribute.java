@@ -15,10 +15,7 @@ package alluxio.master.file.meta;
  * This enum is used to define constant values for extended attribute keys on inodes within
  * the inode tree.
  *
- *
- *
- * Extended attributes take the form of
- * {@code {NAMESPACE}{SEPARATOR}{ATTRIBUTE_name}}
+ * Extended attributes take the form of {@code {NAMESPACE}{SEPARATOR}{ATTRIBUTE_NAME}}
  *
  * For example, the persistence state uses the default {@link NamespacePrefix#SYSTEM} prefix and
  * appends {@code ps} (an acronym for persistence state) so that the attribute when stored is
