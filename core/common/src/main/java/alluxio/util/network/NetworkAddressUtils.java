@@ -20,6 +20,7 @@ import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
+import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -639,17 +640,18 @@ public final class NetworkAddressUtils {
    * @param address the network address to ping
    * @param serviceType the Alluxio service type
    * @param conf Alluxio configuration
+   * @param userState the UserState
    * @throws UnauthenticatedException If the user is not authenticated
    * @throws StatusRuntimeException If the host not reachable or does not serve the given service
    */
   public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType,
-      AlluxioConfiguration conf)
+      AlluxioConfiguration conf, UserState userState)
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
     GrpcChannel channel =
         GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).disableAuthentication()
-            .build();
+            .setSubject(userState.getSubject()).build();
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
           ServiceVersionClientServiceGrpc.newBlockingStub(channel);

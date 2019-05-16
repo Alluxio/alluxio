@@ -14,8 +14,8 @@ package alluxio;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,7 +51,7 @@ public final class RestUtils {
       // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled(alluxioConf)
           && AuthenticatedClientUser.get(alluxioConf) == null) {
-        AuthenticatedClientUser.set(LoginUser.get(alluxioConf).getName());
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());

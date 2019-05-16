@@ -12,8 +12,8 @@
 package alluxio.heartbeat;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
@@ -36,6 +36,7 @@ public final class HeartbeatThread implements Runnable {
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
+  private final UserState mUserState;
   private HeartbeatTimer mTimer;
   private AlluxioConfiguration mConfiguration;
 
@@ -67,15 +68,17 @@ public final class HeartbeatThread implements Runnable {
    *        implements the HeartbeatExecutor interface
    * @param intervalMs Sleep time between different heartbeat
    * @param conf Alluxio configuration
+   * @param userState the user state for this heartbeat thread
    */
   public HeartbeatThread(String executorName, String threadId, HeartbeatExecutor executor,
-      long intervalMs, AlluxioConfiguration conf) {
+      long intervalMs, AlluxioConfiguration conf, UserState userState) {
     mThreadName = generateThreadName(executorName, threadId);
     mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(executorName);
     mTimer = CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},
         new Object[] {mThreadName, intervalMs});
     mConfiguration = conf;
+    mUserState = userState;
   }
 
   /**
@@ -87,10 +90,11 @@ public final class HeartbeatThread implements Runnable {
    * @param executor the heartbeat executor
    * @param intervalMs the interval between heartbeats
    * @param conf the Alluxio configuration
+   * @param userState the user state for this heartbeat thread
    */
   public HeartbeatThread(String executorName, HeartbeatExecutor executor, long intervalMs,
-      AlluxioConfiguration conf) {
-    this(executorName, null, executor, intervalMs, conf);
+      AlluxioConfiguration conf, UserState userState) {
+    this(executorName, null, executor, intervalMs, conf, userState);
   }
 
   @Override
@@ -98,7 +102,7 @@ public final class HeartbeatThread implements Runnable {
     try {
       if (SecurityUtils.isSecurityEnabled(mConfiguration)
           && AuthenticatedClientUser.get(mConfiguration) == null) {
-        AuthenticatedClientUser.set(LoginUser.get(mConfiguration).getName());
+        AuthenticatedClientUser.set(mUserState.getUser().getName());
       }
     } catch (IOException e) {
       LOG.error("Failed to set AuthenticatedClientUser in HeartbeatThread.");

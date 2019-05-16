@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.InodeStore;
+import alluxio.security.user.UserState;
 
 import com.google.common.base.Preconditions;
 
@@ -30,7 +31,7 @@ public class CoreMasterContext extends MasterContext {
   private final int mPort;
 
   private CoreMasterContext(Builder builder) {
-    super(builder.mJournalSystem);
+    super(builder.mJournalSystem, builder.mUserState);
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
@@ -103,6 +104,7 @@ public class CoreMasterContext extends MasterContext {
    */
   public static class Builder {
     private JournalSystem mJournalSystem;
+    private UserState mUserState;
     private SafeModeManager mSafeModeManager;
     private BackupManager mBackupManager;
     private BlockStore.Factory mBlockStoreFactory;
@@ -116,6 +118,15 @@ public class CoreMasterContext extends MasterContext {
      */
     public Builder setJournalSystem(JournalSystem journalSystem) {
       mJournalSystem = journalSystem;
+      return this;
+    }
+
+    /**
+     * @param userState the user state
+     * @return the builder
+     */
+    public Builder setUserState(UserState userState) {
+      mUserState = userState;
       return this;
     }
 

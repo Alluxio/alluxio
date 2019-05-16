@@ -195,7 +195,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       GSObject obj = new GSObject(key);
       obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
