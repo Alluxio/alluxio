@@ -44,6 +44,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -73,11 +74,10 @@ public class BlockMasterTest {
       .setRpcPort(83).setDataPort(84).setWebPort(85);
 
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
-  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
+  private static final Map<BlockStoreLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
-
-  private static final alluxio.proto.meta.Block.BlockLocation BLOCK_LOCATION =
-      Block.BlockLocation.newBuilder().setTier("MEM").setDirIndex(0).setMediumType("MEM").build();
+  private static final BlockStoreLocation BLOCK_LOCATION =
+      new BlockStoreLocation("MEM", 0, "MEM");
 
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;

@@ -67,6 +67,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import alluxio.worker.block.BlockStoreLocation;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -806,7 +807,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<BlockLocation, List<Long>> currentBlocksOnLocation,
+      Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException {
 
@@ -852,7 +853,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<BlockLocation, List<Long>> addedBlocks,
+      Map<BlockStoreLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -926,8 +927,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    */
   @GuardedBy("workerInfo")
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
-      Map<BlockLocation, List<Long>> addedBlockIds) {
-    for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
+      Map<BlockStoreLocation, List<Long>> addedBlockIds) {
+    for (Map.Entry<BlockStoreLocation, List<Long>> entry : addedBlockIds.entrySet()) {
       for (long blockId : entry.getValue()) {
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
@@ -935,9 +936,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             workerInfo.addBlock(blockId);
             mBlockStore.addLocation(blockId, BlockLocation.newBuilder()
                 .setWorkerId(workerInfo.getId())
-                .setTier(entry.getKey().getTier())
-                .setMediumType(entry.getKey().getMediumType())
-                .setDirIndex(entry.getKey().getDirIndex())
+                .setTier(entry.getKey().tierAlias())
+                .setMediumType(entry.getKey().mediumType())
+                .setDirIndex(entry.getKey().dir())
                 .build());
             mLostBlocks.remove(blockId);
           } else {

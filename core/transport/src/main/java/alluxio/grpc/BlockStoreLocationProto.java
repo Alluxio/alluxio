@@ -17,7 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private BlockStoreLocationProto() {
     tierAlias_ = "";
-    dirIndex_ = 0L;
+    dirIndex_ = 0;
     mediumType_ = "";
   }
 
@@ -60,7 +60,7 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
             bitField0_ |= 0x00000002;
-            dirIndex_ = input.readInt64();
+            dirIndex_ = input.readInt32();
             break;
           }
           case 26: {
@@ -137,17 +137,17 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int DIRINDEX_FIELD_NUMBER = 2;
-  private long dirIndex_;
+  private int dirIndex_;
   /**
-   * <code>optional int64 dirIndex = 2;</code>
+   * <code>optional int32 dirIndex = 2;</code>
    */
   public boolean hasDirIndex() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional int64 dirIndex = 2;</code>
+   * <code>optional int32 dirIndex = 2;</code>
    */
-  public long getDirIndex() {
+  public int getDirIndex() {
     return dirIndex_;
   }
 
@@ -209,7 +209,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, tierAlias_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeInt64(2, dirIndex_);
+      output.writeInt32(2, dirIndex_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, mediumType_);
@@ -227,7 +227,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(2, dirIndex_);
+        .computeInt32Size(2, dirIndex_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, mediumType_);
@@ -280,8 +280,7 @@ private static final long serialVersionUID = 0L;
     }
     if (hasDirIndex()) {
       hash = (37 * hash) + DIRINDEX_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getDirIndex());
+      hash = (53 * hash) + getDirIndex();
     }
     if (hasMediumType()) {
       hash = (37 * hash) + MEDIUMTYPE_FIELD_NUMBER;
@@ -418,7 +417,7 @@ private static final long serialVersionUID = 0L;
       super.clear();
       tierAlias_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      dirIndex_ = 0L;
+      dirIndex_ = 0;
       bitField0_ = (bitField0_ & ~0x00000002);
       mediumType_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -617,34 +616,34 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private long dirIndex_ ;
+    private int dirIndex_ ;
     /**
-     * <code>optional int64 dirIndex = 2;</code>
+     * <code>optional int32 dirIndex = 2;</code>
      */
     public boolean hasDirIndex() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 dirIndex = 2;</code>
+     * <code>optional int32 dirIndex = 2;</code>
      */
-    public long getDirIndex() {
+    public int getDirIndex() {
       return dirIndex_;
     }
     /**
-     * <code>optional int64 dirIndex = 2;</code>
+     * <code>optional int32 dirIndex = 2;</code>
      */
-    public Builder setDirIndex(long value) {
+    public Builder setDirIndex(int value) {
       bitField0_ |= 0x00000002;
       dirIndex_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 dirIndex = 2;</code>
+     * <code>optional int32 dirIndex = 2;</code>
      */
     public Builder clearDirIndex() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      dirIndex_ = 0L;
+      dirIndex_ = 0;
       onChanged();
       return this;
     }

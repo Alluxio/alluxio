@@ -24,11 +24,11 @@ import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
-import alluxio.proto.meta.Block;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.List;
 import java.util.Map;
@@ -182,7 +182,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+      Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException;
 
@@ -200,7 +200,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<Block.BlockLocation, List<Long>> addedBlocks,
+      Map<BlockStoreLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics);
 

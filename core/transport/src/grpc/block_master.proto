@@ -172,7 +172,7 @@ message BlockHeartbeatPOptions {
 
 message BlockStoreLocationProto {
   optional string tierAlias = 1;
-  optional int64 dirIndex = 2;
+  optional int32 dirIndex = 2;
   optional string mediumType = 3;
 }
 

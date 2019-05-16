@@ -22,13 +22,13 @@ public interface BlockStoreLocationProtoOrBuilder extends
       getTierAliasBytes();
 
   /**
-   * <code>optional int64 dirIndex = 2;</code>
+   * <code>optional int32 dirIndex = 2;</code>
    */
   boolean hasDirIndex();
   /**
-   * <code>optional int64 dirIndex = 2;</code>
+   * <code>optional int32 dirIndex = 2;</code>
    */
-  long getDirIndex();
+  int getDirIndex();
 
   /**
    * <code>optional string mediumType = 3;</code>

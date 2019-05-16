@@ -31,6 +31,7 @@ import alluxio.metrics.Metric;
 import alluxio.grpc.GrpcUtils;
 
 import alluxio.proto.meta.Block;
+import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -70,14 +71,12 @@ public final class BlockMasterWorkerServiceHandler
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
-    final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
+    final Map<BlockStoreLocation, List<Long>> addedBlocksMap =
         request.getAddedBlocksList().stream()
-            .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
-                    .setTier(e.getKey().getTierAlias())
-                    .setMediumType(e.getKey().getMediumType())
-                    .setDirIndex(e.getKey().getDirIndex())
-                    .build(),
-            e -> e.getValue().getBlockIdList()));
+            .collect(Collectors.toMap(e ->
+                    new BlockStoreLocation(e.getKey().getTierAlias(),
+                        e.getKey().getDirIndex(), e.getKey().getMediumType()),
+                e -> e.getValue().getBlockIdList()));
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
@@ -137,13 +136,11 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
-    final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+    final Map<BlockStoreLocation, List<Long>> currBlocksOnLocationMap =
         request.getCurrentBlocksList().stream()
-            .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
-                    .setTier(e.getKey().getTierAlias())
-                    .setMediumType(e.getKey().getMediumType())
-                    .setDirIndex(e.getKey().getDirIndex())
-                    .build(),
+            .collect(Collectors.toMap(e ->
+                    new BlockStoreLocation(e.getKey().getTierAlias(),
+                        e.getKey().getDirIndex(), e.getKey().getMediumType()),
                 e -> e.getValue().getBlockIdList()));
 
     RegisterWorkerPOptions options = request.getOptions();

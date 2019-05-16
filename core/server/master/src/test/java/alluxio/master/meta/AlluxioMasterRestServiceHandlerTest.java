@@ -49,6 +49,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import alluxio.worker.block.BlockStoreLocation;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
@@ -81,7 +82,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
       .setRpcPort(80).setDataPort(81).setWebPort(82);
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(83).setDataPort(84).setWebPort(85);
-  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATIONS = ImmutableMap.of();
+  private static final Map<BlockStoreLocation, List<Long>> NO_BLOCKS_ON_LOCATIONS = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
 
   private static final long UFS_SPACE_TOTAL = 100L;

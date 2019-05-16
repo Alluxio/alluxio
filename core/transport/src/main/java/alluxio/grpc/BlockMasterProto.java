@@ -335,7 +335,7 @@ public final class BlockMasterProto {
       "TiersEntry\032;\n\031CapacityBytesOnTiersEntry\022" +
       "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\003:\0028\001\"R\n\027Block" +
       "StoreLocationProto\022\021\n\ttierAlias\030\001 \001(\t\022\020\n" +
-      "\010dirIndex\030\002 \001(\003\022\022\n\nmediumType\030\003 \001(\t\"\204\001\n\030" +
+      "\010dirIndex\030\002 \001(\005\022\022\n\nmediumType\030\003 \001(\t\"\204\001\n\030" +
       "LocationBlockIdListEntry\0228\n\003key\030\001 \001(\0132+." +
       "alluxio.grpc.block.BlockStoreLocationPro" +
       "to\022.\n\005value\030\002 \001(\0132\037.alluxio.grpc.block.B" +
