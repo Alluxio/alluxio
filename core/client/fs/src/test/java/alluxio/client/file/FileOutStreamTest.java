@@ -29,9 +29,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.LoginUserRule;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -92,9 +92,6 @@ public class FileOutStreamTest {
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   @Rule
-  public LoginUserRule mLoginUser = new LoginUserRule("Test", sConf);
-
-  @Rule
   public ExpectedException mException = ExpectedException.none();
 
   private static final long BLOCK_LENGTH = 100L;
@@ -109,6 +106,7 @@ public class FileOutStreamTest {
   private AtomicBoolean mUnderStorageFlushed;
 
   private FileOutStream mTestStream;
+  private ClientContext mClientContext;
 
   /**
    * Sets up the different contexts and clients before a test runs.
@@ -118,8 +116,11 @@ public class FileOutStreamTest {
     GroupMappingServiceTestUtils.resetCache();
     ClientTestUtils.setSmallBufferSizes(sConf);
 
+    mClientContext = ClientContext.create(sConf);
+
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    when(mFileSystemContext.getClientContext()).thenReturn(mClientContext);
     when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
     when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
@@ -184,8 +185,9 @@ public class FileOutStreamTest {
             any(WorkerNetAddress.class), any(OutStreamOptions.class))).thenReturn(
         mUnderStorageOutputStream);
 
-    OutStreamOptions options = OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
-        .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
+    OutStreamOptions options =
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -292,7 +294,7 @@ public class FileOutStreamTest {
   @Test
   public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
-        OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mock(BlockOutStream.class);
     when(mBlockStore.getOutStream(anyInt(), anyLong(), any(OutStreamOptions.class)))
@@ -388,7 +390,7 @@ public class FileOutStreamTest {
   @Test
   public void asyncWrite() throws Exception {
     OutStreamOptions options =
-        OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
@@ -412,7 +414,8 @@ public class FileOutStreamTest {
 
     OutStreamOptions options =
         new OutStreamOptions(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
-            .setBlockSizeBytes(BLOCK_LENGTH).setCommonOptions(commonOptions).build(), sConf);
+            .setBlockSizeBytes(BLOCK_LENGTH).setCommonOptions(commonOptions).build(),
+            mClientContext, sConf);
 
     // Verify that OutStreamOptions have captured the common options properly.
     assertEquals(options.getCommonOptions(), commonOptions);
@@ -437,8 +440,8 @@ public class FileOutStreamTest {
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
-          OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type)
-              .setUfsPath(FILE_NAME.getPath());
+          OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+              .setWriteType(type).setUfsPath(FILE_NAME.getPath());
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
       mTestStream.flush();
@@ -448,7 +451,7 @@ public class FileOutStreamTest {
 
   @Test
   public void createWithNoWorker() throws Exception {
-    OutStreamOptions options = OutStreamOptions.defaults(sConf)
+    OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
         .setLocationPolicy((getWorkerOptions) -> null)
         .setWriteType(WriteType.CACHE_THROUGH);
     mException.expect(UnavailableException.class);

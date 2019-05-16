@@ -14,19 +14,20 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.LoginUserRule;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.client.block.policy.RoundRobinPolicy;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.TtlAction;
+import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
@@ -42,6 +43,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
+
+import javax.security.auth.Subject;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
@@ -69,9 +72,6 @@ public class OutStreamOptionsTest {
       PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()
   ), mConf);
 
-  @Rule
-  public LoginUserRule mRule = new LoginUserRule("test_user", mConf);
-
   @After
   public void after() {
     mConf = ConfigurationTestUtils.defaults();
@@ -87,8 +87,12 @@ public class OutStreamOptionsTest {
     mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     mConf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
     mConf.set(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT, Constants.LAST_TIER);
+    mConf.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName());
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User("test_user"));
+    ClientContext clientContext = ClientContext.create(subject, mConf);
 
-    OutStreamOptions options = OutStreamOptions.defaults(mConf);
+    OutStreamOptions options = OutStreamOptions.defaults(clientContext);
 
     assertEquals(alluxioType, options.getAlluxioStorageType());
     assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
@@ -123,7 +127,8 @@ public class OutStreamOptionsTest {
     mConf.set(PropertyKey.USER_FILE_CREATE_TTL, ttl);
     mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, ttlAction);
 
-    OutStreamOptions options = OutStreamOptions.defaults(mConf);
+    ClientContext clientContext = ClientContext.create(mConf);
+    OutStreamOptions options = OutStreamOptions.defaults(clientContext);
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(locationPolicy);
     options.setOwner(owner);
@@ -146,10 +151,11 @@ public class OutStreamOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
+    ClientContext clientContext = ClientContext.create(mConf);
     new EqualsTester()
         .addEqualityGroup(
-            OutStreamOptions.defaults(mConf),
-            OutStreamOptions.defaults(mConf))
+            OutStreamOptions.defaults(clientContext),
+            OutStreamOptions.defaults(clientContext))
         .testEquals();
   }
 }

@@ -40,6 +40,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
+import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -102,7 +103,9 @@ public interface FileSystem extends Closeable {
     public static FileSystem get(Subject subject) {
       Preconditions.checkNotNull(subject, "subject");
       AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-      FileSystemKey key = new FileSystemKey(subject, conf);
+      // TODO(gpang): should this key use the UserState instead of subject?
+      FileSystemKey key =
+          new FileSystemKey(UserState.Factory.create(conf, subject).getSubject(), conf);
       return FILESYSTEM_CACHE.get(key);
     }
 
