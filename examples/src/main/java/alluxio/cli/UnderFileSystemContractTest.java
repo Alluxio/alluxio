@@ -47,15 +47,11 @@ import java.util.UUID;
  */
 public final class UnderFileSystemContractTest {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemContractTest.class);
-  public static final String S3_IDENTIFIER = "s3";
+  private static final String S3_IDENTIFIER = "s3";
 
   @Parameter(names = {"--path"}, required = true,
       description = "The under filesystem path to run tests against.")
   private String mUfsPath;
-
-  @Parameter(names = {"--force"}, description = "Force to run all the tests "
-      + "even if some of the tests target specific features of other under filesystems")
-  private boolean mForce = false;
 
   @Parameter(names = {"--help"}, help = true)
   private boolean mHelp = false;
@@ -88,7 +84,7 @@ public final class UnderFileSystemContractTest {
 
     runCommonOperations();
 
-    if (mForce || mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
+    if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
       runS3AOperations();
     }
     CliUtils.printPassInfo(true);

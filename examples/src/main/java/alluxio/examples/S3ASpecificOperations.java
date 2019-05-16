@@ -12,7 +12,6 @@
 package alluxio.examples;
 
 import alluxio.Constants;
-import alluxio.cli.UnderFileSystemContractTest;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -132,14 +131,10 @@ public final class S3ASpecificOperations {
 
   /**
    * Test for creating and aborting a multipart file.
-   * This test only run against S3.
    */
   @RelatedS3Operations(operations = {"initiateMultipartUpload", "uploadPart",
       "abortMultipartUploads"})
   public void createAndAbortMultipartFileTest() throws IOException {
-    if (!mUfs.getUnderFSType().equals(UnderFileSystemContractTest.S3_IDENTIFIER)) {
-      return;
-    }
     // Create a multipart file but do not close it
     String testFile = PathUtils.concatPath(mTestDirectory, "createAndAbort");
     OutputStream outputStream = mUfs.create(testFile);
