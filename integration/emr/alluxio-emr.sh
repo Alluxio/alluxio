@@ -26,10 +26,16 @@ if [ -z $1]
 then
   echo "No Download URL Provided. Please go to http://downloads.alluxio.io to see available release downloads."
 else
-  wget "${1}"
+  if [[ "${1}" == s3://* ]]
+  then
+    aws s3 cp ${1} ./
+  else
+    wget "${1}"
+  fi
 fi
 RELEASE=`basename ${1}`
 RELEASE_UNZIP=${RELEASE%"-bin.tar.gz"}
+RELEASE_UNZIP=${RELEASE_UNZIP%".tar.gz"}
 
 #Unpack and inflate the release tar
 #TODO logic for different compression formats, s3 URIs, git URIs, etc.
@@ -63,11 +69,12 @@ IS_MASTER=`jq '.isMaster' /mnt/var/lib/info/instance.json`
 #Set up alluxio-site.properties
 sudo runuser -l alluxio -c "echo 'alluxio.master.hostname=$MASTER' > /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.master.mount.table.root.ufs=$2' >> /opt/alluxio/conf/alluxio-site.properties"
-sudo runuser -l alluxio -c "echo 'alluxio.worker.memory.size=1GB' >> /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.worker.memory.size=20GB' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.levels=1' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.level0.alias=MEM' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.hive.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.yarn.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.presto.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
 
 #Inject user defined properties (semicolon separated)
@@ -79,6 +86,7 @@ printf "%s\n" "${conf[@]}" | sudo tee -a /opt/alluxio/conf/alluxio-site.properti
 if [ $IS_MASTER = "true" ]
 then
   sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh master"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh job_master"
   sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh proxy"
 else
   /opt/alluxio/bin/alluxio-mount.sh SudoMount local
@@ -88,10 +96,13 @@ else
     sleep 5
   done
   sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh worker"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh job_worker"
   sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh proxy"
 fi
 
 #Compute configs
 sudo runuser -l alluxio -c "ln -s /opt/alluxio/client/*client.jar /opt/alluxio/client/alluxio-client.jar"
+sudo mkdir -p /usr/lib/spark/jars/
+sudo ln -s /opt/alluxio/client/alluxio-client.jar /usr/lib/spark/jars/alluxio-client.jar
 sudo mkdir -p /usr/lib/presto/plugin/hive-hadoop2/
 sudo ln -s /opt/alluxio/client/alluxio-client.jar /usr/lib/presto/plugin/hive-hadoop2/alluxio-client.jar

@@ -34,7 +34,7 @@ the root UFS can be reconfigured to be HDFS.
 
 ## Basic Setup
 
-To begin with, download the `alluxio-emr.sh` and `alluxio-presto.json` files from
+To begin with, download the `alluxio-emr.sh` and `alluxio-emr.json` files from
 [Github](https://github.com/Alluxio/alluxio/tree/master/integration/emr/). These files will serve as the main
 mechanisms to change the Alluxio configuration in the future. Make sure that the AWS CLI is also set up and ready
 with the required AWS Access/Secret key.
@@ -45,7 +45,7 @@ service.
 3. Configure the below command with the required parameters. The root-ufs-uri should be an s3a:// or hdfs:// URI designating the root mount of the Alluxio file system.
 
 ```bash
-aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=<web-download-url>,<root-ufs-uri>,<additional-properties> --configurations file:///path/to/file/alluxio-presto.json --ec2-attributes KeyName=<ec2-keypair-name>
+aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark -name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=<web-download-url>,<root-ufs-uri>,<additional-properties> --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name>
 ```
 
 3. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to see the cluster
@@ -107,6 +107,10 @@ INSERT INTO test1 VALUES (1, 24, 'F', 'Developer', '12345');
 ```sql
 SELECT * FROM test1;
 ```
+
+## Run a Spark Job
+The Alluxio bootstrap also takes care of setting up EMR for you. Follow the steps in our Alluxio on Spark [documentation]({{ '/en/compute/Spark.html#examples-use-alluxio-as-input-and-output' | relativize_url }})
+to get started.
 
 ## Customization
 Tuning of Alluxio properties can be done in a few different locations. Depending on which service needs tuning, EMR
