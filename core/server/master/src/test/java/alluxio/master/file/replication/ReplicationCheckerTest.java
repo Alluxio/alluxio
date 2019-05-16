@@ -44,6 +44,7 @@ import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
+import alluxio.proto.meta.Block;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
@@ -78,7 +79,7 @@ public final class ReplicationCheckerTest {
   private static final AlluxioURI TEST_FILE_2 = new AlluxioURI("/test2");
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final List<Metric> NO_METRICS = ImmutableList.of();
-  private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
+  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Map<Long, Integer> EMPTY = ImmutableMap.of();
 
@@ -210,7 +211,7 @@ public final class ReplicationCheckerTest {
     if (!mKnownWorkers.contains(workerId)) {
       // Do not re-register works, otherwise added block will be removed
       mBlockMaster.workerRegister(workerId, ImmutableList.of("MEM"), ImmutableMap.of("MEM", 100L),
-          ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
+          ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
           RegisterWorkerPOptions.getDefaultInstance());
       mKnownWorkers.add(workerId);
     }
@@ -225,8 +226,10 @@ public final class ReplicationCheckerTest {
    */
   private void heartbeatToAddLocationHelper(long blockId, long workerId) throws Exception {
     List<Long> addedBlocks = ImmutableList.of(blockId);
+    alluxio.proto.meta.Block.BlockLocation blockLocation =
+        Block.BlockLocation.newBuilder().setTier("MEM").setDirIndex(0).setMediumType("MEM").build();
     mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
-        ImmutableMap.of("MEM", addedBlocks), NO_LOST_STORAGE, NO_METRICS);
+        ImmutableMap.of(blockLocation, addedBlocks), NO_LOST_STORAGE, NO_METRICS);
   }
 
   @Test
@@ -304,13 +307,13 @@ public final class ReplicationCheckerTest {
     long workerId = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
         .setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(workerId, Collections.singletonList("MEM"),
-        ImmutableMap.of("MEM", 100L), ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        ImmutableMap.of("MEM", 100L), ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION,
         NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(workerId, 50L, "MEM", "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L),
-        ImmutableList.of(blockId), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE, NO_METRICS);
+        ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, NO_METRICS);
 
     mReplicationChecker.heartbeat();
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getEvictRequests());
