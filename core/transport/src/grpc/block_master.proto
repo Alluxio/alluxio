@@ -170,12 +170,6 @@ message BlockHeartbeatPOptions {
   map<string, int64> capacityBytesOnTiers = 2;
 }
 
-message BlockStoreLocationProto {
-  optional string tierAlias = 1;
-  optional int32 dirIndex = 2;
-  optional string mediumType = 3;
-}
-
 message LocationBlockIdListEntry {
   optional BlockStoreLocationProto key= 1;
   optional BlockIdList value = 2;

@@ -25,6 +25,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcManagedChannelPool;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.MoveBlockRequest;
+import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -165,6 +167,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .removeBlock(request);
+  }
+
+  @Override
+  public MoveBlockResponse moveBlock(MoveBlockRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
+        .moveBlock(request);
   }
 
   @Override

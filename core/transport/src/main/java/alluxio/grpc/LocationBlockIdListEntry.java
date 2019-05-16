@@ -103,19 +103,19 @@ private static final long serialVersionUID = 0L;
   public static final int KEY_FIELD_NUMBER = 1;
   private alluxio.grpc.BlockStoreLocationProto key_;
   /**
-   * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+   * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
    */
   public boolean hasKey() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+   * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
    */
   public alluxio.grpc.BlockStoreLocationProto getKey() {
     return key_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : key_;
   }
   /**
-   * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+   * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
    */
   public alluxio.grpc.BlockStoreLocationProtoOrBuilder getKeyOrBuilder() {
     return key_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : key_;
@@ -484,13 +484,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder> keyBuilder_;
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     public alluxio.grpc.BlockStoreLocationProto getKey() {
       if (keyBuilder_ == null) {
@@ -500,7 +500,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     public Builder setKey(alluxio.grpc.BlockStoreLocationProto value) {
       if (keyBuilder_ == null) {
@@ -516,7 +516,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     public Builder setKey(
         alluxio.grpc.BlockStoreLocationProto.Builder builderForValue) {
@@ -530,7 +530,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     public Builder mergeKey(alluxio.grpc.BlockStoreLocationProto value) {
       if (keyBuilder_ == null) {
@@ -550,7 +550,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     public Builder clearKey() {
       if (keyBuilder_ == null) {
@@ -563,7 +563,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     public alluxio.grpc.BlockStoreLocationProto.Builder getKeyBuilder() {
       bitField0_ |= 0x00000001;
@@ -571,7 +571,7 @@ private static final long serialVersionUID = 0L;
       return getKeyFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     public alluxio.grpc.BlockStoreLocationProtoOrBuilder getKeyOrBuilder() {
       if (keyBuilder_ != null) {
@@ -582,7 +582,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+     * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder> 

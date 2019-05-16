@@ -8,15 +8,15 @@ public interface LocationBlockIdListEntryOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+   * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
    */
   boolean hasKey();
   /**
-   * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+   * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
    */
   alluxio.grpc.BlockStoreLocationProto getKey();
   /**
-   * <code>optional .alluxio.grpc.block.BlockStoreLocationProto key = 1;</code>
+   * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
    */
   alluxio.grpc.BlockStoreLocationProtoOrBuilder getKeyOrBuilder();
 
