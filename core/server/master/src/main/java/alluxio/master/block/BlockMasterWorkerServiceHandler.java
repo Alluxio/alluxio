@@ -15,14 +15,12 @@ import alluxio.RpcUtils;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
-import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -30,7 +28,6 @@ import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.grpc.GrpcUtils;
 
-import alluxio.proto.meta.Block;
 import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -98,10 +95,11 @@ public final class BlockMasterWorkerServiceHandler
     final long blockId = request.getBlockId();
     final String mediumType = request.getMediumType();
     final long length = request.getLength();
+    final int dirIndex = request.getDirIndex();
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
-      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, mediumType,
-          blockId, length);
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, dirIndex,
+          mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
     }, "commitBlock", "request=%s", responseObserver, request);
   }

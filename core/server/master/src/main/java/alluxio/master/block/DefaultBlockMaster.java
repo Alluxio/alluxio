@@ -607,7 +607,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   @Override
-  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, String mediumType,
+  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, int dirIndex, String mediumType,
       long blockId, long length) throws NotFoundException, UnavailableException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
@@ -1002,7 +1002,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         // - it would be an incorrect order (correct order is lock worker first, then block)
         // - only uses getters of final variables
         locations.add(new alluxio.wire.BlockLocation().setWorkerId(location.getWorkerId())
-            .setWorkerAddress(workerInfo.getWorkerAddress())
+            .setWorkerAddress(workerInfo.getWorkerAddress()).setDirIndex(location.getDirIndex())
             .setTierAlias(location.getTier()).setMediumType(location.getMediumType()));
       }
     }

@@ -44,7 +44,6 @@ import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
-import alluxio.proto.meta.Block;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
@@ -191,7 +190,7 @@ public final class ReplicationCheckerTest {
    */
   private void addBlockLocationHelper(long blockId, int numLocations) throws Exception {
     // Commit blockId to the first worker.
-    mBlockMaster.commitBlock(createWorkerHelper(0), 50L, "MEM", "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(createWorkerHelper(0), 50L, "MEM", 0, "MEM", blockId, 20L);
 
     // Send a heartbeat from other workers saying that it's added blockId.
     for (int i = 1; i < numLocations; i++) {
@@ -309,7 +308,7 @@ public final class ReplicationCheckerTest {
     mBlockMaster.workerRegister(workerId, Collections.singletonList("MEM"),
         ImmutableMap.of("MEM", 100L), ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION,
         NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
-    mBlockMaster.commitBlock(workerId, 50L, "MEM", "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(workerId, 50L, "MEM", 0, "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L),

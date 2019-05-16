@@ -13,6 +13,7 @@ package alluxio.master.file.replication;
 
 import alluxio.AlluxioURI;
 import alluxio.client.job.JobMasterClientPool;
+import alluxio.collections.Pair;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
@@ -30,6 +31,8 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.BlockInfo;
 
+import alluxio.wire.BlockLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -37,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -124,6 +128,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
     Set<Long> inodes;
 
+
     // Check the set of files that could possibly be under-replicated
     inodes = mInodeTree.getPinIdSet();
     check(inodes, mReplicationHandler, Mode.REPLICATE);
@@ -131,11 +136,93 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     // Check the set of files that could possibly be over-replicated
     inodes = mInodeTree.getReplicationLimitedFileIds();
     check(inodes, mReplicationHandler, Mode.EVICT);
+
+    // Check the set of files that could possibly be mis-replicated
+    inodes = mInodeTree.getPinIdSet();
+    checkMisreplicated(inodes);
   }
 
   @Override
   public void close() {
     // Nothing to clean up
+  }
+
+  /**
+   * Find a set of from and to locations for our moveBlock operation.
+   * After the move, the file will be in the desired pinned medium at least minReplication times.
+   *
+   * @param file
+   * @param blockInfo
+   * @return
+   */
+  private Set<Pair<BlockStoreLocation, BlockStoreLocation>> findMisplacedBlock(
+      InodeFile file, BlockInfo blockInfo) {
+    Set<String> pinnedMediumTypes = file.getMediumTypes();
+    Set<Pair<BlockStoreLocation, BlockStoreLocation>> movement = new HashSet<>();
+    if (pinnedMediumTypes.isEmpty()) {
+      // nothing needs to be moved
+      return Collections.emptySet();
+    }
+    // at least pinned to one medium type
+    String firstPinnedMedium = pinnedMediumTypes.iterator().next();
+    int minReplication = file.getReplicationMin();
+    int correctReplication = 0;
+    Set<BlockStoreLocation> candidates = new HashSet<>();
+    BlockStoreLocation desiredLocation =
+        BlockStoreLocation.anyDirInTierWithMedium(firstPinnedMedium);
+    for (BlockLocation loc: blockInfo.getLocations()) {
+      BlockStoreLocation currentLocation = new BlockStoreLocation(
+          loc.getTierAlias(), loc.getDirIndex(), loc.getMediumType());
+      if (currentLocation.belongsTo(desiredLocation)) {
+        correctReplication++;
+      } else {
+        candidates.add(currentLocation);
+      }
+    }
+    if (correctReplication >= minReplication) {
+      // there are more than minReplication in the right location
+      return Collections.emptySet();
+    } else {
+      int toMove = minReplication - correctReplication;
+      for (BlockStoreLocation candidate : candidates) {
+        movement.add(new Pair<>(candidate, desiredLocation));
+        toMove--;
+        if (toMove == 0) {
+          return movement;
+        }
+      }
+    }
+    return movement;
+  }
+
+  private void checkMisreplicated(Set<Long> inodes) {
+    for (long inodeId : inodes) {
+      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
+        InodeFile file = inodePath.getInodeFile();
+        for (long blockId : file.getBlockIds()) {
+          BlockInfo blockInfo = null;
+          try {
+            blockInfo = mBlockMaster.getBlockInfo(blockId);
+          } catch (BlockInfoException e) {
+            // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
+          } catch (UnavailableException e) {
+            // The block master is not available, wait for the next heartbeat
+            LOG.warn("The block master is not available: {}", e.getMessage());
+            return;
+          }
+          if (blockInfo == null) {
+            // no block info available, we simply log and return;
+            LOG.warn("Block info is null");
+          }
+
+          for (Pair<BlockStoreLocation, BlockStoreLocation> pair : findMisplacedBlock(file, blockInfo)) {
+            // TODO (david): actually move the blocks
+          }
+
+        }
+      } catch (FileDoesNotExistException e) {
+        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.getMessage());      }
+    }
   }
 
   private void check(Set<Long> inodes, ReplicationHandler handler, Mode mode) {

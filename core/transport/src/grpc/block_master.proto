@@ -215,6 +215,7 @@ message CommitBlockPRequest {
   optional int64 length = 5;
   optional CommitBlockPOptions options = 6;
   optional string mediumType = 7;
+  optional int32 dirIndex = 8;
 }
 
 message CommitBlockPOptions {}

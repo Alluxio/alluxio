@@ -553,13 +553,13 @@ public final class Block {
         getMediumTypeBytes();
 
     /**
-     * <code>optional int64 dirIndex = 4;</code>
+     * <code>optional int32 dirIndex = 4;</code>
      */
     boolean hasDirIndex();
     /**
-     * <code>optional int64 dirIndex = 4;</code>
+     * <code>optional int32 dirIndex = 4;</code>
      */
-    long getDirIndex();
+    int getDirIndex();
   }
   /**
    * <pre>
@@ -583,7 +583,7 @@ public final class Block {
       workerId_ = 0L;
       tier_ = "";
       mediumType_ = "";
-      dirIndex_ = 0L;
+      dirIndex_ = 0;
     }
 
     @java.lang.Override
@@ -636,7 +636,7 @@ public final class Block {
             }
             case 32: {
               bitField0_ |= 0x00000008;
-              dirIndex_ = input.readInt64();
+              dirIndex_ = input.readInt32();
               break;
             }
           }
@@ -764,17 +764,17 @@ public final class Block {
     }
 
     public static final int DIRINDEX_FIELD_NUMBER = 4;
-    private long dirIndex_;
+    private int dirIndex_;
     /**
-     * <code>optional int64 dirIndex = 4;</code>
+     * <code>optional int32 dirIndex = 4;</code>
      */
     public boolean hasDirIndex() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional int64 dirIndex = 4;</code>
+     * <code>optional int32 dirIndex = 4;</code>
      */
-    public long getDirIndex() {
+    public int getDirIndex() {
       return dirIndex_;
     }
 
@@ -800,7 +800,7 @@ public final class Block {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, mediumType_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt64(4, dirIndex_);
+        output.writeInt32(4, dirIndex_);
       }
       unknownFields.writeTo(output);
     }
@@ -822,7 +822,7 @@ public final class Block {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, dirIndex_);
+          .computeInt32Size(4, dirIndex_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -886,8 +886,7 @@ public final class Block {
       }
       if (hasDirIndex()) {
         hash = (37 * hash) + DIRINDEX_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getDirIndex());
+        hash = (53 * hash) + getDirIndex();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -1030,7 +1029,7 @@ public final class Block {
         bitField0_ = (bitField0_ & ~0x00000002);
         mediumType_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
-        dirIndex_ = 0L;
+        dirIndex_ = 0;
         bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
@@ -1342,34 +1341,34 @@ public final class Block {
         return this;
       }
 
-      private long dirIndex_ ;
+      private int dirIndex_ ;
       /**
-       * <code>optional int64 dirIndex = 4;</code>
+       * <code>optional int32 dirIndex = 4;</code>
        */
       public boolean hasDirIndex() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional int64 dirIndex = 4;</code>
+       * <code>optional int32 dirIndex = 4;</code>
        */
-      public long getDirIndex() {
+      public int getDirIndex() {
         return dirIndex_;
       }
       /**
-       * <code>optional int64 dirIndex = 4;</code>
+       * <code>optional int32 dirIndex = 4;</code>
        */
-      public Builder setDirIndex(long value) {
+      public Builder setDirIndex(int value) {
         bitField0_ |= 0x00000008;
         dirIndex_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 dirIndex = 4;</code>
+       * <code>optional int32 dirIndex = 4;</code>
        */
       public Builder clearDirIndex() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        dirIndex_ = 0L;
+        dirIndex_ = 0;
         onChanged();
         return this;
       }
@@ -1445,7 +1444,7 @@ public final class Block {
       "meta\"\033\n\tBlockMeta\022\016\n\006length\030\001 \001(\003\"V\n\rBlo" +
       "ckLocation\022\021\n\tworker_id\030\001 \001(\003\022\014\n\004tier\030\002 " +
       "\001(\t\022\022\n\nmediumType\030\003 \001(\t\022\020\n\010dirIndex\030\004 \001(" +
-      "\003"
+      "\005"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
