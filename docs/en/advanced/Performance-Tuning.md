@@ -246,10 +246,17 @@ Stores). This is most common when using stacks such as Spark on S3 or Hive on Ce
 
 The Hadoop MapReduce committer leverages renames to commit data from a staging directory (usually
 `output/_temporary`) to the final output directory (ie. `output`). When writing data with
-`CACHE_THROUGH` or `THROUGH` this protocol translates to writing the data once to Alluxio (fast) and
-object store (slow) and an additional copy and delete (rename) in the object store (slow). When
-running jobs which have a large number or size of output files, the overhead of the object store
-dominates the run time of the workload.
+`CACHE_THROUGH` or `THROUGH` this protocol translates to the following:
+1. Write temporary data to Alluxio and Object Store
+    - Data is written to Alluxio storage quickly
+    - Data is written to object store slowly
+1. Rename temporary data to final output location
+    - Rename within Alluxio is fast because it is a metadata operation
+    - Rename in object store is slow because it is a copy and delete
+1. Job completes to the user
+
+When running jobs which have a large number or size of output files, the overhead of the object
+store dominates the run time of the workload.
 
 Alluxio provides a way to only incur the cost of writing the data to Alluxio (fast) on the critical
 path. Users should configure the following Alluxio properties in the compute framework:
@@ -267,8 +274,15 @@ alluxio.user.file.persist.on.rename=true
 alluxio.user.file.replication.durable=1
 ```
 
-With this configuration, compute tasks will write temporary data only to Alluxio (fast) with a
-flexible degree of fault tolerance. When the compute task commits the data through a rename, Alluxio
-will schedule a job to persist the data the under store off the critical path. This avoids both the
-expensive write to the object store (by removing it from the critical path) as well as the rename
-in the object store (by only persisting files which are already considered committed).
+With this configuration, the protocol translates to the following:
+1. Write temporary data to Alluxio
+    - Data is written to Alluxio storage quickly
+1. Rename temporary data to final output location
+    - Rename within Alluxio is fast because it is a metadata operation
+    - An asynchronous persist task is launched
+1. Job completes to the user
+1. Write final output to object store
+    - Data is written to object store slowly
+
+Overall, a copy and delete operation in the object store is saved, and the slow portion of writing
+to the object store is moved off the critical path.
