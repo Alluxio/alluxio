@@ -196,6 +196,8 @@ public final class Constants {
   public static final int REPLICATION_MAX_INFINITY = -1;
 
   // Persistence
+  // The file should only be persisted after rename operation or persist CLI
+  public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
 

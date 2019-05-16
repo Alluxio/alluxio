@@ -1544,14 +1544,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS)
           .setDefaultValue(Constants.SECOND_MS)
           .build();
-  public static final PropertyKey MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =
-      new Builder(Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS)
-          .setDefaultValue("5min")
-          .setDescription(String.format("Time to wait before starting the persistence job. "
-              + "When %s is set to %s, set to a big enough value "
-              + "to avoid conflicts between cache and through job.",
-              Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH))
-          .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_INTERVAL_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_INTERVAL_MS)
           .setDefaultValue(Constants.HOUR_MS)
@@ -2786,6 +2778,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to commit results.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME =
+      new Builder(Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME)
+          .setDefaultValue("0")
+          .setDescription(String.format("Time to wait before starting the persistence job. "
+              + "When the value is set to -1, the file will be persisted by rename operation "
+              + "or persist CLI but will not be automatically persisted in other cases. "
+              + "This is to avoid the heavy object copy in rename operation when %s is set to %s. "
+              + "This value should be smaller than the value of %s",
+              Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH,
+              Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS))
+          .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       new Builder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
           .setAlias(new String[]{"alluxio.user.file.waitcompleted.poll.ms"})
@@ -3809,8 +3812,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metrics.time.series.interval";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
         "alluxio.master.persistence.initial.interval.ms";
-    public static final String MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =
-        "alluxio.master.persistence.initial.wait.time.ms";
     public static final String MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
         "alluxio.master.persistence.max.total.wait.time.ms";
     public static final String MASTER_PERSISTENCE_MAX_INTERVAL_MS =
@@ -4073,6 +4074,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.load.ttl.action";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
     public static final String USER_FILE_PERSIST_ON_RENAME = "alluxio.user.file.persist.on.rename";
+    public static final String USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME =
+        "alluxio.user.file.persistence.initial.wait.time";
     public static final String USER_FILE_REPLICATION_MAX = "alluxio.user.file.replication.max";
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
     public static final String USER_FILE_REPLICATION_DURABLE =

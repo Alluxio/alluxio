@@ -84,6 +84,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.underfs.UfsMode;
@@ -358,7 +359,8 @@ public final class FileSystemMasterClientServiceHandler
     ScheduleAsyncPersistencePOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<ScheduleAsyncPersistencePResponse>) () -> {
-          mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
+          mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path),
+              ScheduleAsyncPersistenceContext.create(options.toBuilder()));
           return ScheduleAsyncPersistencePResponse.newBuilder().build();
         }, "ScheduleAsyncPersist", "path=%s, options=%s", responseObserver, path, options);
   }

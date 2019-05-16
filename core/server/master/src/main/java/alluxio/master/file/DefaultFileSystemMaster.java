@@ -77,6 +77,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
@@ -567,10 +568,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       // (mPersistRequests)
       for (Long id : mInodeTree.getToBePersistedIds()) {
         Inode inode = mInodeStore.get(id).get();
-        if (inode.isDirectory()) {
-          continue;
-        }
-        if (inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED) {
+        if (inode.isDirectory()
+            || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
+            || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
           continue;
         }
         InodeFile inodeFile = inode.asFile();
@@ -578,7 +578,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+              getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
         } else {
           AlluxioURI path;
@@ -588,7 +588,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             LOG.error("Failed to determine path for inode with id {}", id, e);
             continue;
           }
-          addPersistJob(id, inodeFile.getPersistJobId(), path, inodeFile.getTempUfsPath());
+          addPersistJob(id, inodeFile.getPersistJobId(),
+              getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
+              path, inodeFile.getTempUfsPath());
         }
       }
       if (ServerConfiguration
@@ -1267,7 +1269,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @return the list of created inodes
    */
   List<Inode> createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-                                 CreateFileContext context)
+      CreateFileContext context)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
     if (mWhitelist.inList(inodePath.getUri().toString())) {
@@ -2007,10 +2009,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           .setId(srcInode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
           .build());
+      long shouldPersistTime = srcInode.asFile().getShouldPersistTime();
+      long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST ? 0
+          : getPersistenceWaitTime(shouldPersistTime);
       mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          persistenceWaitTime,
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
@@ -3007,7 +3012,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public void scheduleAsyncPersistence(AlluxioURI path)
+  public void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
       throws AlluxioException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE)) {
@@ -3023,7 +3028,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mPersistRequests.put(inode.getId(), new alluxio.time.ExponentialTimer(
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          context.getPersistenceWaitTime(),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
@@ -3712,19 +3717,30 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /**
    * @param fileId file ID
    * @param jobId persist job ID
+   * @param persistenceWaitTime persistence initial wait time
    * @param uri Alluxio Uri of the file
    * @param tempUfsPath temp UFS path
    */
-  private void addPersistJob(long fileId, long jobId, AlluxioURI uri, String tempUfsPath) {
+  private void addPersistJob(long fileId, long jobId, long persistenceWaitTime, AlluxioURI uri,
+      String tempUfsPath) {
     alluxio.time.ExponentialTimer timer = mPersistRequests.remove(fileId);
     if (timer == null) {
       timer = new alluxio.time.ExponentialTimer(
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          persistenceWaitTime,
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS));
     }
     mPersistJobs.put(fileId, new PersistJob(jobId, fileId, uri, tempUfsPath, timer));
+  }
+
+  private long getPersistenceWaitTime(long shouldPersistTime) {
+    long currentTime = System.currentTimeMillis();
+    if (shouldPersistTime >= currentTime) {
+      return shouldPersistTime - currentTime;
+    } else {
+      return 0;
+    }
   }
 
   /**

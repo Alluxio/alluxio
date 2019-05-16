@@ -722,7 +722,6 @@ public class InodeTree implements DelegatingJournaled {
       if (context.isPersisted()) {
         syncPersistExistingDirectory(rpcContext, newDir);
       }
-
       createdInodes.add(Inode.wrap(newDir));
       currentInodeDirectory = newDir;
     }
