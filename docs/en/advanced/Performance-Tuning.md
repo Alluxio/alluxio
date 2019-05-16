@@ -234,3 +234,41 @@ When enabled, the same data blocks are available across multiple workers,
 reducing the amount of available storage capacity for unique data.
 Disabling passive caching is important for workloads that have no concept of locality and whose
 dataset is large compared to the capacity of a single Alluxio worker.
+
+### Optimized Commits for Compute Frameworks
+
+Running with optimized commits through Alluxio can provide an order of magnitude improvement in the
+overall runtime of compute jobs.
+
+Computation frameworks that leverage the Hadoop MapReduce committer pattern (ie. Spark, Hive) are
+not optimally designed for interacting with storages that provide slow renames (mainly Object
+Stores). This is most common when using stacks such as Spark on S3 or Hive on Ceph.
+
+The Hadoop MapReduce committer leverages renames to commit data from a staging directory (usually
+`output/_temporary`) to the final output directory (ie. `output`). When writing data with
+`CACHE_THROUGH` or `THROUGH` this protocol translates to writing the data once to Alluxio (fast) and
+object store (slow) and an additional copy and delete (rename) in the object store (slow). When
+running jobs which have a large number or size of output files, the overhead of the object store
+dominates the run time of the workload.
+
+Alluxio provides a way to only incur the cost of writing the data to Alluxio (fast) on the critical
+path. Users should configure the following Alluxio properties in the compute framework:
+
+```
+# Writes data only to Alluxio before returning a successful write
+alluxio.user.file.writetype.default=ASYNC_THROUGH
+# Does not persist the data automatically to the underlying storage, this is important because
+# only the final committed data is necessary to persist
+alluxio.user.file.persistence.initial.wait.time=-1
+# Hints that Alluxio should treat renaming as committing data and trigger a persist operation
+alluxio.user.file.persist.on.rename=true
+# Determines the number of copies in Alluxio when files are not yet persisted, increase this to
+# a larger number to ensure fault tolerance in case of Alluxio worker failures
+alluxio.user.file.replication.durable=1
+```
+
+With this configuration, compute tasks will write temporary data only to Alluxio (fast) with a
+flexible degree of fault tolerance. When the compute task commits the data through a rename, Alluxio
+will schedule a job to persist the data the under store off the critical path. This avoids both the
+expensive write to the object store (by removing it from the critical path) as well as the rename
+in the object store (by only persisting files which are already considered committed).
