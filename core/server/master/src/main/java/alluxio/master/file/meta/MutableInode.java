@@ -34,11 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
-<<<<<<< HEAD
 import java.util.Map;
-=======
 import java.util.Set;
->>>>>>> master
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -176,14 +173,14 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
-<<<<<<< HEAD
   @Nullable
   public Map<String, ByteString> getXAttr() {
     return mXAttr;
-=======
+  }
+
+  @Override
   public Set<String> getMediumTypes() {
     return mMediumTypes;
->>>>>>> master
   }
 
   /**
@@ -455,19 +452,20 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   /**
-<<<<<<< HEAD
    * @param xAttr The new set of extended attributes
    * @return the updated object
    */
   public T setXAttr(Map<String, ByteString> xAttr) {
     mXAttr = xAttr;
-=======
+    return getThis();
+  }
+
+  /**
    * @param mediumTypes the medium types to pin to
    * @return the updated object
    */
   public T setMediumTypes(Set<String> mediumTypes) {
     mMediumTypes = mediumTypes;
->>>>>>> master
     return getThis();
   }
 
@@ -569,13 +567,11 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasUfsFingerprint()) {
       setUfsFingerprint(entry.getUfsFingerprint());
     }
-<<<<<<< HEAD
     if (entry.getXAttrCount() > 0) {
       setXAttr(entry.getXAttrMap());
-=======
+    }
     if (entry.getMediumTypeCount() != 0) {
       setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
->>>>>>> master
     }
   }
 
@@ -619,11 +615,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .add("group", mAcl.getOwningGroup())
         .add("permission", mAcl.getMode())
         .add("ufsFingerprint", mUfsFingerprint)
-<<<<<<< HEAD
+        .add("mediatypes", mMediumTypes)
         .add("xAttr", mXAttr);
-=======
-        .add("mediatypes", mMediumTypes);
->>>>>>> master
   }
 
   protected InodeMeta.Inode.Builder toProtoBuilder() {
@@ -639,17 +632,13 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setPersistenceState(getPersistenceState().name())
         .setIsPinned(isPinned())
         .setAccessAcl(ProtoUtils.toProto(getACL()))
-<<<<<<< HEAD
-        .setUfsFingerprint(getUfsFingerprint());
+        .setUfsFingerprint(getUfsFingerprint())
+        .addAllMediumType(getMediumTypes());
     Map<String, ByteString> vals;
     if ((vals = getXAttr()) != null) {
       inode.putAllXAttr(vals);
     }
     return inode;
-=======
-        .setUfsFingerprint(getUfsFingerprint())
-        .addAllMediumType(getMediumTypes());
->>>>>>> master
   }
 
   /**

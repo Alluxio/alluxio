@@ -24,13 +24,10 @@ import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 
 import java.util.List;
-<<<<<<< HEAD
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
-=======
-import java.util.Set;
->>>>>>> master
 
 /**
  * Base class for read only inodes.

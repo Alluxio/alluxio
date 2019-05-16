@@ -23,13 +23,10 @@ import alluxio.grpc.TtlAction;
 import com.google.protobuf.ByteString;
 
 import java.util.List;
-<<<<<<< HEAD
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
-=======
-import java.util.Set;
->>>>>>> master
 
 /**
  * Read-only view of an inode.

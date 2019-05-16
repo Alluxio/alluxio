@@ -460,6 +460,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   public JournalEntry toJournalEntry() {
     InodeFileEntry.Builder inodeFile = InodeFileEntry.newBuilder()
         .addAllBlocks(getBlockIds())
+        .addAllMediumType(getMediumTypes())
         .setBlockSizeBytes(getBlockSizeBytes())
         .setCacheable(isCacheable())
         .setCompleted(isCompleted())
@@ -479,17 +480,11 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
-<<<<<<< HEAD
         .setAcl(ProtoUtils.toProto(mAcl));
     Map<String, ByteString> vals;
     if ((vals = getXAttr()) != null) {
       inodeFile.putAllXAttr(vals);
     }
-=======
-        .setAcl(ProtoUtils.toProto(mAcl))
-        .addAllMediumType(getMediumTypes())
-        .build();
->>>>>>> master
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
@@ -540,13 +535,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMax(inode.getReplicationMax())
         .setReplicationMin(inode.getReplicationMin())
         .setPersistJobId(inode.getPersistJobId())
-<<<<<<< HEAD
-        .setTempUfsPath(inode.getPersistJobTempUfsPath())
-        .setXAttr(inode.getXAttrMap());
-=======
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath())
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
->>>>>>> master
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()))
+        .setXAttr(inode.getXAttrMap());
   }
 }

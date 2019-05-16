@@ -11,11 +11,7 @@ import "proto/shared/acl.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
-<<<<<<< HEAD
- * next available id: 28
-=======
- * next available id: 29
->>>>>>> master
+ * next available id: 30
  */
 message Inode {
     optional int64 id = 1;
@@ -57,5 +53,5 @@ message Inode {
 
     // Extended attributes, general purpose. Should be used with care as long string identifiers will use a
     // comparatively large amount of memory to other fields
-    map<string, bytes> xAttr = 27;
+    map<string, bytes> xAttr = 29;
 }
