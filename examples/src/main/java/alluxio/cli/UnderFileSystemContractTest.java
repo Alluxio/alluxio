@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.examples.RelatedS3Operations;
 import alluxio.examples.S3ASpecificOperations;
 import alluxio.examples.UnderFileSystemCommonOperations;
 import alluxio.underfs.UfsFileStatus;
@@ -31,8 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -225,16 +224,5 @@ public final class UnderFileSystemContractTest {
     } else {
       test.run();
     }
-  }
-
-  /**
-   * A annotation for methods with related S3 operations.
-   */
-  @Retention(RetentionPolicy.RUNTIME)
-  public @interface RelatedS3Operations {
-    /**
-     * @return related S3 operations
-     */
-    String[] operations();
   }
 }

@@ -12,7 +12,6 @@
 package alluxio.examples;
 
 import alluxio.Constants;
-import alluxio.cli.UnderFileSystemContractTest.RelatedS3Operations;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
