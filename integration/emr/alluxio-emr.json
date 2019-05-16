@@ -2,7 +2,6 @@
   {     
     "Classification": "hive-site",
     "Properties": {
-      "hive.aux.jars.path": "/opt/alluxio/client/alluxio-client.jar",
       "alluxio.user.file.writetype.default": "CACHE_THROUGH",
       "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
     }
@@ -17,7 +16,8 @@
     "Classification": "presto-connector-hive",
     "Properties": {
       "hive.metastore": "glue",
-      "hive.force-local-scheduling": "true"
+      "hive.force-local-scheduling": "true",
+      "hive.s3-file-system-type": "PRESTO"
     }
   },
   {
