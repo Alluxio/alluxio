@@ -12,6 +12,7 @@
 package alluxio.examples;
 
 import alluxio.Constants;
+import alluxio.cli.UnderFileSystemContractTest;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -131,28 +132,42 @@ public final class S3ASpecificOperations {
 
   /**
    * Test for creating and aborting a multipart file.
+   * This test only run against S3.
    */
   @RelatedS3Operations(operations = {"initiateMultipartUpload", "uploadPart",
       "abortMultipartUploads"})
   public void createAndAbortMultipartFileTest() throws IOException {
+    if (!mUfs.getUnderFSType().equals(UnderFileSystemContractTest.S3_IDENTIFIER)) {
+      return;
+    }
+    // Create a multipart file but do not close it
     String testFile = PathUtils.concatPath(mTestDirectory, "createAndAbort");
     OutputStream outputStream = mUfs.create(testFile);
-    // Create a file but do not close it
     int numCopies = 6 * Constants.MB / TEST_BYTES.length;
     for (int i = 0; i < numCopies; ++i) {
       outputStream.write(TEST_BYTES);
     }
+
     LOG.info("Waiting for the in progress upload to be finished so that we can abort it. "
         + "This file may need longer time to upload which may cause test to fail.");
     CommonUtils.sleepMs(TEST_WAIT_TIME);
+
     LOG.info("Expected to see aborted multipart upload and failed to upload last part message");
     mUfs.cleanup();
+
+    boolean getS3ExpectedError = false;
     try {
       outputStream.close();
     } catch (IOException e) {
-      if (!e.getMessage().contains("Part upload failed")) {
+      if (e.getMessage().contains("Part upload failed")) {
+        // The in progress multipart upload has been aborted
+        getS3ExpectedError = true;
+      } else {
         throw e;
       }
+    }
+    if (!getS3ExpectedError) {
+      throw new IOException("The in progress multipart upload did not be aborted.");
     }
   }
 }
