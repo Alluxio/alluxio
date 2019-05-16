@@ -228,7 +228,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       Container container = mAccount.getContainer(mContainerName);
       StoredObject object = container.getObject(key);
