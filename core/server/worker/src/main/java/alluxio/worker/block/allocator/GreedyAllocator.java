@@ -19,6 +19,7 @@ import alluxio.worker.block.meta.StorageTierView;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * A greedy allocator that returns the first Storage dir fitting the size of block to allocate. This
@@ -55,6 +56,7 @@ public final class GreedyAllocator implements Allocator {
    *         otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
+  @Nullable
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
     Preconditions.checkNotNull(location, "location");
@@ -64,6 +66,20 @@ public final class GreedyAllocator implements Allocator {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= blockSize) {
+            return dirView;
+          }
+        }
+      }
+      return null;
+    }
+
+    String mediumType = location.mediumType();
+    if (!mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
+        && location.equals(BlockStoreLocation.anyDirInTierWithMedium(mediumType))) {
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getMediumType().equals(mediumType)
+              && dirView.getAvailableBytes() >= blockSize) {
             return dirView;
           }
         }

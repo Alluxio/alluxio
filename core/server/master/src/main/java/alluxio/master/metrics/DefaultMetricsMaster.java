@@ -85,7 +85,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         new HeartbeatThread(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER,
             new ClusterMetricsUpdater(),
             ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
-            ServerConfiguration.global());
+            ServerConfiguration.global(), mMasterContext.getUserState());
   }
 
   @VisibleForTesting

@@ -62,6 +62,10 @@ public interface MasterInquireClient {
      * @return an authority string representing the connect details
      */
     Authority toAuthority();
+
+    boolean equals(Object obj);
+
+    int hashCode();
   }
 
   /**

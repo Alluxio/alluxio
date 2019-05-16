@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Unit tests for {@link PathProperties}.
@@ -160,5 +161,43 @@ public class PathPropertiesTest {
       Assert.assertTrue(got.containsKey(key.getName()));
       Assert.assertEquals(value, got.get(key.getName()));
     });
+  }
+
+  @Test
+  public void hashEmpty() {
+    PathProperties emptyProperties = new PathProperties();
+    String hash = emptyProperties.hash();
+    Assert.assertNotNull(hash);
+    Assert.assertEquals(hash, emptyProperties.hash());
+  }
+
+  @Test
+  public void hash() {
+    PathProperties properties = new PathProperties();
+    String hash0 = properties.hash();
+
+    properties.add(NoopJournalContext.INSTANCE, ROOT, READ_CACHE);
+    String hash1 = properties.hash();
+    Assert.assertNotEquals(hash0, hash1);
+
+    properties.add(NoopJournalContext.INSTANCE, DIR1, READ_CACHE_WRITE_CACHE_THROUGH);
+    String hash2 = properties.hash();
+    Assert.assertNotEquals(hash0, hash2);
+    Assert.assertNotEquals(hash1, hash2);
+
+    Set<String> keys = new HashSet<>();
+    keys.add(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName());
+    properties.remove(NoopJournalContext.INSTANCE, DIR1, keys);
+    String hash3 = properties.hash();
+    Assert.assertNotEquals(hash0, hash3);
+    Assert.assertNotEquals(hash1, hash3);
+    Assert.assertNotEquals(hash2, hash3);
+
+    properties.removeAll(NoopJournalContext.INSTANCE, DIR1);
+    String hash4 = properties.hash();
+    Assert.assertEquals(hash1, hash4);
+
+    properties.removeAll(NoopJournalContext.INSTANCE, ROOT);
+    Assert.assertEquals(hash0, properties.hash());
   }
 }

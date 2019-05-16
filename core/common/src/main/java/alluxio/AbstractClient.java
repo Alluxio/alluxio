@@ -19,6 +19,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
@@ -28,8 +29,6 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
-import alluxio.security.LoginUser;
-import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -87,9 +86,9 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(ClientContext context, InetSocketAddress address) {
     this(context, address, () -> RetryUtils.defaultClientRetry(
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
   }
 
   /**
@@ -102,7 +101,7 @@ public abstract class AbstractClient implements Client {
   public AbstractClient(ClientContext context, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
     mAddress = address;
-    mContext = Preconditions.checkNotNull(context);
+    mContext = Preconditions.checkNotNull(context, "context");
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
@@ -164,9 +163,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      if (!mContext.getConf().clusterDefaultsLoaded()) {
-        mContext.updateConfigurationDefaults(mAddress);
-      }
+      mContext.loadConfIfNotLoaded(mAddress);
     }
   }
 
@@ -209,26 +206,26 @@ public abstract class AbstractClient implements Client {
       try {
         mAddress = getAddress();
       } catch (UnavailableException e) {
-        LOG.warn("Failed to determine {} rpc address ({}): {}",
+        LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
       if (mAddress.isUnresolved()) {
         // Sometimes the acquired addressed wasn't resolved, retry resolving before
         // using it to connect.
-        LOG.info("Retry resolving address {}", mAddress);
+        LOG.debug("Retry resolving address {}", mAddress);
         // Creates a new InetSocketAddress to force resolving the hostname again.
         mAddress = new InetSocketAddress(mAddress.getHostName(), mAddress.getPort());
         if (mAddress.isUnresolved()) {
-          LOG.warn("Failed to resolve address on retry {}", mAddress);
+          LOG.debug("Failed to resolve address on retry {}", mAddress);
         }
       }
       try {
         beforeConnect();
-        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+        LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-            .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
+            .newBuilder(new GrpcServerAddress(mAddress), mContext.getClusterConf())
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host
@@ -236,11 +233,11 @@ public abstract class AbstractClient implements Client {
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
-        LOG.info("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
+        LOG.debug("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
             getServiceName(), mAddress);
         return;
       } catch (IOException e) {
-        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
+        LOG.debug("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         lastConnectFailure = e;
       }
@@ -381,7 +378,7 @@ public abstract class AbstractClient implements Client {
           throw se;
         }
       }
-      LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      LOG.debug("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
       onRetry.get();
       disconnect();
     }
@@ -392,10 +389,10 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
-          && LoginUser.get(mContext.getConf()) != null) {
+      if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())
+          && mContext.getUserState().getUser() != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            LoginUser.get(mContext.getConf()).getName());
+            mContext.getUserState().getUser().getName());
       } else {
         return metricName;
       }
@@ -412,5 +409,10 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): This should not be in this class
   private String getQualifiedFailureMetricName(String metricName) {
     return getQualifiedMetricName(metricName + "Failures");
+  }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
   }
 }

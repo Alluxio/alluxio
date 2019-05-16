@@ -19,9 +19,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
@@ -49,7 +49,6 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(ImmutableMap.of(
       PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1000",
-      PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "5",
       PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "500",
       PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500",
       PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2500"), ServerConfiguration.global()
@@ -72,9 +71,9 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
   public void zkFailure() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_FAILURE)
         .setClusterName("ZookeeperFailure")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
-        .setNumMasters(1)
+        .setNumMasters(2)
         .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .build();
     mCluster.start();
 

@@ -184,7 +184,7 @@ in.close();
 #### Javadoc
 
 For additional API information, please refer to the
-[Alluxio javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html).
+[Alluxio javadocs](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html).
 
 ### Hadoop-Compatible Java Client
 
@@ -208,7 +208,7 @@ previous code written for Hadoop.
 For portability with other languages, the [Alluxio API](#Java-Client) is also
 accessible via an HTTP proxy in the form of a REST API.
 
-The [REST API documentation](http://www.alluxio.org/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
+The [REST API documentation](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
 is generated as part of Alluxio build and accessible through
 `${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`. The main difference between
 the REST API and the Alluxio Java API is in how streams are represented. While the Alluxio Java API

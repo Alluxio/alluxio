@@ -81,15 +81,18 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the amount of used bytes on the tier the block is committing to
    * @param tierAlias the alias of the tier the block is being committed to
+   * @param mediumType the medium type the block is being committed to
    * @param blockId the block id being committed
    * @param length the length of the block being committed
    */
   public void commitBlock(final long workerId, final long usedBytesOnTier,
-      final String tierAlias, final long blockId, final long length) throws IOException {
+      final String tierAlias, final String mediumType,
+      final long blockId, final long length) throws IOException {
     retryRPC((RpcCallable<Void>) () -> {
       CommitBlockPRequest request =
           CommitBlockPRequest.newBuilder().setWorkerId(workerId).setUsedBytesOnTier(usedBytesOnTier)
-              .setTierAlias(tierAlias).setBlockId(blockId).setLength(length).build();
+              .setTierAlias(tierAlias).setMediumType(mediumType)
+              .setBlockId(blockId).setLength(length).build();
       mClient.commitBlock(request);
       return null;
     });

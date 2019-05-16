@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
@@ -25,6 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
@@ -86,13 +88,17 @@ public class FileOutStream extends AbstractOutStream {
    */
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
       throws IOException {
+    mContext = context;
     mCloser = Closer.create();
+    // Acquire a lock to block FileSystemContext reinitialization, this needs to be done before
+    // using mContext.
+    // The lock will be released in close().
+    mCloser.register(mContext.acquireBlockReinitLockResource());
     mUri = Preconditions.checkNotNull(path, "path");
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mOptions = options;
-    mContext = context;
     mBlockStore = AlluxioBlockStore.create(mContext);
     mPreviousBlockOutStreams = new ArrayList<>();
     mClosed = false;
@@ -175,7 +181,8 @@ public class FileOutStream extends AbstractOutStream {
         }
       }
 
-      if (!mCanceled && mUnderStorageType.isAsyncPersist()) {
+      if (!mCanceled && mUnderStorageType.isAsyncPersist()
+          && mOptions.getPersistenceWaitTime() != Constants.NO_AUTO_PERSIST) {
         // only schedule the persist for completed files.
         scheduleAsyncPersist();
       }
@@ -306,8 +313,11 @@ public class FileOutStream extends AbstractOutStream {
   protected void scheduleAsyncPersist() throws IOException {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
-      masterClient.get().scheduleAsyncPersist(mUri,
-          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)));
+      ScheduleAsyncPersistencePOptions persistOptions =
+          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
+              .setCommonOptions(mOptions.getCommonOptions())
+              .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()).build();
+      masterClient.get().scheduleAsyncPersist(mUri, persistOptions);
     }
   }
 

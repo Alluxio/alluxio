@@ -25,8 +25,10 @@ import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -272,8 +274,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     try {
       stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
-          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder
+          .forAddress(mRpcConnectAddress.getHostName(), mRpcBindAddress,
+              ServerConfiguration.global(), ServerUserState.global());
 
       mRPCExecutor = new ForkJoinPool(
           ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_PARALLELISM),
@@ -352,8 +355,8 @@ public class AlluxioMasterProcess extends MasterProcess {
      */
     public static AlluxioMasterProcess create() {
       URI journalLocation = JournalUtils.getJournalLocation();
-      JournalSystem journalSystem =
-          new JournalSystem.Builder().setLocation(journalLocation).build();
+      JournalSystem journalSystem = new JournalSystem.Builder()
+          .setLocation(journalLocation).build(ProcessType.MASTER);
       if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");

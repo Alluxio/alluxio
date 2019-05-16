@@ -14,7 +14,6 @@ package alluxio.client.rest;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioJobMasterRestServiceHandler;
 import alluxio.master.LocalAlluxioJobCluster;
-import alluxio.security.LoginUserTestUtils;
 
 import com.google.common.collect.Maps;
 import org.junit.After;
@@ -44,7 +43,6 @@ public final class JobMasterRestApiTest extends RestApiTest {
   @After
   public void after() throws Exception {
     mJobCluster.stop();
-    LoginUserTestUtils.resetLoginUser();
     ServerConfiguration.reset();
   }
 

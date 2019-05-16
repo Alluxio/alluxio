@@ -15,7 +15,6 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
@@ -463,31 +462,34 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Loads configuration from meta master.
+   * Loads configuration from meta master in one RPC.
    *
    * @param address the meta master address
+   * @param conf the existing configuration
+   * @param ignoreClusterConf do not load cluster configuration related information
+   * @param ignorePathConf do not load path configuration related information
    * @return the RPC response
    */
-  private static GetConfigurationPResponse loadConfiguration(InetSocketAddress address,
-      AlluxioConfiguration conf) throws AlluxioStatusException {
+  public static GetConfigurationPResponse loadConfiguration(InetSocketAddress address,
+      AlluxioConfiguration conf, boolean ignoreClusterConf, boolean ignorePathConf)
+      throws AlluxioStatusException {
     GrpcChannel channel = null;
     try {
-      LOG.info("Alluxio client (version {}) is trying to load configuration from meta master {}",
+      LOG.debug("Alluxio client (version {}) is trying to load configuration from meta master {}",
           RuntimeConstants.VERSION, address);
       channel = GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf)
           .disableAuthentication().build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       GetConfigurationPResponse response = client.getConfiguration(
-          GetConfigurationPOptions.newBuilder().setRawValue(true).build());
+          GetConfigurationPOptions.newBuilder().setRawValue(true)
+              .setIgnoreClusterConf(ignoreClusterConf).setIgnorePathConf(ignorePathConf).build());
       LOG.info("Alluxio client has loaded configuration from meta master {}", address);
       return response;
     } catch (io.grpc.StatusRuntimeException e) {
-      AlluxioStatusException ase = AlluxioStatusException.fromStatusRuntimeException(e);
-      LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
       throw new UnavailableException(String.format(
-          "Failed to handshake with master %s to load cluster default configuration values",
-          address), e);
+          "Failed to handshake with master %s to load cluster default configuration values: %s",
+          address, e.getMessage()), e);
     } catch (UnauthenticatedException e) {
       throw new RuntimeException(String.format(
           "Received authentication exception during boot-strap connect with host:%s", address),
@@ -534,12 +536,12 @@ public final class ConfigurationUtils {
    * @param conf the existing configuration
    * @return the merged configuration
    */
-  private static AlluxioConfiguration loadClusterConfiguration(GetConfigurationPResponse response,
+  public static AlluxioConfiguration getClusterConf(GetConfigurationPResponse response,
       AlluxioConfiguration conf) {
     String clientVersion = conf.get(PropertyKey.VERSION);
     LOG.info("Alluxio client (version {}) is trying to load cluster level configurations",
         clientVersion);
-    List<alluxio.grpc.ConfigProperty> clusterConfig = response.getConfigsList();
+    List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
     Properties clusterProps = loadClientProperties(clusterConfig, (key, value) ->
         String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
     // Check version.
@@ -568,7 +570,7 @@ public final class ConfigurationUtils {
    * @param clusterConf cluster level configuration
    * @return the loaded path level configuration
    */
-  private static PathConfiguration loadPathConfiguration(GetConfigurationPResponse response,
+  public static PathConfiguration getPathConf(GetConfigurationPResponse response,
       AlluxioConfiguration clusterConf) {
     String clientVersion = clusterConf.get(PropertyKey.VERSION);
     LOG.info("Alluxio client (version {}) is trying to load path level configurations",
@@ -584,55 +586,5 @@ public final class ConfigurationUtils {
     });
     LOG.info("Alluxio client has loaded path level configurations");
     return PathConfiguration.create(pathConfs);
-  }
-
-  private static boolean shouldLoadClusterConfiguration(AlluxioConfiguration conf) {
-    return conf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
-        && !conf.clusterDefaultsLoaded();
-  }
-
-  /**
-   * Loads cluster default values from the meta master.
-   *
-   * Only client scope properties will be loaded.
-   * If cluster level configuration has been loaded or the feature of loading configuration from
-   * meta master is disabled, no RPC will be issued.
-   *
-   * @param address the master address
-   * @param conf configuration to use
-   * @return a configuration object containing the original configuration merged with cluster
-   *         defaults, or the original object if the cluster defaults have already been loaded
-   */
-  public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address,
-      AlluxioConfiguration conf) throws AlluxioStatusException {
-    if (shouldLoadClusterConfiguration(conf)) {
-      GetConfigurationPResponse response = loadConfiguration(address, conf);
-      conf = loadClusterConfiguration(response, conf);
-    }
-    return conf;
-  }
-
-  /**
-   * Loads both cluster and path level configurations from meta master.
-   *
-   * Only client scope properties will be loaded.
-   * If cluster level configuration has been loaded or the feature of loading configuration from
-   * meta master is disabled, then no RPC is issued, and both cluster and path level configuration
-   * is kept as original
-   *
-   * @param address the meta master address
-   * @param clusterConf the cluster level configuration
-   * @param pathConf the cluster level configuration
-   * @return both cluster and path level configuration
-   */
-  public static Pair<AlluxioConfiguration, PathConfiguration> loadClusterAndPathDefaults(
-      InetSocketAddress address, AlluxioConfiguration clusterConf, PathConfiguration pathConf)
-      throws AlluxioStatusException {
-    if (shouldLoadClusterConfiguration(clusterConf)) {
-      GetConfigurationPResponse response = loadConfiguration(address, clusterConf);
-      clusterConf = loadClusterConfiguration(response, clusterConf);
-      pathConf = loadPathConfiguration(response, clusterConf);
-    }
-    return new Pair<>(clusterConf, pathConf);
   }
 }

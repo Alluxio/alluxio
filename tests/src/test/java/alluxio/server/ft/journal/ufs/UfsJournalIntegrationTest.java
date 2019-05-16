@@ -31,6 +31,7 @@ import alluxio.master.NoopMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -41,6 +42,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -54,6 +56,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,11 +68,13 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
               Integer.toString(Constants.KB))
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
           .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .build();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -135,7 +140,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioCluster.stop();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)),
-        new NoopMaster(), 0);
+        new NoopMaster(), 0, Collections::emptySet);
     journal.start();
     journal.gainPrimacy();
 
@@ -203,14 +208,15 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     String journalFolder = PathUtils
         .concatPath(mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder(),
             Constants.FILE_SYSTEM_MASTER_NAME);
-    UfsJournal journal = new UfsJournal(new URI(journalFolder), new NoopMaster(), 0);
+    UfsJournal journal =
+        new UfsJournal(new URI(journalFolder), new NoopMaster(), 0, Collections::emptySet);
     URI completedLocation = journal.getLogDir();
-    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation,
-        ServerConfiguration.global())
+    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation.toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()))
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation,
-        ServerConfiguration.global())
+    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation.toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()))
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
   }
@@ -407,8 +413,6 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    * Tests directory creation.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void directory() throws Exception {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);
@@ -634,7 +638,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     String journalFolder = mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)),
-        new NoopMaster(), 0);
+        new NoopMaster(), 0, Collections::emptySet);
     if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
       UnderFileSystem.Factory.create(journalFolder, ServerConfiguration.global())
           .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());

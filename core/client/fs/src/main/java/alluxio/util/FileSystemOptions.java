@@ -42,6 +42,17 @@ import alluxio.security.authorization.Mode;
  * will populate the gRPC options objects with the proper values based on the given configuration.
  */
 public class FileSystemOptions {
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static ScheduleAsyncPersistencePOptions scheduleAsyncPersistenceDefaults(
+      AlluxioConfiguration conf) {
+    return ScheduleAsyncPersistencePOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .setPersistenceWaitTime(0)
+        .build();
+  }
 
   /**
    * @param conf Alluxio configuration
@@ -78,6 +89,7 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
             conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+        .setPersistenceWaitTime(conf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME))
         .setRecursive(false)
         .setReplicationDurable(conf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMax(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
@@ -206,6 +218,7 @@ public class FileSystemOptions {
   public static RenamePOptions renameDefaults(AlluxioConfiguration conf) {
     return RenamePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
+        .setPersist(conf.getBoolean(PropertyKey.USER_FILE_PERSIST_ON_RENAME))
         .build();
   }
 

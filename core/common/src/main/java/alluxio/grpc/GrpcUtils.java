@@ -183,6 +183,7 @@ public final class GrpcUtils {
     blockLocation.setWorkerId(blockPLocation.getWorkerId());
     blockLocation.setWorkerAddress(fromProto(blockPLocation.getWorkerAddress()));
     blockLocation.setTierAlias(blockPLocation.getTierAlias());
+    blockLocation.setMediumType(blockPLocation.getMediumType());
     return blockLocation;
   }
 
@@ -422,7 +423,9 @@ public final class GrpcUtils {
   public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
     return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
         .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
-        .setTierAlias(blockLocation.getTierAlias()).build();
+        .setTierAlias(blockLocation.getTierAlias())
+        .setMediumType(blockLocation.getMediumType())
+        .build();
   }
 
   /**

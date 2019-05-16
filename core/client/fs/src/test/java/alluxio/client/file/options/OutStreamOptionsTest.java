@@ -14,19 +14,20 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.LoginUserRule;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.client.block.policy.RoundRobinPolicy;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.TtlAction;
+import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
@@ -42,6 +43,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
+
+import javax.security.auth.Subject;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
@@ -69,9 +72,6 @@ public class OutStreamOptionsTest {
       PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()
   ), mConf);
 
-  @Rule
-  public LoginUserRule mRule = new LoginUserRule("test_user", mConf);
-
   @After
   public void after() {
     mConf = ConfigurationTestUtils.defaults();
@@ -87,8 +87,12 @@ public class OutStreamOptionsTest {
     mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     mConf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
     mConf.set(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT, Constants.LAST_TIER);
+    mConf.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName());
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User("test_user"));
+    ClientContext clientContext = ClientContext.create(subject, mConf);
 
-    OutStreamOptions options = OutStreamOptions.defaults(mConf);
+    OutStreamOptions options = OutStreamOptions.defaults(clientContext);
 
     assertEquals(alluxioType, options.getAlluxioStorageType());
     assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
@@ -97,8 +101,8 @@ public class OutStreamOptionsTest {
     assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
         mConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());
-    assertEquals(Constants.NO_TTL, options.getTtl());
-    assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertEquals(Constants.NO_TTL, options.getCommonOptions().getTtl());
+    assertEquals(TtlAction.DELETE, options.getCommonOptions().getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());
     assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
     assertEquals(Constants.LAST_TIER, options.getWriteTier());
@@ -115,18 +119,21 @@ public class OutStreamOptionsTest {
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
     Mode mode = new Mode((short) random.nextInt());
-    long ttl = random.nextLong();
+    int ttl = 5;
+    TtlAction ttlAction = TtlAction.FREE;
     int writeTier = random.nextInt();
     WriteType writeType = WriteType.NONE;
 
-    OutStreamOptions options = OutStreamOptions.defaults(mConf);
+    mConf.set(PropertyKey.USER_FILE_CREATE_TTL, ttl);
+    mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, ttlAction);
+
+    ClientContext clientContext = ClientContext.create(mConf);
+    OutStreamOptions options = OutStreamOptions.defaults(clientContext);
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(locationPolicy);
     options.setOwner(owner);
     options.setGroup(group);
     options.setMode(mode);
-    options.setTtl(ttl);
-    options.setTtlAction(TtlAction.FREE);
     options.setWriteTier(writeTier);
     options.setWriteType(writeType);
 
@@ -135,8 +142,8 @@ public class OutStreamOptionsTest {
     assertEquals(owner, options.getOwner());
     assertEquals(group, options.getGroup());
     assertEquals(mode, options.getMode());
-    assertEquals(ttl, options.getTtl());
-    assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(ttl, options.getCommonOptions().getTtl());
+    assertEquals(ttlAction, options.getCommonOptions().getTtlAction());
     assertEquals(writeTier, options.getWriteTier());
     assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
@@ -144,10 +151,11 @@ public class OutStreamOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
+    ClientContext clientContext = ClientContext.create(mConf);
     new EqualsTester()
         .addEqualityGroup(
-            OutStreamOptions.defaults(mConf),
-            OutStreamOptions.defaults(mConf))
+            OutStreamOptions.defaults(clientContext),
+            OutStreamOptions.defaults(clientContext))
         .testEquals();
   }
 }

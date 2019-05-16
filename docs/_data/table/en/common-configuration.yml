@@ -78,10 +78,6 @@ alluxio.logger.type:
   'The type of logger.'
 alluxio.logs.dir:
   'The path to store log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
-alluxio.logserver.hostname:
-  'The hostname of Alluxio logserver. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
-alluxio.logserver.logs.dir:
-  'Default location for remote log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.port:
   'Default port number to receive logs from alluxio servers. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.threads.max:
@@ -108,8 +104,12 @@ alluxio.proxy.web.hostname:
   'The hostname Alluxio proxy''s web UI binds to.'
 alluxio.proxy.web.port:
   'The port Alluxio proxy''s web UI runs on.'
+alluxio.secondary.master.metastore.dir:
+  'The secondary master metastore work directory. Only some metastores need disk.'
 alluxio.site.conf.dir:
   'Comma-separated search path for alluxio-site.properties. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+alluxio.test.deprecated.key:
+  'N/A'
 alluxio.test.mode:
   'Flag used only during tests to allow special behavior.'
 alluxio.tmp.dirs:
@@ -120,6 +120,12 @@ alluxio.underfs.cleanup.enabled:
   'Whether or not to clean up under file storage periodically.Some ufs operations may not be completed and cleaned up successfully in normal ways and leave some intermediate data that needs periodical cleanup.If enabled, all the mount points will be cleaned up when a leader master starts or cleanup interval is reached. This should be used sparingly.'
 alluxio.underfs.cleanup.interval:
   'The interval for periodically cleaning all the  mounted under file storages.'
+alluxio.underfs.eventual.consistency.retry.base.sleep:
+  'To handle eventually consistent storage semantics for certain under storages, Alluxio will perform retries when under storage metadata doesn''t match Alluxio''s expectations. These retries use exponential backoff. This property determines the base time for the exponential backoff.'
+alluxio.underfs.eventual.consistency.retry.max.num:
+  'To handle eventually consistent storage semantics for certain under storages, Alluxio will perform retries when under storage metadata doesn''t match Alluxio''s expectations. These retries use exponential backoff. This property determines the maximum number of retries.'
+alluxio.underfs.eventual.consistency.retry.max.sleep:
+  'To handle eventually consistent storage semantics for certain under storages, Alluxio will perform retries when under storage metadata doesn''t match Alluxio''s expectations. These retries use exponential backoff. This property determines the maximum wait time in the backoff.'
 alluxio.underfs.gcs.directory.suffix:
   'Directories are represented in GCS as zero-byte objects named with the specified suffix.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
@@ -146,14 +152,8 @@ alluxio.underfs.object.store.mount.shared.publicly:
   'Whether or not to share object storage under storage system mounted point with all Alluxio users. Note that this configuration has no effect on HDFS nor local UFS.'
 alluxio.underfs.object.store.multi.range.chunk.size:
   'Default chunk size for ranged reads from multi-range object input streams.'
-alluxio.underfs.object.store.read.retry.base.sleep:
-  'Block reads from an object store automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff. Only applicable for S3A.'
-alluxio.underfs.object.store.read.retry.max.num:
-  'Block reads from an object store automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries. Only applicable for S3A.'
-alluxio.underfs.object.store.read.retry.max.sleep:
-  'Block reads from an object store automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff. Only applicable for S3A.'
 alluxio.underfs.object.store.service.threads:
-  'The number of threads in executor pool for parallel object store UFS operations.'
+  'The number of threads in executor pool for parallel object store UFS operations, such as directory renames and deletes.'
 alluxio.underfs.oss.connection.max:
   'The maximum number of OSS connections.'
 alluxio.underfs.oss.connection.timeout:
@@ -162,6 +162,8 @@ alluxio.underfs.oss.connection.ttl:
   'The TTL of OSS connections in ms.'
 alluxio.underfs.oss.socket.timeout:
   'The timeout of OSS socket.'
+alluxio.underfs.run.with.managedblocking:
+  'Whether to run UFS operations with managed blocking.  This will provide RPC layer a hint that UFS is possible slow.The default is true for object stores and false for the rest. unless set explicitly.'
 alluxio.underfs.s3.admin.threads.max:
   'The maximum number of threads to use for metadata operations when communicating with S3. These operations may be fairly concurrent and frequent but should not take much time to process.'
 alluxio.underfs.s3.disable.dns.buckets:
@@ -177,9 +179,7 @@ alluxio.underfs.s3.proxy.port:
 alluxio.underfs.s3.threads.max:
   'The maximum number of threads to use for communicating with S3 and the maximum number of concurrent connections to S3. Includes both threads for data upload and metadata operations. This number should be at least as large as the max admin threads plus max upload threads.'
 alluxio.underfs.s3.upload.threads.max:
-  'The maximum number of threads to use for uploading data to S3 for multipart uploads. These operations can be fairly expensive, so multiple threads are encouraged. However, this also splits the bandwidth between threads, meaning the overall latency for completing an upload will be higher for more threads.'
-alluxio.underfs.s3a.consistency.timeout:
-  'The duration to wait for metadata consistency from the under storage. This is only used by internal Alluxio operations which should be successful, but may appear unsuccessful due to eventual consistency.'
+  'For an Alluxio worker, this is the maximum number of threads to use for uploading data to S3 for multipart uploads. These operations can be fairly expensive, so multiple threads are encouraged. However, this also splits the bandwidth between threads, meaning the overall latency for completing an upload will be higher for more threads. For the Alluxio master, this is the maximum number of threads used for the rename (copy) operation. It is recommended that value should be greater than or equal to alluxio.underfs.object.store.service.threads'
 alluxio.underfs.s3a.default.mode:
   'Mode (in octal notation) for S3 objects if mode cannot be discovered.'
 alluxio.underfs.s3a.directory.suffix:
@@ -208,8 +208,6 @@ alluxio.web.file.info.enabled:
   'Whether detailed file information are enabled for the web UI.'
 alluxio.web.resources:
   'Path to the web application resources.'
-alluxio.web.temp.path:
-  'Path to store temporary web server files.'
 alluxio.web.threads:
   'How many threads to use for the web server.'
 alluxio.webui.cors.enabled:
@@ -268,8 +266,6 @@ fs.oss.accessKeySecret:
   'The secret key of OSS bucket.'
 fs.oss.endpoint:
   'The endpoint key of OSS bucket.'
-fs.swift.apikey:
-  '(deprecated) The API key used for user:tenant authentication.'
 fs.swift.auth.method:
   'Choice of authentication method: [tempauth (default), swiftauth, keystone, keystonev3].'
 fs.swift.auth.url:
@@ -282,7 +278,5 @@ fs.swift.simulation:
   'Whether to simulate a single node Swift backend for testing purposes: true or false (default).'
 fs.swift.tenant:
   'Swift user for authentication.'
-fs.swift.use.public.url:
-  'Whether the REST server is in a public domain: true (default) or false.'
 fs.swift.user:
   'Swift tenant for authentication.'

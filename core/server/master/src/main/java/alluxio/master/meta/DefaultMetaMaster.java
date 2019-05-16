@@ -26,8 +26,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.ConfigProperties;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaCommand;
@@ -62,6 +60,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -74,7 +74,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -182,7 +181,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     if (URIUtils.isLocalFilesystem(ServerConfiguration
         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
       mUfs = UnderFileSystem.Factory
-          .create("/", UnderFileSystemConfiguration.defaults());
+          .create("/", UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     } else {
       mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
@@ -227,12 +226,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL),
-          ServerConfiguration.global()));
+          ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
           new LogConfigReportHeartbeatExecutor(),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
 
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
@@ -248,7 +247,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
             (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
       }
@@ -270,7 +269,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     UnderFileSystem ufs = mUfs;
     if (options.getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
-      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+      ufs = UnderFileSystem.Factory.create("/",
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
       LOG.info("Backing up to local filesystem in directory {}", dir);
     } else {
       LOG.info("Backing up to root UFS in directory {}", dir);
@@ -313,43 +313,56 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public String checkpoint() throws IOException {
+    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
+      mJournalSystem.checkpoint();
+    }
+    return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+        ServerConfiguration.global());
+  }
+
+  @Override
   public ConfigCheckReport getConfigCheckReport() {
     return mConfigChecker.getConfigCheckReport();
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration(GetConfigurationPOptions options) {
-    List<ConfigProperty> configInfoList = new ArrayList<>();
-    for (PropertyKey key : ServerConfiguration.keySet()) {
-      if (key.isBuiltIn()) {
-        String source = ServerConfiguration.getSource(key).toString();
-        String value = ServerConfiguration.getOrDefault(key, null,
-            ConfigurationValueOptions.defaults().useDisplayValue(true)
-                .useRawValue(options.getRawValue()));
-        ConfigProperty.Builder config =
-            ConfigProperty.newBuilder().setName(key.getName()).setSource(source);
-        if (value != null) {
-          config.setValue(value);
+  public Configuration getConfiguration(GetConfigurationPOptions options) {
+    // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
+    // consistent snapshot of the system's state at a certain time, the path configuration might
+    // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
+    // the properties.
+    Configuration.Builder builder = Configuration.newBuilder();
+
+    if (!options.getIgnoreClusterConf()) {
+      for (PropertyKey key : ServerConfiguration.keySet()) {
+        if (key.isBuiltIn()) {
+          Source source = ServerConfiguration.getSource(key);
+          String value = ServerConfiguration.getOrDefault(key, null,
+              ConfigurationValueOptions.defaults().useDisplayValue(true)
+                  .useRawValue(options.getRawValue()));
+          builder.addClusterProperty(key.getName(), value, source);
         }
-        configInfoList.add(config.build());
       }
+      // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+      // the following hash might not correspond to the above cluster configuration.
+      builder.setClusterConfHash(ServerConfiguration.hash());
     }
-    return configInfoList;
+
+    if (!options.getIgnorePathConf()) {
+      PathPropertiesView pathProperties = mPathProperties.snapshot();
+      pathProperties.getProperties().forEach((path, properties) ->
+          properties.forEach((key, value) ->
+              builder.addPathProperty(path, key, value)));
+      builder.setPathConfHash(pathProperties.getHash());
+    }
+
+    return builder.build();
   }
 
   @Override
-  public Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options) {
-    Map<String, ConfigProperties> pathConfig = new HashMap<>();
-    mPathProperties.get().forEach((path, properties) -> {
-      List<ConfigProperty> configPropertyList = new ArrayList<>();
-      properties.forEach((key, value) ->
-          configPropertyList.add(ConfigProperty.newBuilder().setName(key)
-              .setSource(Source.PATH_DEFAULT.toString()).setValue(value).build()));
-      ConfigProperties configProperties = ConfigProperties.newBuilder().addAllProperties(
-          configPropertyList).build();
-      pathConfig.put(path, configProperties);
-    });
-    return pathConfig;
+  public ConfigHash getConfigHash() {
+    return new ConfigHash(ServerConfiguration.hash(), mPathProperties.hash());
   }
 
   @Override

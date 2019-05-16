@@ -14,19 +14,19 @@ package alluxio.multi.process;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
-import alluxio.client.meta.MetaMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MasterInfo;
@@ -94,6 +94,7 @@ public final class MultiProcessCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
   private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
+  private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 5000;
 
   private final Map<PropertyKey, String> mProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
@@ -126,7 +127,7 @@ public final class MultiProcessCluster {
   private MultiProcessCluster(Map<PropertyKey, String> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
-      String clusterName, DeployMode mode, boolean noFormat,
+      String clusterName, boolean noFormat,
       List<PortCoordination.ReservedPort> ports) {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
       Preconditions.checkState(
@@ -142,7 +143,6 @@ public final class MultiProcessCluster {
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
     mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
-    mDeployMode = mode;
     mNoFormat = noFormat;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
@@ -150,6 +150,11 @@ public final class MultiProcessCluster {
     mCloser = Closer.create();
     mState = State.NOT_STARTED;
     mSuccess = false;
+
+    String journalType = mProperties.getOrDefault(PropertyKey.MASTER_JOURNAL_TYPE,
+        ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE));
+    mDeployMode = journalType.equals(JournalType.EMBEDDED.toString()) ? DeployMode.EMBEDDED
+        : numMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
   }
 
   /**
@@ -200,7 +205,7 @@ public final class MultiProcessCluster {
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        mWorkDir.getAbsolutePath()).entrySet()) {
+            mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
       if (mProperties.containsKey(entry.getKey())) {
         continue;
@@ -230,6 +235,9 @@ public final class MultiProcessCluster {
       createWorker(i).start();
     }
     System.out.printf("Starting alluxio cluster in directory %s%n", mWorkDir.getAbsolutePath());
+    int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
+    System.out.printf("Alluxio primary master %s starts serving RPCs%n",
+        mMasterAddresses.get(primaryMasterIndex));
   }
 
   /**
@@ -263,10 +271,9 @@ public final class MultiProcessCluster {
         // Make sure the leader is serving.
         fs.getStatus(new AlluxioURI("/"));
         return true;
-      } catch (UnavailableException e) {
-        return false;
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        LOG.error("Failed to get status of root directory:", e);
+        return false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     int primaryRpcPort;
@@ -417,6 +424,7 @@ public final class MultiProcessCluster {
       saveWorkdir();
     }
     mCloser.close();
+    ServerConfiguration.reset();
     LOG.info("Destroyed cluster {}", mClusterName);
     mState = State.DESTROYED;
   }
@@ -611,8 +619,7 @@ public final class MultiProcessCluster {
       }
       return;
     }
-    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
-        mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER), ServerConfiguration.global())
+    try (Closeable c = new ConfigurationRule(mProperties, ServerConfiguration.global())
         .toResource()) {
       Format.format(Format.Mode.MASTER, ServerConfiguration.global());
     } catch (IOException e) {
@@ -734,7 +741,6 @@ public final class MultiProcessCluster {
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
-    private DeployMode mDeployMode = null;
     private boolean mNoFormat = false;
 
     // Should only be instantiated by newBuilder().
@@ -792,15 +798,6 @@ public final class MultiProcessCluster {
     }
 
     /**
-     * @param mode the deploy mode for the cluster
-     * @return the builder
-     */
-    public Builder setDeployMode(DeployMode mode) {
-      mDeployMode = mode;
-      return this;
-    }
-
-    /**
      * @param numMasters the number of masters for the cluster
      * @return the builder
      */
@@ -848,14 +845,8 @@ public final class MultiProcessCluster {
               .stream().filter(key ->  (key >= mNumWorkers || key < 0)).count() == 0,
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
-      if (mDeployMode == null) {
-        JournalType journalType = ServerConfiguration
-            .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
-        mDeployMode = journalType == JournalType.EMBEDDED ? DeployMode.EMBEDDED
-            : mNumMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
-      }
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
-          mNumMasters, mNumWorkers, mClusterName, mDeployMode, mNoFormat, mReservedPorts);
+          mNumMasters, mNumWorkers, mClusterName, mNoFormat, mReservedPorts);
     }
   }
 

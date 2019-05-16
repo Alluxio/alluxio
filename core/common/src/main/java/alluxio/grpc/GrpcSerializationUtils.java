@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * "License"). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -78,7 +78,8 @@ public class GrpcSerializationUtils {
           getPrivateConstructor(NETTY_WRITABLE_BUFFER_CLASS_NAME, ByteBuf.class);
       sBufferList = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, BUFFER_LIST_FIELD_NAME);
       sCurrent = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, CURRENT_FIELD_NAME);
-      sCompositeBuffers = getPrivateField(CompositeReadableBuffer.class.getName(), BUFFERS_FIELD_NAME);
+      sCompositeBuffers =
+          getPrivateField(CompositeReadableBuffer.class.getName(), BUFFERS_FIELD_NAME);
       sReadableByteBuf = getPrivateField(NETTY_READABLE_BUFFER_CLASS_NAME, BUFFER_FIELD_NAME);
     } catch (Exception e) {
       LOG.warn("Cannot get gRPC output stream buffer, zero copy receive will be disabled.", e);
@@ -145,7 +146,7 @@ public class GrpcSerializationUtils {
     }
     try {
       if (buffer instanceof CompositeReadableBuffer) {
-        Queue<ReadableBuffer> buffers = (Queue<ReadableBuffer>)sCompositeBuffers.get(buffer);
+        Queue<ReadableBuffer> buffers = (Queue<ReadableBuffer>) sCompositeBuffers.get(buffer);
         if (buffers.size() == 1) {
           return getByteBufFromReadableBuffer(buffers.peek());
         } else {

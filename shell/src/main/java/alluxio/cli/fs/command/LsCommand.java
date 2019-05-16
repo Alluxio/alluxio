@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.CommonUtils;
@@ -172,13 +173,13 @@ public final class LsCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private void printLsString(URIStatus status, boolean hSize) {
+  private void printLsString(URIStatus status, boolean hSize) throws UnavailableException {
     // detect the extended acls
     boolean hasExtended = status.getAcl().hasExtended()
         || !status.getDefaultAcl().isEmpty();
 
     System.out.print(formatLsString(hSize,
-        SecurityUtils.isSecurityEnabled(mFsContext.getPathConf(new AlluxioURI(status.getPath()))),
+        SecurityUtils.isSecurityEnabled(mFsContext.getClusterConf()),
         status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
@@ -249,7 +250,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
         @Override
         public void run() {
           System.out.printf("Getting directory status of %s files or sub-directories "
-              + "may take a while.", pathStatus.getLength());
+              + "may take a while.%n", pathStatus.getLength());
         }
       }, 10000);
     }

@@ -11,11 +11,10 @@
 
 package alluxio.testutils;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.metrics.MetricsSystem;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.junit.rules.TestRule;
@@ -130,7 +129,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   public void start() throws Exception {
     AuthenticatedClientUser.remove();
-    LoginUserTestUtils.resetLoginUser();
     // Create a new cluster.
     mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
     // Init configuration for integration test
@@ -228,7 +226,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
+      return new LocalAlluxioClusterResource(mStartCluster,
+          mNumWorkers, mConfiguration);
     }
   }
 

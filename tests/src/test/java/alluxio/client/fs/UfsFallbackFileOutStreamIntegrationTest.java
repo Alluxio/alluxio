@@ -20,6 +20,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -27,6 +29,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,20 +43,22 @@ import java.util.HashMap;
 /**
  * Integration tests for {@link FileOutStream} of under storage type being async
  * persist.
- *
  */
 @RunWith(Parameterized.class)
 public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallyScheduleEviction =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_SPACE_RESERVER);
+
   protected static final int WORKER_MEMORY_SIZE = 1500;
   protected static final int BUFFER_BYTES = 100;
 
   @Override
   protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
-    resource.setProperty(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0")
+    resource.setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
         .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES) // initial buffer for worker
-        .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
         .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false);
+        .setProperty(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "1.0");
   }
 
   // varying the client side configuration

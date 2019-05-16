@@ -33,6 +33,7 @@ public class BlockMetaTest {
   private static final int TEST_TIER_ORDINAL = 0;
   private static final String TEST_TIER_ALIAS = "MEM";
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
+  private static final String[] TEST_TIER_MEDIUM_TYPES = {"MEM"};
   private static final String TEST_WORKER_DIR = "testworker";
   private BlockMeta mBlockMeta;
   private TempBlockMeta mTempBlockMeta;
@@ -51,7 +52,8 @@ public class BlockMetaTest {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
-        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, TEST_WORKER_DIR);
+        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES,
+        TEST_TIER_MEDIUM_TYPES, TEST_WORKER_DIR);
 
     mTestBlockDirPath = PathUtils.concatPath(mTestDirPath, TEST_WORKER_DIR);
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS);

@@ -88,7 +88,8 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-          mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+          mStorageTierAssoc.getAlias(request.getTier()),
+          request.getMediumType(), FILE_BUFFER_SIZE);
     }
     return context;
   }
@@ -219,7 +220,7 @@ public final class UfsFallbackBlockWriteHandler
     UnderFileSystem ufs = ufsResource.get();
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
-        ufs.create(ufsPath,
+        ufs.createNonexistingFile(ufsPath,
             CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
                 .setCreateParent(true));
     context.setOutputStream(ufsOutputStream);

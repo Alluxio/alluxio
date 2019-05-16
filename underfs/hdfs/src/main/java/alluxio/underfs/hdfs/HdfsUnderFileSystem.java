@@ -91,7 +91,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
-  private UnderFileSystemConfiguration mUfsConf;
 
   private HdfsActiveSyncProvider mHdfsActiveSyncer;
 
@@ -100,13 +99,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Hadoop
-   * @param alluxioConf Alluxio configuration
    * @return a new HDFS {@link UnderFileSystem} instance
    */
   public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+      UnderFileSystemConfiguration conf) {
     Configuration hdfsConf = createConfiguration(conf);
-    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf, alluxioConf);
+    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf);
   }
 
   /**
@@ -115,11 +113,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
-   * @param alluxioConf Alluxio configuration
    */
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      Configuration hdfsConf, AlluxioConfiguration alluxioConf) {
-    super(ufsUri, conf, alluxioConf);
+      Configuration hdfsConf) {
+    super(ufsUri, conf);
 
     // Create the supported HdfsAclProvider if possible.
     HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();
@@ -140,7 +137,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     }
     mHdfsAclProvider = hdfsAclProvider;
 
-    mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
     // Stash the classloader to prevent service loading throwing exception due to
@@ -168,7 +164,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     try {
       Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS)
           .getConstructor(URI.class, Configuration.class, AlluxioConfiguration.class);
-      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, alluxioConf);
+      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
         LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");
@@ -647,7 +643,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return true;
   }
 

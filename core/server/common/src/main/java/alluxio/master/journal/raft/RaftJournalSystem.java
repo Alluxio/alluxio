@@ -12,7 +12,11 @@
 package alluxio.master.journal.raft;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
@@ -203,7 +207,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals);
+    mStateMachine = new JournalStateMachine(mJournals, () -> this.getJournalSinks(null));
     mServer = CopycatServer.builder(getLocalAddress(mConf))
         .withStorage(storage)
         .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
@@ -218,6 +222,21 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withStateMachine(new OnceSupplier<>(mStateMachine))
         .build();
     mPrimarySelector.init(mServer);
+  }
+
+  private CopycatClient createAndConnectClient() {
+    CopycatClient client = createClient();
+    try {
+      client.connect().get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (ExecutionException e) {
+      String errorMessage = ExceptionMessage.FAILED_RAFT_CONNECT.getMessage(
+          Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
+      throw new RuntimeException(errorMessage, e.getCause());
+    }
+    return client;
   }
 
   private CopycatClient createClient() {
@@ -256,17 +275,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    CopycatClient client = createClient();
-    try {
-      client.connect().get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    } catch (ExecutionException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_CONNECT.getMessage(
-          Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
-      throw new RuntimeException(errorMessage, e.getCause());
-    }
+    CopycatClient client = createAndConnectClient();
     try {
       catchUp(mStateMachine, client);
     } catch (TimeoutException e) {
@@ -279,7 +288,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
     Preconditions.checkState(mRaftJournalWriter == null);
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
-    mAsyncJournalWriter.set(new AsyncJournalWriter(mRaftJournalWriter));
+    mAsyncJournalWriter
+        .set(new AsyncJournalWriter(mRaftJournalWriter, () -> this.getJournalSinks(null)));
   }
 
   @Override
@@ -323,6 +333,76 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     }
 
     LOG.info("Raft server successfully restarted");
+  }
+
+  @Override
+  public synchronized void checkpoint() throws IOException {
+    try {
+      mSnapshotAllowed.set(true);
+      CopycatClient client = createAndConnectClient();
+      long start = System.currentTimeMillis();
+      LOG.info("Submitting empty journal entry to trigger snapshot");
+      // New snapshot requires new segments (segment size is controlled by
+      // {@link PropertyKey#MASTER_JOURNAL_LOG_SIZE_BYTES_MAX}).
+      // If snapshot requirements are fulfilled, a snapshot will be triggered
+      // after sending an empty journal entry to Copycat
+      CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
+          JournalEntry.getDefaultInstance()));
+      try {
+        future.get(1, TimeUnit.MINUTES);
+      } catch (TimeoutException | ExecutionException e) {
+        LOG.warn("Exception submitting entry to trigger snapshot: {}", e.toString());
+        throw new IOException("Exception submitting entry to trigger snapshot", e);
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted when submitting entry to trigger snapshot: {}", e.toString());
+        Thread.currentThread().interrupt();
+        throw new CancelledException("Interrupted when submitting entry to trigger snapshot", e);
+      }
+      waitForSnapshotStart(mStateMachine, start);
+      waitForSnapshotting(mStateMachine);
+    } finally {
+      mSnapshotAllowed.set(false);
+    }
+  }
+
+  /**
+   * Waits for snapshotting to start.
+   *
+   * @param stateMachine the journal state machine
+   * @param start the start time to check
+   */
+  private void waitForSnapshotStart(JournalStateMachine stateMachine,
+      long start) throws IOException {
+    try {
+      CommonUtils.waitFor("snapshotting to start", () ->
+              stateMachine.getLastSnapshotStartTime() > start,
+          WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
+      return;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CancelledException("Interrupted when waiting for snapshotting to start", e);
+    } catch (TimeoutException e) {
+      throw new IOException("A recent checkpoint already exists, not creating a new one");
+    }
+  }
+
+  /**
+   * Waits for snapshotting to finish.
+   *
+   * @param stateMachine the journal state machine
+   */
+  private void waitForSnapshotting(JournalStateMachine stateMachine) throws IOException {
+    try {
+      CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
+          WaitForOptions.defaults().setTimeoutMs(Long.valueOf(ServerConfiguration.getMs(
+              PropertyKey.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)).intValue()));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CancelledException("Interrupted when waiting for snapshotting to finish", e);
+    } catch (TimeoutException e) {
+      LOG.warn("Timeout waiting for snapshotting to finish", e);
+      throw new DeadlineExceededException("Timeout waiting for snapshotting to finish", e);
+    }
   }
 
   /**
@@ -417,7 +497,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     LOG.info("Shutting down raft journal");
     mRaftJournalWriter.close();
     try {
-      mServer.shutdown().get(2, TimeUnit.SECONDS);
+      mServer.shutdown().get(ServerConfiguration
+          .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
     } catch (ExecutionException e) {
       throw new RuntimeException("Failed to shut down Raft server", e);
     } catch (TimeoutException e) {

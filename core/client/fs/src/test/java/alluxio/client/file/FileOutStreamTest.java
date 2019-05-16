@@ -11,6 +11,12 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyInt;
@@ -23,9 +29,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.LoginUserRule;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -41,8 +47,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -52,12 +62,12 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -68,6 +78,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -79,9 +90,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FileOutStreamTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
-
-  @Rule
-  public LoginUserRule mLoginUser = new LoginUserRule("Test", sConf);
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
@@ -98,6 +106,7 @@ public class FileOutStreamTest {
   private AtomicBoolean mUnderStorageFlushed;
 
   private FileOutStream mTestStream;
+  private ClientContext mClientContext;
 
   /**
    * Sets up the different contexts and clients before a test runs.
@@ -107,8 +116,11 @@ public class FileOutStreamTest {
     GroupMappingServiceTestUtils.resetCache();
     ClientTestUtils.setSmallBufferSizes(sConf);
 
+    mClientContext = ClientContext.create(sConf);
+
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    when(mFileSystemContext.getClientContext()).thenReturn(mClientContext);
     when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
     when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
@@ -173,8 +185,9 @@ public class FileOutStreamTest {
             any(WorkerNetAddress.class), any(OutStreamOptions.class))).thenReturn(
         mUnderStorageOutputStream);
 
-    OutStreamOptions options = OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
-        .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
+    OutStreamOptions options =
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -190,7 +203,7 @@ public class FileOutStreamTest {
   public void singleByteWrite() throws Exception {
     mTestStream.write(5);
     mTestStream.close();
-    Assert.assertArrayEquals(new byte[] {5}, mAlluxioOutStreamMap.get(0L).getWrittenData());
+    assertArrayEquals(new byte[] {5}, mAlluxioOutStreamMap.get(0L).getWrittenData());
   }
 
   /**
@@ -239,8 +252,8 @@ public class FileOutStreamTest {
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
-      Assert.assertFalse(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
-      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
+      assertFalse(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
+      assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
     }
     verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
   }
@@ -255,8 +268,8 @@ public class FileOutStreamTest {
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
-      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
-      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
+      assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
+      assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't complete the file if the stream was canceled
     verify(mFileSystemMasterClient, times(0)).completeFile(any(AlluxioURI.class),
@@ -268,9 +281,9 @@ public class FileOutStreamTest {
    */
   @Test
   public void flush() throws IOException {
-    Assert.assertFalse(mUnderStorageFlushed.get());
+    assertFalse(mUnderStorageFlushed.get());
     mTestStream.flush();
-    Assert.assertTrue(mUnderStorageFlushed.get());
+    assertTrue(mUnderStorageFlushed.get());
   }
 
   /**
@@ -281,7 +294,7 @@ public class FileOutStreamTest {
   @Test
   public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
-        OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mock(BlockOutStream.class);
     when(mBlockStore.getOutStream(anyInt(), anyLong(), any(OutStreamOptions.class)))
@@ -292,9 +305,9 @@ public class FileOutStreamTest {
     doThrow(new IOException("test error")).when(stream).write((byte) 7);
     try {
       mTestStream.write(7);
-      Assert.fail("the test should fail");
+      fail("the test should fail");
     } catch (IOException e) {
-      Assert.assertEquals(ExceptionMessage.FAILED_CACHE.getMessage("test error"), e.getMessage());
+      assertEquals(ExceptionMessage.FAILED_CACHE.getMessage("test error"), e.getMessage());
     }
   }
 
@@ -313,7 +326,7 @@ public class FileOutStreamTest {
     doThrow(new IOException("test error")).when(stream).write((byte) 7);
     mTestStream.write(7);
     mTestStream.write(8);
-    Assert.assertArrayEquals(new byte[] {7, 8}, mUnderStorageOutputStream.getWrittenData());
+    assertArrayEquals(new byte[] {7, 8}, mUnderStorageOutputStream.getWrittenData());
     // The cache stream is written to only once - the FileInStream gives up on it after it throws
     // the first exception.
     verify(stream, times(1)).write(anyByte());
@@ -338,9 +351,9 @@ public class FileOutStreamTest {
   public void writeBadBufferOffset() throws IOException {
     try {
       mTestStream.write(new byte[10], 5, 6);
-      Assert.fail("buffer write with invalid offset/length should fail");
+      fail("buffer write with invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE.toString(), 10, 5, 6),
+      assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE.toString(), 10, 5, 6),
           e.getMessage());
     }
   }
@@ -352,9 +365,9 @@ public class FileOutStreamTest {
   public void writeNullBuffer() throws IOException {
     try {
       mTestStream.write(null);
-      Assert.fail("writing null should fail");
+      fail("writing null should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.getMessage());
+      assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.getMessage());
     }
   }
 
@@ -365,9 +378,9 @@ public class FileOutStreamTest {
   public void writeNullBufferOffset() throws IOException {
     try {
       mTestStream.write(null, 0, 0);
-      Assert.fail("writing null should fail");
+      fail("writing null should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.getMessage());
+      assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.getMessage());
     }
   }
 
@@ -377,7 +390,7 @@ public class FileOutStreamTest {
   @Test
   public void asyncWrite() throws Exception {
     OutStreamOptions options =
-        OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
@@ -389,6 +402,37 @@ public class FileOutStreamTest {
   }
 
   /**
+   * Tests that common options are propagated to async write request.
+   */
+  @Test
+  public void asyncWriteOptionPropagation() throws Exception {
+    Random rand = new Random();
+    FileSystemMasterCommonPOptions commonOptions =
+        FileSystemMasterCommonPOptions.newBuilder().setTtl(rand.nextLong())
+            .setTtlAction(TtlAction.values()[rand.nextInt(TtlAction.values().length)])
+            .setSyncIntervalMs(rand.nextLong()).build();
+
+    OutStreamOptions options =
+        new OutStreamOptions(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
+            .setBlockSizeBytes(BLOCK_LENGTH).setCommonOptions(commonOptions).build(),
+            mClientContext, sConf);
+
+    // Verify that OutStreamOptions have captured the common options properly.
+    assertEquals(options.getCommonOptions(), commonOptions);
+
+    mTestStream = createTestStream(FILE_NAME, options);
+    mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
+    mTestStream.close();
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
+
+    // Verify that common options for OutStreamOptions are propagated to ScheduleAsyncPersistence.
+    ArgumentCaptor<ScheduleAsyncPersistencePOptions> parameterCaptor =
+            ArgumentCaptor.forClass(ScheduleAsyncPersistencePOptions.class);
+    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME), parameterCaptor.capture());
+    assertEquals(parameterCaptor.getValue().getCommonOptions(), options.getCommonOptions());
+  }
+
+  /**
    * Tests that the number of bytes written is correct when the stream is created with different
    * under storage types.
    */
@@ -396,18 +440,18 @@ public class FileOutStreamTest {
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
-          OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type)
-              .setUfsPath(FILE_NAME.getPath());
+          OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+              .setWriteType(type).setUfsPath(FILE_NAME.getPath());
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
       mTestStream.flush();
-      Assert.assertEquals(BLOCK_LENGTH, mTestStream.getBytesWritten());
+      assertEquals(BLOCK_LENGTH, mTestStream.getBytesWritten());
     }
   }
 
   @Test
   public void createWithNoWorker() throws Exception {
-    OutStreamOptions options = OutStreamOptions.defaults(sConf)
+    OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
         .setLocationPolicy((getWorkerOptions) -> null)
         .setWriteType(WriteType.CACHE_THROUGH);
     mException.expect(UnavailableException.class);
@@ -427,19 +471,19 @@ public class FileOutStreamTest {
   private void verifyIncreasingBytesWritten(int start, int len) {
     long filledStreams = len / BLOCK_LENGTH;
     for (long streamIndex = 0; streamIndex < filledStreams; streamIndex++) {
-      Assert.assertTrue("stream " + streamIndex + " was never written",
+      assertTrue("stream " + streamIndex + " was never written",
           mAlluxioOutStreamMap.containsKey(streamIndex));
-      Assert.assertArrayEquals(BufferUtils
+      assertArrayEquals(BufferUtils
           .getIncreasingByteArray((int) (streamIndex * BLOCK_LENGTH + start), (int) BLOCK_LENGTH),
           mAlluxioOutStreamMap.get(streamIndex).getWrittenData());
     }
     long lastStreamBytes = len - filledStreams * BLOCK_LENGTH;
-    Assert.assertArrayEquals(
+    assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) (filledStreams * BLOCK_LENGTH + start),
             (int) lastStreamBytes),
         mAlluxioOutStreamMap.get(filledStreams).getWrittenData());
 
-    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(start, len),
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(start, len),
         mUnderStorageOutputStream.getWrittenData());
   }
 

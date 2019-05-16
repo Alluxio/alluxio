@@ -23,10 +23,14 @@ message ConfigProperties {
 
 message GetConfigurationPOptions{
  optional bool rawValue = 1;
+ optional bool ignoreClusterConf = 2;
+ optional bool ignorePathConf = 3;
 }
 message GetConfigurationPResponse{
-  repeated ConfigProperty configs = 1;
+  repeated ConfigProperty clusterConfigs = 1;
   map<string, ConfigProperties> pathConfigs = 2;
+  optional string clusterConfigHash = 3;
+  optional string pathConfigHash = 4;
 }
 
 enum ConfigStatus {
@@ -112,6 +116,12 @@ message GetMetricsPResponse {
   map<string, MetricValue> metrics = 1;
 }
 
+message CheckpointPOptions {}
+message CheckpointPResponse {
+ // The hostname of the master that did the checkpoint
+ optional string masterHostname = 1;
+}
+
 message SetPathConfigurationPOptions {}
 message SetPathConfigurationPRequest {
   optional string path = 1;
@@ -128,25 +138,36 @@ message RemovePathConfigurationPRequest {
 }
 message RemovePathConfigurationPResponse {}
 
+message GetConfigHashPOptions {}
+message GetConfigHashPResponse {
+  optional string clusterConfigHash = 1;
+  optional string pathConfigHash = 2;
+}
+
 /**
   * This interface contains meta master service endpoints for Alluxio clients
   * to query cluster configuration.
   */
 service MetaMasterConfigurationService {
-  /**
-   * Returns a list of Alluxio runtime configuration information.
-   */
-  rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
+    /**
+     * Returns a list of Alluxio runtime configuration information.
+     */
+    rpc GetConfiguration (GetConfigurationPOptions) returns (GetConfigurationPResponse);
 
-  /**
-   * Sets a property for a path.
-   */
-  rpc SetPathConfiguration(SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
+    /**
+     * Sets a property for a path.
+     */
+    rpc SetPathConfiguration (SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
 
-  /**
-   * Removes properties for a path, if the keys are empty, it means remove all properties.
-   */
-  rpc RemovePathConfiguration(RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
+    /**
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
+     */
+    rpc RemovePathConfiguration (RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
+
+    /**
+     * Returns the hashes of cluster and path level configurations.
+     */
+    rpc GetConfigHash (GetConfigHashPOptions) returns (GetConfigHashPResponse);
 }
 
 /**
@@ -173,6 +194,11 @@ service MetaMasterClientService {
    * Returns a map of metrics property names and their values from Alluxio metrics system.
    */
   rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
+
+  /**
+   * Creates a checkpoint in the primary master journal system.
+   */
+  rpc Checkpoint(CheckpointPOptions) returns (CheckpointPResponse);
 }
 
 message GetMasterIdPOptions {}

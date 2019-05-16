@@ -23,7 +23,7 @@ alluxio.worker.data.server.class:
 alluxio.worker.data.server.domain.socket.address:
   'The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty). This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need to set a path to this socket. The AlluxioWorker needs to be able to create the path. If alluxio.worker.data.server.domain.socket.as.uuid is set, the path should be the home directory for the domain socket. The full path for the domain socket with be {path}/{uuid}.'
 alluxio.worker.data.server.domain.socket.as.uuid:
-  'If true, the property alluxio.worker.data.server.domain.socket.addressis the path to the home directory for the domain socket and a unique identifier is used as the domain socket name. In addition, clients ignore alluxio.user.hostname while detecting a local worker for short circuit ops. If false, the property is the absolute path to the UNIX domain socket.'
+  'If true, the property alluxio.worker.data.server.domain.socket.addressis the path to the home directory for the domain socket and a unique identifier is used as the domain socket name. If false, the property is the absolute path to the UNIX domain socket.'
 alluxio.worker.data.tmp.subdir.max:
   'The maximum number of sub-directories allowed to be created in alluxio.worker.data.tmp.folder.'
 alluxio.worker.evictor.class:
@@ -80,6 +80,8 @@ alluxio.worker.network.netty.watermark.low:
   'Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.'
 alluxio.worker.network.netty.worker.threads:
   'How many threads to use for processing requests. Zero defaults to #cpuCores * 2.'
+alluxio.worker.network.reader.buffer.size:
+  'When a client reads from a remote worker, the maximum amount of data not received by client allowed before the worker pauses sending more data. If this value is lower than read chunk size, read performance may be impacted as worker waits more often for buffer to free up. Higher value will increase the memory consumed by each read request.'
 alluxio.worker.network.reader.max.chunk.size.bytes:
   'When a client read from a remote worker, the maximum chunk size.'
 alluxio.worker.network.shutdown.timeout:
@@ -106,8 +108,6 @@ alluxio.worker.tieredstore.level0.dirs.path:
   'The path of storage directory for the top storage tier. Note for MacOS the value should be `/Volumes/`.'
 alluxio.worker.tieredstore.level0.dirs.quota:
   'The capacity of the top storage tier.'
-alluxio.worker.tieredstore.level0.reserved.ratio:
-  'Fraction of space reserved in the top storage tier. This has been deprecated, please use high and low watermark instead.'
 alluxio.worker.tieredstore.level0.watermark.high.ratio:
   'The high watermark of the space in the top storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level0.watermark.low.ratio:
@@ -118,8 +118,6 @@ alluxio.worker.tieredstore.level1.dirs.path:
   'The path of storage directory for the second storage tier.'
 alluxio.worker.tieredstore.level1.dirs.quota:
   'The capacity of the second storage tier.'
-alluxio.worker.tieredstore.level1.reserved.ratio:
-  'Fraction of space reserved in the second storage tier. This has been deprecated, please use high and low watermark instead.'
 alluxio.worker.tieredstore.level1.watermark.high.ratio:
   'The high watermark of the space in the second storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level1.watermark.low.ratio:
@@ -130,20 +128,14 @@ alluxio.worker.tieredstore.level2.dirs.path:
   'The path of storage directory for the third storage tier.'
 alluxio.worker.tieredstore.level2.dirs.quota:
   'The capacity of the third storage tier.'
-alluxio.worker.tieredstore.level2.reserved.ratio:
-  'Fraction of space reserved in the third storage tier. This has been deprecated, please use high and low watermark instead.'
 alluxio.worker.tieredstore.level2.watermark.high.ratio:
   'The high watermark of the space in the third storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level2.watermark.low.ratio:
   'The low watermark of the space in the third storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.levels:
   'The number of storage tiers on the worker.'
-alluxio.worker.tieredstore.reserver.enabled:
-  'Whether to enable tiered store reserver service or not.'
 alluxio.worker.tieredstore.reserver.interval:
   'The time period of space reserver service, which keeps certain portion of available space on each layer.'
-alluxio.worker.tieredstore.retry:
-  'The number of retries that the worker uses to process blocks.'
 alluxio.worker.ufs.block.open.timeout:
   'Timeout to open a block from UFS.'
 alluxio.worker.ufs.instream.cache.enabled:

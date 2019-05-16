@@ -9,13 +9,17 @@ package alluxio.grpc.metric;
 import "grpc/common.proto";
 
 message MetricsHeartbeatPOptions {
-  repeated grpc.Metric metrics = 1;
+  repeated ClientMetrics clientMetrics = 1;
+}
+
+message ClientMetrics {
+  optional string clientId = 1;
+  optional string hostname = 2;
+  repeated grpc.Metric metrics = 3;
 }
 
 message MetricsHeartbeatPRequest {
-  optional string clientId = 1;
-  optional string hostname = 2;
-  optional MetricsHeartbeatPOptions options = 3;
+  optional MetricsHeartbeatPOptions options = 1;
 }
 
 message MetricsHeartbeatPResponse {}

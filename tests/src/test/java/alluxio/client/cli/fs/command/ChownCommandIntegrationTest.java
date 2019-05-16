@@ -39,7 +39,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chown() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     mFsShell.run("chown", TEST_USER_1.getUser(), "/testFile");
     String owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
@@ -51,7 +50,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownValidOwnerValidGroupSuccess() throws Exception {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     String newOwner = TEST_USER_1.getUser();
     String group = "staff";
@@ -64,7 +62,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownValidOwnerValidGroupFail() throws Exception {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     String newOwner = TEST_USER_2.getUser();
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
@@ -79,7 +76,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownInvalidOwnerValidGroup() throws Exception {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     String nonexistUser = "nonexistuser";
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
@@ -94,7 +90,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownValidOwnerInvalidGroup() throws Exception {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     String newOwner = TEST_USER_1.getUser();
     String nonexistGroup = "nonexistgroup";
@@ -110,7 +105,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownInvalidOwnerInvalidGroup() throws Exception {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     String nonexistUser = "nonexistuser";
     String nonexistGroup = "nonexistgroup";
@@ -129,7 +123,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chownRecursive() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile",
         WritePType.MUST_CACHE, 10);
     mFsShell.run("chown", "-R", TEST_USER_1.getUser(), "/testDir");
@@ -147,7 +140,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chownWildcard() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile1",
         WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFile2",

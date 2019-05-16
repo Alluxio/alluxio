@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -249,6 +250,18 @@ public class LockCache<K> {
   @VisibleForTesting
   public int getSoftLimit() {
     return mSoftLimit;
+  }
+
+  /**
+   * @return all entries in the cache, for debugging purposes
+   */
+  @VisibleForTesting
+  public Map<K, ReentrantReadWriteLock> getEntryMap() {
+    Map<K, ReentrantReadWriteLock> entries = new HashMap<>();
+    mCache.entrySet().forEach(entry -> {
+      entries.put(entry.getKey(), entry.getValue().mValue);
+    });
+    return entries;
   }
 
   /**

@@ -13,9 +13,8 @@ package alluxio.testutils.master;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -24,16 +23,13 @@ import alluxio.master.TestSafeModeManager;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
-import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
-
-import java.util.concurrent.TimeoutException;
+import alluxio.security.user.ServerUserState;
+import alluxio.security.user.UserState;
 
 public class MasterTestUtils {
 
@@ -44,7 +40,19 @@ public class MasterTestUtils {
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
   public static MasterRegistry createLeaderFileSystemMasterFromJournal() throws Exception {
-    return createFileSystemMasterFromJournal(true);
+    return createFileSystemMasterFromJournal(true, null);
+  }
+
+  /**
+   * Creates a new leader {@link FileSystemMaster} from journal along with its dependencies, and
+   * returns the master registry containing that master.
+   *
+   * @param userState the user state for the server
+   * @return a master registry containing the created {@link FileSystemMaster} master
+   */
+  public static MasterRegistry createLeaderFileSystemMasterFromJournal(UserState userState)
+      throws Exception {
+    return createFileSystemMasterFromJournal(true, userState);
   }
 
   /**
@@ -54,7 +62,7 @@ public class MasterTestUtils {
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
   public static MasterRegistry createStandbyFileSystemMasterFromJournal() throws Exception {
-    return createFileSystemMasterFromJournal(false);
+    return createFileSystemMasterFromJournal(false, null);
   }
 
   /**
@@ -62,16 +70,20 @@ public class MasterTestUtils {
    * the master registry containing that master.
    *
    * @param isLeader whether to start as a leader
+   * @param userState the user state for the server. if null, will use ServerUserState.global()
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader)
-      throws Exception {
+  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader,
+      UserState userState) throws Exception {
     String masterJournal = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
     long startTimeMs = System.currentTimeMillis();
     int port = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
+    if (userState == null) {
+      userState = ServerUserState.global();
+    }
     CoreMasterContext masterContext = CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
         .setSafeModeManager(safeModeManager)
@@ -79,6 +91,7 @@ public class MasterTestUtils {
         .setBlockStoreFactory(() -> new HeapBlockStore())
         .setInodeStoreFactory(x -> new HeapInodeStore())
         .setStartTimeMs(startTimeMs)
+        .setUserState(userState)
         .setPort(port)
         .build();
     new MetricsMasterFactory().create(registry, masterContext);
@@ -90,17 +103,5 @@ public class MasterTestUtils {
     }
     registry.start(isLeader);
     return registry;
-  }
-
-  /**
-   * Waits for the startup consistency check to complete with a limit of 1 minute.
-   *
-   * @param master the file system master which is starting up
-   */
-  public static void waitForStartupConsistencyCheck(final FileSystemMaster master)
-      throws TimeoutException, InterruptedException {
-    CommonUtils.waitFor("Startup consistency check completion",
-        () -> master.getStartupConsistencyCheck().getStatus() != Status.RUNNING,
-        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 }

@@ -149,7 +149,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.WORKER_TIERED_STORE_RESERVER_ENABLED, "false"})
+      confParams = {PropertyKey.Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "1.0"})
   public void copyFromLocalLarge() throws IOException, AlluxioException {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     testFile.createNewFile();

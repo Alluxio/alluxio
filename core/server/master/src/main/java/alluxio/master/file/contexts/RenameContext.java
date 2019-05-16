@@ -23,6 +23,7 @@ import com.google.common.base.MoreObjects;
 public class RenameContext extends OperationContext<RenamePOptions.Builder> {
 
   private long mOperationTimeMs;
+  private boolean mPersist;
 
   /**
    * Creates rename context with given option data.
@@ -32,6 +33,7 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
   private RenameContext(RenamePOptions.Builder optionsBuilder) {
     super(optionsBuilder);
     mOperationTimeMs = System.currentTimeMillis();
+    mPersist = optionsBuilder.getPersist();
   }
 
   /**
@@ -67,6 +69,13 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return true if a persist operation should follow the rename
+   */
+  public boolean getPersist() {
+    return mPersist;
   }
 
   /**
