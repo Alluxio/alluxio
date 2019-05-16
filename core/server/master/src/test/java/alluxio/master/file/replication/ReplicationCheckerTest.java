@@ -17,6 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
@@ -53,6 +54,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -60,6 +63,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -81,7 +85,7 @@ public final class ReplicationCheckerTest {
   private static final List<Metric> NO_METRICS = ImmutableList.of();
   private static final Map<BlockStoreLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
-  private static final Map<Long, Integer> EMPTY = ImmutableMap.of();
+  private static final Map EMPTY = ImmutableMap.of();
 
   /**
    * A mock class of AdjustReplicationHandler, used to test the output of ReplicationChecker.
@@ -90,6 +94,9 @@ public final class ReplicationCheckerTest {
   private static class MockHandler implements ReplicationHandler {
     private final Map<Long, Integer> mEvictRequests = Maps.newHashMap();
     private final Map<Long, Integer> mReplicateRequests = Maps.newHashMap();
+    private final Map<Long, Triple<String, BlockStoreLocation, BlockStoreLocation>>
+        mMigrateRequests = Maps.newHashMap();
+
 
     @Override
     public long evict(AlluxioURI uri, long blockId, int numReplicas) {
@@ -103,12 +110,23 @@ public final class ReplicationCheckerTest {
       return 0;
     }
 
+    @Override
+    public long migrate(AlluxioURI uri, long blockId, String workerHost,
+        BlockStoreLocation source, BlockStoreLocation destination) {
+      mMigrateRequests.put(blockId, new ImmutableTriple<>(workerHost, source, destination));
+      return 0;
+    }
+
     public Map<Long, Integer> getEvictRequests() {
       return mEvictRequests;
     }
 
     public Map<Long, Integer> getReplicateRequests() {
       return mReplicateRequests;
+    }
+
+    public Map<Long, Triple<String, BlockStoreLocation, BlockStoreLocation>> getMigrateRequests() {
+      return mMigrateRequests;
     }
   }
 

@@ -13,6 +13,7 @@ package alluxio.job.replicate;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
+import alluxio.worker.block.BlockStoreLocation;
 
 import java.io.IOException;
 
@@ -45,4 +46,19 @@ public interface ReplicationHandler {
    */
   long replicate(AlluxioURI uri, long blockId, int numReplicas)
       throws AlluxioException, IOException;
+
+  /**
+   * Migrate blocks to the correctly pinned locations
+   *
+   * @param uri URI of the file the block belongs to
+   * @param blockId ID of the block
+   * @param workerHost worker host this block is located at
+   * @param source source location
+   * @param destination destination location
+   * @return the ID of the replicate job
+   * @throws AlluxioException if an Alluxio error is encountered
+   * @throws IOException if a non-Alluxio error is encountered
+   */
+  long migrate(AlluxioURI uri, long blockId, String workerHost, BlockStoreLocation source,
+      BlockStoreLocation destination) throws AlluxioException, IOException;
 }

@@ -14,6 +14,7 @@ package alluxio.master.file.replication;
 import alluxio.AlluxioURI;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.collections.Pair;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
@@ -40,8 +41,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -139,7 +143,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     // Check the set of files that could possibly be mis-replicated
     inodes = mInodeTree.getPinIdSet();
-    checkMisreplicated(inodes);
+    checkMisreplicated(inodes, mReplicationHandler);
   }
 
   @Override
@@ -155,19 +159,19 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    * @param blockInfo
    * @return
    */
-  private Set<Pair<BlockStoreLocation, BlockStoreLocation>> findMisplacedBlock(
+  private Map<String, Pair<BlockStoreLocation, BlockStoreLocation>> findMisplacedBlock(
       InodeFile file, BlockInfo blockInfo) {
     Set<String> pinnedMediumTypes = file.getMediumTypes();
-    Set<Pair<BlockStoreLocation, BlockStoreLocation>> movement = new HashSet<>();
+    Map<String, Pair<BlockStoreLocation, BlockStoreLocation>> movement = new HashMap<>();
     if (pinnedMediumTypes.isEmpty()) {
       // nothing needs to be moved
-      return Collections.emptySet();
+      return Collections.emptyMap();
     }
     // at least pinned to one medium type
     String firstPinnedMedium = pinnedMediumTypes.iterator().next();
     int minReplication = file.getReplicationMin();
     int correctReplication = 0;
-    Set<BlockStoreLocation> candidates = new HashSet<>();
+    Map<String, BlockStoreLocation> candidates = new HashMap<>();
     BlockStoreLocation desiredLocation =
         BlockStoreLocation.anyDirInTierWithMedium(firstPinnedMedium);
     for (BlockLocation loc: blockInfo.getLocations()) {
@@ -176,16 +180,16 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       if (currentLocation.belongsTo(desiredLocation)) {
         correctReplication++;
       } else {
-        candidates.add(currentLocation);
+        candidates.put(loc.getWorkerAddress().getHost(), currentLocation);
       }
     }
     if (correctReplication >= minReplication) {
       // there are more than minReplication in the right location
-      return Collections.emptySet();
+      return Collections.emptyMap();
     } else {
       int toMove = minReplication - correctReplication;
-      for (BlockStoreLocation candidate : candidates) {
-        movement.add(new Pair<>(candidate, desiredLocation));
+      for (Map.Entry<String, BlockStoreLocation> candidate : candidates.entrySet()) {
+        movement.put(candidate.getKey(), new Pair<>(candidate.getValue(), desiredLocation));
         toMove--;
         if (toMove == 0) {
           return movement;
@@ -195,7 +199,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     return movement;
   }
 
-  private void checkMisreplicated(Set<Long> inodes) {
+  private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler) {
     for (long inodeId : inodes) {
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
@@ -215,13 +219,23 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             LOG.warn("Block info is null");
           }
 
-          for (Pair<BlockStoreLocation, BlockStoreLocation> pair : findMisplacedBlock(file, blockInfo)) {
-            // TODO (david): actually move the blocks
+          for (Map.Entry<String, Pair<BlockStoreLocation, BlockStoreLocation>> entry
+              : findMisplacedBlock(file, blockInfo).entrySet()) {
+            try {
+              handler.migrate(inodePath.getUri(), blockId, entry.getKey(),
+                  entry.getValue().getFirst(), entry.getValue().getSecond());
+            } catch (Exception e) {
+              LOG.warn(
+                  "Unexpected exception encountered when starting a migration job (uri={},"
+                      + " block ID={}, workerHost= {}) : {}",
+                  inodePath.getUri(), blockId, entry.getKey(), e.getMessage());
+              LOG.debug("Exception: ", e);
+            }
           }
-
         }
       } catch (FileDoesNotExistException e) {
-        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.getMessage());      }
+        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.getMessage());
+      }
     }
   }
 

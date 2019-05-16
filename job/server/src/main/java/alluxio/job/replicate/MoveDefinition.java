@@ -18,15 +18,12 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.MoveBlockRequest;
-import alluxio.grpc.RemoveBlockRequest;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -36,10 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -86,7 +81,7 @@ public final class MoveDefinition
   /**
    * {@inheritDoc}
    *
-   * This task will evict the given block.
+   * This task will move the given block.
    */
   @Override
   public SerializableVoid runTask(MoveConfig config, SerializableVoid args, RunTaskContext context)
