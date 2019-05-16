@@ -71,7 +71,7 @@ public class SimpleInodeLockList implements InodeLockList {
 
   @Override
   public void lockInode(Inode inode, LockMode mode) {
-    checkMode(mode);
+    mode = nextLockMode(mode);
     if (!mLocks.isEmpty()) {
       Preconditions.checkState(!endsInInode(),
           "Cannot lock inode %s for lock list %s because the lock list already ends in an inode",
@@ -84,7 +84,7 @@ public class SimpleInodeLockList implements InodeLockList {
 
   @Override
   public void lockEdge(Inode lastInode, String childName, LockMode mode) {
-    checkMode(mode);
+    mode = nextLockMode(mode);
     long edgeParentId = lastInode.getId();
     Edge edge = new Edge(lastInode.getId(), childName);
     if (!mLocks.isEmpty()) {
@@ -206,16 +206,15 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   /**
-   * If mode is read but the lock list is write locked, precondition check will fail.
+   * If mode is read but the lock list is write locked, returns LockMode.WRITE.
    *
    * This helps us preserve the invariant that there is never a READ lock following a WRITE lock.
    *
    * @param mode a lock mode
+   * @return the mode
    */
-  private void checkMode(LockMode mode) {
-    if (endsInWriteLock()) {
-      Preconditions.checkState(mode == LockMode.WRITE, "Cannot apply read lock after write lock");
-    }
+  private LockMode nextLockMode(LockMode mode) {
+    return endsInWriteLock() ? LockMode.WRITE : mode;
   }
 
   private void addLock(LockResource lock, LockMode mode) {
