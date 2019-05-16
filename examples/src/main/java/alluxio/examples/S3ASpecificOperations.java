@@ -56,10 +56,10 @@ public final class S3ASpecificOperations {
   }
 
   /**
-   * Test for creating empty file using streaming upload.
+   * Test for creating an empty file using streaming upload.
    */
-  public void createEmptyFileUsingStreamingUploadTest() throws IOException {
-    String testFile = PathUtils.concatPath(mTestDirectory, "createOpenEmpty");
+  public void createEmptyFileTest() throws IOException {
+    String testFile = PathUtils.concatPath(mTestDirectory, "createEmpty");
     int bytesRead;
     OutputStream o = mUfs.create(testFile);
     o.close();
@@ -71,12 +71,12 @@ public final class S3ASpecificOperations {
   }
 
   /**
-   * Test for creating file less than one part.
+   * Test for creating a file with data less than one part.
    */
   @RelatedS3Operations(operations
       = {"initiateMultipartUpload", "uploadPart", "completeMultipartUpload"})
   public void createFileLessThanOnePartTest() throws IOException {
-    String testFile = PathUtils.concatPath(mTestDirectory, "createOpen");
+    String testFile = PathUtils.concatPath(mTestDirectory, "createOnePart");
     byte[] buf;
     int bytesRead;
     OutputStream o = mUfs.create(testFile);
@@ -90,13 +90,13 @@ public final class S3ASpecificOperations {
   }
 
   /**
-   * Test for creating multipart file.
+   * Test for creating a multipart file.
    */
   @RelatedS3Operations(operations
       = {"initiateMultipartUpload", "uploadPart", "completeMultipartUpload", "listObjects"})
   public void createMultipartFileTest() throws IOException {
     String testParent = PathUtils.concatPath(mTestDirectory, "createParent");
-    String testFile = PathUtils.concatPath(testParent, "createOpenLarge");
+    String testFile = PathUtils.concatPath(testParent, "createMultipart");
     int numCopies;
     try (OutputStream outputStream = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
         .setCreateParent(true))) {
@@ -131,7 +131,7 @@ public final class S3ASpecificOperations {
   }
 
   /**
-   * Test for creating and aborting multipart file.
+   * Test for creating and aborting a multipart file.
    */
   @RelatedS3Operations(operations = {"initiateMultipartUpload", "uploadPart",
       "abortMultipartUploads"})

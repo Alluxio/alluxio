@@ -112,12 +112,12 @@ public final class UnderFileSystemContractTest {
   /**
    * Loads and runs the tests in the target operations class.
    *
-   * @param operationsToTest the class that contains the tests to run
+   * @param operations the class that contains the tests to run
    * @param testDir the test directory to run tests against
    */
-  private void loadAndRunTests(Object operationsToTest, String testDir) throws Exception {
+  private void loadAndRunTests(Object operations, String testDir) throws Exception {
     try {
-      Class classToRun = operationsToTest.getClass();
+      Class classToRun = operations.getClass();
       Field[] fields = classToRun.getDeclaredFields();
       for (Field field : fields) {
         field.setAccessible(true);
@@ -128,7 +128,7 @@ public final class UnderFileSystemContractTest {
         if (testName.endsWith("Test")) {
           LOG.info("Running test: " + testName);
           try {
-            test.invoke(operationsToTest);
+            test.invoke(operations);
           } catch (InvocationTargetException e) {
             if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
               logRelatedS3Operations(test);
@@ -194,11 +194,11 @@ public final class UnderFileSystemContractTest {
   private static String getHelpMessage() {
     return "Test description:\n"
         + "Test the integration between Alluxio and the under filesystem. "
-        + "If the given under filesystem name is S3A, this test can also be used as "
-        + "a S3A compatibility test to test if the target under filesystem can "
-        + "fulfill the minimum S3A compatibility requirements in order to "
-        + "work well with Alluxio through Alluxio's integration with S3A. \n"
-        + "Command line example: 'bin/alluxio runUnderFileSystemTest --path=s3a://testPath "
+        + "If the given under filesystem is S3, this test can also be used as "
+        + "a S3 compatibility test to test if the target under filesystem can "
+        + "fulfill the minimum S3 compatibility requirements in order to "
+        + "work well with Alluxio through Alluxio's integration with S3. \n"
+        + "Command line example: 'bin/alluxio runUfsTest --path=s3a://testPath "
         + "-Daws.accessKeyId=<accessKeyId> -Daws.secretKeyId=<secretKeyId>"
         + "-Dalluxio.underfs.s3.endpoint=<endpoint_url> "
         + "-Dalluxio.underfs.s3.disable.dns.buckets=true'";
@@ -228,7 +228,7 @@ public final class UnderFileSystemContractTest {
   }
 
   /**
-   * Annotates methods with related S3 operations.
+   * A annotation for methods with related S3 operations.
    */
   @Retention(RetentionPolicy.RUNTIME)
   public @interface RelatedS3Operations {
