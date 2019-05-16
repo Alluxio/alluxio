@@ -136,6 +136,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
     checkOnlyNodesWriteLocked();
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB);
+    checkIncomingEdgeReadLocked(mDirB.getId(), "missing");
     checkOnlyIncomingEdgesWriteLocked();
   }
 

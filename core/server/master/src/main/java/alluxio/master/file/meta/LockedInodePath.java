@@ -409,7 +409,7 @@ public class LockedInodePath implements Closeable {
    * traversed, this method will pick up where the previous traversal left off.
    *
    * On return, all existing inodes in the path are added to mExistingInodes and the inodes are
-   * locked according to to {@link LockPattern}.
+   * locked according to {@link LockPattern}.
    */
   public void traverse() throws InvalidPathException {
     // This locks the root edge and inode.
@@ -421,7 +421,7 @@ public class LockedInodePath implements Closeable {
       String nextComponent = mPathComponents[lastInodeIndex + 1];
       boolean isFinalComponent = lastInodeIndex == mPathComponents.length - 2;
 
-      Inode lastInode = mLockList.get(mLockList.numInodes() - 1);
+      Inode lastInode = mLockList.get(lastInodeIndex);
       if (mLockList.endsInInode()) { // Lock an edge next.
         if (mLockPattern == LockPattern.WRITE_EDGE && isFinalComponent) {
           mLockList.lockEdge(lastInode, nextComponent, LockMode.WRITE);
@@ -450,7 +450,7 @@ public class LockedInodePath implements Closeable {
           }
         }
         if (!nextInodeOpt.isPresent()) {
-          if (mLockPattern != LockPattern.WRITE_EDGE) {
+          if (!mLockPattern.writeLockLastEdge()) {
             // Other lock patterns only lock up to the last existing inode.
             mLockList.unlockLastEdge();
           }
@@ -458,7 +458,7 @@ public class LockedInodePath implements Closeable {
         }
         Inode nextInode = nextInodeOpt.get();
 
-        if (isFinalComponent && mLockPattern != LockPattern.READ) {
+        if (isFinalComponent && mLockPattern.isWrite()) {
           mLockList.lockInode(nextInode, LockMode.WRITE);
         } else {
           mLockList.lockInode(nextInode, LockMode.READ);
