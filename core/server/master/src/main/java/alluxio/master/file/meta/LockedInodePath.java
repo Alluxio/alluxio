@@ -450,7 +450,7 @@ public class LockedInodePath implements Closeable {
           }
         }
         if (!nextInodeOpt.isPresent()) {
-          if (!mLockPattern.shouldLockLastEdge()) {
+          if (!mLockPattern.writeLockLastEdge()) {
             // Other lock patterns only lock up to the last existing inode.
             mLockList.unlockLastEdge();
           }

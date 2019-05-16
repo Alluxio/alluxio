@@ -174,9 +174,9 @@ public class InodeTree implements DelegatingJournaled {
      * existing inodes: /a
      * last edge: a->b
      *
-     * @return whether the last edge should be locked
+     * @return whether the last edge should be write locked
      */
-    public boolean shouldLockLastEdge() {
+    public boolean writeLockLastEdge() {
       return this == WRITE_INODE || this == WRITE_EDGE;
     }
   }
