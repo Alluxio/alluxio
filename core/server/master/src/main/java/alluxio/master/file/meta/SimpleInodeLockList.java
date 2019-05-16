@@ -51,9 +51,10 @@ public class SimpleInodeLockList implements InodeLockList {
    */
   private List<LockResource> mLocks;
   /**
-   * The index of the first write lock entry. All locks before this index are read locks, and all
-   * locks after and including this index are write locks. If all locks are read locks,
-   * mFirstWriteLockIndex == NO_WRITE_LOCK.
+   * The index of the first write lock entry.
+   * If all locks are read locks, mFirstWriteLockIndex == NO_WRITE_LOCK.
+   * Otherwise, all locks before this index are read locks, and all
+   * locks after and including this index are write locks.
    */
   private int mFirstWriteLockIndex;
 
