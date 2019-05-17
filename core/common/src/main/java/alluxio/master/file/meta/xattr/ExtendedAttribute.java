@@ -56,6 +56,11 @@ public interface ExtendedAttribute<T> {
    */
   T decode(byte[] bytes) throws IOException;
 
+  /**
+   * The namespace for extended attributes.
+   *
+   * The values provided in this enum are the standard namespaces for all {@code xattr}
+   */
   enum NamespacePrefix {
     SECURITY("security"),
     SYSTEM("system"),
