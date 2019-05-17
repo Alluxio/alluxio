@@ -2795,17 +2795,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath,
       boolean removeInodes) throws InvalidPathException, FileDoesNotExistException, IOException {
+    if (!inodePath.fullPathExists()) {
+      throw new FileDoesNotExistException(
+          "Failed to unmount: Path " + inodePath.getUri() + " does not exist");
+    }
     MountInfo mountInfo = mMountTable.getMountTable().get(inodePath.getUri().getPath());
     if (mountInfo == null) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point.");
     }
     mSyncManager.stopSyncForMount(mountInfo.getMountId());
-
-    if (!inodePath.fullPathExists()) {
-      throw new FileDoesNotExistException(
-          "Failed to unmount: Path " + inodePath.getUri() + " does not exist");
-    }
 
     if (!mMountTable.delete(rpcContext, inodePath.getUri(), removeInodes)) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
