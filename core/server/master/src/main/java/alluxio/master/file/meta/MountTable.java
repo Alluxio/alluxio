@@ -155,7 +155,8 @@ public final class MountTable implements DelegatingJournaled {
    * @param checkNestedMount whether to check nested mount points before delete
    * @return whether the operation succeeded or not
    */
-  public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri, boolean checkNestedMount) {
+  public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri,
+      boolean checkNestedMount) {
     String path = uri.getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {

@@ -165,7 +165,7 @@ public interface FileSystemMasterClient extends Client {
       throws AlluxioStatusException;
 
   /**
-   * Updates options of a mount point for the given Alluxio path
+   * Updates options of a mount point for the given Alluxio path.
    *
    * @param alluxioPath the Alluxio path
    * @param options mount options

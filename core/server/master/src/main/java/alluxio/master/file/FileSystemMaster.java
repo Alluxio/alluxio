@@ -407,7 +407,8 @@ public interface FileSystemMaster extends Master {
    * of the Alluxio path.
    *
    * @param alluxioPath the Alluxio path to update, must be a mount point
-   * @throws FileDoesNotExistException if the path to be mounted does not exist
+   * @param context the mount context
+   * @throws FileDoesNotExistException if the given path does not exist
    * @throws InvalidPathException if the given path is not a mount point
    * @throws AccessControlException if the permission check fails
    */

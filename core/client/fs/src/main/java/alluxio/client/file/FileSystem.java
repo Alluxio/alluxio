@@ -444,7 +444,7 @@ public interface FileSystem extends Closeable {
       throws IOException, AlluxioException;
 
   /**
-   * Updates the options for an existing mount point
+   * Updates the options for an existing mount point.
    *
    * @param alluxioPath the Alluxio path of the mount point
    * @param options options for this mount point

@@ -313,10 +313,10 @@ public final class FileSystemMasterClientServiceHandler
     String alluxioPath = request.getAlluxioPath();
     MountPOptions options = request.getOptions();
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<UpdateMountPResponse>) () -> {
-          mFileSystemMaster.updateMount(new AlluxioURI(alluxioPath),
+      mFileSystemMaster.updateMount(new AlluxioURI(alluxioPath),
               MountContext.create(options.toBuilder()));
-          return UpdateMountPResponse.newBuilder().build();
-        }, "UpdateMount", "alluxioPath=%s, options=%s", responseObserver, alluxioPath,
+      return UpdateMountPResponse.newBuilder().build();
+    }, "UpdateMount", "alluxioPath=%s, options=%s", responseObserver, alluxioPath,
         options);
   }
 
