@@ -46,6 +46,7 @@ import io.atomix.copycat.server.util.ServerSerialization;
 import io.atomix.copycat.util.ProtocolSerialization;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -196,6 +197,8 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
+  // TODO(ggezer) Stabilize passive state machine reading.
   public void dumpHeapCheckpointFromEmbeddedJournal() throws Throwable {
     initializeCluster(new HashMap<PropertyKey, String>() {
       {
