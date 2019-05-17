@@ -355,6 +355,19 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public void updateMount(AlluxioURI alluxioPath, final MountPOptions options)
+      throws IOException, AlluxioException {
+    checkUri(alluxioPath);
+    rpc(client -> {
+      MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
+          mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
+      client.updateMount(alluxioPath, mergedOptions);
+      LOG.info("UpdateMount on " + alluxioPath.getPath());
+      return null;
+    });
+  }
+
+  @Override
   public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
     return rpc(FileSystemMasterClient::getMountTable);
   }

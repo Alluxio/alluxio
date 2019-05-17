@@ -428,6 +428,13 @@ enum UfsPMode {
   READ_WRITE = 3;
 }
 
+message UpdateMountPRequest {
+  /** the path of alluxio mount point */
+  optional string alluxioPath = 1;
+  optional MountPOptions options = 3;
+}
+message UpdateMountPResponse {}
+
 message UpdateUfsModePResponse {}
 message UpdateUfsModePOptions {
   optional UfsPMode ufsMode = 1;
@@ -547,6 +554,11 @@ service FileSystemMasterClientService {
    * will be persisted before they are removed from the Alluxio namespace.
    */
   rpc Unmount(UnmountPRequest) returns (UnmountPResponse);
+
+  /**
+   * Updates an existing "mount point", changing its mount properties
+   */
+  rpc UpdateMount(UpdateMountPRequest) returns (UpdateMountPResponse);
 
   /**
    * Updates the ufs mode for a ufs path under one or more mount points.

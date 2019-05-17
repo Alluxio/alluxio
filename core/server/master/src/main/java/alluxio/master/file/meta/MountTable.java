@@ -152,9 +152,10 @@ public final class MountTable implements DelegatingJournaled {
    *
    * @param journalContext journal context
    * @param uri an Alluxio path URI
+   * @param checkNestedMount whether to check nested mount points before delete
    * @return whether the operation succeeded or not
    */
-  public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri) {
+  public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri, boolean checkNestedMount) {
     String path = uri.getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
@@ -165,15 +166,17 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mWriteLock)) {
       if (mState.getMountTable().containsKey(path)) {
         // check if the path contains another nested mount point
-        for (String mountPath : mState.getMountTable().keySet()) {
-          try {
-            if (PathUtils.hasPrefix(mountPath, path) && (!path.equals(mountPath))) {
-              LOG.warn("The path to unmount {} contains another nested mountpoint {}",
-                  path, mountPath);
-              return false;
+        if (checkNestedMount) {
+          for (String mountPath : mState.getMountTable().keySet()) {
+            try {
+              if (PathUtils.hasPrefix(mountPath, path) && (!path.equals(mountPath))) {
+                LOG.warn("The path to unmount {} contains another nested mountpoint {}",
+                    path, mountPath);
+                return false;
+              }
+            } catch (InvalidPathException e) {
+              LOG.warn("Invalid path {} encountered when checking for nested mount point", path);
             }
-          } catch (InvalidPathException e) {
-            LOG.warn("Invalid path {} encountered when checking for nested mount point", path);
           }
         }
         mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
