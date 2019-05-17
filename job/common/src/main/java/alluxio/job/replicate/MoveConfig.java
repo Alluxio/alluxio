@@ -13,7 +13,6 @@ package alluxio.job.replicate;
 
 import alluxio.job.JobConfig;
 
-import alluxio.worker.block.BlockStoreLocation;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -28,6 +27,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @JsonTypeName(MoveConfig.NAME)
 public final class MoveConfig implements JobConfig {
+  private static final long serialVersionUID = -5198319303173120739L;
+
   public static final String NAME = "Move";
 
   /** Which block to move. */

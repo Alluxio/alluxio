@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,7 +66,7 @@ public final class MoveDefinition
 
     String workerHost = config.getWorkerHost();
 
-    Map<WorkerInfo, SerializableVoid> result = Maps.newHashMap();
+    Map<WorkerInfo, SerializableVoid> result = new HashMap<>();
 
     Collections.shuffle(jobWorkerInfoList);
     for (WorkerInfo workerInfo : jobWorkerInfoList) {

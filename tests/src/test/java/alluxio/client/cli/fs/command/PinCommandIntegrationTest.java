@@ -34,7 +34,8 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
   public static ManuallyScheduleHeartbeat sManuallyScheduleRule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,
       HeartbeatContext.WORKER_BLOCK_SYNC,
-      HeartbeatContext.WORKER_PIN_LIST_SYNC);
+      HeartbeatContext.WORKER_PIN_LIST_SYNC,
+      HeartbeatContext.MASTER_REPLICATION_CHECK);
 
   /**
    * Tests the "pin" and "unpin" commands. Creates a file and tests unpinning it, then pinning
@@ -115,7 +116,17 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
     FileSystemTestUtils.createByteFile(mFileSystem, filePathA, WritePType.MUST_CACHE,
         fileSize);
     assertTrue(fileExists(filePathA));
-    assertEquals(0, mFsShell.run("pin", filePathA.toString(), "MEM"));
+
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    assertTrue(fileExists(filePathA));
+    assertEquals(0, mFsShell.run("pin", filePathA.toString(), "SSD"));
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
+
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+    assertEquals("SSD", mFileSystem.getStatus(filePathA).getFileBlockInfos().get(0).getBlockInfo().getLocations().get(0).getMediumType());
+
 
     assertEquals(-1, mFsShell.run("pin", filePathB.toString(), "NVRAM"));
   }
