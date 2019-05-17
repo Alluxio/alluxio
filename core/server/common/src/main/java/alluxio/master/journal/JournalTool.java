@@ -12,8 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -24,39 +22,25 @@ import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckp
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
 import alluxio.master.journal.checkpoint.TarballCheckpointFormat.TarballCheckpointReader;
 import alluxio.master.journal.raft.JournalEntryCommand;
-import alluxio.master.journal.raft.OnceSupplier;
-import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.raft.SnapshotReaderStream;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.atomix.catalyst.concurrent.SingleThreadContext;
 import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.netty.NettyTransport;
 import io.atomix.copycat.Command;
 import io.atomix.copycat.protocol.ClientRequestTypeResolver;
 import io.atomix.copycat.protocol.ClientResponseTypeResolver;
-import io.atomix.copycat.server.Commit;
-import io.atomix.copycat.server.CopycatServer;
-import io.atomix.copycat.server.Snapshottable;
-import io.atomix.copycat.server.StateMachine;
-import io.atomix.copycat.server.cluster.Member;
 import io.atomix.copycat.server.storage.Log;
 import io.atomix.copycat.server.storage.Storage;
-import io.atomix.copycat.server.storage.StorageLevel;
 import io.atomix.copycat.server.storage.entry.CommandEntry;
 import io.atomix.copycat.server.storage.snapshot.Snapshot;
-import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
-import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.copycat.server.storage.util.StorageSerialization;
 import io.atomix.copycat.server.util.ServerSerialization;
 import io.atomix.copycat.util.ProtocolSerialization;
@@ -75,7 +59,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -83,11 +66,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -148,7 +126,11 @@ public final class JournalTool {
       System.exit(EXIT_SUCCEEDED);
     }
 
-    dumpJournal();
+    try {
+      dumpJournal();
+    } catch (Exception exc) {
+      System.err.println(exc);
+    }
   }
 
   @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES")
@@ -194,9 +176,9 @@ public final class JournalTool {
     sMaster = cmd.getOptionValue("master", "FileSystemMaster");
     sStart = Long.decode(cmd.getOptionValue("start", "0"));
     sEnd = Long.decode(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
-    String inputDirOption = cmd.getOptionValue("inputDir", null);
-    if (inputDirOption != null) {
-      sInputDir = new File(inputDirOption).getAbsolutePath();
+    sInputDir = cmd.getOptionValue("inputDir", null);
+    if (sInputDir != null) {
+      sInputDir = new File(sInputDir).getAbsolutePath();
     }
     sOutputDir =
         new File(cmd.getOptionValue("outputDir", "journal_dump-" + System.currentTimeMillis()))
@@ -377,14 +359,6 @@ public final class JournalTool {
   }
 
   static class RaftJournalDumper extends AbstractJournalDumper {
-    /** Used to stop listening state form CopyCat cluster. */
-    protected final AtomicLong mLastDumpOperationTime;
-    /** Timeout to stop listening state from CopyCat cluster. */
-    private static final int COPYCAT_SILENT_PERIOD_IN_SECONDS = 30;
-    /** Timeout in seconds for joining/leaving a CopyCat cluster. */
-    private static final int COPYCAT_CONNECTION_TIMEOUT_SECONDS = 30;
-    /** Timeout in seconds for reading a snapshot form a CopyCat cluster. */
-    private static final int COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS = 3600;
 
     /**
      * Creates embedded journal dumper.
@@ -398,87 +372,16 @@ public final class JournalTool {
     public RaftJournalDumper(String master, long start, long end, String outputDir,
         @Nullable String inputDir) throws IOException {
       super(master, start, end, outputDir, inputDir);
-      /*
-       * We reset dump time whenever, - Writing to a snapshot is complete. - New JournalEntry
-       * command is written.
-       *
-       * Setting mLastDumpOperationTime to COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS ahead of current
-       * time. Since copycat serves the snapshots first, this will ensure we wait for snapshot
-       * before returning due to inactivity.
-       */
-      mLastDumpOperationTime =
-          new AtomicLong(System.currentTimeMillis() + COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS * 1000);
     }
 
     @Override
     void dumpJournal() throws Throwable {
-      RaftJournalConfiguration conf = RaftJournalConfiguration.defaults(getRaftServiceType());
-      /*
-       * Reading embedded journal actively requires a RAFT cluster with at least 1 follower node.
-       * This is due to CopyCat allowing passive membership only through followers. In that case we
-       * need to read from the journal directory supplied by the user. Since there is only one
-       * master, the on-disk state will provide a consistent view.
-       */
-      if (mInputDir == null && conf.getClusterAddresses().size() == 1) {
-        System.err.println("Cannot do live reading of embedded journal when "
-            + "there is only one configured journal master.");
-        System.err.println(
-            "Please specify -inputDir option reading embedded journal files from disk");
-        return;
+      if (mInputDir == null) {
+        throw new IllegalArgumentException(
+            "For embedded journal, you need to provide -inputDir option "
+                + "that shows local journal directory.");
       }
-
-      // If provided, read from disk and return.
-      if (mInputDir != null) {
-        readFromDir();
-        return;
-      }
-
-      // Attach to CopyCat cluster passively and dump state.
-      try (PrintStream out =
-          new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)))) {
-        ServerSocket socket = new ServerSocket(0);
-        int port = socket.getLocalPort();
-        CopycatServer server = CopycatServer
-            .builder(new Address(NetworkAddressUtils.getConnectHost(
-                NetworkAddressUtils.ServiceType.MASTER_RAFT, ServerConfiguration.global()), port))
-            .withSnapshotAllowed(new AtomicBoolean(false)).withTransport(new NettyTransport())
-            .withSerializer(RaftJournalSystem.createSerializer()).withType(Member.Type.PASSIVE)
-            .withStorage(Storage.builder().withStorageLevel(StorageLevel.MEMORY).build())
-            .withStateMachine(new OnceSupplier<>(new EchoJournalStateMachine(
-                (je) -> dumpEntry(je, out), this::dumpCheckpointStream)))
-            .build();
-
-        server
-            .join(RaftJournalConfiguration.defaults(getRaftServiceType()).getClusterAddresses()
-                .stream().map(addr -> new Address(addr.getHostName(), addr.getPort()))
-                .collect(Collectors.toList()))
-            .get(COPYCAT_CONNECTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
-        // Whether to stop listening for state due to silent period.
-        while ((System.currentTimeMillis()
-            - mLastDumpOperationTime.get() < COPYCAT_SILENT_PERIOD_IN_SECONDS
-                * Constants.SECOND_MS)) {
-          CommonUtils.sleepMs(100);
-        }
-
-        server.leave().get(COPYCAT_CONNECTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-      }
-    }
-
-    private void dumpEntry(JournalEntry je, PrintStream out) {
-      writeSelected(out, je);
-      mLastDumpOperationTime.set(System.currentTimeMillis());
-    }
-
-    private void dumpCheckpointStream(CheckpointInputStream checkpointStream) {
-      try {
-        Path snapshotDir = Paths.get(mCheckpointsDir);
-        readCheckpoint(checkpointStream, snapshotDir.toAbsolutePath());
-      } catch (IOException exc) {
-        LOG.error("Failed while reading checkpoint stream.", exc);
-      } finally {
-        mLastDumpOperationTime.set(System.currentTimeMillis());
-      }
+      readFromDir();
     }
 
     /**
@@ -549,18 +452,10 @@ public final class JournalTool {
       }
     }
 
-    private NetworkAddressUtils.ServiceType getRaftServiceType() {
-      if (mMaster.contains("job")) {
-        return NetworkAddressUtils.ServiceType.JOB_MASTER_RAFT;
-      } else {
-        return NetworkAddressUtils.ServiceType.MASTER_RAFT;
-      }
-    }
-
     /**
      * Writes given entry after going through range and validity checks.
      *
-     * @param out out stream to write the entry to
+     * @param out   out stream to write the entry to
      * @param entry the entry to write to
      */
     private void writeSelected(PrintStream out, JournalEntry entry) {
@@ -568,18 +463,18 @@ public final class JournalTool {
         return;
       }
       Preconditions.checkState(
-          entry.getAllFields().size() <= 1
-              || (entry.getAllFields().size() == 2 && entry.hasSequenceNumber()),
-          "Raft journal entries should never set multiple fields in addition to sequence "
-              + "number, but found %s",
-          entry);
+              entry.getAllFields().size() <= 1
+                      || (entry.getAllFields().size() == 2 && entry.hasSequenceNumber()),
+              "Raft journal entries should never set multiple fields in addition to sequence "
+                      + "number, but found %s",
+              entry);
       if (entry.getJournalEntriesCount() > 0) {
         // This entry aggregates multiple entries.
         for (JournalEntry e : entry.getJournalEntriesList()) {
           writeSelected(out, e);
         }
       } else if (entry.toBuilder().clearSequenceNumber().build()
-          .equals(JournalEntry.getDefaultInstance())) {
+              .equals(JournalEntry.getDefaultInstance())) {
         // Ignore empty entries, they are created during snapshotting.
       } else {
         if (isSelected(entry)) {
@@ -604,77 +499,6 @@ public final class JournalTool {
         }
       }
       return false;
-    }
-
-    /**
-     * Implementation of {@link StateMachine} that echoes its state for dumping.
-     *
-     * EchoJournalStateMachine is attached to the cluster as PASSIVE, which makes it receive all
-     * snapshots happening in the FOLLOWER node that it attaches to. For practical purposes, we
-     * will dump the first snapshot only and stop dumping snapshots afterwards.
-     */
-    public static class EchoJournalStateMachine extends StateMachine implements Snapshottable {
-      /** Used to consume JournalEntry commands coming to this state machine. */
-      private final Consumer<JournalEntry> mEntryConsumer;
-      /** Used to consume Snapshots streams coming to this state machine. */
-      private final Consumer<CheckpointInputStream> mCheckpointConsumer;
-      /** If the first snapshot is dumped. */
-      private boolean mFirstSnapshotRead = false;
-
-      /**
-       * Creates a new echo state for dumping embedded journal.
-       *
-       * @param entryConsumer consumer for JournalEntry commands
-       * @param checkpointConsumer consumer for Snapshot streams
-       */
-      public EchoJournalStateMachine(Consumer<JournalEntry> entryConsumer,
-          Consumer<CheckpointInputStream> checkpointConsumer) {
-        mEntryConsumer = entryConsumer;
-        mCheckpointConsumer = checkpointConsumer;
-      }
-
-      /**
-       * Applies a journal entry commit to the state machine.
-       *
-       * This method is automatically discovered by the Copycat framework.
-       *
-       * @param commit the commit
-       */
-      public synchronized void applyJournalEntryCommand(Commit<JournalEntryCommand> commit) {
-        JournalEntry entry;
-        try {
-          entry = JournalEntry.parseFrom(commit.command().getSerializedJournalEntry());
-        } catch (Throwable t) {
-          ProcessUtils.fatalError(LOG, t, "Encountered invalid journal entry in commit: {}.",
-              commit);
-          throw new IllegalStateException();
-        }
-        mEntryConsumer.accept(entry);
-      }
-
-      @Override
-      public void snapshot(SnapshotWriter writer) {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public void install(SnapshotReader snapshotReader) {
-        if (mFirstSnapshotRead) {
-          LOG.debug("Skip installing snapshot: {}", snapshotReader.readLong());
-          return;
-        }
-        // Don't read snapshots coming after this one.
-        mFirstSnapshotRead = true;
-        LOG.debug("Installing snapshot: {}", snapshotReader.readLong());
-        // Reading the snapshot.
-        try (CheckpointInputStream checkpointStream =
-            new CheckpointInputStream(new SnapshotReaderStream(snapshotReader))) {
-          mCheckpointConsumer.accept(checkpointStream);
-        } catch (Exception exc) {
-          LOG.error(exc.toString());
-          throw new RuntimeException(exc);
-        }
-      }
     }
   }
 }
