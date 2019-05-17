@@ -25,8 +25,6 @@ import java.io.IOException;
  */
 public interface ExtendedAttribute<T> {
 
-  PersistenceStateAttribute PERSISTENCE_STATE = new PersistenceStateAttribute();
-
   /**
    * @return the full attribute with namespace and identifier
    */
