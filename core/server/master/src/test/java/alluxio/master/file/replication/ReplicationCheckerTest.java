@@ -304,6 +304,18 @@ public final class ReplicationCheckerTest {
   }
 
   @Test
+  public void heartbeatFileDoesnotNeedMove() throws Exception {
+    mFileContext.getOptions().setReplicationMin(1);
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "MEM");
+    addBlockLocationHelper(blockId, 1);
+
+    mReplicationChecker.heartbeat();
+    Assert.assertEquals(EMPTY, mMockReplicationHandler.getEvictRequests());
+    Assert.assertEquals(EMPTY, mMockReplicationHandler.getReplicateRequests());
+    Assert.assertEquals(EMPTY, mMockReplicationHandler.getMigrateRequests());
+  }
+
+  @Test
   public void heartbeatFileUnderReplicatedBy10() throws Exception {
     mFileContext.getOptions().setReplicationMin(10);
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
