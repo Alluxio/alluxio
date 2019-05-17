@@ -195,9 +195,13 @@ public final class BlockStoreLocation {
     return Arrays.hashCode(new Object[] {mTierAlias, mDirIndex, mMediumType});
   }
 
+  /**
+   * Fill BlockStoreLocationproto with location information.
+   *
+   * @return a proto object
+   */
   public BlockStoreLocationProto toProto() {
     return BlockStoreLocationProto.newBuilder().setTierAlias(tierAlias())
         .setMediumType(mediumType()).build();
   }
-
 }

@@ -47,12 +47,12 @@ public interface ReplicationHandler {
       throws AlluxioException, IOException;
 
   /**
-   * Migrate blocks to the correctly pinned locations
+   * Migrate blocks to the correctly pinned locations.
    *
    * @param uri URI of the file the block belongs to
    * @param blockId ID of the block
    * @param workerHost worker host this block is located at
-   * @param mediumType
+   * @param mediumType medium type to migrate this block to
    * @return the ID of the replicate job
    * @throws AlluxioException if an Alluxio error is encountered
    * @throws IOException if a non-Alluxio error is encountered

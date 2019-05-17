@@ -125,8 +125,8 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
-    assertEquals("SSD", mFileSystem.getStatus(filePathA).getFileBlockInfos().get(0).getBlockInfo().getLocations().get(0).getMediumType());
-
+    assertEquals("SSD", mFileSystem.getStatus(filePathA).getFileBlockInfos()
+        .get(0).getBlockInfo().getLocations().get(0).getMediumType());
 
     assertEquals(-1, mFsShell.run("pin", filePathB.toString(), "NVRAM"));
   }

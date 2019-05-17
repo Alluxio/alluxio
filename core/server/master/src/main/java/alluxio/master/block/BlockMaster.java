@@ -116,15 +116,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the updated used bytes on the tier of the worker
    * @param tierAlias the alias of the storage tier where the worker is committing the block to
-   * @param dirIndex
+   * @param dirIndex the directory index
    * @param mediumType the medium type where the worker is committing the block to
    * @param blockId the committing block id
    * @param length the length of the block
    * @throws NotFoundException if the workerId is not active
    */
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
-  void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, int dirIndex, String mediumType,
-      long blockId, long length) throws NotFoundException, UnavailableException;
+  void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, int dirIndex,
+      String mediumType, long blockId, long length)
+      throws NotFoundException, UnavailableException;
 
   /**
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.

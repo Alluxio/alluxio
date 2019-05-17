@@ -13,8 +13,6 @@ package alluxio.master.file.replication;
 
 import alluxio.AlluxioURI;
 import alluxio.client.job.JobMasterClientPool;
-import alluxio.collections.Pair;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
@@ -31,9 +29,8 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.BlockInfo;
-
 import alluxio.wire.BlockLocation;
-import alluxio.worker.block.BlockStoreLocation;
+
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -41,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -133,7 +129,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
     Set<Long> inodes;
-
 
     // Check the set of files that could possibly be under-replicated
     inodes = mInodeTree.getPinIdSet();

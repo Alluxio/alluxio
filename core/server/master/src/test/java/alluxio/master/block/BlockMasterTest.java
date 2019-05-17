@@ -44,7 +44,6 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -74,10 +73,11 @@ public class BlockMasterTest {
       .setRpcPort(83).setDataPort(84).setWebPort(85);
 
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
-  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
+  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION
+      = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
-  private static final Block.BlockLocation BLOCK_LOCATION = Block.BlockLocation.newBuilder().
-      setTier("MEM").setMediumType("MEM").build();
+  private static final Block.BlockLocation BLOCK_LOCATION = Block.BlockLocation.newBuilder()
+      .setTier("MEM").setMediumType("MEM").build();
 
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
@@ -258,8 +258,8 @@ public class BlockMasterTest {
 
     // Update used bytes with a worker heartbeat.
     Map<String, Long> newUsedBytesOnTiers = ImmutableMap.of("MEM", 50L);
-    mBlockMaster.workerHeartbeat(worker, null, newUsedBytesOnTiers, NO_BLOCKS, NO_BLOCKS_ON_LOCATION,
-        NO_LOST_STORAGE, mMetrics);
+    mBlockMaster.workerHeartbeat(worker, null, newUsedBytesOnTiers,
+        NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
 
     WorkerInfo workerInfo = Iterables.getOnlyElement(mBlockMaster.getWorkerInfoList());
     assertEquals(50, workerInfo.getUsedBytes());

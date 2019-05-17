@@ -50,7 +50,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 
-import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -81,7 +80,8 @@ public final class ReplicationCheckerTest {
   private static final AlluxioURI TEST_FILE_2 = new AlluxioURI("/test2");
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final List<Metric> NO_METRICS = ImmutableList.of();
-  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
+  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION
+      = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Map EMPTY = ImmutableMap.of();
 
@@ -94,7 +94,6 @@ public final class ReplicationCheckerTest {
     private final Map<Long, Integer> mReplicateRequests = Maps.newHashMap();
     private final Map<Long, Pair<String, String>>
         mMigrateRequests = Maps.newHashMap();
-
 
     @Override
     public long evict(AlluxioURI uri, long blockId, int numReplicas) {
@@ -184,8 +183,8 @@ public final class ReplicationCheckerTest {
    * @param pinLocation
    * @return the block ID
    */
-  private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context, String pinLocation)
-      throws Exception {
+  private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context,
+      String pinLocation) throws Exception {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
       List<Inode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
       if (!pinLocation.equals("")) {

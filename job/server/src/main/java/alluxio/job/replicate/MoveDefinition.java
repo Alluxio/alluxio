@@ -16,7 +16,6 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.RunTaskContext;
@@ -28,7 +27,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

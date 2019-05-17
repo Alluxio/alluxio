@@ -29,7 +29,6 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
-import alluxio.grpc.TierList;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -132,8 +131,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
     });
   }
 
-  private List<LocationBlockIdListEntry> convertBlockListMapToProto
-      (Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
+  private List<LocationBlockIdListEntry> convertBlockListMapToProto(
+      Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockListOnLocation.entrySet()) {
       BlockStoreLocation loc = entry.getKey();
@@ -206,7 +205,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
 
-    final List<LocationBlockIdListEntry> currentBlocks = convertBlockListMapToProto(currentBlocksOnLocation);
+    final List<LocationBlockIdListEntry> currentBlocks
+        = convertBlockListMapToProto(currentBlocksOnLocation);
 
     final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey,

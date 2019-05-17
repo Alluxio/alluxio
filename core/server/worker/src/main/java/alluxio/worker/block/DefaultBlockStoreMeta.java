@@ -73,7 +73,6 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     return mBlockIdsOnLocations;
   }
 
-
   @Override
   public long getCapacityBytes() {
     long capacityBytes = 0L;
