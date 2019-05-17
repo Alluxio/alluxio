@@ -36,6 +36,7 @@ import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
+import alluxio.proto.meta.Block;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.BlockInfo;
@@ -73,10 +74,10 @@ public class BlockMasterTest {
       .setRpcPort(83).setDataPort(84).setWebPort(85);
 
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
-  private static final Map<BlockStoreLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
+  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
-  private static final BlockStoreLocation BLOCK_LOCATION =
-      new BlockStoreLocation("MEM", 0, "MEM");
+  private static final Block.BlockLocation BLOCK_LOCATION = Block.BlockLocation.newBuilder().
+      setTier("MEM").setMediumType("MEM").build();
 
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;

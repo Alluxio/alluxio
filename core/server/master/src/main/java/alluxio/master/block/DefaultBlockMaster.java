@@ -67,7 +67,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import alluxio.worker.block.BlockStoreLocation;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -807,7 +806,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+      Map<BlockLocation, List<Long>> currentBlocksOnLocation,
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException {
 
@@ -853,7 +852,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<BlockStoreLocation, List<Long>> addedBlocks,
+      Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -921,24 +920,19 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   /**
    * Updates the worker and block metadata for blocks added to a worker.
-   *
-   * @param workerInfo The worker metadata object
+   *  @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
   @GuardedBy("workerInfo")
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
-      Map<BlockStoreLocation, List<Long>> addedBlockIds) {
-    for (Map.Entry<BlockStoreLocation, List<Long>> entry : addedBlockIds.entrySet()) {
+      Map<BlockLocation, List<Long>> addedBlockIds) {
+    for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
       for (long blockId : entry.getValue()) {
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (block.isPresent()) {
             workerInfo.addBlock(blockId);
-            mBlockStore.addLocation(blockId, BlockLocation.newBuilder()
-                .setWorkerId(workerInfo.getId())
-                .setTier(entry.getKey().tierAlias())
-                .setMediumType(entry.getKey().mediumType())
-                .build());
+            mBlockStore.addLocation(blockId, entry.getKey());
             mLostBlocks.remove(blockId);
           } else {
             LOG.warn("Invalid block: {} from worker {}.", blockId,

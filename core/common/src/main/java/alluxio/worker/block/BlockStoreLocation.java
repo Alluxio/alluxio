@@ -197,7 +197,7 @@ public final class BlockStoreLocation {
 
   public BlockStoreLocationProto toProto() {
     return BlockStoreLocationProto.newBuilder().setTierAlias(tierAlias())
-        .setDirIndex(dir()).setMediumType(mediumType()).build();
+        .setMediumType(mediumType()).build();
   }
 
 }

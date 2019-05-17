@@ -17,7 +17,6 @@ private static final long serialVersionUID = 0L;
   }
   private BlockStoreLocationProto() {
     tierAlias_ = "";
-    dirIndex_ = 0;
     mediumType_ = "";
   }
 
@@ -58,14 +57,9 @@ private static final long serialVersionUID = 0L;
             tierAlias_ = bs;
             break;
           }
-          case 16: {
-            bitField0_ |= 0x00000002;
-            dirIndex_ = input.readInt32();
-            break;
-          }
-          case 26: {
+          case 18: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000004;
+            bitField0_ |= 0x00000002;
             mediumType_ = bs;
             break;
           }
@@ -136,31 +130,16 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int DIRINDEX_FIELD_NUMBER = 2;
-  private int dirIndex_;
+  public static final int MEDIUMTYPE_FIELD_NUMBER = 2;
+  private volatile java.lang.Object mediumType_;
   /**
-   * <code>optional int32 dirIndex = 2;</code>
+   * <code>optional string mediumType = 2;</code>
    */
-  public boolean hasDirIndex() {
+  public boolean hasMediumType() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional int32 dirIndex = 2;</code>
-   */
-  public int getDirIndex() {
-    return dirIndex_;
-  }
-
-  public static final int MEDIUMTYPE_FIELD_NUMBER = 3;
-  private volatile java.lang.Object mediumType_;
-  /**
-   * <code>optional string mediumType = 3;</code>
-   */
-  public boolean hasMediumType() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
-  }
-  /**
-   * <code>optional string mediumType = 3;</code>
+   * <code>optional string mediumType = 2;</code>
    */
   public java.lang.String getMediumType() {
     java.lang.Object ref = mediumType_;
@@ -177,7 +156,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string mediumType = 3;</code>
+   * <code>optional string mediumType = 2;</code>
    */
   public com.google.protobuf.ByteString
       getMediumTypeBytes() {
@@ -209,10 +188,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, tierAlias_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeInt32(2, dirIndex_);
-    }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, mediumType_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, mediumType_);
     }
     unknownFields.writeTo(output);
   }
@@ -226,11 +202,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, tierAlias_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(2, dirIndex_);
-    }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, mediumType_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, mediumType_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -253,11 +225,6 @@ private static final long serialVersionUID = 0L;
       result = result && getTierAlias()
           .equals(other.getTierAlias());
     }
-    result = result && (hasDirIndex() == other.hasDirIndex());
-    if (hasDirIndex()) {
-      result = result && (getDirIndex()
-          == other.getDirIndex());
-    }
     result = result && (hasMediumType() == other.hasMediumType());
     if (hasMediumType()) {
       result = result && getMediumType()
@@ -277,10 +244,6 @@ private static final long serialVersionUID = 0L;
     if (hasTierAlias()) {
       hash = (37 * hash) + TIERALIAS_FIELD_NUMBER;
       hash = (53 * hash) + getTierAlias().hashCode();
-    }
-    if (hasDirIndex()) {
-      hash = (37 * hash) + DIRINDEX_FIELD_NUMBER;
-      hash = (53 * hash) + getDirIndex();
     }
     if (hasMediumType()) {
       hash = (37 * hash) + MEDIUMTYPE_FIELD_NUMBER;
@@ -417,10 +380,8 @@ private static final long serialVersionUID = 0L;
       super.clear();
       tierAlias_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      dirIndex_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000002);
       mediumType_ = "";
-      bitField0_ = (bitField0_ & ~0x00000004);
+      bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
@@ -451,10 +412,6 @@ private static final long serialVersionUID = 0L;
       result.tierAlias_ = tierAlias_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
-      }
-      result.dirIndex_ = dirIndex_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-        to_bitField0_ |= 0x00000004;
       }
       result.mediumType_ = mediumType_;
       result.bitField0_ = to_bitField0_;
@@ -504,11 +461,8 @@ private static final long serialVersionUID = 0L;
         tierAlias_ = other.tierAlias_;
         onChanged();
       }
-      if (other.hasDirIndex()) {
-        setDirIndex(other.getDirIndex());
-      }
       if (other.hasMediumType()) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         mediumType_ = other.mediumType_;
         onChanged();
       }
@@ -616,47 +570,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private int dirIndex_ ;
+    private java.lang.Object mediumType_ = "";
     /**
-     * <code>optional int32 dirIndex = 2;</code>
+     * <code>optional string mediumType = 2;</code>
      */
-    public boolean hasDirIndex() {
+    public boolean hasMediumType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int32 dirIndex = 2;</code>
-     */
-    public int getDirIndex() {
-      return dirIndex_;
-    }
-    /**
-     * <code>optional int32 dirIndex = 2;</code>
-     */
-    public Builder setDirIndex(int value) {
-      bitField0_ |= 0x00000002;
-      dirIndex_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional int32 dirIndex = 2;</code>
-     */
-    public Builder clearDirIndex() {
-      bitField0_ = (bitField0_ & ~0x00000002);
-      dirIndex_ = 0;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object mediumType_ = "";
-    /**
-     * <code>optional string mediumType = 3;</code>
-     */
-    public boolean hasMediumType() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <code>optional string mediumType = 3;</code>
+     * <code>optional string mediumType = 2;</code>
      */
     public java.lang.String getMediumType() {
       java.lang.Object ref = mediumType_;
@@ -673,7 +595,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string mediumType = 3;</code>
+     * <code>optional string mediumType = 2;</code>
      */
     public com.google.protobuf.ByteString
         getMediumTypeBytes() {
@@ -689,36 +611,36 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string mediumType = 3;</code>
+     * <code>optional string mediumType = 2;</code>
      */
     public Builder setMediumType(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  bitField0_ |= 0x00000002;
       mediumType_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string mediumType = 3;</code>
+     * <code>optional string mediumType = 2;</code>
      */
     public Builder clearMediumType() {
-      bitField0_ = (bitField0_ & ~0x00000004);
+      bitField0_ = (bitField0_ & ~0x00000002);
       mediumType_ = getDefaultInstance().getMediumType();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string mediumType = 3;</code>
+     * <code>optional string mediumType = 2;</code>
      */
     public Builder setMediumTypeBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  bitField0_ |= 0x00000002;
       mediumType_ = value;
       onChanged();
       return this;

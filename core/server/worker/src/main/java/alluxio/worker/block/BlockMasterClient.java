@@ -140,7 +140,6 @@ public final class BlockMasterClient extends AbstractMasterClient {
       List<Long> entryValue = entry.getValue();
       BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
           .setTierAlias(loc.tierAlias())
-          .setDirIndex(loc.dir())
           .setMediumType(loc.mediumType())
           .build();
 

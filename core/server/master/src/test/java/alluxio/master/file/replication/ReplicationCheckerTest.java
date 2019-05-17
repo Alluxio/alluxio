@@ -45,6 +45,7 @@ import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
+import alluxio.proto.meta.Block;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
@@ -80,7 +81,7 @@ public final class ReplicationCheckerTest {
   private static final AlluxioURI TEST_FILE_2 = new AlluxioURI("/test2");
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final List<Metric> NO_METRICS = ImmutableList.of();
-  private static final Map<BlockStoreLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
+  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Map EMPTY = ImmutableMap.of();
 
@@ -243,7 +244,9 @@ public final class ReplicationCheckerTest {
    */
   private void heartbeatToAddLocationHelper(long blockId, long workerId) throws Exception {
     List<Long> addedBlocks = ImmutableList.of(blockId);
-    BlockStoreLocation blockLocation = new BlockStoreLocation("MEM", 0, "MEM");
+    Block.BlockLocation blockLocation =
+        Block.BlockLocation.newBuilder().setTier("MEM").setMediumType("MEM").build();
+
     mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
         ImmutableMap.of(blockLocation, addedBlocks), NO_LOST_STORAGE, NO_METRICS);
   }
