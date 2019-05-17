@@ -152,9 +152,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    * Find a set of from and to locations for our moveBlock operation.
    * After the move, the file will be in the desired pinned medium at least minReplication times.
    *
-   * @param file
-   * @param blockInfo
-   * @return
+   * @param file the file to scan for misplaced blocks
+   * @param blockInfo blockInfo containing information about the block locations
+   * @return a map that maps from workerHost to desired medium
    */
   private Map<String, String> findMisplacedBlock(
       InodeFile file, BlockInfo blockInfo) {
