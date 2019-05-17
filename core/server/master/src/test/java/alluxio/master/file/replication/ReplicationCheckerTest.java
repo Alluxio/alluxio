@@ -54,8 +54,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Triple;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -182,13 +180,16 @@ public final class ReplicationCheckerTest {
    *
    * @param path Alluxio path of the file
    * @param context context to create the file
+   * @param pinLocation
    * @return the block ID
    */
-  private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context)
+  private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context, String pinLocation)
       throws Exception {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
       List<Inode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
-
+      if (!pinLocation.equals("")) {
+        mInodeTree.setPinned(RpcContext.NOOP, inodePath, true, ImmutableList.of(pinLocation), 0);
+      }
       MutableInodeFile inodeFile = mInodeStore.getMutable(created.get(0).getId()).get().asFile();
       inodeFile.setBlockSizeBytes(1);
       inodeFile.setBlockIds(Arrays.asList(inodeFile.getNewBlockId()));
@@ -258,7 +259,7 @@ public final class ReplicationCheckerTest {
   public void heartbeatFileWithinRange() throws Exception {
     mFileContext.getOptions().setReplicationMin(1).setReplicationMax(3);
     long blockId =
-        createBlockHelper(TEST_FILE_1, mFileContext);
+        createBlockHelper(TEST_FILE_1, mFileContext, "");
     // One replica, meeting replication min
     addBlockLocationHelper(blockId, 1);
     mReplicationChecker.heartbeat();
@@ -281,7 +282,7 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFileUnderReplicatedBy1() throws Exception {
     mFileContext.getOptions().setReplicationMin(1);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext);
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
 
     mReplicationChecker.heartbeat();
     Map<Long, Integer> expected = ImmutableMap.of(blockId, 1);
@@ -290,9 +291,22 @@ public final class ReplicationCheckerTest {
   }
 
   @Test
+  public void heartbeatFileNeedsMove() throws Exception {
+    mFileContext.getOptions().setReplicationMin(1);
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "SSD");
+    addBlockLocationHelper(blockId, 1);
+
+    mReplicationChecker.heartbeat();
+    Map<Long, Pair<String, String>> expected = ImmutableMap.of(blockId, new Pair<>("host0", "SSD"));
+    Assert.assertEquals(EMPTY, mMockReplicationHandler.getEvictRequests());
+    Assert.assertEquals(EMPTY, mMockReplicationHandler.getReplicateRequests());
+    Assert.assertEquals(expected, mMockReplicationHandler.getMigrateRequests());
+  }
+
+  @Test
   public void heartbeatFileUnderReplicatedBy10() throws Exception {
     mFileContext.getOptions().setReplicationMin(10);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext);
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
 
     mReplicationChecker.heartbeat();
     Map<Long, Integer> expected = ImmutableMap.of(blockId, 10);
@@ -303,9 +317,9 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatMultipleFilesUnderReplicated() throws Exception {
     mFileContext.getOptions().setReplicationMin(1);
-    long blockId1 = createBlockHelper(TEST_FILE_1, mFileContext);
+    long blockId1 = createBlockHelper(TEST_FILE_1, mFileContext, "");
     mFileContext.getOptions().setReplicationMin(2);
-    long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext);
+    long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext, "");
 
     mReplicationChecker.heartbeat();
     Map<Long, Integer> expected = ImmutableMap.of(blockId1, 1, blockId2, 2);
@@ -316,7 +330,7 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFileUnderReplicatedAndLost() throws Exception {
     mFileContext.getOptions().setReplicationMin(2);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext);
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
 
     // Create a worker.
     long workerId = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
@@ -338,7 +352,7 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFileOverReplicatedBy1() throws Exception {
     mFileContext.getOptions().setReplicationMax(1);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext);
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
     addBlockLocationHelper(blockId, 2);
 
     mReplicationChecker.heartbeat();
@@ -350,7 +364,7 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFileOverReplicatedBy10() throws Exception {
     mFileContext.getOptions().setReplicationMax(1);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext);
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
     addBlockLocationHelper(blockId, 11);
 
     mReplicationChecker.heartbeat();
@@ -362,9 +376,9 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatMultipleFilesOverReplicated() throws Exception {
     mFileContext.getOptions().setReplicationMax(1);
-    long blockId1 = createBlockHelper(TEST_FILE_1, mFileContext);
+    long blockId1 = createBlockHelper(TEST_FILE_1, mFileContext, "");
     mFileContext.getOptions().setReplicationMax(2);
-    long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext);
+    long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext, "");
     addBlockLocationHelper(blockId1, 2);
     addBlockLocationHelper(blockId2, 4);
 
@@ -377,9 +391,9 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFilesUnderAndOverReplicated() throws Exception {
     mFileContext.getOptions().setReplicationMin(2).setReplicationMax(-1);
-    long blockId1 = createBlockHelper(TEST_FILE_1, mFileContext);
+    long blockId1 = createBlockHelper(TEST_FILE_1, mFileContext, "");
     mFileContext.getOptions().setReplicationMin(0).setReplicationMax(3);
-    long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext);
+    long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext, "");
     addBlockLocationHelper(blockId1, 1);
     addBlockLocationHelper(blockId2, 5);
 
