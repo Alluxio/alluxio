@@ -14,7 +14,6 @@ package alluxio.master.file.meta.xattr;
 import com.google.protobuf.ByteString;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * This class defines an interface for implementing an extended attribute which can be stored on
@@ -44,11 +43,6 @@ public interface ExtendedAttribute<T> {
   String getIdentifier();
 
   /**
-   * @return the number of bytes it takes to encode a single object
-   */
-  int getEncodedSize();
-
-  /**
    * Encode a single object into a byte string.
    *
    * @param object the object to encode
@@ -64,23 +58,4 @@ public interface ExtendedAttribute<T> {
    * @throws IOException if the size of the byte string isn't equal to the encoding length
    */
   T decode(ByteString bytes) throws IOException;
-
-  /**
-   * Encode a list of objects into a byte string.
-   *
-   * @param objects the objects to encode
-   * @return a bytestring with a size equal to {@link #getEncodedSize()} * {@code objects.size()}
-   */
-  ByteString multiEncode(List<T> objects);
-
-  /**
-   * Decode a byte string into a list of objects, preserving ordering.
-   *
-   * The byte string size must be a multiple of {@link #getEncodedSize()}
-   *
-   * @param bytes the bytes to decode
-   * @return a list of the decoded objects, preserving ordering
-   * @throws IOException if decoding any of the objects fails
-   */
-  List<T> multiDecode(ByteString bytes) throws IOException;
 }

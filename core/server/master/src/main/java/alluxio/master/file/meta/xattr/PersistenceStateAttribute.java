@@ -13,31 +13,52 @@ package alluxio.master.file.meta.xattr;
 
 import alluxio.master.file.meta.PersistenceState;
 
+import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An implementation of an extended attribute for {@link PersistenceState}.
  */
-public class PersistenceStateAttribute extends AbstractExtendedAttribute<PersistenceState> {
+public class PersistenceStateAttribute extends AbstractExtendedAttribute<List<PersistenceState>> {
+
+  /** Minimum number of bytes needed to store a persistence state. */
+  private static final int ENCODING_SIZE =
+      (int) Math.ceil(Math.log((double) PersistenceState.values().length) / Math.log(2.0) / 8.0);
 
   PersistenceStateAttribute() {
-    super(NamespacePrefix.SYSTEM, "ps",
-        (int) Math.ceil(Math.log((double) PersistenceState.values().length) / 8));
+    super(NamespacePrefix.SYSTEM, "ps");
   }
 
   @Override
-  public ByteString encode(PersistenceState state) {
-    return ByteString.copyFrom(new byte[]{(byte) state.ordinal()});
-  }
-
-  @Override
-  public PersistenceState decode(ByteString bytes) throws IOException {
-    if (bytes.size() > 1) {
-      throw new IOException("Unable to convert bytes to persistenceState");
+  public ByteString encode(List<PersistenceState> states) {
+    ByteBuffer buffer = ByteBuffer.wrap(new byte[states.size() * ENCODING_SIZE]);
+    int offset = 0;
+    for (PersistenceState obj: states) {
+      buffer.put(offset, (byte) obj.ordinal());
+      offset += ENCODING_SIZE;
     }
-    int loc = bytes.byteAt(0) & 0xFF;
-    return PersistenceState.values()[loc];
+    return ByteString.copyFrom(buffer);
+  }
+
+  @Override
+  public List<PersistenceState> decode(ByteString bytes) {
+    Preconditions.checkArgument(bytes.size() > 0, String.format("bytes must be at least 1, is %d",
+        bytes.size()));
+    Preconditions.checkArgument(bytes.size() % ENCODING_SIZE != 0, String.format("Cannot decode "
+        + "persistence state attribute. Byte array is not a multiple of encoding size. Got %d, "
+        + "must be a multiple of %d.", bytes.size(), ENCODING_SIZE));
+
+    int numObjects = bytes.size() / ENCODING_SIZE;
+    ArrayList<PersistenceState> obj = new ArrayList<>(numObjects);
+    int loc;
+    for (int i = 0; i < numObjects; i++) {
+      loc = bytes.byteAt(i) & 0xFF;
+      PersistenceState x = PersistenceState.values()[loc];
+    }
+    return obj;
   }
 }

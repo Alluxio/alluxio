@@ -19,6 +19,7 @@ import alluxio.master.file.meta.PersistenceState;
 import com.google.protobuf.ByteString;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,8 +29,10 @@ public class PersistenceStateAttributeTest {
   public void testSingleEncode() throws Exception {
     for (int i = 0; i < PersistenceState.values().length; i++) {
       PersistenceState state = PersistenceState.values()[i];
-      assertEquals(state, PERSISTENCE_STATE.decode(
-          PERSISTENCE_STATE.encode(state)));
+      ArrayList<PersistenceState> a = new ArrayList<>();
+      a.add(state);
+      assertEquals(a, PERSISTENCE_STATE.decode(
+          PERSISTENCE_STATE.encode(a)));
     }
   }
 
@@ -38,9 +41,8 @@ public class PersistenceStateAttributeTest {
     PersistenceState[] states = { PersistenceState.TO_BE_PERSISTED,
         PersistenceState.TO_BE_PERSISTED, PersistenceState.PERSISTED, PersistenceState.LOST,
         PersistenceState.NOT_PERSISTED, PersistenceState.LOST, PersistenceState.PERSISTED};
-    ByteString encoded = PERSISTENCE_STATE.multiEncode(Arrays.asList(states));
-    assertEquals(states.length, encoded.size() / PERSISTENCE_STATE.getEncodedSize());
-    List<PersistenceState> decoded = PERSISTENCE_STATE.multiDecode(encoded);
+    ByteString encoded = PERSISTENCE_STATE.encode(Arrays.asList(states));
+    List<PersistenceState> decoded = PERSISTENCE_STATE.decode(encoded);
     for (int i = 0; i < states.length; i++) {
       assertEquals(states[i], decoded.get(i));
     }

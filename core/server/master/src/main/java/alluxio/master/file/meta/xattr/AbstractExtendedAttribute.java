@@ -11,13 +11,6 @@
 
 package alluxio.master.file.meta.xattr;
 
-import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Extend this class to implement any extended attributes.
  *
@@ -32,14 +25,11 @@ public abstract class AbstractExtendedAttribute<T> implements ExtendedAttribute<
   private final NamespacePrefix mPrefix;
   private final String mIdentifier;
   private final String mFullName;
-  private final int mEncodedSize;
 
-  AbstractExtendedAttribute(NamespacePrefix prefix, String identifier, int encodedSize) {
+  AbstractExtendedAttribute(NamespacePrefix prefix, String identifier) {
     mPrefix = prefix;
     mIdentifier = identifier;
     mFullName = buildAttr(prefix.toString(), identifier);
-    Preconditions.checkArgument(encodedSize > 0, "encoding size");
-    mEncodedSize = encodedSize;
   }
 
   @Override
@@ -55,38 +45,6 @@ public abstract class AbstractExtendedAttribute<T> implements ExtendedAttribute<
   @Override
   public String getIdentifier() {
     return mIdentifier;
-  }
-
-  @Override
-  public int getEncodedSize() {
-    return mEncodedSize;
-  }
-
-  @Override
-  public ByteString multiEncode(List<T> objects) {
-    byte[] b = new byte[objects.size() * mEncodedSize];
-    int offset = 0;
-    for (T obj: objects) {
-      encode(obj).copyTo(b, offset);
-      offset += mEncodedSize;
-    }
-    return ByteString.copyFrom(b);
-  }
-
-  @Override
-  public List<T> multiDecode(ByteString bytes) throws IOException {
-    if (bytes.size() % mEncodedSize != 0) {
-      throw new IOException("Cannot decode attribute. Byte array is not a multiple of encoding "
-          + "size");
-    }
-    int numObjects = bytes.size() / mEncodedSize;
-    ArrayList<T> obj = new ArrayList<>(numObjects);
-    byte[] tmp = new byte[mEncodedSize];
-    for (int i = 0; i < numObjects; i++) {
-      bytes.copyTo(tmp, i * mEncodedSize, 0, mEncodedSize);
-      obj.add(decode(ByteString.copyFrom(tmp)));
-    }
-    return obj;
   }
 
   /**
