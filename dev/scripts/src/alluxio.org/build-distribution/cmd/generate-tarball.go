@@ -90,13 +90,6 @@ func chdir(path string) {
 	}
 }
 
-func symlink(oldname, newname string) {
-	if err := os.Symlink(oldname, newname); err != nil {
-		fmt.Fprintf(os.Stderr, "Symlink(%v, %v) failed: %v\n", oldname, newname, err)
-		os.Exit(1)
-	}
-}
-
 func getCommonMvnArgs(hadoopVersion version) []string {
 	args := []string{"-T", "2C", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
 	if mvnArgsFlag != "" {
@@ -243,13 +236,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	mkdir(filepath.Join(dstPath, "underFSStorage"))
 	mkdir(filepath.Join(dstPath, "integration/docker/conf"))
 
-	// Add links for previous jar locations for backwards compatibility
-	for _, jar := range []string{"client", "server"} {
-		oldLocation := filepath.Join(dstPath, fmt.Sprintf("assembly/%v/target/alluxio-assembly-%v-%v-jar-with-dependencies.jar", jar, jar, version))
-		mkdir(filepath.Dir(oldLocation))
-		symlink(fmt.Sprintf("../../alluxio-%v-%v.jar", jar, version), oldLocation)
-	}
-	mkdir(filepath.Join(dstPath, "assembly/server/target"))
 	mkdir(filepath.Join(dstPath, "lib"))
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
