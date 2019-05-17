@@ -101,4 +101,36 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- REST API documentation -->
+      <plugin>
+        <inherited>false</inherited>
+        <groupId>com.github.kongchen</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
+        <configuration>
+          <apiSources>
+            <apiSource>
+              <springmvc>false</springmvc>
+              <schemes>http</schemes>
+              <host>[Alluxio Proxy Hostname]</host>
+              <basePath>/api/v1</basePath>
+              <info>
+                <version>v1</version>
+                <title>Alluxio Proxy REST API Documentation</title>
+                <description>
+                  The Alluxio Proxy acts as a REST gateway for clients to communicate with the Alluxio system.
+                </description>
+              </info>
+              <locations>alluxio.proxy</locations>
+              <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
+              <outputPath>${project.parent.parent.parent.basedir}/generated/proxy/index.html</outputPath>
+              <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/proxy/swagger-ui</swaggerDirectory>
+            </apiSource>
+          </apiSources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

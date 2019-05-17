@@ -85,6 +85,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -200,7 +201,8 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
-  //@ReturnType("alluxio.wire.AlluxioMasterInfo")
+  @ApiOperation(value = "Get general Alluxio Master service information",
+      response = alluxio.wire.AlluxioMasterInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(() -> {
@@ -227,7 +229,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_INIT)
-  //@ReturnType("alluxio.wire.MasterWebUIInit")
   public Response getWebUIInit() {
     return RestUtils.call(() -> {
       MasterWebUIInit response = new MasterWebUIInit();
@@ -259,7 +260,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_OVERVIEW)
-  //@ReturnType("alluxio.wire.MasterWebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
       MasterWebUIOverview response = new MasterWebUIOverview();
@@ -348,7 +348,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_BROWSE)
-  //@ReturnType("alluxio.wire.MasterWebUIBrowse")
   public Response getWebUIBrowse(@DefaultValue("/") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("") @QueryParam("end") String requestEnd,
@@ -563,7 +562,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_DATA)
-  //@ReturnType("alluxio.wire.MasterWebUIData")
   public Response getWebUIData(@DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
@@ -639,7 +637,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_LOGS)
-  //@ReturnType("alluxio.wire.MasterWebUILogs")
   public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("") @QueryParam("end") String requestEnd,
@@ -774,7 +771,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_CONFIG)
-  //@ReturnType("alluxio.wire.MasterWebUIConfiguration")
   public Response getWebUIConfiguration() {
     return RestUtils.call(() -> {
       MasterWebUIConfiguration response = new MasterWebUIConfiguration();
@@ -807,7 +803,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_WORKERS)
-  //@ReturnType("alluxio.wire.MasterWebUIWorkers")
   public Response getWebUIWorkers() {
     return RestUtils.call(() -> {
       MasterWebUIWorkers response = new MasterWebUIWorkers();
@@ -850,7 +845,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_METRICS)
-  //@ReturnType("alluxio.wire.MasterWebUIMetrics")
   public Response getWebUIMetrics() {
     return RestUtils.call(() -> {
       MasterWebUIMetrics response = new MasterWebUIMetrics();
@@ -1027,7 +1021,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CONFIGURATION)
-  //@ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
     return RestUtils.call(() -> getConfigurationInternal(true), ServerConfiguration.global());
@@ -1041,7 +1034,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_METRICS)
-  //@ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
     return RestUtils.call(this::getMetricsInternal, ServerConfiguration.global());
@@ -1055,7 +1047,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_RPC_ADDRESS)
-  //@ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
     return RestUtils
@@ -1070,7 +1061,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_START_TIME_MS)
-  //@ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
     return RestUtils.call(() -> mMasterProcess.getStartTimeMs(), ServerConfiguration.global());
@@ -1084,7 +1074,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UPTIME_MS)
-  //@ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
     return RestUtils.call(() -> mMasterProcess.getUptimeMs(), ServerConfiguration.global());
@@ -1098,7 +1087,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_VERSION)
-  //@ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
     return RestUtils.call(() -> RuntimeConstants.VERSION, ServerConfiguration.global());
@@ -1112,7 +1100,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
-  //@ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
     return RestUtils.call(() -> mBlockMaster.getCapacityBytes(), ServerConfiguration.global());
@@ -1126,7 +1113,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES)
-  //@ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
     return RestUtils.call(() -> mBlockMaster.getUsedBytes(), ServerConfiguration.global());
@@ -1140,7 +1126,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_FREE_BYTES)
-  //@ReturnType("java.lang.Long")
   @Deprecated
   public Response getFreeBytes() {
     return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes(),
@@ -1156,7 +1141,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_CAPACITY_BYTES)
-  //@ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsCapacityBytes() {
     return RestUtils.call(() -> getUfsCapacityInternal().getTotal(), ServerConfiguration.global());
@@ -1170,7 +1154,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_USED_BYTES)
-  //@ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsUsedBytes() {
     return RestUtils.call(() -> getUfsCapacityInternal().getUsed(), ServerConfiguration.global());
@@ -1184,7 +1167,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_FREE_BYTES)
-  //@ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsFreeBytes() {
     return RestUtils.call(() -> {
@@ -1219,7 +1201,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  //@ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getCapacityBytesOnTiers() {
     return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
@@ -1240,7 +1221,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  //@ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getUsedBytesOnTiers() {
     return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
@@ -1260,7 +1240,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_WORKER_COUNT)
-  //@ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
     return RestUtils.call(() -> mBlockMaster.getWorkerCount(), ServerConfiguration.global());
@@ -1274,7 +1253,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_WORKER_INFO_LIST)
-  //@ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
     return RestUtils.call(() -> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
@@ -1345,7 +1323,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @POST
   @Path(LOG_LEVEL)
-  //@ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), ServerConfiguration.global());

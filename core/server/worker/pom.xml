@@ -128,4 +128,36 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- REST API documentation -->
+      <plugin>
+        <inherited>false</inherited>
+        <groupId>com.github.kongchen</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
+        <configuration>
+          <apiSources>
+            <apiSource>
+              <springmvc>false</springmvc>
+              <schemes>http</schemes>
+              <host>[Alluxio Worker Hostname]</host>
+              <basePath>/api/v1</basePath>
+              <info>
+                <version>v1</version>
+                <title>Alluxio Worker REST API Documentation</title>
+                <description>
+                  The Alluxio Workers are processes which provide clients access to the data exposed by the Alluxio System.
+                </description>
+              </info>
+              <locations>alluxio.worker.AlluxioWorkerRestServiceHandler</locations>
+              <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
+              <outputPath>${project.parent.parent.parent.basedir}/generated/worker/index.html</outputPath>
+              <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/worker/swagger-ui</swaggerDirectory>
+            </apiSource>
+          </apiSources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
