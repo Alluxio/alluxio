@@ -68,7 +68,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     List<BlockWorkerInfo> workerInfos = Lists.newArrayList(options.getBlockWorkerInfos());
-    workerInfos.sort((o1, o2) -> 
+    workerInfos.sort((o1, o2) ->
         o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString()));
     HashMap<WorkerNetAddress, BlockWorkerInfo> blockWorkerInfoMap = new HashMap<>();
     for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
