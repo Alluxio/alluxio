@@ -56,7 +56,8 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.qmino.miredot.annotations.ReturnType;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +93,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for requesting general worker information.
  */
 @NotThreadSafe
+@Api(value = "/worker", description = "Alluxio Worker Rest Service")
 @Path(AlluxioWorkerRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioWorkerRestServiceHandler {
@@ -156,7 +158,8 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
-  @ReturnType("alluxio.wire.AlluxioWorkerInfo")
+  @ApiOperation(value = "Get general Alluxio Worker service information",
+      response = alluxio.wire.AlluxioWorkerInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(() -> {
@@ -181,7 +184,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_INIT)
-  @ReturnType("alluxio.wire.WorkerWebUIInit")
   public Response getWebUIInit() {
     return RestUtils.call(() -> {
       WorkerWebUIInit response = new WorkerWebUIInit();
@@ -207,7 +209,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_OVERVIEW)
-  @ReturnType("alluxio.wire.WorkerWebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
       WorkerWebUIOverview response = new WorkerWebUIOverview();
@@ -261,7 +262,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_BLOCKINFO)
-  @ReturnType("alluxio.wire.WorkerWebUIBlockInfo")
   public Response getWebUIBlockInfo(@QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
@@ -371,7 +371,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_METRICS)
-  @ReturnType("alluxio.wire.WorkerWebUIMetrics")
   public Response getWebUIMetrics() {
     return RestUtils.call(() -> {
       WorkerWebUIMetrics response = new WorkerWebUIMetrics();
@@ -437,7 +436,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_LOGS)
-  @ReturnType("alluxio.wire.WorkerWebUILogs")
   public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @QueryParam("end") String requestEnd,
@@ -573,7 +571,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_CONFIGURATION)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
     return RestUtils.call(() -> getConfigurationInternal(true), ServerConfiguration.global());
@@ -587,7 +584,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_RPC_ADDRESS)
-  @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
     return RestUtils
@@ -602,7 +598,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
     return RestUtils.call(() -> mStoreMeta.getCapacityBytes(), ServerConfiguration.global());
@@ -616,7 +611,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
     return RestUtils.call(mStoreMeta::getUsedBytes, ServerConfiguration.global());
@@ -631,7 +625,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getCapacityBytesOnTiers() {
     return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
@@ -655,7 +648,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getUsedBytesOnTiers() {
     return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
@@ -678,7 +670,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_DIRECTORY_PATHS_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
   @Deprecated
   public Response getDirectoryPathsOnTiers() {
     return RestUtils.call(() -> getTierPathsInternal(), ServerConfiguration.global());
@@ -692,7 +683,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_VERSION)
-  @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
     return RestUtils.call(() -> RuntimeConstants.VERSION, ServerConfiguration.global());
@@ -706,7 +696,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_START_TIME_MS)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
     return RestUtils.call(() -> mWorkerProcess.getStartTimeMs(), ServerConfiguration.global());
@@ -720,7 +709,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_UPTIME_MS)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
     return RestUtils.call(() -> mWorkerProcess.getUptimeMs(), ServerConfiguration.global());
@@ -734,7 +722,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_METRICS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
     return RestUtils.call(() -> getMetricsInternal(), ServerConfiguration.global());
@@ -811,7 +798,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @POST
   @Path(LOG_LEVEL)
-  @ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {

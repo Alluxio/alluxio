@@ -18,7 +18,8 @@ import alluxio.RuntimeConstants;
 import alluxio.web.JobMasterWebServer;
 import alluxio.wire.AlluxioJobMasterInfo;
 
-import com.qmino.miredot.annotations.ReturnType;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import java.util.Map;
 
@@ -36,6 +37,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for requesting general job master information.
  */
 @NotThreadSafe
+@Api(value = "/job_master", description = "Job Master Rest Service")
 @Path(AlluxioJobMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioJobMasterRestServiceHandler {
@@ -66,7 +68,8 @@ public final class AlluxioJobMasterRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
-  @ReturnType("alluxio.wire.AlluxioJobMasterInfo")
+  @ApiOperation(value = "Get general job master service information",
+      response = alluxio.wire.AlluxioJobMasterInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(() -> {
