@@ -35,7 +35,16 @@ public class SimpleInodeLockList implements InodeLockList {
    * Default value for {@link #mFirstWriteLockIndex} when there is no write lock.
    */
   private static final int NO_WRITE_LOCK_INDEX = -1;
-  private static final int INITIAL_CAPACITY = 8;
+  /**
+   * Initial capacity for {@link #mInodes}.
+   * Since ROOT inode is often locked first, this reserves capacity for it.
+   */
+  private static final int INITIAL_INODES_CAPACITY = 1;
+  /**
+   * Initial capacity for {@link #mLocks}.
+   * Since ROOT edge and ROOT inode are often locked first, this reserves capacity for them.
+   */
+  private static final int INITIAL_LOCKS_CAPACITY = 2;
   private static final Edge ROOT_EDGE = new Edge(-1, "");
 
   private final InodeLockManager mInodeLockManager;
@@ -70,8 +79,8 @@ public class SimpleInodeLockList implements InodeLockList {
    */
   public SimpleInodeLockList(InodeLockManager inodeLockManager) {
     mInodeLockManager = inodeLockManager;
-    mInodes = new ArrayList<>(INITIAL_CAPACITY);
-    mLocks = new ArrayList<>(INITIAL_CAPACITY);
+    mInodes = new ArrayList<>(INITIAL_INODES_CAPACITY);
+    mLocks = new ArrayList<>(INITIAL_LOCKS_CAPACITY);
     mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
   }
 
