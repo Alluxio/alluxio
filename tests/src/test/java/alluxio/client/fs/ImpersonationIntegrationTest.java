@@ -18,7 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.AccessControlException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
@@ -136,7 +136,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (AccessControlException e) {
+    } catch (UnauthenticatedException e) {
       // expected
     }
   }
@@ -161,7 +161,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (AccessControlException e) {
+    } catch (UnauthenticatedException e) {
       // expected
     }
   }
@@ -202,7 +202,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (AccessControlException e) {
+    } catch (UnauthenticatedException e) {
       // expected
     }
   }
@@ -227,7 +227,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (AccessControlException e) {
+    } catch (UnauthenticatedException e) {
       // expected
     }
   }

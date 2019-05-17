@@ -123,6 +123,7 @@ public final class FileSystemContext implements Closeable {
    */
   private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPool = new ConcurrentHashMap<>();
+
   /**
    * Used in {@link #mBlockWorkerClientPool}.
    */
