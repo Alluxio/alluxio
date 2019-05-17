@@ -53,22 +53,4 @@ public abstract class AbstractExtendedAttribute<T> implements ExtendedAttribute<
   private static String buildAttr(String... components) {
     return String.join(SEPARATOR, components);
   }
-
-  enum NamespacePrefix {
-    SECURITY("security"),
-    SYSTEM("system"),
-    TRUSTED("trusted"),
-    USER("user"),
-    ;
-
-    private final String mPrefixName;
-    NamespacePrefix(String name) {
-      mPrefixName = name;
-    }
-
-    @Override
-    public String toString() {
-      return mPrefixName;
-    }
-  }
 }
