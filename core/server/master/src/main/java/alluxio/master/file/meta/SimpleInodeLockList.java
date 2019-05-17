@@ -31,7 +31,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class SimpleInodeLockList implements InodeLockList {
   private static final Logger LOG = LoggerFactory.getLogger(SimpleInodeLockList.class);
 
-  private static final int NO_WRITE_LOCK = -1;
+  /**
+   * Default value for {@link #mFirstWriteLockIndex} when there is no write lock.
+   */
+  private static final int NO_WRITE_LOCK_INDEX = -1;
   private static final int INITIAL_CAPACITY = 8;
   private static final Edge ROOT_EDGE = new Edge(-1, "");
 
@@ -47,11 +50,13 @@ public class SimpleInodeLockList implements InodeLockList {
    */
   private Edge mLastEdge;
   /**
-   * Lock list. The locks always alternate between Inode lock and Edge lock.
+   * Lock list.
+   * The locks always alternate between Inode lock and Edge lock.
+   * The first lock can be either Inode or Edge lock.
    */
   private List<LockResource> mLocks;
   /**
-   * The index of the first write lock entry.
+   * The index of the first write lock entry in {@link #mLocks}.
    * If all locks are read locks, mFirstWriteLockIndex == NO_WRITE_LOCK.
    * Otherwise, all locks before this index are read locks, and all
    * locks after and including this index are write locks.
@@ -67,7 +72,7 @@ public class SimpleInodeLockList implements InodeLockList {
     mInodeLockManager = inodeLockManager;
     mInodes = new ArrayList<>(INITIAL_CAPACITY);
     mLocks = new ArrayList<>(INITIAL_CAPACITY);
-    mFirstWriteLockIndex = NO_WRITE_LOCK;
+    mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
   }
 
   @Override
@@ -250,7 +255,7 @@ public class SimpleInodeLockList implements InodeLockList {
   private void removeLastLock() {
     mLocks.remove(mLocks.size() - 1).close();
     if (mFirstWriteLockIndex >= mLocks.size()) {
-      mFirstWriteLockIndex = NO_WRITE_LOCK;
+      mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
     }
     if (mLastEdge != null) {
       mLastEdge = null;
@@ -323,11 +328,11 @@ public class SimpleInodeLockList implements InodeLockList {
    * @return whether this lock list ends in a write lock
    */
   private boolean endsInWriteLock() {
-    return mFirstWriteLockIndex != NO_WRITE_LOCK;
+    return mFirstWriteLockIndex != NO_WRITE_LOCK_INDEX;
   }
 
   private boolean endsInMultipleWriteLocks() {
-    return mFirstWriteLockIndex != NO_WRITE_LOCK && mFirstWriteLockIndex < mLocks.size() - 1;
+    return mFirstWriteLockIndex != NO_WRITE_LOCK_INDEX && mFirstWriteLockIndex < mLocks.size() - 1;
   }
 
   @Override
