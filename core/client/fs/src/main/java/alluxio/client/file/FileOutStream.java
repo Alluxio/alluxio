@@ -92,7 +92,7 @@ public class FileOutStream extends AbstractOutStream {
     // Acquire a lock to block FileSystemContext reinitialization, this needs to be done before
     // using mContext.
     // The lock will be released in close().
-    mCloser.register(mContext.acquireBlockReinitLockResource());
+    mCloser.register(mContext.acquireBlockReinitResource());
     mUri = Preconditions.checkNotNull(path, "path");
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();

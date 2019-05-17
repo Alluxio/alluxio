@@ -28,7 +28,7 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
-import alluxio.resource.LockResource;
+import alluxio.resource.CountResource;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
@@ -50,10 +50,11 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -143,6 +144,28 @@ public final class FileSystemContext implements Closeable {
    * configuration hashes change.
    */
   private volatile FileSystemContextReinitializer mReinitializer;
+  /**
+   * Synchronizes reinitialization.
+   *
+   * Expected behavior:
+   *
+   * If reinitialization is happening, all calls to {@link #acquireBlockReinitResource()} blocks.
+   *
+   * If there are ongoing RPCs trying to acquire the block resource or holding the resource
+   * returned by {@link #acquireBlockReinitResource()}, {@link #reinit} will return immediately.
+   *
+   * Implementation details:
+   *
+   * When reinitialization starts, write lock is try-locked before
+   * {@link FileSystemContextReinitializer#acquireAllowResource()}.
+   * When reinitialization finishes (either succeeds or fails), the write lock is released.
+   *
+   * When reinitialization is required to be blocked, read lock is locked before
+   * {@link FileSystemContextReinitializer#acquireBlockResource()}, when the read lock is locked,
+   * the block resource must be able to be acquired because the reinitialization must not be
+   * happening.
+   */
+  private final ReentrantReadWriteLock mReinitLock = new ReentrantReadWriteLock();
 
   /**
    * Creates a {@link FileSystemContext} with a null subject.
@@ -278,21 +301,26 @@ public final class FileSystemContext implements Closeable {
    * Acquires the lock to block reinitialization.
    *
    * If reinitialization is happening, this method will block until reinitialization succeeds or
-   * fails, if it fails, a RuntimeException will be thrown explaining the reinitialization's
-   * failure and automatically closes the resource.
+   * fails, if it fails, a RuntimeException will be thrown explaining the
+   * reinitialization's failure and automatically closes the resource.
    *
    * RuntimeException is thrown because this method is called before requiring resources from the
    * context, if reinitialization fails, the resources might be half closed, to prevent resource
    * leaks, we thrown RuntimeException here to force callers to fail since there is no way to
    * recover.
    *
-   * @return a lock resource with the lock locked
+   * @return the resource
    */
-  public LockResource acquireBlockReinitLockResource() {
+  public CountResource acquireBlockReinitResource() {
+    mReinitLock.readLock().lock();
     try {
-      return mReinitializer.acquireReadLockResource();
+      Optional<CountResource> resource = mReinitializer.acquireBlockResource();
+      Preconditions.checkState(resource.isPresent(), "resource must be present");
+      return resource.get();
     } catch (IOException e) {
       throw new RuntimeException(e);
+    } finally {
+      mReinitLock.readLock().unlock();
     }
   }
 
@@ -305,33 +333,42 @@ public final class FileSystemContext implements Closeable {
    *
    * @param updateClusterConf whether cluster level configuration should be updated
    * @param updatePathConf whether path level configuration should be updated
-   * @throws TimeoutException when timed out during being blocked by ongoing RPCs
-   * @throws InterruptedException when the calling thread is interrupted
    * @throws UnavailableException when failed to load configuration from master
    * @throws IOException when failed to close the context
    */
-  public synchronized void reinit(boolean updateClusterConf, boolean updatePathConf)
-      throws TimeoutException, InterruptedException, UnavailableException, IOException {
-    try (LockResource r = mReinitializer.acquireWriteLockResource()) {
-      InetSocketAddress masterAddr;
-      try {
-        masterAddr = getMasterAddress();
-      } catch (IOException e) {
-        throw new UnavailableException("Failed to get master address during reinitialization", e);
+  public void reinit(boolean updateClusterConf, boolean updatePathConf)
+      throws UnavailableException, IOException {
+    if (!mReinitLock.writeLock().tryLock()) {
+      return;
+    }
+    try {
+      Optional<CountResource> resource = mReinitializer.acquireAllowResource();
+      if (!resource.isPresent()) {
+        return;
       }
-      try {
-        getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
-      } catch (AlluxioStatusException e) {
-        // Failed to load configuration from meta master, maybe master is being restarted,
-        // or their is a temporary network problem, give up reinitialization. The heartbeat thread
-        // will try to reinitialize in the next heartbeat.
-        throw new UnavailableException(String.format("Failed to load configuration from meta master"
-            + " %s during reinitialization", masterAddr), e);
+      try (CountResource r = resource.get()) {
+        InetSocketAddress masterAddr;
+        try {
+          masterAddr = getMasterAddress();
+        } catch (IOException e) {
+          throw new UnavailableException("Failed to get master address during reinitialization", e);
+        }
+        try {
+          getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
+        } catch (AlluxioStatusException e) {
+          // Failed to load configuration from meta master, maybe master is being restarted,
+          // or their is a temporary network problem, give up reinitialization. The heartbeat thread
+          // will try to reinitialize in the next heartbeat.
+          throw new UnavailableException(String.format("Failed to load configuration from "
+              + "meta master (%s) during reinitialization", masterAddr), e);
+        }
+        closeContext();
+        initContext(getClientContext(),
+            MasterInquireClient.Factory.create(getClusterConf()));
+        mReinitializer.onSuccess();
       }
-      closeContext();
-      initContext(getClientContext(),
-          MasterInquireClient.Factory.create(getClusterConf()));
-      mReinitializer.onSuccess();
+    } finally {
+      mReinitLock.writeLock().unlock();
     }
   }
 
@@ -385,13 +422,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   private FileSystemMasterClient acquireMasterClient() {
-    try (LockResource r = acquireBlockReinitLockResource()) {
+    try (CountResource r = acquireBlockReinitResource()) {
       return mFileSystemMasterClientPool.acquire();
     }
   }
 
   private void releaseMasterClient(FileSystemMasterClient client) {
-    try (LockResource r = acquireBlockReinitLockResource()) {
+    try (CountResource r = acquireBlockReinitResource()) {
       if (!client.isClosed()) {
         // The client might have been closed during reinitialization.
         mFileSystemMasterClientPool.release(client);
@@ -415,13 +452,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   private BlockMasterClient acquireBlockMasterClient() {
-    try (LockResource r = acquireBlockReinitLockResource()) {
+    try (CountResource r = acquireBlockReinitResource()) {
       return mBlockMasterClientPool.acquire();
     }
   }
 
   private void releaseBlockMasterClient(BlockMasterClient client) {
-    try (LockResource r = acquireBlockReinitLockResource()) {
+    try (CountResource r = acquireBlockReinitResource()) {
       if (!client.isClosed()) {
         // The client might have been closed during reinitialization.
         mBlockMasterClientPool.release(client);
@@ -454,7 +491,7 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    try (LockResource r = acquireBlockReinitLockResource()) {
+    try (CountResource r = acquireBlockReinitResource()) {
       return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
     }
   }
@@ -485,7 +522,7 @@ public final class FileSystemContext implements Closeable {
       // Client might have been shutdown during reinitialization.
       return;
     }
-    try (LockResource r = acquireBlockReinitLockResource()) {
+    try (CountResource r = acquireBlockReinitResource()) {
       SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
           getClusterConf());
       ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(

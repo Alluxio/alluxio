@@ -53,7 +53,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
-import alluxio.resource.LockResource;
+import alluxio.resource.CountResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptions;
@@ -571,7 +571,7 @@ public class BaseFileSystem implements FileSystem {
    */
   private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
-    try (LockResource r = mFsContext.acquireBlockReinitLockResource();
+    try (CountResource r = mFsContext.acquireBlockReinitResource();
          CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
       // Explicitly connect to trigger loading configuration from meta master.

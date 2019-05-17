@@ -14,20 +14,15 @@ package alluxio.client.file;
 import alluxio.conf.PropertyKey;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.resource.LockResource;
+import alluxio.resource.CountResource;
 import alluxio.util.ThreadFactoryUtils;
-
-import org.apache.commons.lang.time.DurationFormatUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Reinitializes {@link FileSystemContext} inside {@link BaseFileSystem}.
@@ -36,12 +31,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * if they differ from the hashes in the {@link alluxio.ClientContext} backing the
  * {@link FileSystemContext}, it tries to reinitialize the {@link FileSystemContext}.
  *
- * Each RPC needs to call {@link #acquireReadLockResource()} to mark its lifetime, when there
+ * Each RPC needs to call {@link #acquireBlockResource()} to mark its lifetime, when there
  * are ongoing RPCs executing between these two methods, reinitialization is blocked.
  *
  * Reinitialization starts when there are no ongoing RPCs, after starting, all further RPCs
- * are blocked until the reinitialization finishes. If it succeeds, future RPCs will use the
- * reinitialized context, otherwise, an exception is thrown from {@link #acquireReadLockResource()}.
+ * are blocked until the reinitialization finishes or until timeout. If it succeeds, future RPCs
+ * will use the reinitialized context, otherwise, an exception is thrown from
+ * {@link #acquireBlockResource()}.
  */
 public final class FileSystemContextReinitializer implements Closeable {
   private final FileSystemContext mContext;
@@ -49,13 +45,15 @@ public final class FileSystemContextReinitializer implements Closeable {
   private final ExecutorService mExecutorService;
 
   /**
-   * Synchronize between reinitialization and RPC calls using this context.
-   * RPC calls acquire read lock during their lifetimes.
-   * Reinitialization acquires write lock.
-   * It's in non-fair mode, which means if there is ongoing RPC calls, the reinitialization will
-   * never acquire the write lock, so reinitialization will be blocked until timeout.
+   * Count for ongoing RPCs using {@link #mContext}.
+   *
+   * Reinitialization can only happen when count is 0. It sets the count to -1
+   * atomically when it starts, and resets the count to 0 when it finishes.
+   *
+   * A {@link BaseFileSystem} RPC can only start when count is >= 0. It increases the
+   * count by 1 atomically when it starts, and decreases the count by 1 when it finishes.
    */
-  private final ReadWriteLock mLock = new ReentrantReadWriteLock();
+  private AtomicLong mCount = new AtomicLong(0);
 
   /**
    * Creates a new reinitializer for the context.
@@ -86,51 +84,48 @@ public final class FileSystemContextReinitializer implements Closeable {
   }
 
   /**
-   * Acquires the read lock to block reinitialization.
+   * Acquires the resource to block reinitialization.
    *
-   * When the context is being reinitialized, this call blocks until the reinitialization succeeds
-   * or fails. If it fails, an exception is thrown and the read lock will not be locked.
+   * When the context is being reinitialized, this call returns an empty optional.
+   * If the reinitialization fails, an exception is thrown.
    *
    * If there is an existing reinitialization exception, immediately throw an exception
    * without trying to block further reinitialization.
    *
    * @throws IOException when reinitialization fails before or during this method
-   * @return a resource holding the locked read lock
+   * @return the resource
    */
-  public LockResource acquireReadLockResource() throws IOException {
+  public Optional<CountResource> acquireBlockResource() throws IOException {
     Optional<IOException> exception = mExecutor.getException();
     if (exception.isPresent()) {
       throw exception.get();
     }
-    mLock.readLock().lock();
+    if (mCount.updateAndGet(c -> c >= 0 ? c + 1 : c) <= 0) {
+      return Optional.empty();
+    }
     exception = mExecutor.getException();
     if (exception.isPresent()) {
-      mLock.readLock().unlock();
+      mCount.decrementAndGet();
       throw exception.get();
     }
-    return new LockResource(mLock.readLock(), false);
+    return Optional.of(new CountResource(mCount, false));
   }
 
   /**
-   * Acquires the write lock to start reinitialization.
+   * Acquires the resource to allow reinitialization.
    *
-   * Blocks until read lock is not held or times out.
-   * When it returns without timing out, no further read lock can be acquired until the returned
-   * resource is closed.
+   * If there are ongoing operations holding the resource returned by
+   * {@link #acquireBlockResource()}, this returns an empty optional immediately.
+   * When it returns a non-empty resource, no further resource can be acquired from
+   * {@link #acquireBlockResource()} until the returned resource is closed.
    *
-   * The timeout is specified as {@link PropertyKey#USER_CONF_SYNC_TIMEOUT}.
-   *
-   * @return a resource holding the locked write lock
-   * @throws TimeoutException if timed out
-   * @throws InterruptedException if the current thread is interrupted while being blocked
+   * @return the resource
    */
-  public LockResource acquireWriteLockResource() throws TimeoutException, InterruptedException {
-    long timeout = mContext.getClusterConf().getMs(PropertyKey.USER_CONF_SYNC_TIMEOUT);
-    if (!mLock.writeLock().tryLock(timeout, TimeUnit.MILLISECONDS)) {
-      throw new TimeoutException("Failed to begin reinitialization after being blocked for "
-          + DurationFormatUtils.formatDurationWords(timeout, true, true));
+  public Optional<CountResource> acquireAllowResource() {
+    if (mCount.compareAndSet(0, -1)) {
+      return Optional.of(new CountResource(mCount, true));
     }
-    return new LockResource(mLock.writeLock(), false);
+    return Optional.empty();
   }
 
   /**

@@ -2665,16 +2665,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CONF_SYNC_TIMEOUT =
-      new Builder(Name.USER_CONF_SYNC_TIMEOUT)
-          .setDefaultValue("30min")
-          .setDescription("When a configuration update is detected by the heartbeat, it will try "
-              + "to update the client configurations from meta master, this update will be blocked "
-              + "if there are ongoing client RPCs or data streams, this timeout specifies the "
-              + "maximum time to be blocked before timing out.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_FILE_REPLICATION_MAX =
       new Builder(Name.USER_FILE_REPLICATION_MAX)
           .setDefaultValue(-1 /* negative value means infinity */)
@@ -4162,7 +4152,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
-    public static final String USER_CONF_SYNC_TIMEOUT = "alluxio.user.conf.sync.timeout";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";
