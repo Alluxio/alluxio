@@ -7988,30 +7988,30 @@ public final class File {
         getUfsFingerprintBytes();
 
     /**
-     * <code>repeated string medium_type = 17;</code>
+     * <code>repeated string medium_type = 16;</code>
      */
     java.util.List<java.lang.String>
         getMediumTypeList();
     /**
-     * <code>repeated string medium_type = 17;</code>
+     * <code>repeated string medium_type = 16;</code>
      */
     int getMediumTypeCount();
     /**
-     * <code>repeated string medium_type = 17;</code>
+     * <code>repeated string medium_type = 16;</code>
      */
     java.lang.String getMediumType(int index);
     /**
-     * <code>repeated string medium_type = 17;</code>
+     * <code>repeated string medium_type = 16;</code>
      */
     com.google.protobuf.ByteString
         getMediumTypeBytes(int index);
 
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
     int getXAttrCount();
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
     boolean containsXAttr(
         java.lang.String key);
@@ -8022,19 +8022,19 @@ public final class File {
     java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttr();
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
     java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttrMap();
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
     com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
         com.google.protobuf.ByteString defaultValue);
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
     com.google.protobuf.ByteString getXAttrOrThrow(
@@ -8200,6 +8200,15 @@ public final class File {
               break;
             }
             case 130: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              if (!((mutable_bitField0_ & 0x00008000) == 0x00008000)) {
+                mediumType_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00008000;
+              }
+              mediumType_.add(bs);
+              break;
+            }
+            case 138: {
               if (!((mutable_bitField0_ & 0x00010000) == 0x00010000)) {
                 xAttr_ = com.google.protobuf.MapField.newMapField(
                     XAttrDefaultEntryHolder.defaultEntry);
@@ -8210,15 +8219,6 @@ public final class File {
                   XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttr_.getMutableMap().put(
                   xAttr__.getKey(), xAttr__.getValue());
-              break;
-            }
-            case 138: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              if (!((mutable_bitField0_ & 0x00008000) == 0x00008000)) {
-                mediumType_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00008000;
-              }
-              mediumType_.add(bs);
               break;
             }
           }
@@ -8245,7 +8245,7 @@ public final class File {
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
-        case 16:
+        case 17:
           return internalGetXAttr();
         default:
           throw new RuntimeException(
@@ -8627,36 +8627,36 @@ public final class File {
       }
     }
 
-    public static final int MEDIUM_TYPE_FIELD_NUMBER = 17;
+    public static final int MEDIUM_TYPE_FIELD_NUMBER = 16;
     private com.google.protobuf.LazyStringList mediumType_;
     /**
-     * <code>repeated string medium_type = 17;</code>
+     * <code>repeated string medium_type = 16;</code>
      */
     public com.google.protobuf.ProtocolStringList
         getMediumTypeList() {
       return mediumType_;
     }
     /**
-     * <code>repeated string medium_type = 17;</code>
+     * <code>repeated string medium_type = 16;</code>
      */
     public int getMediumTypeCount() {
       return mediumType_.size();
     }
     /**
-     * <code>repeated string medium_type = 17;</code>
+     * <code>repeated string medium_type = 16;</code>
      */
     public java.lang.String getMediumType(int index) {
       return mediumType_.get(index);
     }
     /**
-     * <code>repeated string medium_type = 17;</code>
+     * <code>repeated string medium_type = 16;</code>
      */
     public com.google.protobuf.ByteString
         getMediumTypeBytes(int index) {
       return mediumType_.getByteString(index);
     }
 
-    public static final int XATTR_FIELD_NUMBER = 16;
+    public static final int XATTR_FIELD_NUMBER = 17;
     private static final class XAttrDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
           java.lang.String, com.google.protobuf.ByteString> defaultEntry =
@@ -8683,7 +8683,7 @@ public final class File {
       return internalGetXAttr().getMap().size();
     }
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
     public boolean containsXAttr(
@@ -8699,14 +8699,14 @@ public final class File {
       return getXAttrMap();
     }
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
     public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
       return internalGetXAttr().getMap();
     }
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
     public com.google.protobuf.ByteString getXAttrOrDefault(
@@ -8718,7 +8718,7 @@ public final class File {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
     public com.google.protobuf.ByteString getXAttrOrThrow(
@@ -8789,15 +8789,15 @@ public final class File {
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 15, ufsFingerprint_);
       }
+      for (int i = 0; i < mediumType_.size(); i++) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 16, mediumType_.getRaw(i));
+      }
       com.google.protobuf.GeneratedMessageV3
         .serializeStringMapTo(
           output,
           internalGetXAttr(),
           XAttrDefaultEntryHolder.defaultEntry,
-          16);
-      for (int i = 0; i < mediumType_.size(); i++) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 17, mediumType_.getRaw(i));
-      }
+          17);
       unknownFields.writeTo(output);
     }
 
@@ -8861,6 +8861,14 @@ public final class File {
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(15, ufsFingerprint_);
       }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < mediumType_.size(); i++) {
+          dataSize += computeStringSizeNoTag(mediumType_.getRaw(i));
+        }
+        size += dataSize;
+        size += 2 * getMediumTypeList().size();
+      }
       for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
            : internalGetXAttr().getMap().entrySet()) {
         com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
@@ -8869,15 +8877,7 @@ public final class File {
             .setValue(entry.getValue())
             .build();
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(16, xAttr__);
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < mediumType_.size(); i++) {
-          dataSize += computeStringSizeNoTag(mediumType_.getRaw(i));
-        }
-        size += dataSize;
-        size += 2 * getMediumTypeList().size();
+            .computeMessageSize(17, xAttr__);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -9172,7 +9172,7 @@ public final class File {
       protected com.google.protobuf.MapField internalGetMapField(
           int number) {
         switch (number) {
-          case 16:
+          case 17:
             return internalGetXAttr();
           default:
             throw new RuntimeException(
@@ -9183,7 +9183,7 @@ public final class File {
       protected com.google.protobuf.MapField internalGetMutableMapField(
           int number) {
         switch (number) {
-          case 16:
+          case 17:
             return internalGetMutableXAttr();
           default:
             throw new RuntimeException(
@@ -10282,33 +10282,33 @@ public final class File {
          }
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public com.google.protobuf.ProtocolStringList
           getMediumTypeList() {
         return mediumType_.getUnmodifiableView();
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public int getMediumTypeCount() {
         return mediumType_.size();
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public java.lang.String getMediumType(int index) {
         return mediumType_.get(index);
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public com.google.protobuf.ByteString
           getMediumTypeBytes(int index) {
         return mediumType_.getByteString(index);
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public Builder setMediumType(
           int index, java.lang.String value) {
@@ -10321,7 +10321,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public Builder addMediumType(
           java.lang.String value) {
@@ -10334,7 +10334,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public Builder addAllMediumType(
           java.lang.Iterable<java.lang.String> values) {
@@ -10345,7 +10345,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public Builder clearMediumType() {
         mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -10354,7 +10354,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>repeated string medium_type = 17;</code>
+       * <code>repeated string medium_type = 16;</code>
        */
       public Builder addMediumTypeBytes(
           com.google.protobuf.ByteString value) {
@@ -10394,7 +10394,7 @@ public final class File {
         return internalGetXAttr().getMap().size();
       }
       /**
-       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public boolean containsXAttr(
@@ -10410,14 +10410,14 @@ public final class File {
         return getXAttrMap();
       }
       /**
-       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
         return internalGetXAttr().getMap();
       }
       /**
-       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public com.google.protobuf.ByteString getXAttrOrDefault(
@@ -10429,7 +10429,7 @@ public final class File {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public com.google.protobuf.ByteString getXAttrOrThrow(
@@ -10449,7 +10449,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public Builder removeXAttr(
@@ -10468,7 +10468,7 @@ public final class File {
         return internalGetMutableXAttr().getMutableMap();
       }
       /**
-       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
       public Builder putXAttr(
           java.lang.String key,
@@ -10480,7 +10480,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public Builder putAllXAttr(
@@ -27866,7 +27866,7 @@ public final class File {
       "\0162!.alluxio.proto.journal.PTtlAction:\006DE" +
       "LETE\0224\n\003acl\030\016 \001(\0132\'.alluxio.proto.shared" +
       ".AccessControlList\022\027\n\017ufs_fingerprint\030\017 " +
-      "\001(\t\022\023\n\013medium_type\030\021 \003(\t\022A\n\005xAttr\030\020 \003(\0132" +
+      "\001(\t\022\023\n\013medium_type\030\020 \003(\t\022A\n\005xAttr\030\021 \003(\0132" +
       "2.alluxio.proto.journal.UpdateInodeEntry" +
       ".XAttrEntry\032,\n\nXAttrEntry\022\013\n\003key\030\001 \001(\t\022\r" +
       "\n\005value\030\002 \001(\014:\0028\001\"\231\001\n\031UpdateInodeDirecto" +

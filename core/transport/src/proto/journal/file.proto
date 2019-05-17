@@ -95,8 +95,8 @@ message UpdateInodeEntry {
   optional PTtlAction ttlAction = 13 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 14;
   optional string ufs_fingerprint = 15;
-  repeated string medium_type = 17;
-  map<string, bytes> xAttr = 16;
+  repeated string medium_type = 16;
+  map<string, bytes> xAttr = 17;
 }
 
 // next available id: 5

@@ -11,17 +11,16 @@
 
 package alluxio.master.file.meta.xattr;
 
-import com.google.protobuf.ByteString;
-
 import java.io.IOException;
 
 /**
  * This class defines an interface for implementing an extended attribute which can be stored on
  * inodes.
  *
- * Attributes are stored on inodes as a simple array of bytes ({@link ByteString}) and can be
- * the implementation for encoding/decoding
- * @param <T>
+ * Attributes are stored on inodes as a simple array of byte and define their implementations
+ * for encoding/decoding
+ *
+ * @param <T> The type of object to encode/decode
  */
 public interface ExtendedAttribute<T> {
 

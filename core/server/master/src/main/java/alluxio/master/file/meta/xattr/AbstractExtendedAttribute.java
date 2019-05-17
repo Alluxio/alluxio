@@ -14,10 +14,7 @@ package alluxio.master.file.meta.xattr;
 /**
  * Extend this class to implement any extended attributes.
  *
- * Any attributes which extend this class get a default implementation for multiEncode and
- * multiDecode interface methods.
- *
- * @param <T> The class which the attribute should encode from, and decode to
+ * @param <T> The type which the attribute should encode from, and decode to
  */
 public abstract class AbstractExtendedAttribute<T> implements ExtendedAttribute<T> {
   private static final String SEPARATOR = ".";
@@ -58,8 +55,10 @@ public abstract class AbstractExtendedAttribute<T> implements ExtendedAttribute<
   }
 
   enum NamespacePrefix {
-    SYSTEM("s"),
-    USER("u"),
+    SECURITY("security"),
+    SYSTEM("system"),
+    TRUSTED("trusted"),
+    USER("user"),
     ;
 
     private final String mPrefixName;
