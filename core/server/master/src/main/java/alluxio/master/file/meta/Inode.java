@@ -21,7 +21,6 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
 
 import java.util.List;
 import java.util.Map;
@@ -96,7 +95,7 @@ public abstract class Inode implements InodeView {
 
   @Override
   @Nullable
-  public Map<String, ByteString> getXAttr() {
+  public Map<String, byte[]> getXAttr() {
     return mDelegate.getXAttr();
   }
 

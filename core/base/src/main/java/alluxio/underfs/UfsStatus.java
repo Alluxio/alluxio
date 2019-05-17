@@ -36,7 +36,7 @@ public abstract class UfsStatus {
   protected final String mGroup;
   protected final short mMode;
 
-  protected final Map<String, String> mXAttr;
+  protected final Map<String, byte[]> mXAttr;
 
   /**
    * Creates new instance of {@link UfsStatus}.
@@ -50,7 +50,7 @@ public abstract class UfsStatus {
    * @param xAttrs any extended attributes on the inode
    */
   protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode,
-      Long lastModifiedTimeMs, @Nullable Map<String, String> xAttrs) {
+      Long lastModifiedTimeMs, @Nullable Map<String, byte[]> xAttrs) {
     mIsDirectory = isDirectory;
     mName = name;
     mOwner = owner;
@@ -165,7 +165,7 @@ public abstract class UfsStatus {
    * @return a map of the extended attributes. If none, the map will be empty
    */
   @Nullable
-  public Map<String, String> getXAttr() {
+  public Map<String, byte[]> getXAttr() {
     return mXAttr;
   }
 

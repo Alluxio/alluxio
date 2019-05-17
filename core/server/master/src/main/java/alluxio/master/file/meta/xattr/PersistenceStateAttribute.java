@@ -14,7 +14,6 @@ package alluxio.master.file.meta.xattr;
 import alluxio.master.file.meta.PersistenceState;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -34,29 +33,29 @@ public class PersistenceStateAttribute extends AbstractExtendedAttribute<List<Pe
   }
 
   @Override
-  public ByteString encode(List<PersistenceState> states) {
+  public byte[] encode(List<PersistenceState> states) {
     ByteBuffer buffer = ByteBuffer.wrap(new byte[states.size() * ENCODING_SIZE]);
     int offset = 0;
     for (PersistenceState obj: states) {
       buffer.put(offset, (byte) obj.ordinal());
       offset += ENCODING_SIZE;
     }
-    return ByteString.copyFrom(buffer);
+    return buffer.array();
   }
 
   @Override
-  public List<PersistenceState> decode(ByteString bytes) {
-    Preconditions.checkArgument(bytes.size() > 0, String.format("bytes must be at least 1, is %d",
-        bytes.size()));
-    Preconditions.checkArgument(bytes.size() % ENCODING_SIZE == 0, String.format("Cannot decode "
+  public List<PersistenceState> decode(byte[] bytes) {
+    Preconditions.checkArgument(bytes.length > 0, String.format("bytes must be at least 1, is %d",
+        bytes.length));
+    Preconditions.checkArgument(bytes.length % ENCODING_SIZE == 0, String.format("Cannot decode "
         + "persistence state attribute. Byte array is not a multiple of encoding size. Got %d, "
-        + "must be a multiple of %d.", bytes.size(), ENCODING_SIZE));
+        + "must be a multiple of %d.", bytes.length, ENCODING_SIZE));
 
-    int numObjects = bytes.size() / ENCODING_SIZE;
+    int numObjects = bytes.length / ENCODING_SIZE;
     ArrayList<PersistenceState> obj = new ArrayList<>(numObjects);
     int loc;
     for (int i = 0; i < numObjects; i++) {
-      loc = bytes.byteAt(i) & 0xFF;
+      loc = bytes[i] & 0xFF;
       obj.add(PersistenceState.values()[loc]);
     }
     return obj;

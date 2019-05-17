@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.master.file.meta.PersistenceState;
 
-import com.google.protobuf.ByteString;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class PersistenceStateAttributeTest {
     PersistenceState[] states = { PersistenceState.TO_BE_PERSISTED,
         PersistenceState.TO_BE_PERSISTED, PersistenceState.PERSISTED, PersistenceState.LOST,
         PersistenceState.NOT_PERSISTED, PersistenceState.LOST, PersistenceState.PERSISTED};
-    ByteString encoded = PERSISTENCE_STATE.encode(Arrays.asList(states));
+    byte[] encoded = PERSISTENCE_STATE.encode(Arrays.asList(states));
     List<PersistenceState> decoded = PERSISTENCE_STATE.decode(encoded);
     for (int i = 0; i < states.length; i++) {
       assertEquals(states[i], decoded.get(i));

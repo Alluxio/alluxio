@@ -24,11 +24,11 @@ import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
-import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private Set<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
-  private Map<String, ByteString> mXAttr;
+  private Map<String, byte[]> mXAttr;
 
   protected MutableInode(long id, boolean isDirectory) {
     mCreationTimeMs = System.currentTimeMillis();
@@ -174,7 +174,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
 
   @Override
   @Nullable
-  public Map<String, ByteString> getXAttr() {
+  public Map<String, byte[]> getXAttr() {
     return mXAttr;
   }
 
@@ -455,7 +455,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @param xAttr The new set of extended attributes
    * @return the updated object
    */
-  public T setXAttr(Map<String, ByteString> xAttr) {
+  public T setXAttr(Map<String, byte[]> xAttr) {
     mXAttr = xAttr;
     return getThis();
   }
@@ -568,7 +568,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setUfsFingerprint(entry.getUfsFingerprint());
     }
     if (entry.getXAttrCount() > 0) {
-      setXAttr(entry.getXAttrMap());
+      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
     if (entry.getMediumTypeCount() != 0) {
       setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
@@ -634,9 +634,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setAccessAcl(ProtoUtils.toProto(getACL()))
         .setUfsFingerprint(getUfsFingerprint())
         .addAllMediumType(getMediumTypes());
-    Map<String, ByteString> vals;
-    if ((vals = getXAttr()) != null) {
-      inode.putAllXAttr(vals);
+    if (getXAttr() != null) {
+      inode.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
     return inode;
   }

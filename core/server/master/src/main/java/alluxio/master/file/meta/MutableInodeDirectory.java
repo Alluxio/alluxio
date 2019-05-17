@@ -21,12 +21,9 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
-
-import com.google.protobuf.ByteString;
-
-import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -211,7 +208,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     }
     ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     if (entry.getXAttrCount() > 0) {
-      ret.setXAttr(entry.getXAttrMap());
+      ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
 
     return ret;
@@ -259,9 +256,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setAcl(ProtoUtils.toProto(mAcl))
         .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
         .addAllMediumType(getMediumTypes());
-    Map<String, ByteString> vals;
-    if ((vals = getXAttr()) != null) {
-      inodeDirectory.putAllXAttr(vals);
+    if (getXAttr() != null) {
+      inodeDirectory.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
@@ -303,6 +299,6 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setChildCount(inode.getChildCount())
         .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
         .setMediumTypes(new HashSet<>(inode.getMediumTypeList()))
-        .setXAttr(inode.getXAttrMap());
+        .setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
   }
 }

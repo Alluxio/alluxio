@@ -39,7 +39,7 @@ public class UfsFileStatus extends UfsStatus {
    * @param xAttr extended attributes, if any
    */
   public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
-      String owner, String group, short mode, @Nullable Map<String, String> xAttr) {
+      String owner, String group, short mode, @Nullable Map<String, byte[]> xAttr) {
     super(name, false, owner, group, mode, lastModifiedTimeMs, xAttr);
     mContentHash = contentHash;
     mContentLength = contentLength;

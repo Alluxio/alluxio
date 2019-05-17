@@ -48,7 +48,7 @@ public interface ExtendedAttribute<T> {
    * @param object the object to encode
    * @return the byte representation of the object
    */
-  ByteString encode(T object);
+  byte[] encode(T object);
 
   /**
    * Decode an object from a single byte string.
@@ -57,5 +57,5 @@ public interface ExtendedAttribute<T> {
    * @return the instance of the decoded object
    * @throws IOException if the size of the byte string isn't equal to the encoding length
    */
-  T decode(ByteString bytes) throws IOException;
+  T decode(byte[] bytes) throws IOException;
 }

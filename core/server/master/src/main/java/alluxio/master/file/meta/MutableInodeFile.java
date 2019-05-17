@@ -24,16 +24,15 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -399,7 +398,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
             Constants.INVALID_UFS_FINGERPRINT)
-        .setXAttr(entry.getXAttrMap());
+        .setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     if (entry.hasAcl()) {
       ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
@@ -481,9 +480,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
         .setAcl(ProtoUtils.toProto(mAcl));
-    Map<String, ByteString> vals;
-    if ((vals = getXAttr()) != null) {
-      inodeFile.putAllXAttr(vals);
+    if (getXAttr() != null) {
+      inodeFile.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
@@ -538,6 +536,6 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath())
         .setMediumTypes(new HashSet<>(inode.getMediumTypeList()))
-        .setXAttr(inode.getXAttrMap());
+        .setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
   }
 }
