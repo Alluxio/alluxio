@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.exception.AlluxioException;
-import alluxio.worker.block.BlockStoreLocation;
 
 import java.io.IOException;
 
@@ -60,11 +59,10 @@ public final class DefaultReplicationHandler implements ReplicationHandler {
   }
 
   @Override
-  public long migrate(AlluxioURI uri, long blockId, String workerHost, BlockStoreLocation source,
-      BlockStoreLocation destination) throws AlluxioException, IOException {
+  public long migrate(AlluxioURI uri, long blockId, String workerHost, String mediumType) throws AlluxioException, IOException {
     JobMasterClient client = mJobMasterClientPool.acquire();
     try {
-      return client.run(new MoveConfig(blockId, source, destination, workerHost));
+      return client.run(new MoveConfig(blockId, workerHost, mediumType));
     } finally {
       mJobMasterClientPool.release(client);
     }

@@ -42,9 +42,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -159,10 +161,10 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    * @param blockInfo
    * @return
    */
-  private Map<String, Pair<BlockStoreLocation, BlockStoreLocation>> findMisplacedBlock(
+  private Map<String, String> findMisplacedBlock(
       InodeFile file, BlockInfo blockInfo) {
     Set<String> pinnedMediumTypes = file.getMediumTypes();
-    Map<String, Pair<BlockStoreLocation, BlockStoreLocation>> movement = new HashMap<>();
+    Map<String, String> movement = new HashMap<>();
     if (pinnedMediumTypes.isEmpty()) {
       // nothing needs to be moved
       return Collections.emptyMap();
@@ -171,16 +173,12 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     String firstPinnedMedium = pinnedMediumTypes.iterator().next();
     int minReplication = file.getReplicationMin();
     int correctReplication = 0;
-    Map<String, BlockStoreLocation> candidates = new HashMap<>();
-    BlockStoreLocation desiredLocation =
-        BlockStoreLocation.anyDirInTierWithMedium(firstPinnedMedium);
+    List<String> candidates = new ArrayList<>();
     for (BlockLocation loc: blockInfo.getLocations()) {
-      BlockStoreLocation currentLocation = new BlockStoreLocation(
-          loc.getTierAlias(), loc.getDirIndex(), loc.getMediumType());
-      if (currentLocation.belongsTo(desiredLocation)) {
+      if (loc.getMediumType().equals(firstPinnedMedium)) {
         correctReplication++;
       } else {
-        candidates.put(loc.getWorkerAddress().getHost(), currentLocation);
+        candidates.add(loc.getWorkerAddress().getHost());
       }
     }
     if (correctReplication >= minReplication) {
@@ -188,8 +186,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       return Collections.emptyMap();
     } else {
       int toMove = minReplication - correctReplication;
-      for (Map.Entry<String, BlockStoreLocation> candidate : candidates.entrySet()) {
-        movement.put(candidate.getKey(), new Pair<>(candidate.getValue(), desiredLocation));
+      for (String candidate : candidates) {
+        movement.put(candidate, firstPinnedMedium);
         toMove--;
         if (toMove == 0) {
           return movement;
@@ -219,11 +217,10 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             LOG.warn("Block info is null");
           }
 
-          for (Map.Entry<String, Pair<BlockStoreLocation, BlockStoreLocation>> entry
+          for (Map.Entry<String, String> entry
               : findMisplacedBlock(file, blockInfo).entrySet()) {
             try {
-              handler.migrate(inodePath.getUri(), blockId, entry.getKey(),
-                  entry.getValue().getFirst(), entry.getValue().getSecond());
+              handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
             } catch (Exception e) {
               LOG.warn(
                   "Unexpected exception encountered when starting a migration job (uri={},"

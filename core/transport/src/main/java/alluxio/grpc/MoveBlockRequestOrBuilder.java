@@ -17,28 +17,16 @@ public interface MoveBlockRequestOrBuilder extends
   long getBlockId();
 
   /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+   * <code>optional string medium_type = 2;</code>
    */
-  boolean hasSrc();
+  boolean hasMediumType();
   /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+   * <code>optional string medium_type = 2;</code>
    */
-  alluxio.grpc.BlockStoreLocationProto getSrc();
+  java.lang.String getMediumType();
   /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+   * <code>optional string medium_type = 2;</code>
    */
-  alluxio.grpc.BlockStoreLocationProtoOrBuilder getSrcOrBuilder();
-
-  /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-   */
-  boolean hasDst();
-  /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-   */
-  alluxio.grpc.BlockStoreLocationProto getDst();
-  /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-   */
-  alluxio.grpc.BlockStoreLocationProtoOrBuilder getDstOrBuilder();
+  com.google.protobuf.ByteString
+      getMediumTypeBytes();
 }

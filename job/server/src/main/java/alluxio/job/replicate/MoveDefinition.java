@@ -104,11 +104,9 @@ public final class MoveDefinition
       String message = String.format("Cannot find a local block worker to move block %d", blockId);
       throw new NotFoundException(message);
     }
-    BlockStoreLocationProto srcProto = config.getSource().toProto();
-    BlockStoreLocationProto dstProto = config.getDestination().toProto();
 
-    MoveBlockRequest request = MoveBlockRequest.newBuilder().setBlockId(blockId).setSrc(srcProto)
-        .setDst(dstProto).build();
+    MoveBlockRequest request = MoveBlockRequest.newBuilder().setBlockId(blockId)
+        .setMediumType(config.getMediumType()).build();
     BlockWorkerClient blockWorker = null;
     try {
       blockWorker = context.getFsContext().acquireBlockWorkerClient(localNetAddress);

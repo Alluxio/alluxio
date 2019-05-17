@@ -33,11 +33,8 @@ public final class MoveConfig implements JobConfig {
   /** Which block to move. */
   private long mBlockId;
 
-  /** source of the move. */
-  private BlockStoreLocation mSource;
-
-  /** destination of the move. */
-  private BlockStoreLocation mDestination;
+  /** Which medium to move to. */
+  private String mMediumType;
 
   /** worker host containing this block. */
   private String mWorkerHost;
@@ -46,17 +43,15 @@ public final class MoveConfig implements JobConfig {
    * Creates a new instance of {@link MoveConfig}.
    *
    * @param blockId id of the block to move
-   * @param source source to move from
-   * @param destination destination to move to
+   * @param workerHost host name of the worker
+   * @param mediumType the medium type to move to
    */
   @JsonCreator
   public MoveConfig(@JsonProperty("blockId") long blockId,
-      @JsonProperty("source") BlockStoreLocation source,
-      @JsonProperty("destination") BlockStoreLocation destination,
-      @JsonProperty("workerHost") String workerHost) {
+      @JsonProperty("workerHost") String workerHost,
+      @JsonProperty("mediumType") String mediumType) {
     mBlockId = blockId;
-    mSource = source;
-    mDestination = destination;
+    mMediumType = mediumType;
     mWorkerHost = workerHost;
   }
 
@@ -73,17 +68,10 @@ public final class MoveConfig implements JobConfig {
   }
 
   /**
-   * @return the source for this move job
+   * @return the medium type of this move job
    */
-  public BlockStoreLocation getSource() {
-    return mSource;
-  }
-
-  /**
-   * @return the destination for this move job
-   */
-  public BlockStoreLocation getDestination() {
-    return mDestination;
+  public String getMediumType() {
+    return mMediumType;
   }
 
   /**
@@ -105,22 +93,21 @@ public final class MoveConfig implements JobConfig {
       return false;
     }
     MoveConfig that = (MoveConfig) obj;
-    return Objects.equal(mBlockId, that.mBlockId) && Objects.equal(mSource, that.mSource)
-        && Objects.equal(mDestination, that.mDestination)
-        && Objects.equal(mWorkerHost, that.mWorkerHost);
+    return Objects.equal(mBlockId, that.mBlockId)
+        && Objects.equal(mWorkerHost, that.mWorkerHost)
+        && Objects.equal(mMediumType, that.mMediumType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockId, mSource, mDestination, mWorkerHost);
+    return Objects.hashCode(mBlockId, mMediumType, mWorkerHost);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("blockId", mBlockId)
-        .add("source", mSource)
-        .add("destination", mDestination)
+        .add("mediumType", mMediumType)
         .add("workerHost", mWorkerHost)
         .toString();
   }

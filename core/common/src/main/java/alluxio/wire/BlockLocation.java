@@ -33,7 +33,7 @@ public final class BlockLocation implements Serializable {
   private WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
   private String mTierAlias = "";
   private String mMediumType = "";
-  private int mDirIndex = 0;
+
 
   /**
    * Creates a new instance of {@link BlockLocation}.

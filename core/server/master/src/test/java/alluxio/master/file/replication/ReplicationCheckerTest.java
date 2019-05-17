@@ -15,9 +15,9 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
@@ -63,7 +63,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -94,7 +93,7 @@ public final class ReplicationCheckerTest {
   private static class MockHandler implements ReplicationHandler {
     private final Map<Long, Integer> mEvictRequests = Maps.newHashMap();
     private final Map<Long, Integer> mReplicateRequests = Maps.newHashMap();
-    private final Map<Long, Triple<String, BlockStoreLocation, BlockStoreLocation>>
+    private final Map<Long, Pair<String, String>>
         mMigrateRequests = Maps.newHashMap();
 
 
@@ -111,9 +110,8 @@ public final class ReplicationCheckerTest {
     }
 
     @Override
-    public long migrate(AlluxioURI uri, long blockId, String workerHost,
-        BlockStoreLocation source, BlockStoreLocation destination) {
-      mMigrateRequests.put(blockId, new ImmutableTriple<>(workerHost, source, destination));
+    public long migrate(AlluxioURI uri, long blockId, String workerHost, String mediumType) {
+      mMigrateRequests.put(blockId, new Pair<>(workerHost, mediumType));
       return 0;
     }
 
@@ -125,7 +123,7 @@ public final class ReplicationCheckerTest {
       return mReplicateRequests;
     }
 
-    public Map<Long, Triple<String, BlockStoreLocation, BlockStoreLocation>> getMigrateRequests() {
+    public Map<Long, Pair<String, String>> getMigrateRequests() {
       return mMigrateRequests;
     }
   }

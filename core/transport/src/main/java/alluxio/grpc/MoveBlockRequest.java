@@ -17,6 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private MoveBlockRequest() {
     blockId_ = 0L;
+    mediumType_ = "";
   }
 
   @java.lang.Override
@@ -56,29 +57,9 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
-            alluxio.grpc.BlockStoreLocationProto.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000002) == 0x00000002)) {
-              subBuilder = src_.toBuilder();
-            }
-            src_ = input.readMessage(alluxio.grpc.BlockStoreLocationProto.PARSER, extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(src_);
-              src_ = subBuilder.buildPartial();
-            }
+            com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
-            break;
-          }
-          case 26: {
-            alluxio.grpc.BlockStoreLocationProto.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000004) == 0x00000004)) {
-              subBuilder = dst_.toBuilder();
-            }
-            dst_ = input.readMessage(alluxio.grpc.BlockStoreLocationProto.PARSER, extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(dst_);
-              dst_ = subBuilder.buildPartial();
-            }
-            bitField0_ |= 0x00000004;
+            mediumType_ = bs;
             break;
           }
         }
@@ -121,46 +102,46 @@ private static final long serialVersionUID = 0L;
     return blockId_;
   }
 
-  public static final int SRC_FIELD_NUMBER = 2;
-  private alluxio.grpc.BlockStoreLocationProto src_;
+  public static final int MEDIUM_TYPE_FIELD_NUMBER = 2;
+  private volatile java.lang.Object mediumType_;
   /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+   * <code>optional string medium_type = 2;</code>
    */
-  public boolean hasSrc() {
+  public boolean hasMediumType() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+   * <code>optional string medium_type = 2;</code>
    */
-  public alluxio.grpc.BlockStoreLocationProto getSrc() {
-    return src_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : src_;
+  public java.lang.String getMediumType() {
+    java.lang.Object ref = mediumType_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        mediumType_ = s;
+      }
+      return s;
+    }
   }
   /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+   * <code>optional string medium_type = 2;</code>
    */
-  public alluxio.grpc.BlockStoreLocationProtoOrBuilder getSrcOrBuilder() {
-    return src_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : src_;
-  }
-
-  public static final int DST_FIELD_NUMBER = 3;
-  private alluxio.grpc.BlockStoreLocationProto dst_;
-  /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-   */
-  public boolean hasDst() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
-  }
-  /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-   */
-  public alluxio.grpc.BlockStoreLocationProto getDst() {
-    return dst_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : dst_;
-  }
-  /**
-   * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-   */
-  public alluxio.grpc.BlockStoreLocationProtoOrBuilder getDstOrBuilder() {
-    return dst_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : dst_;
+  public com.google.protobuf.ByteString
+      getMediumTypeBytes() {
+    java.lang.Object ref = mediumType_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      mediumType_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
   }
 
   private byte memoizedIsInitialized = -1;
@@ -179,10 +160,7 @@ private static final long serialVersionUID = 0L;
       output.writeInt64(1, blockId_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeMessage(2, getSrc());
-    }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      output.writeMessage(3, getDst());
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, mediumType_);
     }
     unknownFields.writeTo(output);
   }
@@ -197,12 +175,7 @@ private static final long serialVersionUID = 0L;
         .computeInt64Size(1, blockId_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(2, getSrc());
-    }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getDst());
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, mediumType_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -225,15 +198,10 @@ private static final long serialVersionUID = 0L;
       result = result && (getBlockId()
           == other.getBlockId());
     }
-    result = result && (hasSrc() == other.hasSrc());
-    if (hasSrc()) {
-      result = result && getSrc()
-          .equals(other.getSrc());
-    }
-    result = result && (hasDst() == other.hasDst());
-    if (hasDst()) {
-      result = result && getDst()
-          .equals(other.getDst());
+    result = result && (hasMediumType() == other.hasMediumType());
+    if (hasMediumType()) {
+      result = result && getMediumType()
+          .equals(other.getMediumType());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -251,13 +219,9 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getBlockId());
     }
-    if (hasSrc()) {
-      hash = (37 * hash) + SRC_FIELD_NUMBER;
-      hash = (53 * hash) + getSrc().hashCode();
-    }
-    if (hasDst()) {
-      hash = (37 * hash) + DST_FIELD_NUMBER;
-      hash = (53 * hash) + getDst().hashCode();
+    if (hasMediumType()) {
+      hash = (37 * hash) + MEDIUM_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getMediumType().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -384,26 +348,14 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getSrcFieldBuilder();
-        getDstFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
       blockId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
-      if (srcBuilder_ == null) {
-        src_ = null;
-      } else {
-        srcBuilder_.clear();
-      }
+      mediumType_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
-      if (dstBuilder_ == null) {
-        dst_ = null;
-      } else {
-        dstBuilder_.clear();
-      }
-      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
@@ -435,19 +387,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      if (srcBuilder_ == null) {
-        result.src_ = src_;
-      } else {
-        result.src_ = srcBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-        to_bitField0_ |= 0x00000004;
-      }
-      if (dstBuilder_ == null) {
-        result.dst_ = dst_;
-      } else {
-        result.dst_ = dstBuilder_.build();
-      }
+      result.mediumType_ = mediumType_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -493,11 +433,10 @@ private static final long serialVersionUID = 0L;
       if (other.hasBlockId()) {
         setBlockId(other.getBlockId());
       }
-      if (other.hasSrc()) {
-        mergeSrc(other.getSrc());
-      }
-      if (other.hasDst()) {
-        mergeDst(other.getDst());
+      if (other.hasMediumType()) {
+        bitField0_ |= 0x00000002;
+        mediumType_ = other.mediumType_;
+        onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -559,240 +498,80 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.BlockStoreLocationProto src_ = null;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder> srcBuilder_;
+    private java.lang.Object mediumType_ = "";
     /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+     * <code>optional string medium_type = 2;</code>
      */
-    public boolean hasSrc() {
+    public boolean hasMediumType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+     * <code>optional string medium_type = 2;</code>
      */
-    public alluxio.grpc.BlockStoreLocationProto getSrc() {
-      if (srcBuilder_ == null) {
-        return src_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : src_;
-      } else {
-        return srcBuilder_.getMessage();
-      }
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
-     */
-    public Builder setSrc(alluxio.grpc.BlockStoreLocationProto value) {
-      if (srcBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
+    public java.lang.String getMediumType() {
+      java.lang.Object ref = mediumType_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          mediumType_ = s;
         }
-        src_ = value;
-        onChanged();
+        return s;
       } else {
-        srcBuilder_.setMessage(value);
+        return (java.lang.String) ref;
       }
-      bitField0_ |= 0x00000002;
+    }
+    /**
+     * <code>optional string medium_type = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getMediumTypeBytes() {
+      java.lang.Object ref = mediumType_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        mediumType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string medium_type = 2;</code>
+     */
+    public Builder setMediumType(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      mediumType_ = value;
+      onChanged();
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
+     * <code>optional string medium_type = 2;</code>
      */
-    public Builder setSrc(
-        alluxio.grpc.BlockStoreLocationProto.Builder builderForValue) {
-      if (srcBuilder_ == null) {
-        src_ = builderForValue.build();
-        onChanged();
-      } else {
-        srcBuilder_.setMessage(builderForValue.build());
-      }
-      bitField0_ |= 0x00000002;
-      return this;
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
-     */
-    public Builder mergeSrc(alluxio.grpc.BlockStoreLocationProto value) {
-      if (srcBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002) &&
-            src_ != null &&
-            src_ != alluxio.grpc.BlockStoreLocationProto.getDefaultInstance()) {
-          src_ =
-            alluxio.grpc.BlockStoreLocationProto.newBuilder(src_).mergeFrom(value).buildPartial();
-        } else {
-          src_ = value;
-        }
-        onChanged();
-      } else {
-        srcBuilder_.mergeFrom(value);
-      }
-      bitField0_ |= 0x00000002;
-      return this;
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
-     */
-    public Builder clearSrc() {
-      if (srcBuilder_ == null) {
-        src_ = null;
-        onChanged();
-      } else {
-        srcBuilder_.clear();
-      }
+    public Builder clearMediumType() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      return this;
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
-     */
-    public alluxio.grpc.BlockStoreLocationProto.Builder getSrcBuilder() {
-      bitField0_ |= 0x00000002;
+      mediumType_ = getDefaultInstance().getMediumType();
       onChanged();
-      return getSrcFieldBuilder().getBuilder();
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
-     */
-    public alluxio.grpc.BlockStoreLocationProtoOrBuilder getSrcOrBuilder() {
-      if (srcBuilder_ != null) {
-        return srcBuilder_.getMessageOrBuilder();
-      } else {
-        return src_ == null ?
-            alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : src_;
-      }
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto src = 2;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder> 
-        getSrcFieldBuilder() {
-      if (srcBuilder_ == null) {
-        srcBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder>(
-                getSrc(),
-                getParentForChildren(),
-                isClean());
-        src_ = null;
-      }
-      return srcBuilder_;
-    }
-
-    private alluxio.grpc.BlockStoreLocationProto dst_ = null;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder> dstBuilder_;
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-     */
-    public boolean hasDst() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-     */
-    public alluxio.grpc.BlockStoreLocationProto getDst() {
-      if (dstBuilder_ == null) {
-        return dst_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : dst_;
-      } else {
-        return dstBuilder_.getMessage();
-      }
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-     */
-    public Builder setDst(alluxio.grpc.BlockStoreLocationProto value) {
-      if (dstBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        dst_ = value;
-        onChanged();
-      } else {
-        dstBuilder_.setMessage(value);
-      }
-      bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
+     * <code>optional string medium_type = 2;</code>
      */
-    public Builder setDst(
-        alluxio.grpc.BlockStoreLocationProto.Builder builderForValue) {
-      if (dstBuilder_ == null) {
-        dst_ = builderForValue.build();
-        onChanged();
-      } else {
-        dstBuilder_.setMessage(builderForValue.build());
-      }
-      bitField0_ |= 0x00000004;
-      return this;
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-     */
-    public Builder mergeDst(alluxio.grpc.BlockStoreLocationProto value) {
-      if (dstBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
-            dst_ != null &&
-            dst_ != alluxio.grpc.BlockStoreLocationProto.getDefaultInstance()) {
-          dst_ =
-            alluxio.grpc.BlockStoreLocationProto.newBuilder(dst_).mergeFrom(value).buildPartial();
-        } else {
-          dst_ = value;
-        }
-        onChanged();
-      } else {
-        dstBuilder_.mergeFrom(value);
-      }
-      bitField0_ |= 0x00000004;
-      return this;
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-     */
-    public Builder clearDst() {
-      if (dstBuilder_ == null) {
-        dst_ = null;
-        onChanged();
-      } else {
-        dstBuilder_.clear();
-      }
-      bitField0_ = (bitField0_ & ~0x00000004);
-      return this;
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-     */
-    public alluxio.grpc.BlockStoreLocationProto.Builder getDstBuilder() {
-      bitField0_ |= 0x00000004;
+    public Builder setMediumTypeBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      mediumType_ = value;
       onChanged();
-      return getDstFieldBuilder().getBuilder();
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-     */
-    public alluxio.grpc.BlockStoreLocationProtoOrBuilder getDstOrBuilder() {
-      if (dstBuilder_ != null) {
-        return dstBuilder_.getMessageOrBuilder();
-      } else {
-        return dst_ == null ?
-            alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : dst_;
-      }
-    }
-    /**
-     * <code>optional .alluxio.grpc.BlockStoreLocationProto dst = 3;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder> 
-        getDstFieldBuilder() {
-      if (dstBuilder_ == null) {
-        dstBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder>(
-                getDst(),
-                getParentForChildren(),
-                isClean());
-        dst_ = null;
-      }
-      return dstBuilder_;
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

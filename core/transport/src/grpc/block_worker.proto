@@ -151,8 +151,7 @@ message RemoveBlockResponse {}
 
 message MoveBlockRequest {
   optional int64 block_id = 1;
-  optional BlockStoreLocationProto src = 2;
-  optional BlockStoreLocationProto dst = 3;
+  optional string medium_type = 2;
 }
 
 message MoveBlockResponse {}
