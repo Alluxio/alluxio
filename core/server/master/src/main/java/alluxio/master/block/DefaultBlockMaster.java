@@ -938,7 +938,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
                 .setWorkerId(workerInfo.getId())
                 .setTier(entry.getKey().tierAlias())
                 .setMediumType(entry.getKey().mediumType())
-                .setDirIndex(entry.getKey().dir())
                 .build());
             mLostBlocks.remove(blockId);
           } else {
@@ -1002,7 +1001,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         // - it would be an incorrect order (correct order is lock worker first, then block)
         // - only uses getters of final variables
         locations.add(new alluxio.wire.BlockLocation().setWorkerId(location.getWorkerId())
-            .setWorkerAddress(workerInfo.getWorkerAddress()).setDirIndex(location.getDirIndex())
+            .setWorkerAddress(workerInfo.getWorkerAddress())
             .setTierAlias(location.getTier()).setMediumType(location.getMediumType()));
       }
     }

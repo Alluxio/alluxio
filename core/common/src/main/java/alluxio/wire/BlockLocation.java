@@ -34,7 +34,6 @@ public final class BlockLocation implements Serializable {
   private String mTierAlias = "";
   private String mMediumType = "";
 
-
   /**
    * Creates a new instance of {@link BlockLocation}.
    */
@@ -66,13 +65,6 @@ public final class BlockLocation implements Serializable {
    */
   public String getMediumType() {
     return mMediumType;
-  }
-
-  /**
-   * @return the directory index
-   */
-  public int getDirIndex() {
-    return mDirIndex;
   }
 
   /**
@@ -115,16 +107,6 @@ public final class BlockLocation implements Serializable {
     return this;
   }
 
-  /**
-   *
-   * @param dirIndex the dir index to use
-   * @return the block location
-   */
-  public BlockLocation setDirIndex(int dirIndex) {
-    mDirIndex = dirIndex;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -135,13 +117,12 @@ public final class BlockLocation implements Serializable {
     }
     BlockLocation that = (BlockLocation) o;
     return mWorkerId == that.mWorkerId && mWorkerAddress.equals(that.mWorkerAddress)
-        && mTierAlias.equals(that.mTierAlias) && mMediumType.equals(that.mMediumType)
-        && mDirIndex == that.mDirIndex;
+        && mTierAlias.equals(that.mTierAlias) && mMediumType.equals(that.mMediumType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWorkerId, mWorkerAddress, mTierAlias, mMediumType, mDirIndex);
+    return Objects.hashCode(mWorkerId, mWorkerAddress, mTierAlias, mMediumType);
   }
 
   @Override
@@ -151,7 +132,6 @@ public final class BlockLocation implements Serializable {
         .add("address", mWorkerAddress)
         .add("tierAlias", mTierAlias)
         .add("mediumType", mMediumType)
-        .add("dirIndex", mDirIndex)
         .toString();
   }
 }

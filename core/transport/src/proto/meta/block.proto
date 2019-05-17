@@ -24,5 +24,4 @@ message BlockLocation {
     optional int64 worker_id = 1;
     optional string tier = 2;
     optional string mediumType = 3;
-    optional int32 dirIndex = 4;
 }

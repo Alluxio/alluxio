@@ -551,15 +551,6 @@ public final class Block {
      */
     com.google.protobuf.ByteString
         getMediumTypeBytes();
-
-    /**
-     * <code>optional int32 dirIndex = 4;</code>
-     */
-    boolean hasDirIndex();
-    /**
-     * <code>optional int32 dirIndex = 4;</code>
-     */
-    int getDirIndex();
   }
   /**
    * <pre>
@@ -583,7 +574,6 @@ public final class Block {
       workerId_ = 0L;
       tier_ = "";
       mediumType_ = "";
-      dirIndex_ = 0;
     }
 
     @java.lang.Override
@@ -632,11 +622,6 @@ public final class Block {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
               mediumType_ = bs;
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              dirIndex_ = input.readInt32();
               break;
             }
           }
@@ -763,21 +748,6 @@ public final class Block {
       }
     }
 
-    public static final int DIRINDEX_FIELD_NUMBER = 4;
-    private int dirIndex_;
-    /**
-     * <code>optional int32 dirIndex = 4;</code>
-     */
-    public boolean hasDirIndex() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional int32 dirIndex = 4;</code>
-     */
-    public int getDirIndex() {
-      return dirIndex_;
-    }
-
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -799,9 +769,6 @@ public final class Block {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, mediumType_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt32(4, dirIndex_);
-      }
       unknownFields.writeTo(output);
     }
 
@@ -819,10 +786,6 @@ public final class Block {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, mediumType_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(4, dirIndex_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -855,11 +818,6 @@ public final class Block {
         result = result && getMediumType()
             .equals(other.getMediumType());
       }
-      result = result && (hasDirIndex() == other.hasDirIndex());
-      if (hasDirIndex()) {
-        result = result && (getDirIndex()
-            == other.getDirIndex());
-      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -883,10 +841,6 @@ public final class Block {
       if (hasMediumType()) {
         hash = (37 * hash) + MEDIUMTYPE_FIELD_NUMBER;
         hash = (53 * hash) + getMediumType().hashCode();
-      }
-      if (hasDirIndex()) {
-        hash = (37 * hash) + DIRINDEX_FIELD_NUMBER;
-        hash = (53 * hash) + getDirIndex();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -1029,8 +983,6 @@ public final class Block {
         bitField0_ = (bitField0_ & ~0x00000002);
         mediumType_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
-        dirIndex_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
 
@@ -1067,10 +1019,6 @@ public final class Block {
           to_bitField0_ |= 0x00000004;
         }
         result.mediumType_ = mediumType_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
-        result.dirIndex_ = dirIndex_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1125,9 +1073,6 @@ public final class Block {
           bitField0_ |= 0x00000004;
           mediumType_ = other.mediumType_;
           onChanged();
-        }
-        if (other.hasDirIndex()) {
-          setDirIndex(other.getDirIndex());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1340,38 +1285,6 @@ public final class Block {
         onChanged();
         return this;
       }
-
-      private int dirIndex_ ;
-      /**
-       * <code>optional int32 dirIndex = 4;</code>
-       */
-      public boolean hasDirIndex() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <code>optional int32 dirIndex = 4;</code>
-       */
-      public int getDirIndex() {
-        return dirIndex_;
-      }
-      /**
-       * <code>optional int32 dirIndex = 4;</code>
-       */
-      public Builder setDirIndex(int value) {
-        bitField0_ |= 0x00000008;
-        dirIndex_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int32 dirIndex = 4;</code>
-       */
-      public Builder clearDirIndex() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        dirIndex_ = 0;
-        onChanged();
-        return this;
-      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -1441,10 +1354,9 @@ public final class Block {
   static {
     java.lang.String[] descriptorData = {
       "\n\026proto/meta/block.proto\022\022alluxio.proto." +
-      "meta\"\033\n\tBlockMeta\022\016\n\006length\030\001 \001(\003\"V\n\rBlo" +
+      "meta\"\033\n\tBlockMeta\022\016\n\006length\030\001 \001(\003\"D\n\rBlo" +
       "ckLocation\022\021\n\tworker_id\030\001 \001(\003\022\014\n\004tier\030\002 " +
-      "\001(\t\022\022\n\nmediumType\030\003 \001(\t\022\020\n\010dirIndex\030\004 \001(" +
-      "\005"
+      "\001(\t\022\022\n\nmediumType\030\003 \001(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1469,7 +1381,7 @@ public final class Block {
     internal_static_alluxio_proto_meta_BlockLocation_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_meta_BlockLocation_descriptor,
-        new java.lang.String[] { "WorkerId", "Tier", "MediumType", "DirIndex", });
+        new java.lang.String[] { "WorkerId", "Tier", "MediumType", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
