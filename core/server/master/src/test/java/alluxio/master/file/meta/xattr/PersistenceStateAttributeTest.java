@@ -26,7 +26,7 @@ import java.util.List;
 public class PersistenceStateAttributeTest {
 
   @Test
-  public void testSingleEncode() throws Exception {
+  public void testSingleEncode() {
     for (int i = 0; i < PersistenceState.values().length; i++) {
       PersistenceState state = PersistenceState.values()[i];
       ArrayList<PersistenceState> a = new ArrayList<>();
@@ -37,7 +37,7 @@ public class PersistenceStateAttributeTest {
   }
 
   @Test
-  public void testMultiEncode() throws Exception {
+  public void testMultiEncode() {
     PersistenceState[] states = { PersistenceState.TO_BE_PERSISTED,
         PersistenceState.TO_BE_PERSISTED, PersistenceState.PERSISTED, PersistenceState.LOST,
         PersistenceState.NOT_PERSISTED, PersistenceState.LOST, PersistenceState.PERSISTED};

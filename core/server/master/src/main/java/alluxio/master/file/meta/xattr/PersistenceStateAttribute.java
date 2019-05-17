@@ -48,7 +48,7 @@ public class PersistenceStateAttribute extends AbstractExtendedAttribute<List<Pe
   public List<PersistenceState> decode(ByteString bytes) {
     Preconditions.checkArgument(bytes.size() > 0, String.format("bytes must be at least 1, is %d",
         bytes.size()));
-    Preconditions.checkArgument(bytes.size() % ENCODING_SIZE != 0, String.format("Cannot decode "
+    Preconditions.checkArgument(bytes.size() % ENCODING_SIZE == 0, String.format("Cannot decode "
         + "persistence state attribute. Byte array is not a multiple of encoding size. Got %d, "
         + "must be a multiple of %d.", bytes.size(), ENCODING_SIZE));
 
@@ -57,7 +57,7 @@ public class PersistenceStateAttribute extends AbstractExtendedAttribute<List<Pe
     int loc;
     for (int i = 0; i < numObjects; i++) {
       loc = bytes.byteAt(i) & 0xFF;
-      PersistenceState x = PersistenceState.values()[loc];
+      obj.add(PersistenceState.values()[loc]);
     }
     return obj;
   }
