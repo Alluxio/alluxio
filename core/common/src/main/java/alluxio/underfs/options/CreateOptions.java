@@ -20,11 +20,7 @@ import alluxio.util.ModeUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.protobuf.ByteString;
 
-import java.util.Map;
-
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -44,7 +40,6 @@ public final class CreateOptions {
   private String mGroup;
   private Mode mMode;
   private AccessControlList mAcl;
-  private Map<String, ByteString> mXAttr;
 
   /**
    * @param conf Alluxio configuration
@@ -65,7 +60,6 @@ public final class CreateOptions {
     mOwner = null;
     mGroup = null;
     mMode = ModeUtils.applyFileUMask(Mode.defaults(), authUmask);
-    mXAttr = null;
   }
 
   /**
@@ -101,14 +95,6 @@ public final class CreateOptions {
    */
   public Mode getMode() {
     return mMode;
-  }
-
-  /**
-   * @return the extended attributes if any
-   */
-  @Nullable
-  public Map<String, ByteString> getXAttr() {
-    return mXAttr;
   }
 
   /**
@@ -181,15 +167,6 @@ public final class CreateOptions {
     return this;
   }
 
-  /**
-   * @param xAttr any extended attributes from the inode
-   * @return the updated object
-   */
-  public CreateOptions setXAttr(@Nullable Map<String, ByteString> xAttr) {
-    mXAttr = xAttr;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -204,8 +181,7 @@ public final class CreateOptions {
         && (mEnsureAtomic == that.mEnsureAtomic)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
-        && Objects.equal(mMode, that.mMode)
-        && Objects.equal(mXAttr, that.mXAttr);
+        && Objects.equal(mMode, that.mMode);
   }
 
   @Override
@@ -222,7 +198,6 @@ public final class CreateOptions {
         .add("owner", mOwner)
         .add("group", mGroup)
         .add("mode", mMode)
-        .add("xAttr", mXAttr)
         .toString();
   }
 }

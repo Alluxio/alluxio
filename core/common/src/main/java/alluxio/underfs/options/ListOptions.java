@@ -15,11 +15,7 @@ import alluxio.annotation.PublicApi;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.protobuf.ByteString;
 
-import java.util.Map;
-
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -30,8 +26,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class ListOptions {
   // Whether to list a directory and all its sub-directories
   private boolean mRecursive;
-
-  private Map<String, ByteString> mXAttr;
 
   /**
    * @return the default {@link ListOptions}
@@ -45,15 +39,6 @@ public final class ListOptions {
    */
   private ListOptions() {
     mRecursive = false;
-    mXAttr = null;
-  }
-
-  /**
-   * @return whether to list a directory recursively
-   */
-  @Nullable
-  public Map<String, ByteString> getXAttr() {
-    return mXAttr;
   }
 
   /**
@@ -74,15 +59,6 @@ public final class ListOptions {
     return this;
   }
 
-  /**
-   * @param xAttr extended attributes to set
-   * @return the updated option object
-   */
-  public ListOptions setXAttr(@Nullable Map<String, ByteString> xAttr) {
-    mXAttr = xAttr;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -92,23 +68,18 @@ public final class ListOptions {
       return false;
     }
     ListOptions that = (ListOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive)
-        && Objects.equal(mXAttr, that.mXAttr);
+    return Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(
-        mRecursive,
-        mXAttr
-    );
+    return Objects.hashCode(mRecursive);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("recursive", mRecursive)
-        .add("xAttr", mXAttr)
         .toString();
   }
 }

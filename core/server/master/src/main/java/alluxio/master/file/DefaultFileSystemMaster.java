@@ -2333,7 +2333,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           } else {
             listOptions.setRecursive(false);
           }
-          listOptions.setXAttr(inodePath.getInode().getXAttr());
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
           // children can be null if the pathname does not denote a directory
           // or if the we do not have permission to listStatus on the directory in the ufs.
@@ -3402,7 +3401,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         }
 
         UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString(),
-            ListOptions.defaults().setXAttr(inode.getXAttr()));
+            ListOptions.defaults());
         // Iterate over UFS listings and process UFS children.
         if (listStatus != null) {
           for (UfsStatus ufsChildStatus : listStatus) {

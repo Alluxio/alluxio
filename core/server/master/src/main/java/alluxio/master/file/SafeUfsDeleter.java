@@ -92,7 +92,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
         } else {
           if (isRecursiveDeleteSafe(alluxioUri)) {
             DeleteOptions options =
-                DeleteOptions.defaults().setRecursive(true).setXAttr(inode.getXAttr());
+                DeleteOptions.defaults().setRecursive(true);
             if (!ufs.deleteExistingDirectory(ufsUri, options)) {
               // TODO(adit): handle partial failures of recursive deletes
               if (ufs.isDirectory(ufsUri)) {
