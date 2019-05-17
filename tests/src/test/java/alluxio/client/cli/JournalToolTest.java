@@ -260,18 +260,27 @@ public class JournalToolTest extends BaseIntegrationTest {
         mMultiProcessCluster.getJournalDir() + Integer.toString(followerIdx);
 
     // Get current snapshot before issuing operations.
-    long curentSnapshotIdx = getCurrentCopyCatSnapshotIndex(followerJournalFolder);
+    long initialSnapshotIdx = getCurrentCopyCatSnapshotIndex(followerJournalFolder);
 
     // Perform operations to generate a checkpoint.
     for (int i = 0; i < CHECKPOINT_SIZE * 2; i++) {
       mFs.createFile(new AlluxioURI("/" + i)).close();
     }
 
-    // Wait until current snapshot index changes.
-    CommonUtils.waitFor("copycat checkpoint to be written", () -> {
+    // Take snapshot on master.
+    mMultiProcessCluster.getMetaMasterClient().checkpoint();
+
+    // JournalTool just reads the current snapshot and returns.
+    // Since passive participant will keep receiving continious snapshots of a follower,
+    // we should wait here until snapshot has come to a reasonable point.
+    // Otherwise we might end up with one of initial snapshots with incomplete state.
+
+    // Wait until snapshot index reached to a point that's safe to
+    // contain content.
+    long snapshotIdxTarget = CHECKPOINT_SIZE * 2 + 50;
+    CommonUtils.waitFor("Copycat snapshotting", () -> {
       try {
-        long latestSnapshotIdx = getCurrentCopyCatSnapshotIndex(followerJournalFolder);
-        return latestSnapshotIdx != curentSnapshotIdx;
+        return getCurrentCopyCatSnapshotIndex(followerJournalFolder) >= snapshotIdxTarget;
       } catch (Throwable err) {
         throw new RuntimeException(err);
       }
@@ -286,7 +295,7 @@ public class JournalToolTest extends BaseIntegrationTest {
     serializer.resolve(new ServerSerialization());
     serializer.resolve(new StorageSerialization());
 
-    SingleThreadContext context = new SingleThreadContext("readJournal", serializer);
+    SingleThreadContext context = new SingleThreadContext("readSnapshotIndex", serializer);
     AtomicLong currentSnapshotIdx = new AtomicLong();
     try {
       // Read through the whole journal content, starting from snapshot.
