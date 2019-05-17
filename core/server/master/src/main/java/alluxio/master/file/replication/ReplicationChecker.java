@@ -210,6 +210,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           if (blockInfo == null) {
             // no block info available, we simply log and return;
             LOG.warn("Block info is null");
+            return;
           }
 
           for (Map.Entry<String, String> entry

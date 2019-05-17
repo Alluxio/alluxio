@@ -23,6 +23,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
+import alluxio.util.CommonUtils;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -120,10 +121,14 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     assertTrue(fileExists(filePathA));
     assertEquals(0, mFsShell.run("pin", filePathA.toString(), "SSD"));
+    int ret = mFsShell.run("setReplication", "-min", "2", filePathA.toString());
+    assertEquals(0, ret);
+
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Thread.sleep(20000);
 
     assertEquals("SSD", mFileSystem.getStatus(filePathA).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
