@@ -16,15 +16,24 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
+import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import com.google.common.io.Files;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
@@ -109,6 +118,27 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
    */
   @Test
   public void setPinToSpecificMedia() throws Exception {
+    final long CAPACITY_BYTES = SIZE_BYTES;
+
+    ServerConfiguration
+        .set(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2");
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD");
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
+            Files.createTempDir().getAbsolutePath());
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
+            Files.createTempDir().getAbsolutePath());
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
+            String.valueOf(CAPACITY_BYTES));
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
+            String.valueOf(CAPACITY_BYTES));
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0), "SSD");
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(1), "SSD");
+    mLocalAlluxioCluster.restartMasters();
+    mLocalAlluxioCluster.stopWorkers();
+    mLocalAlluxioCluster.startWorkers();
+    mFileSystem = mLocalAlluxioCluster.getClient();
+    mFsShell = new FileSystemShell(ServerConfiguration.global());
+
     AlluxioURI filePathA = new AlluxioURI("/testFileA");
     AlluxioURI filePathB = new AlluxioURI("/testFileB");
 
@@ -128,7 +158,6 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Thread.sleep(20000);
 
     assertEquals("SSD", mFileSystem.getStatus(filePathA).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
