@@ -11,7 +11,8 @@
 
 package alluxio.collections;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,15 +41,15 @@ public final class DirectedAcyclicGraphTest {
   @Test
   public void simpleGraph() {
     // Empty graph.
-    Assert.assertTrue(mGraph.getRoots().isEmpty());
-    Assert.assertTrue(mGraph.sortTopologically(new HashSet<Integer>()).isEmpty());
+    assertTrue(mGraph.getRoots().isEmpty());
+    assertTrue(mGraph.sortTopologically(new HashSet<Integer>()).isEmpty());
 
     // One node.
     mGraph.add(1, new ArrayList<Integer>());
-    Assert.assertEquals(1, mGraph.getRoots().size());
-    Assert.assertEquals((Integer) (1), mGraph.getRoots().get(0));
+    assertEquals(1, mGraph.getRoots().size());
+    assertEquals((Integer) (1), mGraph.getRoots().get(0));
     mGraph.deleteLeaf(1);
-    Assert.assertTrue(mGraph.getRoots().isEmpty());
+    assertTrue(mGraph.getRoots().isEmpty());
   }
 
   /**
@@ -86,15 +87,15 @@ public final class DirectedAcyclicGraphTest {
     result = mGraph.sortTopologically(toSort);
     for (Integer i : result) {
       if (i == 1) {
-        Assert.assertTrue(seen.contains(5));
+        assertTrue(seen.contains(5));
       } else if (i == 2) {
-        Assert.assertTrue(seen.contains(1));
-        Assert.assertTrue(seen.contains(3));
-        Assert.assertTrue(seen.contains(4));
+        assertTrue(seen.contains(1));
+        assertTrue(seen.contains(3));
+        assertTrue(seen.contains(4));
       }
       seen.add(i);
     }
-    Assert.assertEquals(6, seen.size());
+    assertEquals(6, seen.size());
 
     // Sort part of the graph.
     toSort.clear();
@@ -105,11 +106,11 @@ public final class DirectedAcyclicGraphTest {
     result = mGraph.sortTopologically(toSort);
     for (Integer i : result) {
       if (i == 2) {
-        Assert.assertTrue(seen.contains(1));
+        assertTrue(seen.contains(1));
       }
       seen.add(i);
     }
-    Assert.assertEquals(2, seen.size());
+    assertEquals(2, seen.size());
   }
 }
 
