@@ -401,11 +401,9 @@ public class BaseFileSystem implements FileSystem {
             ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
       }
       AlluxioConfiguration conf = mFsContext.getPathConf(path);
-      // getStatus should have loaded path level configs.
       OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
           .toBuilder().mergeFrom(options).build();
       InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
-      // FileSystemContext reinitialization is blocked during construction and close of FileInStream.
       return new FileInStream(status, inStreamOptions, mFsContext);
     });
   }
