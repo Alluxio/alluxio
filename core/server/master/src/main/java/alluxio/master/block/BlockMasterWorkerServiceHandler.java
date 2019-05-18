@@ -95,7 +95,6 @@ public final class BlockMasterWorkerServiceHandler
     final long blockId = request.getBlockId();
     final String mediumType = request.getMediumType();
     final long length = request.getLength();
-    final int dirIndex = request.getDirIndex();
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
