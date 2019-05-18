@@ -57,6 +57,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
    * @param context the context containing the new configuration
    */
   public void resetMetaMasterConfigClient(MasterClientContext context) {
+    mClient.close();
     mClient = new RetryHandlingMetaMasterConfigClient(context);
   }
 
@@ -108,6 +109,6 @@ public final class ConfigHashSync implements HeartbeatExecutor {
 
   @Override
   public synchronized void close() {
-    // Noop, the mClient will be closed by users of this class.
+    mClient.close();
   }
 }
