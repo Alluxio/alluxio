@@ -394,18 +394,20 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    URIStatus status = getStatus(path);
-    if (status.isFolder()) {
-      throw new FileDoesNotExistException(
-          ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
-    }
-    // getStatus should have loaded path level configs.
-    OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(
-        mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions,
-        mFsContext.getPathConf(path));
-    // FileSystemContext reinitialization is blocked during construction and close of FileInStream.
-    return new FileInStream(status, inStreamOptions, mFsContext);
+    return rpc(client -> {
+      URIStatus status = client.getStatus(path, GetStatusPOptions.getDefaultInstance());
+      if (status.isFolder()) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
+      }
+      AlluxioConfiguration conf = mFsContext.getPathConf(path);
+      // getStatus should have loaded path level configs.
+      OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
+          .toBuilder().mergeFrom(options).build();
+      InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
+      // FileSystemContext reinitialization is blocked during construction and close of FileInStream.
+      return new FileInStream(status, inStreamOptions, mFsContext);
+    });
   }
 
   @Override
