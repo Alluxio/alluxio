@@ -22,7 +22,6 @@ private static final long serialVersionUID = 0L;
     blockId_ = 0L;
     length_ = 0L;
     mediumType_ = "";
-    dirIndex_ = 0;
   }
 
   @java.lang.Override
@@ -99,11 +98,6 @@ private static final long serialVersionUID = 0L;
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000040;
             mediumType_ = bs;
-            break;
-          }
-          case 64: {
-            bitField0_ |= 0x00000080;
-            dirIndex_ = input.readInt32();
             break;
           }
         }
@@ -340,21 +334,6 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int DIRINDEX_FIELD_NUMBER = 8;
-  private int dirIndex_;
-  /**
-   * <code>optional int32 dirIndex = 8;</code>
-   */
-  public boolean hasDirIndex() {
-    return ((bitField0_ & 0x00000080) == 0x00000080);
-  }
-  /**
-   * <code>optional int32 dirIndex = 8;</code>
-   */
-  public int getDirIndex() {
-    return dirIndex_;
-  }
-
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -387,9 +366,6 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 7, mediumType_);
-    }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
-      output.writeInt32(8, dirIndex_);
     }
     unknownFields.writeTo(output);
   }
@@ -424,10 +400,6 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, mediumType_);
-    }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(8, dirIndex_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -480,11 +452,6 @@ private static final long serialVersionUID = 0L;
       result = result && getMediumType()
           .equals(other.getMediumType());
     }
-    result = result && (hasDirIndex() == other.hasDirIndex());
-    if (hasDirIndex()) {
-      result = result && (getDirIndex()
-          == other.getDirIndex());
-    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -527,10 +494,6 @@ private static final long serialVersionUID = 0L;
     if (hasMediumType()) {
       hash = (37 * hash) + MEDIUMTYPE_FIELD_NUMBER;
       hash = (53 * hash) + getMediumType().hashCode();
-    }
-    if (hasDirIndex()) {
-      hash = (37 * hash) + DIRINDEX_FIELD_NUMBER;
-      hash = (53 * hash) + getDirIndex();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -680,8 +643,6 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000020);
       mediumType_ = "";
       bitField0_ = (bitField0_ & ~0x00000040);
-      dirIndex_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000080);
       return this;
     }
 
@@ -738,10 +699,6 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000040;
       }
       result.mediumType_ = mediumType_;
-      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
-        to_bitField0_ |= 0x00000080;
-      }
-      result.dirIndex_ = dirIndex_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -808,9 +765,6 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00000040;
         mediumType_ = other.mediumType_;
         onChanged();
-      }
-      if (other.hasDirIndex()) {
-        setDirIndex(other.getDirIndex());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1322,38 +1276,6 @@ private static final long serialVersionUID = 0L;
   }
   bitField0_ |= 0x00000040;
       mediumType_ = value;
-      onChanged();
-      return this;
-    }
-
-    private int dirIndex_ ;
-    /**
-     * <code>optional int32 dirIndex = 8;</code>
-     */
-    public boolean hasDirIndex() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
-    }
-    /**
-     * <code>optional int32 dirIndex = 8;</code>
-     */
-    public int getDirIndex() {
-      return dirIndex_;
-    }
-    /**
-     * <code>optional int32 dirIndex = 8;</code>
-     */
-    public Builder setDirIndex(int value) {
-      bitField0_ |= 0x00000080;
-      dirIndex_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional int32 dirIndex = 8;</code>
-     */
-    public Builder clearDirIndex() {
-      bitField0_ = (bitField0_ & ~0x00000080);
-      dirIndex_ = 0;
       onChanged();
       return this;
     }

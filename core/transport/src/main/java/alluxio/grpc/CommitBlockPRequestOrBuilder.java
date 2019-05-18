@@ -127,13 +127,4 @@ public interface CommitBlockPRequestOrBuilder extends
    */
   com.google.protobuf.ByteString
       getMediumTypeBytes();
-
-  /**
-   * <code>optional int32 dirIndex = 8;</code>
-   */
-  boolean hasDirIndex();
-  /**
-   * <code>optional int32 dirIndex = 8;</code>
-   */
-  int getDirIndex();
 }
