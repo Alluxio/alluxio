@@ -219,7 +219,7 @@ public class BlockMasterTest {
     mBlockMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
-    mBlockMaster.commitBlock(worker1, 50L, "MEM", 0, "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(worker1, 50L, "MEM", "MEM", blockId, 20L);
 
     // Remove the block
     mBlockMaster.removeBlocks(Arrays.asList(1L), /*delete=*/false);
@@ -273,7 +273,7 @@ public class BlockMasterTest {
         ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
     long blockId = 1L;
-    mBlockMaster.commitBlock(worker, 50L, "MEM", 0, "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(worker, 50L, "MEM", "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(worker, null, ImmutableMap.of("MEM", 0L),
@@ -295,7 +295,7 @@ public class BlockMasterTest {
 
     // Commit blockId to worker1.
     long blockId = 1L;
-    mBlockMaster.commitBlock(worker1, 50L, "MEM", 0, "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(worker1, 50L, "MEM", "MEM", blockId, 20L);
 
     // Send a heartbeat from worker2 saying that it's added blockId.
     List<Long> addedBlocks = ImmutableList.of(blockId);
@@ -366,7 +366,7 @@ public class BlockMasterTest {
     mBlockMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
-    mBlockMaster.commitBlock(worker1, 50L, "MEM", 0, "MEM", blockId, blockLength);
+    mBlockMaster.commitBlock(worker1, 50L, "MEM", "MEM", blockId, blockLength);
 
     BlockLocation blockLocation = new BlockLocation()
         .setTierAlias("MEM")

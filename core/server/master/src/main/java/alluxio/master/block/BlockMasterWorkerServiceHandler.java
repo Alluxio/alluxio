@@ -98,7 +98,7 @@ public final class BlockMasterWorkerServiceHandler
     final int dirIndex = request.getDirIndex();
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
-      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, dirIndex,
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
           mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
     }, "commitBlock", "request=%s", responseObserver, request);
