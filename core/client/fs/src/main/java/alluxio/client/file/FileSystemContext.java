@@ -333,18 +333,19 @@ public final class FileSystemContext implements Closeable {
    *
    * @param updateClusterConf whether cluster level configuration should be updated
    * @param updatePathConf whether path level configuration should be updated
+   * @return whether reinitialization runs and succeeds
    * @throws UnavailableException when failed to load configuration from master
    * @throws IOException when failed to close the context
    */
-  public void reinit(boolean updateClusterConf, boolean updatePathConf)
+  public boolean reinit(boolean updateClusterConf, boolean updatePathConf)
       throws UnavailableException, IOException {
     if (!mReinitLock.writeLock().tryLock()) {
-      return;
+      return false;
     }
     try {
       Optional<CountResource> resource = mReinitializer.acquireAllowResource();
       if (!resource.isPresent()) {
-        return;
+        return false;
       }
       try (CountResource r = resource.get()) {
         InetSocketAddress masterAddr;
@@ -363,9 +364,9 @@ public final class FileSystemContext implements Closeable {
               + "meta master (%s) during reinitialization", masterAddr), e);
         }
         closeContext();
-        initContext(getClientContext(),
-            MasterInquireClient.Factory.create(getClusterConf()));
+        initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf()));
         mReinitializer.onSuccess();
+        return true;
       }
     } finally {
       mReinitLock.writeLock().unlock();
