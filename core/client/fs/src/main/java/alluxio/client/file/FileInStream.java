@@ -12,8 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.BoundedStream;
@@ -23,11 +21,14 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.retry.CountingRetry;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -101,26 +102,31 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context)
       throws IOException {
-    mContext = context;
     mCloser = Closer.create();
-    // Acquire a lock to block FileSystemContext reinitialization, this needs to be done before
+    // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
     // using mContext.
-    // The lock will be released in close().
+    // The resource will be released in close().
+    mContext = context;
     mCloser.register(mContext.acquireBlockReinitResource());
-    AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
-    mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-    mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
-    mStatus = status;
-    mOptions = options;
-    mBlockStore = AlluxioBlockStore.create(mContext);
-
-    mLength = mStatus.getLength();
-    mBlockSize = mStatus.getBlockSizeBytes();
-
-    mPosition = 0;
-    mBlockInStream = null;
-    mCachedPositionedReadStream = null;
-    mLastBlockIdCached = 0;
+    try {
+      AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
+      mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
+      mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
+      mStatus = status;
+      mOptions = options;
+      mBlockStore = AlluxioBlockStore.create(mContext);
+      mLength = mStatus.getLength();
+      mBlockSize = mStatus.getBlockSizeBytes();
+      mPosition = 0;
+      mBlockInStream = null;
+      mCachedPositionedReadStream = null;
+      mLastBlockIdCached = 0;
+    } catch (Throwable t) {
+      // If there is any exception, including RuntimeException such as thrown by conf.getBoolean,
+      // release the acquired resource, otherwise, FileSystemContext reinitialization will be
+      // blocked forever.
+      throw CommonUtils.closeAndRethrow(mCloser, t);
+    }
   }
 
   /* Input Stream methods */
