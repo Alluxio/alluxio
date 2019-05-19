@@ -412,11 +412,10 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
     GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
-            .toBuilder().mergeFrom(getStatusOptions).build())).thenReturn(status);
+    when(mFileSystemMasterClient.getStatus(file, GetStatusPOptions.getDefaultInstance()))
+        .thenReturn(status);
     mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
-    verify(mFileSystemMasterClient).getStatus(file,
-        FileSystemOptions.getStatusDefaults(mConf).toBuilder().mergeFrom(getStatusOptions).build());
+    verify(mFileSystemMasterClient).getStatus(file, GetStatusPOptions.getDefaultInstance());
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -428,8 +427,7 @@ public final class BaseFileSystemTest {
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
-        .toBuilder().mergeFrom(getStatusOptions).build())).thenThrow(EXCEPTION);
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
     try {
       mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
