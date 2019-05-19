@@ -1,0 +1,248 @@
+/* eslint react/no-find-dom-node: 0 */
+// https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-find-dom-node.md
+
+import React from 'react';
+import PropTypes from 'prop-types';
+import ReactDOM from 'react-dom';
+import { Manager } from 'react-popper';
+import classNames from 'classnames';
+import { mapToCssModules, omit, keyCodes, deprecated, tagPropType } from './utils';
+
+const propTypes = {
+  disabled: PropTypes.bool,
+  dropup: deprecated(PropTypes.bool, 'Please use the prop "direction" with the value "up".'),
+  direction: PropTypes.oneOf(['up', 'down', 'left', 'right']),
+  group: PropTypes.bool,
+  isOpen: PropTypes.bool,
+  nav: PropTypes.bool,
+  active: PropTypes.bool,
+  addonType: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(['prepend', 'append'])]),
+  size: PropTypes.string,
+  tag: tagPropType,
+  toggle: PropTypes.func,
+  children: PropTypes.node,
+  className: PropTypes.string,
+  cssModule: PropTypes.object,
+  inNavbar: PropTypes.bool,
+  setActiveFromChild: PropTypes.bool,
+};
+
+const defaultProps = {
+  isOpen: false,
+  direction: 'down',
+  nav: false,
+  active: false,
+  addonType: false,
+  inNavbar: false,
+  setActiveFromChild: false
+};
+
+const childContextTypes = {
+  toggle: PropTypes.func.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  direction: PropTypes.oneOf(['up', 'down', 'left', 'right']).isRequired,
+  inNavbar: PropTypes.bool.isRequired,
+};
+
+class Dropdown extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.addEvents = this.addEvents.bind(this);
+    this.handleDocumentClick = this.handleDocumentClick.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.removeEvents = this.removeEvents.bind(this);
+    this.toggle = this.toggle.bind(this);
+  }
+
+  getChildContext() {
+    return {
+      toggle: this.props.toggle,
+      isOpen: this.props.isOpen,
+      direction: (this.props.direction === 'down' && this.props.dropup) ? 'up' : this.props.direction,
+      inNavbar: this.props.inNavbar,
+    };
+  }
+
+  componentDidMount() {
+    this.handleProps();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.isOpen !== prevProps.isOpen) {
+      this.handleProps();
+    }
+  }
+
+  componentWillUnmount() {
+    this.removeEvents();
+  }
+
+  getContainer() {
+    if (this._$container) return this._$container;
+    this._$container = ReactDOM.findDOMNode(this);
+    return ReactDOM.findDOMNode(this);
+  }
+
+  getMenuCtrl() {
+    if (this._$menuCtrl) return this._$menuCtrl;
+    this._$menuCtrl = this.getContainer().querySelector('[aria-expanded]');
+    return this._$menuCtrl;
+  }
+
+  getMenuItems() {
+    return [].slice.call(this.getContainer().querySelectorAll('[role="menuitem"]'));
+  }
+
+  addEvents() {
+    ['click', 'touchstart', 'keyup'].forEach(event =>
+      document.addEventListener(event, this.handleDocumentClick, true)
+    );
+  }
+
+  removeEvents() {
+    ['click', 'touchstart', 'keyup'].forEach(event =>
+      document.removeEventListener(event, this.handleDocumentClick, true)
+    );
+  }
+
+  handleDocumentClick(e) {
+    if (e && (e.which === 3 || (e.type === 'keyup' && e.which !== keyCodes.tab))) return;
+    const container = this.getContainer();
+
+    if (container.contains(e.target) && container !== e.target && (e.type !== 'keyup' || e.which === keyCodes.tab)) {
+      return;
+    }
+
+    this.toggle(e);
+  }
+
+  handleKeyDown(e) {
+    if (
+      /input|textarea/i.test(e.target.tagName)
+      || (keyCodes.tab === e.which && e.target.getAttribute('role') !== 'menuitem')
+    ) {
+      return;
+    }
+
+    e.preventDefault();
+
+    if (this.props.disabled) return;
+
+    if (this.getMenuCtrl() === e.target) {
+      if (
+        !this.props.isOpen
+        && ([keyCodes.space, keyCodes.enter, keyCodes.up, keyCodes.down].indexOf(e.which) > -1)
+      ) {
+        this.toggle(e);
+        setTimeout(() => this.getMenuItems()[0].focus());
+      }
+    }
+
+    if (this.props.isOpen && (e.target.getAttribute('role') === 'menuitem')) {
+      if ([keyCodes.tab, keyCodes.esc].indexOf(e.which) > -1) {
+        this.toggle(e);
+        this.getMenuCtrl().focus();
+      } else if ([keyCodes.space, keyCodes.enter].indexOf(e.which) > -1) {
+        e.target.click();
+        this.getMenuCtrl().focus();
+      } else if (
+        [keyCodes.down, keyCodes.up].indexOf(e.which) > -1
+        || ([keyCodes.n, keyCodes.p].indexOf(e.which) > -1 && e.ctrlKey)
+      ) {
+        const $menuitems = this.getMenuItems();
+        let index = $menuitems.indexOf(e.target);
+        if (keyCodes.up === e.which || (keyCodes.p === e.which && e.ctrlKey)) {
+          index = index !== 0 ? index - 1 : $menuitems.length - 1;
+        } else if (keyCodes.down === e.which || (keyCodes.n === e.which && e.ctrlKey)) {
+          index = index === $menuitems.length - 1 ? 0 : index + 1;
+        }
+        $menuitems[index].focus();
+      } else if (keyCodes.end === e.which) {
+        const $menuitems = this.getMenuItems();
+        $menuitems[$menuitems.length - 1].focus();
+      } else if (keyCodes.home === e.which) {
+        const $menuitems = this.getMenuItems();
+        $menuitems[0].focus();
+      } else if ((e.which >= 48) && (e.which <= 90)) {
+        const $menuitems = this.getMenuItems();
+        const charPressed = String.fromCharCode(e.which).toLowerCase();
+        for (let i = 0; i < $menuitems.length; i += 1) {
+          const firstLetter = $menuitems[i].textContent && $menuitems[i].textContent[0].toLowerCase();
+          if (firstLetter === charPressed) {
+            $menuitems[i].focus();
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  handleProps() {
+    if (this.props.isOpen) {
+      this.addEvents();
+    } else {
+      this.removeEvents();
+    }
+  }
+
+  toggle(e) {
+    if (this.props.disabled) {
+      return e && e.preventDefault();
+    }
+
+    return this.props.toggle(e);
+  }
+
+  render() {
+    const {
+      className,
+      cssModule,
+      dropup,
+      isOpen,
+      group,
+      size,
+      nav,
+      setActiveFromChild,
+      active,
+      addonType,
+      ...attrs
+    } = omit(this.props, ['toggle', 'disabled', 'inNavbar', 'direction']);
+
+    const direction = (this.props.direction === 'down' && dropup) ? 'up' : this.props.direction;
+
+    attrs.tag = attrs.tag || (nav ? 'li' : 'div');
+
+    let subItemIsActive = false;
+    if (setActiveFromChild) {
+      React.Children.map(this.props.children[1].props.children,
+        (dropdownItem) => {
+          if (dropdownItem && dropdownItem.props.active) subItemIsActive = true;
+        }
+      );
+    }
+
+    const classes = mapToCssModules(classNames(
+      className,
+      direction !== 'down' && `drop${direction}`,
+      nav && active ? 'active' : false,
+      setActiveFromChild && subItemIsActive ? 'active' : false,
+      {
+        [`input-group-${addonType}`]: addonType,
+        'btn-group': group,
+        [`btn-group-${size}`]: !!size,
+        dropdown: !group && !addonType,
+        show: isOpen,
+        'nav-item': nav
+      }
+    ), cssModule);
+
+    return <Manager {...attrs} className={classes} onKeyDown={this.handleKeyDown} />;
+  }
+}
+
+Dropdown.propTypes = propTypes;
+Dropdown.defaultProps = defaultProps;
+Dropdown.childContextTypes = childContextTypes;
+
+export default Dropdown;

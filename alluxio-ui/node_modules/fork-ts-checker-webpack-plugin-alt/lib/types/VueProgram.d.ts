@@ -1,0 +1,23 @@
+import * as ts from 'typescript';
+import { FilesRegister } from './FilesRegister';
+import { FilesWatcher } from './FilesWatcher';
+import { TypeScriptInstance } from './TypeScriptInstance';
+interface ResolvedScript {
+    scriptKind: ts.ScriptKind;
+    content: string;
+}
+export declare class VueProgram {
+    static loadProgramConfig(typescript: TypeScriptInstance, configFile: string, compilerOptions: object): ts.ParsedCommandLine;
+    /**
+     * Search for default wildcard or wildcard from options, we only search for that in tsconfig CompilerOptions.paths.
+     * The path is resolved with thie given substitution and includes the CompilerOptions.baseUrl (if given).
+     * If no paths given in tsconfig, then the default substitution is '[tsconfig directory]/src'.
+     * (This is a fast, simplified inspiration of what's described here: https://github.com/Microsoft/TypeScript/issues/5039)
+     */
+    static resolveNonTsModuleName(moduleName: string, containingFile: string, basedir: string, options: ts.CompilerOptions): string;
+    static isVue(filePath: string): boolean;
+    static createProgram(typescript: TypeScriptInstance, programConfig: ts.ParsedCommandLine, basedir: string, files: FilesRegister, watcher: FilesWatcher, oldProgram: ts.Program): ts.Program;
+    private static getScriptKindByLang;
+    static resolveScriptBlock(content: string): ResolvedScript;
+}
+export {};

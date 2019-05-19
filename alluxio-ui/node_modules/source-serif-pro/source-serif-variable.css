@@ -1,0 +1,19 @@
+@font-face{
+    font-family: 'Source Serif Variable';
+    font-weight: 200 900;
+    font-style: normal;
+    font-stretch: normal;
+    src: url('VAR/SourceSerifVariable-Roman.ttf.woff2') format('woff2'),
+         url('VAR/SourceSerifVariable-Roman.ttf.woff') format('woff'),
+         url('VAR/SourceSerifVariable-Roman.ttf') format('truetype');
+}
+
+@font-face{
+    font-family: 'Source Serif Variable';
+    font-weight: 200 900;
+    font-style: italic;
+    font-stretch: normal;
+    src: url('VAR/SourceSerifVariable-Italic.ttf.woff2') format('woff2'),
+         url('VAR/SourceSerifVariable-Italic.ttf.woff') format('woff'),
+         url('VAR/SourceSerifVariable-Italic.ttf') format('truetype');
+}

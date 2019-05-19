@@ -1,0 +1,3 @@
+compiler tests compiler tests for tests/cases/compiler/forwardDeclaredCommonTypes01.ts Correct JS output for tests/cases/compiler/forwardDeclaredCommonTypes01.ts
+compiler tests compiler tests for tests/cases/compiler/forwardDeclaredCommonTypes01.ts Correct errors for tests/cases/compiler/forwardDeclaredCommonTypes01.ts
+compiler tests compiler tests for tests/cases/compiler/forwardDeclaredCommonTypes01.ts Correct type/symbol baselines for tests/cases/compiler/forwardDeclaredCommonTypes01.ts
