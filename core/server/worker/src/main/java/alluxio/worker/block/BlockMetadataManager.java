@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -263,6 +264,7 @@ public final class BlockMetadataManager {
    * @param blockId the id of the temp block
    * @return metadata of the block or null
    */
+  @Nullable
   public TempBlockMeta getTempBlockMetaOrNull(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {

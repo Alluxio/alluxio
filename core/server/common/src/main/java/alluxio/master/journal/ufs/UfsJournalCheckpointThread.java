@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.Master;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.ExceptionUtils;
@@ -26,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -76,13 +79,18 @@ public final class UfsJournalCheckpointThread extends Thread {
    */
   private long mNextSequenceNumberToCheckpoint;
 
+  /** A supplier of journal sinks for this journal. */
+  private final Supplier<Set<JournalSink>> mJournalSinks;
+
   /**
    * Creates a new instance of {@link UfsJournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
    * @param journal the journal
+   * @param journalSinks a supplier for journal sinks
    */
-  public UfsJournalCheckpointThread(Master master, UfsJournal journal) {
+  public UfsJournalCheckpointThread(Master master, UfsJournal journal,
+      Supplier<Set<JournalSink>> journalSinks) {
     mMaster = Preconditions.checkNotNull(master, "master");
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
@@ -91,6 +99,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     mJournalReader = new UfsJournalReader(mJournal, 0, false);
     mCheckpointPeriodEntries = ServerConfiguration.getLong(
         PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    mJournalSinks = journalSinks;
   }
 
   /**
@@ -167,6 +176,7 @@ public final class UfsJournalCheckpointThread extends Thread {
             entry = mJournalReader.getEntry();
             try {
               mMaster.processJournalEntry(entry);
+              JournalUtils.sinkAppend(mJournalSinks, entry);
             } catch (Throwable t) {
               JournalUtils.handleJournalReplayFailure(LOG, t,
                   "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);

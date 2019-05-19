@@ -348,7 +348,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL),
-          ServerConfiguration.global()));
+          ServerConfiguration.global(), mMasterContext.getUserState()));
     }
   }
 
@@ -606,8 +606,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   @Override
-  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
-      long length) throws NotFoundException, UnavailableException {
+  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, String mediumType,
+      long blockId, long length) throws NotFoundException, UnavailableException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
 
@@ -633,11 +633,11 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
               journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
             }
           }
-
           // Update the block metadata with the new worker location.
           mBlockStore.addLocation(blockId, BlockLocation.newBuilder()
               .setWorkerId(workerId)
               .setTier(tierAlias)
+              .setMediumType(mediumType)
               .build());
           // This worker has this block, so it is no longer lost.
           mLostBlocks.remove(blockId);
@@ -999,7 +999,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         // - only uses getters of final variables
         locations.add(new alluxio.wire.BlockLocation().setWorkerId(location.getWorkerId())
             .setWorkerAddress(workerInfo.getWorkerAddress())
-            .setTierAlias(location.getTier()));
+            .setTierAlias(location.getTier()).setMediumType(location.getMediumType()));
       }
     }
     return Optional.of(

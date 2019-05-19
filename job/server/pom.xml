@@ -31,9 +31,8 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>com.qmino</groupId>
-      <artifactId>miredot-annotations</artifactId>
-      <version>1.4.0</version>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -123,6 +122,34 @@
           </goals>
         </execution>
       </executions>
+    </plugin>
+
+    <!-- REST API documentation -->
+    <plugin>
+      <groupId>com.github.kongchen</groupId>
+      <artifactId>swagger-maven-plugin</artifactId>
+      <configuration>
+        <apiSources>
+          <apiSource>
+            <springmvc>false</springmvc>
+            <schemes>http</schemes>
+            <host>[Alluxio Job Master or Job Worker Hostname]</host>
+            <basePath>/api/v1</basePath>
+            <info>
+              <version>v1</version>
+              <title>Alluxio Job Service REST API Documentation</title>
+              <description>
+                The Alluxio Job Master is a component of the Job Service that coordinates Alluxio Job Workers to execute distributed tasks scheduled by the Alluxio system.
+                The Alluxio Job Worker is a component of the Job Service that executes various I/O intensive tasks scheduled by the Alluxio system.
+              </description>
+            </info>
+            <locations>alluxio.master;alluxio.worker</locations>
+            <templatePath>${project.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
+            <outputPath>${project.parent.parent.basedir}/generated/job/index.html</outputPath>
+            <swaggerDirectory>${project.parent.parent.basedir}/generated/job/swagger-ui</swaggerDirectory>
+          </apiSource>
+        </apiSources>
+      </configuration>
     </plugin>
   </plugins>
   </build>

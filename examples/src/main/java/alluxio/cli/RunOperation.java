@@ -19,6 +19,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -138,7 +139,7 @@ public class RunOperation {
     }
 
     private void applyOperation() throws IOException, AlluxioException {
-      AlluxioURI uri = new AlluxioURI(String.format("%s/%s", mDir, UUID.randomUUID()));
+      AlluxioURI uri = new AlluxioURI(PathUtils.concatPath(mDir, UUID.randomUUID()));
       switch (mOperation) {
         case CreateEmptyFile:
           mFileSystem.createFile(uri).close();

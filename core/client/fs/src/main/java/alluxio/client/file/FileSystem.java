@@ -13,10 +13,10 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.annotation.PublicApi;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -40,6 +40,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
+import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -55,7 +56,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +103,9 @@ public interface FileSystem extends Closeable {
     public static FileSystem get(Subject subject) {
       Preconditions.checkNotNull(subject, "subject");
       AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-      FileSystemKey key = new FileSystemKey(subject, conf);
+      // TODO(gpang): should this key use the UserState instead of subject?
+      FileSystemKey key =
+          new FileSystemKey(UserState.Factory.create(conf, subject).getSubject(), conf);
       return FILESYSTEM_CACHE.get(key);
     }
 
@@ -136,7 +138,7 @@ public interface FileSystem extends Closeable {
         // Sort properties by name to keep output ordered.
         AlluxioConfiguration conf = context.getClusterConf();
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
-        Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
+        keys.sort(Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
           String value = conf.getOrDefault(key, null);
           Source source = conf.getSource(key);
@@ -215,7 +217,7 @@ public interface FileSystem extends Closeable {
     }
 
     public FileSystemKey(ClientContext ctx) {
-      this(ctx.getSubject(), ctx.getConf());
+      this(ctx.getSubject(), ctx.getClusterConf());
     }
 
     @Override

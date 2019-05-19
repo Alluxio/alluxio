@@ -34,11 +34,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -69,22 +69,12 @@ public interface UnderFileSystem extends Closeable {
      * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
      * only be used for journal operations and tests.
      *
-     * @param path the file path storing over the ufs
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
-      return create(path, UnderFileSystemConfiguration.defaults(conf), conf);
-    }
-
-    /**
-     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
-     * only be used for journal operations and tests.
-     *
      * @param path journal path in ufs
+     * @param conf the configuration object w/o mount specific options
      * @return the instance of under file system for Alluxio journal directory
      */
-    public static UnderFileSystem create(URI path, AlluxioConfiguration conf) {
-      return create(path.toString(), conf);
+    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
+      return create(path, UnderFileSystemConfiguration.defaults(conf));
     }
 
     /**
@@ -93,15 +83,13 @@ public interface UnderFileSystem extends Closeable {
      * path or if no under file system could successfully be created.
      *
      * @param path path
-     * @param ufsConf optional configuration object for the UFS, may be null
-     * @param alluxioConf Alluxio configuration
+     * @param ufsConf configuration object for the UFS
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf,
-        AlluxioConfiguration alluxioConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
-          UnderFileSystemFactoryRegistry.findAll(path, ufsConf, alluxioConf);
+          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -115,8 +103,7 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf, alluxioConf),
-              alluxioConf);
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
@@ -335,6 +322,7 @@ public interface UnderFileSystem extends Closeable {
    *         return null if ACL is unsupported or disabled
    * @throws IOException if ACL is supported and enabled but cannot be retrieved
    */
+  @Nullable
   Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path) throws IOException;
 
   /**
@@ -534,6 +522,7 @@ public interface UnderFileSystem extends Closeable {
    *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
+  @Nullable
   UfsStatus[] listStatus(String path) throws IOException;
 
   /**
@@ -556,6 +545,7 @@ public interface UnderFileSystem extends Closeable {
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
+  @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
@@ -705,7 +695,7 @@ public interface UnderFileSystem extends Closeable {
    *
    * @return true if this type of UFS supports flush, false otherwise
    */
-  boolean supportsFlush();
+  boolean supportsFlush() throws IOException;
 
   /**
    * Whether this type of UFS supports active sync.

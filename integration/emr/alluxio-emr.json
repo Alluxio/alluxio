@@ -1,0 +1,37 @@
+[
+  {     
+    "Classification": "hive-site",
+    "Properties": {
+      "alluxio.user.file.writetype.default": "CACHE_THROUGH",
+      "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
+    }
+  },
+  {
+    "Classification": "core-site",
+    "Properties": {
+      "alluxio.user.file.writetype.default": "CACHE_THROUGH"
+    }
+  },
+  {
+    "Classification": "presto-connector-hive",
+    "Properties": {
+      "hive.metastore": "glue",
+      "hive.force-local-scheduling": "true",
+      "hive.s3-file-system-type": "PRESTO"
+    }
+  },
+  {
+    "Classification": "hadoop-env",
+    "Properties": {
+
+    },
+    "Configurations": [
+      {
+        "Classification": "export",
+        "Properties": {
+          "HADOOP_CLASSPATH": "/opt/alluxio/client/alluxio-client.jar:${HADOOP_CLASSPATH}"
+        }
+      }
+    ]
+  }
+]

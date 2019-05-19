@@ -15,8 +15,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.ConfigProperties;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
@@ -24,6 +22,8 @@ import alluxio.master.Master;
 import alluxio.wire.Address;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -53,13 +53,12 @@ public interface MetaMaster extends Master {
    * @param options method options
    * @return configuration information list
    */
-  List<ConfigProperty> getConfiguration(GetConfigurationPOptions options);
+  Configuration getConfiguration(GetConfigurationPOptions options);
 
   /**
-   * @param options get configuration options
-   * @return a mapping from path to path level properties
+   * @return hashes of cluster and path level configuration
    */
-  Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options);
+  ConfigHash getConfigHash();
 
   /**
    * Sets properties for a path.
@@ -144,4 +143,11 @@ public interface MetaMaster extends Master {
    * @throws NotFoundException if masterId cannot be found
    */
   void masterRegister(long masterId, RegisterMasterPOptions options) throws NotFoundException;
+
+  /**
+   * Creates a checkpoint in the primary master journal system.
+   *
+   * @return the hostname of the master that did the checkpoint
+   */
+  String checkpoint() throws IOException;
 }

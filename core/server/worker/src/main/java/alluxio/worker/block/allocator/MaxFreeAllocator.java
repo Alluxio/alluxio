@@ -62,14 +62,22 @@ public final class MaxFreeAllocator implements Allocator {
 
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
-        candidateDirView = getCandidateDirInTier(tierView, blockSize);
+        candidateDirView = getCandidateDirInTier(tierView, blockSize,
+            BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
           break;
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      candidateDirView = getCandidateDirInTier(tierView, blockSize);
+      candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
+    } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
+        if (candidateDirView != null) {
+          break;
+        }
+      }
     } else {
       StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
       StorageDirView dirView = tierView.getDirView(location.dir());
@@ -86,13 +94,17 @@ public final class MaxFreeAllocator implements Allocator {
    *
    * @param tierView the storage tier view
    * @param blockSize the size of block in bytes
+   * @param mediumType the medium type that must match
    * @return the storage directory view if found, null otherwise
    */
-  private StorageDirView getCandidateDirInTier(StorageTierView tierView, long blockSize) {
+  private StorageDirView getCandidateDirInTier(StorageTierView tierView, long blockSize,
+      String mediumType) {
     StorageDirView candidateDirView = null;
     long maxFreeBytes = blockSize - 1;
     for (StorageDirView dirView : tierView.getDirViews()) {
-      if (dirView.getAvailableBytes() > maxFreeBytes) {
+      if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
+          || dirView.getMediumType().equals(mediumType))
+          && dirView.getAvailableBytes() > maxFreeBytes) {
         maxFreeBytes = dirView.getAvailableBytes();
         candidateDirView = dirView;
       }

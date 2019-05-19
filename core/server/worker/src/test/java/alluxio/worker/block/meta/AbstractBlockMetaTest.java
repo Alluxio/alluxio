@@ -49,6 +49,7 @@ public class AbstractBlockMetaTest {
   private static final int TEST_TIER_ORDINAL = 0;
   private static final String TEST_TIER_ALIAS = "MEM";
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
+  private static final String[] TEST_TIER_MEDIUM_TYPES = {"MEM"};
   private StorageTier mTier;
   private StorageDir mDir;
   private AbstractBlockMetaForTest mBlockMeta;
@@ -61,7 +62,8 @@ public class AbstractBlockMetaTest {
     String testDirPath = mFolder.newFolder().getAbsolutePath();
     // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
-        TEST_TIER_ALIAS, new String[] {testDirPath}, TEST_TIER_CAPACITY_BYTES, null);
+        TEST_TIER_ALIAS, new String[] {testDirPath}, TEST_TIER_CAPACITY_BYTES,
+        TEST_TIER_MEDIUM_TYPES, null);
 
     mTier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
     mDir = mTier.getDir(0);
@@ -82,7 +84,7 @@ public class AbstractBlockMetaTest {
   @Test
   public void getBlockLocation() {
     BlockStoreLocation expectedLocation =
-        new BlockStoreLocation(mTier.getTierAlias(), mDir.getDirIndex());
+        new BlockStoreLocation(mTier.getTierAlias(), mDir.getDirIndex(), mDir.getDirMedium());
     Assert.assertEquals(expectedLocation, mBlockMeta.getBlockLocation());
   }
 

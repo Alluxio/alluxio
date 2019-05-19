@@ -18,7 +18,8 @@ import alluxio.RuntimeConstants;
 import alluxio.web.ProxyWebServer;
 import alluxio.wire.AlluxioProxyInfo;
 
-import com.qmino.miredot.annotations.ReturnType;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,6 +38,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for requesting general proxy information.
  */
 @NotThreadSafe
+@Api(value = "/proxy", description = "Alluxio Proxy Rest Service")
 @Path(AlluxioProxyRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioProxyRestServiceHandler {
@@ -70,7 +72,8 @@ public final class AlluxioProxyRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
-  @ReturnType("alluxio.wire.AlluxioProxyInfo")
+  @ApiOperation(value = "Get general Alluxio Proxy service information",
+      response = alluxio.wire.AlluxioProxyInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(() -> {

@@ -172,7 +172,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
+        any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
   }
 
@@ -191,7 +191,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
+        any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
   }
 
@@ -201,8 +201,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private UnderFileSystemFactory mountUnmount(FileSystem fs) throws Exception {
     SleepingUnderFileSystem sleepingUfs = new SleepingUnderFileSystem(new AlluxioURI("sleep:///"),
-        new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults(),
-        ServerConfiguration.global());
+        new SleepingUnderFileSystemOptions(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     SleepingUnderFileSystemFactory sleepingUfsFactory =
         new SleepingUnderFileSystemFactory(sleepingUfs);
     UnderFileSystemFactoryRegistry.register(sleepingUfsFactory);

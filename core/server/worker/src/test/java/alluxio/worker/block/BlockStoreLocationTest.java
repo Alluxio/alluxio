@@ -31,10 +31,12 @@ public final class BlockStoreLocationTest {
   public void newLocation() {
     String tierAlias = "SSD";
     int dirIndex = 3;
-    BlockStoreLocation loc = new BlockStoreLocation(tierAlias, dirIndex);
+    String mediumType = "SSD";
+    BlockStoreLocation loc = new BlockStoreLocation(tierAlias, dirIndex, mediumType);
     Assert.assertNotNull(loc);
     assertEquals(tierAlias, loc.tierAlias());
     assertEquals(dirIndex, loc.dir());
+    assertEquals(mediumType, loc.mediumType());
   }
 
   /**
@@ -49,6 +51,8 @@ public final class BlockStoreLocationTest {
         BlockStoreLocation.anyDirInTier("HDD");
     BlockStoreLocation dirInMEM = new BlockStoreLocation("MEM", 1);
     BlockStoreLocation dirInHDD = new BlockStoreLocation("HDD", 2);
+    BlockStoreLocation dirWithMediumType = new BlockStoreLocation("MEM", 1, "MEM");
+    BlockStoreLocation anyTierWithMEM = BlockStoreLocation.anyDirInTierWithMedium("MEM");
 
     assertTrue(anyTier.belongsTo(anyTier));
     assertFalse(anyTier.belongsTo(anyDirInTierMEM));
@@ -79,6 +83,9 @@ public final class BlockStoreLocationTest {
     assertTrue(dirInHDD.belongsTo(anyDirInTierHDD));
     assertFalse(dirInHDD.belongsTo(dirInMEM));
     assertTrue(dirInHDD.belongsTo(dirInHDD));
+
+    assertTrue(dirWithMediumType.belongsTo(anyTierWithMEM));
+    assertTrue(anyTierWithMEM.belongsTo(anyTier));
   }
 
   /**

@@ -115,7 +115,8 @@ public final class GreedyEvictor implements Evictor {
       } else {
         StorageTierView dstTier = dstDir.getParentTierView();
         toTransfer.add(new BlockTransferInfo(block.getBlockId(), block.getBlockLocation(),
-            new BlockStoreLocation(dstTier.getTierViewAlias(), dstDir.getDirViewIndex())));
+            new BlockStoreLocation(dstTier.getTierViewAlias(), dstDir.getDirViewIndex(),
+                dstDir.getMediumType())));
         if (pendingBytesInDir.containsKey(dstDir)) {
           pendingBytesInDir.put(dstDir, pendingBytesInDir.get(dstDir) + block.getBlockSize());
         } else {

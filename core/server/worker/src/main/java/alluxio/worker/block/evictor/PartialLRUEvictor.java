@@ -44,7 +44,8 @@ public class PartialLRUEvictor extends LRUEvictor {
     StorageDirView candidateDirView =
         EvictorUtils.getDirWithMaxFreeSpace(bytesToBeAvailable, location, mManagerView);
     if (candidateDirView != null) {
-      return new BlockStoreLocation(location.tierAlias(), candidateDirView.getDirViewIndex());
+      return new BlockStoreLocation(location.tierAlias(), candidateDirView.getDirViewIndex(),
+          candidateDirView.getMediumType());
     } else {
       return location;
     }

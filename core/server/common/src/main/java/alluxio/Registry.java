@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
@@ -114,7 +113,7 @@ public class Registry<T extends Server<U>, U> {
    */
   public List<T> getServers() {
     List<T> servers = new ArrayList<>(mRegistry.values());
-    Collections.sort(servers, new DependencyComparator());
+    servers.sort(new DependencyComparator());
     return servers;
   }
 

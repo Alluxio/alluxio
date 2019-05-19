@@ -227,6 +227,12 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    for (int i = 0; i < getMetricsCount(); i++) {
+      if (!getMetrics(i).isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -571,6 +577,11 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      for (int i = 0; i < getMetricsCount(); i++) {
+        if (!getMetrics(i).isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 

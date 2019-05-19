@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private ScheduleAsyncPersistencePOptions() {
+    persistenceWaitTime_ = 0L;
   }
 
   @java.lang.Override
@@ -60,6 +61,11 @@ private static final long serialVersionUID = 0L;
               commonOptions_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000001;
+            break;
+          }
+          case 16: {
+            bitField0_ |= 0x00000002;
+            persistenceWaitTime_ = input.readInt64();
             break;
           }
         }
@@ -108,6 +114,21 @@ private static final long serialVersionUID = 0L;
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
 
+  public static final int PERSISTENCEWAITTIME_FIELD_NUMBER = 2;
+  private long persistenceWaitTime_;
+  /**
+   * <code>optional int64 persistenceWaitTime = 2;</code>
+   */
+  public boolean hasPersistenceWaitTime() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional int64 persistenceWaitTime = 2;</code>
+   */
+  public long getPersistenceWaitTime() {
+    return persistenceWaitTime_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -123,6 +144,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       output.writeMessage(1, getCommonOptions());
     }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      output.writeInt64(2, persistenceWaitTime_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -134,6 +158,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getCommonOptions());
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(2, persistenceWaitTime_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -156,6 +184,11 @@ private static final long serialVersionUID = 0L;
       result = result && getCommonOptions()
           .equals(other.getCommonOptions());
     }
+    result = result && (hasPersistenceWaitTime() == other.hasPersistenceWaitTime());
+    if (hasPersistenceWaitTime()) {
+      result = result && (getPersistenceWaitTime()
+          == other.getPersistenceWaitTime());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -170,6 +203,11 @@ private static final long serialVersionUID = 0L;
     if (hasCommonOptions()) {
       hash = (37 * hash) + COMMONOPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getCommonOptions().hashCode();
+    }
+    if (hasPersistenceWaitTime()) {
+      hash = (37 * hash) + PERSISTENCEWAITTIME_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getPersistenceWaitTime());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -307,6 +345,8 @@ private static final long serialVersionUID = 0L;
         commonOptionsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000001);
+      persistenceWaitTime_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
@@ -339,6 +379,10 @@ private static final long serialVersionUID = 0L;
       } else {
         result.commonOptions_ = commonOptionsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        to_bitField0_ |= 0x00000002;
+      }
+      result.persistenceWaitTime_ = persistenceWaitTime_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -383,6 +427,9 @@ private static final long serialVersionUID = 0L;
       if (other == alluxio.grpc.ScheduleAsyncPersistencePOptions.getDefaultInstance()) return this;
       if (other.hasCommonOptions()) {
         mergeCommonOptions(other.getCommonOptions());
+      }
+      if (other.hasPersistenceWaitTime()) {
+        setPersistenceWaitTime(other.getPersistenceWaitTime());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -528,6 +575,38 @@ private static final long serialVersionUID = 0L;
         commonOptions_ = null;
       }
       return commonOptionsBuilder_;
+    }
+
+    private long persistenceWaitTime_ ;
+    /**
+     * <code>optional int64 persistenceWaitTime = 2;</code>
+     */
+    public boolean hasPersistenceWaitTime() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 persistenceWaitTime = 2;</code>
+     */
+    public long getPersistenceWaitTime() {
+      return persistenceWaitTime_;
+    }
+    /**
+     * <code>optional int64 persistenceWaitTime = 2;</code>
+     */
+    public Builder setPersistenceWaitTime(long value) {
+      bitField0_ |= 0x00000002;
+      persistenceWaitTime_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 persistenceWaitTime = 2;</code>
+     */
+    public Builder clearPersistenceWaitTime() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      persistenceWaitTime_ = 0L;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

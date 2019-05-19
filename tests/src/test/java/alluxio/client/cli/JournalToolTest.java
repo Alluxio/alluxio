@@ -65,7 +65,6 @@ public class JournalToolTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
               Integer.toString(CHECKPOINT_SIZE))
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "100")
-          .setProperty(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "1min")
           .build();
 
   private File mDumpDir;

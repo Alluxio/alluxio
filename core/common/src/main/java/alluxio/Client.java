@@ -45,4 +45,9 @@ public interface Client extends Closeable {
    * @return true if this client is connected to the remote
    */
   boolean isConnected();
+
+  /**
+   * @return whether the client is closed
+   */
+  boolean isClosed();
 }

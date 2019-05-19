@@ -12,6 +12,7 @@
 package alluxio.master.metastore.caching;
 
 import alluxio.Constants;
+import alluxio.master.metastore.ReadOption;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
@@ -85,8 +86,7 @@ public abstract class Cache<K, V> implements Closeable {
     mEvictionThread.setDaemon(true);
     // The eviction thread is started lazily when we first reach the high water mark.
 
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"),
-        () -> mMap.size());
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"), mMap::size);
   }
 
   /**
@@ -95,16 +95,16 @@ public abstract class Cache<K, V> implements Closeable {
    * If the value needs to be loaded, concurrent calls to get(key) will block while waiting for the
    * first call to finish loading the value.
    *
+   * If option.shouldSkipCache() is true, then the value loaded from the backing store will not be
+   * cached and the eviction thread will not be woken up.
+   *
    * @param key the key to get the value for
+   * @param option the read options
    * @return the value, or empty if the key doesn't exist in the cache or in the backing store
    */
-  public Optional<V> get(K key) {
-    if (cacheIsFull()) {
-      Entry entry = mMap.get(key);
-      if (entry == null) {
-        return load(key);
-      }
-      return Optional.ofNullable(entry.mValue);
+  public Optional<V> get(K key, ReadOption option) {
+    if (option.shouldSkipCache() || cacheIsFull()) {
+      return getSkipCache(key);
     }
     Entry result = mMap.compute(key, (k, entry) -> {
       if (entry != null) {
@@ -125,6 +125,29 @@ public abstract class Cache<K, V> implements Closeable {
     }
     wakeEvictionThreadIfNecessary();
     return Optional.of(result.mValue);
+  }
+
+  /**
+   * @param key the key to get the value for
+   * @return the result of {@link #get(Object, ReadOption)} with default option
+   */
+  public Optional<V> get(K key) {
+    return get(key, ReadOption.defaults());
+  }
+
+  /**
+   * Retrieves a value from the cache if already cached, otherwise, loads from the backing store
+   * without caching the value. Eviction is not triggered.
+   *
+   * @param key the key to get the value for
+   * @return the value, or empty if the key doesn't exist in the cache or in the backing store
+   */
+  private Optional<V> getSkipCache(K key) {
+    Entry entry = mMap.get(key);
+    if (entry == null) {
+      return load(key);
+    }
+    return Optional.ofNullable(entry.mValue);
   }
 
   /**

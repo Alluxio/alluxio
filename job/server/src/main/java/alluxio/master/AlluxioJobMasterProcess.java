@@ -24,6 +24,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
@@ -198,7 +199,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
-          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
+          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global(),
+          ServerUserState.global());
       registerServices(serverBuilder, mJobMaster.getServices());
 
       mGrpcServer = serverBuilder.build().start();

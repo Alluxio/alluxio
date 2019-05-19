@@ -87,14 +87,13 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
     conf.put(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT, "2sec");
     conf.put(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "3sec");
-    conf.put(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "3sec");
+    conf.put(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "10sec");
 
     // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
 
     // To keep tests fast, we should do more retries with a lower max wait time.
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
     conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
 
     // Do not engage safe mode by default since the worker is connected when test starts.
@@ -111,7 +110,7 @@ public final class ConfigurationTestUtils {
 
     conf.put(PropertyKey.WEB_THREADS, "1");
     conf.put(PropertyKey.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../alluxio-ui"));
+        PathUtils.concatPath(System.getProperty("user.dir"), "../webui"));
     conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");

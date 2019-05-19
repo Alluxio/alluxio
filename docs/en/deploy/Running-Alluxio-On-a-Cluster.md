@@ -29,7 +29,7 @@ The following sections describe how to install and configure Alluxio with a sing
 
 #### Alluxio download and installation
 
-To deploy Alluxio in a cluster, first [download](https://alluxio.org/download) the Alluxio tar file,
+To deploy Alluxio in a cluster, first [download](https://alluxio.io/download) the Alluxio tar file,
 and copy it to every node (master node, worker nodes). Extract the tarball to the same path on
 every node.
 
@@ -127,7 +127,7 @@ The common prerequisites of setting up HA cluster are:
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3. 
 
-To deploy Alluxio in a cluster, first [download](https://alluxio.org/download) the Alluxio tar file,
+To deploy Alluxio in a cluster, first [download](https://alluxio.io/download) the Alluxio tar file,
 and copy it to every node (master nodes, worker nodes). Extract the tarball to the same path on
 every node.
 
@@ -195,6 +195,14 @@ The configuration parameters which must be set are:
   and for standby masters to replay journal entries from. This shared shared storage system must be
   accessible by all master nodes.
   - Examples: `alluxio.master.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/`
+
+For clusters with large namespaces, increased CPU overhead on leader could cause delays on Zookeeper client heartbeats. 
+For this reason, we recommend setting Zookeeper client session timeout to at least 2 minutes on large clusters with namespace
+size more than several hundred millions of files.
+- `alluxio.zookeeper.session.timeout=120s`
+  - Zookeeper server's tick time must also be configured as such to allow
+    this timeout. The current implementation requires that the timeout be a minimum of 2 times the tickTime (as set in the server configuration) 
+    and a maximum of 20 times the tickTime.
 
 Make sure all master nodes and all worker nodes have configured their respective
 `conf/alluxio-site.properties` configuration file appropriately.

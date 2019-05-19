@@ -175,7 +175,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
               (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
     }
   }
 
