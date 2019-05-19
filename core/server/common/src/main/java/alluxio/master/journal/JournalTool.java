@@ -67,7 +67,6 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -176,10 +175,9 @@ public final class JournalTool {
     sMaster = cmd.getOptionValue("master", "FileSystemMaster");
     sStart = Long.decode(cmd.getOptionValue("start", "0"));
     sEnd = Long.decode(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
-    sInputDir = cmd.getOptionValue("inputDir", null);
-    if (sInputDir != null) {
-      sInputDir = new File(sInputDir).getAbsolutePath();
-    }
+    sInputDir = new File(
+        cmd.getOptionValue("inputDir", ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))
+            .getAbsolutePath();
     sOutputDir =
         new File(cmd.getOptionValue("outputDir", "journal_dump-" + System.currentTimeMillis()))
             .getAbsolutePath();
@@ -214,10 +212,10 @@ public final class JournalTool {
      * @param start journal start sequence
      * @param end journal end sequence
      * @param outputDir output dir for journal dump
-     * @param inputDir [optional] input dir for journal files
+     * @param inputDir input dir for journal files
      */
     public AbstractJournalDumper(String master, long start, long end, String outputDir,
-        @Nullable String inputDir) throws IOException {
+        String inputDir) throws IOException {
       mMaster = master;
       mStart = start;
       mEnd = end;
@@ -298,10 +296,10 @@ public final class JournalTool {
      * @param start journal start sequence number
      * @param end journal end sequence number
      * @param outputDir output dir for journal dump
-     * @param inputDir [optional] input dir for journal files
+     * @param inputDir input dir for journal files
      */
-    public UfsJournalDumper(String master, long start, long end, String outputDir,
-        @Nullable String inputDir) throws IOException {
+    public UfsJournalDumper(String master, long start, long end, String outputDir, String inputDir)
+        throws IOException {
       super(master, start, end, outputDir, inputDir);
     }
 
@@ -342,13 +340,8 @@ public final class JournalTool {
      * @return the journal location
      */
     private URI getJournalLocation(String inputDir) {
-      // Read from configuration if not provided.
-      if (inputDir == null) {
-        String journalDirectory = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-        if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
-          journalDirectory += AlluxioURI.SEPARATOR;
-        }
-        inputDir = journalDirectory;
+      if (!inputDir.endsWith(AlluxioURI.SEPARATOR)) {
+        inputDir += AlluxioURI.SEPARATOR;
       }
       try {
         return new URI(inputDir);
@@ -367,20 +360,15 @@ public final class JournalTool {
      * @param start journal start sequence
      * @param end journal end sequence
      * @param outputDir output dir for journal dump
-     * @param inputDir [optional] input dir for journal files
+     * @param inputDir input dir for journal files
      */
-    public RaftJournalDumper(String master, long start, long end, String outputDir,
-        @Nullable String inputDir) throws IOException {
+    public RaftJournalDumper(String master, long start, long end, String outputDir, String inputDir)
+        throws IOException {
       super(master, start, end, outputDir, inputDir);
     }
 
     @Override
     void dumpJournal() throws Throwable {
-      if (mInputDir == null) {
-        throw new IllegalArgumentException(
-            "For embedded journal, you need to provide -inputDir option "
-                + "that shows local journal directory.");
-      }
       readFromDir();
     }
 
