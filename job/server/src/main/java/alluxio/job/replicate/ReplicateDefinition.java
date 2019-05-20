@@ -97,6 +97,7 @@ public final class ReplicateDefinition
       RunTaskContext context) throws Exception {
     JobUtils.loadBlock(context.getFileSystem(), context.getFsContext(),
         config.getPath(), config.getBlockId());
+    LOG.info("Replicated file " + config.getPath() + " block " + config.getBlockId());
     return null;
   }
 }

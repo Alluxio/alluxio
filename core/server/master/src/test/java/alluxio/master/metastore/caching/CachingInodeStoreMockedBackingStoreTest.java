@@ -33,6 +33,7 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
 
 import com.google.common.collect.ImmutableMap;
@@ -199,7 +200,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
     for (int id = 100; id < 100 + CACHE_SIZE * 2; id++) {
       assertTrue(mStore.getChild(TEST_INODE_DIR, "child" + id).isPresent());
     }
-    verify(mBackingStore, Mockito.atLeastOnce()).getMutable(anyLong());
+    verify(mBackingStore, Mockito.atLeastOnce()).getMutable(anyLong(), any(ReadOption.class));
   }
 
   @Test
@@ -319,6 +320,17 @@ public class CachingInodeStoreMockedBackingStoreTest {
         new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     assertEquals(child.getName(), mStore.get(child.getId()).get().getName());
     assertEquals(child.getId(), mStore.getChild(0L, child.getName()).get().getId());
+  }
+
+  @Test
+  public void skipCache() throws Exception {
+    assertEquals(1, mStore.mInodeCache.getCacheMap().size());
+    mStore.mInodeCache.flush();
+    mStore.mInodeCache.clear();
+    assertEquals(0, mStore.mInodeCache.getCacheMap().size());
+    assertEquals(Inode.wrap(TEST_INODE_DIR),
+        mStore.get(TEST_INODE_ID, ReadOption.newBuilder().setSkipCache(true).build()).get());
+    assertEquals(0, mStore.mInodeCache.getCacheMap().size());
   }
 
   private void verifyNoBackingStoreReads() {

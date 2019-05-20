@@ -40,12 +40,12 @@ fs.oss.endpoint=<OSS_ENDPOINT>
 此处, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别为`Access Key ID`字符串和`Access Key Secret`字符串，均受阿里云[AccessKeys管理界面](https://ak-console.aliyun.com)管理；`fs.oss.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`。
 ([OSS Internet Endpoint](https://intl.aliyun.com/help/doc-detail/31837.htm))。
 
-更改完成后，Alluxio应该能够将OSS作为底层文件系统运行，你可以尝试[使用OSS在本地运行Alluxio](#running-alluxio-locally-with-s3)
+更改完成后，Alluxio应该能够将OSS作为底层文件系统运行，你可以尝试[使用OSS在本地运行Alluxio](#使用OSS在本地运行Alluxio)
 
 ### 嵌套目录安装
 
 OSS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 
-[Mount 命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将OSS容器内部的目录挂载到Alluxio的`/oss`目录
+[Mount 命令]({{ '/cn/basic/Command-Line-Interface.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将OSS容器内部的目录挂载到Alluxio的`/oss`目录
 
 ```bash 
 ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \

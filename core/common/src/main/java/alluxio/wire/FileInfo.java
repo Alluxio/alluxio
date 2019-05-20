@@ -22,7 +22,9 @@ import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -45,6 +47,7 @@ public final class FileInfo implements Serializable {
   private boolean mCompleted;
   private boolean mFolder;
   private boolean mPinned;
+  private Set<String> mMediumTypes = new HashSet<>();
   private boolean mCacheable;
   private boolean mPersisted;
   private ArrayList<Long> mBlockIds = new ArrayList<>();
@@ -296,6 +299,13 @@ public final class FileInfo implements Serializable {
   public List<String> convertDefaultAclToStringEntries() {
     // do not use getX as the name of the method, otherwise it will be used by json serialization
     return (mDefaultAcl == null) ? new ArrayList<>() : mDefaultAcl.toStringEntries();
+  }
+
+  /**
+   * @return a set of pinned locations
+   */
+  public Set<String> getMediumTypes() {
+    return mMediumTypes;
   }
 
   /**
@@ -575,6 +585,15 @@ public final class FileInfo implements Serializable {
     return this;
   }
 
+  /**
+   * @param mediumTypes the pinned locations
+   * @return the file information
+   */
+  public FileInfo setMediumTypes(Set<String> mediumTypes) {
+    mMediumTypes = mediumTypes;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -598,7 +617,8 @@ public final class FileInfo implements Serializable {
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
         && Objects.equal(mAcl, that.mAcl)
-        && Objects.equal(mDefaultAcl, that.mDefaultAcl);
+        && Objects.equal(mDefaultAcl, that.mDefaultAcl)
+        && Objects.equal(mMediumTypes, that.mMediumTypes);
   }
 
   @Override
@@ -607,7 +627,7 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode, mReplicationMax,
         mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction,
-        mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl);
+        mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
   }
 
   @Override
@@ -618,7 +638,8 @@ public final class FileInfo implements Serializable {
         .add("path", mPath)
         .add("ufsPath", mUfsPath).add("length", mLength).add("blockSizeBytes", mBlockSizeBytes)
         .add("creationTimeMs", mCreationTimeMs).add("completed", mCompleted).add("folder", mFolder)
-        .add("pinned", mPinned).add("cacheable", mCacheable).add("persisted", mPersisted)
+        .add("pinned", mPinned).add("pinnedlocation", mMediumTypes)
+        .add("cacheable", mCacheable).add("persisted", mPersisted)
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
         .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)

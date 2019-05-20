@@ -34,6 +34,7 @@ import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -182,7 +183,8 @@ public class BaseFileSystem implements FileSystem {
       URIStatus status = client.createFile(path, mergedOptions);
       LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
       OutStreamOptions outStreamOptions =
-          new OutStreamOptions(mergedOptions, mFsContext.getPathConf(path));
+          new OutStreamOptions(mergedOptions, mFsContext.getClientContext(),
+              mFsContext.getPathConf(path));
       outStreamOptions.setUfsPath(status.getUfsPath());
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
@@ -587,6 +589,8 @@ public class BaseFileSystem implements FileSystem {
       // A little sketchy, but this should be the only case that throws FailedPrecondition.
       throw new DirectoryNotEmptyException(e.getMessage());
     } catch (UnavailableException e) {
+      throw e;
+    } catch (UnauthenticatedException e) {
       throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();

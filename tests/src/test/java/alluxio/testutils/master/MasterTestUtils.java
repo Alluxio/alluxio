@@ -28,6 +28,8 @@ import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.security.user.ServerUserState;
+import alluxio.security.user.UserState;
 
 public class MasterTestUtils {
 
@@ -38,7 +40,19 @@ public class MasterTestUtils {
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
   public static MasterRegistry createLeaderFileSystemMasterFromJournal() throws Exception {
-    return createFileSystemMasterFromJournal(true);
+    return createFileSystemMasterFromJournal(true, null);
+  }
+
+  /**
+   * Creates a new leader {@link FileSystemMaster} from journal along with its dependencies, and
+   * returns the master registry containing that master.
+   *
+   * @param userState the user state for the server
+   * @return a master registry containing the created {@link FileSystemMaster} master
+   */
+  public static MasterRegistry createLeaderFileSystemMasterFromJournal(UserState userState)
+      throws Exception {
+    return createFileSystemMasterFromJournal(true, userState);
   }
 
   /**
@@ -48,7 +62,7 @@ public class MasterTestUtils {
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
   public static MasterRegistry createStandbyFileSystemMasterFromJournal() throws Exception {
-    return createFileSystemMasterFromJournal(false);
+    return createFileSystemMasterFromJournal(false, null);
   }
 
   /**
@@ -56,16 +70,20 @@ public class MasterTestUtils {
    * the master registry containing that master.
    *
    * @param isLeader whether to start as a leader
+   * @param userState the user state for the server. if null, will use ServerUserState.global()
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader)
-      throws Exception {
+  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader,
+      UserState userState) throws Exception {
     String masterJournal = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
     long startTimeMs = System.currentTimeMillis();
     int port = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
+    if (userState == null) {
+      userState = ServerUserState.global();
+    }
     CoreMasterContext masterContext = CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
         .setSafeModeManager(safeModeManager)
@@ -73,6 +91,7 @@ public class MasterTestUtils {
         .setBlockStoreFactory(() -> new HeapBlockStore())
         .setInodeStoreFactory(x -> new HeapInodeStore())
         .setStartTimeMs(startTimeMs)
+        .setUserState(userState)
         .setPort(port)
         .build();
     new MetricsMasterFactory().create(registry, masterContext);

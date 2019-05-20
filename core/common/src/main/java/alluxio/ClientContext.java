@@ -16,6 +16,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
@@ -44,9 +45,9 @@ public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
   private volatile String mClusterConfHash;
   private volatile PathConfiguration mPathConf;
+  private volatile UserState mUserState;
   private volatile String mPathConfHash;
   private volatile boolean mIsPathConfLoaded = false;
-  private final Subject mSubject;
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -80,18 +81,16 @@ public class ClientContext {
    * This constructor does not create a copy of the configuration.
    */
   protected ClientContext(ClientContext ctx) {
-    mSubject = ctx.getSubject();
     mClusterConf = ctx.getClusterConf();
     mPathConf = ctx.getPathConf();
+    mUserState = ctx.getUserState();
     mClusterConfHash = ctx.getClusterConfHash();
     mPathConfHash = ctx.getPathConfHash();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
-    if (subject != null) {
-      mSubject = subject;
-    } else {
-      mSubject = new Subject();
+    if (subject == null) {
+      subject = new Subject();
     }
     // Copy the properties so that future modification doesn't affect this ClientContext.
     if (alluxioConf != null) {
@@ -103,6 +102,7 @@ public class ClientContext {
       mClusterConfHash = mClusterConf.hash();
     }
     mPathConf = PathConfiguration.create(new HashMap<>());
+    mUserState = UserState.Factory.create(mClusterConf, subject);
   }
 
   /**
@@ -148,6 +148,7 @@ public class ClientContext {
   public synchronized void loadConfIfNotLoaded(InetSocketAddress address)
       throws AlluxioStatusException {
     loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
+    mUserState = UserState.Factory.create(mClusterConf, mUserState.getSubject());
   }
 
   /**
@@ -182,6 +183,13 @@ public class ClientContext {
    * @return the Subject backing this context
    */
   public Subject getSubject() {
-    return mSubject;
+    return mUserState.getSubject();
+  }
+
+  /**
+   * @return the UserState for this context
+   */
+  public UserState getUserState() {
+    return mUserState;
   }
 }

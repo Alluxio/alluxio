@@ -72,6 +72,8 @@ public final class Constants {
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
   public static final String HEADER_COS = "cos://";
+  public static final String HEADER_HTTP = "http://";
+  public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
 
   public static final int MAX_PORT = 65535;
@@ -194,6 +196,8 @@ public final class Constants {
   public static final int REPLICATION_MAX_INFINITY = -1;
 
   // Persistence
+  // The file should only be persisted after rename operation or persist CLI
+  public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
 

@@ -413,8 +413,6 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    * Tests directory creation.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void directory() throws Exception {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);

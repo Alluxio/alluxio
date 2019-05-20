@@ -34,6 +34,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryUtils;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.SyncPointInfo;
@@ -219,7 +220,7 @@ public class ActiveSyncManager implements Journaled {
       Future<?> future = getExecutor().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_UFS_SYNC,
               syncer, (int) ServerConfiguration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), ServerUserState.global()));
       mPollerMap.put(mountId, future);
     }
   }

@@ -20,6 +20,7 @@ import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
+import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -351,12 +352,10 @@ public final class NetworkAddressUtils {
    *
    * @param conf Alluxio configuration
    * @return the local hostname for the client
-   * @deprecated This should not be used anymore as the USER_HOSTNAME key is deprecated
    */
-  @Deprecated
   public static String getClientHostName(AlluxioConfiguration conf) {
-    if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-      return conf.get(PropertyKey.USER_HOSTNAME);
+    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -380,8 +379,8 @@ public final class NetworkAddressUtils {
         }
         break;
       case CLIENT:
-        if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-          return conf.get(PropertyKey.USER_HOSTNAME);
+        if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+          return conf.get(PropertyKey.LOCALITY_TIER_NODE);
         }
         break;
       case MASTER:
@@ -641,17 +640,18 @@ public final class NetworkAddressUtils {
    * @param address the network address to ping
    * @param serviceType the Alluxio service type
    * @param conf Alluxio configuration
+   * @param userState the UserState
    * @throws UnauthenticatedException If the user is not authenticated
    * @throws StatusRuntimeException If the host not reachable or does not serve the given service
    */
   public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType,
-      AlluxioConfiguration conf)
+      AlluxioConfiguration conf, UserState userState)
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
     GrpcChannel channel =
         GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).disableAuthentication()
-            .build();
+            .setSubject(userState.getSubject()).build();
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
           ServiceVersionClientServiceGrpc.newBlockingStub(channel);

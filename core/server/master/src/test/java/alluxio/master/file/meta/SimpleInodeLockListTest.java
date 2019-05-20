@@ -212,4 +212,105 @@ public class SimpleInodeLockListTest extends BaseInodeLockingTest {
     mLockList.unlockLastInode();
     assertEquals(LockMode.WRITE, mLockList.getLockMode());
   }
+
+  @Test
+  public void readAfterWrite() {
+    mLockList.lockRootEdge(LockMode.READ);
+    assertEquals(LockMode.READ, mLockList.getLockMode());
+    mLockList.lockInode(mRootDir, LockMode.WRITE);
+    assertEquals(LockMode.WRITE, mLockList.getLockMode());
+    mLockList.lockEdge(mRootDir, mDirA.getName(), LockMode.READ);
+    assertEquals(LockMode.WRITE, mLockList.getLockMode());
+
+    checkOnlyNodesReadLocked();
+    checkOnlyNodesWriteLocked(mRootDir);
+    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked(mDirA);
+  }
+
+  @Test
+  public void lockFromNonRootInode() {
+    mLockList.lockInode(mDirA, LockMode.READ);
+    mLockList.lockEdge(mDirA, mDirB.getName(), LockMode.WRITE);
+    mLockList.lockInode(mDirB, LockMode.WRITE);
+
+    checkOnlyNodesReadLocked(mDirA);
+    checkOnlyNodesWriteLocked(mDirB);
+    checkOnlyIncomingEdgesReadLocked();
+    checkOnlyIncomingEdgesWriteLocked(mDirB);
+  }
+
+  @Test
+  public void lockFromNonRootEdge() {
+    mLockList.lockEdge(mDirA, mDirB.getName(), LockMode.READ);
+    mLockList.lockInode(mDirB, LockMode.WRITE);
+    mLockList.lockEdge(mDirB, mFileC.getName(), LockMode.WRITE);
+
+    checkOnlyNodesReadLocked();
+    checkOnlyNodesWriteLocked(mDirB);
+    checkOnlyIncomingEdgesReadLocked(mDirB);
+    checkOnlyIncomingEdgesWriteLocked(mFileC);
+  }
+
+  @Test
+  public void lockRootEdgeWhenNotEmpty() {
+    mLockList.lockInode(mDirA, LockMode.READ);
+    mThrown.expect(IllegalStateException.class);
+    mLockList.lockRootEdge(LockMode.READ);
+  }
+
+  @Test
+  public void lockInodeAfterInode() {
+    mLockList.lockInode(mDirA, LockMode.READ);
+    mThrown.expect(IllegalStateException.class);
+    mLockList.lockInode(mDirB, LockMode.READ);
+  }
+
+  @Test
+  public void lockEdgeAfterEdge() {
+    mLockList.lockEdge(mDirA, mDirB.getName(), LockMode.READ);
+    mThrown.expect(IllegalStateException.class);
+    mLockList.lockEdge(mDirB, mFileC.getName(), LockMode.READ);
+  }
+
+  @Test
+  public void lockInodeAfterWrongEdge() {
+    mLockList.lockEdge(mDirA, mDirB.getName(), LockMode.READ);
+    mThrown.expect(IllegalStateException.class);
+    mLockList.lockInode(mFileC, LockMode.READ);
+  }
+
+  @Test
+  public void lockEdgeAfterWrongInode() {
+    mLockList.lockInode(mDirA, LockMode.READ);
+    mThrown.expect(IllegalStateException.class);
+    mLockList.lockEdge(mDirB, mFileC.getName(), LockMode.READ);
+  }
+
+  @Test
+  public void unlockEdgeAfterInode() {
+    mLockList.lockInode(mDirA, LockMode.READ);
+    mThrown.expect(IllegalStateException.class);
+    mLockList.unlockLastEdge();
+  }
+
+  @Test
+  public void unlockInodeAfterEdge() {
+    mLockList.lockEdge(mDirA, mDirB.getName(), LockMode.READ);
+    mThrown.expect(IllegalStateException.class);
+    mLockList.unlockLastInode();
+  }
+
+  @Test
+  public void numInodes() {
+    assertEquals(0, mLockList.numInodes());
+    mLockList.lockRootEdge(LockMode.READ);
+    assertEquals(0, mLockList.numInodes());
+    mLockList.lockInode(mRootDir, LockMode.READ);
+    assertEquals(1, mLockList.numInodes());
+    mLockList.lockEdge(mRootDir, mDirA.getName(), LockMode.READ);
+    assertEquals(1, mLockList.numInodes());
+    mLockList.lockInode(mDirA, LockMode.READ);
+    assertEquals(2, mLockList.numInodes());
+  }
 }

@@ -45,13 +45,22 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
    * inode.
    *
    * @param id an inode id
+   * @param option read options
    * @return the inode with the given id, if it exists
    */
-  Optional<MutableInode<?>> getMutable(long id);
+  Optional<MutableInode<?>> getMutable(long id, ReadOption option);
+
+  /**
+   * @param id an inode id
+   * @return the result of {@link #getMutable(long, ReadOption)} with default option
+   */
+  default Optional<MutableInode<?>> getMutable(long id) {
+    return getMutable(id, ReadOption.defaults());
+  }
 
   @Override
-  default Optional<Inode> get(long id) {
-    return getMutable(id).map(Inode::wrap);
+  default Optional<Inode> get(long id, ReadOption option) {
+    return getMutable(id, option).map(Inode::wrap);
   }
 
   /**

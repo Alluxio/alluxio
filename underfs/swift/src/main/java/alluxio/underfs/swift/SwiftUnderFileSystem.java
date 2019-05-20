@@ -111,9 +111,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       config.setMock(true);
       config.setMockAllowEveryone(true);
     } else {
-      if (conf.isSet(PropertyKey.SWIFT_API_KEY)) {
-        config.setPassword(conf.get(PropertyKey.SWIFT_API_KEY));
-      } else if (conf.isSet(PropertyKey.SWIFT_PASSWORD_KEY)) {
+      if (conf.isSet(PropertyKey.SWIFT_PASSWORD_KEY)) {
         config.setPassword(conf.get(PropertyKey.SWIFT_PASSWORD_KEY));
       }
       config.setAuthUrl(conf.get(PropertyKey.SWIFT_AUTH_URL_KEY));
@@ -230,7 +228,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       Container container = mAccount.getContainer(mContainerName);
       StoredObject object = container.getObject(key);

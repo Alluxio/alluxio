@@ -24,6 +24,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.security.user.UserState;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -54,10 +55,13 @@ public class SpaceReserverTest {
   public ManuallyScheduleHeartbeat mSchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.WORKER_SPACE_RESERVER);
 
+  private UserState mUserState;
+
   @Before
   public void before() {
     mExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("space-reserver-test", true));
+    mUserState = UserState.Factory.create(ServerConfiguration.global());
   }
 
   @After
@@ -81,7 +85,8 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1}, new String[] {"MEM", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
-        new long[][]{new long[]{0}, new long[]{0}}, "/");
+        new long[][]{new long[]{0}, new long[]{0}},
+        new String[][]{new String[]{"MEM"}, new String[]{"HDD"}}, "/");
 
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.81",
@@ -92,7 +97,7 @@ public class SpaceReserverTest {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0, ServerConfiguration.global()));
+          spaceReserver, 0, ServerConfiguration.global(), mUserState));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -122,7 +127,9 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
-        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
+        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}},
+        new String[][]{new String[]{"MEM"}, new String[]{"SSD"}, new String[]{"HDD"}},
+        "/");
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.9");
@@ -136,7 +143,7 @@ public class SpaceReserverTest {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0, ServerConfiguration.global()));
+          spaceReserver, 0, ServerConfiguration.global(), mUserState));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -168,7 +175,8 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[]{"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
-        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
+        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}},
+        new String[][]{new String[]{"MEM"}, new String[]{"SSD"}, new String[]{"HDD"}}, "/");
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.9");
@@ -182,7 +190,7 @@ public class SpaceReserverTest {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0, ServerConfiguration.global()));
+          spaceReserver, 0, ServerConfiguration.global(), mUserState));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -215,7 +223,8 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[]{"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
-        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
+        new long[][]{new long[]{0}, new long[]{0}, new long[]{0}},
+        new String[][]{new String[]{"MEM"}, new String[]{"SSD"}, new String[]{"HDD"}}, "/");
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.4");
@@ -229,7 +238,7 @@ public class SpaceReserverTest {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0, ServerConfiguration.global()));
+          spaceReserver, 0, ServerConfiguration.global(), mUserState));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);

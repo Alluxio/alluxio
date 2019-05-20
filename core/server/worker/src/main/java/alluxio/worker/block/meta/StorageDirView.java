@@ -191,6 +191,15 @@ public final class StorageDirView {
   }
 
   /**
+   * Get medium type of the dir view, which is derived from the dir.
+   *
+   * @return the medium type
+   */
+  public String getMediumType() {
+    return mDir.getDirMedium();
+  }
+
+  /**
    * Creates a {@link BlockStoreLocation} for this directory view. Redirecting to
    * {@link StorageDir#toBlockStoreLocation}
    *
