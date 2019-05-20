@@ -94,6 +94,8 @@ public final class ConfigHashSync implements HeartbeatExecutor {
       try {
         if (mContext.reinit(isClusterConfUpdated, isPathConfUpdated)) {
           mException = null;
+        } else {
+          LOG.warn("Failed to reinitialize FileSystemContext because there are ongoing RPCs.");
         }
       } catch (UnavailableException e) {
         LOG.error("Failed to reinitialize FileSystemContext:", e);

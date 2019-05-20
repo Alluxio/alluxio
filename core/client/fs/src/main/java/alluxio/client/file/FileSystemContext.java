@@ -29,6 +29,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.CountResource;
+import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
@@ -166,7 +167,7 @@ public final class FileSystemContext implements Closeable {
    * locked, the block resource must be able to be acquired because the reinitialization must not be
    * happening.
    */
-  private final ReentrantReadWriteLock mReinitLock = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock mReinitLock = new ReentrantReadWriteLock(true);
 
   /**
    * Creates a {@link FileSystemContext} with a null subject.
@@ -313,15 +314,12 @@ public final class FileSystemContext implements Closeable {
    * @return the resource
    */
   public CountResource acquireBlockReinitResource() {
-    mReinitLock.readLock().lock();
-    try {
+    try (LockResource r = new LockResource(mReinitLock.readLock())){
       Optional<CountResource> resource = mReinitializer.acquireResourceToBlockReinit();
       Preconditions.checkState(resource.isPresent(), "resource must be present");
       return resource.get();
     } catch (IOException e) {
       throw new RuntimeException(e);
-    } finally {
-      mReinitLock.readLock().unlock();
     }
   }
 
@@ -340,10 +338,7 @@ public final class FileSystemContext implements Closeable {
    */
   public boolean reinit(boolean updateClusterConf, boolean updatePathConf)
       throws UnavailableException, IOException {
-    if (!mReinitLock.writeLock().tryLock()) {
-      return false;
-    }
-    try {
+    try (LockResource r = new LockResource(mReinitLock.writeLock())){
       Optional<CountResource> resource = mReinitializer.acquireResourceToAllowReinit();
       if (!resource.isPresent()) {
         return false;
@@ -369,8 +364,6 @@ public final class FileSystemContext implements Closeable {
         mReinitializer.onSuccess();
         return true;
       }
-    } finally {
-      mReinitLock.writeLock().unlock();
     }
   }
 
