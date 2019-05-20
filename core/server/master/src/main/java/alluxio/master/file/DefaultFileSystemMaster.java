@@ -3400,7 +3400,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           inodeChildren.put(child.getName(), child);
         }
 
-        UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
+        UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString(),
+            ListOptions.defaults());
         // Iterate over UFS listings and process UFS children.
         if (listStatus != null) {
           for (UfsStatus ufsChildStatus : listStatus) {

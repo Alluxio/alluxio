@@ -21,7 +21,10 @@ import alluxio.wire.FileInfo;
 import alluxio.grpc.TtlAction;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 /**
  * Read-only view of an inode.
@@ -82,6 +85,12 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
    * @return the owner of the inode
    */
   String getOwner();
+
+  /**
+   * @return any extended attributes on the inode
+   */
+  @Nullable
+  Map<String, byte[]> getXAttr();
 
   /**
    * @return true if the inode is deleted, false otherwise

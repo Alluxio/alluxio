@@ -24,6 +24,7 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
@@ -396,7 +397,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtl(entry.getTtl())
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
-            Constants.INVALID_UFS_FINGERPRINT);
+            Constants.INVALID_UFS_FINGERPRINT)
+        .setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     if (entry.hasAcl()) {
       ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
@@ -415,6 +417,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
 
   /**
    * Creates an {@link MutableInodeFile}.
+   *
+   * Setting xAttributes is not yet supported on clients. It is intentionally left out.
    *
    * @param blockContainerId block container id of this inode
    * @param parentId id of the parent of this inode
@@ -453,8 +457,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
 
   @Override
   public JournalEntry toJournalEntry() {
-    InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+    InodeFileEntry.Builder inodeFile = InodeFileEntry.newBuilder()
         .addAllBlocks(getBlockIds())
+        .addAllMediumType(getMediumTypes())
         .setBlockSizeBytes(getBlockSizeBytes())
         .setCacheable(isCacheable())
         .setCompleted(isCompleted())
@@ -474,9 +479,10 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
-        .setAcl(ProtoUtils.toProto(mAcl))
-        .addAllMediumType(getMediumTypes())
-        .build();
+        .setAcl(ProtoUtils.toProto(mAcl));
+    if (getXAttr() != null) {
+      inodeFile.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
+    }
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
@@ -529,6 +535,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setPersistJobId(inode.getPersistJobId())
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath())
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()))
+        .setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
   }
 }

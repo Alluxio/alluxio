@@ -23,7 +23,10 @@ import alluxio.wire.FileInfo;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 /**
  * Base class for read only inodes.
@@ -88,6 +91,12 @@ public abstract class Inode implements InodeView {
   @Override
   public String getOwner() {
     return mDelegate.getOwner();
+  }
+
+  @Override
+  @Nullable
+  public Map<String, byte[]> getXAttr() {
+    return mDelegate.getXAttr();
   }
 
   @Override

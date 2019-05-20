@@ -27,6 +27,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.io.Closer;
+import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.netty.channel.Channel;
@@ -40,6 +41,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -625,6 +627,26 @@ public final class CommonUtils {
 
     return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
         mins, secs);
+  }
+
+  /**
+   * @param input the input map
+   * @return a map using protobuf {@link ByteString} for values instead of {@code byte[]}
+   */
+  public static Map<String, ByteString> convertToByteString(Map<String, byte[]> input) {
+    Map<String, ByteString> output = new HashMap<>(input.size());
+    input.forEach((k, v) -> output.put(k, ByteString.copyFrom(v)));
+    return output;
+  }
+
+  /**
+   * @param input the input map
+   * @return a map using {@code byte[]} for values instead of protobuf {@link ByteString}
+   */
+  public static Map<String, byte[]> convertFromByteString(Map<String, ByteString> input) {
+    Map<String, byte[]> output = new HashMap<>(input.size());
+    input.forEach((k, v) -> output.put(k, v.toByteArray()));
+    return output;
   }
 
   private CommonUtils() {} // prevent instantiation

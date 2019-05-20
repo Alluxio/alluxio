@@ -110,7 +110,8 @@ public final class OpenOptions {
       return false;
     }
     OpenOptions that = (OpenOptions) o;
-    return Objects.equal(mOffset, that.mOffset) && Objects.equal(mLength, that.mLength)
+    return Objects.equal(mOffset, that.mOffset)
+        && Objects.equal(mLength, that.mLength)
         && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen);
   }
 
