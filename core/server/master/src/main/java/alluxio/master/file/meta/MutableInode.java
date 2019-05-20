@@ -24,6 +24,7 @@ import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
@@ -33,8 +34,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -59,6 +62,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private Set<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
+  private Map<String, byte[]> mXAttr;
 
   protected MutableInode(long id, boolean isDirectory) {
     mCreationTimeMs = System.currentTimeMillis();
@@ -75,6 +79,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mMediumTypes = new HashSet<>();
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    mXAttr = null;
   }
 
   @Override
@@ -165,6 +170,12 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   @Override
   public AccessControlList getACL() {
     return mAcl;
+  }
+
+  @Override
+  @Nullable
+  public Map<String, byte[]> getXAttr() {
+    return mXAttr;
   }
 
   @Override
@@ -441,6 +452,15 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   /**
+   * @param xAttr The new set of extended attributes
+   * @return the updated object
+   */
+  public T setXAttr(Map<String, byte[]> xAttr) {
+    mXAttr = xAttr;
+    return getThis();
+  }
+
+  /**
    * @param mediumTypes the medium types to pin to
    * @return the updated object
    */
@@ -547,6 +567,9 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasUfsFingerprint()) {
       setUfsFingerprint(entry.getUfsFingerprint());
     }
+    if (entry.getXAttrCount() > 0) {
+      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+    }
     if (entry.getMediumTypeCount() != 0) {
       setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     }
@@ -592,11 +615,12 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .add("group", mAcl.getOwningGroup())
         .add("permission", mAcl.getMode())
         .add("ufsFingerprint", mUfsFingerprint)
-        .add("mediatypes", mMediumTypes);
+        .add("mediatypes", mMediumTypes)
+        .add("xAttr", mXAttr);
   }
 
   protected InodeMeta.Inode.Builder toProtoBuilder() {
-    return InodeMeta.Inode.newBuilder()
+    InodeMeta.Inode.Builder inode = InodeMeta.Inode.newBuilder()
         .setId(getId())
         .setCreationTimeMs(getCreationTimeMs())
         .setIsDirectory(isDirectory())
@@ -610,6 +634,10 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setAccessAcl(ProtoUtils.toProto(getACL()))
         .setUfsFingerprint(getUfsFingerprint())
         .addAllMediumType(getMediumTypes());
+    if (getXAttr() != null) {
+      inode.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
+    }
+    return inode;
   }
 
   /**

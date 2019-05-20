@@ -21,10 +21,12 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
 import java.util.HashSet;
 
 /**
@@ -111,6 +113,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
 
   /**
    * Generates client file info for a folder.
+   *
+   * xAttr is intentionally left out as the information is not yet exposed to clients
    *
    * @param path the path of the folder in the filesystem
    * @return the generated {@link FileInfo}
@@ -202,8 +206,11 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
     }
-
     ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    if (entry.getXAttrCount() > 0) {
+      ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+    }
+
     return ret;
   }
 
@@ -234,7 +241,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
 
   @Override
   public JournalEntry toJournalEntry() {
-    InodeDirectoryEntry inodeDirectory = InodeDirectoryEntry.newBuilder()
+    InodeDirectoryEntry.Builder inodeDirectory = InodeDirectoryEntry.newBuilder()
         .setCreationTimeMs(getCreationTimeMs())
         .setId(getId())
         .setName(getName())
@@ -248,8 +255,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setAcl(ProtoUtils.toProto(mAcl))
         .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
-        .addAllMediumType(getMediumTypes())
-        .build();
+        .addAllMediumType(getMediumTypes());
+    if (getXAttr() != null) {
+      inodeDirectory.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
+    }
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
 
@@ -289,6 +298,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount())
         .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()))
+        .setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
   }
 }

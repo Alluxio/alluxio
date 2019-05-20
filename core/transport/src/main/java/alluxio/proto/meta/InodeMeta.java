@@ -335,13 +335,72 @@ public final class InodeMeta {
      */
     com.google.protobuf.ByteString
         getPersistJobTempUfsPathBytes();
+
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+    int getXAttrCount();
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+    boolean containsXAttr(
+        java.lang.String key);
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+    getXAttr();
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+    getXAttrMap();
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    com.google.protobuf.ByteString getXAttrOrDefault(
+        java.lang.String key,
+        com.google.protobuf.ByteString defaultValue);
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    com.google.protobuf.ByteString getXAttrOrThrow(
+        java.lang.String key);
   }
   /**
    * <pre>
    **
    * General inode metadata. This includes most inode metadata, but does not include the inode's
    * children or time of last modification.
-   * next available id: 29
+   * next available id: 30
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.meta.Inode}
@@ -601,6 +660,19 @@ public final class InodeMeta {
               shouldPersistTime_ = input.readInt64();
               break;
             }
+            case 234: {
+              if (!((mutable_bitField0_ & 0x10000000) == 0x10000000)) {
+                xAttr_ = com.google.protobuf.MapField.newMapField(
+                    XAttrDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x10000000;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
+              xAttr__ = input.readMessage(
+                  XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              xAttr_.getMutableMap().put(
+                  xAttr__.getKey(), xAttr__.getValue());
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -624,6 +696,17 @@ public final class InodeMeta {
       return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 29:
+          return internalGetXAttr();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_fieldAccessorTable
@@ -1218,6 +1301,102 @@ public final class InodeMeta {
       }
     }
 
+    public static final int XATTR_FIELD_NUMBER = 29;
+    private static final class XAttrDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, com.google.protobuf.ByteString> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
+                  alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.BYTES,
+                  com.google.protobuf.ByteString.EMPTY);
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, com.google.protobuf.ByteString> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+    internalGetXAttr() {
+      if (xAttr_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            XAttrDefaultEntryHolder.defaultEntry);
+      }
+      return xAttr_;
+    }
+
+    public int getXAttrCount() {
+      return internalGetXAttr().getMap().size();
+    }
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    public boolean containsXAttr(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetXAttr().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
+      return getXAttrMap();
+    }
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
+      return internalGetXAttr().getMap();
+    }
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    public com.google.protobuf.ByteString getXAttrOrDefault(
+        java.lang.String key,
+        com.google.protobuf.ByteString defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+          internalGetXAttr().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    public com.google.protobuf.ByteString getXAttrOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+          internalGetXAttr().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -1314,6 +1493,12 @@ public final class InodeMeta {
       if (((bitField0_ & 0x00800000) == 0x00800000)) {
         output.writeInt64(28, shouldPersistTime_);
       }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetXAttr(),
+          XAttrDefaultEntryHolder.defaultEntry,
+          29);
       unknownFields.writeTo(output);
     }
 
@@ -1438,6 +1623,16 @@ public final class InodeMeta {
       if (((bitField0_ & 0x00800000) == 0x00800000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(28, shouldPersistTime_);
+      }
+      for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
+           : internalGetXAttr().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
+        xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(29, xAttr__);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1588,6 +1783,8 @@ public final class InodeMeta {
         result = result && getPersistJobTempUfsPath()
             .equals(other.getPersistJobTempUfsPath());
       }
+      result = result && internalGetXAttr().equals(
+          other.internalGetXAttr());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -1727,6 +1924,10 @@ public final class InodeMeta {
         hash = (37 * hash) + PERSIST_JOB_TEMP_UFS_PATH_FIELD_NUMBER;
         hash = (53 * hash) + getPersistJobTempUfsPath().hashCode();
       }
+      if (!internalGetXAttr().getMap().isEmpty()) {
+        hash = (37 * hash) + XATTR_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetXAttr().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1825,7 +2026,7 @@ public final class InodeMeta {
      **
      * General inode metadata. This includes most inode metadata, but does not include the inode's
      * children or time of last modification.
-     * next available id: 29
+     * next available id: 30
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.meta.Inode}
@@ -1839,6 +2040,28 @@ public final class InodeMeta {
         return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_descriptor;
       }
 
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 29:
+            return internalGetXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 29:
+            return internalGetMutableXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_fieldAccessorTable
@@ -1929,6 +2152,7 @@ public final class InodeMeta {
         bitField0_ = (bitField0_ & ~0x04000000);
         persistJobTempUfsPath_ = "";
         bitField0_ = (bitField0_ & ~0x08000000);
+        internalGetMutableXAttr().clear();
         return this;
       }
 
@@ -2075,6 +2299,8 @@ public final class InodeMeta {
           to_bitField0_ |= 0x02000000;
         }
         result.persistJobTempUfsPath_ = persistJobTempUfsPath_;
+        result.xAttr_ = internalGetXAttr();
+        result.xAttr_.makeImmutable();
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2223,6 +2449,8 @@ public final class InodeMeta {
           persistJobTempUfsPath_ = other.persistJobTempUfsPath_;
           onChanged();
         }
+        internalGetMutableXAttr().mergeFrom(
+            other.internalGetXAttr());
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -3641,6 +3869,164 @@ public final class InodeMeta {
         onChanged();
         return this;
       }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, com.google.protobuf.ByteString> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+      internalGetXAttr() {
+        if (xAttr_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        return xAttr_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+      internalGetMutableXAttr() {
+        onChanged();;
+        if (xAttr_ == null) {
+          xAttr_ = com.google.protobuf.MapField.newMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        if (!xAttr_.isMutable()) {
+          xAttr_ = xAttr_.copy();
+        }
+        return xAttr_;
+      }
+
+      public int getXAttrCount() {
+        return internalGetXAttr().getMap().size();
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public boolean containsXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetXAttr().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getXAttrMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
+        return getXAttrMap();
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
+        return internalGetXAttr().getMap();
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public com.google.protobuf.ByteString getXAttrOrDefault(
+          java.lang.String key,
+          com.google.protobuf.ByteString defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+            internalGetXAttr().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public com.google.protobuf.ByteString getXAttrOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+            internalGetXAttr().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearXAttr() {
+        internalGetMutableXAttr().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public Builder removeXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+      getMutableXAttr() {
+        return internalGetMutableXAttr().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+      public Builder putXAttr(
+          java.lang.String key,
+          com.google.protobuf.ByteString value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public Builder putAllXAttr(
+          java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
+        internalGetMutableXAttr().getMutableMap()
+            .putAll(values);
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -3695,6 +4081,11 @@ public final class InodeMeta {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_meta_Inode_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_meta_Inode_XAttrEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -3706,7 +4097,7 @@ public final class InodeMeta {
     java.lang.String[] descriptorData = {
       "\n\033proto/meta/inode_meta.proto\022\022alluxio.p" +
       "roto.meta\032\021grpc/common.proto\032\026proto/shar" +
-      "ed/acl.proto\"\355\005\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020cr" +
+      "ed/acl.proto\"\320\006\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020cr" +
       "eation_time_ms\030\002 \001(\003\022\024\n\014is_directory\030\003 \001" +
       "(\010\022\013\n\003ttl\030\004 \001(\003\022+\n\nttl_action\030\005 \001(\0162\027.al" +
       "luxio.grpc.TtlAction\022\030\n\020last_modified_ms" +
@@ -3725,7 +4116,9 @@ public final class InodeMeta {
       "n_max\030\025 \001(\005\022\027\n\017replication_min\030\026 \001(\005\022\033\n\023" +
       "should_persist_time\030\034 \001(\003\022\026\n\016persist_job" +
       "_id\030\027 \001(\003\022!\n\031persist_job_temp_ufs_path\030\030" +
-      " \001(\t"
+      " \001(\t\0223\n\005xAttr\030\035 \003(\0132$.alluxio.proto.meta" +
+      ".Inode.XAttrEntry\032,\n\nXAttrEntry\022\013\n\003key\030\001" +
+      " \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3746,7 +4139,13 @@ public final class InodeMeta {
     internal_static_alluxio_proto_meta_Inode_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_meta_Inode_descriptor,
-        new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "MediumType", "IsMountPoint", "HasDirectChildrenLoaded", "ChildCount", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "ShouldPersistTime", "PersistJobId", "PersistJobTempUfsPath", });
+        new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "MediumType", "IsMountPoint", "HasDirectChildrenLoaded", "ChildCount", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "ShouldPersistTime", "PersistJobId", "PersistJobTempUfsPath", "XAttr", });
+    internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor =
+      internal_static_alluxio_proto_meta_Inode_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_meta_Inode_XAttrEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     alluxio.grpc.CommonProto.getDescriptor();
     alluxio.proto.shared.Acl.getDescriptor();
   }
