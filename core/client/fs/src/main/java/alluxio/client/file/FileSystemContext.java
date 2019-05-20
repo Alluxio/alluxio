@@ -338,7 +338,7 @@ public final class FileSystemContext implements Closeable {
    */
   public boolean reinit(boolean updateClusterConf, boolean updatePathConf)
       throws UnavailableException, IOException {
-    try (LockResource r = new LockResource(mReinitLock.writeLock())) {
+    try (LockResource lr = new LockResource(mReinitLock.writeLock())) {
       Optional<CountResource> resource = mReinitializer.acquireResourceToAllowReinit();
       if (!resource.isPresent()) {
         return false;
