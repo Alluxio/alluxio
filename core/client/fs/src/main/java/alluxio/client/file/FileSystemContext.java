@@ -153,12 +153,20 @@ public final class FileSystemContext implements Closeable {
    *
    * If reinitialization is happening, all calls to {@link #acquireResourceToBlockReinit()} blocks.
    *
-   * If there are ongoing RPCs trying to acquire the block resource or holding the resource
-   * returned by {@link #acquireResourceToBlockReinit()}, {@link #reinit} will return immediately.
+   * If there are ongoing calls of {@link #acquireResourceToBlockReinit()}, {@link #reinit} will
+   * block until these ongoing calls return.
+   *
+   * If there is no concurrent calls of {@link #acquireResourceToBlockReinit()} but there are
+   * ongoing RPCs holding the resource returned by {@link #acquireResourceToBlockReinit()},
+   * {@link #reinit} will return immediately.
+   *
+   * Otherwise, {@link #reinit} will do the actual reinitialization.
    *
    * Implementation details:
    *
-   * When reinitialization starts, write lock is try-locked before
+   * The lock is a fair lock so that {@link #reinit} will not be blocked forever.
+   *
+   * When reinitialization starts, write lock is locked before
    * {@link FileSystemContextReinitializer#acquireResourceToAllowReinit()}.
    * When reinitialization finishes (either succeeds or fails), the write lock is released.
    *
