@@ -151,10 +151,10 @@ public final class FileSystemContext implements Closeable {
    *
    * Expected behavior:
    *
-   * If reinitialization is happening, all calls to {@link #acquireBlockReinitResource()} blocks.
+   * If reinitialization is happening, all calls to {@link #acquireResourceToBlockReinit()} blocks.
    *
    * If there are ongoing RPCs trying to acquire the block resource or holding the resource
-   * returned by {@link #acquireBlockReinitResource()}, {@link #reinit} will return immediately.
+   * returned by {@link #acquireResourceToBlockReinit()}, {@link #reinit} will return immediately.
    *
    * Implementation details:
    *
@@ -313,8 +313,8 @@ public final class FileSystemContext implements Closeable {
    *
    * @return the resource
    */
-  public CountResource acquireBlockReinitResource() {
-    try (LockResource r = new LockResource(mReinitLock.readLock())){
+  public CountResource acquireResourceToBlockReinit() {
+    try (LockResource r = new LockResource(mReinitLock.readLock())) {
       Optional<CountResource> resource = mReinitializer.acquireResourceToBlockReinit();
       Preconditions.checkState(resource.isPresent(), "resource must be present");
       return resource.get();
@@ -338,7 +338,7 @@ public final class FileSystemContext implements Closeable {
    */
   public boolean reinit(boolean updateClusterConf, boolean updatePathConf)
       throws UnavailableException, IOException {
-    try (LockResource r = new LockResource(mReinitLock.writeLock())){
+    try (LockResource r = new LockResource(mReinitLock.writeLock())) {
       Optional<CountResource> resource = mReinitializer.acquireResourceToAllowReinit();
       if (!resource.isPresent()) {
         return false;
@@ -417,13 +417,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   private FileSystemMasterClient acquireMasterClient() {
-    try (CountResource r = acquireBlockReinitResource()) {
+    try (CountResource r = acquireResourceToBlockReinit()) {
       return mFileSystemMasterClientPool.acquire();
     }
   }
 
   private void releaseMasterClient(FileSystemMasterClient client) {
-    try (CountResource r = acquireBlockReinitResource()) {
+    try (CountResource r = acquireResourceToBlockReinit()) {
       if (!client.isClosed()) {
         // The client might have been closed during reinitialization.
         mFileSystemMasterClientPool.release(client);
@@ -447,13 +447,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   private BlockMasterClient acquireBlockMasterClient() {
-    try (CountResource r = acquireBlockReinitResource()) {
+    try (CountResource r = acquireResourceToBlockReinit()) {
       return mBlockMasterClientPool.acquire();
     }
   }
 
   private void releaseBlockMasterClient(BlockMasterClient client) {
-    try (CountResource r = acquireBlockReinitResource()) {
+    try (CountResource r = acquireResourceToBlockReinit()) {
       if (!client.isClosed()) {
         // The client might have been closed during reinitialization.
         mBlockMasterClientPool.release(client);
@@ -486,7 +486,7 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    try (CountResource r = acquireBlockReinitResource()) {
+    try (CountResource r = acquireResourceToBlockReinit()) {
       return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
     }
   }
@@ -517,7 +517,7 @@ public final class FileSystemContext implements Closeable {
       // Client might have been shutdown during reinitialization.
       return;
     }
-    try (CountResource r = acquireBlockReinitResource()) {
+    try (CountResource r = acquireResourceToBlockReinit()) {
       SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
           getClusterConf());
       ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(

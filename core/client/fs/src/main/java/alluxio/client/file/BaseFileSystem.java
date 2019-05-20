@@ -573,7 +573,7 @@ public class BaseFileSystem implements FileSystem {
    */
   private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
-    try (CountResource r = mFsContext.acquireBlockReinitResource();
+    try (CountResource r = mFsContext.acquireResourceToBlockReinit();
          CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
       // Explicitly connect to trigger loading configuration from meta master.
