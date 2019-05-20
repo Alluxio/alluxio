@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,16 +36,6 @@ public class SimpleInodeLockList implements InodeLockList {
    * Default value for {@link #mFirstWriteLockIndex} when there is no write lock.
    */
   private static final int NO_WRITE_LOCK_INDEX = -1;
-  /**
-   * Initial capacity for {@link #mInodes}.
-   * Since ROOT inode is often locked first, this reserves capacity for it.
-   */
-  private static final int INITIAL_INODES_CAPACITY = 1;
-  /**
-   * Initial capacity for {@link #mLocks}.
-   * Since ROOT edge and ROOT inode are often locked first, this reserves capacity for them.
-   */
-  private static final int INITIAL_LOCKS_CAPACITY = 2;
   private static final Edge ROOT_EDGE = new Edge(-1, "");
 
   private final InodeLockManager mInodeLockManager;
@@ -52,7 +43,7 @@ public class SimpleInodeLockList implements InodeLockList {
   /**
    * Inode list.
    */
-  private List<Inode> mInodes;
+  private LinkedList<Inode> mInodes;
   /**
    * If last lock in mLocks is an edge lock, then this is the edge.
    * Otherwise, null.
@@ -63,7 +54,7 @@ public class SimpleInodeLockList implements InodeLockList {
    * The locks always alternate between Inode lock and Edge lock.
    * The first lock can be either Inode or Edge lock.
    */
-  private List<LockResource> mLocks;
+  private LinkedList<LockResource> mLocks;
   /**
    * The index of the first write lock entry in {@link #mLocks}.
    * If all locks are read locks, mFirstWriteLockIndex == NO_WRITE_LOCK.
@@ -79,8 +70,8 @@ public class SimpleInodeLockList implements InodeLockList {
    */
   public SimpleInodeLockList(InodeLockManager inodeLockManager) {
     mInodeLockManager = inodeLockManager;
-    mInodes = new ArrayList<>(INITIAL_INODES_CAPACITY);
-    mLocks = new ArrayList<>(INITIAL_LOCKS_CAPACITY);
+    mInodes = new LinkedList<>();
+    mLocks = new LinkedList<>();
     mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
   }
 
@@ -262,19 +253,19 @@ public class SimpleInodeLockList implements InodeLockList {
    * Removes and unlocks the last lock.
    */
   private void removeLastLock() {
-    mLocks.remove(mLocks.size() - 1).close();
+    mLocks.removeLast().close();
     if (mFirstWriteLockIndex >= mLocks.size()) {
       mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
     }
     if (mLastEdge != null) {
       mLastEdge = null;
     } else {
-      Inode last = mInodes.remove(mInodes.size() - 1);
+      Inode last = mInodes.removeLast();
       if (!mLocks.isEmpty()) {
         if (mInodes.isEmpty()) {
           mLastEdge = ROOT_EDGE;
         } else {
-          mLastEdge = new Edge(mInodes.get(mInodes.size() - 1).getId(), last.getName());
+          mLastEdge = new Edge(mInodes.getLast().getId(), last.getName());
         }
       }
     }
@@ -321,7 +312,7 @@ public class SimpleInodeLockList implements InodeLockList {
   private Inode lastInode() {
     Preconditions.checkState(endsInInode(),
         "Cannot get last inode for lock list %s which does not end in an inode", this);
-    return mInodes.get(mInodes.size() - 1);
+    return mInodes.getLast();
   }
 
   /**
