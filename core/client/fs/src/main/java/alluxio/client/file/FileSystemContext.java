@@ -158,12 +158,12 @@ public final class FileSystemContext implements Closeable {
    * Implementation details:
    *
    * When reinitialization starts, write lock is try-locked before
-   * {@link FileSystemContextReinitializer#acquireAllowResource()}.
+   * {@link FileSystemContextReinitializer#acquireResourceToAllowReinit()}.
    * When reinitialization finishes (either succeeds or fails), the write lock is released.
    *
    * When reinitialization is required to be blocked, read lock is locked before
-   * {@link FileSystemContextReinitializer#acquireBlockResource()}, when the read lock is locked,
-   * the block resource must be able to be acquired because the reinitialization must not be
+   * {@link FileSystemContextReinitializer#acquireResourceToBlockReinit()}, when the read lock is
+   * locked, the block resource must be able to be acquired because the reinitialization must not be
    * happening.
    */
   private final ReentrantReadWriteLock mReinitLock = new ReentrantReadWriteLock();
@@ -315,7 +315,7 @@ public final class FileSystemContext implements Closeable {
   public CountResource acquireBlockReinitResource() {
     mReinitLock.readLock().lock();
     try {
-      Optional<CountResource> resource = mReinitializer.acquireBlockResource();
+      Optional<CountResource> resource = mReinitializer.acquireResourceToBlockReinit();
       Preconditions.checkState(resource.isPresent(), "resource must be present");
       return resource.get();
     } catch (IOException e) {
@@ -344,7 +344,7 @@ public final class FileSystemContext implements Closeable {
       return false;
     }
     try {
-      Optional<CountResource> resource = mReinitializer.acquireAllowResource();
+      Optional<CountResource> resource = mReinitializer.acquireResourceToAllowReinit();
       if (!resource.isPresent()) {
         return false;
       }

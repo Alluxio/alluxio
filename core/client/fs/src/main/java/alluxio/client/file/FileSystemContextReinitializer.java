@@ -31,13 +31,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * if they differ from the hashes in the {@link alluxio.ClientContext} backing the
  * {@link FileSystemContext}, it tries to reinitialize the {@link FileSystemContext}.
  *
- * Each RPC needs to call {@link #acquireBlockResource()} to mark its lifetime, when there
+ * Each RPC needs to call {@link #acquireResourceToBlockReinit()} to mark its lifetime, when there
  * are ongoing RPCs executing between these two methods, reinitialization is blocked.
  *
  * Reinitialization starts when there are no ongoing RPCs, after starting, all further RPCs
  * are blocked until the reinitialization finishes or until timeout. If it succeeds, future RPCs
  * will use the reinitialized context, otherwise, an exception is thrown from
- * {@link #acquireBlockResource()}.
+ * {@link #acquireResourceToBlockReinit()}.
  */
 public final class FileSystemContextReinitializer implements Closeable {
   private final FileSystemContext mContext;
@@ -98,7 +98,7 @@ public final class FileSystemContextReinitializer implements Closeable {
    * @throws IOException when reinitialization fails before or during this method
    * @return the resource
    */
-  public Optional<CountResource> acquireBlockResource() throws IOException {
+  public Optional<CountResource> acquireResourceToBlockReinit() throws IOException {
     Optional<IOException> exception = mExecutor.getException();
     if (exception.isPresent()) {
       throw exception.get();
@@ -118,13 +118,13 @@ public final class FileSystemContextReinitializer implements Closeable {
    * Acquires the resource to allow reinitialization.
    *
    * If there are ongoing operations holding the resource returned by
-   * {@link #acquireBlockResource()}, this returns an empty optional immediately.
+   * {@link #acquireResourceToBlockReinit()}, this returns an empty optional immediately.
    * When it returns a non-empty resource, no further resource can be acquired from
-   * {@link #acquireBlockResource()} until the returned resource is closed.
+   * {@link #acquireResourceToBlockReinit()} until the returned resource is closed.
    *
    * @return the resource
    */
-  public Optional<CountResource> acquireAllowResource() {
+  public Optional<CountResource> acquireResourceToAllowReinit() {
     if (mCount.compareAndSet(0, -1)) {
       return Optional.of(new CountResource(mCount, true));
     }
