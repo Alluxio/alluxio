@@ -30,7 +30,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-
+import java.io.IOException;
+import javax.annotation.Nullable;
 /**
  * A cache specifically designed to contain locks and will NOT evict any entries
  * that are in use.
@@ -172,6 +173,7 @@ public class LockCache<K> {
     return mCache.getOrDefault(key, new ValNode(new ReentrantReadWriteLock())).mValue;
   }
 
+  @Nullable
   private ValNode getValNode(K key) {
     Preconditions.checkNotNull(key, "key can not be null");
     ValNode cacheEntry;
