@@ -397,12 +397,12 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     return rpc(client -> {
-      URIStatus status = client.getStatus(path, GetStatusPOptions.getDefaultInstance());
+      AlluxioConfiguration conf = mFsContext.getPathConf(path);
+      URIStatus status = client.getStatus(path, FileSystemOptions.getStatusDefaults(conf));
       if (status.isFolder()) {
         throw new FileDoesNotExistException(
             ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
       }
-      AlluxioConfiguration conf = mFsContext.getPathConf(path);
       OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
           .toBuilder().mergeFrom(options).build();
       InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
