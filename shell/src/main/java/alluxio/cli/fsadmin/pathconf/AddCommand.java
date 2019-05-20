@@ -18,6 +18,7 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.Scope;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -79,7 +80,7 @@ public final class AddCommand extends AbstractFsAdminCommand {
           cl.getOptionProperties(PROPERTY_OPTION_NAME));
       for (Map.Entry<String, String> property : properties.entrySet()) {
         PropertyKey key = PropertyKey.fromString(property.getKey());
-        if (key.getScope() != Scope.CLIENT) {
+        if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
           throw new InvalidArgumentException(nonClientScopePropertyException(key));
         }
         propertyMap.put(key, property.getValue());
@@ -112,8 +113,8 @@ public final class AddCommand extends AbstractFsAdminCommand {
    */
   @VisibleForTesting
   public static String nonClientScopePropertyException(PropertyKey key) {
-    return "Only client scope properties can be set for path level configuration, but property key "
-        + key + " has scope " + key.getScope().toString();
+    return "Only properties with scope containing client scope can be set for path level "
+        + "configuration, but property key " + key + " has scope " + key.getScope().toString();
   }
 
   @Override
