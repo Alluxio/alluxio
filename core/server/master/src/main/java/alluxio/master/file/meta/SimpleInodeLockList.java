@@ -19,10 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -32,20 +32,34 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class SimpleInodeLockList implements InodeLockList {
   private static final Logger LOG = LoggerFactory.getLogger(SimpleInodeLockList.class);
 
-  private static final int INITIAL_CAPACITY = 8;
+  /**
+   * Default value for {@link #mFirstWriteLockIndex} when there is no write lock.
+   */
+  private static final int NO_WRITE_LOCK_INDEX = -1;
   private static final Edge ROOT_EDGE = new Edge(-1, "");
 
   private final InodeLockManager mInodeLockManager;
 
   /**
-   * Entries for each lock in the lock list. The entries always alternate between InodeEntry and
-   * EdgeEntry.
+   * Inode list.
    */
-  private List<Entry> mEntries;
+  private LinkedList<Inode> mInodes;
   /**
-   * The index of the first write lock entry. All locks before this index are read locks, and all
-   * locks after and including this index are write locks. If all locks are read locks,
-   * mFirstWriteLockIndex == mEntries.size().
+   * If last lock in mLocks is an edge lock, then this is the edge.
+   * Otherwise, null.
+   */
+  private Edge mLastEdge;
+  /**
+   * Lock list.
+   * The locks always alternate between Inode lock and Edge lock.
+   * The first lock can be either Inode or Edge lock.
+   */
+  private LinkedList<LockResource> mLocks;
+  /**
+   * The index of the first write lock entry in {@link #mLocks}.
+   * If all locks are read locks, mFirstWriteLockIndex == NO_WRITE_LOCK.
+   * Otherwise, all locks before this index are read locks, and all
+   * locks after and including this index are write locks.
    */
   private int mFirstWriteLockIndex;
 
@@ -56,22 +70,22 @@ public class SimpleInodeLockList implements InodeLockList {
    */
   public SimpleInodeLockList(InodeLockManager inodeLockManager) {
     mInodeLockManager = inodeLockManager;
-    mEntries = new ArrayList<>(INITIAL_CAPACITY);
-    mFirstWriteLockIndex = 0;
+    mInodes = new LinkedList<>();
+    mLocks = new LinkedList<>();
+    mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
   }
 
   @Override
   public void lockInode(Inode inode, LockMode mode) {
     mode = nextLockMode(mode);
-    if (!mEntries.isEmpty()) {
+    if (!mLocks.isEmpty()) {
       Preconditions.checkState(!endsInInode(),
           "Cannot lock inode %s for lock list %s because the lock list already ends in an inode",
           inode.getId(), this);
-      String lastEdgeName = ((EdgeEntry) lastEntry()).getEdge().getName();
-      Preconditions.checkState(inode.getName().equals(lastEdgeName),
-          "Expected to lock inode %s but locked inode %s", lastEdgeName, inode.getName());
+      Preconditions.checkState(inode.getName().equals(mLastEdge.getName()),
+          "Expected to lock inode %s but locked inode %s", mLastEdge.getName(), inode.getName());
     }
-    addEntry(createInodeEntry(inode, mode));
+    lockAndAddInode(inode, mode);
   }
 
   @Override
@@ -79,20 +93,20 @@ public class SimpleInodeLockList implements InodeLockList {
     mode = nextLockMode(mode);
     long edgeParentId = lastInode.getId();
     Edge edge = new Edge(lastInode.getId(), childName);
-    if (!mEntries.isEmpty()) {
+    if (!mLocks.isEmpty()) {
       Preconditions.checkState(endsInInode(),
           "Cannot lock edge %s when lock list %s already ends in an edge", edge, this);
       Preconditions.checkState(lastInode().getId() == edgeParentId,
           "Cannot lock edge %s when the last inode id in %s is %s", edge, this, lastInode.getId());
     }
-    addEntry(createEdgeEntry(edge, mode));
+    lockAndAddEdge(edge, mode);
   }
 
   @Override
   public void lockRootEdge(LockMode mode) {
-    Preconditions.checkState(mEntries.isEmpty(),
+    Preconditions.checkState(mLocks.isEmpty(),
         "Cannot lock root edge when lock list %s is nonempty", this);
-    addEntry(createEdgeEntry(ROOT_EDGE, mode));
+    lockAndAddEdge(ROOT_EDGE, mode);
   }
 
   @Override
@@ -108,13 +122,14 @@ public class SimpleInodeLockList implements InodeLockList {
       lockInode(inode, LockMode.WRITE);
       lockEdge(inode, childName, LockMode.WRITE);
     } else {
-      EdgeEntry lastEdgeEntry = createEdgeEntry(lastEdge(), LockMode.READ);
-      InodeEntry inodeEntry = createInodeEntry(inode, LockMode.READ);
-      EdgeEntry nextEdgeEntry = createEdgeEntry(edge, LockMode.WRITE);
-      removeLastEntry(); // Remove edge write lock
-      addEntry(lastEdgeEntry);
-      addEntry(inodeEntry);
-      addEntry(nextEdgeEntry);
+      Edge lastEdge = lastEdge();
+      LockResource lastEdgeReadLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ);
+      LockResource inodeLock = mInodeLockManager.lockInode(inode, LockMode.READ);
+      LockResource nextEdgeLock = mInodeLockManager.lockEdge(edge, LockMode.WRITE);
+      removeLastLock(); // Remove edge write lock
+      addEdgeLock(lastEdge, LockMode.READ, lastEdgeReadLock);
+      addInodeLock(inode, LockMode.READ, inodeLock);
+      addEdgeLock(edge, LockMode.WRITE, nextEdgeLock);
     }
   }
 
@@ -122,33 +137,34 @@ public class SimpleInodeLockList implements InodeLockList {
   public void unlockLastInode() {
     Preconditions.checkState(endsInInode(),
         "Cannot unlock last inode when the lock list %s ends in an edge", this);
-    Preconditions.checkState(!mEntries.isEmpty(),
+    Preconditions.checkState(!mLocks.isEmpty(),
         "Cannot unlock last inode when the lock list is empty");
-    removeLastEntry();
+    removeLastLock();
   }
 
   @Override
   public void unlockLastEdge() {
     Preconditions.checkState(!endsInInode(),
         "Cannot unlock last edge when the lock list %s ends in an inode", this);
-    Preconditions.checkState(!mEntries.isEmpty(),
+    Preconditions.checkState(!mLocks.isEmpty(),
         "Cannot unlock last edge when the lock list is empty");
-    removeLastEntry();
+    removeLastLock();
   }
 
   @Override
   public void downgradeLastInode() {
     Preconditions.checkState(endsInInode(),
         "Cannot downgrade last inode when lock list %s ends in an edge", this);
-    Preconditions.checkState(!mEntries.isEmpty(),
+    Preconditions.checkState(!mLocks.isEmpty(),
         "Cannot downgrade last inode when the lock list is empty");
     Preconditions.checkState(endsInWriteLock(),
         "Cannot downgrade last inode when lock list %s is not write locked", this);
 
     if (!endsInMultipleWriteLocks()) {
-      InodeEntry newEntry = createInodeEntry(lastInode(), LockMode.READ);
-      removeLastEntry();
-      addEntry(newEntry);
+      Inode lastInode = lastInode();
+      LockResource newLock = mInodeLockManager.lockInode(lastInode, LockMode.READ);
+      removeLastLock();
+      addInodeLock(lastInode, LockMode.READ, newLock);
     }
   }
 
@@ -156,15 +172,16 @@ public class SimpleInodeLockList implements InodeLockList {
   public void downgradeLastEdge() {
     Preconditions.checkState(!endsInInode(),
         "Cannot downgrade last edge when lock list %s ends in an inode", this);
-    Preconditions.checkState(!mEntries.isEmpty(),
+    Preconditions.checkState(!mLocks.isEmpty(),
         "Cannot downgrade last edge when the lock list is empty");
     Preconditions.checkState(endsInWriteLock(),
         "Cannot downgrade last edge when lock list %s is not write locked", this);
 
     if (!endsInMultipleWriteLocks()) {
-      EdgeEntry newEntry = createEdgeEntry(lastEdge(), LockMode.READ);
-      removeLastEntry();
-      addEntry(newEntry);
+      Edge lastEdge = lastEdge();
+      LockResource newLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ);
+      removeLastLock();
+      addEdgeLock(lastEdge, LockMode.READ, newLock);
     }
   }
 
@@ -174,7 +191,7 @@ public class SimpleInodeLockList implements InodeLockList {
         "Cannot downgrade from an edge write lock to an inode lock when lock list %s "
             + "already ends in an inode",
         this);
-    Preconditions.checkState(!mEntries.isEmpty(),
+    Preconditions.checkState(!mLocks.isEmpty(),
         "Cannot downgrade from an edge write lock to an inode lock when the lock list is empty");
     Preconditions.checkState(endsInWriteLock(),
         "Cannot downgrade from an edge write lock to an inode lock when lock list %s "
@@ -186,35 +203,16 @@ public class SimpleInodeLockList implements InodeLockList {
       return;
     }
 
-    EdgeEntry edgeEntry = createEdgeEntry(lastEdge(), LockMode.READ);
-    InodeEntry inodeEntry = createInodeEntry(inode, mode);
-    removeLastEntry();
-    addEntry(edgeEntry);
-    addEntry(inodeEntry);
+    Edge lastEdge = lastEdge();
+    LockResource newEdgeLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ);
+    LockResource inodeLock = mInodeLockManager.lockInode(inode, mode);
+    removeLastLock();
+    addEdgeLock(lastEdge, LockMode.READ, newEdgeLock);
+    addInodeLock(inode, mode, inodeLock);
   }
 
   /**
-   * Locks an edge and creates and entry without adding the entry to the lock list yet.
-   *
-   * @return the edge entry
-   */
-  private EdgeEntry createEdgeEntry(Edge edge, LockMode mode) {
-    LockResource lock = mInodeLockManager.lockEdge(edge, mode);
-    return new EdgeEntry(lock, edge, mode);
-  }
-
-  /**
-   * Locks an inode and creates and entry without adding the entry to the lock list yet.
-   *
-   * @return the inode entry
-   */
-  private InodeEntry createInodeEntry(Inode inode, LockMode mode) {
-    LockResource lock = mInodeLockManager.lockInode(inode, mode);
-    return new InodeEntry(lock, inode, mode);
-  }
-
-  /**
-   * If the lock list is write locked, returns LockMode.WRITE. Otherwise, returns the given mode.
+   * If mode is read but the lock list is write locked, returns LockMode.WRITE.
    *
    * This helps us preserve the invariant that there is never a READ lock following a WRITE lock.
    *
@@ -222,31 +220,54 @@ public class SimpleInodeLockList implements InodeLockList {
    * @return the mode
    */
   private LockMode nextLockMode(LockMode mode) {
-    if (endsInWriteLock()) {
-      return LockMode.WRITE;
+    return endsInWriteLock() ? LockMode.WRITE : mode;
+  }
+
+  private void addLock(LockResource lock, LockMode mode) {
+    if (!endsInWriteLock() && mode == LockMode.WRITE) {
+      mFirstWriteLockIndex = mLocks.size();
     }
-    return mode;
+    mLocks.add(lock);
+  }
+
+  private void addInodeLock(Inode inode, LockMode mode, LockResource lock) {
+    mInodes.add(inode);
+    mLastEdge = null;
+    addLock(lock, mode);
+  }
+
+  private void lockAndAddInode(Inode inode, LockMode mode) {
+    addInodeLock(inode, mode, mInodeLockManager.lockInode(inode, mode));
+  }
+
+  private void addEdgeLock(Edge edge, LockMode mode, LockResource lock) {
+    mLastEdge = edge;
+    addLock(lock, mode);
+  }
+
+  private void lockAndAddEdge(Edge edge, LockMode mode) {
+    addEdgeLock(edge, mode, mInodeLockManager.lockEdge(edge, mode));
   }
 
   /**
-   * Adds an entry to mEntries.
-   *
-   * @param entry the entry to add
+   * Removes and unlocks the last lock.
    */
-  private void addEntry(Entry entry) {
-    if (!endsInWriteLock() && entry.getMode() == LockMode.READ) {
-      mFirstWriteLockIndex++;
+  private void removeLastLock() {
+    mLocks.removeLast().close();
+    if (mFirstWriteLockIndex >= mLocks.size()) {
+      mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
     }
-    mEntries.add(entry);
-  }
-
-  /**
-   * Removes and unlocks the last entry from mEntries.
-   */
-  private void removeLastEntry() {
-    mEntries.remove(mEntries.size() - 1).getLock().close();
-    if (mFirstWriteLockIndex > mEntries.size()) {
-      mFirstWriteLockIndex = mEntries.size();
+    if (mLastEdge != null) {
+      mLastEdge = null;
+    } else {
+      Inode last = mInodes.removeLast();
+      if (!mLocks.isEmpty()) {
+        if (mInodes.isEmpty()) {
+          mLastEdge = ROOT_EDGE;
+        } else {
+          mLastEdge = new Edge(mInodes.getLast().getId(), last.getName());
+        }
+      }
     }
   }
 
@@ -257,32 +278,22 @@ public class SimpleInodeLockList implements InodeLockList {
 
   @Override
   public List<Inode> getLockedInodes() {
-    return mEntries.stream()
-        .filter(e -> e instanceof InodeEntry)
-        .map(e -> ((InodeEntry) e).getInode())
-        .collect(Collectors.toList());
+    return new ArrayList<>(mInodes);
   }
 
   @Override
   public Inode get(int index) {
-    int entryIndex = mEntries.get(0) instanceof InodeEntry ? index * 2 : index * 2 + 1;
-    return ((InodeEntry) mEntries.get(entryIndex)).getInode();
+    return mInodes.get(index);
   }
 
   @Override
   public int numInodes() {
-    if (mEntries.isEmpty()) {
-      return 0;
-    }
-    if (mEntries.get(0) instanceof InodeEntry) {
-      return (mEntries.size() + 1) / 2;
-    }
-    return mEntries.size() / 2;
+    return mInodes.size();
   }
 
   @Override
   public boolean isEmpty() {
-    return mEntries.isEmpty();
+    return mLocks.isEmpty();
   }
 
   @Override
@@ -292,7 +303,7 @@ public class SimpleInodeLockList implements InodeLockList {
 
   @Override
   public boolean endsInInode() {
-    return lastEntry() instanceof InodeEntry;
+    return mLastEdge == null;
   }
 
   /**
@@ -301,7 +312,7 @@ public class SimpleInodeLockList implements InodeLockList {
   private Inode lastInode() {
     Preconditions.checkState(endsInInode(),
         "Cannot get last inode for lock list %s which does not end in an inode", this);
-    return ((InodeEntry) lastEntry()).getInode();
+    return mInodes.getLast();
   }
 
   /**
@@ -310,95 +321,37 @@ public class SimpleInodeLockList implements InodeLockList {
   private Edge lastEdge() {
     Preconditions.checkState(!endsInInode(),
         "Cannot get last edge for lock list %s which does not end in an edge", this);
-    return ((EdgeEntry) lastEntry()).getEdge();
+    return mLastEdge;
   }
 
   /**
    * @return whether this lock list ends in a write lock
    */
   private boolean endsInWriteLock() {
-    return mFirstWriteLockIndex < mEntries.size();
+    return mFirstWriteLockIndex != NO_WRITE_LOCK_INDEX;
   }
 
   private boolean endsInMultipleWriteLocks() {
-    return mFirstWriteLockIndex < mEntries.size() - 1;
-  }
-
-  /**
-   * @return the last entry in the lock list, or null if the lock list contains no entries
-   */
-  @Nullable
-  private Entry lastEntry() {
-    return mEntries.isEmpty() ? null : mEntries.get(mEntries.size() - 1);
+    return mFirstWriteLockIndex != NO_WRITE_LOCK_INDEX && mFirstWriteLockIndex < mLocks.size() - 1;
   }
 
   @Override
   public String toString() {
-    String path = mEntries.stream()
-        .filter(e -> e instanceof InodeEntry)
-        .map(e -> ((InodeEntry) e).getInode().getName())
+    String path = mInodes.stream()
+        .map(Inode::getName)
         .collect(Collectors.joining("/"));
-    return String.format("Path: <%s>, Entries: %s, First write-locked index: %s", path, mEntries,
-        mFirstWriteLockIndex);
+    StringBuilder sb = new StringBuilder("Path: " + path);
+    if (mLastEdge != null) {
+      sb.append(String.format(", Last edge -> %s", mLastEdge));
+    }
+    sb.append(String.format(", Index of first write lock: %d", mFirstWriteLockIndex));
+    return sb.toString();
   }
 
   @Override
   public void close() {
-    mEntries.forEach(entry -> entry.getLock().close());
-    mEntries.clear();
-  }
-
-  private abstract static class Entry {
-    private final LockResource mLock;
-    private final LockMode mMode;
-
-    protected Entry(LockResource lock, LockMode mode) {
-      mLock = lock;
-      mMode = mode;
-    }
-
-    public LockResource getLock() {
-      return mLock;
-    }
-
-    public LockMode getMode() {
-      return mMode;
-    }
-  }
-
-  private static class InodeEntry extends Entry {
-    private final Inode mInode;
-
-    public InodeEntry(LockResource lock, Inode inode, LockMode mode) {
-      super(lock, mode);
-      mInode = inode;
-    }
-
-    public Inode getInode() {
-      return mInode;
-    }
-
-    @Override
-    public String toString() {
-      return "\"" + mInode.getName() + "\"";
-    }
-  }
-
-  private static class EdgeEntry extends Entry {
-    private final Edge mEdge;
-
-    public EdgeEntry(LockResource lock, Edge edge, LockMode mode) {
-      super(lock, mode);
-      mEdge = edge;
-    }
-
-    public Edge getEdge() {
-      return mEdge;
-    }
-
-    @Override
-    public String toString() {
-      return mEdge.toString();
-    }
+    mInodes.clear();
+    mLocks.forEach(LockResource::close);
+    mLocks.clear();
   }
 }
