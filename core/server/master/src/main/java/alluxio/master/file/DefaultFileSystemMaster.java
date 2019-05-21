@@ -2603,19 +2603,29 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         throw new InvalidPathException("Failed to update mount properties for "
             + inodePath.getUri() + ". Please ensure the path is an existing mount point.");
       }
-      // test the new mount configuration first before unmounting the old ufs
-      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration
-          .defaults(ServerConfiguration.global())
-          .createMountSpecificConf(context.getOptions().getPropertiesMap());
-      String ufsUri = mountInfo.getUfsUri().toString();
-      try (UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsUri, ufsConf)) {
-        // check the root path is valid
-        ufs.getFileStatus(ufsUri);
-      } catch (Throwable t) {
-        throw new InvalidArgumentException("Failed to mount under file system."
-            + " Please ensure the options are valid", t);
+      List<AlluxioURI> syncPoints = null;
+      try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
+        syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
+        // test the new mount configuration first before unmounting the old ufs
+        UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration
+            .defaults(ServerConfiguration.global())
+            .createMountSpecificConf(context.getOptions().getPropertiesMap());
+        String ufsUri = mountInfo.getUfsUri().toString();
+        try (UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsUri, ufsConf)) {
+          // check the root path is valid
+          ufs.getFileStatus(ufsUri);
+          // check the sync points are valid
+          if (syncPoints != null && !syncPoints.isEmpty()) {
+            for (AlluxioURI syncPoint : syncPoints) {
+              ufs.startSync(syncPoint);
+            }
+          }
+        } catch (Throwable t) {
+          throw new InvalidArgumentException("Failed to mount under file system."
+              + " Please ensure the options are valid", t);
+        }
+        unmountInternal(rpcContext, inodePath, false);
       }
-      unmountInternal(rpcContext, inodePath, false);
       long mountId = IdUtils.createMountId();
       try {
         mountInternal(rpcContext, inodePath, mountInfo.getUfsUri(), mountId, context, true);
@@ -2630,6 +2640,22 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           t.addSuppressed(t2);
         } finally {
           throw t;
+        }
+      }
+      if (syncPoints != null && !syncPoints.isEmpty()) {
+        // add back all sync points
+        Exception syncEx = null;
+        for (AlluxioURI syncPoint : syncPoints) {
+          try {
+            startSyncAndJournal(rpcContext, syncPoint);
+          } catch (Exception e) {
+            if (syncEx == null) {
+              syncEx = new UnexpectedAlluxioException("Some sync points in this mount point"
+                  + " failed to initialize. Please add them manually.");
+            }
+            syncEx.addSuppressed(new InvalidPathException(
+                String.format("Failed to add sync point %s", syncPoint), e));
+          }
         }
       }
       auditContext.setSucceeded(true);
