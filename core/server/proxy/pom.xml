@@ -119,11 +119,16 @@
               <info>
                 <version>v1</version>
                 <title>Alluxio Proxy REST API Documentation</title>
+                <!-- description must be left aligned after new line or markdown will misinterpret it -->
                 <description>
-                  The Alluxio Proxy acts as a REST gateway for clients to communicate with the Alluxio system.
+                  The Alluxio Proxy acts as a REST gateway for clients to communicate with the Alluxio system. There are three different endpoints:
+
+1. The Proxy endpoint gives general info about the proxy service.
+1. The Paths endpoint provides a RESTful gateway to the Alluxio file system for metadata operations.
+1. The Streams endpoint provides a RESTful gateway to the Alluxio file system for data operations.
                 </description>
               </info>
-              <locations>alluxio.proxy.AlluxioProxyRestServiceHandler;alluxio.proxy.PathsRestServiceHandler</locations>
+              <locations>alluxio.proxy.AlluxioProxyRestServiceHandler;alluxio.proxy.PathsRestServiceHandler;alluxio.proxy.StreamsRestServiceHandler</locations>
               <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
               <outputPath>${project.parent.parent.parent.basedir}/generated/proxy/index.html</outputPath>
               <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/proxy/swagger-ui</swaggerDirectory>
