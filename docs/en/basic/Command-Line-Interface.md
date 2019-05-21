@@ -163,6 +163,27 @@ The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a 
 ./bin/alluxio runTests
 ```
 
+### runUfsTest
+
+The `runUfsTest` aims to test the integration between Alluxio and the given ufs. The ufs test
+contains all the Alluxio semantics with the ufs.
+
+`--help` will provide the detail guidance on how to run this command.
+`--path <ufs_path>` is required to provide the full ufs path to run ufs tests against.
+
+The usage of this command includes:
+* Test if the given ufs credentials are valid before having a running Alluxio cluster and mounting the ufs to Alluxio.
+* If the given Ufs is S3, this test can also be used as a S3 compatibility test to test if the target under filesystem can
+  fulfill the minimum S3 compatibility requirements in order to work well with Alluxio through Alluxio's integration with S3.
+* Test the integration between Alluxio and the given ufs is not broken. This usage is more related to Alluxio developers. 
+  Developers are required to add full coverage tests to all the changes they made to Alluxio ufs and run those tests
+  to verify the changes are valid. 
+
+```bash
+./bin/alluxio runUfsTest --path s3a://<s3_bucket_name> -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key>
+-Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
+```
+
 ### upgradeJournal
 
 The `upgradeJournal` command upgrades an Alluxio journal version 0 (Alluxio version < 1.5.0)
