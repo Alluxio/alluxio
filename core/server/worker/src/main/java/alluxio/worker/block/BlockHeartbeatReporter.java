@@ -35,8 +35,11 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   /** List of blocks that were removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
 
-  /** Map of storage tier alias to a list of blocks that were added in the last heartbeat period. */
-  private final Map<String, List<Long>> mAddedBlocks;
+  /**
+   * Map of block store locations to a list of blocks that were added in the last
+   * heartbeat period.
+   */
+  private final Map<BlockStoreLocation, List<Long>> mAddedBlocks;
 
   /**
    * Map of storage tier alias to a list of storage paths
@@ -80,7 +83,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       // prevent adding the block twice.
       removeBlockFromAddedBlocks(blockId);
       // Add the block back with the new tier
-      addBlockToAddedBlocks(blockId, newLocation.tierAlias());
+      addBlockToAddedBlocks(blockId, newLocation);
     }
   }
 
@@ -106,7 +109,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       // prevent adding the block twice.
       removeBlockFromAddedBlocks(blockId);
       // Add the block back with the new storagedir.
-      addBlockToAddedBlocks(blockId, newLocation.tierAlias());
+      addBlockToAddedBlocks(blockId, newLocation);
     }
   }
 
@@ -139,13 +142,13 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
    * Adds a block to the list of added blocks in this heartbeat period.
    *
    * @param blockId the id of the block to add
-   * @param tierAlias alias of the storage tier containing the block
+   * @param location BlockStoreLocation containing the blockid
    */
-  private void addBlockToAddedBlocks(long blockId, String tierAlias) {
-    if (mAddedBlocks.containsKey(tierAlias)) {
-      mAddedBlocks.get(tierAlias).add(blockId);
+  private void addBlockToAddedBlocks(long blockId, BlockStoreLocation location) {
+    if (mAddedBlocks.containsKey(location)) {
+      mAddedBlocks.get(location).add(blockId);
     } else {
-      mAddedBlocks.put(tierAlias, Lists.newArrayList(blockId));
+      mAddedBlocks.put(location, Lists.newArrayList(blockId));
     }
   }
 
@@ -155,9 +158,9 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
    * @param blockId the block to remove
    */
   private void removeBlockFromAddedBlocks(long blockId) {
-    Iterator<Entry<String, List<Long>>> iterator = mAddedBlocks.entrySet().iterator();
+    Iterator<Entry<BlockStoreLocation, List<Long>>> iterator = mAddedBlocks.entrySet().iterator();
     while (iterator.hasNext()) {
-      Entry<String, List<Long>> entry = iterator.next();
+      Entry<BlockStoreLocation, List<Long>> entry = iterator.next();
       List<Long> blockList = entry.getValue();
       if (blockList.contains(blockId)) {
         blockList.remove(blockId);

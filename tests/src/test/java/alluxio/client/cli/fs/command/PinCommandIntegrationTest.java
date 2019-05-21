@@ -16,13 +16,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
+import com.google.common.io.Files;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -34,7 +38,8 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
   public static ManuallyScheduleHeartbeat sManuallyScheduleRule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,
       HeartbeatContext.WORKER_BLOCK_SYNC,
-      HeartbeatContext.WORKER_PIN_LIST_SYNC);
+      HeartbeatContext.WORKER_PIN_LIST_SYNC,
+      HeartbeatContext.MASTER_REPLICATION_CHECK);
 
   /**
    * Tests the "pin" and "unpin" commands. Creates a file and tests unpinning it, then pinning
@@ -107,6 +112,29 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
    */
   @Test
   public void setPinToSpecificMedia() throws Exception {
+    final long CAPACITY_BYTES = SIZE_BYTES;
+
+    ServerConfiguration
+        .set(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2");
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD");
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
+            Files.createTempDir().getAbsolutePath());
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
+            Files.createTempDir().getAbsolutePath());
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
+            String.valueOf(CAPACITY_BYTES));
+    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
+            String.valueOf(CAPACITY_BYTES));
+    ServerConfiguration.set(
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0), "SSD");
+    ServerConfiguration.set(
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(1), "SSD");
+    mLocalAlluxioCluster.restartMasters();
+    mLocalAlluxioCluster.stopWorkers();
+    mLocalAlluxioCluster.startWorkers();
+    mFileSystem = mLocalAlluxioCluster.getClient();
+    mFsShell = new FileSystemShell(ServerConfiguration.global());
+
     AlluxioURI filePathA = new AlluxioURI("/testFileA");
     AlluxioURI filePathB = new AlluxioURI("/testFileB");
 
@@ -115,7 +143,20 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
     FileSystemTestUtils.createByteFile(mFileSystem, filePathA, WritePType.MUST_CACHE,
         fileSize);
     assertTrue(fileExists(filePathA));
-    assertEquals(0, mFsShell.run("pin", filePathA.toString(), "MEM"));
+
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    assertTrue(fileExists(filePathA));
+    assertEquals(0, mFsShell.run("pin", filePathA.toString(), "SSD"));
+    int ret = mFsShell.run("setReplication", "-min", "2", filePathA.toString());
+    assertEquals(0, ret);
+
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
+
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+    assertEquals("SSD", mFileSystem.getStatus(filePathA).getFileBlockInfos()
+        .get(0).getBlockInfo().getLocations().get(0).getMediumType());
 
     assertEquals(-1, mFsShell.run("pin", filePathB.toString(), "NVRAM"));
   }

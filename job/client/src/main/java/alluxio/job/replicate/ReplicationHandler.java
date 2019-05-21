@@ -45,4 +45,18 @@ public interface ReplicationHandler {
    */
   long replicate(AlluxioURI uri, long blockId, int numReplicas)
       throws AlluxioException, IOException;
+
+  /**
+   * Migrate blocks to the correctly pinned locations.
+   *
+   * @param uri URI of the file the block belongs to
+   * @param blockId ID of the block
+   * @param workerHost worker host this block is located at
+   * @param mediumType medium type to migrate this block to
+   * @return the ID of the replicate job
+   * @throws AlluxioException if an Alluxio error is encountered
+   * @throws IOException if a non-Alluxio error is encountered
+   */
+  long migrate(AlluxioURI uri, long blockId, String workerHost, String mediumType)
+      throws AlluxioException, IOException;
 }

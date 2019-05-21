@@ -27,6 +27,7 @@ import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.grpc.GrpcUtils;
+import alluxio.proto.meta.Block;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -67,16 +68,23 @@ public final class BlockMasterWorkerServiceHandler
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
-    final Map<String, List<Long>> addedBlocksOnTiersMap = request.getAddedBlocksOnTiersMap()
-        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e -> e.getValue().getTiersList()));
+    final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
+        request.getAddedBlocksList().stream()
+            .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
+                    .setTier(e.getKey().getTierAlias())
+                    .setMediumType(e.getKey().getMediumType()).build(),
+                e -> e.getValue().getBlockIdList(),
+                (e1, e2) -> {
+                  e1.addAll(e2);
+                  return e1;
+                }));
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiersMap,
+          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
         "blockHeartbeat", "request=%s", responseObserver, request);
   }
@@ -93,8 +101,8 @@ public final class BlockMasterWorkerServiceHandler
     final long length = request.getLength();
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
-      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, mediumType,
-          blockId, length);
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
+          mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
     }, "commitBlock", "request=%s", responseObserver, request);
   }
@@ -129,15 +137,22 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
-    final Map<String, List<Long>> currentBlocksOnTiersMap = request.getCurrentBlocksOnTiersMap()
-        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e -> e.getValue().getTiersList()));
+    final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+        request.getCurrentBlocksList().stream()
+            .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
+                    .setTier(e.getKey().getTierAlias())
+                    .setMediumType(e.getKey().getMediumType()).build(),
+                e -> e.getValue().getBlockIdList(),
+                (e1, e2) -> {
+                e1.addAll(e2);
+                return e1;
+                }));
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-              currentBlocksOnTiersMap, lostStorageMap, options);
+              currBlocksOnLocationMap, lostStorageMap, options);
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", "request=%s", responseObserver, request);
   }

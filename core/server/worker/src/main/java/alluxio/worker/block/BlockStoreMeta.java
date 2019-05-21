@@ -60,6 +60,13 @@ public interface BlockStoreMeta {
   Map<String, List<Long>> getBlockList();
 
   /**
+   * Note: This is only available in {@link BlockStoreMeta.Factory#createFull}.
+   *
+   * @return A mapping from storage location alias to blocks
+   */
+  Map<BlockStoreLocation, List<Long>> getBlockListByStorageLocation();
+
+  /**
    * @return the capacity in bytes
    */
   long getCapacityBytes();

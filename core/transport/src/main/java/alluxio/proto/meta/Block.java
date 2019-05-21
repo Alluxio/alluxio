@@ -556,7 +556,7 @@ public final class Block {
    * <pre>
    **
    * Location metadata describing a block's location in a certain storage tier of a certain worker.
-   * next available id: 4
+   * next available id: 5
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.meta.BlockLocation}
@@ -939,7 +939,7 @@ public final class Block {
      * <pre>
      **
      * Location metadata describing a block's location in a certain storage tier of a certain worker.
-     * next available id: 4
+     * next available id: 5
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.meta.BlockLocation}

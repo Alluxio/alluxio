@@ -20,6 +20,8 @@ import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.MoveBlockRequest;
+import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -159,6 +161,17 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
       mWorkerProcess.getWorker(BlockWorker.class).removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void moveBlock(MoveBlockRequest request,
+      StreamObserver<MoveBlockResponse> responseObserver) {
+    long sessionId = IdUtils.createSessionId();
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<MoveBlockResponse>) () -> {
+      mWorkerProcess.getWorker(BlockWorker.class).moveBlockToMedium(sessionId,
+          request.getBlockId(), request.getMediumType());
+      return MoveBlockResponse.getDefaultInstance();
+    }, "moveBlock", "request=%s", responseObserver, request);
   }
 
   /**
