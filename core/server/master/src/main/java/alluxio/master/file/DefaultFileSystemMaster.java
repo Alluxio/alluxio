@@ -566,7 +566,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
       // (mPersistRequests)
-      for (Long id : mInodeTree.getToBePersistedIds()) {
+      Iterator<Long> toBePersistedFilesIter = mInodeTree.getToBePersistedIds();
+      while (toBePersistedFilesIter.hasNext()) {
+        long id = toBePersistedFilesIter.next();
         Inode inode = mInodeStore.get(id).get();
         if (inode.isDirectory()
             || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
@@ -2242,9 +2244,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public Set<Long> getPinIdList() {
+  public Iterator<Long> getPinIdList() {
     // return both the explicitly pinned inodes and not persisted inodes which should not be evicted
-    return Sets.union(mInodeTree.getPinIdSet(), mInodeTree.getToBePersistedIds());
+    return Iterators.concat(mInodeTree.getPinIdSet(), mInodeTree.getToBePersistedIds());
   }
 
   @Override

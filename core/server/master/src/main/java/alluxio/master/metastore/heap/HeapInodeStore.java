@@ -50,12 +50,15 @@ public class HeapInodeStore implements InodeStore {
   // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
-  // Map for storing indices.
+  /** Map for storing indices. */
   private HashMap<InodeIndice, Set<Long>> mIndices;
 
-  public HeapInodeStore () {
+  /**
+   * Creates a default instance.
+   */
+  public HeapInodeStore() {
     mIndices = new HashMap<>();
-    for(InodeIndice indice : InodeIndice.values()) {
+    for (InodeIndice indice : InodeIndice.values()) {
       mIndices.put(indice, ConcurrentHashMap.newKeySet());
     }
   }
@@ -150,7 +153,9 @@ public class HeapInodeStore implements InodeStore {
   public void clear() {
     mInodes.clear();
     mEdges.clear();
-    mIndices.clear();
+    for (InodeIndice indice : InodeIndice.values()) {
+      mIndices.get(indice).clear();
+    }
   }
 
   private Map<String, Long> children(long id) {

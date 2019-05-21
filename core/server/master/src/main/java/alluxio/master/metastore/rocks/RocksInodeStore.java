@@ -426,7 +426,11 @@ public class RocksInodeStore implements InodeStore {
 
     @Override
     public Long next() {
-      return Longs.fromByteArray(mRocksIterator.value());
+      try {
+        return Longs.fromByteArray(mRocksIterator.value());
+      } finally {
+        mRocksIterator.next();
+      }
     }
   }
 }

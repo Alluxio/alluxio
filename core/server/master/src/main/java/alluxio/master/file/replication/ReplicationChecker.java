@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -128,7 +129,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     }
 
     TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
-    Set<Long> inodes;
+    Iterator<Long> inodes;
 
     // Check the set of files that could possibly be under-replicated
     inodes = mInodeTree.getPinIdSet();
@@ -194,8 +195,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     return movement;
   }
 
-  private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler) {
-    for (long inodeId : inodes) {
+  private void checkMisreplicated(Iterator<Long> inodes, ReplicationHandler handler) {
+    while (inodes.hasNext()) {
+      long inodeId = inodes.next();
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
@@ -234,10 +236,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     }
   }
 
-  private void check(Set<Long> inodes, ReplicationHandler handler, Mode mode) {
+  private void check(Iterator<Long> inodes, ReplicationHandler handler, Mode mode) {
     Set<Long> lostBlocks = mBlockMaster.getLostBlocks();
     Set<Triple<AlluxioURI, Long, Integer>> requests = new HashSet<>();
-    for (long inodeId : inodes) {
+    while (inodes.hasNext()) {
+      long inodeId = inodes.next();
       // TODO(binfan): calling lockFullInodePath locks the entire path from root to the target
       // file and may increase lock contention in this tree. Investigate if we could avoid
       // locking the entire path but just the inode file since this access is read-only.

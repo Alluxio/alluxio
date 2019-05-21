@@ -63,6 +63,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -341,7 +342,9 @@ public class InodeTree implements DelegatingJournaled {
    * @return the number of pinned inodes
    */
   public int getPinnedSize() {
-    return mState.getPinnedInodeFileIds().size();
+    // TODO(ggezer) Efficiently return some approximate number.
+    //return mState.getPinnedInodeFileIds().size();
+    return -1;
   }
 
   /**
@@ -1003,25 +1006,25 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   /**
-   * @return the set of file ids whose replication max is not infinity
+   * @return an iterator for the file ids whose replication max is not infinity
    */
-  public Set<Long> getReplicationLimitedFileIds() {
+  public Iterator<Long> getReplicationLimitedFileIds() {
     return mState.getReplicationLimitedFileIds();
   }
 
   /**
-   * @return an unmodifiable view of the files with persistence state
+   * @return an iterator view of the files with persistence state
    *         {@link PersistenceState#TO_BE_PERSISTED}
    */
-  public Set<Long> getToBePersistedIds() {
+  public Iterator<Long> getToBePersistedIds() {
     return mState.getToBePersistedIds();
   }
 
   /**
-   * @return the set of file ids which are pinned
+   * @return an iterator for file ids which are pinned
    */
-  public Set<Long> getPinIdSet() {
-    return new HashSet<>(mState.getPinnedInodeFileIds());
+  public Iterator<Long> getPinIdSet() {
+    return mState.getPinnedInodeFileIds();
   }
 
   /**

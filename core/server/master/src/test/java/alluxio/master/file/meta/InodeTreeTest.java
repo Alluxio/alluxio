@@ -51,6 +51,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.StreamUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
@@ -238,7 +239,7 @@ public final class InodeTreeTest {
     createPath(mTree, NESTED_FILE_URI, sNestedFileContext);
 
     // the nested file is pinned
-    assertEquals(1, mTree.getPinIdSet().size());
+    assertEquals(1, Lists.newArrayList(mTree.getPinIdSet()).size());
   }
 
   /**
@@ -560,7 +561,7 @@ public final class InodeTreeTest {
     createPath(mTree, NESTED_FILE_URI, sNestedFileContext);
 
     // no inodes pinned
-    assertEquals(0, mTree.getPinIdSet().size());
+    assertFalse(mTree.getPinIdSet().hasNext());
 
     // pin nested folder
     try (
@@ -568,14 +569,14 @@ public final class InodeTreeTest {
       mTree.setPinned(RpcContext.NOOP, inodePath, true, Collections.emptyList(), 0);
     }
     // nested file pinned
-    assertEquals(1, mTree.getPinIdSet().size());
+    assertEquals(1, Lists.newArrayList(mTree.getPinIdSet()).size());
 
     // unpin nested folder
     try (
         LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.WRITE_INODE)) {
       mTree.setPinned(RpcContext.NOOP, inodePath, false, Collections.emptyList(), 0);
     }
-    assertEquals(0, mTree.getPinIdSet().size());
+    assertFalse(mTree.getPinIdSet().hasNext());
   }
 
   /**

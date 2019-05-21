@@ -54,7 +54,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -90,23 +89,8 @@ public class InodeTreePersistentState implements Journaled {
   private final InodeStore mInodeStore;
   private final InodeLockManager mInodeLockManager;
 
-  /**
-   * A set of inode ids representing pinned inode files. These are not part of the journaled state,
-   * but this class keeps the set of pinned inodes up to date whenever the inode tree is modified.
-   *
-   * This class owns this set, and no other class can modify the set.
-   */
-  private final PinnedInodeFileIds mPinnedInodeFileIds = new PinnedInodeFileIds();
-
-  /** A set of inode ids whose replication max value is non-default. */
-  private final ReplicationLimitedFileIds mReplicationLimitedFileIds =
-      new ReplicationLimitedFileIds();
-
   /** Counter for tracking how many inodes we have. */
   private final InodeCounter mInodeCounter = new InodeCounter();
-
-  /** A set of inode ids whose persistence state is {@link PersistenceState#TO_BE_PERSISTED}. */
-  private final ToBePersistedFileIds mToBePersistedIds = new ToBePersistedFileIds();
 
   /**
    * TTL bucket list. The list is owned by InodeTree, and is only shared with
@@ -129,10 +113,10 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   /**
-   * @return an unmodifiable view of the replication limited file ids
+   * @return an iterator for the replication limited file ids
    */
-  public Set<Long> getReplicationLimitedFileIds() {
-    return Collections.unmodifiableSet(mReplicationLimitedFileIds);
+  public Iterator<Long> getReplicationLimitedFileIds() {
+    return mInodeStore.getIndiced(InodeStore.InodeIndice.REPLICATION_LIMITED);
   }
 
   /**
@@ -143,10 +127,10 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   /**
-   * @return the pinned inode file ids;
+   * @return an iterator for the pinned inode file ids;
    */
-  public Set<Long> getPinnedInodeFileIds() {
-    return Collections.unmodifiableSet(mPinnedInodeFileIds);
+  public Iterator<Long> getPinnedInodeFileIds() {
+    return mInodeStore.getIndiced(InodeStore.InodeIndice.PINNED);
   }
 
   /**
@@ -157,11 +141,11 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   /**
-   * @return an unmodifiable view of the files with persistence state
+   * @return an iterator of the files with persistence state
    *         {@link PersistenceState#TO_BE_PERSISTED}
    */
-  public Set<Long> getToBePersistedIds() {
-    return Collections.unmodifiableSet(mToBePersistedIds);
+  public Iterator<Long> getToBePersistedIds() {
+    return mInodeStore.getIndiced(InodeStore.InodeIndice.TO_BE_PERSISTED);
   }
 
   /**
@@ -339,9 +323,9 @@ public class InodeTreePersistentState implements Journaled {
     }
 
     updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
-    mPinnedInodeFileIds.remove(id);
-    mReplicationLimitedFileIds.remove(id);
-    mToBePersistedIds.remove(id);
+    mInodeStore.setIndice(id, InodeStore.InodeIndice.PINNED, false);
+    mInodeStore.setIndice(id, InodeStore.InodeIndice.REPLICATION_LIMITED, false);
+    mInodeStore.setIndice(id, InodeStore.InodeIndice.TO_BE_PERSISTED, false);
   }
 
   private void applyCreateDirectory(InodeDirectoryEntry entry) {
@@ -424,11 +408,11 @@ public class InodeTreePersistentState implements Journaled {
             file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
           }
         }
-        mPinnedInodeFileIds.add(entry.getId());
+        mInodeStore.setIndice(entry.getId(), InodeStore.InodeIndice.PINNED, true);
       } else {
         // when we unpin a file, set the min replication to zero too.
         inode.asFile().setReplicationMin(0);
-        mPinnedInodeFileIds.remove(entry.getId());
+        mInodeStore.setIndice(entry.getId(), InodeStore.InodeIndice.PINNED, false);
       }
     }
     mInodeStore.writeInode(inode);
@@ -450,9 +434,9 @@ public class InodeTreePersistentState implements Journaled {
         entry);
     if (entry.hasReplicationMax()) {
       if (entry.getReplicationMax() == alluxio.Constants.REPLICATION_MAX_INFINITY) {
-        mReplicationLimitedFileIds.remove(inode.getId());
+        mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.REPLICATION_LIMITED, false);
       } else {
-        mReplicationLimitedFileIds.add(inode.getId());
+        mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.REPLICATION_LIMITED, true);
       }
     }
     inode.asFile().updateFromEntry(entry);
@@ -533,9 +517,6 @@ public class InodeTreePersistentState implements Journaled {
       mInodeStore.clear();
       mInodeStore.writeNewInode(inode);
       mInodeCounter.set(1);
-      mPinnedInodeFileIds.clear();
-      mReplicationLimitedFileIds.clear();
-      mToBePersistedIds.clear();
 
       updateToBePersistedIds(inode);
       return;
@@ -550,16 +531,16 @@ public class InodeTreePersistentState implements Journaled {
     if (inode.isFile()) {
       MutableInodeFile file = inode.asFile();
       if (file.getReplicationMin() > 0) {
-        mPinnedInodeFileIds.add(file.getId());
+        mInodeStore.setIndice(file.getId(), InodeStore.InodeIndice.PINNED, true);
         file.setPinned(true);
       }
       if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
-        mReplicationLimitedFileIds.add(file.getId());
+        mInodeStore.setIndice(file.getId(), InodeStore.InodeIndice.REPLICATION_LIMITED, true);
       }
     }
     // Update indexes.
     if (inode.isFile() && inode.isPinned()) {
-      mPinnedInodeFileIds.add(inode.getId());
+      mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.PINNED, true);
     }
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(Inode.wrap(inode));
@@ -620,9 +601,9 @@ public class InodeTreePersistentState implements Journaled {
 
   private void updateToBePersistedIds(MutableInode<?> inode) {
     if (inode.getPersistenceState() == PersistenceState.TO_BE_PERSISTED) {
-      mToBePersistedIds.add(inode.getId());
+      mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.TO_BE_PERSISTED, true);
     } else {
-      mToBePersistedIds.remove(inode.getId());
+      mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.TO_BE_PERSISTED, false);
     }
   }
 
@@ -685,24 +666,22 @@ public class InodeTreePersistentState implements Journaled {
   @Override
   public void resetState() {
     mInodeStore.clear();
-    mReplicationLimitedFileIds.clear();
-    mPinnedInodeFileIds.clear();
   }
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
     // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
     // ids to inodes.
-    JournalUtils.writeToCheckpoint(output, Arrays.asList(mInodeStore, mPinnedInodeFileIds,
-        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter));
+    JournalUtils.writeToCheckpoint(output,
+        Arrays.asList(mInodeStore, mTtlBuckets, mInodeCounter));
   }
 
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
     // ids to inodes.
-    JournalUtils.restoreFromCheckpoint(input, Arrays.asList(mInodeStore, mPinnedInodeFileIds,
-        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter));
+    JournalUtils.restoreFromCheckpoint(input,
+        Arrays.asList(mInodeStore, mTtlBuckets, mInodeCounter));
   }
 
   @Override

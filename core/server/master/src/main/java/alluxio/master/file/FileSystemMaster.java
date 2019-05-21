@@ -56,9 +56,9 @@ import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -344,9 +344,9 @@ public interface FileSystemMaster extends Master {
   AlluxioURI getPath(long fileId) throws FileDoesNotExistException;
 
   /**
-   * @return the set of inode ids which are pinned
+   * @return the iterator of inode ids which are pinned
    */
-  Set<Long> getPinIdList();
+  Iterator<Long> getPinIdList();
 
   /**
    * @return the ufs address for this master

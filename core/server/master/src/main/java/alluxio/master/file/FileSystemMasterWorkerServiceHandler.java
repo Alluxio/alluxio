@@ -30,6 +30,7 @@ import alluxio.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
+import org.apache.curator.shaded.com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +98,8 @@ public final class FileSystemMasterWorkerServiceHandler
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
         () -> GetPinnedFileIdsPResponse
-            .newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build(),
+            .newBuilder().addAllPinnedFileIds(Sets.newHashSet(mFileSystemMaster.getPinIdList()))
+            .build(),
         "getPinnedFileIds", "options=%s", responseObserver, options);
   }
 
