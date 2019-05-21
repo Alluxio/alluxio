@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -58,6 +57,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
    * @param context the context containing the new configuration
    */
   public void resetMetaMasterConfigClient(MasterClientContext context) {
+    mClient.close();
     mClient = new RetryHandlingMetaMasterConfigClient(context);
   }
 
@@ -72,7 +72,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   }
 
   @Override
-  public synchronized void heartbeat() throws InterruptedException {
+  public synchronized void heartbeat() {
     if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
       // Wait until the initial cluster defaults are loaded.
       return;
@@ -92,8 +92,11 @@ public final class ConfigHashSync implements HeartbeatExecutor {
         mContext.getClientContext().getPathConfHash());
     if (isClusterConfUpdated || isPathConfUpdated) {
       try {
-        mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
-        mException = null;
+        if (mContext.reinit(isClusterConfUpdated, isPathConfUpdated)) {
+          mException = null;
+        } else {
+          LOG.warn("Failed to reinitialize FileSystemContext because there are ongoing RPCs.");
+        }
       } catch (UnavailableException e) {
         LOG.error("Failed to reinitialize FileSystemContext:", e);
         // Meta master might be temporarily unavailable, retry in next heartbeat.
@@ -103,16 +106,12 @@ public final class ConfigHashSync implements HeartbeatExecutor {
         // If the heartbeat keeps running, the context might be reinitialized successfully in the
         // next heartbeat, then the resources that are not closed in the old context are leaked.
         Thread.currentThread().interrupt();
-      } catch (TimeoutException e) {
-        LOG.error("Failed to start reinitializing FileSystemContext:", e);
-        // There is still ongoing client operations, may be able to reinitialize in the next
-        // heartbeat when there is no active client operation.
       }
     }
   }
 
   @Override
   public synchronized void close() {
-    // Noop, the mClient will be closed by users of this class.
+    mClient.close();
   }
 }

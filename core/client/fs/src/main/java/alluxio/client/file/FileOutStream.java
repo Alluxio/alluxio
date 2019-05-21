@@ -88,44 +88,44 @@ public class FileOutStream extends AbstractOutStream {
    */
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
       throws IOException {
-    mContext = context;
     mCloser = Closer.create();
-    // Acquire a lock to block FileSystemContext reinitialization, this needs to be done before
+    // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
     // using mContext.
-    // The lock will be released in close().
-    mCloser.register(mContext.acquireBlockReinitLockResource());
-    mUri = Preconditions.checkNotNull(path, "path");
-    mBlockSize = options.getBlockSizeBytes();
-    mAlluxioStorageType = options.getAlluxioStorageType();
-    mUnderStorageType = options.getUnderStorageType();
-    mOptions = options;
-    mBlockStore = AlluxioBlockStore.create(mContext);
-    mPreviousBlockOutStreams = new ArrayList<>();
-    mClosed = false;
-    mCanceled = false;
-    mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
-    mBytesWritten = 0;
+    // The resource will be released in close().
+    mContext = context;
+    mCloser.register(mContext.acquireResourceToBlockReinit());
+    try {
+      mUri = Preconditions.checkNotNull(path, "path");
+      mBlockSize = options.getBlockSizeBytes();
+      mAlluxioStorageType = options.getAlluxioStorageType();
+      mUnderStorageType = options.getUnderStorageType();
+      mOptions = options;
+      mBlockStore = AlluxioBlockStore.create(mContext);
+      mPreviousBlockOutStreams = new ArrayList<>();
+      mClosed = false;
+      mCanceled = false;
+      mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
+      mBytesWritten = 0;
 
-    if (!mUnderStorageType.isSyncPersist()) {
-      mUnderStorageOutputStream = null;
-    } else { // Write is through to the under storage, create mUnderStorageOutputStream.
-      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
-          .setBlockWorkerInfos(mBlockStore.getEligibleWorkers())
-          .setBlockInfo(new BlockInfo()
-              .setBlockId(-1)
-              .setLength(0)); // not storing data to Alluxio, so block size is 0
-      WorkerNetAddress workerNetAddress =
-          options.getLocationPolicy().getWorker(getWorkerOptions);
-      if (workerNetAddress == null) {
-        // Assume no worker is available because block size is 0.
-        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-      }
-      try {
+      if (!mUnderStorageType.isSyncPersist()) {
+        mUnderStorageOutputStream = null;
+      } else { // Write is through to the under storage, create mUnderStorageOutputStream.
+        GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
+            .setBlockWorkerInfos(mBlockStore.getEligibleWorkers())
+            .setBlockInfo(new BlockInfo()
+                .setBlockId(-1)
+                .setLength(0)); // not storing data to Alluxio, so block size is 0
+        WorkerNetAddress workerNetAddress =
+            options.getLocationPolicy().getWorker(getWorkerOptions);
+        if (workerNetAddress == null) {
+          // Assume no worker is available because block size is 0.
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
         mUnderStorageOutputStream = mCloser
             .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
-      } catch (Throwable t) {
-        throw CommonUtils.closeAndRethrow(mCloser, t);
       }
+    } catch (Throwable t) {
+      throw CommonUtils.closeAndRethrow(mCloser, t);
     }
   }
 

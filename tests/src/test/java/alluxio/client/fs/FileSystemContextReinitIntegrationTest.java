@@ -28,7 +28,6 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.testutils.LocalAlluxioClusterResource.Config;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -112,9 +111,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   @Test
-  @Config(
-      confParams = {PropertyKey.Name.USER_CONF_SYNC_TIMEOUT, "100ms"})
-  public void configHashSyncTimeout() throws Exception {
+  public void configHashSyncWithOpenStream() throws Exception {
     // Cannot use mLocalAlluxioClusterResource.get().getClient(mContext) here because the clients
     // will be closed when restarting local masters, which in turn will close the contexts.
     try (FileSystem client = FileSystem.Factory.create(mContext);
@@ -124,11 +121,8 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
       checkPathConfBeforeUpdate();
       updateClusterConf();
       updatePathConf();
-      // Opened stream is not closed yet, so it should block reinitialization.
-      long start = System.currentTimeMillis();
+      // Opened stream is not closed yet, so reinit should not run.
       triggerSync();
-      long duration = System.currentTimeMillis() - start;
-      Assert.assertTrue(duration >= 100); // triggerSync should time out after 300ms
       checkHash(false, false);
       os.close();
       // Stream is closed, reinitialization should not be blocked.
