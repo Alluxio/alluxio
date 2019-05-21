@@ -171,6 +171,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public MoveBlockResponse moveBlock(MoveBlockRequest request) {
+    // Default time out is 30 secs, may need to adjust this if block move takes longer
     return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .moveBlock(request);
   }
