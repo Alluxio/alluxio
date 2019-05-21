@@ -30,7 +30,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.io.IOException;
 import javax.annotation.Nullable;
 /**
  * A cache specifically designed to contain locks and will NOT evict any entries
