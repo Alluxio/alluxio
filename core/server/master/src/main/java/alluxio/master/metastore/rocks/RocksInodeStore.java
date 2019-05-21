@@ -338,6 +338,16 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
+  public void clearIndices(InodeIndice indice) {
+    try {
+      db().deleteRange(RocksUtils.toByteArray(indice.getIndiceId(), 0L),
+          RocksUtils.toByteArray(indice.getIndiceId() + 1, 0L));
+    } catch (RocksDBException rexc) {
+      throw new RuntimeException(rexc);
+    }
+  }
+
+  @Override
   public Iterator<Long> getIndiced(InodeIndice indice) {
     return new RocksIndiceIterator(db().newIterator(mIndicesColumn.get()), indice);
   }

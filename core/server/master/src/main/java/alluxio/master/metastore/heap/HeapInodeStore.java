@@ -90,6 +90,11 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
+  public void clearIndices(InodeIndice indice) {
+    mIndices.get(indice).clear();
+  }
+
+  @Override
   public Iterator<Long> getIndiced(InodeIndice indice) {
     return Collections.unmodifiableSet(mIndices.get(indice)).iterator();
   }
@@ -145,6 +150,7 @@ public class HeapInodeStore implements InodeStore {
   public void clear() {
     mInodes.clear();
     mEdges.clear();
+    mIndices.clear();
   }
 
   private Map<String, Long> children(long id) {

@@ -191,6 +191,13 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
   void setIndice(long id, InodeIndice indice, boolean isSet );
 
   /**
+   * Clears all inodes from indice.
+   *
+   * @param indice the indice
+   */
+  void clearIndices(InodeIndice indice);
+
+  /**
    * Iterator for indiced inode Ids.
    *
    * @param indice indice to iterate

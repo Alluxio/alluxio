@@ -175,6 +175,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   public void clear() {
     mInodeCache.clear();
     mEdgeCache.clear();
+    mIndiceCache.clear();
     mBackingStore.clear();
   }
 
@@ -249,6 +250,18 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     } else {
       mIndiceCache.remove(indiceKey);
     }
+  }
+
+  @Override
+  public void clearIndices(InodeIndice indice) {
+    try {
+      // Flush indice cache.
+      mIndiceCache.flush();
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupting while flushing dirty indices to disk");
+    }
+    mBackingStore.clearIndices(indice);
   }
 
   @Override
