@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.AlluxioURI;
+import alluxio.grpc.SyncPointStatus;
 
 /**
  * This class represents the state of a sync point, whether the intial syncing is done,
@@ -62,7 +63,20 @@ public class SyncPointInfo {
    * @return proto representation of the sync point information
    */
   public alluxio.grpc.SyncPointInfo toProto() {
-    alluxio.grpc.SyncPointStatus status = alluxio.grpc.SyncPointStatus.valueOf(mSyncStatus.name());
+    SyncPointStatus status;
+    switch (mSyncStatus) {
+      case NOT_INITIALLY_SYNCED:
+        status = SyncPointStatus.Not_Initially_Synced;
+        break;
+      case SYNCING:
+        status = SyncPointStatus.Syncing;
+        break;
+      case INITIALLY_SYNCED:
+        status = SyncPointStatus.Initially_Synced;
+        break;
+      default:
+        status = SyncPointStatus.Not_Initially_Synced;
+    }
 
     alluxio.grpc.SyncPointInfo info = alluxio.grpc.SyncPointInfo.newBuilder()
         .setSyncPointUri(mSyncPointUri.getPath()).setSyncStatus(status).build();
