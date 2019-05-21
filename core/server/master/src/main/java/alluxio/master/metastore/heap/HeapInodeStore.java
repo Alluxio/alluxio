@@ -31,7 +31,9 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -48,6 +50,15 @@ public class HeapInodeStore implements InodeStore {
   // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
+  // Map for storing indices.
+  private HashMap<InodeIndice, Set<Long>> mIndices;
+
+  public HeapInodeStore () {
+    mIndices = new HashMap<>();
+    for(InodeIndice indice : InodeIndice.values()) {
+      mIndices.put(indice, ConcurrentHashMap.newKeySet());
+    }
+  }
 
   @Override
   public void remove(Long inodeId) {
@@ -67,6 +78,20 @@ public class HeapInodeStore implements InodeStore {
   @Override
   public void removeChild(long parentId, String name) {
     mEdges.removeInnerValue(parentId, name);
+  }
+
+  @Override
+  public void setIndice(long id, InodeIndice indice, boolean isSet) {
+    if (isSet) {
+      mIndices.get(indice).add(id);
+    } else {
+      mIndices.get(indice).remove(id);
+    }
+  }
+
+  @Override
+  public Iterator<Long> getIndiced(InodeIndice indice) {
+    return Collections.unmodifiableSet(mIndices.get(indice)).iterator();
   }
 
   @Override
