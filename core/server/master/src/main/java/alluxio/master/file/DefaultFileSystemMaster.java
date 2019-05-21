@@ -2644,18 +2644,21 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       if (syncPoints != null && !syncPoints.isEmpty()) {
         // add back all sync points
-        Exception syncEx = null;
+        InvalidPathException syncEx = null;
         for (AlluxioURI syncPoint : syncPoints) {
           try {
             startSyncAndJournal(rpcContext, syncPoint);
           } catch (Exception e) {
             if (syncEx == null) {
-              syncEx = new UnexpectedAlluxioException("Some sync points in this mount point"
+              syncEx = new InvalidPathException("Some sync points in this mount point"
                   + " failed to initialize. Please add them manually.");
             }
             syncEx.addSuppressed(new InvalidPathException(
                 String.format("Failed to add sync point %s", syncPoint), e));
           }
+        }
+        if (syncEx != null) {
+          throw syncEx;
         }
       }
       auditContext.setSucceeded(true);
