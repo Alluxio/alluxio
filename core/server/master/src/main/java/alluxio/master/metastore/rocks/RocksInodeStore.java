@@ -323,7 +323,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public void setIndice(long id, InodeIndice indice, boolean isSet) throws IOException {
+  public void setIndice(long id, InodeIndice indice, boolean isSet) {
     // Create composite key for the given indice and id
     byte[] indiceKey = RocksUtils.toByteArray(indice.getIndiceId(), id);
     try {
@@ -333,7 +333,7 @@ public class RocksInodeStore implements InodeStore {
         db().delete(indiceKey);
       }
     } catch (RocksDBException rexc) {
-      throw new IOException(rexc);
+      throw new RuntimeException(rexc);
     }
   }
 

@@ -13,6 +13,7 @@ package alluxio.master.metastore.caching;
 
 import static java.util.stream.Collectors.toSet;
 
+import alluxio.collections.Pair;
 import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.AlluxioConfiguration;
@@ -62,6 +63,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.ws.rs.NotSupportedException;
 
 /**
  * An inode store which caches inode tree metadata and delegates to another inode store for cache
@@ -103,6 +105,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   @VisibleForTesting
   final ListingCache mListingCache;
 
+  @VisibleForTesting
+  final IndiceCache mIndiceCache;
+
   // Starts true, but becomes permanently false if we ever need to spill metadata to the backing
   // store. When true, we can optimize lookups for non-existent inodes because we don't need to
   // check the backing store. We can also optimize getChildren by skipping the range query on the
@@ -140,6 +145,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     mInodeCache = new InodeCache(cacheConf);
     mEdgeCache = new EdgeCache(cacheConf);
     mListingCache = new ListingCache(cacheConf);
+    mIndiceCache = new IndiceCache(cacheConf);
   }
 
   @Override
@@ -231,6 +237,32 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void setIndice(long id, InodeIndice indice, boolean isSet) {
+    // Acquire the key for mIndiceCache.
+    Pair<InodeIndice, Long> indiceKey = new Pair<>(indice, id);
+    // Add or remove based on isSet status.
+    if (isSet) {
+      mIndiceCache.put(indiceKey, id);
+    } else {
+      mIndiceCache.remove(indiceKey);
+    }
+  }
+
+  @Override
+  public Iterator<Long> getIndiced(InodeIndice indice) {
+    try {
+      // Flush indice cache.
+      // Because indice iterator is always fetched from disk.
+      mIndiceCache.flush();
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupting while flushing dirty indices to disk");
+    }
+    // Return the iterator to backing store.
+    return mBackingStore.getIndiced(indice);
   }
 
   @Override
@@ -779,6 +811,52 @@ public final class CachingInodeStore implements InodeStore, Closeable {
         if (mChildren != null && mChildren.remove(name) != null) {
           mWeight.decrementAndGet();
         }
+      }
+    }
+  }
+
+  /**
+   * Cache for inode indices.
+   *
+   * {@link Cache} is used for caching writes to the backing store.
+   * Indices are defined by a composite key of <InodeIndice, InodeId>. Value is
+   * the InodeId itself.
+   *
+   * This cache is not used for reads because:
+   *   1- Indice APIs don't contain a single getter.
+   *   2- Iteration of indiced Ids will always need to resort to disk state anyway.
+   *
+   */
+  @VisibleForTesting
+  class IndiceCache extends Cache<Pair<InodeIndice, Long>, Long> {
+    public IndiceCache(CacheConfiguration conf) {
+      super(conf, "indice-cache");
+    }
+
+    @Override
+    protected Optional<Long> load(Pair<InodeIndice, Long> id) {
+      throw new NotSupportedException();
+    }
+
+    @Override
+    protected void writeToBackingStore(Pair<InodeIndice, Long> key, Long value) {
+      mBackingStoreEmpty = false;
+      mBackingStore.setIndice(key.getSecond(), key.getFirst(), true);
+    }
+
+    @Override
+    protected void removeFromBackingStore(Pair<InodeIndice, Long> key) {
+      if (!mBackingStoreEmpty) {
+        mBackingStore.setIndice(key.getSecond(), key.getFirst(), false);
+      }
+    }
+
+    @Override
+    protected void flushEntries(List<Entry> entries) {
+      // TODO(ggezer) Support write batching.
+      for (Entry entry : entries) {
+        mBackingStore.setIndice(entry.mKey.getSecond(), entry.mKey.getFirst(),
+            entry.mValue != null);
       }
     }
   }

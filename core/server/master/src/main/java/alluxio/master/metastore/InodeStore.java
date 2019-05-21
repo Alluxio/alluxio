@@ -188,7 +188,7 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
    * @param indice the indice
    * @param isSet Whether to set or unset an indice
    */
-  void setIndice(long id, InodeIndice indice, boolean isSet ) throws IOException;
+  void setIndice(long id, InodeIndice indice, boolean isSet );
 
   /**
    * Iterator for indiced inode Ids.
