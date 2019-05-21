@@ -42,6 +42,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -67,6 +68,7 @@ public class RocksInodeStore implements InodeStore {
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
+  private final AtomicReference<ColumnFamilyHandle> mIndicesColumn = new AtomicReference<>();
 
   /**
    * Creates and initializes a rocks block store.
@@ -93,7 +95,7 @@ public class RocksInodeStore implements InodeStore {
         .setCreateIfMissing(true)
         .setCreateMissingColumnFamilies(true);
     mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
-        Arrays.asList(mInodesColumn, mEdgesColumn));
+        Arrays.asList(mInodesColumn, mEdgesColumn, mIndicesColumn));
   }
 
   @Override
@@ -320,6 +322,26 @@ public class RocksInodeStore implements InodeStore {
     mRocksStore.close();
   }
 
+  @Override
+  public void setIndice(long id, InodeIndice indice, boolean isSet) throws IOException {
+    // Create composite key for the given indice and id
+    byte[] indiceKey = RocksUtils.toByteArray(indice.getIndiceId(), id);
+    try {
+      if (isSet) {
+        db().put(indiceKey, Longs.toByteArray(id));
+      } else {
+        db().delete(indiceKey);
+      }
+    } catch (RocksDBException rexc) {
+      throw new IOException(rexc);
+    }
+  }
+
+  @Override
+  public Iterator<Long> getIndiced(InodeIndice indice) {
+    return new RocksIndiceIterator(db().newIterator(mIndicesColumn.get()), indice);
+  }
+
   private RocksDB db() {
     return mRocksStore.getDb();
   }
@@ -358,5 +380,43 @@ public class RocksInodeStore implements InodeStore {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Used to implement an indice iterator off of RocksIterator.
+   * This will assume the underlying Rocks table is following below composite
+   * key convention for identifying indices.
+   *
+   * {Indice-Id + Inode-Id} -> {Inode-Id}
+   *
+   * Starting the composite key with an IndiceId provides range query capabilities.
+   * For exmaple to iterate all keys with Indice-Id(1), we would need to query
+   * starting from 100000000... and end at 200000000..., assuming inode Ids start from 0.
+   *
+   */
+  class RocksIndiceIterator implements Iterator<Long> {
+
+    /** Underlying Rocks iterator for the indice table.  */
+    private RocksIterator mRocksIterator;
+    /**  */
+    private InodeIndice mIndice;
+
+    public RocksIndiceIterator(RocksIterator rocksIterator, InodeStore.InodeIndice indice) {
+      mIndice = indice;
+      mRocksIterator = rocksIterator;
+      // Start iteration from the first possible key for given indice.
+      mRocksIterator.seek(RocksUtils.toByteArray(indice.getIndiceId(), 0L));
+    }
+
+    @Override
+    public boolean hasNext() {
+      // Iterator is still valid and its key hasn't crossed to the next indice space.
+      return mRocksIterator.isValid() && (mRocksIterator.key()[0] <= mIndice.getIndiceId() + 1);
+    }
+
+    @Override
+    public Long next() {
+      return Longs.fromByteArray(mRocksIterator.value());
+    }
   }
 }

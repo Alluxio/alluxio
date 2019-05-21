@@ -18,6 +18,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.journal.checkpoint.Checkpointed;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
@@ -187,7 +188,7 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
    * @param indice the indice
    * @param isSet Whether to set or unset an indice
    */
-  void setIndice(long id, InodeIndice indice, boolean isSet );
+  void setIndice(long id, InodeIndice indice, boolean isSet ) throws IOException;
 
   /**
    * Iterator for indiced inode Ids.
@@ -204,17 +205,17 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
    * value of enums.
    */
   enum InodeIndice {
-    PINNED(0),             /* Inode is pinned.  */
-    REPLICATION_LIMITED(1) /* Inode has max replication factor. */
+    PINNED((byte)0),             /* Inode is pinned.  */
+    REPLICATION_LIMITED((byte)1) /* Inode has max replication factor. */
     ;
 
-    public final int mId;
+    public final byte mId;
 
-    InodeIndice(int IndiceId) {
+    InodeIndice(byte IndiceId) {
       this.mId = IndiceId;
     }
 
-    int getIndiceId() {
+    public byte getIndiceId() {
       return mId;
     }
   }

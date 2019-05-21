@@ -52,6 +52,22 @@ public final class RocksUtils {
   }
 
   /**
+   * @param byte1 a byte value
+   * @param long1 a long value
+   * @return a byte array formed by writing a byte and and a long value as bytes
+   */
+  public static byte[] toByteArray(byte byte1, long long1) {
+    byte[] key = new byte[1 + Longs.BYTES];
+
+    key[0] = byte1;
+    for (int i = Longs.BYTES; i > 0; i--) {
+      key[i] = (byte) (long1 & 0xffL);
+      long1 >>= Byte.SIZE;
+    }
+    return key;
+  }
+
+  /**
    * @param n a long value
    * @param str a string value
    * @return a byte array formed by writing the bytes of n followed by the bytes of str
