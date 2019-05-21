@@ -123,7 +123,7 @@
                   The Alluxio Proxy acts as a REST gateway for clients to communicate with the Alluxio system.
                 </description>
               </info>
-              <locations>alluxio.proxy.AlluxioProxyRestServiceHandler</locations>
+              <locations>alluxio.proxy.AlluxioProxyRestServiceHandler;alluxio.proxy.PathsRestServiceHandler</locations>
               <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
               <outputPath>${project.parent.parent.parent.basedir}/generated/proxy/index.html</outputPath>
               <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/proxy/swagger-ui</swaggerDirectory>
