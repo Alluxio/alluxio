@@ -73,7 +73,11 @@ public final class BlockMasterWorkerServiceHandler
             .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
                     .setTier(e.getKey().getTierAlias())
                     .setMediumType(e.getKey().getMediumType()).build(),
-                e -> e.getValue().getBlockIdList()));
+                e -> e.getValue().getBlockIdList(),
+                (e1, e2) -> {
+                  e1.addAll(e2);
+                  return e1;
+                }));
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
@@ -138,7 +142,11 @@ public final class BlockMasterWorkerServiceHandler
             .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
                     .setTier(e.getKey().getTierAlias())
                     .setMediumType(e.getKey().getMediumType()).build(),
-                e -> e.getValue().getBlockIdList()));
+                e -> e.getValue().getBlockIdList(),
+                (e1, e2) -> {
+                e1.addAll(e2);
+                return e1;
+                }));
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,

@@ -170,7 +170,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     int correctReplication = 0;
     List<String> candidates = new ArrayList<>();
     for (BlockLocation loc: blockInfo.getLocations()) {
-      if (loc.getMediumType().equals(firstPinnedMedium)) {
+      if (pinnedMediumTypes.contains(loc.getMediumType())) {
         correctReplication++;
       } else {
         candidates.add(loc.getWorkerAddress().getHost());
@@ -182,6 +182,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     } else {
       int toMove = minReplication - correctReplication;
       for (String candidate : candidates) {
+        // We are only addressing pinning to a single medium case, in the future we might
+        // address pinning to multiple medium types.
         movement.put(candidate, firstPinnedMedium);
         toMove--;
         if (toMove == 0) {
