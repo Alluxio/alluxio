@@ -54,7 +54,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
-import alluxio.resource.LockResource;
+import alluxio.resource.CountResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptions;
@@ -396,18 +396,18 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    URIStatus status = getStatus(path);
-    if (status.isFolder()) {
-      throw new FileDoesNotExistException(
-          ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
-    }
-    // getStatus should have loaded path level configs.
-    OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(
-        mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions,
-        mFsContext.getPathConf(path));
-    // FileSystemContext reinitialization is blocked during construction and close of FileInStream.
-    return new FileInStream(status, inStreamOptions, mFsContext);
+    return rpc(client -> {
+      AlluxioConfiguration conf = mFsContext.getPathConf(path);
+      URIStatus status = client.getStatus(path, FileSystemOptions.getStatusDefaults(conf));
+      if (status.isFolder()) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
+      }
+      OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
+          .toBuilder().mergeFrom(options).build();
+      InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
+      return new FileInStream(status, inStreamOptions, mFsContext);
+    });
   }
 
   @Override
@@ -573,7 +573,7 @@ public class BaseFileSystem implements FileSystem {
    */
   private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
-    try (LockResource r = mFsContext.acquireBlockReinitLockResource();
+    try (CountResource r = mFsContext.acquireResourceToBlockReinit();
          CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
       // Explicitly connect to trigger loading configuration from meta master.
