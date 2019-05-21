@@ -457,6 +457,24 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      WorkerOutOfSpaceException, IOException {
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInTierWithMedium(mediumType);
+    long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    try {
+      BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
+      if (meta.getBlockLocation().belongsTo(dst)) {
+        return;
+      }
+    } finally {
+      mBlockStore.unlockBlock(lockId);
+    }
+    // Execute the block move if necessary
+    mBlockStore.moveBlock(sessionId, blockId, dst);
+  }
+
+  @Override
   public String readBlock(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException {
     BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);

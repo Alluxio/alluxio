@@ -18,6 +18,7 @@ private static final long serialVersionUID = 0L;
   private BlockHeartbeatPRequest() {
     workerId_ = 0L;
     removedBlockIds_ = java.util.Collections.emptyList();
+    addedBlocks_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -129,6 +130,15 @@ private static final long serialVersionUID = 0L;
                 lostStorage__.getKey(), lostStorage__.getValue());
             break;
           }
+          case 58: {
+            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+              addedBlocks_ = new java.util.ArrayList<alluxio.grpc.LocationBlockIdListEntry>();
+              mutable_bitField0_ |= 0x00000040;
+            }
+            addedBlocks_.add(
+                input.readMessage(alluxio.grpc.LocationBlockIdListEntry.PARSER, extensionRegistry));
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -139,6 +149,9 @@ private static final long serialVersionUID = 0L;
     } finally {
       if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
         removedBlockIds_ = java.util.Collections.unmodifiableList(removedBlockIds_);
+      }
+      if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+        addedBlocks_ = java.util.Collections.unmodifiableList(addedBlocks_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -349,7 +362,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -369,7 +382,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -380,7 +393,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -396,7 +409,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -526,6 +539,61 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
+  public static final int ADDEDBLOCKS_FIELD_NUMBER = 7;
+  private java.util.List<alluxio.grpc.LocationBlockIdListEntry> addedBlocks_;
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  public java.util.List<alluxio.grpc.LocationBlockIdListEntry> getAddedBlocksList() {
+    return addedBlocks_;
+  }
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  public java.util.List<? extends alluxio.grpc.LocationBlockIdListEntryOrBuilder> 
+      getAddedBlocksOrBuilderList() {
+    return addedBlocks_;
+  }
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  public int getAddedBlocksCount() {
+    return addedBlocks_.size();
+  }
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  public alluxio.grpc.LocationBlockIdListEntry getAddedBlocks(int index) {
+    return addedBlocks_.get(index);
+  }
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  public alluxio.grpc.LocationBlockIdListEntryOrBuilder getAddedBlocksOrBuilder(
+      int index) {
+    return addedBlocks_.get(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -571,6 +639,9 @@ private static final long serialVersionUID = 0L;
         internalGetLostStorage(),
         LostStorageDefaultEntryHolder.defaultEntry,
         6);
+    for (int i = 0; i < addedBlocks_.size(); i++) {
+      output.writeMessage(7, addedBlocks_.get(i));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -626,6 +697,10 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, lostStorage__);
     }
+    for (int i = 0; i < addedBlocks_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(7, addedBlocks_.get(i));
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -660,6 +735,8 @@ private static final long serialVersionUID = 0L;
     }
     result = result && internalGetLostStorage().equals(
         other.internalGetLostStorage());
+    result = result && getAddedBlocksList()
+        .equals(other.getAddedBlocksList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -695,6 +772,10 @@ private static final long serialVersionUID = 0L;
     if (!internalGetLostStorage().getMap().isEmpty()) {
       hash = (37 * hash) + LOSTSTORAGE_FIELD_NUMBER;
       hash = (53 * hash) + internalGetLostStorage().hashCode();
+    }
+    if (getAddedBlocksCount() > 0) {
+      hash = (37 * hash) + ADDEDBLOCKS_FIELD_NUMBER;
+      hash = (53 * hash) + getAddedBlocksList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -852,6 +933,7 @@ private static final long serialVersionUID = 0L;
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
         getOptionsFieldBuilder();
+        getAddedBlocksFieldBuilder();
       }
     }
     public Builder clear() {
@@ -869,6 +951,12 @@ private static final long serialVersionUID = 0L;
       }
       bitField0_ = (bitField0_ & ~0x00000010);
       internalGetMutableLostStorage().clear();
+      if (addedBlocksBuilder_ == null) {
+        addedBlocks_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000040);
+      } else {
+        addedBlocksBuilder_.clear();
+      }
       return this;
     }
 
@@ -916,6 +1004,15 @@ private static final long serialVersionUID = 0L;
       }
       result.lostStorage_ = internalGetLostStorage();
       result.lostStorage_.makeImmutable();
+      if (addedBlocksBuilder_ == null) {
+        if (((bitField0_ & 0x00000040) == 0x00000040)) {
+          addedBlocks_ = java.util.Collections.unmodifiableList(addedBlocks_);
+          bitField0_ = (bitField0_ & ~0x00000040);
+        }
+        result.addedBlocks_ = addedBlocks_;
+      } else {
+        result.addedBlocks_ = addedBlocksBuilder_.build();
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -980,6 +1077,32 @@ private static final long serialVersionUID = 0L;
       }
       internalGetMutableLostStorage().mergeFrom(
           other.internalGetLostStorage());
+      if (addedBlocksBuilder_ == null) {
+        if (!other.addedBlocks_.isEmpty()) {
+          if (addedBlocks_.isEmpty()) {
+            addedBlocks_ = other.addedBlocks_;
+            bitField0_ = (bitField0_ & ~0x00000040);
+          } else {
+            ensureAddedBlocksIsMutable();
+            addedBlocks_.addAll(other.addedBlocks_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.addedBlocks_.isEmpty()) {
+          if (addedBlocksBuilder_.isEmpty()) {
+            addedBlocksBuilder_.dispose();
+            addedBlocksBuilder_ = null;
+            addedBlocks_ = other.addedBlocks_;
+            bitField0_ = (bitField0_ & ~0x00000040);
+            addedBlocksBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getAddedBlocksFieldBuilder() : null;
+          } else {
+            addedBlocksBuilder_.addAllMessages(other.addedBlocks_);
+          }
+        }
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -1334,7 +1457,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** the map of added blocks on all tiers 
+     ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -1354,7 +1477,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** the map of added blocks on all tiers 
+     ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -1365,7 +1488,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** the map of added blocks on all tiers 
+     ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -1381,7 +1504,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** the map of added blocks on all tiers 
+     ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -1405,7 +1528,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** the map of added blocks on all tiers 
+     ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -1428,7 +1551,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** the map of added blocks on all tiers 
+     ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -1444,7 +1567,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** the map of added blocks on all tiers 
+     ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -1724,6 +1847,318 @@ private static final long serialVersionUID = 0L;
       internalGetMutableLostStorage().getMutableMap()
           .putAll(values);
       return this;
+    }
+
+    private java.util.List<alluxio.grpc.LocationBlockIdListEntry> addedBlocks_ =
+      java.util.Collections.emptyList();
+    private void ensureAddedBlocksIsMutable() {
+      if (!((bitField0_ & 0x00000040) == 0x00000040)) {
+        addedBlocks_ = new java.util.ArrayList<alluxio.grpc.LocationBlockIdListEntry>(addedBlocks_);
+        bitField0_ |= 0x00000040;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.LocationBlockIdListEntry, alluxio.grpc.LocationBlockIdListEntry.Builder, alluxio.grpc.LocationBlockIdListEntryOrBuilder> addedBlocksBuilder_;
+
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public java.util.List<alluxio.grpc.LocationBlockIdListEntry> getAddedBlocksList() {
+      if (addedBlocksBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(addedBlocks_);
+      } else {
+        return addedBlocksBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public int getAddedBlocksCount() {
+      if (addedBlocksBuilder_ == null) {
+        return addedBlocks_.size();
+      } else {
+        return addedBlocksBuilder_.getCount();
+      }
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public alluxio.grpc.LocationBlockIdListEntry getAddedBlocks(int index) {
+      if (addedBlocksBuilder_ == null) {
+        return addedBlocks_.get(index);
+      } else {
+        return addedBlocksBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder setAddedBlocks(
+        int index, alluxio.grpc.LocationBlockIdListEntry value) {
+      if (addedBlocksBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureAddedBlocksIsMutable();
+        addedBlocks_.set(index, value);
+        onChanged();
+      } else {
+        addedBlocksBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder setAddedBlocks(
+        int index, alluxio.grpc.LocationBlockIdListEntry.Builder builderForValue) {
+      if (addedBlocksBuilder_ == null) {
+        ensureAddedBlocksIsMutable();
+        addedBlocks_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        addedBlocksBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder addAddedBlocks(alluxio.grpc.LocationBlockIdListEntry value) {
+      if (addedBlocksBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureAddedBlocksIsMutable();
+        addedBlocks_.add(value);
+        onChanged();
+      } else {
+        addedBlocksBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder addAddedBlocks(
+        int index, alluxio.grpc.LocationBlockIdListEntry value) {
+      if (addedBlocksBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureAddedBlocksIsMutable();
+        addedBlocks_.add(index, value);
+        onChanged();
+      } else {
+        addedBlocksBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder addAddedBlocks(
+        alluxio.grpc.LocationBlockIdListEntry.Builder builderForValue) {
+      if (addedBlocksBuilder_ == null) {
+        ensureAddedBlocksIsMutable();
+        addedBlocks_.add(builderForValue.build());
+        onChanged();
+      } else {
+        addedBlocksBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder addAddedBlocks(
+        int index, alluxio.grpc.LocationBlockIdListEntry.Builder builderForValue) {
+      if (addedBlocksBuilder_ == null) {
+        ensureAddedBlocksIsMutable();
+        addedBlocks_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        addedBlocksBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder addAllAddedBlocks(
+        java.lang.Iterable<? extends alluxio.grpc.LocationBlockIdListEntry> values) {
+      if (addedBlocksBuilder_ == null) {
+        ensureAddedBlocksIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, addedBlocks_);
+        onChanged();
+      } else {
+        addedBlocksBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder clearAddedBlocks() {
+      if (addedBlocksBuilder_ == null) {
+        addedBlocks_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+      } else {
+        addedBlocksBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public Builder removeAddedBlocks(int index) {
+      if (addedBlocksBuilder_ == null) {
+        ensureAddedBlocksIsMutable();
+        addedBlocks_.remove(index);
+        onChanged();
+      } else {
+        addedBlocksBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public alluxio.grpc.LocationBlockIdListEntry.Builder getAddedBlocksBuilder(
+        int index) {
+      return getAddedBlocksFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public alluxio.grpc.LocationBlockIdListEntryOrBuilder getAddedBlocksOrBuilder(
+        int index) {
+      if (addedBlocksBuilder_ == null) {
+        return addedBlocks_.get(index);  } else {
+        return addedBlocksBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public java.util.List<? extends alluxio.grpc.LocationBlockIdListEntryOrBuilder> 
+         getAddedBlocksOrBuilderList() {
+      if (addedBlocksBuilder_ != null) {
+        return addedBlocksBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(addedBlocks_);
+      }
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public alluxio.grpc.LocationBlockIdListEntry.Builder addAddedBlocksBuilder() {
+      return getAddedBlocksFieldBuilder().addBuilder(
+          alluxio.grpc.LocationBlockIdListEntry.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public alluxio.grpc.LocationBlockIdListEntry.Builder addAddedBlocksBuilder(
+        int index) {
+      return getAddedBlocksFieldBuilder().addBuilder(
+          index, alluxio.grpc.LocationBlockIdListEntry.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+     * </pre>
+     *
+     * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+     */
+    public java.util.List<alluxio.grpc.LocationBlockIdListEntry.Builder> 
+         getAddedBlocksBuilderList() {
+      return getAddedBlocksFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.LocationBlockIdListEntry, alluxio.grpc.LocationBlockIdListEntry.Builder, alluxio.grpc.LocationBlockIdListEntryOrBuilder> 
+        getAddedBlocksFieldBuilder() {
+      if (addedBlocksBuilder_ == null) {
+        addedBlocksBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.LocationBlockIdListEntry, alluxio.grpc.LocationBlockIdListEntry.Builder, alluxio.grpc.LocationBlockIdListEntryOrBuilder>(
+                addedBlocks_,
+                ((bitField0_ & 0x00000040) == 0x00000040),
+                getParentForChildren(),
+                isClean());
+        addedBlocks_ = null;
+      }
+      return addedBlocksBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

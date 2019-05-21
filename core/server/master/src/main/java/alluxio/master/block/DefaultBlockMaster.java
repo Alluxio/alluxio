@@ -606,8 +606,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   @Override
-  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, String mediumType,
-      long blockId, long length) throws NotFoundException, UnavailableException {
+  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias,
+      String mediumType, long blockId, long length)
+      throws NotFoundException, UnavailableException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
 
@@ -806,8 +807,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers, Map<String, StorageList> lostStorage,
-      RegisterWorkerPOptions options) throws NotFoundException {
+      Map<BlockLocation, List<Long>> currentBlocksOnLocation,
+      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+      throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
@@ -821,7 +823,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
     // Gather all blocks on this worker.
     HashSet<Long> blocks = new HashSet<>();
-    for (List<Long> blockIds : currentBlocksOnTiers.values()) {
+    for (List<Long> blockIds : currentBlocksOnLocation.values()) {
       blocks.addAll(blockIds);
     }
 
@@ -831,7 +833,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
       processWorkerRemovedBlocks(worker, removedBlocks);
-      processWorkerAddedBlocks(worker, currentBlocksOnTiers);
+      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
       processWorkerOrphanedBlocks(worker);
       worker.addLostStorage(lostStorage);
     }
@@ -851,7 +853,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<String, List<Long>> addedBlocksOnTiers,
+      Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -865,7 +867,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
-      processWorkerAddedBlocks(worker, addedBlocksOnTiers);
+      processWorkerAddedBlocks(worker, addedBlocks);
       processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
       worker.addLostStorage(lostStorage);
@@ -919,23 +921,24 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   /**
    * Updates the worker and block metadata for blocks added to a worker.
-   *
-   * @param workerInfo The worker metadata object
+   *  @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
   @GuardedBy("workerInfo")
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
-      Map<String, List<Long>> addedBlockIds) {
-    for (Map.Entry<String, List<Long>> entry : addedBlockIds.entrySet()) {
+      Map<BlockLocation, List<Long>> addedBlockIds) {
+    for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
       for (long blockId : entry.getValue()) {
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (block.isPresent()) {
             workerInfo.addBlock(blockId);
-            mBlockStore.addLocation(blockId, BlockLocation.newBuilder()
+            BlockLocation blockLocation = BlockLocation.newBuilder()
                 .setWorkerId(workerInfo.getId())
-                .setTier(entry.getKey())
-                .build());
+                .setTier(entry.getKey().getTier())
+                .setMediumType(entry.getKey().getMediumType())
+                .build();
+            mBlockStore.addLocation(blockId, blockLocation);
             mLostBlocks.remove(blockId);
           } else {
             LOG.warn("Invalid block: {} from worker {}.", blockId,

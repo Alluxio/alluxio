@@ -123,3 +123,8 @@ message WorkerNetAddress {
   optional string domainSocketPath = 5;
   optional TieredIdentity tieredIdentity = 6;
 }
+
+message BlockStoreLocationProto {
+  optional string tierAlias = 1;
+  optional string mediumType = 2;
+}
