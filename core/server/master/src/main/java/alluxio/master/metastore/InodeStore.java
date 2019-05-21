@@ -18,6 +18,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.journal.checkpoint.Checkpointed;
 
 import java.io.Closeable;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -178,6 +179,45 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
 
   @Override
   default void close() {}
+
+  /**
+   * Sets/Unsets an indice on an inode.
+   *
+   * @param id the inode Id
+   * @param indice the indice
+   * @param isSet Whether to set or unset an indice
+   */
+  void setIndice(long id, InodeIndice indice, boolean isSet );
+
+  /**
+   * Iterator for indiced inode Ids.
+   *
+   * @param indice indice to iterate
+   * @return the iterator for inode Ids for given indice
+   */
+  Iterator<Long> getIndiced(InodeIndice indice);
+
+  /**
+   * Used to define indices on Inode Ids.
+   *
+   * Always add new values to the end as store could make use of underlying
+   * value of enums.
+   */
+  enum InodeIndice {
+    PINNED(0),             /* Inode is pinned.  */
+    REPLICATION_LIMITED(1) /* Inode has max replication factor. */
+    ;
+
+    public final int mId;
+
+    InodeIndice(int IndiceId) {
+      this.mId = IndiceId;
+    }
+
+    int getIndiceId() {
+      return mId;
+    }
+  }
 
   /**
    * Used to perform batched writes. Call {@link #createWriteBatch()} to use batched writes.
