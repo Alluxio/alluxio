@@ -45,6 +45,8 @@ public class CountLatch {
    * 2. when >= 0, means the counter value increased by inc and decreased by dec.
    */
   private static final class Sync extends AbstractQueuedSynchronizer {
+    private static final long serialVersionUID = 8553010505281724322L;
+
     @Override
     protected boolean tryAcquire(int arg) {
       while (true) {
