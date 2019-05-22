@@ -125,6 +125,7 @@ public class JournalToolTest extends BaseIntegrationTest {
     // Verify that a non-zero dump file exists.
     assertThat(mOutput.toString(), containsString(mDumpDir.getAbsolutePath()));
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
+    mMultiProcessCluster.notifySuccess();
   }
 
   @Test
@@ -145,6 +146,7 @@ public class JournalToolTest extends BaseIntegrationTest {
     // Verify that a non-zero dump file exists.
     assertThat(mOutput.toString(), containsString(mDumpDir.getAbsolutePath()));
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
+    mMultiProcessCluster.notifySuccess();
   }
 
   @Test
@@ -177,6 +179,7 @@ public class JournalToolTest extends BaseIntegrationTest {
         "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
       assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_TREE", subPath));
     }
+    mMultiProcessCluster.notifySuccess();
   }
 
   @Test
@@ -218,6 +221,7 @@ public class JournalToolTest extends BaseIntegrationTest {
             "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
       assertNonemptyFileExists(PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_TREE", subPath));
     }
+    mMultiProcessCluster.notifySuccess();
   }
 
   @Test
@@ -233,6 +237,7 @@ public class JournalToolTest extends BaseIntegrationTest {
     String checkpointDir = findCheckpointDir();
     assertNonemptyDirExists(
         PathUtils.concatPath(checkpointDir, "INODE_TREE", "CACHING_INODE_STORE"));
+    mMultiProcessCluster.notifySuccess();
   }
 
   private void checkpointUfsJournal() throws Exception {
