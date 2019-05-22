@@ -14,10 +14,10 @@ package alluxio.underfs.hdfs.activesync;
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.resource.LockResource;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsActiveSyncProvider;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
@@ -79,10 +79,10 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    *
    * @param uri the hdfs uri
    * @param conf the hdfs conf
-   * @param alluxioConf Alluxio configuration
+   * @param ufsConf Alluxio UFS configuration
    */
   public SupportedHdfsActiveSyncProvider(URI uri, org.apache.hadoop.conf.Configuration conf,
-      AlluxioConfiguration alluxioConf)
+      UnderFileSystemConfiguration ufsConf)
       throws IOException {
     mHdfsAdmin = new HdfsAdmin(uri, conf);
     mChangedFiles = new ConcurrentHashMap<>();
@@ -92,18 +92,18 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mExecutorService = Executors
-        .newFixedThreadPool(alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE),
+        .newFixedThreadPool(ufsConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE),
             ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", true));
     mPollingThread = null;
     mUfsUriList = new CopyOnWriteArrayList<>();
     mEventMissed = false;
     mTxIdMap = new ConcurrentHashMap<>();
     mCurrentTxId = SyncInfo.INVALID_TXID;
-    mActiveUfsSyncMaxActivity = alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY);
-    mActiveUfsSyncMaxAge = alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_AGE);
-    mActiveUfsPollTimeoutMs = alluxioConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT);
+    mActiveUfsSyncMaxActivity = ufsConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY);
+    mActiveUfsSyncMaxAge = ufsConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_AGE);
+    mActiveUfsPollTimeoutMs = ufsConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT);
     mActiveUfsSyncEventRateInterval =
-        alluxioConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL);
+        ufsConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL);
   }
 
   /**
