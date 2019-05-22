@@ -28,6 +28,7 @@ import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -41,6 +42,7 @@ import io.atomix.copycat.server.storage.Log;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.entry.CommandEntry;
 import io.atomix.copycat.server.storage.snapshot.Snapshot;
+import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.util.StorageSerialization;
 import io.atomix.copycat.server.util.ServerSerialization;
 import io.atomix.copycat.util.ProtocolSerialization;
@@ -56,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -128,7 +131,7 @@ public final class JournalTool {
     try {
       dumpJournal();
     } catch (Exception exc) {
-      System.err.println(exc);
+      System.out.println(String.format("Journal tool failed: %s", exc));
     }
   }
 
@@ -369,6 +372,12 @@ public final class JournalTool {
 
     @Override
     void dumpJournal() throws Throwable {
+      // Copycat freaks out shown directory is not an actual copycat dir.
+      // At least verify that it exists.
+      if (!FileUtils.exists(mInputDir)) {
+        throw new FileNotFoundException(String.format("Input dir does not exist: %s", mInputDir));
+      }
+      // Read the journal.
       readFromDir();
     }
 
@@ -395,13 +404,16 @@ public final class JournalTool {
         throw e;
       } catch (ExecutionException e) {
         throw e.getCause();
+      } finally {
+        context.close();
       }
     }
 
     private void readCopycatLogFromDir() {
-      try (PrintStream out =
-          new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)))) {
-        Log log = Storage.builder().withDirectory(mInputDir).build().openLog("copycat");
+      try (
+          PrintStream out =
+              new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)));
+          Log log = Storage.builder().withDirectory(mInputDir).build().openLog("copycat")) {
         for (long i = log.firstIndex(); i < log.lastIndex(); i++) {
           io.atomix.copycat.server.storage.entry.Entry entry = log.get(i);
           if (entry instanceof CommandEntry) {
@@ -417,7 +429,7 @@ public final class JournalTool {
           }
         }
       } catch (Exception e) {
-        LOG.error("Failed to read from journal.", e);
+        LOG.error("Failed to read logs from journal.", e);
       }
     }
 
@@ -428,15 +440,16 @@ public final class JournalTool {
         return;
       }
       Snapshot currentSnapshot = journalStorage.openSnapshotStore("copycat").currentSnapshot();
+      SnapshotReader snapshotReader = currentSnapshot.reader();
+      String checkpointPath = String.format("%s-%s-%s", mCheckpointsDir, currentSnapshot.index(),
+          currentSnapshot.timestamp());
 
-      String snapshotDumpFile =
-          String.format("copycat-%s-%s.log", currentSnapshot.index(), currentSnapshot.timestamp());
-
+      LOG.debug("Reading snapshot-Id:", snapshotReader.readLong());
       try (CheckpointInputStream checkpointStream =
-          new CheckpointInputStream(new SnapshotReaderStream(currentSnapshot.reader()))) {
-        readCheckpoint(checkpointStream, Paths.get(mCheckpointsDir, snapshotDumpFile));
+          new CheckpointInputStream(new SnapshotReaderStream(snapshotReader))) {
+        readCheckpoint(checkpointStream, Paths.get(checkpointPath));
       } catch (Exception e) {
-        LOG.error("Failed to read from journal.", e);
+        LOG.error("Failed to read snapshot from journal.", e);
       }
     }
 
