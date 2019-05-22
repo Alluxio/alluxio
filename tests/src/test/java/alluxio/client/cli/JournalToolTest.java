@@ -25,7 +25,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.journal.JournalTool;
+import alluxio.master.journal.tool.JournalTool;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.multi.process.MultiProcessCluster;
@@ -197,9 +197,9 @@ public class JournalToolTest extends BaseIntegrationTest {
             SetAttributePOptions.newBuilder().setReplicationMax(5).build());
     mFs.persist(new AlluxioURI("/async_persist"));
     mFs.setAttribute(new AlluxioURI("/ttl"),
-            SetAttributePOptions.newBuilder()
-                    .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(100000).build())
-                    .build());
+        SetAttributePOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(100000).build())
+            .build());
     checkpointEmbeddedJournal();
     // Make sure to point the tool to leader's journal folder.
     String leaderJournalDir = mMultiProcessCluster.getJournalDir()
@@ -211,7 +211,7 @@ public class JournalToolTest extends BaseIntegrationTest {
     String checkpointDir = findCheckpointDir();
     // Embedded journal checkpoints are grouped by masters.
     String fsMasterCheckpointsDir = PathUtils.concatPath(checkpointDir, "FILE_SYSTEM_MASTER");
-    
+
     assertNonemptyFileExists(
             PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_DIRECTORY_ID_GENERATOR"));
     for (String subPath : Arrays.asList("HEAP_INODE_STORE", "INODE_COUNTER",
