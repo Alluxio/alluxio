@@ -59,6 +59,7 @@ public class RocksInodeStore implements InodeStore {
   private static final String INODES_DB_NAME = "inodes";
   private static final String INODES_COLUMN = "inodes";
   private static final String EDGES_COLUMN = "edges";
+  private static final String INDICES_COLUMN = "indices";
 
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
@@ -87,7 +88,8 @@ public class RocksInodeStore implements InodeStore {
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     List<ColumnFamilyDescriptor> columns = Arrays.asList(
         new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), cfOpts),
-        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), cfOpts));
+        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), cfOpts),
+        new ColumnFamilyDescriptor(INDICES_COLUMN.getBytes(), cfOpts));
     DBOptions dbOpts = new DBOptions()
         // Concurrent memtable write is not supported for hash linked list memtable
         .setAllowConcurrentMemtableWrite(false)
