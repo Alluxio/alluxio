@@ -14,7 +14,6 @@ package alluxio.underfs.hdfs.activesync;
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.resource.LockResource;
