@@ -54,6 +54,7 @@ import alluxio.grpc.StartSyncPRequest;
 import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
+import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
@@ -232,6 +233,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         () -> mClient.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.toString())
             .setUfsPath(ufsPath.toString()).setOptions(options).build()),
         "Mount");
+  }
+
+  @Override
+  public void updateMount(final AlluxioURI alluxioPath, final MountPOptions options)
+      throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.updateMount(UpdateMountPRequest.newBuilder()
+            .setAlluxioPath(alluxioPath.toString())
+            .setOptions(options).build()),
+        "UpdateMount");
   }
 
   @Override

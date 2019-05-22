@@ -447,6 +447,15 @@ public interface FileSystem extends Closeable {
       throws IOException, AlluxioException;
 
   /**
+   * Updates the options for an existing mount point.
+   *
+   * @param alluxioPath the Alluxio path of the mount point
+   * @param options options for this mount point
+   */
+  void updateMount(AlluxioURI alluxioPath, MountPOptions options)
+      throws IOException, AlluxioException;
+
+  /**
    * Lists all mount points and their corresponding under storage addresses.
    * @return a map from String to {@link MountPointInfo}
    */
