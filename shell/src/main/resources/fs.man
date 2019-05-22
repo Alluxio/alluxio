@@ -300,7 +300,7 @@ under "path" are removed from Alluxio, but they still exist in the previously mo
 .TP
 .BR updateMount
 \fIpath\fR
-Update options for an existing mount point.
+Update options for an existing mount point while keeping Alluxio metadata under the path.
 
 .TP
 .BR unpin

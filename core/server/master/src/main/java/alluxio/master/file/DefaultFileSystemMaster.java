@@ -147,7 +147,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
-import alluxio.util.LogUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.StreamUtils;
@@ -2581,6 +2580,51 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
   }
 
+  private void prepareForMount(AlluxioURI ufsPath, long mountId, MountContext context)
+      throws IOException {
+    MountPOptions.Builder mountOption = context.getOptions();
+    try (CloseableResource<UnderFileSystem> ufsResource =
+             mUfsManager.get(mountId).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      // Check that the ufsPath exists and is a directory
+      if (!ufs.isDirectory(ufsPath.toString())) {
+        throw new IOException(
+            ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+      }
+      if (UnderFileSystemUtils.isWeb(ufs)) {
+        mountOption.setReadOnly(true);
+      }
+    }
+  }
+
+  private void updateMountInternal(Supplier<JournalContext> journalContext,
+      LockedInodePath inodePath, AlluxioURI ufsPath, MountInfo mountInfo, MountContext context)
+      throws FileAlreadyExistsException, InvalidPathException, IOException {
+    long newMountId = IdUtils.createMountId();
+    // lock sync manager to ensure no sync point is added before the mount point is removed
+    try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
+      List<AlluxioURI> syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
+      if (syncPoints != null && !syncPoints.isEmpty()) {
+        throw new InvalidArgumentException("Updating a mount point with ActiveSync enabled is not"
+            + " supported. Please remove all sync'ed paths from the mount point and try again.");
+      }
+      AlluxioURI alluxioPath = inodePath.getUri();
+      // validate new UFS client before updating the mount table
+      mUfsManager.addMount(newMountId, new AlluxioURI(ufsPath.toString()),
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+              .setReadOnly(context.getOptions().getReadOnly())
+              .setShared(context.getOptions().getShared())
+              .createMountSpecificConf(context.getOptions().getPropertiesMap()));
+      prepareForMount(ufsPath, newMountId, context);
+      // old ufsClient is removed as part of the mount table update process
+      mMountTable.update(journalContext, alluxioPath, newMountId, context.getOptions().build());
+    } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
+      // revert everything
+      mUfsManager.removeMount(newMountId);
+      throw e;
+    }
+  }
+
   @Override
   public void updateMount(AlluxioURI alluxioPath, MountContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
@@ -2603,64 +2647,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         throw new InvalidPathException("Failed to update mount properties for "
             + inodePath.getUri() + ". Please ensure the path is an existing mount point.");
       }
-      List<AlluxioURI> syncPoints = null;
-      try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
-        syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
-        // test the new mount configuration first before unmounting the old ufs
-        UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration
-            .defaults(ServerConfiguration.global())
-            .createMountSpecificConf(context.getOptions().getPropertiesMap());
-        String ufsUri = mountInfo.getUfsUri().toString();
-        try (UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsUri, ufsConf)) {
-          // check the root path is valid
-          ufs.getFileStatus(ufsUri);
-          // check the sync points are valid
-          if (syncPoints != null && !syncPoints.isEmpty()) {
-            for (AlluxioURI syncPoint : syncPoints) {
-              ufs.startSync(syncPoint);
-            }
-          }
-        } catch (Throwable t) {
-          throw new InvalidArgumentException("Failed to mount under file system."
-              + " Please ensure the options are valid", t);
-        }
-        unmountInternal(rpcContext, inodePath, false);
-      }
-      long mountId = IdUtils.createMountId();
-      try {
-        mountInternal(rpcContext, inodePath, mountInfo.getUfsUri(), mountId, context, true);
-      } catch (Throwable t) {
-        // With ignoreError = true we should not normally get an exception. At this point we failed
-        // to add the mount point back to the table so we need to remove all child inodes and
-        // nested mount.
-        try {
-          deleteInternal(rpcContext, inodePath, DeleteContext
-              .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
-        } catch (Throwable t2) {
-          t.addSuppressed(t2);
-        } finally {
-          throw t;
-        }
-      }
-      if (syncPoints != null && !syncPoints.isEmpty()) {
-        // add back all sync points
-        InvalidPathException syncEx = null;
-        for (AlluxioURI syncPoint : syncPoints) {
-          try {
-            startSyncAndJournal(rpcContext, syncPoint);
-          } catch (Exception e) {
-            if (syncEx == null) {
-              syncEx = new InvalidPathException("Some sync points in this mount point"
-                  + " failed to initialize. Please add them manually.");
-            }
-            syncEx.addSuppressed(new InvalidPathException(
-                String.format("Failed to add sync point %s", syncPoint), e));
-          }
-        }
-        if (syncEx != null) {
-          throw syncEx;
-        }
-      }
+      updateMountInternal(rpcContext, inodePath, mountInfo.getUfsUri(), mountInfo, context);
       auditContext.setSucceeded(true);
     }
   }
@@ -2711,7 +2698,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
     long mountId = IdUtils.createMountId();
-    mountInternal(rpcContext, inodePath, ufsPath, mountId, context, false);
+    mountInternal(rpcContext, inodePath, ufsPath, mountId, context);
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
@@ -2736,7 +2723,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param context the mount context (may be updated)
    */
   private void mountInternal(Supplier<JournalContext> journalContext, LockedInodePath inodePath,
-      AlluxioURI ufsPath, long mountId, MountContext context, boolean ignoreError)
+      AlluxioURI ufsPath, long mountId, MountContext context)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
@@ -2746,37 +2733,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             .setShared(context.getOptions().getShared())
             .createMountSpecificConf(context.getOptions().getPropertiesMap()));
     try {
-      MountPOptions.Builder mountOption = context.getOptions();
+      prepareForMount(ufsPath, mountId, context);
+      // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
+      MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
       try (CloseableResource<UnderFileSystem> ufsResource =
-          mUfsManager.get(mountId).acquireUfsResource()) {
-        UnderFileSystem ufs = ufsResource.get();
-        // Check that the ufsPath exists and is a directory
-        if (!ufs.isDirectory(ufsPath.toString())) {
+               resolution.acquireUfsResource()) {
+        String ufsResolvedPath = resolution.getUri().getPath();
+        if (ufsResource.get().exists(ufsResolvedPath)) {
           throw new IOException(
-              ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
-        }
-
-        if (UnderFileSystemUtils.isWeb(ufs)) {
-          mountOption.setReadOnly(true);
-        }
-      } catch (Throwable t) {
-        if (!ignoreError) {
-          throw t;
-        } else {
-          LogUtils.warnWithException(LOG, "Failed to acquire a UFS client for {}", ufsPath, t);
-        }
-      }
-      if (!ignoreError) {
-        // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
-        MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
-        try (CloseableResource<UnderFileSystem> ufsResource =
-                 resolution.acquireUfsResource()) {
-          String ufsResolvedPath = resolution.getUri().getPath();
-          if (ufsResource.get().exists(ufsResolvedPath)) {
-            throw new IOException(
-                ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath,
-                    ufsResolvedPath));
-          }
+              ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath,
+                  ufsResolvedPath));
         }
       }
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
@@ -2804,7 +2770,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         auditContext.setAllowed(false);
         throw e;
       }
-      unmountInternal(rpcContext, inodePath, true);
+      unmountInternal(rpcContext, inodePath);
       auditContext.setSucceeded(true);
       Metrics.PATHS_UNMOUNTED.inc();
     }
@@ -2822,8 +2788,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param inodePath the Alluxio path to unmount, must be a mount point
    * @param removeInodes whether to remove inodes after mount point is deleted
    */
-  private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      boolean removeInodes) throws InvalidPathException, FileDoesNotExistException, IOException {
+  private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath)
+      throws InvalidPathException, FileDoesNotExistException, IOException {
     if (!inodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
           "Failed to unmount: Path " + inodePath.getUri() + " does not exist");
@@ -2835,22 +2801,20 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     mSyncManager.stopSyncForMount(mountInfo.getMountId());
 
-    if (!mMountTable.delete(rpcContext, inodePath.getUri(), removeInodes)) {
+    if (!mMountTable.delete(rpcContext, inodePath.getUri(), true)) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }
-    if (removeInodes) {
-      try {
-        // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
-        // operations from being persisted in the UFS.
-        deleteInternal(rpcContext, inodePath, DeleteContext
-            .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
-      } catch (DirectoryNotEmptyException e) {
-        throw new RuntimeException(String.format(
-            "We should never see this exception because %s should never be thrown when recursive "
-                + "is true.",
-            e.getClass()));
-      }
+    try {
+      // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
+      // operations from being persisted in the UFS.
+      deleteInternal(rpcContext, inodePath, DeleteContext
+          .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
+    } catch (DirectoryNotEmptyException e) {
+      throw new RuntimeException(String.format(
+          "We should never see this exception because %s should never be thrown when recursive "
+              + "is true.",
+          e.getClass()));
     }
   }
 

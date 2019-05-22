@@ -191,6 +191,40 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
+   * Update the mount point with new options and mount ID.
+   *
+   * @param journalContext the journal context
+   * @param alluxioUri an Alluxio path URI
+   * @param newMountId the mount id
+   * @param newOptions the mount options
+   * @throws FileAlreadyExistsException if the mount point already exists
+   * @throws InvalidPathException if an invalid path is encountered
+   */
+  public void update(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri,
+      long newMountId, MountPOptions newOptions) throws InvalidPathException,
+      FileAlreadyExistsException {
+    try (LockResource r = new LockResource(mWriteLock)) {
+      MountInfo mountInfo = getMountTable().get(alluxioUri.getPath());
+      if (mountInfo == null || !delete(journalContext, alluxioUri, false)) {
+        throw new InvalidPathException(String.format("Failed to update mount point at %s."
+            + " Please ensure the path is an existing mount point and not root.",
+            alluxioUri.getPath()));
+      }
+      try {
+        add(journalContext, alluxioUri, mountInfo.getUfsUri(), newMountId, newOptions);
+      } catch (FileAlreadyExistsException | InvalidPathException e) {
+        // This should never happen since the path is guaranteed to exist and the mount point is
+        // just removed from the same path.
+        LOG.error("Failed to add back the mount point at {}", alluxioUri, e);
+        // re-add old mount point
+        add(journalContext, alluxioUri, mountInfo.getUfsUri(), mountInfo.getMountId(),
+            mountInfo.getOptions());
+        throw e;
+      }
+    }
+  }
+
+  /**
    * Returns the closest ancestor mount point the given path is nested under.
    *
    * @param uri an Alluxio path URI

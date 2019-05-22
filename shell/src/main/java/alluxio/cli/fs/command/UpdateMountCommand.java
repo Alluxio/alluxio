@@ -105,9 +105,7 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Updates options for a mount point.\n"
-        + "WARNING: updating mount point with incorrect options may cause mount point to"
-        + " become unusable or unmounted.";
+    return "Updates options for a mount point while keeping the Alluxio metadata under the path.";
   }
 
   @Override
