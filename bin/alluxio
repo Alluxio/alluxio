@@ -321,7 +321,7 @@ function main {
     runJavaClass "$@"
   ;;
   "readJournal")
-    CLASS="alluxio.master.journal.JournalTool"
+    CLASS="alluxio.master.journal.tool.JournalTool"
     CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
