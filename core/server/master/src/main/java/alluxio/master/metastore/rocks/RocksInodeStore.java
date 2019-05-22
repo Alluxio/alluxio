@@ -325,33 +325,63 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public void setIndice(long id, InodeIndice indice, boolean isSet) {
-    // Create composite key for the given indice and id
-    byte[] indiceKey = RocksUtils.toByteArray(indice.getIndiceId(), id);
-    try {
-      if (isSet) {
+  public InodeIndice getIndice(InodeIndiceType indiceType) {
+    return new RockStoreInodeIndice(indiceType);
+  }
+
+  /**
+   * Implementation of {@link alluxio.master.metastore.InodeStore.InodeIndice} for
+   * RocksInodeStore.
+   */
+  private class RockStoreInodeIndice implements InodeIndice {
+
+    private InodeIndiceType mIndiceType;
+
+    RockStoreInodeIndice(InodeIndiceType indiceType) {
+      mIndiceType = indiceType;
+    }
+
+    @Override
+    public void set(long id) {
+      // Create composite key for the given indice and id
+      byte[] indiceKey = RocksUtils.toByteArray(mIndiceType.getIndiceId(), id);
+      try {
         db().put(indiceKey, Longs.toByteArray(id));
-      } else {
-        db().delete(indiceKey);
+      } catch (RocksDBException rexc) {
+        throw new RuntimeException(rexc);
       }
-    } catch (RocksDBException rexc) {
-      throw new RuntimeException(rexc);
     }
-  }
 
-  @Override
-  public void clearIndices(InodeIndice indice) {
-    try {
-      db().deleteRange(RocksUtils.toByteArray(indice.getIndiceId(), 0L),
-          RocksUtils.toByteArray(indice.getIndiceId() + 1, 0L));
-    } catch (RocksDBException rexc) {
-      throw new RuntimeException(rexc);
+    @Override
+    public void unset(long id) {
+      try {
+        // Create composite key for the given indice and id
+        byte[] indiceKey = RocksUtils.toByteArray(mIndiceType.getIndiceId(), id);
+        db().delete(indiceKey);
+      } catch (RocksDBException rexc) {
+        throw new RuntimeException(rexc);
+      }
     }
-  }
 
-  @Override
-  public Iterator<Long> getIndiced(InodeIndice indice) {
-    return new RocksIndiceIterator(db().newIterator(mIndicesColumn.get()), indice);
+    @Override
+    public void clear() {
+      try {
+        db().deleteRange(RocksUtils.toByteArray(mIndiceType.getIndiceId(), 0L),
+                RocksUtils.toByteArray(mIndiceType.getIndiceId() + 1, 0L));
+      } catch (RocksDBException rexc) {
+        throw new RuntimeException(rexc);
+      }
+    }
+
+    @Override
+    public int size() {
+      return new RocksIndiceIterator(db().newIterator(mIndicesColumn.get()), mIndiceType).count();
+    }
+
+    @Override
+    public Iterator<Long> iterator() {
+      return new RocksIndiceIterator(db().newIterator(mIndicesColumn.get()), mIndiceType);
+    }
   }
 
   private RocksDB db() {
@@ -411,9 +441,9 @@ public class RocksInodeStore implements InodeStore {
     /** Underlying Rocks iterator for the indice table.  */
     private RocksIterator mRocksIterator;
     /**  */
-    private InodeIndice mIndice;
+    private InodeIndiceType mIndice;
 
-    public RocksIndiceIterator(RocksIterator rocksIterator, InodeStore.InodeIndice indice) {
+    public RocksIndiceIterator(RocksIterator rocksIterator, InodeIndiceType indice) {
       mIndice = indice;
       mRocksIterator = rocksIterator;
       // Start iteration from the first possible key for given indice.
@@ -433,6 +463,21 @@ public class RocksInodeStore implements InodeStore {
       } finally {
         mRocksIterator.next();
       }
+    }
+
+    /**
+     * Enumerates the db and comes up with the total item count for given iterator.
+     * Note: Do not use it together with Iterator functionality.
+     *
+     * @return the size of indice
+     */
+    public int count() {
+      int count = 0;
+      while (hasNext()) {
+        count++;
+        mRocksIterator.next();
+      }
+      return count;
     }
   }
 }

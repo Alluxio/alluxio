@@ -342,9 +342,7 @@ public class InodeTree implements DelegatingJournaled {
    * @return the number of pinned inodes
    */
   public int getPinnedSize() {
-    // TODO(ggezer) Efficiently return some approximate number.
-    //return mState.getPinnedInodeFileIds().size();
-    return -1;
+    return mState.getPinnedInodeFileIdSize();
   }
 
   /**

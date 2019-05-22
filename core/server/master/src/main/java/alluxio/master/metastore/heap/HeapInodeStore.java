@@ -55,14 +55,14 @@ public class HeapInodeStore implements InodeStore {
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
   /** Map for storing indices. */
-  private HashMap<InodeIndice, Set<Long>> mIndices;
+  private HashMap<InodeIndiceType, Set<Long>> mIndices;
 
   /**
    * Creates a default instance.
    */
   public HeapInodeStore() {
     mIndices = new HashMap<>();
-    for (InodeIndice indice : InodeIndice.values()) {
+    for (InodeIndiceType indice : InodeIndiceType.values()) {
       mIndices.put(indice, ConcurrentHashMap.newKeySet());
     }
   }
@@ -88,22 +88,47 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public void setIndice(long id, InodeIndice indice, boolean isSet) {
-    if (isSet) {
-      mIndices.get(indice).add(id);
-    } else {
-      mIndices.get(indice).remove(id);
+  public InodeIndice getIndice(InodeIndiceType indiceType) {
+    return new HeapStoreInodeIndice(mIndices.get(indiceType));
+  }
+
+  /**
+   * Implementation of {@link alluxio.master.metastore.InodeStore.InodeIndice} for HeapInodeStore.
+   */
+  private class HeapStoreInodeIndice implements InodeIndice {
+    private Set<Long> mIndicedIds;
+
+    /**
+     * @param indicedIds the underlying set of Ids
+     */
+    public HeapStoreInodeIndice(Set<Long> indicedIds) {
+      mIndicedIds = indicedIds;
     }
-  }
 
-  @Override
-  public void clearIndices(InodeIndice indice) {
-    mIndices.get(indice).clear();
-  }
+    @Override
+    public void set(long id) {
+      mIndicedIds.add(id);
+    }
 
-  @Override
-  public Iterator<Long> getIndiced(InodeIndice indice) {
-    return Collections.unmodifiableSet(mIndices.get(indice)).iterator();
+    @Override
+    public void unset(long id) {
+      mIndicedIds.remove(id);
+    }
+
+    @Override
+    public void clear() {
+      mIndicedIds.clear();
+    }
+
+    @Override
+    public int size() {
+      return mIndicedIds.size();
+    }
+
+    @Override
+    public Iterator<Long> iterator() {
+      return Collections.unmodifiableSet(mIndicedIds).iterator();
+    }
   }
 
   @Override
@@ -157,7 +182,7 @@ public class HeapInodeStore implements InodeStore {
   public void clear() {
     mInodes.clear();
     mEdges.clear();
-    for (InodeIndice indice : InodeIndice.values()) {
+    for (InodeIndiceType indice : InodeIndiceType.values()) {
       mIndices.get(indice).clear();
     }
   }
@@ -181,7 +206,7 @@ public class HeapInodeStore implements InodeStore {
     }
     chunked.endChunks();
     // Write indices
-    for (InodeIndice indice : InodeIndice.values()) {
+    for (InodeIndiceType indice : InodeIndiceType.values()) {
       String indiceCheckpointName = "HEAP_INODE_STORE_INDICES_" + indice.name();
       chunked.writeString(indiceCheckpointName);
       CheckpointOutputStream indiceOutput =
@@ -214,9 +239,9 @@ public class HeapInodeStore implements InodeStore {
       } else {
         String indiceCheckpointNameHeader = "HEAP_INODE_STORE_INDICES_";
         String indiceCheckpointName = nextEntry.getName().toString();
-        InodeIndice indice = null;
+        InodeIndiceType indice = null;
         if (indiceCheckpointName.startsWith(indiceCheckpointNameHeader)) {
-          indice = InodeIndice
+          indice = InodeIndiceType
               .valueOf(indiceCheckpointName.substring(indiceCheckpointNameHeader.length()));
         }
         if (indice == null) {

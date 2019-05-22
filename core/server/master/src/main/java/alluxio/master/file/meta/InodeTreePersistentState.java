@@ -116,7 +116,7 @@ public class InodeTreePersistentState implements Journaled {
    * @return an iterator for the replication limited file ids
    */
   public Iterator<Long> getReplicationLimitedFileIds() {
-    return mInodeStore.getIndiced(InodeStore.InodeIndice.REPLICATION_LIMITED);
+    return mInodeStore.getIndice(InodeStore.InodeIndiceType.REPLICATION_LIMITED).iterator();
   }
 
   /**
@@ -130,7 +130,14 @@ public class InodeTreePersistentState implements Journaled {
    * @return an iterator for the pinned inode file ids;
    */
   public Iterator<Long> getPinnedInodeFileIds() {
-    return mInodeStore.getIndiced(InodeStore.InodeIndice.PINNED);
+    return mInodeStore.getIndice(InodeStore.InodeIndiceType.PINNED).iterator();
+  }
+
+  /**
+   * @return the size of pinned inode file ids;
+   */
+  public int getPinnedInodeFileIdSize() {
+    return mInodeStore.getIndice(InodeStore.InodeIndiceType.PINNED).size();
   }
 
   /**
@@ -145,7 +152,7 @@ public class InodeTreePersistentState implements Journaled {
    *         {@link PersistenceState#TO_BE_PERSISTED}
    */
   public Iterator<Long> getToBePersistedIds() {
-    return mInodeStore.getIndiced(InodeStore.InodeIndice.TO_BE_PERSISTED);
+    return mInodeStore.getIndice(InodeStore.InodeIndiceType.TO_BE_PERSISTED).iterator();
   }
 
   /**
@@ -323,9 +330,9 @@ public class InodeTreePersistentState implements Journaled {
     }
 
     updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
-    mInodeStore.setIndice(id, InodeStore.InodeIndice.PINNED, false);
-    mInodeStore.setIndice(id, InodeStore.InodeIndice.REPLICATION_LIMITED, false);
-    mInodeStore.setIndice(id, InodeStore.InodeIndice.TO_BE_PERSISTED, false);
+    mInodeStore.getIndice(InodeStore.InodeIndiceType.PINNED).unset(id);
+    mInodeStore.getIndice(InodeStore.InodeIndiceType.REPLICATION_LIMITED).unset(id);
+    mInodeStore.getIndice(InodeStore.InodeIndiceType.TO_BE_PERSISTED).unset(id);
   }
 
   private void applyCreateDirectory(InodeDirectoryEntry entry) {
@@ -408,11 +415,11 @@ public class InodeTreePersistentState implements Journaled {
             file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
           }
         }
-        mInodeStore.setIndice(entry.getId(), InodeStore.InodeIndice.PINNED, true);
+        mInodeStore.getIndice(InodeStore.InodeIndiceType.PINNED).set(entry.getId());
       } else {
         // when we unpin a file, set the min replication to zero too.
         inode.asFile().setReplicationMin(0);
-        mInodeStore.setIndice(entry.getId(), InodeStore.InodeIndice.PINNED, false);
+        mInodeStore.getIndice(InodeStore.InodeIndiceType.PINNED).unset(entry.getId());
       }
     }
     mInodeStore.writeInode(inode);
@@ -434,9 +441,9 @@ public class InodeTreePersistentState implements Journaled {
         entry);
     if (entry.hasReplicationMax()) {
       if (entry.getReplicationMax() == alluxio.Constants.REPLICATION_MAX_INFINITY) {
-        mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.REPLICATION_LIMITED, false);
+        mInodeStore.getIndice(InodeStore.InodeIndiceType.REPLICATION_LIMITED).unset(entry.getId());
       } else {
-        mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.REPLICATION_LIMITED, true);
+        mInodeStore.getIndice(InodeStore.InodeIndiceType.REPLICATION_LIMITED).set(entry.getId());
       }
     }
     inode.asFile().updateFromEntry(entry);
@@ -531,16 +538,16 @@ public class InodeTreePersistentState implements Journaled {
     if (inode.isFile()) {
       MutableInodeFile file = inode.asFile();
       if (file.getReplicationMin() > 0) {
-        mInodeStore.setIndice(file.getId(), InodeStore.InodeIndice.PINNED, true);
+        mInodeStore.getIndice(InodeStore.InodeIndiceType.PINNED).set(file.getId());
         file.setPinned(true);
       }
       if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
-        mInodeStore.setIndice(file.getId(), InodeStore.InodeIndice.REPLICATION_LIMITED, true);
+        mInodeStore.getIndice(InodeStore.InodeIndiceType.REPLICATION_LIMITED).set(file.getId());
       }
     }
     // Update indexes.
     if (inode.isFile() && inode.isPinned()) {
-      mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.PINNED, true);
+      mInodeStore.getIndice(InodeStore.InodeIndiceType.PINNED).set(inode.getId());
     }
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(Inode.wrap(inode));
@@ -601,9 +608,9 @@ public class InodeTreePersistentState implements Journaled {
 
   private void updateToBePersistedIds(MutableInode<?> inode) {
     if (inode.getPersistenceState() == PersistenceState.TO_BE_PERSISTED) {
-      mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.TO_BE_PERSISTED, true);
+      mInodeStore.getIndice(InodeStore.InodeIndiceType.TO_BE_PERSISTED).set(inode.getId());
     } else {
-      mInodeStore.setIndice(inode.getId(), InodeStore.InodeIndice.TO_BE_PERSISTED, false);
+      mInodeStore.getIndice(InodeStore.InodeIndiceType.TO_BE_PERSISTED).unset(inode.getId());
     }
   }
 

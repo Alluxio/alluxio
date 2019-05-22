@@ -181,28 +181,12 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
   default void close() {}
 
   /**
-   * Sets/Unsets an indice on an inode.
+   * Gets the indice.
    *
-   * @param id the inode Id
-   * @param indice the indice
-   * @param isSet Whether to set or unset an indice
+   * @param indiceType type of indice
+   * @return the instance for managing the indice
    */
-  void setIndice(long id, InodeIndice indice, boolean isSet);
-
-  /**
-   * Clears all inodes from indice.
-   *
-   * @param indice the indice
-   */
-  void clearIndices(InodeIndice indice);
-
-  /**
-   * Iterator for indiced inode Ids.
-   *
-   * @param indice indice to iterate
-   * @return the iterator for inode Ids for given indice
-   */
-  Iterator<Long> getIndiced(InodeIndice indice);
+  InodeIndice getIndice(InodeIndiceType indiceType);
 
   /**
    * Used to define indices on Inode Ids.
@@ -210,7 +194,7 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
    * Always add new values to the end as store could make use of underlying
    * value of enums.
    */
-  enum InodeIndice {
+  enum InodeIndiceType {
     PINNED((byte) 0),              /* Inode is pinned.  */
     REPLICATION_LIMITED((byte) 1), /* Inode has max replication factor. */
     TO_BE_PERSISTED((byte) 2),     /* Inode will be persisted. */
@@ -218,13 +202,48 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
 
     public final byte mId;
 
-    InodeIndice(byte IndiceId) {
+    InodeIndiceType(byte IndiceId) {
       mId = IndiceId;
     }
 
     public byte getIndiceId() {
       return mId;
     }
+  }
+
+  /**
+   * An interface that defines set of operations on an implementation for managing indices.
+   */
+  interface InodeIndice {
+
+    /**
+     * Adds given Id to indice.
+     *
+     * @param id the id
+     */
+    void set(long id);
+
+    /**
+     * Removes given Id from indice.
+     *
+     * @param id the id
+     */
+    void unset(long id);
+
+    /**
+     * Clears the whole indice content.
+     */
+    void clear();
+
+    /**
+     * @return the size of indice
+     */
+    int size();
+
+    /**
+     * @return an iterator for indiced Ids
+     */
+    Iterator<Long> iterator();
   }
 
   /**

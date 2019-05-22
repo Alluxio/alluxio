@@ -241,41 +241,66 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   }
 
   @Override
-  public void setIndice(long id, InodeIndice indice, boolean isSet) {
-    // Acquire the key for mIndiceCache.
-    Pair<InodeIndice, Long> indiceKey = new Pair<>(indice, id);
-    // Add or remove based on isSet status.
-    if (isSet) {
-      mIndiceCache.put(indiceKey, id);
-    } else {
-      mIndiceCache.remove(indiceKey);
-    }
+  public InodeIndice getIndice(InodeIndiceType indiceType) {
+    return new CachingStoreInodeIndice(indiceType);
   }
 
-  @Override
-  public void clearIndices(InodeIndice indice) {
-    try {
-      // Flush indice cache.
-      mIndiceCache.flush();
-    } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException("Interrupting while flushing dirty indices to disk");
-    }
-    mBackingStore.clearIndices(indice);
-  }
+  /**
+   * Implementation of {@link alluxio.master.metastore.InodeStore.InodeIndice} for
+   * CachingInodeStore.
+   */
+  private class CachingStoreInodeIndice implements InodeIndice {
+    private InodeIndiceType mIndiceType;
 
-  @Override
-  public Iterator<Long> getIndiced(InodeIndice indice) {
-    try {
-      // Flush indice cache.
-      // Because indice iterator is always fetched from disk.
-      mIndiceCache.flush();
-    } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException("Interrupting while flushing dirty indices to disk");
+    CachingStoreInodeIndice(InodeIndiceType indiceType) {
+      mIndiceType = indiceType;
     }
-    // Return the iterator to backing store.
-    return mBackingStore.getIndiced(indice);
+
+    @Override
+    public void set(long id) {
+      mIndiceCache.put(new Pair<>(mIndiceType, id), id);
+    }
+
+    @Override
+    public void unset(long id) {
+      mIndiceCache.remove(new Pair<>(mIndiceType, id));
+    }
+
+    @Override
+    public void clear() {
+      try {
+        // Flush indice cache.
+        mIndiceCache.flush();
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Interrupting while flushing dirty indices to disk");
+      }
+      mBackingStore.getIndice(mIndiceType).clear();
+    }
+
+    @Override
+    public int size() {
+      try {
+        // Flush indice cache.
+        mIndiceCache.flush();
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Interrupting while flushing dirty indices to disk");
+      }
+      return mBackingStore.getIndice(mIndiceType).size();
+    }
+
+    @Override
+    public Iterator<Long> iterator() {
+      try {
+        // Flush indice cache.
+        mIndiceCache.flush();
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Interrupting while flushing dirty indices to disk");
+      }
+      return mBackingStore.getIndice(mIndiceType).iterator();
+    }
   }
 
   @Override
@@ -841,26 +866,26 @@ public final class CachingInodeStore implements InodeStore, Closeable {
    *
    */
   @VisibleForTesting
-  class IndiceCache extends Cache<Pair<InodeIndice, Long>, Long> {
+  class IndiceCache extends Cache<Pair<InodeIndiceType, Long>, Long> {
     public IndiceCache(CacheConfiguration conf) {
       super(conf, "indice-cache");
     }
 
     @Override
-    protected Optional<Long> load(Pair<InodeIndice, Long> id) {
+    protected Optional<Long> load(Pair<InodeIndiceType, Long> id) {
       throw new NotSupportedException();
     }
 
     @Override
-    protected void writeToBackingStore(Pair<InodeIndice, Long> key, Long value) {
+    protected void writeToBackingStore(Pair<InodeIndiceType, Long> key, Long value) {
       mBackingStoreEmpty = false;
-      mBackingStore.setIndice(key.getSecond(), key.getFirst(), true);
+      mBackingStore.getIndice(key.getFirst()).set(key.getSecond());
     }
 
     @Override
-    protected void removeFromBackingStore(Pair<InodeIndice, Long> key) {
+    protected void removeFromBackingStore(Pair<InodeIndiceType, Long> key) {
       if (!mBackingStoreEmpty) {
-        mBackingStore.setIndice(key.getSecond(), key.getFirst(), false);
+        mBackingStore.getIndice(key.getFirst()).set(key.getSecond());
       }
     }
 
@@ -868,8 +893,11 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     protected void flushEntries(List<Entry> entries) {
       // TODO(ggezer) Support write batching.
       for (Entry entry : entries) {
-        mBackingStore.setIndice(entry.mKey.getSecond(), entry.mKey.getFirst(),
-            entry.mValue != null);
+        if (entry.mValue != null) {
+          mBackingStore.getIndice(entry.mKey.getFirst()).set(entry.mKey.getSecond());
+        } else {
+          mBackingStore.getIndice(entry.mKey.getFirst()).unset(entry.mKey.getSecond());
+        }
       }
     }
   }
