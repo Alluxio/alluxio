@@ -13,6 +13,7 @@ package alluxio.master.metastore.heap;
 
 import static java.util.stream.Collectors.toList;
 
+import alluxio.Constants;
 import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
@@ -22,10 +23,13 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
+import alluxio.master.journal.checkpoint.CompoundCheckpointFormat;
+import alluxio.master.journal.checkpoint.LongsCheckpointFormat;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
 import alluxio.proto.meta.InodeMeta;
 
+import com.esotericsoftware.kryo.io.OutputChunked;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -164,24 +168,68 @@ public class HeapInodeStore implements InodeStore {
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    output = new CheckpointOutputStream(output, CheckpointType.INODE_PROTOS);
+    OutputChunked chunked = new OutputChunked(
+        new CheckpointOutputStream(output, CheckpointType.COMPOUND), 64 * Constants.KB);
+    // Write inodes
+    chunked.writeString(CheckpointName.HEAP_INODE_STORE_INODES.toString());
+    OutputStream inodesOutput = new CheckpointOutputStream(chunked, CheckpointType.INODE_PROTOS);
     for (MutableInode<?> inode : mInodes.values()) {
       if (Thread.interrupted()) {
         throw new InterruptedException();
       }
-      inode.toProto().writeDelimitedTo(output);
+      inode.toProto().writeDelimitedTo(inodesOutput);
     }
+    chunked.endChunks();
+    // Write indices
+    for (InodeIndice indice : InodeIndice.values()) {
+      String indiceCheckpointName = "HEAP_INODE_STORE_INDICES_" + indice.name();
+      chunked.writeString(indiceCheckpointName);
+      CheckpointOutputStream indiceOutput =
+          new CheckpointOutputStream(chunked, CheckpointType.LONGS);
+      for (Long id : mIndices.get(indice)) {
+        indiceOutput.writeLong(id);
+      }
+      chunked.endChunks();
+    }
+    chunked.flush();
   }
 
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    Preconditions.checkState(input.getType() == CheckpointType.INODE_PROTOS,
-        "Unexpected checkpoint type in heap inode store: " + input.getType());
-    InodeMeta.Inode inodeProto;
-    while ((inodeProto = InodeMeta.Inode.parseDelimitedFrom(input)) != null) {
-      MutableInode<?> inode = MutableInode.fromProto(inodeProto);
-      mInodes.put(inode.getId(), inode);
-      mEdges.addInnerValue(inode.getParentId(), inode.getName(), inode.getId());
+    CompoundCheckpointFormat.CompoundCheckpointReader reader =
+        new CompoundCheckpointFormat.CompoundCheckpointReader(input);
+    Optional<CompoundCheckpointFormat.CompoundCheckpointReader.Entry> next;
+    while ((next = reader.nextCheckpoint()).isPresent()) {
+      CompoundCheckpointFormat.CompoundCheckpointReader.Entry nextEntry = next.get();
+      if (nextEntry.getName() == CheckpointName.HEAP_INODE_STORE_INODES) {
+        CheckpointInputStream inodeInput = nextEntry.getStream();
+        Preconditions.checkState(inodeInput.getType() == CheckpointType.INODE_PROTOS,
+            "Unexpected checkpoint type in heap inode store: " + input.getType());
+        InodeMeta.Inode inodeProto;
+        while ((inodeProto = InodeMeta.Inode.parseDelimitedFrom(inodeInput)) != null) {
+          MutableInode<?> inode = MutableInode.fromProto(inodeProto);
+          mInodes.put(inode.getId(), inode);
+          mEdges.addInnerValue(inode.getParentId(), inode.getName(), inode.getId());
+        }
+      } else {
+        String indiceCheckpointNameHeader = "HEAP_INODE_STORE_INDICES_";
+        String indiceCheckpointName = nextEntry.getName().toString();
+        InodeIndice indice = null;
+        if (indiceCheckpointName.startsWith(indiceCheckpointNameHeader)) {
+          indice = InodeIndice
+              .valueOf(indiceCheckpointName.substring(indiceCheckpointNameHeader.length()));
+        }
+        if (indice == null) {
+          throw new RuntimeException(
+              String.format("Unrecognized checkpoint name: %s", nextEntry.getName()));
+        }
+        LongsCheckpointFormat.LongsCheckpointReader indiceReader =
+            new LongsCheckpointFormat.LongsCheckpointReader(nextEntry.getStream());
+        Optional<Long> longOpt;
+        while ((longOpt = indiceReader.nextLong()).isPresent()) {
+          mIndices.get(indice).add(longOpt.get());
+        }
+      }
     }
   }
 

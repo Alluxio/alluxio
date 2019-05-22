@@ -316,6 +316,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     mStore.writeToCheckpoint(baos);
+    mStore.clear();
     mStore.restoreFromCheckpoint(
         new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     assertEquals(child.getName(), mStore.get(child.getId()).get().getName());
