@@ -346,7 +346,7 @@ public class RocksInodeStore implements InodeStore {
       // Create composite key for the given indice and id
       byte[] indiceKey = RocksUtils.toByteArray(mIndiceType.getIndiceId(), id);
       try {
-        db().put(indiceKey, Longs.toByteArray(id));
+        db().put(indiceKey, new byte[0]);
       } catch (RocksDBException rexc) {
         throw new RuntimeException(rexc);
       }
@@ -459,7 +459,11 @@ public class RocksInodeStore implements InodeStore {
     @Override
     public Long next() {
       try {
-        return Longs.fromByteArray(mRocksIterator.value());
+        // Use composite keyto retrieve actual Id for the indice.
+        // Reset indice type in the key buffer.
+        byte [] compositeKey = mRocksIterator.key();
+        compositeKey[0] = 0;
+        return Longs.fromByteArray(compositeKey);
       } finally {
         mRocksIterator.next();
       }
