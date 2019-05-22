@@ -87,8 +87,10 @@ public class CountLatch {
         if (current <= 0) {
           throw new Error("state must be > 0");
         }
-        if (compareAndSetState(current, current - 1)) {
-          return true;
+        int newState = current - 1;
+        if (compareAndSetState(current, newState)) {
+          // Signal only when transitioning to 0.
+          return newState == 0;
         }
       }
     }
