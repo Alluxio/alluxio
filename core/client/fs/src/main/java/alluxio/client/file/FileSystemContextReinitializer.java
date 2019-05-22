@@ -11,10 +11,10 @@
 
 package alluxio.client.file;
 
+import alluxio.concurrent.CountLatch;
 import alluxio.conf.PropertyKey;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.resource.CountResource;
 import alluxio.util.ThreadFactoryUtils;
 
 import java.io.Closeable;
@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Reinitializes {@link FileSystemContext} inside {@link BaseFileSystem}.
@@ -44,16 +43,7 @@ public final class FileSystemContextReinitializer implements Closeable {
   private final ConfigHashSync mExecutor;
   private final ExecutorService mExecutorService;
 
-  /**
-   * Count for ongoing RPCs using {@link #mContext}.
-   *
-   * Reinitialization can only happen when count is 0. It sets the count to -1
-   * atomically when it starts, and resets the count to 0 when it finishes.
-   *
-   * A {@link BaseFileSystem} RPC can only start when count is >= 0. It increases the
-   * count by 1 atomically when it starts, and decreases the count by 1 when it finishes.
-   */
-  private AtomicLong mCount = new AtomicLong(0);
+  private CountLatch mLatch = new CountLatch();
 
   /**
    * Creates a new reinitializer for the context.
@@ -87,9 +77,57 @@ public final class FileSystemContextReinitializer implements Closeable {
   }
 
   /**
+   * This resource blocks reinitialization until close.
+   */
+  public static final class BlockerResource implements Closeable {
+    private CountLatch mLatch;
+
+    /**
+     * Increases the count of the latch.
+     * If the latch is held by {@link AllowerResource}, the constructor blocks until the latch is
+     * released by {@link AllowerResource#close()}.
+     *
+     * @param latch the count latch
+     */
+    public BlockerResource(CountLatch latch) {
+      mLatch = latch;
+      mLatch.inc();
+    }
+
+    @Override
+    public void close() {
+      mLatch.dec();
+    }
+  }
+
+  /**
+   * This resource allows reinitialization.
+   * It blocks further RPCs until close.
+   */
+  public static final class AllowerResource implements Closeable {
+    private CountLatch mLatch;
+
+    /**
+     * Waits the count to reach zero, then blocks further constructions of {@link BlockerResource}
+     * until {@link #close()}.
+     *
+     * @param latch the count latch
+     */
+    public AllowerResource(CountLatch latch) {
+      mLatch = latch;
+      mLatch.awaitAndBlockInc();
+    }
+
+    @Override
+    public void close() {
+      mLatch.unblockInc();
+    }
+  }
+
+  /**
    * Acquires the resource to block reinitialization.
    *
-   * When the context is being reinitialized, this call returns an empty optional.
+   * When the context is being reinitialized, this call blocks.
    * If the reinitialization fails, an exception is thrown.
    *
    * If there is an existing reinitialization exception, immediately throw an exception
@@ -98,37 +136,33 @@ public final class FileSystemContextReinitializer implements Closeable {
    * @throws IOException when reinitialization fails before or during this method
    * @return the resource
    */
-  public Optional<CountResource> acquireResourceToBlockReinit() throws IOException {
+  public BlockerResource acquireResourceToBlockReinit() throws IOException {
     Optional<IOException> exception = mExecutor.getException();
     if (exception.isPresent()) {
       throw exception.get();
     }
-    if (mCount.updateAndGet(c -> c >= 0 ? c + 1 : c) <= 0) {
-      return Optional.empty();
-    }
+    BlockerResource r = new BlockerResource(mLatch);
+    // Check exception again in case the reinit fails when inc is blocked.
     exception = mExecutor.getException();
     if (exception.isPresent()) {
-      mCount.decrementAndGet();
+      r.close();
       throw exception.get();
     }
-    return Optional.of(new CountResource(mCount, false));
+    return r;
   }
 
   /**
    * Acquires the resource to allow reinitialization.
    *
-   * If there are ongoing operations holding the resource returned by
-   * {@link #acquireResourceToBlockReinit()}, this returns an empty optional immediately.
-   * When it returns a non-empty resource, no further resource can be acquired from
-   * {@link #acquireResourceToBlockReinit()} until the returned resource is closed.
+   * This call blocks until there are no ongoing operations holding the resource returned by
+   * {@link #acquireResourceToBlockReinit()}.
+   * When it returns, further calls to {@link #acquireResourceToBlockReinit()} block until the
+   * returned resource is closed.
    *
    * @return the resource
    */
-  public Optional<CountResource> acquireResourceToAllowReinit() {
-    if (mCount.compareAndSet(0, -1)) {
-      return Optional.of(new CountResource(mCount, true));
-    }
-    return Optional.empty();
+  public AllowerResource acquireResourceToAllowReinit() {
+    return new AllowerResource(mLatch);
   }
 
   /**
