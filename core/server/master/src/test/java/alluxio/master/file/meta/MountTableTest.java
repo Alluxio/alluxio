@@ -396,6 +396,6 @@ public final class MountTableTest {
   }
 
   private boolean deleteMount(String path) {
-    return mMountTable.delete(NoopJournalContext.INSTANCE, new AlluxioURI(path));
+    return mMountTable.delete(NoopJournalContext.INSTANCE, new AlluxioURI(path), true);
   }
 }

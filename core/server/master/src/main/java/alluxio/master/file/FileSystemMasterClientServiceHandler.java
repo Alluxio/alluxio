@@ -71,6 +71,8 @@ import alluxio.grpc.StopSyncPResponse;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UnmountPResponse;
+import alluxio.grpc.UpdateMountPRequest;
+import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
@@ -303,6 +305,19 @@ public final class FileSystemMasterClientServiceHandler
           MountContext.create(options.toBuilder()));
       return MountPResponse.newBuilder().build();
     }, "Mount", "alluxioPath=%s, ufsPath=%s, options=%s", responseObserver, alluxioPath, ufsPath,
+        options);
+  }
+
+  @Override
+  public void updateMount(UpdateMountPRequest request,
+      StreamObserver<UpdateMountPResponse> responseObserver) {
+    String alluxioPath = request.getAlluxioPath();
+    MountPOptions options = request.getOptions();
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<UpdateMountPResponse>) () -> {
+      mFileSystemMaster.updateMount(new AlluxioURI(alluxioPath),
+              MountContext.create(options.toBuilder()));
+      return UpdateMountPResponse.newBuilder().build();
+    }, "UpdateMount", "alluxioPath=%s, options=%s", responseObserver, alluxioPath,
         options);
   }
 

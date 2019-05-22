@@ -402,6 +402,22 @@ public interface FileSystemMaster extends Master {
       IOException, AccessControlException;
 
   /**
+   * Update properties of an Alluxio mount point.
+   * <p>
+   * This operation requires users to have WRITE permission on the parent
+   * of the Alluxio path.
+   *
+   * @param alluxioPath the Alluxio path to update, must be a mount point
+   * @param context the mount context
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws InvalidPathException if the given path is not a mount point
+   * @throws AccessControlException if the permission check fails
+   */
+  void updateMount(AlluxioURI alluxioPath, MountContext context)
+      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
+      IOException, AccessControlException;
+
+  /**
    * Sets the ACL for a path.
    *
    * @param path the path to set attribute for
