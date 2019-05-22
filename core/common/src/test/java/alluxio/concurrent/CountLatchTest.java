@@ -61,7 +61,7 @@ public class CountLatchTest {
    * Tests that inc and dec can proceed without being blocked when there is no awaitAndBlockInc.
    */
   @Test
-  public void noAwait() {
+  public void noAwait() throws Exception {
     final int N = 10;
     for (int i = 0; i < N; i++) {
       Assert.assertEquals(0, mLatch.getState());
@@ -90,7 +90,13 @@ public class CountLatchTest {
     mLatch.awaitAndBlockInc();
     Assert.assertEquals(-1, mLatch.getState());
 
-    BlockingThread inc = new BlockingThread(mLatch::inc);
+    BlockingThread inc = new BlockingThread(() -> {
+      try {
+        mLatch.inc();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
     inc.start();
 
     Thread.sleep(SLEEP_MILLIS);
@@ -113,7 +119,13 @@ public class CountLatchTest {
     List<BlockingThread> incThreads = new ArrayList<>();
     final int numThreads = 10;
     for (int i = 0; i < numThreads; i++) {
-      incThreads.add(new BlockingThread(mLatch::inc));
+      incThreads.add(new BlockingThread(() -> {
+        try {
+          mLatch.inc();
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }));
     }
     for (BlockingThread t : incThreads) {
       t.start();
@@ -163,7 +175,7 @@ public class CountLatchTest {
    * Tests that calling dec without a paired inc will throw exception.
    */
   @Test
-  public void decWithoutInc() {
+  public void decWithoutInc() throws Exception {
     mLatch.inc();
     mLatch.dec();
     mExpectedException.expect(Error.class);
@@ -179,5 +191,25 @@ public class CountLatchTest {
     mLatch.unblockInc();
     mExpectedException.expect(Error.class);
     mLatch.unblockInc();
+  }
+
+  /**
+   * Tests that inc can be interrupted.
+   */
+  @Test
+  public void interruptInc() throws Exception {
+    mLatch.awaitAndBlockInc();
+    Thread inc = new Thread(() -> {
+      try {
+        mLatch.inc();
+      } catch (InterruptedException e) {
+        // Expected.
+      }
+    });
+    inc.start();
+    inc.join(SLEEP_MILLIS);
+    Assert.assertEquals(Thread.State.WAITING, inc.getState());
+    inc.interrupt();
+    inc.join();
   }
 }

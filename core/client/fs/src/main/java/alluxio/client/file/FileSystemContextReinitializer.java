@@ -88,8 +88,9 @@ public final class FileSystemContextReinitializer implements Closeable {
      * released by {@link AllowerResource#close()}.
      *
      * @param latch the count latch
+     * @throws InterruptedException if interrupted during being blocked
      */
-    public BlockerResource(CountLatch latch) {
+    public BlockerResource(CountLatch latch) throws InterruptedException {
       mLatch = latch;
       mLatch.inc();
     }
@@ -134,9 +135,10 @@ public final class FileSystemContextReinitializer implements Closeable {
    * without trying to block further reinitialization.
    *
    * @throws IOException when reinitialization fails before or during this method
+   * @throws InterruptedException if interrupted during being blocked
    * @return the resource
    */
-  public BlockerResource acquireResourceToBlockReinit() throws IOException {
+  public BlockerResource acquireResourceToBlockReinit() throws IOException, InterruptedException {
     Optional<IOException> exception = mExecutor.getException();
     if (exception.isPresent()) {
       throw exception.get();

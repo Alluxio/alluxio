@@ -564,8 +564,8 @@ public class BaseFileSystem implements FileSystem {
   /**
    * Sends an RPC to filesystem master.
    *
-   * A read lock is internally acquired before sending the RPC to block reinitialization of
-   * FileSystemContext.
+   * A resource is internally acquired to block FileSystemContext reinitialization before sending
+   * the RPC.
    *
    * @param fn the RPC call
    * @param <R> the type of return value for the RPC

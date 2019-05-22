@@ -106,10 +106,13 @@ public class CountLatch {
   /**
    * Increases the counter.
    *
-   * If {@link #awaitAndBlockInc()} returns, it blocks until {@link #unblockInc()} is called.
+   * If {@link #awaitAndBlockInc()} returns, this call is blocked until {@link #unblockInc()} is
+   * called.
+   *
+   * @throws InterruptedException when interrupted during being blocked
    */
-  public void inc() {
-    mSync.acquireShared(IGNORED_ARG);
+  public void inc() throws InterruptedException {
+    mSync.acquireSharedInterruptibly(IGNORED_ARG);
   }
 
   /**
