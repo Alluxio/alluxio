@@ -2786,7 +2786,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    *
    * @param rpcContext the rpc context
    * @param inodePath the Alluxio path to unmount, must be a mount point
-   * @param removeInodes whether to remove inodes after mount point is deleted
    */
   private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, IOException {

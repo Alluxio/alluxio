@@ -215,7 +215,7 @@ public final class MountTable implements DelegatingJournaled {
       } catch (FileAlreadyExistsException | InvalidPathException e) {
         // This should never happen since the path is guaranteed to exist and the mount point is
         // just removed from the same path.
-        LOG.error("Failed to add back the mount point at {}", alluxioUri, e);
+        LOG.error("Failed to add the updated mount point at {}", alluxioUri, e);
         // re-add old mount point
         add(journalContext, alluxioUri, mountInfo.getUfsUri(), mountInfo.getMountId(),
             mountInfo.getOptions());
