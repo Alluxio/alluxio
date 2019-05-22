@@ -14,7 +14,6 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
@@ -163,8 +162,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
     try {
       Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS)
-          .getConstructor(URI.class, Configuration.class, AlluxioConfiguration.class);
-      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf);
+          .getConstructor(URI.class, Configuration.class, UnderFileSystemConfiguration.class);
+      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, mUfsConf);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
         LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");
