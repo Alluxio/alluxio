@@ -25,6 +25,7 @@ import java.util.List;
  */
 public class CountLatchTest {
   private static final long SLEEP_MILLIS = 1000;
+  private static final long STILL_BLOCKED = -1;
 
   private CountLatch mLatch;
 
@@ -33,6 +34,7 @@ public class CountLatchTest {
     private final Runnable mRunnable;
 
     public BlockingThread(Runnable runnable) {
+      mBlockedTimeMillis = STILL_BLOCKED;
       mRunnable = runnable;
     }
 
@@ -88,7 +90,7 @@ public class CountLatchTest {
     mLatch.awaitAndBlockInc();
     Assert.assertEquals(-1, mLatch.getState());
 
-    BlockingThread inc = new BlockingThread(() -> mLatch.inc());
+    BlockingThread inc = new BlockingThread(mLatch::inc);
     inc.start();
 
     Thread.sleep(SLEEP_MILLIS);
@@ -111,7 +113,7 @@ public class CountLatchTest {
     List<BlockingThread> incThreads = new ArrayList<>();
     final int numThreads = 10;
     for (int i = 0; i < numThreads; i++) {
-      incThreads.add(new BlockingThread(() -> mLatch.inc()));
+      incThreads.add(new BlockingThread(mLatch::inc));
     }
     for (BlockingThread t : incThreads) {
       t.start();
@@ -135,15 +137,25 @@ public class CountLatchTest {
     Assert.assertEquals(0, mLatch.getState());
     mLatch.inc();
     Assert.assertEquals(1, mLatch.getState());
+    mLatch.inc();
+    Assert.assertEquals(2, mLatch.getState());
 
-    BlockingThread await = new BlockingThread(() -> mLatch.awaitAndBlockInc());
+    BlockingThread await = new BlockingThread(mLatch::awaitAndBlockInc);
     await.start();
+
+    Assert.assertEquals(STILL_BLOCKED, await.getBlockedTimeMillis());
 
     Thread.sleep(SLEEP_MILLIS);
     mLatch.dec();
+    Assert.assertEquals(1, mLatch.getState());
+    Assert.assertEquals(STILL_BLOCKED, await.getBlockedTimeMillis());
+
+    Thread.sleep(SLEEP_MILLIS);
+    mLatch.dec();
+    Assert.assertEquals(0, mLatch.getState());
 
     await.join();
-    Assert.assertTrue(await.getBlockedTimeMillis() >= SLEEP_MILLIS);
+    Assert.assertTrue(await.getBlockedTimeMillis() >= 2 * SLEEP_MILLIS);
     Assert.assertEquals(-1, mLatch.getState());
   }
 
@@ -152,6 +164,8 @@ public class CountLatchTest {
    */
   @Test
   public void decWithoutInc() {
+    mLatch.inc();
+    mLatch.dec();
     mExpectedException.expect(Error.class);
     mLatch.dec();
   }
@@ -161,6 +175,8 @@ public class CountLatchTest {
    */
   @Test
   public void unblockWithoutAwait() {
+    mLatch.awaitAndBlockInc();
+    mLatch.unblockInc();
     mExpectedException.expect(Error.class);
     mLatch.unblockInc();
   }
