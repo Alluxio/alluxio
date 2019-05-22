@@ -160,7 +160,8 @@ public class AsyncUfsAbsentPathCacheTest {
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // Unmount
-    Assert.assertTrue(mMountTable.delete(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt")));
+    Assert.assertTrue(
+        mMountTable.delete(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"), true));
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();

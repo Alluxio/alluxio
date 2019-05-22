@@ -351,7 +351,20 @@ public class BaseFileSystem implements FileSystem {
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
       // TODO(calvin): Make this fail on the master side
       client.mount(alluxioPath, ufsPath, mergedOptions);
-      LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
+      LOG.debug("Mount {} to {}", ufsPath, alluxioPath.getPath());
+      return null;
+    });
+  }
+
+  @Override
+  public void updateMount(AlluxioURI alluxioPath, final MountPOptions options)
+      throws IOException, AlluxioException {
+    checkUri(alluxioPath);
+    rpc(client -> {
+      MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
+          mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
+      client.updateMount(alluxioPath, mergedOptions);
+      LOG.debug("UpdateMount on {}", alluxioPath.getPath());
       return null;
     });
   }
@@ -368,13 +381,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void persist(final AlluxioURI path)
-    throws FileDoesNotExistException, IOException, AlluxioException {
+      throws FileDoesNotExistException, IOException, AlluxioException {
     persist(path, ScheduleAsyncPersistencePOptions.getDefaultInstance());
   }
 
   @Override
   public void persist(final AlluxioURI path, final ScheduleAsyncPersistencePOptions options)
-    throws FileDoesNotExistException, IOException, AlluxioException {
+      throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       ScheduleAsyncPersistencePOptions mergedOptions =
