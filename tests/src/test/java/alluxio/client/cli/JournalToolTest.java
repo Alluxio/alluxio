@@ -104,9 +104,12 @@ public class JournalToolTest extends BaseIntegrationTest {
 
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
     assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_DIRECTORY_ID_GENERATOR"));
-    for (String subPath : Arrays.asList("HEAP_INODE_STORE", "INODE_COUNTER",
-        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
-      assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_TREE", subPath));
+    assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_TREE", "INODE_COUNTER"));
+    for (String subPath : Arrays.asList("HEAP_INODE_STORE_INODES",
+        "HEAP_INODE_STORE_INDICES_PINNED", "HEAP_INODE_STORE_INDICES_REPLICATION_LIMITED",
+        "HEAP_INODE_STORE_INDICES_TO_BE_PERSISTED")) {
+      assertNonemptyFileExists(
+          PathUtils.concatPath(checkpointDir, "INODE_TREE", "HEAP_INODE_STORE", subPath));
     }
   }
 
