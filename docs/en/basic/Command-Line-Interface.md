@@ -163,10 +163,10 @@ The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a 
 ./bin/alluxio runTests
 ```
 
-### runUfsTest
+### runUfsTests
 
-The `runUfsTest` aims to test the integration between Alluxio and the given ufs. The ufs test
-contains all the Alluxio semantics with the ufs.
+The `runUfsTests` aims to test the integration between Alluxio and the given ufs. The ufs tests
+contain all the Alluxio semantics with the ufs.
 
 `--help` will provide the detail guidance on how to run this command.
 `--path <ufs_path>` is required to provide the full ufs path to run ufs tests against.
@@ -180,7 +180,7 @@ The usage of this command includes:
   to verify the changes are valid. 
 
 ```bash
-./bin/alluxio runUfsTest --path s3a://<s3_bucket_name> -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key>
+./bin/alluxio runUfsTests --path s3a://<s3_bucket_name> -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key>
 -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
 
