@@ -107,7 +107,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     // using mContext.
     // The resource will be released in close().
     mContext = context;
-    mCloser.register(mContext.acquireReinitBlockerResource());
+    mCloser.register(mContext.blockReinit());
     try {
       AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
       mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);

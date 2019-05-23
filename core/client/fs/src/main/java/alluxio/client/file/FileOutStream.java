@@ -93,7 +93,7 @@ public class FileOutStream extends AbstractOutStream {
     // using mContext.
     // The resource will be released in close().
     mContext = context;
-    mCloser.register(mContext.acquireReinitBlockerResource());
+    mCloser.register(mContext.blockReinit());
     try {
       mUri = Preconditions.checkNotNull(path, "path");
       mBlockSize = options.getBlockSizeBytes();

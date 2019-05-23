@@ -30,13 +30,13 @@ import java.util.concurrent.Executors;
  * if they differ from the hashes in the {@link alluxio.ClientContext} backing the
  * {@link FileSystemContext}, it tries to reinitialize the {@link FileSystemContext}.
  *
- * Each RPC needs to call {@link #acquireBlockerResource()} to mark its lifetime, when there
+ * Each RPC needs to call {@link #block()} to mark its lifetime, when there
  * are ongoing RPCs executing between these two methods, reinitialization is blocked.
  *
  * Reinitialization starts when there are no ongoing RPCs, after starting, all further RPCs
  * are blocked until the reinitialization finishes or until timeout. If it succeeds, future RPCs
  * will use the reinitialized context, otherwise, an exception is thrown from
- * {@link #acquireBlockerResource()}.
+ * {@link #block()}.
  */
 public final class FileSystemContextReinitializer implements Closeable {
   private final FileSystemContext mContext;
@@ -138,7 +138,7 @@ public final class FileSystemContextReinitializer implements Closeable {
    * @throws InterruptedException if interrupted during being blocked
    * @return the resource
    */
-  public ReinitBlockerResource acquireBlockerResource() throws IOException, InterruptedException {
+  public ReinitBlockerResource block() throws IOException, InterruptedException {
     Optional<IOException> exception = mExecutor.getException();
     if (exception.isPresent()) {
       throw exception.get();
@@ -157,13 +157,13 @@ public final class FileSystemContextReinitializer implements Closeable {
    * Acquires the resource to allow reinitialization.
    *
    * This call blocks until there are no ongoing operations holding the resource returned by
-   * {@link #acquireBlockerResource()}.
-   * When it returns, further calls to {@link #acquireBlockerResource()} block until the
+   * {@link #block()}.
+   * When it returns, further calls to {@link #block()} block until the
    * returned resource is closed.
    *
    * @return the resource
    */
-  public ReinitAllowerResource acquireAllowerResource() {
+  public ReinitAllowerResource allow() {
     return new ReinitAllowerResource(mLatch);
   }
 
