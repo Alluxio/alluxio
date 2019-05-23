@@ -294,6 +294,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void losePrimacy() {
+    LOG.info("Switch to secondary mode");
     if (!mServer.isRunning()) {
       // Avoid duplicate shut down copycat server
       return;
@@ -306,33 +307,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       mAsyncJournalWriter.set(null);
       mRaftJournalWriter = null;
     }
-    LOG.info("Shutting down Raft server");
-    try {
-      mServer.shutdown().get();
-    } catch (ExecutionException e) {
-      LOG.error("Fatal error: failed to leave Raft cluster while stepping down", e);
-      System.exit(-1);
-      throw new IllegalStateException(e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException("Interrupted while leaving Raft cluster");
-    }
-    LOG.info("Shut down Raft server");
     mSnapshotAllowed.set(true);
-    initServer();
-    LOG.info("Bootstrapping new Raft server");
-    try {
-      mServer.bootstrap(getClusterAddresses(mConf)).get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException("Interrupted while rejoining Raft cluster");
-    } catch (ExecutionException e) {
-      LOG.error("Fatal error: failed to rejoin Raft cluster with addresses {} while stepping down",
-          getClusterAddresses(mConf), e);
-      System.exit(-1);
-    }
-
-    LOG.info("Raft server successfully restarted");
   }
 
   @Override
