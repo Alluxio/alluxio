@@ -25,7 +25,6 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -69,13 +68,8 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     List<BlockWorkerInfo> workerInfos = Lists.newArrayList(options.getBlockWorkerInfos());
-    workerInfos.sort(new Comparator<BlockWorkerInfo>() {
-      @Override
-      public int compare(BlockWorkerInfo o1, BlockWorkerInfo o2) {
-        return o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString());
-      }
-    });
-
+    workerInfos.sort((o1, o2) ->
+        o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString()));
     HashMap<WorkerNetAddress, BlockWorkerInfo> blockWorkerInfoMap = new HashMap<>();
     for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
       blockWorkerInfoMap.put(workerInfo.getNetAddress(), workerInfo);
