@@ -127,10 +127,10 @@ function umount_ramfs_mac() {
 }
 
 function mount_ramfs_local_all() {
-for i in "${RAMDISKARRAY[@]}"
-do 
-  mount_ramfs_local $i
-done
+  for i in "${RAMDISKARRAY[@]}"
+  do
+    mount_ramfs_local $i
+  done
 }
 
 function mount_ramfs_local() {
