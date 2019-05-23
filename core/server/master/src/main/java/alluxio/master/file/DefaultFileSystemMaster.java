@@ -1058,21 +1058,29 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throw new RuntimeException(e); // already checked existence when creating the inodePath
     }
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    if (!inode.isPersisted()) {
+      return true;
+    }
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String ufsPath = resolution.getUri().getPath();
       if (ufs == null) {
         return true;
       }
-      if (!inode.isPersisted()) {
-        return !ufs.exists(ufsPath);
+      UfsStatus ufsStatus;
+      try {
+        ufsStatus = ufs.getStatus(ufsPath);
+      } catch (FileNotFoundException e) {
+        return !inode.isPersisted();
       }
+
       // TODO(calvin): Evaluate which other metadata fields should be validated.
       if (inode.isDirectory()) {
-        return ufs.isDirectory(ufsPath);
+        return ufsStatus.isDirectory();
       } else {
-        return ufs.isFile(ufsPath)
-            && ufs.getFileStatus(ufsPath).getContentLength() == inode.asFile().getLength();
+        String ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
+        return ufsStatus.isFile()
+            && (ufsFingerprint.equals(inode.asFile().getUfsFingerprint()));
       }
     }
   }
