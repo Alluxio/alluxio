@@ -31,6 +31,17 @@ function init_env() {
   MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.memory.size)
   TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
   TIER_PATH=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+  MEDIUM_TYPE=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.mediumtype)
+  IFS=','
+  read -ra PATHARRAY <<< "$TIER_PATH"
+  read -ra MEDIUMTYPEARRAY <<< "$MEDIUM_TYPE"
+  RAMDISKARRAY=()
+  for i in "${!PATHARRAY[@]}"; do # access each element of array
+    if [ "${MEDIUMTYPEARRAY[$i]}" = "MEM" ]; then
+      RAMDISKARRAY+=(${PATHARRAY[$i]})
+    fi
+  done
+  IFS=' '
 }
 
 function check_space_linux() {
@@ -110,24 +121,31 @@ function umount_ramfs_mac() {
   fi
 }
 
+function mount_ramfs_local_all() {
+for i in "${RAMDISKARRAY[@]}"
+do 
+  mount_ramfs_local($i)
+done
+}
+
 function mount_ramfs_local() {
   if [[ $(uname -a) == Darwin* ]]; then
     # Assuming Mac OS X
-    umount_ramfs_mac
-    mount_ramfs_mac
+    umount_ramfs_mac($i)
+    mount_ramfs_mac($i)
   else
     # Assuming Linux
     check_space_linux
-    umount_ramfs_linux
-    mount_ramfs_linux
+    umount_ramfs_linux($i)
+    mount_ramfs_linux($i)
   fi
 }
 
 function umount_ramfs_local() {
   if [[ $(uname -a) == Darwin* ]]; then
-    umount_ramfs_mac
+    umount_ramfs_mac($1)
   else
-    umount_ramfs_linux
+    umount_ramfs_linux($1)
   fi
 }
 
