@@ -274,7 +274,6 @@ public final class UfsJournalLogWriterTest {
    */
   @Test
   public void missingJournalEntries() throws Exception {
-    Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     long startSN = 0x10;
     long nextSN = startSN;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
@@ -284,6 +283,7 @@ public final class UfsJournalLogWriterTest {
       writer.write(newEntry(nextSN));
       nextSN++;
       if (i == 3) {
+        writer.flush();
         UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
         UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
         File file = new File(journalFile.getLocation().toString());
@@ -361,12 +361,27 @@ public final class UfsJournalLogWriterTest {
    *
    * @param writer the {@link UfsJournalLogWriter} instance for which the mock is created
    * @return the created mock {@link DataOutputStream} instance
+   * @throws IOException
    */
-  private DataOutputStream createMockDataOutputStream(UfsJournalLogWriter writer) {
+  private DataOutputStream createMockDataOutputStream(UfsJournalLogWriter writer)
+      throws IOException {
+    flushOutputStream(writer);
     DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
     Object journalOutputStream = writer.getJournalOutputStream();
     Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
     return badOut;
+  }
+
+  /**
+   * Flushes the writer's data output stream.
+   * @param writer
+   * @throws IOException
+   */
+  private void flushOutputStream(UfsJournalLogWriter writer) throws IOException {
+    Object journalOutputStream = writer.getJournalOutputStream();
+    DataOutputStream mOutputStream =
+        Whitebox.getInternalState(journalOutputStream, "mOutputStream");
+    mOutputStream.flush();
   }
 
   /**
