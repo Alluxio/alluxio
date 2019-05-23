@@ -127,9 +127,9 @@ function umount_ramfs_mac() {
 }
 
 function mount_ramfs_local_all() {
-  for i in "${RAMDISKARRAY[@]}"
+  for RAMDISKPATH in "${RAMDISKARRAY[@]}"
   do
-    mount_ramfs_local $i
+    mount_ramfs_local $RAMDISKPATH
   done
 }
 
@@ -147,9 +147,9 @@ function mount_ramfs_local() {
 }
 
 function umount_ramfs_local_all() {
-  for i in "${RAMDISKARRAY[@]}"
+  for RAMDISKPATH in "${RAMDISKARRAY[@]}"
   do 
-    umount_ramfs_local $i
+    umount_ramfs_local $RAMDISKPATH
   done
 }
 
