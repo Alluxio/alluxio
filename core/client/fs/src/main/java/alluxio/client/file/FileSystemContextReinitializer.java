@@ -11,7 +11,7 @@
 
 package alluxio.client.file;
 
-import alluxio.concurrent.CountLatch;
+import alluxio.concurrent.CountingLatch;
 import alluxio.conf.PropertyKey;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -43,7 +43,7 @@ public final class FileSystemContextReinitializer implements Closeable {
   private final ConfigHashSync mExecutor;
   private final ExecutorService mExecutorService;
 
-  private CountLatch mLatch = new CountLatch();
+  private CountingLatch mLatch = new CountingLatch();
 
   /**
    * Creates a new reinitializer for the context.
@@ -80,7 +80,7 @@ public final class FileSystemContextReinitializer implements Closeable {
    * This resource blocks reinitialization until close.
    */
   public static final class BlockerResource implements Closeable {
-    private CountLatch mLatch;
+    private CountingLatch mLatch;
 
     /**
      * Increases the count of the latch.
@@ -90,7 +90,7 @@ public final class FileSystemContextReinitializer implements Closeable {
      * @param latch the count latch
      * @throws InterruptedException if interrupted during being blocked
      */
-    public BlockerResource(CountLatch latch) throws InterruptedException {
+    public BlockerResource(CountingLatch latch) throws InterruptedException {
       mLatch = latch;
       mLatch.inc();
     }
@@ -106,7 +106,7 @@ public final class FileSystemContextReinitializer implements Closeable {
    * It blocks further RPCs until close.
    */
   public static final class AllowerResource implements Closeable {
-    private CountLatch mLatch;
+    private CountingLatch mLatch;
 
     /**
      * Waits the count to reach zero, then blocks further constructions of {@link BlockerResource}
@@ -114,14 +114,14 @@ public final class FileSystemContextReinitializer implements Closeable {
      *
      * @param latch the count latch
      */
-    public AllowerResource(CountLatch latch) {
+    public AllowerResource(CountingLatch latch) {
       mLatch = latch;
-      mLatch.awaitAndBlockInc();
+      mLatch.await();
     }
 
     @Override
     public void close() {
-      mLatch.unblockInc();
+      mLatch.release();
     }
   }
 

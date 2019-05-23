@@ -26,13 +26,13 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * state 0, then other threads can keep increasing the count.
  *
  * Methods can be run concurrently from different threads, the paired methods({@link #inc()} and
- * {@link #dec()}, {@link #awaitAndBlockInc()} and {@link #unblockInc()}) do not need to be
+ * {@link #dec()}, {@link #await()} and {@link #release()}) do not need to be
  * called in the same thread.
  *
  * An example usage is to synchronize FileSystemContext reinitialization with the ongoing RPCs.
  * See alluxio.client.fs.FileSystemContextReinitializer for more details.
  */
-public class CountLatch {
+public class CountingLatch {
   /** Represents the ignored arguments for AQS methods. */
   private static final int IGNORED_ARG = -1;
   /** Represents the state where {@link #inc()} is blocked. */
@@ -49,19 +49,12 @@ public class CountLatch {
 
     @Override
     protected boolean tryAcquire(int arg) {
-      while (true) {
-        if (getState() != 0) {
-          return false;
-        }
-        if (compareAndSetState(0, BLOCK_INC_STATE)) {
-          return true;
-        }
-      }
+      return compareAndSetState(0, BLOCK_INC_STATE);
     }
 
     @Override
     protected boolean tryReleaseShared(int arg) {
-      if (getState() != BLOCK_INC_STATE || !compareAndSetState(BLOCK_INC_STATE, 0)) {
+      if (!compareAndSetState(BLOCK_INC_STATE, 0)) {
         throw new Error("state must be " + BLOCK_INC_STATE);
       }
       return true;
@@ -106,7 +99,7 @@ public class CountLatch {
   /**
    * Increases the counter.
    *
-   * If {@link #awaitAndBlockInc()} returns, this call is blocked until {@link #unblockInc()} is
+   * If {@link #await()} returns, this call is blocked until {@link #release()} is
    * called.
    *
    * @throws InterruptedException when interrupted during being blocked
@@ -130,18 +123,18 @@ public class CountLatch {
    * Blocked during awaiting the counter to become zero.
    * When it returns, all further calls to {@link #inc()} are blocked.
    */
-  public void awaitAndBlockInc() {
+  public void await() {
     mSync.acquire(IGNORED_ARG);
   }
 
   /**
    * Unblocks threads blocked on calling {@link #inc()}.
    *
-   * Should only be called in pair with {@link #awaitAndBlockInc()}.
+   * Should only be called in pair with {@link #await()}.
    * If not paired, throws {@link Error}.
    * This method is never blocked.
    */
-  public void unblockInc() {
+  public void release() {
     mSync.releaseShared(IGNORED_ARG);
   }
 

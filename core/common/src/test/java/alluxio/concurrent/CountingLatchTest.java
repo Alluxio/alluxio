@@ -21,13 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests for {@link CountLatch}.
+ * Tests for {@link CountingLatch}.
  */
-public class CountLatchTest {
+public class CountingLatchTest {
   private static final long SLEEP_MILLIS = 1000;
   private static final long STILL_BLOCKED = -1;
 
-  private CountLatch mLatch;
+  private CountingLatch mLatch;
 
   private static class BlockingThread extends Thread {
     private volatile long mBlockedTimeMillis;
@@ -54,7 +54,7 @@ public class CountLatchTest {
 
   @Before
   public void before() {
-    mLatch = new CountLatch();
+    mLatch = new CountingLatch();
   }
 
   /**
@@ -87,7 +87,7 @@ public class CountLatchTest {
   @Test
   public void blockAndUnblockInc() throws Exception {
     Assert.assertEquals(0, mLatch.getState());
-    mLatch.awaitAndBlockInc();
+    mLatch.await();
     Assert.assertEquals(-1, mLatch.getState());
 
     BlockingThread inc = new BlockingThread(() -> {
@@ -100,7 +100,7 @@ public class CountLatchTest {
     inc.start();
 
     Thread.sleep(SLEEP_MILLIS);
-    mLatch.unblockInc();
+    mLatch.release();
 
     inc.join();
     Assert.assertTrue(inc.getBlockedTimeMillis() >= SLEEP_MILLIS);
@@ -113,7 +113,7 @@ public class CountLatchTest {
   @Test
   public void unblockMultipleInc() throws Exception {
     Assert.assertEquals(0, mLatch.getState());
-    mLatch.awaitAndBlockInc();
+    mLatch.await();
     Assert.assertEquals(-1, mLatch.getState());
 
     List<BlockingThread> incThreads = new ArrayList<>();
@@ -132,7 +132,7 @@ public class CountLatchTest {
     }
 
     Thread.sleep(SLEEP_MILLIS);
-    mLatch.unblockInc();
+    mLatch.release();
 
     for (BlockingThread t : incThreads) {
       t.join();
@@ -152,7 +152,7 @@ public class CountLatchTest {
     mLatch.inc();
     Assert.assertEquals(2, mLatch.getState());
 
-    BlockingThread await = new BlockingThread(mLatch::awaitAndBlockInc);
+    BlockingThread await = new BlockingThread(mLatch::await);
     await.start();
 
     Assert.assertEquals(STILL_BLOCKED, await.getBlockedTimeMillis());
@@ -187,10 +187,10 @@ public class CountLatchTest {
    */
   @Test
   public void unblockWithoutAwait() {
-    mLatch.awaitAndBlockInc();
-    mLatch.unblockInc();
+    mLatch.await();
+    mLatch.release();
     mExpectedException.expect(Error.class);
-    mLatch.unblockInc();
+    mLatch.release();
   }
 
   /**
@@ -198,7 +198,7 @@ public class CountLatchTest {
    */
   @Test
   public void interruptInc() throws Exception {
-    mLatch.awaitAndBlockInc();
+    mLatch.await();
     Thread inc = new Thread(() -> {
       try {
         mLatch.inc();
