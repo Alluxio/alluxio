@@ -30,13 +30,13 @@ import java.util.concurrent.Executors;
  * if they differ from the hashes in the {@link alluxio.ClientContext} backing the
  * {@link FileSystemContext}, it tries to reinitialize the {@link FileSystemContext}.
  *
- * Each RPC needs to call {@link #acquireResourceToBlockReinit()} to mark its lifetime, when there
+ * Each RPC needs to call {@link #acquireBlockerResource()} to mark its lifetime, when there
  * are ongoing RPCs executing between these two methods, reinitialization is blocked.
  *
  * Reinitialization starts when there are no ongoing RPCs, after starting, all further RPCs
  * are blocked until the reinitialization finishes or until timeout. If it succeeds, future RPCs
  * will use the reinitialized context, otherwise, an exception is thrown from
- * {@link #acquireResourceToBlockReinit()}.
+ * {@link #acquireBlockerResource()}.
  */
 public final class FileSystemContextReinitializer implements Closeable {
   private final FileSystemContext mContext;
@@ -79,18 +79,18 @@ public final class FileSystemContextReinitializer implements Closeable {
   /**
    * This resource blocks reinitialization until close.
    */
-  public static final class BlockerResource implements Closeable {
+  public static final class ReinitBlockerResource implements Closeable {
     private CountingLatch mLatch;
 
     /**
      * Increases the count of the latch.
-     * If the latch is held by {@link AllowerResource}, the constructor blocks until the latch is
-     * released by {@link AllowerResource#close()}.
+     * If the latch is held by {@link ReinitAllowerResource}, the constructor blocks until the latch
+     * is released by {@link ReinitAllowerResource#close()}.
      *
      * @param latch the count latch
      * @throws InterruptedException if interrupted during being blocked
      */
-    public BlockerResource(CountingLatch latch) throws InterruptedException {
+    public ReinitBlockerResource(CountingLatch latch) throws InterruptedException {
       mLatch = latch;
       mLatch.inc();
     }
@@ -105,16 +105,16 @@ public final class FileSystemContextReinitializer implements Closeable {
    * This resource allows reinitialization.
    * It blocks further RPCs until close.
    */
-  public static final class AllowerResource implements Closeable {
+  public static final class ReinitAllowerResource implements Closeable {
     private CountingLatch mLatch;
 
     /**
-     * Waits the count to reach zero, then blocks further constructions of {@link BlockerResource}
-     * until {@link #close()}.
+     * Waits the count to reach zero, then blocks further constructions of
+     * {@link ReinitBlockerResource} until {@link #close()}.
      *
      * @param latch the count latch
      */
-    public AllowerResource(CountingLatch latch) {
+    public ReinitAllowerResource(CountingLatch latch) {
       mLatch = latch;
       mLatch.await();
     }
@@ -138,12 +138,12 @@ public final class FileSystemContextReinitializer implements Closeable {
    * @throws InterruptedException if interrupted during being blocked
    * @return the resource
    */
-  public BlockerResource acquireResourceToBlockReinit() throws IOException, InterruptedException {
+  public ReinitBlockerResource acquireBlockerResource() throws IOException, InterruptedException {
     Optional<IOException> exception = mExecutor.getException();
     if (exception.isPresent()) {
       throw exception.get();
     }
-    BlockerResource r = new BlockerResource(mLatch);
+    ReinitBlockerResource r = new ReinitBlockerResource(mLatch);
     // Check exception again in case the reinit fails when inc is blocked.
     exception = mExecutor.getException();
     if (exception.isPresent()) {
@@ -157,14 +157,14 @@ public final class FileSystemContextReinitializer implements Closeable {
    * Acquires the resource to allow reinitialization.
    *
    * This call blocks until there are no ongoing operations holding the resource returned by
-   * {@link #acquireResourceToBlockReinit()}.
-   * When it returns, further calls to {@link #acquireResourceToBlockReinit()} block until the
+   * {@link #acquireBlockerResource()}.
+   * When it returns, further calls to {@link #acquireBlockerResource()} block until the
    * returned resource is closed.
    *
    * @return the resource
    */
-  public AllowerResource acquireResourceToAllowReinit() {
-    return new AllowerResource(mLatch);
+  public ReinitAllowerResource acquireAllowerResource() {
+    return new ReinitAllowerResource(mLatch);
   }
 
   /**

@@ -17,7 +17,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
-import alluxio.client.file.FileSystemContextReinitializer.BlockerResource;
+import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -275,7 +275,7 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Acquires the lock to block reinitialization.
+   * Acquires the resource to block reinitialization.
    *
    * If reinitialization is happening, this method will block until reinitialization succeeds or
    * fails, if it fails, a RuntimeException will be thrown explaining the
@@ -288,9 +288,9 @@ public final class FileSystemContext implements Closeable {
    *
    * @return the resource
    */
-  public BlockerResource acquireResourceToBlockReinit() {
+  public ReinitBlockerResource acquireReinitBlockerResource() {
     try {
-      return mReinitializer.acquireResourceToBlockReinit();
+      return mReinitializer.acquireBlockerResource();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
@@ -315,7 +315,7 @@ public final class FileSystemContext implements Closeable {
    */
   public void reinit(boolean updateClusterConf, boolean updatePathConf)
       throws UnavailableException, IOException {
-    try (Closeable r = mReinitializer.acquireResourceToAllowReinit()) {
+    try (Closeable r = mReinitializer.acquireAllowerResource()) {
       InetSocketAddress masterAddr;
       try {
         masterAddr = getMasterAddress();
@@ -387,13 +387,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   private FileSystemMasterClient acquireMasterClient() {
-    try (BlockerResource r = acquireResourceToBlockReinit()) {
+    try (ReinitBlockerResource r = acquireReinitBlockerResource()) {
       return mFileSystemMasterClientPool.acquire();
     }
   }
 
   private void releaseMasterClient(FileSystemMasterClient client) {
-    try (BlockerResource r = acquireResourceToBlockReinit()) {
+    try (ReinitBlockerResource r = acquireReinitBlockerResource()) {
       if (!client.isClosed()) {
         // The client might have been closed during reinitialization.
         mFileSystemMasterClientPool.release(client);
@@ -417,13 +417,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   private BlockMasterClient acquireBlockMasterClient() {
-    try (BlockerResource r = acquireResourceToBlockReinit()) {
+    try (ReinitBlockerResource r = acquireReinitBlockerResource()) {
       return mBlockMasterClientPool.acquire();
     }
   }
 
   private void releaseBlockMasterClient(BlockMasterClient client) {
-    try (BlockerResource r = acquireResourceToBlockReinit()) {
+    try (ReinitBlockerResource r = acquireReinitBlockerResource()) {
       if (!client.isClosed()) {
         // The client might have been closed during reinitialization.
         mBlockMasterClientPool.release(client);
@@ -456,7 +456,7 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    try (BlockerResource r = acquireResourceToBlockReinit()) {
+    try (ReinitBlockerResource r = acquireReinitBlockerResource()) {
       return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
     }
   }
@@ -487,7 +487,7 @@ public final class FileSystemContext implements Closeable {
       // Client might have been shutdown during reinitialization.
       return;
     }
-    try (BlockerResource r = acquireResourceToBlockReinit()) {
+    try (ReinitBlockerResource r = acquireReinitBlockerResource()) {
       SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
           getClusterConf());
       ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
