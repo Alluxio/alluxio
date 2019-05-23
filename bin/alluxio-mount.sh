@@ -36,7 +36,7 @@ function init_env() {
   read -ra PATHARRAY <<< "$TIER_PATH"
   read -ra MEDIUMTYPEARRAY <<< "$MEDIUM_TYPE"
   RAMDISKARRAY=()
-  for i in "${!PATHARRAY[@]}"; do # access each element of array
+  for i in "${!PATHARRAY[@]}"; do 
     if [ "${MEDIUMTYPEARRAY[$i]}" = "MEM" ]; then
       RAMDISKARRAY+=(${PATHARRAY[$i]})
     fi
