@@ -58,7 +58,7 @@ public class CountingLatchTest {
   }
 
   /**
-   * Tests that inc and dec can proceed without being blocked when there is no awaitAndBlockInc.
+   * Tests that inc and dec can proceed without being blocked when there is no await.
    */
   @Test
   public void noAwait() throws Exception {
@@ -81,8 +81,8 @@ public class CountingLatchTest {
   }
 
   /**
-   * Tests that inc is blocked when awaitAndBlockInc returns,
-   * and inc is unblocked when unblockInc returns.
+   * Tests that inc is blocked when await returns,
+   * and inc is unblocked when release returns.
    */
   @Test
   public void blockAndUnblockInc() throws Exception {
@@ -108,7 +108,7 @@ public class CountingLatchTest {
   }
 
   /**
-   * Tests that multiple blocked inc can be unblocked when unblockInc returns.
+   * Tests that multiple blocked inc can be unblocked when release returns.
    */
   @Test
   public void unblockMultipleInc() throws Exception {
@@ -142,7 +142,7 @@ public class CountingLatchTest {
   }
 
   /**
-   * Tests that awaitAndBlockInc is blocked when state is not 0.
+   * Tests that await is blocked when state is not 0.
    */
   @Test
   public void await() throws Exception {
@@ -172,6 +172,34 @@ public class CountingLatchTest {
   }
 
   /**
+   * Tests that when await is blocked, further inc will not be blocked.
+   * If the assumption is wrong, this test will be blocked and timed out.
+   */
+  @Test
+  public void blockedAwait() throws Exception {
+    Assert.assertEquals(0, mLatch.getState());
+    mLatch.inc();
+    Assert.assertEquals(1, mLatch.getState());
+
+    BlockingThread await = new BlockingThread(mLatch::await);
+    await.start();
+
+    int incAfterAwait = 10;
+    for (int i = 0; i < incAfterAwait; i++) {
+      mLatch.inc();
+      Assert.assertEquals(i + 2, mLatch.getState());
+    }
+    for (int i = 0; i < incAfterAwait; i++) {
+      mLatch.dec();
+      Assert.assertEquals(incAfterAwait - i, mLatch.getState());
+    }
+
+    mLatch.dec();
+    await.join();
+    Assert.assertEquals(-1, mLatch.getState());
+  }
+
+  /**
    * Tests that calling dec without a paired inc will throw exception.
    */
   @Test
@@ -183,10 +211,10 @@ public class CountingLatchTest {
   }
 
   /**
-   * Tests that unblock without a paired awaitAndBlockInc will throw exception.
+   * Tests that release without a paired await will throw exception.
    */
   @Test
-  public void unblockWithoutAwait() {
+  public void releaseWithoutAwait() {
     mLatch.await();
     mLatch.release();
     mExpectedException.expect(Error.class);
