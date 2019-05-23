@@ -90,8 +90,8 @@ function mount_ramfs_linux() {
 
 function umount_ramfs_linux() {
   TIER_PATH=${1}
-  if mount | grep ${1} > /dev/null; then
-    echo "Unmounting ${1}"
+  if mount | grep ${TIER_PATH} > /dev/null; then
+    echo "Unmounting ${TIER_PATH}"
     if [[ ${USE_SUDO} == true ]]; then
       sudo umount -l -f ${TIER_PATH}
     else
@@ -117,7 +117,7 @@ function mount_ramfs_mac() {
 
 function umount_ramfs_mac() {
   TIER_PATH=${1}
-  local device=$(df -l | grep $TIER_PATH | cut -d " " -f 1)
+  local device=$(df -l | grep ${TIER_PATH} | cut -d " " -f 1)
   if [[ -n "${device}" ]]; then
     echo "Unmounting ramfs at ${TIER_PATH}"
     hdiutil detach -force ${device}
