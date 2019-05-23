@@ -180,6 +180,10 @@ The usage of this command includes:
   to verify the changes are valid. 
 
 ```bash
+# Run tests against local ufs
+./bin/alluxio runUfsTests --path /local/underfs/path
+
+# Run tests against S3
 ./bin/alluxio runUfsTests --path s3a://<s3_bucket_name> -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key>
 -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
