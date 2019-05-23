@@ -30,7 +30,19 @@ function init_env() {
   . ${libexec_dir}/alluxio-config.sh
   MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.memory.size)
   TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-  TIER_PATH=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+  TIER_PATHS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+  MEDIUM_TYPE=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.mediumtype)
+  OLDIFS=$IFS
+  IFS=','
+  read -ra PATHARRAY <<< "$TIER_PATHS"
+  read -ra MEDIUMTYPEARRAY <<< "$MEDIUM_TYPE"
+  RAMDISKARRAY=()
+  for i in "${!PATHARRAY[@]}"; do 
+    if [ "${MEDIUMTYPEARRAY[$i]}" = "MEM" ]; then
+      RAMDISKARRAY+=(${PATHARRAY[$i]})
+    fi
+  done
+  IFS=$OLDIFS
 }
 
 function check_space_linux() {
@@ -43,6 +55,7 @@ function check_space_linux() {
 }
 
 function mount_ramfs_linux() {
+  TIER_PATH=${1}
   echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
   if [[ ${USE_SUDO} == true ]]; then
     sudo mkdir -p ${TIER_PATH}
@@ -76,6 +89,7 @@ function mount_ramfs_linux() {
 }
 
 function umount_ramfs_linux() {
+  TIER_PATH=${1}
   if mount | grep ${TIER_PATH} > /dev/null; then
     echo "Unmounting ${TIER_PATH}"
     if [[ ${USE_SUDO} == true ]]; then
@@ -91,6 +105,7 @@ function umount_ramfs_linux() {
 }
 
 function mount_ramfs_mac() {
+  TIER_PATH=${1}
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
   local num_sectors=$(${BIN}/alluxio runClass alluxio.util.HFSUtils ${MEM_SIZE} 512)
 
@@ -101,6 +116,7 @@ function mount_ramfs_mac() {
 }
 
 function umount_ramfs_mac() {
+  TIER_PATH=${1}
   local device=$(df -l | grep ${TIER_PATH} | cut -d " " -f 1)
   if [[ -n "${device}" ]]; then
     echo "Unmounting ramfs at ${TIER_PATH}"
@@ -110,24 +126,38 @@ function umount_ramfs_mac() {
   fi
 }
 
+function mount_ramfs_local_all() {
+  for RAMDISKPATH in "${RAMDISKARRAY[@]}"
+  do
+    mount_ramfs_local $RAMDISKPATH
+  done
+}
+
 function mount_ramfs_local() {
   if [[ $(uname -a) == Darwin* ]]; then
     # Assuming Mac OS X
-    umount_ramfs_mac
-    mount_ramfs_mac
+    umount_ramfs_mac $1
+    mount_ramfs_mac $1
   else
     # Assuming Linux
     check_space_linux
-    umount_ramfs_linux
-    mount_ramfs_linux
+    umount_ramfs_linux $1
+    mount_ramfs_linux $1
   fi
+}
+
+function umount_ramfs_local_all() {
+  for RAMDISKPATH in "${RAMDISKARRAY[@]}"
+  do 
+    umount_ramfs_local $RAMDISKPATH
+  done
 }
 
 function umount_ramfs_local() {
   if [[ $(uname -a) == Darwin* ]]; then
-    umount_ramfs_mac
+    umount_ramfs_mac $1
   else
-    umount_ramfs_linux
+    umount_ramfs_linux $1
   fi
 }
 
@@ -143,19 +173,19 @@ function run_local() {
   case "$mount_type" in
     Mount)
       USE_SUDO=false
-      mount_ramfs_local
+      mount_ramfs_local_all
       ;;
     SudoMount)
       USE_SUDO=true
-      mount_ramfs_local
+      mount_ramfs_local_all
       ;;
     Umount)
       USE_SUDO=false
-      umount_ramfs_local
+      umount_ramfs_local_all
       ;;
     SudoUmount)
       USE_SUDO=true
-      umount_ramfs_local
+      umount_ramfs_local_all
       ;;
     *)
       echo -e ${USAGE} >&2
