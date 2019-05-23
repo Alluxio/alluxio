@@ -54,48 +54,48 @@ function check_space_linux() {
 }
 
 function mount_ramfs_linux() {
-  echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
+  echo "Formatting RamFS: ${1} (${MEM_SIZE})"
   if [[ ${USE_SUDO} == true ]]; then
-    sudo mkdir -p ${TIER_PATH}
+    sudo mkdir -p ${1}
   else
-    mkdir -p ${TIER_PATH}
+    mkdir -p ${1}
   fi
   if [[ $? -ne 0 ]]; then
-    echo "ERROR: mkdir ${TIER_PATH} failed" >&2
+    echo "ERROR: mkdir ${1} failed" >&2
     exit 1
   fi
 
   if [[ ${USE_SUDO} == true ]]; then
-    sudo mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
+    sudo mount -t ramfs -o size=${MEM_SIZE} ramfs ${1}
   else
-    mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
+    mount -t ramfs -o size=${MEM_SIZE} ramfs ${1}
   fi
   if [[ $? -ne 0 ]]; then
-    echo "ERROR: mount RamFS ${TIER_PATH} failed" >&2
+    echo "ERROR: mount RamFS ${1} failed" >&2
     exit 1
   fi
 
   if [[ ${USE_SUDO} == true ]]; then
-    sudo chmod a+w ${TIER_PATH}
+    sudo chmod a+w ${1}
   else
-    chmod a+w ${TIER_PATH}
+    chmod a+w ${1}
   fi
   if [[ $? -ne 0 ]]; then
-    echo "ERROR: chmod RamFS ${TIER_PATH} failed" >&2
+    echo "ERROR: chmod RamFS ${1} failed" >&2
     exit 1
   fi
 }
 
 function umount_ramfs_linux() {
-  if mount | grep ${TIER_PATH} > /dev/null; then
-    echo "Unmounting ${TIER_PATH}"
+  if mount | grep ${1} > /dev/null; then
+    echo "Unmounting ${1}"
     if [[ ${USE_SUDO} == true ]]; then
-      sudo umount -l -f ${TIER_PATH}
+      sudo umount -l -f ${1}
     else
-      umount -l -f ${TIER_PATH}
+      umount -l -f ${1}
     fi
     if [[ $? -ne 0 ]]; then
-      echo "ERROR: umount RamFS ${TIER_PATH} failed" >&2
+      echo "ERROR: umount RamFS ${1} failed" >&2
       exit 1
     fi
   fi
@@ -106,46 +106,53 @@ function mount_ramfs_mac() {
   local num_sectors=$(${BIN}/alluxio runClass alluxio.util.HFSUtils ${MEM_SIZE} 512)
 
   # Format the RAM FS
-  echo "Formatting RamFS: ${TIER_PATH} ${num_sectors} sectors (${MEM_SIZE})."
+  echo "Formatting RamFS: ${1} ${num_sectors} sectors (${MEM_SIZE})."
   # Remove the "/Volumes/" part so we can get the name of the volume.
-  diskutil erasevolume HFS+ ${TIER_PATH/#\/Volumes\//} $(hdiutil attach -nomount ram://${num_sectors})
+  diskutil erasevolume HFS+ ${1/#\/Volumes\//} $(hdiutil attach -nomount ram://${num_sectors})
 }
 
 function umount_ramfs_mac() {
-  local device=$(df -l | grep ${TIER_PATH} | cut -d " " -f 1)
+  local device=$(df -l | grep $1 | cut -d " " -f 1)
   if [[ -n "${device}" ]]; then
-    echo "Unmounting ramfs at ${TIER_PATH}"
+    echo "Unmounting ramfs at ${1}"
     hdiutil detach -force ${device}
   else
-    echo "Ramfs is not currently mounted at ${TIER_PATH}"
+    echo "Ramfs is not currently mounted at ${1}"
   fi
 }
 
 function mount_ramfs_local_all() {
 for i in "${RAMDISKARRAY[@]}"
 do 
-  mount_ramfs_local($i)
+  mount_ramfs_local $i
 done
 }
 
 function mount_ramfs_local() {
   if [[ $(uname -a) == Darwin* ]]; then
     # Assuming Mac OS X
-    umount_ramfs_mac($i)
-    mount_ramfs_mac($i)
+    umount_ramfs_mac $1
+    mount_ramfs_mac $1
   else
     # Assuming Linux
     check_space_linux
-    umount_ramfs_linux($i)
-    mount_ramfs_linux($i)
+    umount_ramfs_linux $1
+    mount_ramfs_linux $1
   fi
+}
+
+function umount_ramfs_local_all() {
+for i in "${RAMDISKARRAY[@]}"
+do 
+  umount_ramfs_local $i
+done
 }
 
 function umount_ramfs_local() {
   if [[ $(uname -a) == Darwin* ]]; then
-    umount_ramfs_mac($1)
+    umount_ramfs_mac $1
   else
-    umount_ramfs_linux($1)
+    umount_ramfs_linux $1
   fi
 }
 
@@ -161,19 +168,19 @@ function run_local() {
   case "$mount_type" in
     Mount)
       USE_SUDO=false
-      mount_ramfs_local
+      mount_ramfs_local_all
       ;;
     SudoMount)
       USE_SUDO=true
-      mount_ramfs_local
+      mount_ramfs_local_all
       ;;
     Umount)
       USE_SUDO=false
-      umount_ramfs_local
+      umount_ramfs_local_all
       ;;
     SudoUmount)
       USE_SUDO=true
-      umount_ramfs_local
+      umount_ramfs_local_all
       ;;
     *)
       echo -e ${USAGE} >&2
