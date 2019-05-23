@@ -39,6 +39,8 @@ import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -109,7 +111,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
         throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
       }
     }
-    OutputStream stream = new FileOutputStream(path);
+    OutputStream stream = new BufferedOutputStream(new FileOutputStream(path));
     try {
       setMode(path, options.getMode().toShort());
     } catch (IOException e) {
@@ -338,7 +340,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
-    FileInputStream inputStream = new FileInputStream(path);
+    InputStream inputStream = new BufferedInputStream(new FileInputStream(path));
     try {
       ByteStreams.skipFully(inputStream, options.getOffset());
     } catch (IOException e) {
