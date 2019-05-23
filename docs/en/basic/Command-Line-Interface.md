@@ -168,7 +168,7 @@ The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a 
 The `runUfsTests` aims to test the integration between Alluxio and the given UFS. UFS tests
 validate the semantics Alluxio expects of the UFS.
 
-`--help` provide detailed guidance.
+`--help` provides detailed guidance.
 `--path <ufs_path>` (required) the full UFS path to run tests against.
 
 The usage of this command includes:
