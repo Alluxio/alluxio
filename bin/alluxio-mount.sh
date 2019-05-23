@@ -30,10 +30,11 @@ function init_env() {
   . ${libexec_dir}/alluxio-config.sh
   MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.memory.size)
   TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-  TIER_PATH=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+  TIER_PATHS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
   MEDIUM_TYPE=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.mediumtype)
+  OLDIFS=$IFS
   IFS=','
-  read -ra PATHARRAY <<< "$TIER_PATH"
+  read -ra PATHARRAY <<< "$TIER_PATHS"
   read -ra MEDIUMTYPEARRAY <<< "$MEDIUM_TYPE"
   RAMDISKARRAY=()
   for i in "${!PATHARRAY[@]}"; do 
@@ -41,7 +42,7 @@ function init_env() {
       RAMDISKARRAY+=(${PATHARRAY[$i]})
     fi
   done
-  IFS=' '
+  IFS=$OLDIFS
 }
 
 function check_space_linux() {
@@ -54,70 +55,74 @@ function check_space_linux() {
 }
 
 function mount_ramfs_linux() {
-  echo "Formatting RamFS: ${1} (${MEM_SIZE})"
+  TIER_PATH=${1}
+  echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
   if [[ ${USE_SUDO} == true ]]; then
-    sudo mkdir -p ${1}
+    sudo mkdir -p ${TIER_PATH}
   else
-    mkdir -p ${1}
+    mkdir -p ${TIER_PATH}
   fi
   if [[ $? -ne 0 ]]; then
-    echo "ERROR: mkdir ${1} failed" >&2
+    echo "ERROR: mkdir ${TIER_PATH} failed" >&2
     exit 1
   fi
 
   if [[ ${USE_SUDO} == true ]]; then
-    sudo mount -t ramfs -o size=${MEM_SIZE} ramfs ${1}
+    sudo mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
   else
-    mount -t ramfs -o size=${MEM_SIZE} ramfs ${1}
+    mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
   fi
   if [[ $? -ne 0 ]]; then
-    echo "ERROR: mount RamFS ${1} failed" >&2
+    echo "ERROR: mount RamFS ${TIER_PATH} failed" >&2
     exit 1
   fi
 
   if [[ ${USE_SUDO} == true ]]; then
-    sudo chmod a+w ${1}
+    sudo chmod a+w ${TIER_PATH}
   else
-    chmod a+w ${1}
+    chmod a+w ${TIER_PATH}
   fi
   if [[ $? -ne 0 ]]; then
-    echo "ERROR: chmod RamFS ${1} failed" >&2
+    echo "ERROR: chmod RamFS ${TIER_PATH} failed" >&2
     exit 1
   fi
 }
 
 function umount_ramfs_linux() {
+  TIER_PATH=${1}
   if mount | grep ${1} > /dev/null; then
     echo "Unmounting ${1}"
     if [[ ${USE_SUDO} == true ]]; then
-      sudo umount -l -f ${1}
+      sudo umount -l -f ${TIER_PATH}
     else
-      umount -l -f ${1}
+      umount -l -f ${TIER_PATH}
     fi
     if [[ $? -ne 0 ]]; then
-      echo "ERROR: umount RamFS ${1} failed" >&2
+      echo "ERROR: umount RamFS ${TIER_PATH} failed" >&2
       exit 1
     fi
   fi
 }
 
 function mount_ramfs_mac() {
+  TIER_PATH=${1}
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
   local num_sectors=$(${BIN}/alluxio runClass alluxio.util.HFSUtils ${MEM_SIZE} 512)
 
   # Format the RAM FS
-  echo "Formatting RamFS: ${1} ${num_sectors} sectors (${MEM_SIZE})."
+  echo "Formatting RamFS: ${TIER_PATH} ${num_sectors} sectors (${MEM_SIZE})."
   # Remove the "/Volumes/" part so we can get the name of the volume.
-  diskutil erasevolume HFS+ ${1/#\/Volumes\//} $(hdiutil attach -nomount ram://${num_sectors})
+  diskutil erasevolume HFS+ ${TIER_PATH/#\/Volumes\//} $(hdiutil attach -nomount ram://${num_sectors})
 }
 
 function umount_ramfs_mac() {
-  local device=$(df -l | grep $1 | cut -d " " -f 1)
+  TIER_PATH=${1}
+  local device=$(df -l | grep $TIER_PATH | cut -d " " -f 1)
   if [[ -n "${device}" ]]; then
-    echo "Unmounting ramfs at ${1}"
+    echo "Unmounting ramfs at ${TIER_PATH}"
     hdiutil detach -force ${device}
   else
-    echo "Ramfs is not currently mounted at ${1}"
+    echo "Ramfs is not currently mounted at ${TIER_PATH}"
   fi
 }
 
