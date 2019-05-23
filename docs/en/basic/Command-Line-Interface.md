@@ -165,22 +165,21 @@ The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a 
 
 ### runUfsTests
 
-The `runUfsTests` aims to test the integration between Alluxio and the given ufs. The ufs tests
-contain all the Alluxio semantics with the ufs.
+The `runUfsTests` aims to test the integration between Alluxio and the given UFS. UFS tests
+validate the semantics Alluxio expects of the UFS.
 
-`--help` will provide the detail guidance on how to run this command.
-`--path <ufs_path>` is required to provide the full ufs path to run ufs tests against.
+`--help` provide detailed guidance.
+`--path <ufs_path>` (required) the full UFS path to run tests against.
 
 The usage of this command includes:
-* Test if the given ufs credentials are valid before having a running Alluxio cluster and mounting the ufs to Alluxio.
-* If the given Ufs is S3, this test can also be used as a S3 compatibility test to test if the target under filesystem can
-  fulfill the minimum S3 compatibility requirements in order to work well with Alluxio through Alluxio's integration with S3.
-* Test the integration between Alluxio and the given ufs is not broken. This usage is more related to Alluxio developers. 
-  Developers are required to add full coverage tests to all the changes they made to Alluxio ufs and run those tests
-  to verify the changes are valid. 
+* Test if the given UFS credentials are valid before mounting the UFS to an Alluxio cluster.
+* If the given UFS is S3, this test can also be used as a S3 compatibility test to test if the target under filesystem can
+  fulfill the minimum S3 compatibility requirements in order to work well with Alluxio.
+* Validate the contract between Alluxio and the given UFS. This is primarily intended for Alluxio developers. 
+  Developers are required to add test coverage for changes to an Alluxio UFS module and run those tests to validate.
 
 ```bash
-# Run tests against local ufs
+# Run tests against local UFS
 ./bin/alluxio runUfsTests --path /local/underfs/path
 
 # Run tests against S3
