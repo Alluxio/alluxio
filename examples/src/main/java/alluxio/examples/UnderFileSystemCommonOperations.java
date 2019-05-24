@@ -514,7 +514,8 @@ public final class UnderFileSystemCommonOperations {
     } catch (FileNotFoundException e) {
       return;
     }
-    throw new IOException("Get status on a non-existent directory did not through " + FileNotFoundException.class);
+    throw new IOException(
+        "Get status on a non-existent directory did not through " + FileNotFoundException.class);
   }
 
   /**
@@ -528,7 +529,8 @@ public final class UnderFileSystemCommonOperations {
     } catch (FileNotFoundException e) {
       return;
     }
-    throw new IOException("Get file status on a non-existent file did not through " + FileNotFoundException.class);
+    throw new IOException(
+        "Get file status on a non-existent file did not through " + FileNotFoundException.class);
   }
 
   /**
@@ -542,7 +544,8 @@ public final class UnderFileSystemCommonOperations {
     } catch (FileNotFoundException e) {
       return;
     }
-    throw new IOException("Get status on a non-existent path did not through " + FileNotFoundException.class);
+    throw new IOException(
+        "Get status on a non-existent path did not through " + FileNotFoundException.class);
   }
 
   /**
