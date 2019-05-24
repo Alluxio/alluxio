@@ -594,9 +594,12 @@ main() {
     wait
   fi
 
-  if [[ ! "${async}" ]]; then
-    start_monitor "${ACTION}" "${MONITOR_NODES}"
-  fi
+  case "${ACTION}" in
+      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers)
+    if [[ ! "${async}" ]]; then
+      start_monitor "${ACTION}" "${MONITOR_NODES}"
+    fi
+  esac
 }
 
 main "$@"
