@@ -48,8 +48,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
@@ -183,7 +183,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
           Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
       return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
           FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
-    } catch (NoSuchFileException e) {
+    } catch (FileSystemException e) {
       throw new FileNotFoundException(e.getMessage());
     }
   }
@@ -213,7 +213,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
       return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
           attr.owner().getName(), attr.group().getName(),
           FileUtils.translatePosixPermissionToMode(attr.permissions()));
-    } catch (NoSuchFileException e) {
+    } catch (FileSystemException e) {
       throw new FileNotFoundException(e.getMessage());
     }
   }
@@ -252,7 +252,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
       // Return directory status.
       return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
           FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
-    } catch (NoSuchFileException e) {
+    } catch (FileSystemException e) {
       throw new FileNotFoundException(e.getMessage());
     }
   }
