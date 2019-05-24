@@ -389,8 +389,7 @@ start_monitor() {
       run="false"
     fi
   elif [[ "${action}" == "logserver" || "${action}" == "safe" ]]; then
-    echo -e "Error: Invalid Monitor ACTION: ${action}" >&2
-    exit 1
+    run="false"
   fi
   if [[ -z "${run}" ]]; then
     ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${action}" "${nodes}"
@@ -594,12 +593,9 @@ main() {
     wait
   fi
 
-  case "${ACTION}" in
-      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers)
-    if [[ ! "${async}" ]]; then
-      start_monitor "${ACTION}" "${MONITOR_NODES}"
-    fi
-  esac
+  if [[ ! "${async}" ]]; then
+    start_monitor "${ACTION}" "${MONITOR_NODES}"
+  fi
 }
 
 main "$@"
