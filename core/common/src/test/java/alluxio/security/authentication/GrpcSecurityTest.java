@@ -14,19 +14,25 @@ package alluxio.security.authentication;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.security.user.UserState;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
+import io.grpc.Channel;
 import org.hamcrest.core.StringStartsWith;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.powermock.reflect.Whitebox;
 
 import javax.security.sasl.AuthenticationException;
 import java.net.InetSocketAddress;
@@ -35,6 +41,9 @@ import java.net.InetSocketAddress;
  * Unit test for {@link alluxio.grpc.GrpcChannelBuilder} and {@link alluxio.grpc.GrpcServerBuilder}.
  */
 public class GrpcSecurityTest {
+
+  /** Timeout waiting for a closed stream. */
+  private static final int S_AUTHENTICATION_PROPOGATE_TIMEOUT = 30000;
 
   /**
    * The exception expected to be thrown.
@@ -128,6 +137,64 @@ public class GrpcSecurityTest {
         GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     mThrown.expect(UnauthenticatedException.class);
     channelBuilder.build();
+    server.shutdown();
+  }
+
+  @Test
+  public void testAuthenticationClosed() throws Exception {
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    GrpcServer server = createServer(AuthType.SIMPLE);
+    server.start();
+    UserState us = UserState.Factory.create(mConfiguration);
+    GrpcChannel channel =
+            GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
+                    .setSubject(us.getSubject()).build();
+
+    // Grab internal authenticated channel reference.
+    Channel interceptorChannel = Whitebox.getInternalState(channel, "mChannel");
+    AuthenticatedChannel authenticatedChannel =
+        Whitebox.getInternalState(interceptorChannel, "channel");
+    // Assert that authentication server has a login info for the channel.
+    Assert.assertNotNull(server.getAuthenticationServer()
+        .getUserInfoForChannel(authenticatedChannel.getChannelId()));
+    // Close the underlying authenticated channel.
+    authenticatedChannel.close();
+    // Assert that authentication server don't contain login info for the channel anymore.
+    // Wait in a loop. Because closing the authentication will propagate asynchronously.
+    CommonUtils.waitFor("login state removed", () -> {
+      try {
+        server.getAuthenticationServer()
+            .getUserInfoForChannel(authenticatedChannel.getChannelId());
+        return false;
+      } catch (UnauthenticatedException exc) {
+        return true;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(S_AUTHENTICATION_PROPOGATE_TIMEOUT));
+
+    server.shutdown();
+  }
+
+  @Test
+  public void testAuthenticationRevoked() throws Exception {
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "2sec");
+    GrpcServer server = createServer(AuthType.SIMPLE);
+    server.start();
+    UserState us = UserState.Factory.create(mConfiguration);
+    GrpcChannel channel =
+            GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
+                    .setSubject(us.getSubject()).build();
+    Assert.assertTrue(channel.isHealthy());
+    /*
+     * Sleeping will ensure that authentication sessions for the channel will
+     * expire on the server. This should have propagated back to the client and
+     * its health status should reflect that.
+     *
+     * Sleep more than authentication revocation timeout.
+     */
+    Thread.sleep(5000);
+    Assert.assertFalse(channel.isHealthy());
+
     server.shutdown();
   }
 

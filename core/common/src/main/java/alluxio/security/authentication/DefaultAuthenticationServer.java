@@ -73,11 +73,11 @@ public class DefaultAuthenticationServer
     mHostName = hostName;
     mConfiguration = conf;
     mCleanupIntervalMs =
-            conf.getMs(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD);
+        conf.getMs(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD);
     checkSupported(conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
     mChannels = new ConcurrentHashMap<>();
-    mScheduler = Executors.newScheduledThreadPool(1,
-        ThreadFactoryUtils.build("auth-cleanup", true));
+    mScheduler =
+        Executors.newScheduledThreadPool(1, ThreadFactoryUtils.build("auth-cleanup", true));
     mScheduler.scheduleAtFixedRate(this::cleanupStaleClients, mCleanupIntervalMs,
         mCleanupIntervalMs, TimeUnit.MILLISECONDS);
   }
@@ -92,10 +92,10 @@ public class DefaultAuthenticationServer
 
   @Override
   public void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo,
-      SaslServer saslServer) {
+      SaslStreamServerDriver saslDriver, SaslServer saslServer) {
     LOG.debug("Registering new channel:{} for user:{}", channelId, userInfo);
     if (null != mChannels.putIfAbsent(channelId,
-        new AuthenticatedChannelInfo(userInfo, saslServer))) {
+        new AuthenticatedChannelInfo(userInfo, saslDriver, saslServer))) {
       AuthenticatedChannelInfo existingInfo = mChannels.remove(channelId);
       throw new RuntimeException(
           String.format("Channel: %s already exists in authentication registry for user: %s.",
@@ -106,12 +106,12 @@ public class DefaultAuthenticationServer
   @Override
   public AuthenticatedUserInfo getUserInfoForChannel(UUID channelId)
       throws UnauthenticatedException {
-    if (mChannels.containsKey(channelId)) {
-      AuthenticatedChannelInfo clientInfo = mChannels.get(channelId);
+    AuthenticatedChannelInfo clientInfo = mChannels.get(channelId);
+    if (clientInfo != null) {
       return clientInfo.getUserInfo();
     } else {
       throw new UnauthenticatedException(
-          String.format("Client:%s needs to be authenticated", channelId.toString()));
+          String.format("Channel:%s needs to be authenticated", channelId.toString()));
     }
   }
 
@@ -123,6 +123,13 @@ public class DefaultAuthenticationServer
         channelInfo.getSaslServer().dispose();
       } catch (SaslException e) {
         LOG.warn("Failed to dispose sasl client for channel-Id: {}. Error: {}", channelId,
+            e.getMessage());
+      }
+
+      try {
+        channelInfo.getSaslServerDriver().onCompleted();
+      } catch (Exception e) {
+        LOG.warn("Failed to authentication session for channel-Id: {}. Error: {}", channelId,
             e.getMessage());
       }
     }
@@ -141,6 +148,19 @@ public class DefaultAuthenticationServer
     }
   }
 
+  @Override
+  public void close() {
+    for (Map.Entry<UUID, AuthenticatedChannelInfo> entry : mChannels.entrySet()) {
+      try {
+        entry.getValue().getSaslServerDriver().onCompleted();
+        LOG.debug("Closed authentication session for channel:{}", entry.getKey());
+      } catch (Exception exc) {
+        LOG.debug("Failed closing authentication session for channel:{}. Error:{}", entry.getKey(),
+            exc);
+      }
+    }
+  }
+
   /**
    * Primitive that is invoked periodically for cleaning the registry from clients that has become
    * stale.
@@ -156,7 +176,6 @@ public class DefaultAuthenticationServer
         staleChannels.add(clientEntry.getKey());
       }
     }
-
     // Unregister stale clients.
     LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
     for (UUID clientId : staleChannels) {
@@ -191,14 +210,17 @@ public class DefaultAuthenticationServer
     private LocalTime mLastAccessTime;
     private SaslServer mAuthenticatedServer;
     private AuthenticatedUserInfo mUserInfo;
+    private SaslStreamServerDriver mSaslServerDriver;
 
     /**
      * @param userInfo authenticated user info
+     * @param saslServerDriver sasl server driver
      * @param authenticatedServer authenticated sasl server
      */
     public AuthenticatedChannelInfo(AuthenticatedUserInfo userInfo,
-        SaslServer authenticatedServer) {
+        SaslStreamServerDriver saslServerDriver, SaslServer authenticatedServer) {
       mUserInfo = userInfo;
+      mSaslServerDriver = saslServerDriver;
       mAuthenticatedServer = authenticatedServer;
       mLastAccessTime = LocalTime.now();
     }
@@ -215,7 +237,7 @@ public class DefaultAuthenticationServer
     }
 
     /**
-     * PS: Updates the last-access-time for this instance.
+     * Note: Updates the last-access-time for this instance.
      *
      * @return the sasl server
      */
@@ -225,13 +247,23 @@ public class DefaultAuthenticationServer
     }
 
     /**
-     * PS: Updates the last-access-time for this instance.
+     * Note: Updates the last-access-time for this instance.
      *
      * @return the user name
      */
     public AuthenticatedUserInfo getUserInfo() {
       updateLastAccessTime();
       return mUserInfo;
+    }
+
+    /**
+     * Note: Updates the last-access-time for this instance.
+     *
+     * @return the sasl server driver
+     */
+    public SaslStreamServerDriver getSaslServerDriver() {
+      updateLastAccessTime();
+      return mSaslServerDriver;
     }
   }
 }

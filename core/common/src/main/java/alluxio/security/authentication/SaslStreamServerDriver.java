@@ -13,6 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslMessage;
+import alluxio.grpc.SaslMessageType;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -75,7 +76,15 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
         mAuthenticationServer.unregisterChannel(mChannelId);
       }
       // Respond to client.
-      mRequestObserver.onNext(mSaslHandshakeServerHandler.handleSaslMessage(saslMessage));
+      SaslMessage response = mSaslHandshakeServerHandler.handleSaslMessage(saslMessage);
+      // Complete the call from server-side before sending success response to client.
+      // Because client will assume authenticated after receiving the success message.
+      if (response.getMessageType() == SaslMessageType.SUCCESS) {
+        mAuthenticationServer.registerChannel(mChannelId,
+            mSaslServerHandler.getAuthenticatedUserInfo(), this,
+            mSaslServerHandler.getSaslServer());
+      }
+      mRequestObserver.onNext(response);
     } catch (SaslException se) {
       LOG.debug("Exception while handling SASL message: {}", saslMessage, se);
       mRequestObserver.onError(new UnauthenticatedException(se).toGrpcStatusException());
@@ -89,12 +98,25 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   }
 
   @Override
-  public void onError(Throwable throwable) {}
+  public void onError(Throwable throwable) {
+    if (mChannelId != null) {
+      LOG.warn("Closing authenticated channel: {} due to error: {}", mChannelId, throwable);
+      mAuthenticationServer.unregisterChannel(mChannelId);
+    }
+  }
 
   @Override
   public void onCompleted() {
-    // Provide SaslServer handler with succeeded authentication information.
-    mSaslServerHandler.authenticationCompleted(mChannelId, mAuthenticationServer);
-    mRequestObserver.onCompleted();
+    // Client completes the stream when authenticated channel is being closed.
+    if (mChannelId != null) {
+      LOG.debug("Closing authenticated channel: {}", mChannelId);
+      mAuthenticationServer.unregisterChannel(mChannelId);
+    }
+    try {
+      // Complete the client stream.
+      mRequestObserver.onCompleted();
+    } catch (Exception exc) {
+      LOG.error("Failed to complete the client stream.", exc);
+    }
   }
 }

@@ -11,6 +11,8 @@
 
 package alluxio.security.authentication;
 
+import java.util.UUID;
+
 /**
  * A gRPC channel with authentication state.
  */
@@ -19,4 +21,14 @@ public interface AuthenticatedChannel {
    * @return whether the channel is authenticated
    */
   boolean isAuthenticated();
+
+  /**
+   * @return the channel Id used for authentication
+   */
+  UUID getChannelId();
+
+  /**
+   * Closes the authentication session with the server.
+   */
+  void close();
 }

@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.security.auth.Subject;
 
@@ -127,12 +128,14 @@ public class ChannelAuthenticator {
     private final GrpcServerAddress mServerAddress;
     private final ManagedChannel mManagedChannel;
     private Channel mChannel;
-    private boolean mAuthenticated;
+    private AtomicBoolean mAuthenticated;
+    private SaslStreamClientDriver mClientDriver;
 
     AuthenticatedManagedChannel(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
         throws AlluxioStatusException {
       mServerAddress = serverAddress;
       mManagedChannel = managedChannel;
+      mAuthenticated = new AtomicBoolean(false);
       authenticate();
     }
 
@@ -148,18 +151,17 @@ public class ChannelAuthenticator {
         SaslHandshakeClientHandler handshakeClient =
             new DefaultSaslHandshakeClientHandler(saslClientHandler);
         // Create driver for driving sasl traffic from client side.
-        SaslStreamClientDriver clientDriver =
-            new SaslStreamClientDriver(handshakeClient, mGrpcAuthTimeoutMs);
+        mClientDriver =
+            new SaslStreamClientDriver(handshakeClient, mAuthenticated, mGrpcAuthTimeoutMs);
         // Start authentication call with the service and update the client driver.
         StreamObserver<SaslMessage> requestObserver =
-            SaslAuthenticationServiceGrpc.newStub(mManagedChannel).authenticate(clientDriver);
-        clientDriver.setServerObserver(requestObserver);
+            SaslAuthenticationServiceGrpc.newStub(mManagedChannel).authenticate(mClientDriver);
+        mClientDriver.setServerObserver(requestObserver);
         // Start authentication traffic with the target.
-        clientDriver.start(mChannelId.toString());
+        mClientDriver.start(mChannelId.toString());
         // Authentication succeeded!
-        mAuthenticated = true;
         mManagedChannel.notifyWhenStateChanged(ConnectivityState.READY, () -> {
-          mAuthenticated = false;
+          mAuthenticated.set(false);
         });
         // Intercept authenticated channel with channel-Id injector.
         mChannel = ClientInterceptors.intercept(mManagedChannel, new ChannelIdInjector(mChannelId));
@@ -240,7 +242,17 @@ public class ChannelAuthenticator {
 
     @Override
     public boolean isAuthenticated() {
-      return mAuthenticated;
+      return mAuthenticated.get();
+    }
+
+    @Override
+    public UUID getChannelId() {
+      return mChannelId;
+    }
+
+    @Override
+    public void close() {
+      mClientDriver.stop();
     }
   }
 }

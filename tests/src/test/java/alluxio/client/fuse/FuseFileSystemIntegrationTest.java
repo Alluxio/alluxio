@@ -257,6 +257,31 @@ public class FuseFileSystemIntegrationTest {
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "3sec"})
+  public void continueWithRevokedAuth() throws Exception {
+    String testFile = "/tailTestFile";
+    String content = "Alluxio Tail Test File Content";
+    try (FileOutStream os = sFileSystem.createFile(new AlluxioURI(testFile))) {
+      os.write(content.getBytes());
+    }
+    String result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
+    Assert.assertEquals("Test File Content\n", result);
+
+    /*
+     * Sleeping will ensure that authentication sessions for existing clients held by FUSE will
+     * expire on the server. This should have propagated back to the client and reauthentication
+     * should happen on the background for making the second call succeed.
+     *
+     * Sleep more than authentication revocation timeout.
+     */
+    Thread.sleep(6000);
+
+    result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
+    Assert.assertEquals("Test File Content\n", result);
+  }
+
+  @Test
   public void touchAndLs() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/lsTestFile", WritePType.MUST_CACHE, 10);
     String touchTestFile = "/touchTestFile";
