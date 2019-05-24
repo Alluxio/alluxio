@@ -65,7 +65,7 @@ spec:
               cpu: "1"
               memory: "1024M"
           command: ["/entrypoint.sh"]
-          args: ["master"]
+          args: ["master", "--no-format"]
           envFrom:
           - configMapRef:
               name: alluxio-config
