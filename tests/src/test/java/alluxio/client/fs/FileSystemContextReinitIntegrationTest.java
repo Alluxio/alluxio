@@ -36,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests reinitializing {@link FileSystemContext}.
@@ -46,6 +47,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   private static final String UPDATED_VALUE = ReadType.NO_CACHE.toString();
 
   private FileSystemContext mContext;
+  private String mConfSyncHeartbeatThreadName;
   private String mClusterConfHash;
   private String mPathConfHash;
 
@@ -61,19 +63,21 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   public void before() throws IOException {
     mContext = FileSystemContext.create(ServerConfiguration.global());
     mContext.getClientContext().loadConf(mContext.getMasterAddress(), true, true);
+    mConfSyncHeartbeatThreadName = HeartbeatThread.generateThreadName(
+        HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getId());
     updateHash();
   }
 
   @Test
   public void noConfUpdateAndNoRestart() throws Exception {
-    triggerSync();
+    triggerAndWaitSync();
     checkHash(false, false);
   }
 
   @Test
   public void restartWithoutConfUpdate() throws Exception {
     restartMasters();
-    triggerSync();
+    triggerAndWaitSync();
     checkHash(false, false);
   }
 
@@ -81,7 +85,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   public void clusterConfUpdate() throws Exception {
     checkClusterConfBeforeUpdate();
     updateClusterConf();
-    triggerSync();
+    triggerAndWaitSync();
     checkClusterConfAfterUpdate();
     checkHash(true, false);
   }
@@ -90,7 +94,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   public void pathConfUpdate() throws Exception {
     checkPathConfBeforeUpdate();
     updatePathConf();
-    triggerSync();
+    triggerAndWaitSync();
     checkPathConfAfterUpdate();
     checkHash(false, true);
   }
@@ -101,12 +105,12 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     checkPathConfBeforeUpdate();
     updateClusterConf();
     updatePathConf();
-    triggerSync();
+    triggerAndWaitSync();
     checkClusterConfAfterUpdate();
     checkPathConfAfterUpdate();
     checkHash(true, true);
     updateHash();
-    triggerSync();
+    triggerAndWaitSync();
     checkHash(false, false);
   }
 
@@ -121,21 +125,37 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
       checkPathConfBeforeUpdate();
       updateClusterConf();
       updatePathConf();
-      // Opened stream is not closed yet, so reinit should not run.
       triggerSync();
+      try {
+        HeartbeatScheduler.await(mConfSyncHeartbeatThreadName, 1, TimeUnit.SECONDS);
+        Assert.fail("await should timeout");
+      } catch (RuntimeException e) {
+        // Expected timeout.
+      }
+      // Stream is open, so reinitialization should block until the stream is closed.
       checkHash(false, false);
       os.close();
       // Stream is closed, reinitialization should not be blocked.
-      triggerSync();
+      HeartbeatScheduler.await(mConfSyncHeartbeatThreadName);
       checkClusterConfAfterUpdate();
       checkPathConfAfterUpdate();
       checkHash(true, true);
     }
   }
 
+  /**
+   * Triggers ConfigHashSync heartbeat and waits for it to finish.
+   */
+  private void triggerAndWaitSync() throws Exception {
+    HeartbeatScheduler.execute(mConfSyncHeartbeatThreadName);
+  }
+
+  /**
+   * Just triggers ConfigHashSync heartbeat without waiting for it to finish.
+   */
   private void triggerSync() throws Exception {
-    HeartbeatScheduler.execute(HeartbeatThread.generateThreadName(
-        HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getId()));
+    HeartbeatScheduler.await(mConfSyncHeartbeatThreadName);
+    HeartbeatScheduler.schedule(mConfSyncHeartbeatThreadName);
   }
 
   private void restartMasters() throws Exception {

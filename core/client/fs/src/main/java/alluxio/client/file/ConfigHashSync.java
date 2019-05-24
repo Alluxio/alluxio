@@ -92,11 +92,8 @@ public final class ConfigHashSync implements HeartbeatExecutor {
         mContext.getClientContext().getPathConfHash());
     if (isClusterConfUpdated || isPathConfUpdated) {
       try {
-        if (mContext.reinit(isClusterConfUpdated, isPathConfUpdated)) {
-          mException = null;
-        } else {
-          LOG.warn("Failed to reinitialize FileSystemContext because there are ongoing RPCs.");
-        }
+        mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
+        mException = null;
       } catch (UnavailableException e) {
         LOG.error("Failed to reinitialize FileSystemContext:", e);
         // Meta master might be temporarily unavailable, retry in next heartbeat.
