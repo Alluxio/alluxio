@@ -21,6 +21,7 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -54,7 +55,6 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
-import alluxio.resource.CountResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptions;
@@ -577,8 +577,8 @@ public class BaseFileSystem implements FileSystem {
   /**
    * Sends an RPC to filesystem master.
    *
-   * A read lock is internally acquired before sending the RPC to block reinitialization of
-   * FileSystemContext.
+   * A resource is internally acquired to block FileSystemContext reinitialization before sending
+   * the RPC.
    *
    * @param fn the RPC call
    * @param <R> the type of return value for the RPC
@@ -586,7 +586,7 @@ public class BaseFileSystem implements FileSystem {
    */
   private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
-    try (CountResource r = mFsContext.acquireResourceToBlockReinit();
+    try (ReinitBlockerResource r = mFsContext.blockReinit();
          CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
       // Explicitly connect to trigger loading configuration from meta master.

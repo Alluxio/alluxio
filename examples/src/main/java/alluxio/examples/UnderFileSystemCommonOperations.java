@@ -28,6 +28,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -500,6 +501,51 @@ public final class UnderFileSystemCommonOperations {
     if (modTime < start - slack || modTime > end + slack) {
       throw new IOException(FILE_STATUS_RESULT_INCORRECT);
     }
+  }
+
+  /**
+   * Test for getting status of non-existent directory.
+   */
+  @RelatedS3Operations(operations = {"getObjectMetadata"})
+  public void getNonExistingDirectoryStatusTest() throws IOException {
+    String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "nonExistentDir");
+    try {
+      mUfs.getDirectoryStatus(testDir);
+    } catch (FileNotFoundException e) {
+      return;
+    }
+    throw new IOException(
+        "Get status on a non-existent directory did not through " + FileNotFoundException.class);
+  }
+
+  /**
+   * Test for getting status of non-existent file.
+   */
+  @RelatedS3Operations(operations = {"getObjectMetadata"})
+  public void getNonExistingFileStatusTest() throws IOException {
+    String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "nonExistentFile");
+    try {
+      mUfs.getFileStatus(testFile);
+    } catch (FileNotFoundException e) {
+      return;
+    }
+    throw new IOException(
+        "Get file status on a non-existent file did not through " + FileNotFoundException.class);
+  }
+
+  /**
+   * Test for getting status of non-existent path.
+   */
+  @RelatedS3Operations(operations = {"getObjectMetadata"})
+  public void getNonExistingPathStatusTest() throws IOException {
+    String testPath = PathUtils.concatPath(mTopLevelTestDirectory, "nonExistentPath");
+    try {
+      mUfs.getStatus(testPath);
+    } catch (FileNotFoundException e) {
+      return;
+    }
+    throw new IOException(
+        "Get status on a non-existent path did not through " + FileNotFoundException.class);
   }
 
   /**

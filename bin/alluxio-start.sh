@@ -516,6 +516,11 @@ main() {
       start_proxies
       ;;
     local)
+      ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
+      ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
+      ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
+      ALLUXIO_JOB_MASTER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
+      ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
       # We only start a secondary master when using a UFS journal.
