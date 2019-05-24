@@ -1065,7 +1065,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         return true;
       }
       if (!inode.isPersisted()) {
-        return ufs.exists(ufsPath);
+        return !ufs.exists(ufsPath);
       }
       UfsStatus ufsStatus;
       try {
