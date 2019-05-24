@@ -24,7 +24,6 @@ spec:
         app: alluxio
     spec:
       hostNetwork: true
-      hostPID: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: alluxio-worker
