@@ -1073,7 +1073,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       } catch (FileNotFoundException e) {
         return !inode.isPersisted();
       }
-
       // TODO(calvin): Evaluate which other metadata fields should be validated.
       if (inode.isDirectory()) {
         return ufsStatus.isDirectory();
