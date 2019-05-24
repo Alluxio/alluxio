@@ -91,8 +91,7 @@ public final class UnderFileSystemContractTest {
   }
 
   private void runCommonOperations() throws Exception {
-    // Create the test directory to run tests against
-    String testDir = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
+    String testDir = createTestDirectory();
     loadAndRunTests(new UnderFileSystemCommonOperations(mUfsPath, testDir, mUfs, mConf),
         testDir);
   }
@@ -104,7 +103,7 @@ public final class UnderFileSystemContractTest {
     mConf.set(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
     createUnderFileSystem();
 
-    String testDir = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
+    String testDir = createTestDirectory();
     loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);
   }
 
@@ -157,6 +156,15 @@ public final class UnderFileSystemContractTest {
   }
 
   /**
+   * @return the test directory to run tests against
+   */
+  private String createTestDirectory() throws IOException {
+    String testDir = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
+    mUfs.mkdirs(testDir);
+    return testDir;
+  }
+
+  /**
    * Cleans all the files or sub directories inside the given directory
    * in the under filesystem.
    *
@@ -197,7 +205,7 @@ public final class UnderFileSystemContractTest {
         + "a S3 compatibility test to test if the target under filesystem can "
         + "fulfill the minimum S3 compatibility requirements in order to "
         + "work well with Alluxio through Alluxio's integration with S3. \n"
-        + "Command line example: 'bin/alluxio runUfsTest --path=s3a://testPath "
+        + "Command line example: 'bin/alluxio runUfsTests --path s3a://testPath "
         + "-Daws.accessKeyId=<accessKeyId> -Daws.secretKeyId=<secretKeyId>"
         + "-Dalluxio.underfs.s3.endpoint=<endpoint_url> "
         + "-Dalluxio.underfs.s3.disable.dns.buckets=true'";

@@ -31,7 +31,7 @@ function printUsage {
   echo -e "                \t NOTE: This command will stop the existing server and creates a new one!"
   echo -e "  runMesosTest  \t Test the Alluxio integration with Mesos. Try 'alluxio mesosTest -help' for more help."
   echo -e "                \t NOTE: This command requires Mesos to be running and will stop any Alluxio servers that are currently running."
-  echo -e "  runUfsTest    \t Test the integration between Alluxio and the target under filesystem. Try 'alluxio runUfsTest -help' for more help."
+  echo -e "  runUfsTests    \t Test the integration between Alluxio and the target under filesystem. Try 'alluxio runUfsTests -help' for more help."
   echo -e "                \t NOTE: This command requires a valid ufs path to run tests against."
   echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  upgradeJournal\t Upgrade an Alluxio journal version 0 (Alluxio version < 1.5.0) to an Alluxio journal version 1 (Alluxio version >= 1.5.0)."
@@ -314,7 +314,7 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
-  "runUfsTest")
+  "runUfsTests")
     CLASS="alluxio.cli.UnderFileSystemContractTest"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
