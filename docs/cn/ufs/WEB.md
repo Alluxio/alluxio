@@ -30,8 +30,12 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 ```
 alluxio.master.hostname=localhost
-alluxio.underfs.address=[https|http]://<HOSTNAME>:<PORT>/DIRECTORY/
+# alluxio.master.mount.table.root.ufs=[https|http]://<HOSTNAME>:<PORT>/DIRECTORY/
+# 本文中的样例设置
+alluxio.master.mount.table.root.ufs=https://downloads.alluxio.io/downloads/files/
 ```
+
+本文例子设置为
 
 指定WEB页面解析相关配置(可选):
 ```
@@ -66,15 +70,25 @@ WEB可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多�
 
 要验证Alluxio是否正在运行，你可以访问**[http://localhost:19999](http://localhost:19999)**，或者查看`logs`下的日志。
 
-接着，你可以运行一个简单的示例程序：
-
-```bash
-./bin/alluxio runTests
-```
-
 运行成功后，访问你的WEB volume查看目录列表，执行以下命令：
+
 ```bash
 ./bin/alluxio fs ls /
+```
+
+等待片刻, 你可以看到如下结果
+
+```
+dr--r-----                                              0       PERSISTED 05-21-2019 12:53:22:000  DIR /1.4.0
+dr--r-----                                              0       PERSISTED 05-21-2019 12:54:23:000  DIR /1.5.0
+dr--r-----                                              0       PERSISTED 05-21-2019 12:55:06:000  DIR /1.6.0
+dr--r-----                                              0       PERSISTED 05-21-2019 12:55:38:000  DIR /1.6.1
+dr--r-----                                              0       PERSISTED 05-21-2019 12:57:00:000  DIR /1.7.0
+dr--r-----                                              0       PERSISTED 05-21-2019 12:57:57:000  DIR /1.7.1
+dr--r-----                                              0       PERSISTED 05-21-2019 13:00:25:000  DIR /1.8.0
+dr--r-----                                              0       PERSISTED 05-21-2019 13:02:07:000  DIR /1.8.1
+dr--r-----                                              0       PERSISTED 05-24-2019 05:16:31:000  DIR /2.0.0
+dr--r-----                                              0       PERSISTED 05-21-2019 13:02:11:000  DIR /2.0.0-preview
 ```
 
 你可以在任何时间运行以下命令停止Alluxio：

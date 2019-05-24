@@ -34,7 +34,9 @@ the following environment variable assignment needs to be added to
 
 ```
 alluxio.master.hostname=localhost
-alluxio.underfs.address=[https|http]://<HOSTNAME>:<PORT>/DIRECTORY/
+# alluxio.master.mount.table.root.ufs=[https|http]://<HOSTNAME>:<PORT>/DIRECTORY/
+# A sample for this article
+alluxio.master.mount.table.root.ufs=https://downloads.alluxio.io/downloads/files/
 ```
 
 Specify the settings for parsing a WEB page(Optional):
@@ -72,16 +74,25 @@ Run the following command to start Alluxio filesystem.
 To verify that Alluxio is running, you can visit
 **[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder.
 
-Run a simple example program:
-
-```bash
-./bin/alluxio runTests
-```
-
 Visit your WEB volume by running the following command:
 
 ```bash
 ./bin/alluxio fs ls /
+```
+
+After waiting for a while, you can see the following result:
+
+```
+dr--r-----                                              0       PERSISTED 05-21-2019 12:53:22:000  DIR /1.4.0
+dr--r-----                                              0       PERSISTED 05-21-2019 12:54:23:000  DIR /1.5.0
+dr--r-----                                              0       PERSISTED 05-21-2019 12:55:06:000  DIR /1.6.0
+dr--r-----                                              0       PERSISTED 05-21-2019 12:55:38:000  DIR /1.6.1
+dr--r-----                                              0       PERSISTED 05-21-2019 12:57:00:000  DIR /1.7.0
+dr--r-----                                              0       PERSISTED 05-21-2019 12:57:57:000  DIR /1.7.1
+dr--r-----                                              0       PERSISTED 05-21-2019 13:00:25:000  DIR /1.8.0
+dr--r-----                                              0       PERSISTED 05-21-2019 13:02:07:000  DIR /1.8.1
+dr--r-----                                              0       PERSISTED 05-24-2019 05:16:31:000  DIR /2.0.0
+dr--r-----                                              0       PERSISTED 05-21-2019 13:02:11:000  DIR /2.0.0-preview
 ```
 
 Stop Alluxio by running:
