@@ -389,8 +389,7 @@ start_monitor() {
       run="false"
     fi
   elif [[ "${action}" == "logserver" || "${action}" == "safe" ]]; then
-    echo -e "Error: Invalid Monitor ACTION: ${action}" >&2
-    exit 1
+    run="false"
   fi
   if [[ -z "${run}" ]]; then
     ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${action}" "${nodes}"
