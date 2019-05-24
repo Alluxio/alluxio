@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
@@ -177,10 +178,14 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
     String tpath = stripPath(path);
     File file = new File(tpath);
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
+    try {
+      PosixFileAttributes attr =
+          Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+      return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
+          FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
+    } catch (NoSuchFileException e) {
+      throw new FileNotFoundException(e.getMessage());
+    }
   }
 
   @Override
@@ -200,13 +205,17 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   public UfsFileStatus getFileStatus(String path) throws IOException {
     String tpath = stripPath(path);
     File file = new File(tpath);
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    String contentHash =
-        UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
-    return new UfsFileStatus(path, contentHash, file.length(),
-        file.lastModified(), attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()));
+    try {
+      PosixFileAttributes attr =
+          Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+      String contentHash =
+          UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
+      return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
+          attr.owner().getName(), attr.group().getName(),
+          FileUtils.translatePosixPermissionToMode(attr.permissions()));
+    } catch (NoSuchFileException e) {
+      throw new FileNotFoundException(e.getMessage());
+    }
   }
 
   @Override
@@ -229,19 +238,23 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   public UfsStatus getStatus(String path) throws IOException {
     String tpath = stripPath(path);
     File file = new File(tpath);
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    if (file.isFile()) {
-      // Return file status.
-      String contentHash =
-          UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
-      return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
-          attr.owner().getName(), attr.group().getName(),
-          FileUtils.translatePosixPermissionToMode(attr.permissions()));
+    try {
+      PosixFileAttributes attr =
+          Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+      if (file.isFile()) {
+        // Return file status.
+        String contentHash =
+            UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
+        return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
+            attr.owner().getName(), attr.group().getName(),
+            FileUtils.translatePosixPermissionToMode(attr.permissions()));
+      }
+      // Return directory status.
+      return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
+          FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
+    } catch (NoSuchFileException e) {
+      throw new FileNotFoundException(e.getMessage());
     }
-    // Return directory status.
-    return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
   }
 
   @Override

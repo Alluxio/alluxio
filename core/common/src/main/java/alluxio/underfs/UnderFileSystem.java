@@ -339,6 +339,7 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path to the directory
    * @return the directory status
+   * @throws FileNotFoundException when the path does not exist
    */
   UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
 
@@ -376,6 +377,7 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path to the file
    * @return the file status
+   * @throws FileNotFoundException when the path does not exist
    */
   UfsFileStatus getFileStatus(String path) throws IOException;
 
@@ -439,6 +441,7 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path to get the status
    * @return the file or directory status
+   * @throws FileNotFoundException when the path does not exist
    */
   UfsStatus getStatus(String path) throws IOException;
 
