@@ -36,6 +36,7 @@
 /docs/api/
 /docs/serve/
 /extensions/
+/generated/
 /journal/
 /logs/*.log*
 /logs/*.out*
