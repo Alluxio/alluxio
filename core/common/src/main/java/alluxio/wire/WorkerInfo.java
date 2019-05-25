@@ -96,7 +96,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker start time (in milliseconds)
    */
-  @ApiModelProperty(value = "Start time of the worker in epoch time")
+  @ApiModelProperty(value = "Start time of the worker in epoch time in milliseconds")
   public long getStartTimeMs() {
     return mStartTimeMs;
   }
@@ -104,7 +104,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker total capacity (in bytes) on tiers
    */
-  @ApiModelProperty(value = "The max capacity of each of the worker's tiers")
+  @ApiModelProperty(value = "The max capacity of each of the worker's tiers in bytes")
   public Map<String, Long> getCapacityBytesOnTiers() {
     return mCapacityBytesOnTiers;
   }
