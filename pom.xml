@@ -1040,6 +1040,7 @@
             <exclude>conf/alluxio-site.properties</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
+            <exclude>generated/**</exclude>
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
 
