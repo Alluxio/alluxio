@@ -35,6 +35,7 @@
 /docs/_site/
 /docs/api/
 /docs/serve/
+/generated/
 /journal/
 /logs/*.log*
 /logs/*.out*

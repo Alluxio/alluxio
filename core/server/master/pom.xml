@@ -37,10 +37,6 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.qmino</groupId>
-      <artifactId>miredot-annotations</artifactId>
-    </dependency>
-    <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
     </dependency>
@@ -51,6 +47,10 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -152,13 +152,29 @@
 
       <!-- REST API documentation -->
       <plugin>
-        <groupId>com.qmino</groupId>
-        <artifactId>miredot-plugin</artifactId>
+        <inherited>false</inherited>
+        <groupId>com.github.kongchen</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
         <configuration>
-          <!-- This following license only works for groupId org.alluxio and artifactId alluxio-core-server-master -->
-          <license>
-            cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyLW1hc3RlcnwyMDE5LTAzLTMxfHRydWV8LTEjTUN3Q0ZEU09ZK0VaQjFaWSs3bkNtSXNQaThObkpEYVJBaFJ6aGVqU1BhV2FoVDhqaUJJdC9TK2tFQjl4M1E9PQ==
-          </license>
+          <apiSources>
+            <apiSource>
+              <springmvc>false</springmvc>
+              <schemes>http</schemes>
+              <host>[Alluxio Master Hostname]</host>
+              <basePath>/api/v1</basePath>
+              <info>
+                <version>v1</version>
+                <title>Alluxio Master REST API Documentation</title>
+                <description>
+                  The Alluxio Master is the central metadata service of the Alluxio System.
+                </description>
+              </info>
+              <locations>alluxio.master.meta</locations>
+              <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
+              <outputPath>${project.parent.parent.parent.basedir}/generated/master/index.html</outputPath>
+              <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/master/swagger-ui</swaggerDirectory>
+            </apiSource>
+          </apiSources>
         </configuration>
       </plugin>
     </plugins>
