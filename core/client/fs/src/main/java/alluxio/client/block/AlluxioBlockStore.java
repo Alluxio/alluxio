@@ -14,7 +14,8 @@ package alluxio.client.block;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.Constants;
+import alluxio.client.block.util.BlockLocationUtils;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
@@ -35,7 +36,6 @@ import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
-import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
@@ -199,21 +199,15 @@ public final class AlluxioBlockStore {
     // First try to read data from Alluxio
     if (!locations.isEmpty()) {
       // TODO(calvin): Get location via a policy
-      List<TieredIdentity> tieredLocations =
-          locations.stream().map(location -> location.getWorkerAddress().getTieredIdentity())
+      List<WorkerNetAddress> tieredLocations =
+          locations.stream().map(location -> location.getWorkerAddress())
               .collect(toList());
       Collections.shuffle(tieredLocations);
-      Optional<TieredIdentity> nearest =
-          TieredIdentityUtils.nearest(mTieredIdentity, tieredLocations, mContext.getClusterConf());
+      Optional<Pair<WorkerNetAddress, Boolean>> nearest =
+          BlockLocationUtils.nearest(mTieredIdentity, tieredLocations, mContext.getClusterConf());
       if (nearest.isPresent()) {
-        dataSource = locations.stream().map(BlockLocation::getWorkerAddress)
-            .filter(addr -> addr.getTieredIdentity().equals(nearest.get())).findFirst().get();
-        if (mTieredIdentity.getTier(0).getTierName().equals(Constants.LOCALITY_NODE)
-            && mTieredIdentity.topTiersMatch(nearest.get())) {
-          dataSourceType = BlockInStreamSource.LOCAL;
-        } else {
-          dataSourceType = BlockInStreamSource.REMOTE;
-        }
+        dataSource = nearest.get().getFirst();
+        dataSourceType = nearest.get().getSecond() ? BlockInStreamSource.LOCAL : BlockInStreamSource.REMOTE;
       }
     }
     // Can't get data from Alluxio, get it from the UFS instead
