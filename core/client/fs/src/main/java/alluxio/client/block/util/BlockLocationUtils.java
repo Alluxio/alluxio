@@ -20,6 +20,9 @@ import alluxio.util.network.NettyUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockLocationUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockLocationUtils.class);
 
   /**
    * @param tieredIdentity the tiered identity
@@ -45,6 +49,8 @@ public final class BlockLocationUtils {
       // Determine by inspecting the file system if worker is local
       for (WorkerNetAddress addr : addresses) {
         if (NettyUtils.isDomainSocketSupported(addr, conf)) {
+          LOG.debug("Found local worker by file system inspection of path {}",
+              addr.getDomainSocketPath());
           // Returns the first local worker and does not shuffle
           return Optional.of(new Pair<>(addr, true));
         }
