@@ -48,7 +48,7 @@ public final class BlockLocationUtils {
     if (conf.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
       // Determine by inspecting the file system if worker is local
       for (WorkerNetAddress addr : addresses) {
-        if (NettyUtils.isDomainSocketSupported(addr, conf)) {
+        if (NettyUtils.isDomainSocketAccessible(addr, conf)) {
           LOG.debug("Found local worker by file system inspection of path {}",
               addr.getDomainSocketPath());
           // Returns the first local worker and does not shuffle

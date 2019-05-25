@@ -133,7 +133,7 @@ public class BlockInStreamTest {
   @Test
   public void createDomainSocketEnabled() throws Exception {
     PowerMockito.mockStatic(NettyUtils.class);
-    PowerMockito.when(NettyUtils.isDomainSocketSupported(Matchers.any(WorkerNetAddress.class),
+    PowerMockito.when(NettyUtils.isDomainSocketAccessible(Matchers.any(WorkerNetAddress.class),
         Matchers.any(InstancedConfiguration.class)))
         .thenReturn(true);
     WorkerNetAddress dataSource = new WorkerNetAddress();

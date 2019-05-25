@@ -152,10 +152,9 @@ public final class NettyUtils {
    * @param conf Alluxio configuration
    * @return true if the domain socket is enabled on this client
    */
-  public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress,
+  public static boolean isDomainSocketAccessible(WorkerNetAddress workerNetAddress,
       AlluxioConfiguration conf) {
-    if (workerNetAddress.getDomainSocketPath().isEmpty()
-        || getUserChannel(conf) != ChannelType.EPOLL) {
+    if (!isDomainSocketSupported(workerNetAddress) || getUserChannel(conf) != ChannelType.EPOLL) {
       return false;
     }
     if (conf.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
@@ -163,6 +162,15 @@ public final class NettyUtils {
     } else {
       return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName(conf));
     }
+  }
+
+  /**
+   * @param workerNetAddress the worker address
+   * @param conf Alluxio configuration
+   * @return true if the domain socket is supported by the worker
+   */
+  public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
+    return !workerNetAddress.getDomainSocketPath().isEmpty();
   }
 
   /**
