@@ -11,12 +11,6 @@
 
 package alluxio.client.block.util;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
@@ -25,6 +19,12 @@ import alluxio.util.TieredIdentityUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility functions for working with block locations.
