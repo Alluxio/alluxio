@@ -414,9 +414,12 @@ public final class FileSystemMasterClientRestServiceHandler {
   @POST
   @Path(SET_ATTRIBUTE)
   public Response setAttribute(@QueryParam("path") final String path,
-                               @QueryParam("pinned") final Boolean pinned, @QueryParam("ttl") final Long ttl,
-                               @QueryParam("persisted") final Boolean persisted, @QueryParam("owner") final String owner,
-                               @QueryParam("group") final String group, @QueryParam("permission") final Short permission,
+                               @QueryParam("pinned") final Boolean pinned,
+                               @QueryParam("ttl") final Long ttl,
+                               @QueryParam("persisted") final Boolean persisted,
+                               @QueryParam("owner") final String owner,
+                               @QueryParam("group") final String group,
+                               @QueryParam("permission") final Short permission,
                                @QueryParam("recursive") final Boolean recursive,
                                @QueryParam("ttxAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
