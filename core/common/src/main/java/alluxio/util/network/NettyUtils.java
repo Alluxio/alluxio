@@ -166,7 +166,6 @@ public final class NettyUtils {
 
   /**
    * @param workerNetAddress the worker address
-   * @param conf Alluxio configuration
    * @return true if the domain socket is supported by the worker
    */
   public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
