@@ -136,6 +136,8 @@ public class BlockInStreamTest {
     PowerMockito.when(NettyUtils.isDomainSocketAccessible(Matchers.any(WorkerNetAddress.class),
         Matchers.any(InstancedConfiguration.class)))
         .thenReturn(true);
+    PowerMockito.when(NettyUtils.isDomainSocketSupported(Matchers.any(WorkerNetAddress.class)))
+        .thenReturn(true);
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
     BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
