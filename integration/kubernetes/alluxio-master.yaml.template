@@ -87,7 +87,7 @@ spec:
               cpu: "1"
               memory: "1024M"
           command: ["/entrypoint.sh"]
-          args: ["job-master-only"]
+          args: ["job-master"]
           envFrom:
           - configMapRef:
               name: alluxio-config
