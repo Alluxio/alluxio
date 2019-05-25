@@ -39,6 +39,7 @@
 /docs/api/
 /docs/serve/
 /extensions/
+/generated/
 /journal/
 /lib/
 /logs/*.log*

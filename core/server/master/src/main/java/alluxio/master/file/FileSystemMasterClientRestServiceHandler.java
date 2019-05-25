@@ -31,7 +31,6 @@ import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
-import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.List;
 
@@ -95,7 +94,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_NAME)
-  @ReturnType("java.lang.String")
   public Response getServiceName() {
     return RestUtils.call(() -> Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME);
   }
@@ -106,7 +104,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_VERSION)
-  @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
     return RestUtils.call(() -> Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION);
   }
@@ -119,7 +116,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(COMPLETE_FILE)
-  @ReturnType("java.lang.Void")
   public Response completeFile(@QueryParam("path") final String path,
       @QueryParam("ufsLength") final Long ufsLength) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
@@ -143,7 +139,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(CREATE_DIRECTORY)
-  @ReturnType("java.lang.Void")
   public Response createDirectory(@QueryParam("path") final String path,
       @QueryParam("persisted") final Boolean persisted,
       @QueryParam("recursive") final Boolean recursive,
@@ -180,7 +175,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(CREATE_FILE)
-  @ReturnType("java.lang.Void")
   public Response createFile(@QueryParam("path") final String path,
       @QueryParam("persisted") final Boolean persisted,
       @QueryParam("recursive") final Boolean recursive,
@@ -222,7 +216,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(GET_NEW_BLOCK_ID_FOR_FILE)
-  @ReturnType("java.lang.Long")
   public Response getNewBlockIdForFile(@QueryParam("path") final String path) {
     return RestUtils.call(() -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
@@ -236,7 +229,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_STATUS)
-  @ReturnType("alluxio.wire.FileInfo")
   public Response getStatus(@QueryParam("path") final String path) {
     return RestUtils.call(() -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
@@ -252,7 +244,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(FREE)
-  @ReturnType("java.lang.Void")
   public Response free(@QueryParam("path") final String path,
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
@@ -273,7 +264,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(LIST_STATUS)
-  @ReturnType("java.util.List<alluxio.wire.FileInfo>")
   public Response listStatus(@QueryParam("path") final String path,
       @Deprecated @QueryParam("loadDirectChildren") final boolean loadDirectChildren,
       @DefaultValue("") @QueryParam("loadMetadataType") final String loadMetadataType) {
@@ -304,7 +294,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(MOUNT)
-  @ReturnType("java.lang.Void")
   public Response mount(@QueryParam("path") final String path,
       @QueryParam("ufsPath") final String ufsPath, @QueryParam("readOnly") final Boolean readOnly,
       @QueryParam("shared") final Boolean shared) {
@@ -332,7 +321,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_MOUNT_POINTS)
-  @ReturnType("java.util.SortedMap<java.lang.String, alluxio.wire.MountPointInfo>")
   public Response getMountPoints() {
     return RestUtils.call(() -> mFileSystemMaster.getMountTable());
   }
@@ -345,7 +333,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(REMOVE)
-  @ReturnType("java.lang.Void")
   public Response remove(@QueryParam("path") final String path,
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
@@ -364,7 +351,6 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(RENAME)
-  @ReturnType("java.lang.Void")
   public Response rename(@QueryParam("srcPath") final String srcPath,
       @QueryParam("dstPath") final String dstPath) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -386,12 +372,29 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(SCHEDULE_ASYNC_PERSIST)
-  @ReturnType("java.lang.Void")
   public Response scheduleAsyncPersist(@QueryParam("path") final String path) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
       return null;
+    });
+  }
+
+  /**
+   * @summary unmount a path
+   * @param path the file path
+   * @return the response object
+   */
+  @POST
+  @Path(UNMOUNT)
+  public Response unmount(@QueryParam("path") final String path) {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+        mFileSystemMaster.unmount(new AlluxioURI(path));
+        return null;
+      }
     });
   }
 
@@ -410,13 +413,12 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(SET_ATTRIBUTE)
-  @ReturnType("java.lang.Void")
   public Response setAttribute(@QueryParam("path") final String path,
-      @QueryParam("pinned") final Boolean pinned, @QueryParam("ttl") final Long ttl,
-      @QueryParam("persisted") final Boolean persisted, @QueryParam("owner") final String owner,
-      @QueryParam("group") final String group, @QueryParam("permission") final Short permission,
-      @QueryParam("recursive") final Boolean recursive,
-      @QueryParam("ttxAction") final TtlAction ttlAction) {
+                               @QueryParam("pinned") final Boolean pinned, @QueryParam("ttl") final Long ttl,
+                               @QueryParam("persisted") final Boolean persisted, @QueryParam("owner") final String owner,
+                               @QueryParam("group") final String group, @QueryParam("permission") final Short permission,
+                               @QueryParam("recursive") final Boolean recursive,
+                               @QueryParam("ttxAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -447,25 +449,6 @@ public final class FileSystemMasterClientRestServiceHandler {
           options.setRecursive(recursive);
         }
         mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
-        return null;
-      }
-    });
-  }
-
-  /**
-   * @summary unmount a path
-   * @param path the file path
-   * @return the response object
-   */
-  @POST
-  @Path(UNMOUNT)
-  @ReturnType("java.lang.Void")
-  public Response unmount(@QueryParam("path") final String path) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystemMaster.unmount(new AlluxioURI(path));
         return null;
       }
     });

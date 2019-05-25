@@ -41,10 +41,6 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.qmino</groupId>
-      <artifactId>miredot-annotations</artifactId>
-    </dependency>
-    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
@@ -112,13 +108,29 @@
     <plugins>
       <!-- REST API documentation -->
       <plugin>
-        <groupId>com.qmino</groupId>
-        <artifactId>miredot-plugin</artifactId>
+        <inherited>false</inherited>
+        <groupId>com.github.kongchen</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
         <configuration>
-          <!-- This following license only works for groupId org.alluxio and artifactId alluxio-core-server-proxy -->
-          <license>
-            cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyLXByb3h5fDIwMTktMDMtMzF8dHJ1ZXwtMSNNQ3dDRkZHejBpT0t5UVdrbVJWUlNRWUNDQzVqemtIbUFoUUcrdktzSmg0WExsWGhWcTlzMDZ3MENkRHpBZz09
-          </license>
+          <apiSources>
+            <apiSource>
+              <springmvc>false</springmvc>
+              <schemes>http</schemes>
+              <host>[Alluxio Proxy Hostname]</host>
+              <basePath>/api/v1</basePath>
+              <info>
+                <version>v1</version>
+                <title>Alluxio Proxy REST API Documentation</title>
+                <description>
+                  The Alluxio Proxy acts as a REST gateway for clients to communicate with the Alluxio system.
+                </description>
+              </info>
+              <locations>alluxio.proxy</locations>
+              <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
+              <outputPath>${project.parent.parent.parent.basedir}/generated/proxy/index.html</outputPath>
+              <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/proxy/swagger-ui</swaggerDirectory>
+            </apiSource>
+          </apiSources>
         </configuration>
       </plugin>
     </plugins>

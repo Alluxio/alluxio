@@ -33,7 +33,8 @@ import alluxio.wire.MountPointInfo;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
-import com.qmino.miredot.annotations.ReturnType;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,6 +58,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for requesting general master information.
  */
 @NotThreadSafe
+@Api(value = "/master", description = "Alluxio Master Rest Service")
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
@@ -118,7 +120,8 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
-  @ReturnType("alluxio.wire.AlluxioMasterInfo")
+  @ApiOperation(value = "Get general Alluxio Master service information",
+          response = alluxio.wire.AlluxioMasterInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(new RestUtils.RestCallable<AlluxioMasterInfo>() {
@@ -156,7 +159,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CONFIGURATION)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
     return RestUtils.call(() -> getConfigurationInternal(true));
@@ -170,7 +172,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_METRICS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
     return RestUtils.call(() -> getMetricsInternal());
@@ -184,7 +185,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_RPC_ADDRESS)
-  @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
     return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString());
@@ -198,7 +198,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_START_TIME_MS)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
     return RestUtils.call(() -> mMasterProcess.getStartTimeMs());
@@ -212,7 +211,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UPTIME_MS)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
     return RestUtils.call(() -> mMasterProcess.getUptimeMs());
@@ -226,7 +224,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_VERSION)
-  @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
     return RestUtils.call(() -> RuntimeConstants.VERSION);
@@ -240,7 +237,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
     return RestUtils.call(() -> mBlockMaster.getCapacityBytes());
@@ -254,7 +250,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
     return RestUtils.call(() -> mBlockMaster.getUsedBytes());
@@ -268,7 +263,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_FREE_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getFreeBytes() {
     return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
@@ -282,7 +276,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_CAPACITY_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsCapacityBytes() {
     return RestUtils.call(() -> getUfsCapacityInternal().getTotal());
@@ -296,7 +289,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_USED_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsUsedBytes() {
     return RestUtils.call(() -> getUfsCapacityInternal().getUsed());
@@ -310,7 +302,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_FREE_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsFreeBytes() {
     return RestUtils.call(() -> {
@@ -351,7 +342,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getCapacityBytesOnTiers() {
     return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
@@ -372,7 +362,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getUsedBytesOnTiers() {
     return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
@@ -392,7 +381,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_WORKER_COUNT)
-  @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
     return RestUtils.call(()->mBlockMaster.getWorkerCount());
@@ -406,7 +394,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_WORKER_INFO_LIST)
-  @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
     return RestUtils.call(()-> mBlockMaster.getWorkerInfoList());
@@ -491,7 +478,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @POST
   @Path(LOG_LEVEL)
-  @ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
       (LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level));
