@@ -85,6 +85,19 @@ case ${service,,} in
     integration/docker/bin/alluxio-master.sh &
     wait -n
     ;;
+  master-only)
+    if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
+      printUsage
+      exit 1
+    fi
+    if [[ ${options} != ${NO_FORMAT} ]]; then
+      bin/alluxio formatMaster
+    fi
+    integration/docker/bin/alluxio-master.sh
+    ;;
+  job-master-only)
+    integration/docker/bin/alluxio-job-master.sh
+    ;;
   worker)
     if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
       printUsage
@@ -96,6 +109,19 @@ case ${service,,} in
     integration/docker/bin/alluxio-job-worker.sh &
     integration/docker/bin/alluxio-worker.sh &
     wait -n
+    ;;
+  worker-only)
+    if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
+      printUsage
+      exit 1
+    fi
+    if [[ ${options} != ${NO_FORMAT} ]]; then
+      bin/alluxio formatWorker
+    fi
+    integration/docker/bin/alluxio-worker.sh
+    ;;
+  job-worker-only)
+    integration/docker/bin/alluxio-job-worker.sh
     ;;
   proxy)
     integration/docker/bin/alluxio-proxy.sh
