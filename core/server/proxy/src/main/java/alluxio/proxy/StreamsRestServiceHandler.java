@@ -18,7 +18,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.io.ByteStreams;
-import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.InputStream;
 
@@ -68,7 +67,6 @@ public final class StreamsRestServiceHandler {
    */
   @POST
   @Path(ID_PARAM + CLOSE)
-  @ReturnType("java.lang.Void")
   public Response close(@PathParam("id") final Integer id) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -90,7 +88,6 @@ public final class StreamsRestServiceHandler {
    */
   @POST
   @Path(ID_PARAM + READ)
-  @ReturnType("java.io.InputStream")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response read(@PathParam("id") final Integer id) {
     // TODO(jiri): Support reading a file range.
@@ -114,7 +111,6 @@ public final class StreamsRestServiceHandler {
    */
   @POST
   @Path(ID_PARAM + WRITE)
-  @ReturnType("java.lang.Long")
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response write(@PathParam("id") final Integer id, final InputStream is) {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {

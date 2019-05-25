@@ -18,7 +18,6 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
-import com.qmino.miredot.annotations.ReturnType;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -65,7 +64,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_NAME)
-  @ReturnType("java.lang.String")
   public Response getServiceName() {
     return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
@@ -81,7 +79,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_VERSION)
-  @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
@@ -98,7 +95,6 @@ public final class BlockMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_BLOCK_INFO)
-  @ReturnType("alluxio.wire.BlockInfo")
   public Response getBlockInfo(@QueryParam("blockId") final Long blockId) {
     return RestUtils.call(new RestUtils.RestCallable<BlockInfo>() {
       @Override
