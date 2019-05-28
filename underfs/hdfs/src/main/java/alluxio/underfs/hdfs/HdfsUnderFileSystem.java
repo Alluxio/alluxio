@@ -140,20 +140,29 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
     // Stash the classloader to prevent service loading throwing exception due to
     // classloader mismatch.
-    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(hdfsConf.getClassLoader());
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
     } finally {
-      Thread.currentThread().setContextClassLoader(previousClassLoader);
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
 
     mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
       @Override
       public FileSystem load(String userKey) throws Exception {
-        return path.getFileSystem(hdfsConf);
+        ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+          // Path.getFileSystem will trigger service loading
+          // Stash the classloader to prevent service loading throwing exception due to
+          // classes loaded by two different class loaders
+          Thread.currentThread().setContextClassLoader(currentClassLoader);
+          return path.getFileSystem(hdfsConf);
+        } finally {
+          Thread.currentThread().setContextClassLoader(previousClassLoader);
+        }
       }
     });
 

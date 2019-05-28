@@ -59,17 +59,15 @@ public final class UnderFileSystemContractTest {
   private InstancedConfiguration mConf
       = new InstancedConfiguration(ConfigurationUtils.defaults());
 
-  // The factory to check if the given ufs path is valid and create ufs
-  private UnderFileSystemFactory mFactory;
   private UnderFileSystem mUfs;
 
   private UnderFileSystemContractTest() {}
 
   private void run() throws Exception {
-    mFactory = UnderFileSystemFactoryRegistry.find(mUfsPath,
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find(mUfsPath,
         UnderFileSystemConfiguration.defaults(mConf));
     // Check if the ufs path is valid
-    if (mFactory == null || !mFactory.supportsPath(mUfsPath)) {
+    if (factory == null || !factory.supportsPath(mUfsPath)) {
       LOG.error("{} is not a valid path", mUfsPath);
       System.exit(1);
     }
@@ -80,7 +78,8 @@ public final class UnderFileSystemContractTest {
     // Increase the buffer time of journal writes to speed up tests
     mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
 
-    createUnderFileSystem();
+    mUfs = UnderFileSystem.Factory.create(mUfsPath,
+        UnderFileSystemConfiguration.defaults(mConf));
 
     runCommonOperations();
 
@@ -101,7 +100,9 @@ public final class UnderFileSystemContractTest {
     mConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED, "true");
     mConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     mConf.set(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
-    createUnderFileSystem();
+
+    mUfs = UnderFileSystem.Factory.create(mUfsPath,
+        UnderFileSystemConfiguration.defaults(mConf));
 
     String testDir = createTestDirectory();
     loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);
@@ -140,18 +141,6 @@ public final class UnderFileSystemContractTest {
     } finally {
       mUfs.deleteDirectory(testDir, DeleteOptions.defaults().setRecursive(true));
       mUfs.close();
-    }
-  }
-
-  /**
-   * Creates the under file system.
-   */
-  private void createUnderFileSystem() {
-    mUfs = mFactory.create(mUfsPath,
-        UnderFileSystemConfiguration.defaults(mConf));
-    if (mUfs == null) {
-      LOG.error("Failed to create under filesystem");
-      System.exit(1);
     }
   }
 
