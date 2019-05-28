@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 
@@ -56,6 +57,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker id
    */
+  @ApiModelProperty(value = "Worker id, used to identify the worker internally")
   public long getId() {
     return mId;
   }
@@ -63,6 +65,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker address
    */
+  @ApiModelProperty(value = "Address of the worker")
   public WorkerNetAddress getAddress() {
     return mAddress;
   }
@@ -70,6 +73,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker last contact (in seconds)
    */
+  @ApiModelProperty(value = "Seconds since the worker's last contact")
   public int getLastContactSec() {
     return mLastContactSec;
   }
@@ -77,6 +81,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker state
    */
+  @ApiModelProperty(value = "Operation state of the worker", example = "In Service")
   public String getState() {
     return mState;
   }
@@ -84,6 +89,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker total capacity (in bytes)
    */
+  @ApiModelProperty(value = "Size of the worker's local storage in bytes")
   public long getCapacityBytes() {
     return mCapacityBytes;
   }
@@ -91,6 +97,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker used capacity (in bytes)
    */
+  @ApiModelProperty(value = "Number of bytes used of the worker's local storage")
   public long getUsedBytes() {
     return mUsedBytes;
   }
@@ -98,6 +105,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * @return the worker start time (in milliseconds)
    */
+  @ApiModelProperty(value = "Start time of the worker in epoch time in milliseconds")
   public long getStartTimeMs() {
     return mStartTimeMs;
   }
