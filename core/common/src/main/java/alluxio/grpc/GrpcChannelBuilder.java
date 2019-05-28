@@ -202,7 +202,9 @@ public final class GrpcChannelBuilder {
             mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS),
             mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
     try {
-      if (mAuthenticateChannel) {
+      AuthType authType =
+          mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+      if (mAuthenticateChannel && authType != AuthType.NOSASL) {
         // Create channel authenticator based on provided content.
         ChannelAuthenticator channelAuthenticator;
         if (mUseSubject) {

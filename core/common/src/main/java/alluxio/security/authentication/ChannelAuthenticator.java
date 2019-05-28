@@ -112,14 +112,10 @@ public class ChannelAuthenticator {
    * @return channel that is augmented for authentication
    * @throws UnauthenticatedException
    */
-  public Channel authenticate(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
-      throws AlluxioStatusException {
+  public AuthenticatedChannel authenticate(GrpcServerAddress serverAddress,
+      ManagedChannel managedChannel) throws AlluxioStatusException {
     LOG.debug("Channel authentication initiated. ChannelId:{}, AuthType:{}, Target:{}", mChannelId,
             mAuthType, managedChannel.authority());
-
-    if (mAuthType == AuthType.NOSASL) {
-      return managedChannel;
-    }
 
     return new DefaultAuthenticatedChannel(serverAddress, managedChannel);
   }
