@@ -40,10 +40,10 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   private StreamObserver<SaslMessage> mRequestObserver;
   /** Handshake handler for client. */
   private SaslHandshakeClientHandler mSaslHandshakeClientHandler;
-  /** Used to wait until authentication is completed. */
-  private SettableFuture<Boolean> mAuthenticated;
-  /** Whether the authentication is active. */
-  private AtomicBoolean mAuthenticationActive;
+  /** Used to wait during authentication handshake. */
+  private SettableFuture<Boolean> mHandshakeFuture;
+  /** Current authenticated state. */
+  private AtomicBoolean mAuthenticated;
 
   private final long mGrpcAuthTimeoutMs;
 
@@ -57,9 +57,9 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient,
       AtomicBoolean authenticationActive, long grpcAuthTimeoutMs) {
     mSaslHandshakeClientHandler = handshakeClient;
-    mAuthenticated = SettableFuture.create();
+    mHandshakeFuture = SettableFuture.create();
     mGrpcAuthTimeoutMs = grpcAuthTimeoutMs;
-    mAuthenticationActive = authenticationActive;
+    mAuthenticated = authenticationActive;
   }
 
   /**
@@ -81,10 +81,10 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
         mRequestObserver.onNext(response);
       } else {
         // {@code null} response means server message was a success.
-        mAuthenticated.set(true);
+        mHandshakeFuture.set(true);
       }
     } catch (SaslException e) {
-      mAuthenticated.setException(e);
+      mHandshakeFuture.setException(e);
       mRequestObserver
           .onError(Status.fromCode(Status.Code.UNAUTHENTICATED).withCause(e).asException());
     }
@@ -92,13 +92,13 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
 
   @Override
   public void onError(Throwable throwable) {
-    mAuthenticated.setException(throwable);
+    mHandshakeFuture.setException(throwable);
   }
 
   @Override
   public void onCompleted() {
     // Server completes the stream when authenticated session is terminated/revoked.
-    mAuthenticationActive.set(false);
+    mAuthenticated.set(false);
   }
 
   /**
@@ -112,8 +112,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       // Send the server initial message.
       mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(channelId));
       // Wait until authentication status changes.
-      mAuthenticated.get(mGrpcAuthTimeoutMs, TimeUnit.MILLISECONDS);
-      mAuthenticationActive.set(true);
+      mAuthenticated.set(mHandshakeFuture.get(mGrpcAuthTimeoutMs, TimeUnit.MILLISECONDS));
     } catch (SaslException se) {
       throw new UnauthenticatedException(se.getMessage(), se);
     } catch (InterruptedException ie) {
@@ -136,11 +135,11 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   }
 
   /**
-   * Stops authenticated session with the server.
+   * Stops authenticated session with the server by releasing the long poll.
    */
   public void stop() {
     try {
-      if (mAuthenticationActive.get()) {
+      if (mAuthenticated.get()) {
         mRequestObserver.onCompleted();
       }
     } catch (Exception exc) {

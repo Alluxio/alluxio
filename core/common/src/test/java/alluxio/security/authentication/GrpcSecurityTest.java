@@ -177,7 +177,7 @@ public class GrpcSecurityTest {
   @Test
   public void testAuthenticationRevoked() throws Exception {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mConfiguration.set(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "2sec");
+    mConfiguration.set(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "250ms");
     GrpcServer server = createServer(AuthType.SIMPLE);
     server.start();
     UserState us = UserState.Factory.create(mConfiguration);
@@ -192,7 +192,7 @@ public class GrpcSecurityTest {
      *
      * Sleep more than authentication revocation timeout.
      */
-    Thread.sleep(5000);
+    Thread.sleep(500);
     Assert.assertFalse(channel.isHealthy());
 
     server.shutdown();

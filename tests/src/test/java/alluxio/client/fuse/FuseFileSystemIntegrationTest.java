@@ -257,8 +257,8 @@ public class FuseFileSystemIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "3sec"})
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "250ms"})
   public void continueWithRevokedAuth() throws Exception {
     String testFile = "/tailTestFile";
     String content = "Alluxio Tail Test File Content";
@@ -275,7 +275,7 @@ public class FuseFileSystemIntegrationTest {
      *
      * Sleep more than authentication revocation timeout.
      */
-    Thread.sleep(6000);
+    Thread.sleep(500);
 
     result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
     Assert.assertEquals("Test File Content\n", result);

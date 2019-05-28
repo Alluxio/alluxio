@@ -129,8 +129,8 @@ public class DefaultAuthenticationServer
       try {
         channelInfo.getSaslServerDriver().onCompleted();
       } catch (Exception e) {
-        LOG.warn("Failed to authentication session for channel-Id: {}. Error: {}", channelId,
-            e.getMessage());
+        LOG.warn("Failed to complete the authentication session for channel-Id: {}. Error: {}",
+            channelId, e.getMessage());
       }
     }
   }
