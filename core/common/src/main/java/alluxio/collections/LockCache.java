@@ -25,7 +25,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -45,6 +47,12 @@ public class LockCache<K> {
   private static final Logger LOG = LoggerFactory.getLogger(LockCache.class);
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
   private static final float SOFT_LIMIT_RATIO = 0.9f;
+  /**
+   * Eviction happens whenever the evictor thread is signaled,
+   * or is blocked for this period of time.
+   */
+  private static final int EVICTION_INTERVAL_MS = 1000;
+  private static final String EVICTOR_THREAD_NAME = "LockCache Evictor";
 
   private final Map<K, ValNode> mCache;
   /**
@@ -57,6 +65,8 @@ public class LockCache<K> {
   private final Function<? super K, ? extends ReentrantReadWriteLock> mDefaultLoader;
 
   private final Lock mEvictLock = new ReentrantLock();
+  private final Condition mOverSoftLimit = mEvictLock.newCondition();
+  private final Thread mEvictor;
 
   /**
    * Constructor for a lock cache.
@@ -72,27 +82,40 @@ public class LockCache<K> {
     mHardLimit = maxSize;
     mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
     mCache = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
+
+    mEvictor = new Thread(() -> {
+      try {
+        while (!Thread.interrupted()) {
+          evictIfOverLimit();
+        }
+      } catch (InterruptedException e) {
+        // Allow thread to exit.
+      }
+    });
+    mEvictor.setName(EVICTOR_THREAD_NAME);
+    mEvictor.setDaemon(true);
+    mEvictor.start();
   }
 
   /**
    * If the size of the cache exceeds the soft limit, evict entries with zero references.
    */
-  private void evictIfOverLimit() {
-    if (mCache.size() <= mSoftLimit) {
-      return;
-    }
-    if (mEvictLock.tryLock()) {
-      try {
-        Iterator<Map.Entry<K, ValNode>> iterator = mCache.entrySet().iterator();
-        while (iterator.hasNext()) {
-          Map.Entry<K, ValNode> candidateMapEntry = iterator.next();
-          ValNode candidate = candidateMapEntry.getValue();
-          if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
-            iterator.remove();
-          }
+  private void evictIfOverLimit() throws InterruptedException {
+    try (LockResource l = new LockResource(mEvictLock)) {
+      while (mCache.size() <= mSoftLimit) {
+        mOverSoftLimit.await(EVICTION_INTERVAL_MS, TimeUnit.MILLISECONDS);
+      }
+      Iterator<Map.Entry<K, ValNode>> iterator = mCache.entrySet().iterator();
+      while (iterator.hasNext()) {
+        Map.Entry<K, ValNode> candidateMapEntry = iterator.next();
+        ValNode candidate = candidateMapEntry.getValue();
+        if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
+          iterator.remove();
         }
-      } finally {
-        mEvictLock.unlock();
+      }
+      if (mCache.size() >= mHardLimit) {
+        LOG.warn("LockCache at hard limit, cache size = " + mCache.size()
+            + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
       }
     }
   }
@@ -164,10 +187,14 @@ public class LockCache<K> {
       }
       return new ValNode(mDefaultLoader.apply(k));
     });
-    evictIfOverLimit();
-    if (mCache.size() >= mHardLimit) {
-      LOG.warn("LockCache at hard limit, cache size = " + mCache.size()
-          + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
+    if (mCache.size() > mSoftLimit) {
+      if (mEvictLock.tryLock()) {
+        try {
+          mOverSoftLimit.signal();
+        } finally {
+          mEvictLock.unlock();
+        }
+      }
     }
     return cacheEntry;
   }
