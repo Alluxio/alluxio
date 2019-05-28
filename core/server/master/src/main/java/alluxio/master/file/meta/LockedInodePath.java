@@ -451,7 +451,7 @@ public class LockedInodePath implements Closeable {
         }
         if (!nextInodeOpt.isPresent()) {
           if (mLockPattern == LockPattern.READ) {
-            // Other lock patterns should lock the last non-existing edge.
+            // WRITE_INODE and WRITE_EDGE should lock the last non-existing edge.
             mLockList.unlockLastEdge();
           }
           return;
