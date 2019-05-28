@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  */
 public final class GrpcChannel extends Channel {
   private final GrpcManagedChannelPool.ChannelKey mChannelKey;
-  private final Supplier<Boolean> mChannelHealthState;
+  private Supplier<Boolean> mChannelHealthState;
   private Channel mChannel;
   private Runnable mAuthCloseCallback;
   private boolean mChannelReleased;
@@ -49,17 +49,29 @@ public final class GrpcChannel extends Channel {
   public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel,
       long shutdownTimeoutMs) {
     mChannelKey = channelKey;
-    mChannelHealthState = channel instanceof AuthenticatedChannel
-        ? () -> (((AuthenticatedChannel) channel).isAuthenticated() && mChannelHealthy)
-            : () -> mChannelHealthy;
-    if (channel instanceof AuthenticatedChannel) {
-      // Store {@link AuthenticatedChannel::#close) for signaling end of
-      // authenticated session during shutdown.
-      mAuthCloseCallback = ((AuthenticatedChannel) channel)::close;
-    }
+    mChannelHealthState = () -> mChannelHealthy;
     mChannel = ClientInterceptors.intercept(channel, new ChannelResponseTracker((this)));
     mChannelReleased = false;
     mShutdownTimeoutMs = shutdownTimeoutMs;
+  }
+
+  /**
+   * Create a new instance of {@link GrpcChannel} with an authenticated channel.
+   *
+   * @param channelKey the channel key
+   * @param channel the authenticated grpc channel
+   * @param shutdownTimeoutMs shutdown timeout in milliseconds
+   */
+  public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, AuthenticatedChannel channel,
+      long shutdownTimeoutMs) {
+    this(channelKey, (Channel) channel, shutdownTimeoutMs);
+    // Update the channel health supplier for authenticated channel.
+    mChannelHealthState =
+        () -> (((AuthenticatedChannel) channel).isAuthenticated() && mChannelHealthy);
+
+    // Store {@link AuthenticatedChannel::#close) for signaling end of
+    // authenticated session during shutdown.
+    mAuthCloseCallback = ((AuthenticatedChannel) channel)::close;
   }
 
   @Override

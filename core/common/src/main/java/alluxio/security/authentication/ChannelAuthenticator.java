@@ -121,17 +121,22 @@ public class ChannelAuthenticator {
       return managedChannel;
     }
 
-    return new AuthenticatedManagedChannel(serverAddress, managedChannel);
+    return new DefaultAuthenticatedChannel(serverAddress, managedChannel);
   }
 
-  private class AuthenticatedManagedChannel extends Channel implements AuthenticatedChannel {
+  private class DefaultAuthenticatedChannel extends AuthenticatedChannel {
+    /** Target server for authentication.  */
     private final GrpcServerAddress mServerAddress;
+    /** Given managed channel reference. */
     private final ManagedChannel mManagedChannel;
+    /** Augmented channel with authentication interceptors. */
     private Channel mChannel;
+    /** Whether the channel is currently authenticated. */
     private AtomicBoolean mAuthenticated;
+    /** Sasl traffic driver for the client. */
     private SaslStreamClientDriver mClientDriver;
 
-    AuthenticatedManagedChannel(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
+    DefaultAuthenticatedChannel(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
         throws AlluxioStatusException {
       mServerAddress = serverAddress;
       mManagedChannel = managedChannel;
@@ -252,6 +257,7 @@ public class ChannelAuthenticator {
 
     @Override
     public void close() {
+      // Stopping client driver will close authentication with the server.
       mClientDriver.stop();
     }
   }
