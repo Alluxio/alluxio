@@ -12,16 +12,17 @@
 package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -49,6 +50,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
+  private static final int LOCK_CACHE_MAX_SIZE = 100;
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -59,6 +61,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
+          .setProperty(PropertyKey.MASTER_LOCKCACHE_MAXSIZE, LOCK_CACHE_MAX_SIZE)
           .build();
 
   private FileSystem mFileSystem = null;
@@ -126,5 +129,21 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
 
     // Verify the blocks are not in mLostBlocks.
     assertTrue(bm.getLostBlocks().isEmpty());
+  }
+
+  /**
+   * Tests that deleting a directory with number of files larger than maximum lock cache size will
+   * not be blocked.
+   */
+  @Test(timeout = 3000)
+  public void deleteDir() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    for (int file = 0; file < 2 * LOCK_CACHE_MAX_SIZE; file++) {
+      AlluxioURI filePath = new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + file));
+      mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder().setRecursive(true).build())
+          .close();
+    }
+    mFileSystem.delete(new AlluxioURI(uniqPath),
+        DeletePOptions.newBuilder().setRecursive(true).build());
   }
 }
