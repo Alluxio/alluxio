@@ -20,6 +20,7 @@ import alluxio.wire.AlluxioJobMasterInfo;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 
 import java.util.Map;
 
@@ -70,7 +71,9 @@ public final class AlluxioJobMasterRestServiceHandler {
   @Path(GET_INFO)
   @ApiOperation(value = "Get general job master service information",
       response = alluxio.wire.AlluxioJobMasterInfo.class)
-  public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
+  public Response getInfo(
+      @ApiParam("Returns raw configuration values if true, false be default.")
+      @QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(() -> {
       boolean rawConfig = false;
