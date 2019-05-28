@@ -33,6 +33,19 @@ import javax.security.sasl.SaslException;
 
 /**
  * Responsible for driving sasl traffic from client-side. Acts as a client's Sasl stream.
+ *
+ * A Sasl authentication between client and server is managed by {@link SaslStreamClientDriver} and
+ * {@link SaslStreamServerDriver} respectively. This drivers are wrappers over gRPC
+ * {@link StreamObserver}s that manages the stream traffic destined for the other participant. They
+ * make sure messages are exchanged between client and server one by one synchronously.
+ *
+ * Sasl handshake is initiated by the client. Following the initiate call, depending on the scheme,
+ * one or more messages are exchanged to establish authenticated session between client and server.
+ * After the authentication is established, client and server streams are not closed in order to use
+ * them as long polling on authentication state changes. Client closing the stream means that it
+ * doesn't want to be authenticated anymore. Server closing the stream means the client is not
+ * authenticated at the server anymore.
+ *
  */
 public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(SaslStreamClientDriver.class);
@@ -51,15 +64,15 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    * Creates client driver with given handshake handler.
    *
    * @param handshakeClient client handshake handler
-   * @param authenticationActive boolean reference to receive authentication state changes
+   * @param authenticated boolean reference to receive authentication state changes
    * @param grpcAuthTimeoutMs authentication timeout in milliseconds
    */
   public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient,
-      AtomicBoolean authenticationActive, long grpcAuthTimeoutMs) {
+      AtomicBoolean authenticated, long grpcAuthTimeoutMs) {
     mSaslHandshakeClientHandler = handshakeClient;
     mHandshakeFuture = SettableFuture.create();
     mGrpcAuthTimeoutMs = grpcAuthTimeoutMs;
-    mAuthenticated = authenticationActive;
+    mAuthenticated = authenticated;
   }
 
   /**
