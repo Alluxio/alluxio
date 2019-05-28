@@ -2948,6 +2948,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     }
 
+    // Check that we are not setting default ACL to a file
+    if (inode.isFile()) {
+      for (AclEntry entry : entries) {
+        if (entry.isDefault()) {
+          throw new UnsupportedOperationException("Can not set default ACL for a file");
+        }
+      }
+    }
+
     mInodeTree.setAcl(rpcContext, SetAclEntry.newBuilder()
         .setId(inode.getId())
         .setOpTimeMs(opTimeMs)
