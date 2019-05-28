@@ -153,11 +153,16 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
       @Override
       public FileSystem load(String userKey) throws Exception {
+        // When running {@link UnderFileSystemContractTest} with hdfs path,
+        // the org.apache.hadoop.fs.FileSystem is loaded by {@link ExtensionClassLoader},
+        // but the org.apache.hadoop.fs.LocalFileSystem is loaded by {@link AppClassLoader}.
+        // When an interface and associated implementation are each loaded
+        // by two separate class loaders. An instance of the class from one loader cannot
+        // be recognized as implementing the interface from the other loader.
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
-          // Path.getFileSystem will trigger service loading
-          // Stash the classloader to prevent service loading throwing exception due to
-          // classes loaded by two different class loaders
+          // Set the class loader to ensure FileSystem implementations are
+          // loaded by the same class loader to avoid ServerConfigurationError
           Thread.currentThread().setContextClassLoader(currentClassLoader);
           return path.getFileSystem(hdfsConf);
         } finally {
