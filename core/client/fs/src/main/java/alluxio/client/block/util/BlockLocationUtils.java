@@ -40,8 +40,9 @@ public final class BlockLocationUtils {
    * @param tieredIdentity the tiered identity
    * @param addresses the candidate worker addresses
    * @param conf Alluxio configuration
-   * @return the address closest to this one. If none of the identities match, the first address is
-   *         returned
+   * @return the first in the pair indicates the address closest to this one. If none of the
+   *         identities match, the first address is returned. the second in the pair indicates
+   *         whether or not the location is local
    */
   public static Optional<Pair<WorkerNetAddress, Boolean>> nearest(TieredIdentity tieredIdentity,
       List<WorkerNetAddress> addresses, AlluxioConfiguration conf) {
