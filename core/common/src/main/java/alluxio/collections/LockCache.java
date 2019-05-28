@@ -36,7 +36,7 @@ import java.util.function.Function;
 /**
  * A cache specifically designed to contain locks and will NOT evict any entries
  * that are in use. The cache size is unlimited, when the cache size is larger than the configured
- * max size, each {@code get} or {@code tryGet} will try to evict locks that are no longer
+ * max size, a background thread will try to evict locks that are no longer
  * locked, but if all the locks are locked, none of them will be evicted.
  * In the worst case (e.g. deadlock), the cache size might keep growing until exhausting system
  * resources.
