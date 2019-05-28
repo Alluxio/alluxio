@@ -140,20 +140,34 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
     // Stash the classloader to prevent service loading throwing exception due to
     // classloader mismatch.
-    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(hdfsConf.getClassLoader());
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
     } finally {
-      Thread.currentThread().setContextClassLoader(previousClassLoader);
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
 
     mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
       @Override
       public FileSystem load(String userKey) throws Exception {
-        return path.getFileSystem(hdfsConf);
+        // When running {@link UnderFileSystemContractTest} with hdfs path,
+        // the org.apache.hadoop.fs.FileSystem is loaded by {@link ExtensionClassLoader},
+        // but the org.apache.hadoop.fs.LocalFileSystem is loaded by {@link AppClassLoader}.
+        // When an interface and associated implementation are each loaded
+        // by two separate class loaders, an instance of the class from one loader cannot
+        // be recognized as implementing the interface from the other loader.
+        ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+          // Set the class loader to ensure FileSystem implementations are
+          // loaded by the same class loader to avoid ServerConfigurationError
+          Thread.currentThread().setContextClassLoader(currentClassLoader);
+          return path.getFileSystem(hdfsConf);
+        } finally {
+          Thread.currentThread().setContextClassLoader(previousClassLoader);
+        }
       }
     });
 
