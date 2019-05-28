@@ -132,7 +132,21 @@
         </plugins>
       </build>
     </profile>
-
+    <profile>
+      <id>hdfsAclandActiveSync</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes combine.self="override" >
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>hdfsAcl</id>
       <build>
