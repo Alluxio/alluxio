@@ -18,6 +18,7 @@ import alluxio.wire.TieredIdentity.LocalityTier;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -47,6 +48,7 @@ public final class WorkerNetAddress implements Serializable {
   /**
    * @return the host of the worker
    */
+  @ApiModelProperty(value = "Host name of the worker")
   public String getHost() {
     return mHost;
   }
@@ -54,6 +56,7 @@ public final class WorkerNetAddress implements Serializable {
   /**
    * @return the RPC port
    */
+  @ApiModelProperty(value = "Port of the worker's Rpc server for metadata operations")
   public int getRpcPort() {
     return mRpcPort;
   }
@@ -61,6 +64,7 @@ public final class WorkerNetAddress implements Serializable {
   /**
    * @return the data port
    */
+  @ApiModelProperty(value = "Port of the worker's server for data operations")
   public int getDataPort() {
     return mDataPort;
   }
@@ -68,6 +72,7 @@ public final class WorkerNetAddress implements Serializable {
   /**
    * @return the web port
    */
+  @ApiModelProperty(value = "Port which exposes the worker's web UI")
   public int getWebPort() {
     return mWebPort;
   }
@@ -75,6 +80,7 @@ public final class WorkerNetAddress implements Serializable {
   /**
    * @return the domain socket path
    */
+  @ApiModelProperty(value = "The domain socket path used by the worker, disabled if empty")
   public String getDomainSocketPath() {
     return mDomainSocketPath;
   }
@@ -82,6 +88,7 @@ public final class WorkerNetAddress implements Serializable {
   /**
    * @return the tiered identity
    */
+  @ApiModelProperty(value = "The worker's tier identity")
   public TieredIdentity getTieredIdentity() {
     if (mTieredIdentity != null) {
       return mTieredIdentity;
