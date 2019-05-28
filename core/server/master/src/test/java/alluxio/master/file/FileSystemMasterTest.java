@@ -1220,12 +1220,10 @@ public final class FileSystemMasterTest {
 
     Set<String> newEntries = Sets.newHashSet("default:user::rwx",
         "default:group::rwx", "default:other::r-x");
-    try {
-      mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.MODIFY,
-          newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
-      fail("set default acl for a file should fail");
-    } catch (UnsupportedOperationException e) {
-    }
+
+    mThrown.expect(UnsupportedOperationException.class);
+    mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.MODIFY,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
   }
 
   @Test
