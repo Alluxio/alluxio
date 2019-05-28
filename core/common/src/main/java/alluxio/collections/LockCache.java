@@ -81,19 +81,18 @@ public class LockCache<K> {
     if (mCache.size() <= mSoftLimit) {
       return;
     }
-    try (LockResource l = new LockResource(mEvictLock)) {
-      // When there is an eviction happening during being blocked on the eviction lock,
-      // the cache size might go down.
-      if (mCache.size() <= mSoftLimit) {
-        return;
-      }
-      Iterator<Map.Entry<K, ValNode>> iterator = mCache.entrySet().iterator();
-      while (iterator.hasNext()) {
-        Map.Entry<K, ValNode> candidateMapEntry = iterator.next();
-        ValNode candidate = candidateMapEntry.getValue();
-        if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
-          iterator.remove();
+    if (mEvictLock.tryLock()) {
+      try {
+        Iterator<Map.Entry<K, ValNode>> iterator = mCache.entrySet().iterator();
+        while (iterator.hasNext()) {
+          Map.Entry<K, ValNode> candidateMapEntry = iterator.next();
+          ValNode candidate = candidateMapEntry.getValue();
+          if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
+            iterator.remove();
+          }
         }
+      } finally {
+        mEvictLock.unlock();
       }
     }
   }
