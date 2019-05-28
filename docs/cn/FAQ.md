@@ -66,12 +66,12 @@ priority: 2
 
 14. 如何了解Alluxio更多相关信息？
 
-    可以阅读近期的[博客](/resources/posts) 和[介绍](/resources/presentations)。
+    可以阅读近期的[博客](https://www.alluxio.io/blog/) 和[介绍](https://www.alluxio.io/resources/presentations/)。
 
 15. Alluxio是否有meetup等活动？
    
     是的，我们已经为Alluxio发起了meetup组织，请加入[http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/)。
-    也可以通过[这里](/resources/events)找到更多Alluxio相关的活动。
+    也可以通过[这里](https://www.alluxio.io/events/)找到更多Alluxio相关的活动。
 
 16. Alluxio使用什么许可证？
 
@@ -79,7 +79,7 @@ priority: 2
 
 17. 如何为Alluxio贡献代码？
 
-    非常感谢您的关注。您可以查看 [Contributing-to-Alluxio](/contribute)，还可以
+    非常感谢您的关注。您可以查看 [Contributing-to-Alluxio](https://www.alluxio.io/community/)，还可以
     [在此](https://alluxio.atlassian.net/browse/ALLUXIO-2532?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))查看JIRA上的一些问题（标注给新贡献者的）。
 
 18. 在哪里可以报告问题或提出新功能？
