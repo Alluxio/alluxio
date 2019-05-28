@@ -169,7 +169,7 @@
                   The Alluxio Master is the central metadata service of the Alluxio System.
                 </description>
               </info>
-              <locations>alluxio.master.meta.AlluxioMasterRestServiceHandler</locations>
+              <locations>alluxio.master.AlluxioMasterRestServiceHandler</locations>
               <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
               <outputPath>${project.parent.parent.parent.basedir}/generated/master/index.html</outputPath>
               <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/master/swagger-ui</swaggerDirectory>
