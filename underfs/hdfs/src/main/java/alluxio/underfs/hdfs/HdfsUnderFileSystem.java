@@ -157,7 +157,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         // the org.apache.hadoop.fs.FileSystem is loaded by {@link ExtensionClassLoader},
         // but the org.apache.hadoop.fs.LocalFileSystem is loaded by {@link AppClassLoader}.
         // When an interface and associated implementation are each loaded
-        // by two separate class loaders. An instance of the class from one loader cannot
+        // by two separate class loaders, an instance of the class from one loader cannot
         // be recognized as implementing the interface from the other loader.
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
