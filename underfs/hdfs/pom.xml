@@ -132,6 +132,7 @@
         </plugins>
       </build>
     </profile>
+
     <profile>
       <id>hdfsAclandActiveSync</id>
       <build>
@@ -147,6 +148,7 @@
         </plugins>
       </build>
     </profile>
+
     <profile>
       <id>hdfsAcl</id>
       <build>
@@ -163,6 +165,7 @@
         </plugins>
       </build>
     </profile>
+
     <profile>
       <id>hdfsActiveSync</id>
       <build>
