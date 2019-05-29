@@ -281,7 +281,7 @@ public final class TieredBlockStoreTestUtils {
     writer.close();
 
     // commit block
-    blockStore.commitBlock(sessionId, blockId);
+    blockStore.commitBlock(sessionId, blockId, false);
   }
 
   /**
