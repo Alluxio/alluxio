@@ -14,6 +14,7 @@ package alluxio.collections;
 import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.resource.RefCountLockResource;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -25,6 +26,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
@@ -69,7 +72,7 @@ public class LockCache<K> {
   private final Lock mEvictLock = new ReentrantLock();
   private final Condition mOverSoftLimit = mEvictLock.newCondition();
   private volatile long mLastOverHardLimitTime = 0;
-  private final Thread mEvictor;
+  private final ExecutorService mEvictor;
 
   /**
    * Constructor for a lock cache.
@@ -86,8 +89,9 @@ public class LockCache<K> {
     mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
     mCache = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mIterator = mCache.entrySet().iterator();
-
-    mEvictor = new Thread(() -> {
+    mEvictor = Executors.newSingleThreadExecutor(
+        ThreadFactoryUtils.build(EVICTOR_THREAD_NAME, true));
+    mEvictor.submit(() -> {
       try {
         while (!Thread.interrupted()) {
           evictIfOverLimit();
@@ -96,9 +100,6 @@ public class LockCache<K> {
         // Allow thread to exit.
       }
     });
-    mEvictor.setName(EVICTOR_THREAD_NAME);
-    mEvictor.setDaemon(true);
-    mEvictor.start();
   }
 
   /**
