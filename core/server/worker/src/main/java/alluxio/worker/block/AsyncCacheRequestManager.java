@@ -212,7 +212,7 @@ public class AsyncCacheRequestManager {
         BlockWriter writer =
             mBlockWorker.getTempBlockWriterRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
-      mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
+      mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId, false);
       return true;
     } catch (AlluxioException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
