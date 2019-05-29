@@ -70,7 +70,6 @@ public class JournalToolTest extends BaseIntegrationTest {
   private static final int MASTER_COUNT = 2;
   private static final int WORKER_COUNT = 1;
   private static final int GET_MASTER_INDEX_TIMEOUT_MS = 10 * 1000;
-  private static final String PERSISTENCE_INITIAL_INTERVAL_TIME = "1min";
 
   private final ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
 
@@ -89,7 +88,6 @@ public class JournalToolTest extends BaseIntegrationTest {
         put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
             Integer.toString(CHECKPOINT_SIZE));
         put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(LOG_SIZE_BYTES_MAX));
-        put(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, PERSISTENCE_INITIAL_INTERVAL_TIME);
       }
     };
     // Override/merge with given props.
