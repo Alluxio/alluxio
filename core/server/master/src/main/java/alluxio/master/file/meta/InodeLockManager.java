@@ -51,17 +51,17 @@ public class InodeLockManager {
    */
   public final LockPool<Long> mInodeLocks =
       new LockPool<>((key)-> new ReentrantReadWriteLock(),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
   public final LockPool<Edge> mEdgeLocks =
       new LockPool<>((key)-> new ReentrantReadWriteLock(),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
 
   /**
    * Locks for guarding changes to last modified time and size on read-locked parent inodes.

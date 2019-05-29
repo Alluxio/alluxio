@@ -1371,22 +1371,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The hostname of Alluxio master.")
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey MASTER_LOCKCACHE_INITSIZE =
-      new Builder(Name.MASTER_LOCKCACHE_INITSIZE)
+  public static final PropertyKey MASTER_LOCK_POOL_INITSIZE =
+      new Builder(Name.MASTER_LOCK_POOL_INITSIZE)
           .setDefaultValue(1000)
-          .setDescription("Initial inodelock cache size")
+          .setDescription("Initial lock pool size")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOCKCACHE_MAXSIZE =
       new Builder(Name.MASTER_LOCKCACHE_MAXSIZE)
           .setDefaultValue(100000)
-          .setDescription("Maximum inodelock cache size")
+          .setDescription("Maximum lock pool size")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_LOCKCACHE_CONCURRENCY_LEVEL =
-      new Builder(Name.MASTER_LOCKCACHE_CONCURRENCY_LEVEL)
+  public static final PropertyKey MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
+      new Builder(Name.MASTER_LOCK_POOL_CONCURRENCY_LEVEL)
           .setDefaultValue(100)
-          .setDescription("Maximum concurrency level for the inodelock cache")
+          .setDescription("Maximum concurrency level for the lock pool")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
@@ -3736,12 +3736,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
-    public static final String MASTER_LOCKCACHE_INITSIZE =
-        "alluxio.master.lockcache.initsize";
+    public static final String MASTER_LOCK_POOL_INITSIZE =
+        "alluxio.master.lock.pool.initsize";
     public static final String MASTER_LOCKCACHE_MAXSIZE =
-        "alluxio.master.lockcache.maxsize";
-    public static final String MASTER_LOCKCACHE_CONCURRENCY_LEVEL =
-        "alluxio.master.lockcache.concurrency.level";
+        "alluxio.master.lock.pool.maxsize";
+    public static final String MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
+        "alluxio.master.lock.pool.concurrency.level";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
