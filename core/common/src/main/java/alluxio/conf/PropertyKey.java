@@ -1380,13 +1380,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_LOCK_POOL_LOW_WATERMARK =
       new Builder(Name.MASTER_LOCK_POOL_LOW_WATERMARK)
           .setDefaultValue(500000)
-          .setDescription("Low watermark of lock pool size")
+          .setDescription("Low watermark of lock pool size. "
+              + "When the size grows over the high watermark, a background thread will try to evict "
+              + "unused locks until the size reaches the low watermark.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOCK_POOL_HIGH_WATERMARK =
       new Builder(Name.MASTER_LOCK_POOL_HIGH_WATERMARK)
           .setDefaultValue(1000000)
-          .setDescription("High watermark of lock pool size")
+          .setDescription("High watermark of lock pool size. "
+              + "When the size grows over the high watermark, a background thread starts evicting "
+              + "unused locks from the pool.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
