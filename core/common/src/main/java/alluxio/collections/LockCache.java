@@ -111,12 +111,17 @@ public class LockCache<K> {
       while (mCache.size() <= mSoftLimit) {
         mOverSoftLimit.await(EVICTION_MAX_AWAIT_TIME, TimeUnit.MILLISECONDS);
       }
-      int loop = 2; // Scan the cache at most twice.
       int numToEvict = mCache.size() - mSoftLimit;
-      if (!mIterator.hasNext()) {
-        mIterator = mCache.entrySet().iterator();
-      }
-      while (numToEvict > 0 && loop > 0) {
+      // The first round of scan uses the mIterator left from last eviction.
+      // Then scan the cache from a new iterator for at most two round:
+      // first round to mark candidate.mIsAccessed as false,
+      // second round to remove the candidate from the cache.
+      int roundToScan = 3;
+      while (numToEvict > 0 && roundToScan > 0) {
+        if (!mIterator.hasNext()) {
+          mIterator = mCache.entrySet().iterator();
+          roundToScan--;
+        }
         Map.Entry<K, ValNode> candidateMapEntry = mIterator.next();
         ValNode candidate = candidateMapEntry.getValue();
         if (candidate.mIsAccessed) {
@@ -126,10 +131,6 @@ public class LockCache<K> {
             mIterator.remove();
             numToEvict--;
           }
-        }
-        if (!mIterator.hasNext()) {
-          mIterator = mCache.entrySet().iterator();
-          loop--;
         }
       }
       if (mCache.size() >= mHardLimit) {
