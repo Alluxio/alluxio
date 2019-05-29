@@ -67,17 +67,18 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block is persisted
-   * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
+   * after {@link BlockStore#commitBlock(long, long, boolean)}. The block will not be accessible until
    * {@link BlockMasterClient#commitBlock(long, long, String, String, long, long)} succeeds.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to commit
+   * @param isPinned is block pinned on create
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
-  void commitBlock(long sessionId, long blockId)
+  void commitBlock(long sessionId, long blockId, boolean isPinned)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;
 

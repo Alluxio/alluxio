@@ -22,6 +22,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -261,10 +262,11 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+  public void commitBlock(long sessionId, long blockId, boolean isPinned)
+      throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
+      IOException {
     LOG.debug("commitBlock: sessionId={}, blockId={}", sessionId, blockId);
-    BlockStoreLocation loc = commitBlockInternal(sessionId, blockId);
+    BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, isPinned);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onCommitBlock(sessionId, blockId, loc);
@@ -515,12 +517,13 @@ public class TieredBlockStore implements BlockStore {
    *
    * @param sessionId the id of session
    * @param blockId the id of block
+   * @param isPinned is block pinned on create
    * @return destination location to move the block
    * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
    */
-  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId)
+  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId, boolean isPinned)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
       IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
@@ -549,6 +552,12 @@ public class TieredBlockStore implements BlockStore {
           | WorkerOutOfSpaceException e) {
         throw Throwables.propagate(e); // we shall never reach here
       }
+
+      // Check if block is pinned on commit
+      if (isPinned) {
+        updatePinnedInodes(Collections.singleton(BlockId.getFileId(blockId)));
+      }
+
       return loc;
     } finally {
       mLockManager.unlockBlock(lockId);
