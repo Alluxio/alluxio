@@ -145,7 +145,7 @@ public class InodeTree implements DelegatingJournaled {
      *
      * path to lock: /a/b/c
      * existing inodes: /a/b/c
-     * result: Read locks on [a, a->b, b], Write locks on [b->c]
+     * result: Read locks on [a, a->b, b], Write locks on [b->c, c]
      *
      * path to lock: /a/b/c
      * existing inodes: /a
