@@ -48,18 +48,11 @@ import java.util.function.Function;
  */
 public class LockCache<K> {
   private static final Logger LOG = LoggerFactory.getLogger(LockCache.class);
-  private static final long OVER_HARD_LIMIT_LOG_INTERVAL = 60000; // milliseconds
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
   private static final float SOFT_LIMIT_RATIO = 0.9f;
-  /**
-   * Eviction happens whenever the evictor thread is signaled,
-   * or is blocked for this period of time.
-   */
-  private static final int EVICTION_MAX_AWAIT_TIME = 30000; // milliseconds
   private static final String EVICTOR_THREAD_NAME = "LockCache Evictor";
 
   private final Map<K, ValNode> mCache;
-  private Iterator<Map.Entry<K, ValNode>> mIterator;
   /**
    * SoftLimit = hardLimit * softLimitRatio
    * once the size reaches softlimit, eviction starts to happen,
@@ -71,7 +64,6 @@ public class LockCache<K> {
 
   private final Lock mEvictLock = new ReentrantLock();
   private final Condition mOverSoftLimit = mEvictLock.newCondition();
-  private volatile long mLastOverHardLimitTime = 0;
   private final ExecutorService mEvictor;
 
   /**
@@ -88,57 +80,86 @@ public class LockCache<K> {
     mHardLimit = maxSize;
     mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
     mCache = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
-    mIterator = mCache.entrySet().iterator();
     mEvictor = Executors.newSingleThreadExecutor(
         ThreadFactoryUtils.build(EVICTOR_THREAD_NAME, true));
-    mEvictor.submit(() -> {
+    mEvictor.submit(new Evictor());
+  }
+
+  private final class Evictor implements Runnable {
+    /**
+     * Interval in milliseconds for logging when cache size grows over hard limit.
+     */
+    private static final long OVER_HARD_LIMIT_LOG_INTERVAL = 60000;
+    /**
+     * Eviction happens whenever the evictor thread is signaled,
+     * or is blocked for this period of time in milliseconds.
+     */
+    private static final int EVICTION_MAX_AWAIT_TIME = 30000;
+
+    /**
+     * Creates a new instance.
+     */
+    public Evictor() {
+      mIterator = mCache.entrySet().iterator();
+    }
+
+    /**
+     * Last millisecond that the cache size grows over hard limit.
+     * When size is over hard limit, a log will be printed. This time is used to limit the rate of
+     * logging.
+     */
+    private long mLastOverHardLimitTime = 0;
+    private Iterator<Map.Entry<K, ValNode>> mIterator;
+
+    @Override
+    public void run() {
       try {
         while (!Thread.interrupted()) {
-          evictIfOverLimit();
+          awaitAndEvict();
         }
       } catch (InterruptedException e) {
         // Allow thread to exit.
       }
-    });
-  }
+    }
 
-  /**
-   * If the size of the cache exceeds the soft limit, evicts entries with zero references until
-   * cache size decreases below the soft limit or the whole cache is scanned.
-   */
-  private void evictIfOverLimit() throws InterruptedException {
-    try (LockResource l = new LockResource(mEvictLock)) {
-      while (mCache.size() <= mSoftLimit) {
-        mOverSoftLimit.await(EVICTION_MAX_AWAIT_TIME, TimeUnit.MILLISECONDS);
-      }
-      int numToEvict = mCache.size() - mSoftLimit;
-      // The first round of scan uses the mIterator left from last eviction.
-      // Then scan the cache from a new iterator for at most two round:
-      // first round to mark candidate.mIsAccessed as false,
-      // second round to remove the candidate from the cache.
-      int roundToScan = 3;
-      while (numToEvict > 0 && roundToScan > 0) {
-        if (!mIterator.hasNext()) {
-          mIterator = mCache.entrySet().iterator();
-          roundToScan--;
+    /**
+     * Blocks until the size of the cache exceeds the soft limit, evicts entries with zero
+     * references until cache size decreases below the soft limit or the whole cache is scanned.
+     */
+    private void awaitAndEvict() throws InterruptedException {
+      try (LockResource l = new LockResource(mEvictLock)) {
+        while (mCache.size() <= mSoftLimit) {
+          mOverSoftLimit.await(EVICTION_MAX_AWAIT_TIME, TimeUnit.MILLISECONDS);
         }
-        Map.Entry<K, ValNode> candidateMapEntry = mIterator.next();
-        ValNode candidate = candidateMapEntry.getValue();
-        if (candidate.mIsAccessed) {
-          candidate.mIsAccessed = false;
-        } else {
-          if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
-            mIterator.remove();
-            numToEvict--;
+        int numToEvict = mCache.size() - mSoftLimit;
+        // The first round of scan uses the mIterator left from last eviction.
+        // Then scan the cache from a new iterator for at most two round:
+        // first round to mark candidate.mIsAccessed as false,
+        // second round to remove the candidate from the cache.
+        int roundToScan = 3;
+        while (numToEvict > 0 && roundToScan > 0) {
+          if (!mIterator.hasNext()) {
+            mIterator = mCache.entrySet().iterator();
+            roundToScan--;
+          }
+          Map.Entry<K, ValNode> candidateMapEntry = mIterator.next();
+          ValNode candidate = candidateMapEntry.getValue();
+          if (candidate.mIsAccessed) {
+            candidate.mIsAccessed = false;
+          } else {
+            if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
+              mIterator.remove();
+              numToEvict--;
+            }
           }
         }
-      }
-      if (mCache.size() >= mHardLimit) {
-        if (System.currentTimeMillis() - mLastOverHardLimitTime > OVER_HARD_LIMIT_LOG_INTERVAL) {
-          LOG.warn("LockCache at hard limit, cache size = " + mCache.size()
-              + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
+        if (mCache.size() >= mHardLimit) {
+          if (System.currentTimeMillis() - mLastOverHardLimitTime > OVER_HARD_LIMIT_LOG_INTERVAL) {
+            LOG.warn("LockCache at hard limit, cache size = " + mCache.size()
+                + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
+          }
+          mLastOverHardLimitTime = System.currentTimeMillis();
         }
-        mLastOverHardLimitTime = System.currentTimeMillis();
       }
     }
   }
@@ -276,7 +297,7 @@ public class LockCache<K> {
 
     private ValNode(ReentrantReadWriteLock value) {
       mValue = value;
-      mIsAccessed = true;
+      mIsAccessed = false;
       mRefCount = new AtomicInteger(1);
     }
   }
