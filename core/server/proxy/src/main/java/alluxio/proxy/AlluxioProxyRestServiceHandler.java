@@ -75,7 +75,7 @@ public final class AlluxioProxyRestServiceHandler {
   @GET
   @Path(GET_INFO)
   @ApiOperation(value = "Get general Alluxio Proxy service information",
-          response = alluxio.wire.AlluxioProxyInfo.class)
+      response = alluxio.wire.AlluxioProxyInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(new RestUtils.RestCallable<AlluxioProxyInfo>() {
