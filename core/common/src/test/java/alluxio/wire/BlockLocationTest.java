@@ -11,11 +11,12 @@
 
 package alluxio.wire;
 
+import static org.junit.Assert.assertEquals;
 import alluxio.util.CommonUtils;
 import alluxio.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
+
 import org.junit.Test;
 
 import java.util.Random;
@@ -39,10 +40,10 @@ public final class BlockLocationTest {
   }
 
   public void checkEquality(BlockLocation a, BlockLocation b) {
-    Assert.assertEquals(a.getWorkerId(), b.getWorkerId());
-    Assert.assertEquals(a.getWorkerAddress(), b.getWorkerAddress());
-    Assert.assertEquals(a.getTierAlias(), b.getTierAlias());
-    Assert.assertEquals(a, b);
+    assertEquals(a.getWorkerId(), b.getWorkerId());
+    assertEquals(a.getWorkerAddress(), b.getWorkerAddress());
+    assertEquals(a.getTierAlias(), b.getTierAlias());
+    assertEquals(a, b);
   }
 
   public static BlockLocation createRandom() {
