@@ -612,7 +612,7 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID ,false);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID , false);
     mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID, false);
   }
 
