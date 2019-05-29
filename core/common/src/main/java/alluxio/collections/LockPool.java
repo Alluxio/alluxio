@@ -93,11 +93,11 @@ public class LockPool<K> {
     private static final int EVICTION_MAX_AWAIT_TIME = 30 * Constants.SECOND_MS;
 
     /**
-     * Last millisecond that the pool size grows over high watermark.
-     * When size is over high watermark, a log will be printed. This time is used to limit the rate
-     * of logging.
+     * When size is over high watermark, a warning will be logged.
+     * This represents the last time (millisecond) the warning is logged.
+     * This time is used to limit the rate of logging.
      */
-    private long mLastOverHighWatermarkTime = 0;
+    private long mLastSizeWarningTime = 0;
     /**
      * Iterator for the pool, used to continue evicting from the previous iterator.
      */
@@ -153,13 +153,13 @@ public class LockPool<K> {
           }
         }
         if (mPool.size() >= mHighWatermark) {
-          if (System.currentTimeMillis() - mLastOverHighWatermarkTime
+          if (System.currentTimeMillis() - mLastSizeWarningTime
               > OVER_HIGH_WATERMARK_LOG_INTERVAL) {
             LOG.warn("LockPool size grows over high watermark: "
                 + "pool size = {}, low watermark = {}, high watermark = {}",
                 mPool.size(), mLowWatermark, mHighWatermark);
+            mLastSizeWarningTime = System.currentTimeMillis();
           }
-          mLastOverHighWatermarkTime = System.currentTimeMillis();
         }
       }
     }
