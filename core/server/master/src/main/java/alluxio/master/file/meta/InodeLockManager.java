@@ -123,8 +123,8 @@ public class InodeLockManager {
     assertAllLocksReleased(mInodeLocks);
   }
 
-  private <T> void assertAllLocksReleased(LockPool<T> cache) {
-    for (Entry<T, ReentrantReadWriteLock> entry : cache.getEntryMap().entrySet()) {
+  private <T> void assertAllLocksReleased(LockPool<T> pool) {
+    for (Entry<T, ReentrantReadWriteLock> entry : pool.getEntryMap().entrySet()) {
       ReentrantReadWriteLock lock = entry.getValue();
       if (lock.isWriteLocked()) {
         throw new RuntimeException(
