@@ -45,13 +45,14 @@ import java.util.function.Function;
  */
 public class LockCache<K> {
   private static final Logger LOG = LoggerFactory.getLogger(LockCache.class);
+  private static final long OVER_HARD_LIMIT_LOG_INTERVAL = 60000; // milliseconds
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
   private static final float SOFT_LIMIT_RATIO = 0.9f;
   /**
    * Eviction happens whenever the evictor thread is signaled,
    * or is blocked for this period of time.
    */
-  private static final int EVICTION_INTERVAL_MS = 1000;
+  private static final int EVICTION_INTERVAL = 1000; // milliseconds
   private static final String EVICTOR_THREAD_NAME = "LockCache Evictor";
 
   private final Map<K, ValNode> mCache;
@@ -67,6 +68,7 @@ public class LockCache<K> {
 
   private final Lock mEvictLock = new ReentrantLock();
   private final Condition mOverSoftLimit = mEvictLock.newCondition();
+  private volatile long mLastOverHardLimitTime = 0;
   private final Thread mEvictor;
 
   /**
@@ -106,7 +108,7 @@ public class LockCache<K> {
   private void evictIfOverLimit() throws InterruptedException {
     try (LockResource l = new LockResource(mEvictLock)) {
       while (mCache.size() <= mSoftLimit) {
-        mOverSoftLimit.await(EVICTION_INTERVAL_MS, TimeUnit.MILLISECONDS);
+        mOverSoftLimit.await(EVICTION_INTERVAL, TimeUnit.MILLISECONDS);
       }
       int loop = 2; // Scan the cache at most twice.
       int numToEvict = mCache.size() - mSoftLimit;
@@ -130,8 +132,11 @@ public class LockCache<K> {
         }
       }
       if (mCache.size() >= mHardLimit) {
-        LOG.warn("LockCache at hard limit, cache size = " + mCache.size()
-            + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
+        if (System.currentTimeMillis() - mLastOverHardLimitTime > OVER_HARD_LIMIT_LOG_INTERVAL) {
+          LOG.warn("LockCache at hard limit, cache size = " + mCache.size()
+              + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
+        }
+        mLastOverHardLimitTime = System.currentTimeMillis();
       }
     }
   }
