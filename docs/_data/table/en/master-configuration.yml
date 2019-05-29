@@ -148,8 +148,6 @@ alluxio.master.persistence.checker.interval.ms:
   'N/A'
 alluxio.master.persistence.initial.interval.ms:
   'N/A'
-alluxio.master.persistence.initial.wait.time.ms:
-  'Time to wait before starting the persistence job. When alluxio.user.file.writetype.default is set to ASYNC_THROUGH, set to a big enough value to avoid conflicts between cache and through job.'
 alluxio.master.persistence.max.interval.ms:
   'N/A'
 alluxio.master.persistence.max.total.wait.time.ms:
@@ -174,6 +172,8 @@ alluxio.master.tieredstore.global.level2.alias:
   'The name of the third highest storage tier in the entire system.'
 alluxio.master.tieredstore.global.levels:
   'The total number of storage tiers in the system.'
+alluxio.master.tieredstore.global.media:
+  'The list of medium types we support in the system.'
 alluxio.master.ttl.checker.interval:
   'Time interval to periodically delete the files with expired ttl value.'
 alluxio.master.ufs.block.location.cache.capacity:
