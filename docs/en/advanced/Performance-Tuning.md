@@ -220,6 +220,8 @@ The number of asynchronous threads used to finish reading partial blocks is set 
 `alluxio.worker.network.async.cache.manager.threads.max` property.
 When large amounts of data are expected to be asynchronously cached concurrently, it may be helpful
 to increase this value to handle a higher workload.
+However, increase this number sparingly, as it will consume more CPU resources on the worker node
+as the number is increased.
 
 ## Client Tuning
 
