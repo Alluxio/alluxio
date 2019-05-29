@@ -105,7 +105,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @GET
   @Path(GET_INFO)
   @ApiOperation(value = "Get general Alluxio Worker service information",
-    response = alluxio.wire.AlluxioWorkerInfo.class)
+      response = alluxio.wire.AlluxioWorkerInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(new RestUtils.RestCallable<AlluxioWorkerInfo>() {
