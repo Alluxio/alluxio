@@ -555,7 +555,7 @@ public class TieredBlockStore implements BlockStore {
 
       // Check if block is pinned on commit
       if (isPinned) {
-        updatePinnedInodes(Collections.singleton(BlockId.getFileId(blockId)));
+        addToPinnedInodes(BlockId.getFileId(blockId));
       }
 
       return loc;
@@ -889,6 +889,18 @@ public class TieredBlockStore implements BlockStore {
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    }
+  }
+
+  /**
+   * Add a single inode to set of pinned ids.
+   *
+   * @param inode an inode that is pinned
+   */
+  private void addToPinnedInodes(Long inode) {
+    LOG.debug("addToPinnedInodes: inode={}", inode);
+    synchronized (mPinnedInodes) {
+      mPinnedInodes.add(Preconditions.checkNotNull(inode));
     }
   }
 
