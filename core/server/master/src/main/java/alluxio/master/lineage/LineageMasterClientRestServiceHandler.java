@@ -22,7 +22,6 @@ import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
-import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +76,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_NAME)
-  @ReturnType("java.lang.String")
   public Response getServiceName() {
     return RestUtils.call(() -> Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME);
   }
@@ -88,7 +86,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @GET
   @Path(SERVICE_VERSION)
-  @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
     return RestUtils.call(() -> Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
   }
@@ -103,7 +100,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @POST
   @Path(CREATE_LINEAGE)
-  @ReturnType("java.lang.Long")
   public Response createLineage(@QueryParam("inputFiles") final String inputFiles,
       @QueryParam("outputFiles") final String outputFiles,
       @QueryParam("command") final String command,
@@ -137,7 +133,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @POST
   @Path(DELETE_LINEAGE)
-  @ReturnType("java.lang.Boolean")
   public Response deleteLineage(@QueryParam("lineageId") final Long lineageId,
       @QueryParam("cascade") final boolean cascade) {
     return RestUtils.call(() -> {
@@ -152,7 +147,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @GET
   @Path(GET_LINEAGE_INFO_LIST)
-  @ReturnType("java.util.List<alluxio.wire.LineageInfo>")
   public Response getLineageInfoList() {
     return RestUtils.call(new RestUtils.RestCallable<List<LineageInfo>>() {
       @Override
@@ -172,7 +166,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @POST
   @Path(REINITIALIZE_FILE)
-  @ReturnType("java.lang.Long")
   public Response reinitializeFile(@QueryParam("path") final String path,
       @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl,
       @QueryParam("ttlAction") final TtlAction ttlAction) {
@@ -195,7 +188,6 @@ public final class LineageMasterClientRestServiceHandler {
    */
   @POST
   @Path(REPORT_LOST_FILE)
-  @ReturnType("java.lang.Void")
   public Response reportLostFile(@QueryParam("path") final String path) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
