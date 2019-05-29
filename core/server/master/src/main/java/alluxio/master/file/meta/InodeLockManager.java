@@ -43,16 +43,17 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class InodeLockManager {
   /**
-   * Cache for supplying inode locks. To lock an inode, its inode id must be searched in this
-   * cache to get the appropriate read lock.
+   * Pool for supplying inode locks. To lock an inode, its inode id must be searched in this
+   * pool to get the appropriate read lock.
    *
    * We use weak values so that when nothing holds a reference to
-   * a lock, the garbage collector can remove the lock's entry from the cache.
+   * a lock, the garbage collector can remove the lock's entry from the pool.
    */
   public final LockPool<Long> mInodeLocks =
       new LockPool<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
@@ -60,7 +61,8 @@ public class InodeLockManager {
   public final LockPool<Edge> mEdgeLocks =
       new LockPool<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
 
   /**

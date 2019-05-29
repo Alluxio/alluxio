@@ -28,21 +28,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class LockPoolTest {
   private LockPool<Integer> mCache;
-  private static final int MAX_SIZE = 16;
+  private static final int LOW_WATERMARK = 8;
+  private static final int HIGH_WATERMARK = 16;
 
   /**
    * Sets up the fields before running a test.
    */
   @Before
   public void before() {
-    mCache = new LockPool<>(k -> new ReentrantReadWriteLock(), 2, MAX_SIZE, 4);
+    mCache = new LockPool<>(k -> new ReentrantReadWriteLock(), 2, LOW_WATERMARK, HIGH_WATERMARK, 4);
   }
 
   @Test(timeout = 10000)
   public void insertValueTest() throws Exception {
-    int highWaterMark = mCache.getSoftLimit();
-
-    for (int i = 0; i < highWaterMark; i++) {
+    for (int i = 0; i < HIGH_WATERMARK; i++) {
       assertEquals(i , mCache.size());
       try (LockResource resource = mCache.get(i, LockMode.READ)) {
         assertTrue(mCache.containsKey(i));
@@ -51,12 +50,12 @@ public class LockPoolTest {
     }
 
     // it should be full now
-    for (int i = highWaterMark; i < 2 * MAX_SIZE; i++) {
+    for (int i = HIGH_WATERMARK; i < 2 * HIGH_WATERMARK; i++) {
       try (LockResource resource = mCache.get(i, LockMode.READ)) {
         assertTrue(mCache.containsKey(i));
-        CommonUtils.waitFor("Cache size to go below high watermark",
-            () -> mCache.size() <= highWaterMark);
-        assertEquals(highWaterMark, mCache.size());
+        CommonUtils.waitFor("Cache size to go below low watermark",
+            () -> mCache.size() <= LOW_WATERMARK);
+        assertEquals(LOW_WATERMARK, mCache.size());
       }
     }
   }
@@ -65,7 +64,7 @@ public class LockPoolTest {
     Thread t = new Thread(() -> {
       for (int i = low; i < high; i++) {
         try (LockResource resource = mCache.get(i, LockMode.READ)) {
-          assertTrue(mCache.size() <= MAX_SIZE + totalThreadCount);
+          assertTrue(mCache.size() <= HIGH_WATERMARK + totalThreadCount);
           assertTrue(mCache.containsKey(i));
         }
       }
@@ -76,10 +75,10 @@ public class LockPoolTest {
 
   @Test(timeout = 1000)
   public void parallelInsertTest() throws InterruptedException {
-    Thread t1 = getKeys(0, MAX_SIZE * 2, 4);
-    Thread t2 = getKeys(0, MAX_SIZE * 2, 4);
-    Thread t3 = getKeys(MAX_SIZE * 2, MAX_SIZE * 4, 4);
-    Thread t4 = getKeys(MAX_SIZE * 2, MAX_SIZE * 4, 4);
+    Thread t1 = getKeys(0, HIGH_WATERMARK * 2, 4);
+    Thread t2 = getKeys(0, HIGH_WATERMARK * 2, 4);
+    Thread t3 = getKeys(HIGH_WATERMARK * 2, HIGH_WATERMARK * 4, 4);
+    Thread t4 = getKeys(HIGH_WATERMARK * 2, HIGH_WATERMARK * 4, 4);
     t1.join();
     t2.join();
     t3.join();

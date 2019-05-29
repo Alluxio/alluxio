@@ -11,6 +11,7 @@
 
 package alluxio.collections;
 
+import alluxio.Constants;
 import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.resource.RefCountLockResource;
@@ -49,21 +50,15 @@ import java.util.function.Function;
 public class LockPool<K> {
   private static final Logger LOG = LoggerFactory.getLogger(LockPool.class);
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
-  private static final float SOFT_LIMIT_RATIO = 0.9f;
-  private static final String EVICTOR_THREAD_NAME = "LockCache Evictor";
+  private static final String EVICTOR_THREAD_NAME = "LockPool Evictor";
 
   private final Map<K, Resource> mPool;
-  /**
-   * SoftLimit = hardLimit * softLimitRatio
-   * once the size reaches softlimit, eviction starts to happen,
-   * once the size reaches hardlimit, warnings are logged.
-   */
-  private final int mHardLimit;
-  private final int mSoftLimit;
   private final Function<? super K, ? extends ReentrantReadWriteLock> mDefaultLoader;
+  private final int mLowWatermark;
+  private final int mHighWatermark;
 
   private final Lock mEvictLock = new ReentrantLock();
-  private final Condition mOverSoftLimit = mEvictLock.newCondition();
+  private final Condition mOverHighWatermark = mEvictLock.newCondition();
   private final ExecutorService mEvictor;
 
   /**
@@ -71,14 +66,15 @@ public class LockPool<K> {
    *
    * @param defaultLoader specify a function to generate a value based on a key
    * @param initialSize initial size of the pool
-   * @param maxSize maximum size of the pool
+   * @param lowWatermark low watermark of the pool size
+   * @param highWatermark high watermark of the pool size
    * @param concurrencyLevel concurrency level of the pool
    */
   public LockPool(Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader,
-      int initialSize, int maxSize, int concurrencyLevel) {
+      int initialSize, int lowWatermark, int highWatermark, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
-    mHardLimit = maxSize;
-    mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
+    mLowWatermark = lowWatermark;
+    mHighWatermark = highWatermark;
     mPool = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mEvictor = Executors.newSingleThreadExecutor(
         ThreadFactoryUtils.build(EVICTOR_THREAD_NAME, true));
@@ -87,14 +83,25 @@ public class LockPool<K> {
 
   private final class Evictor implements Runnable {
     /**
-     * Interval in milliseconds for logging when pool size grows over hard limit.
+     * Interval in milliseconds for logging when pool size grows over high watermark.
      */
-    private static final long OVER_HARD_LIMIT_LOG_INTERVAL = 60000;
+    private static final long OVER_HIGH_WATERMARK_LOG_INTERVAL = Constants.MINUTE_MS;
     /**
      * Eviction happens whenever the evictor thread is signaled,
      * or is blocked for this period of time in milliseconds.
      */
-    private static final int EVICTION_MAX_AWAIT_TIME = 30000;
+    private static final int EVICTION_MAX_AWAIT_TIME = 30 * Constants.SECOND_MS;
+
+    /**
+     * Last millisecond that the pool size grows over high watermark.
+     * When size is over high watermark, a log will be printed. This time is used to limit the rate
+     * of logging.
+     */
+    private long mLastOverHighWatermarkTime = 0;
+    /**
+     * Iterator for the pool, used to continue evicting from the previous iterator.
+     */
+    private Iterator<Map.Entry<K, Resource>> mIterator;
 
     /**
      * Creates a new instance.
@@ -102,14 +109,6 @@ public class LockPool<K> {
     public Evictor() {
       mIterator = mPool.entrySet().iterator();
     }
-
-    /**
-     * Last millisecond that the pool size grows over hard limit.
-     * When size is over hard limit, a log will be printed. This time is used to limit the rate of
-     * logging.
-     */
-    private long mLastOverHardLimitTime = 0;
-    private Iterator<Map.Entry<K, Resource>> mIterator;
 
     @Override
     public void run() {
@@ -123,15 +122,15 @@ public class LockPool<K> {
     }
 
     /**
-     * Blocks until the size of the pool exceeds the soft limit, evicts entries with zero
-     * references until pool size decreases below the soft limit or the whole pool is scanned.
+     * Blocks until the size of the pool exceeds the high watermark, evicts entries with zero
+     * references until pool size decreases below the low watermark or the whole pool is scanned.
      */
     private void awaitAndEvict() throws InterruptedException {
       try (LockResource l = new LockResource(mEvictLock)) {
-        while (mPool.size() <= mSoftLimit) {
-          mOverSoftLimit.await(EVICTION_MAX_AWAIT_TIME, TimeUnit.MILLISECONDS);
+        while (mPool.size() <= mHighWatermark) {
+          mOverHighWatermark.await(EVICTION_MAX_AWAIT_TIME, TimeUnit.MILLISECONDS);
         }
-        int numToEvict = mPool.size() - mSoftLimit;
+        int numToEvict = mPool.size() - mLowWatermark;
         // The first round of scan uses the mIterator left from last eviction.
         // Then scan the pool from a new iterator for at most two round:
         // first round to mark candidate.mIsAccessed as false,
@@ -153,12 +152,14 @@ public class LockPool<K> {
             }
           }
         }
-        if (mPool.size() >= mHardLimit) {
-          if (System.currentTimeMillis() - mLastOverHardLimitTime > OVER_HARD_LIMIT_LOG_INTERVAL) {
-            LOG.warn("LockCache at hard limit, pool size = " + mPool.size()
-                + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
+        if (mPool.size() >= mHighWatermark) {
+          if (System.currentTimeMillis() - mLastOverHighWatermarkTime
+              > OVER_HIGH_WATERMARK_LOG_INTERVAL) {
+            LOG.warn("LockPool size grows over high watermark: "
+                + "pool size = {}, low watermark = {}, high watermark = {}",
+                mPool.size(), mLowWatermark, mHighWatermark);
           }
-          mLastOverHardLimitTime = System.currentTimeMillis();
+          mLastOverHighWatermarkTime = System.currentTimeMillis();
         }
       }
     }
@@ -172,13 +173,13 @@ public class LockPool<K> {
    * @return a lock resource which must be closed to unlock the key
    */
   public LockResource get(K key, LockMode mode) {
-    Resource valNode = getResource(key);
-    ReentrantReadWriteLock lock = valNode.mLock;
+    Resource resource = getResource(key);
+    ReentrantReadWriteLock lock = resource.mLock;
     switch (mode) {
       case READ:
-        return new RefCountLockResource(lock.readLock(), true, valNode.mRefCount);
+        return new RefCountLockResource(lock.readLock(), true, resource.mRefCount);
       case WRITE:
-        return new RefCountLockResource(lock.writeLock(), true, valNode.mRefCount);
+        return new RefCountLockResource(lock.writeLock(), true, resource.mRefCount);
       default:
         throw new IllegalStateException("Unknown lock mode: " + mode);
     }
@@ -192,8 +193,8 @@ public class LockPool<K> {
    * @return either empty or a lock resource which must be closed to unlock the key
    */
   public Optional<LockResource> tryGet(K key, LockMode mode) {
-    Resource valNode = getResource(key);
-    ReentrantReadWriteLock lock = valNode.mLock;
+    Resource resource = getResource(key);
+    ReentrantReadWriteLock lock = resource.mLock;
     Lock innerLock;
     switch (mode) {
       case READ:
@@ -208,7 +209,7 @@ public class LockPool<K> {
     if (!innerLock.tryLock()) {
       return Optional.empty();
     }
-    return Optional.of(new RefCountLockResource(innerLock, false, valNode.mRefCount));
+    return Optional.of(new RefCountLockResource(innerLock, false, resource.mRefCount));
   }
 
   /**
@@ -232,10 +233,10 @@ public class LockPool<K> {
       }
       return new Resource(mDefaultLoader.apply(k));
     });
-    if (mPool.size() > mSoftLimit) {
+    if (mPool.size() > mHighWatermark) {
       if (mEvictLock.tryLock()) {
         try {
-          mOverSoftLimit.signal();
+          mOverHighWatermark.signal();
         } finally {
           mEvictLock.unlock();
         }
@@ -257,22 +258,10 @@ public class LockPool<K> {
   }
 
   /**
-   * Returns the size of the pool.
-   *
-   * @return the number of entries pool
+   * @return the size of the pool
    */
   public int size() {
     return mPool.size();
-  }
-
-  /**
-   * Get the soft size limit for this pool.
-   *
-   * @return the soft size limit
-   */
-  @VisibleForTesting
-  public int getSoftLimit() {
-    return mSoftLimit;
   }
 
   /**
