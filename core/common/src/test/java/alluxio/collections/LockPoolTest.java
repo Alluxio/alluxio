@@ -24,10 +24,10 @@ import org.junit.Test;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Tests the {@link LockCache} class.
+ * Tests the {@link LockPool} class.
  */
-public class LockCacheTest {
-  private LockCache<Integer> mCache;
+public class LockPoolTest {
+  private LockPool<Integer> mCache;
   private static final int MAX_SIZE = 16;
 
   /**
@@ -35,7 +35,7 @@ public class LockCacheTest {
    */
   @Before
   public void before() {
-    mCache = new LockCache<>(k -> new ReentrantReadWriteLock(), 2, MAX_SIZE, 4);
+    mCache = new LockPool<>(k -> new ReentrantReadWriteLock(), 2, MAX_SIZE, 4);
   }
 
   @Test(timeout = 10000)

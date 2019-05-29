@@ -11,7 +11,7 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.collections.LockCache;
+import alluxio.collections.LockPool;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -49,16 +49,16 @@ public class InodeLockManager {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the cache.
    */
-  public final LockCache<Long> mInodeLocks =
-      new LockCache<>((key)-> new ReentrantReadWriteLock(),
+  public final LockPool<Long> mInodeLocks =
+      new LockPool<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
-  public final LockCache<Edge> mEdgeLocks =
-      new LockCache<>((key)-> new ReentrantReadWriteLock(),
+  public final LockPool<Edge> mEdgeLocks =
+      new LockPool<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
@@ -121,7 +121,7 @@ public class InodeLockManager {
     assertAllLocksReleased(mInodeLocks);
   }
 
-  private <T> void assertAllLocksReleased(LockCache<T> cache) {
+  private <T> void assertAllLocksReleased(LockPool<T> cache) {
     for (Entry<T, ReentrantReadWriteLock> entry : cache.getEntryMap().entrySet()) {
       ReentrantReadWriteLock lock = entry.getValue();
       if (lock.isWriteLocked()) {

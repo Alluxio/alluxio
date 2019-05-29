@@ -46,8 +46,8 @@ import java.util.function.Function;
  *
  * @param <K> key to the cache
  */
-public class LockCache<K> {
-  private static final Logger LOG = LoggerFactory.getLogger(LockCache.class);
+public class LockPool<K> {
+  private static final Logger LOG = LoggerFactory.getLogger(LockPool.class);
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
   private static final float SOFT_LIMIT_RATIO = 0.9f;
   private static final String EVICTOR_THREAD_NAME = "LockCache Evictor";
@@ -74,7 +74,7 @@ public class LockCache<K> {
    * @param maxSize maximum size of the cache
    * @param concurrencyLevel concurrency level of the cache
    */
-  public LockCache(Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader,
+  public LockPool(Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader,
       int initialSize, int maxSize, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
     mHardLimit = maxSize;
