@@ -118,6 +118,7 @@ public final class MultiProcessCluster {
   private State mState;
   private RestartableTestingServer mCuratorServer;
   private FileSystemContext mFilesystemContext;
+  private FileSystem mFileSystem;
   /**
    * Tracks whether the test has succeeded. If mSuccess is never updated before {@link #destroy()},
    * the state of the cluster will be saved as a tarball in the artifacts directory.
@@ -335,7 +336,6 @@ public final class MultiProcessCluster {
     if (mFilesystemContext == null) {
       mFilesystemContext = FileSystemContext.create(null, getMasterInquireClient(),
           ServerConfiguration.global());
-      mCloser.register(mFilesystemContext);
     }
     return mFilesystemContext;
   }
@@ -346,8 +346,11 @@ public final class MultiProcessCluster {
   public synchronized FileSystem getFileSystemClient() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create an fs client, but state was %s", mState);
-
-    return Factory.create(getFilesystemContext());
+    if (mFileSystem == null) {
+      mFileSystem = Factory.create(getFilesystemContext());
+      mCloser.register(mFileSystem);
+    }
+    return mFileSystem;
   }
 
   /**
