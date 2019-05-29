@@ -37,15 +37,15 @@ public class LockCacheTest {
     mCache = new LockCache<>(k -> new ReentrantReadWriteLock(), 2, MAX_SIZE, 4);
   }
 
-  @Test(timeout = 1000)
-  public void insertValueTest() {
+  @Test(timeout = 10000)
+  public void insertValueTest() throws Exception {
     int highWaterMark = mCache.getSoftLimit();
 
     for (int i = 0; i < highWaterMark; i++) {
       assertEquals(i , mCache.size());
       try (LockResource resource = mCache.get(i, LockMode.READ)) {
         assertTrue(mCache.containsKey(i));
-        assertTrue(mCache.size() < MAX_SIZE);
+        assertEquals(i + 1, mCache.size());
       }
     }
 
@@ -53,7 +53,9 @@ public class LockCacheTest {
     for (int i = highWaterMark; i < 2 * MAX_SIZE; i++) {
       try (LockResource resource = mCache.get(i, LockMode.READ)) {
         assertTrue(mCache.containsKey(i));
-        assertTrue(mCache.size() <= MAX_SIZE);
+        // Spin to wait for the eviction thread to finish.
+        while (mCache.size() > highWaterMark) {}
+        assertEquals(highWaterMark, mCache.size());
       }
     }
   }

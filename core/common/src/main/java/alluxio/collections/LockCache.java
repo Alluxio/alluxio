@@ -55,6 +55,7 @@ public class LockCache<K> {
   private static final String EVICTOR_THREAD_NAME = "LockCache Evictor";
 
   private final Map<K, ValNode> mCache;
+  private Iterator<Map.Entry<K, ValNode>> mIterator;
   /**
    * SoftLimit = hardLimit * softLimitRatio
    * once the size reaches softlimit, eviction starts to happen,
@@ -82,6 +83,7 @@ public class LockCache<K> {
     mHardLimit = maxSize;
     mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
     mCache = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
+    mIterator = mCache.entrySet().iterator();
 
     mEvictor = new Thread(() -> {
       try {
@@ -98,19 +100,33 @@ public class LockCache<K> {
   }
 
   /**
-   * If the size of the cache exceeds the soft limit, evict entries with zero references.
+   * If the size of the cache exceeds the soft limit, evicts entries with zero references until
+   * cache size decreases below the soft limit or the whole cache is scanned.
    */
   private void evictIfOverLimit() throws InterruptedException {
     try (LockResource l = new LockResource(mEvictLock)) {
       while (mCache.size() <= mSoftLimit) {
         mOverSoftLimit.await(EVICTION_INTERVAL_MS, TimeUnit.MILLISECONDS);
       }
-      Iterator<Map.Entry<K, ValNode>> iterator = mCache.entrySet().iterator();
-      while (iterator.hasNext()) {
-        Map.Entry<K, ValNode> candidateMapEntry = iterator.next();
+      int loop = 2; // Scan the cache at most twice.
+      int numToEvict = mCache.size() - mSoftLimit;
+      if (!mIterator.hasNext()) {
+        mIterator = mCache.entrySet().iterator();
+      }
+      while (numToEvict > 0 && loop > 0) {
+        Map.Entry<K, ValNode> candidateMapEntry = mIterator.next();
         ValNode candidate = candidateMapEntry.getValue();
-        if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
-          iterator.remove();
+        if (candidate.mIsAccessed) {
+          candidate.mIsAccessed = false;
+        } else {
+          if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
+            mIterator.remove();
+            numToEvict--;
+          }
+        }
+        if (!mIterator.hasNext()) {
+          mIterator = mCache.entrySet().iterator();
+          loop--;
         }
       }
       if (mCache.size() >= mHardLimit) {
@@ -183,6 +199,7 @@ public class LockCache<K> {
     ValNode cacheEntry = mCache.compute(key, (k, v) -> {
       if (v != null && v.mRefCount.incrementAndGet() > 0) {
         // If the entry is to be removed, ref count will be INT_MIN, so incrementAndGet will < 0.
+        v.mIsAccessed = true;
         return v;
       }
       return new ValNode(mDefaultLoader.apply(k));
@@ -247,10 +264,12 @@ public class LockCache<K> {
    */
   private static final class ValNode {
     private final ReentrantReadWriteLock mValue;
+    private volatile boolean mIsAccessed;
     private AtomicInteger mRefCount;
 
     private ValNode(ReentrantReadWriteLock value) {
       mValue = value;
+      mIsAccessed = true;
       mRefCount = new AtomicInteger(1);
     }
   }
