@@ -10,7 +10,7 @@ priority: 2
 
 1. What is Alluxio?
 
-   [Alluxio](http://www.alluxio.org/), formerly Tachyon, is an open source, memory speed, virtual
+   [Alluxio](http://www.alluxio.io/), formerly Tachyon, is an open source, memory speed, virtual
    distributed storage. It enables any application to interact with any data from any storage
    system at memory speed.
 
@@ -73,13 +73,13 @@ added nodes in order to balance memory space utilization between the nodes?
 
 14. How can I learn more about Alluxio?
 
-    You can read the recent [blogs](/resources/posts) and [presentations](/resources/presentations).
+    You can read the recent [blogs](https://www.alluxio.io/blog/) and [presentations](https://www.alluxio.io/resources/presentations/).
 
 15. Are there any meetups for Alluxio?
 
     Yes. We have started meetup group for Alluxio and please join
     [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/). You can also find more
-    Alluxio events [here](/resources/events).
+    Alluxio events [here](https://www.alluxio.io/events/).
 
 16. What license is Alluxio under?
 
