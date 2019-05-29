@@ -13,7 +13,6 @@ package alluxio.examples;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -763,8 +762,7 @@ public final class UnderFileSystemCommonOperations {
       return;
     }
 
-    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
-    ObjectStorePreConfig config = prepareObjectStore(ufs);
+    ObjectStorePreConfig config = prepareObjectStore();
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
     if (!mUfs.isDirectory(baseDirectoryPath)) {
@@ -789,8 +787,7 @@ public final class UnderFileSystemCommonOperations {
       return;
     }
 
-    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
-    ObjectStorePreConfig config = prepareObjectStore(ufs);
+    ObjectStorePreConfig config = prepareObjectStore();
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
     UfsStatus[] results = mUfs.listStatus(baseDirectoryPath);
@@ -833,8 +830,7 @@ public final class UnderFileSystemCommonOperations {
       return;
     }
 
-    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
-    ObjectStorePreConfig config = prepareObjectStore(ufs);
+    ObjectStorePreConfig config = prepareObjectStore();
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
     UfsStatus[] results =
@@ -892,7 +888,7 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.isObjectStorage()) {
       return;
     }
-    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+
     String root = mTopLevelTestDirectory;
     int nesting = 5;
 
@@ -908,7 +904,7 @@ public final class UnderFileSystemCommonOperations {
     }
 
     String fileKey = file1.substring(PathUtils.normalizePath(mUfsPath, "/").length());
-    if (!ufs.createEmptyObject(fileKey)) {
+    if (!mUfs.mkdirs(fileKey)) {
       throw new IOException("Failed to create empty object");
     }
 
@@ -1219,10 +1215,9 @@ public final class UnderFileSystemCommonOperations {
    * Prepare an object store for testing by creating a set of files and directories directly (not
    * through Alluxio). No breadcrumbs are created for directories.
    *
-   * @param ufs the {@link ObjectUnderFileSystem} to test
    * @return configuration for the pre-populated objects
    */
-  private ObjectStorePreConfig prepareObjectStore(ObjectUnderFileSystem ufs) throws IOException {
+  private ObjectStorePreConfig prepareObjectStore() throws IOException {
     // Base directory for list status
     String baseDirectoryName = "base";
     String baseDirectoryPath = PathUtils.concatPath(mTopLevelTestDirectory, baseDirectoryName);
@@ -1234,12 +1229,12 @@ public final class UnderFileSystemCommonOperations {
     String[] childrenFiles = {"sample1.jpg", "sample2.jpg", "sample3.jpg"};
     // Populate children of base directory
     for (String child : childrenFiles) {
-      ufs.createEmptyObject(String.format("%s/%s", baseDirectoryKey, child));
+      mUfs.create(String.format("%s/%s", baseDirectoryKey, child)).close();
     }
     // Populate children of sub-directories
     for (String subdir : subDirectories) {
       for (String child : childrenFiles) {
-        ufs.create(String.format("%s/%s/%s", baseDirectoryKey, subdir, child)).close();
+        mUfs.create(String.format("%s/%s/%s", baseDirectoryKey, subdir, child)).close();
       }
     }
     return new ObjectStorePreConfig(baseDirectoryPath, childrenFiles, subDirectories);
