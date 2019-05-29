@@ -14,6 +14,7 @@ package alluxio.security.authentication;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslMessage;
 import alluxio.grpc.SaslMessageType;
+import alluxio.util.LogUtils;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -116,7 +117,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
       // Complete the client stream.
       mRequestObserver.onCompleted();
     } catch (Exception exc) {
-      LOG.error("Failed to complete the client stream.", exc);
+      LogUtils.warnWithException(LOG, "Failed to complete the client stream.", exc);
     }
   }
 }

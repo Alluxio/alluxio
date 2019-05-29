@@ -69,23 +69,28 @@ public class GrpcSecurityTest {
   @Test
   public void testSimpleAuthentication() throws Exception {
     GrpcServer server = createServer(AuthType.SIMPLE);
-    server.start();
-    UserState us = UserState.Factory.create(mConfiguration);
-    GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
-            .setSubject(us.getSubject());
-    channelBuilder.build();
-    server.shutdown();
+    try {
+      server.start();
+      UserState us = UserState.Factory.create(mConfiguration);
+      GrpcChannelBuilder channelBuilder = GrpcChannelBuilder
+          .newBuilder(getServerConnectAddress(server), mConfiguration).setSubject(us.getSubject());
+      channelBuilder.build();
+    } finally {
+      server.shutdown();
+    }
   }
 
   @Test
   public void testNoSaslAuthentication() throws Exception {
     GrpcServer server = createServer(AuthType.NOSASL);
-    server.start();
-    GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-    channelBuilder.build();
-    server.shutdown();
+    try {
+      server.start();
+      GrpcChannelBuilder channelBuilder =
+          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
+      channelBuilder.build();
+    } finally {
+      server.shutdown();
+    }
   }
 
   @Test
@@ -95,83 +100,96 @@ public class GrpcSecurityTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     GrpcServer server = createServer(AuthType.CUSTOM);
-    server.start();
-    GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-    channelBuilder.setCredentials(ExactlyMatchAuthenticationProvider.USERNAME,
-        ExactlyMatchAuthenticationProvider.PASSWORD, null).build();
-    server.shutdown();
+    try {
+      server.start();
+      GrpcChannelBuilder channelBuilder =
+          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
+      channelBuilder.setCredentials(ExactlyMatchAuthenticationProvider.USERNAME,
+          ExactlyMatchAuthenticationProvider.PASSWORD, null).build();
+    } finally {
+      server.shutdown();
+    }
   }
 
   @Test
   public void testCustomAuthenticationFails() throws Exception {
-
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     GrpcServer server = createServer(AuthType.CUSTOM);
-    server.start();
-    GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-    mThrown.expect(UnauthenticatedException.class);
-    channelBuilder.setCredentials("fail", "fail", null).build();
-    server.shutdown();
+    try {
+      server.start();
+      GrpcChannelBuilder channelBuilder =
+          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
+      mThrown.expect(UnauthenticatedException.class);
+      channelBuilder.setCredentials("fail", "fail", null).build();
+    } finally {
+      server.shutdown();
+    }
   }
 
   @Test
   public void testDisabledAuthentication() throws Exception {
     GrpcServer server = createServer(AuthType.SIMPLE);
-    server.start();
-    GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-    channelBuilder.disableAuthentication().build();
-    server.shutdown();
+    try {
+      server.start();
+      GrpcChannelBuilder channelBuilder =
+          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
+      channelBuilder.disableAuthentication().build();
+    } finally {
+      server.shutdown();
+    }
   }
 
   @Test
   public void testAuthMismatch() throws Exception {
     GrpcServer server = createServer(AuthType.NOSASL);
-    server.start();
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
-    GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-    mThrown.expect(UnauthenticatedException.class);
-    channelBuilder.build();
-    server.shutdown();
+    try {
+      server.start();
+      mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
+      GrpcChannelBuilder channelBuilder =
+          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
+      mThrown.expect(UnauthenticatedException.class);
+      channelBuilder.build();
+    } finally {
+      server.shutdown();
+    }
   }
 
   @Test
   public void testAuthenticationClosed() throws Exception {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     GrpcServer server = createServer(AuthType.SIMPLE);
-    server.start();
-    UserState us = UserState.Factory.create(mConfiguration);
-    GrpcChannel channel =
-            GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
-                    .setSubject(us.getSubject()).build();
+    try {
+      server.start();
+      UserState us = UserState.Factory.create(mConfiguration);
+      GrpcChannel channel =
+          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
+              .setSubject(us.getSubject()).build();
 
-    // Grab internal authenticated channel reference.
-    Channel interceptorChannel = Whitebox.getInternalState(channel, "mChannel");
-    AuthenticatedChannel authenticatedChannel =
-        Whitebox.getInternalState(interceptorChannel, "channel");
-    // Assert that authentication server has a login info for the channel.
-    Assert.assertNotNull(server.getAuthenticationServer()
-        .getUserInfoForChannel(authenticatedChannel.getChannelId()));
-    // Close the underlying authenticated channel.
-    authenticatedChannel.close();
-    // Assert that authentication server don't contain login info for the channel anymore.
-    // Wait in a loop. Because closing the authentication will propagate asynchronously.
-    CommonUtils.waitFor("login state removed", () -> {
-      try {
-        server.getAuthenticationServer()
-            .getUserInfoForChannel(authenticatedChannel.getChannelId());
-        return false;
-      } catch (UnauthenticatedException exc) {
-        return true;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(S_AUTHENTICATION_PROPOGATE_TIMEOUT));
-
-    server.shutdown();
+      // Grab internal authenticated channel reference.
+      Channel interceptorChannel = Whitebox.getInternalState(channel, "mChannel");
+      AuthenticatedChannel authenticatedChannel =
+          Whitebox.getInternalState(interceptorChannel, "channel");
+      // Assert that authentication server has a login info for the channel.
+      Assert.assertNotNull(server.getAuthenticationServer()
+          .getUserInfoForChannel(authenticatedChannel.getChannelId()));
+      // Close the underlying authenticated channel.
+      authenticatedChannel.close();
+      // Assert that authentication server doesn't contain login info for the channel anymore.
+      // Wait in a loop. Because closing the authentication will propagate asynchronously.
+      CommonUtils.waitFor("login state removed", () -> {
+        try {
+          server.getAuthenticationServer()
+              .getUserInfoForChannel(authenticatedChannel.getChannelId());
+          return false;
+        } catch (UnauthenticatedException exc) {
+          return true;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(S_AUTHENTICATION_PROPOGATE_TIMEOUT));
+    } finally {
+      server.shutdown();
+    }
   }
 
   @Test
@@ -179,23 +197,25 @@ public class GrpcSecurityTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mConfiguration.set(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "250ms");
     GrpcServer server = createServer(AuthType.SIMPLE);
-    server.start();
-    UserState us = UserState.Factory.create(mConfiguration);
-    GrpcChannel channel =
-            GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
-                    .setSubject(us.getSubject()).build();
-    Assert.assertTrue(channel.isHealthy());
-    /*
-     * Sleeping will ensure that authentication sessions for the channel will
-     * expire on the server. This should have propagated back to the client and
-     * its health status should reflect that.
-     *
-     * Sleep more than authentication revocation timeout.
-     */
-    Thread.sleep(500);
-    Assert.assertFalse(channel.isHealthy());
-
-    server.shutdown();
+    try {
+      server.start();
+      UserState us = UserState.Factory.create(mConfiguration);
+      GrpcChannel channel =
+          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
+              .setSubject(us.getSubject()).build();
+      Assert.assertTrue(channel.isHealthy());
+      /*
+       * Sleeping will ensure that authentication sessions for the channel will expire on the
+       * server. This should have propagated back to the client and its health status should reflect
+       * that.
+       *
+       * Sleep more than authentication revocation timeout.
+       */
+      Thread.sleep(500);
+      Assert.assertFalse(channel.isHealthy());
+    } finally {
+      server.shutdown();
+    }
   }
 
   private GrpcServerAddress getServerConnectAddress(GrpcServer server) {

@@ -18,6 +18,7 @@ import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.security.authentication.plain.SaslServerHandlerPlain;
+import alluxio.util.LogUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import io.grpc.Status;
@@ -122,15 +123,15 @@ public class DefaultAuthenticationServer
       try {
         channelInfo.getSaslServer().dispose();
       } catch (SaslException e) {
-        LOG.warn("Failed to dispose sasl client for channel-Id: {}. Error: {}", channelId,
-            e.getMessage());
+        LogUtils.warnWithException(LOG,
+            String.format("Failed to dispose sasl client for channel-Id: {}", channelId), e);
       }
 
       try {
         channelInfo.getSaslServerDriver().onCompleted();
       } catch (Exception e) {
-        LOG.warn("Failed to complete the authentication session for channel-Id: {}. Error: {}",
-            channelId, e.getMessage());
+        LogUtils.warnWithException(LOG, String.format(
+            "Failed to complete the authentication session for channel-Id: {}", channelId), e);
       }
     }
   }

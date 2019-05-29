@@ -66,8 +66,7 @@ public final class GrpcChannel extends Channel {
       long shutdownTimeoutMs) {
     this(channelKey, (Channel) channel, shutdownTimeoutMs);
     // Update the channel health supplier for authenticated channel.
-    mChannelHealthState =
-        () -> (((AuthenticatedChannel) channel).isAuthenticated() && mChannelHealthy);
+    mChannelHealthState = () -> (channel.isAuthenticated() && mChannelHealthy);
 
     // Store {@link AuthenticatedChannel::#close) for signaling end of
     // authenticated session during shutdown.

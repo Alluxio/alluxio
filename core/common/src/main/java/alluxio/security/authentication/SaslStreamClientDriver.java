@@ -16,6 +16,7 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnknownException;
 import alluxio.grpc.SaslMessage;
+import alluxio.util.LogUtils;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
@@ -156,7 +157,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
         mRequestObserver.onCompleted();
       }
     } catch (Exception exc) {
-      LOG.warn("Failed stopping authentication session with server.", exc);
+      LogUtils.warnWithException(LOG, "Failed stopping authentication session with server.", exc);
     }
   }
 }
