@@ -73,4 +73,13 @@ public interface CreateLocalBlockRequestOrBuilder extends
    */
   com.google.protobuf.ByteString
       getMediumTypeBytes();
+
+  /**
+   * <code>optional bool pinned = 8;</code>
+   */
+  boolean hasPinned();
+  /**
+   * <code>optional bool pinned = 8;</code>
+   */
+  boolean getPinned();
 }
