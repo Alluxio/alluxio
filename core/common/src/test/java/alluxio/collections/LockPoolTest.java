@@ -92,33 +92,35 @@ public class LockPoolTest {
     Thread t2 = getKeys(0, HIGH_WATERMARK);
     t1.join();
     t2.join();
+
     assertEquals(HIGH_WATERMARK, mPool.size());
     for (int key = 0; key < HIGH_WATERMARK; key++) {
       assertTrue(mPool.containsKey(key));
     }
+
     // Evicts the old locks until size goes below low watermark.
-    Thread t3 = getKeys(HIGH_WATERMARK + 1, HIGH_WATERMARK + 2);
+    Thread t3 = getKeys(HIGH_WATERMARK, HIGH_WATERMARK + 1);
     t3.join();
+
     CommonUtils.waitFor("Pool size to go below low watermark",
         () -> mPool.size() <= LOW_WATERMARK);
     assertEquals(LOW_WATERMARK, mPool.size());
-    for (int key = HIGH_WATERMARK - LOW_WATERMARK; key < HIGH_WATERMARK; key++) {
-      assertTrue(Integer.toString(key), mPool.containsKey(key));
-    }
+
     // Fills in the pool again.
-    Thread t4 = getKeys(HIGH_WATERMARK, 2 * HIGH_WATERMARK - LOW_WATERMARK);
-    Thread t5 = getKeys(HIGH_WATERMARK, 2 * HIGH_WATERMARK - LOW_WATERMARK);
+    int newStartKey = HIGH_WATERMARK, newEndKey = newStartKey + HIGH_WATERMARK - LOW_WATERMARK;
+    Thread t4 = getKeys(newStartKey, newEndKey);
+    Thread t5 = getKeys(newStartKey, newEndKey);
     t4.join();
     t5.join();
+
     assertEquals(HIGH_WATERMARK, mPool.size());
-    int startKey = HIGH_WATERMARK - LOW_WATERMARK;
-    for (int i = 0; i < HIGH_WATERMARK; i++) {
-      assertTrue(mPool.containsKey(startKey + i));
+    for (int key = newStartKey; key < newEndKey; key++) {
+      assertTrue(Integer.toString(key), mPool.containsKey(key));
     }
   }
 
   @Test(timeout = 1000)
-  public void referencedLockTest() throws InterruptedException {
+  public void referencedLockTest() {
     LockResource lock0 = mPool.get(0, LockMode.READ);
     LockResource lock1 = mPool.get(50, LockMode.READ);
     LockResource lock2 = mPool.get(100, LockMode.READ);
