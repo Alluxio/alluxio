@@ -107,7 +107,8 @@ public class LockPoolTest {
     assertEquals(LOW_WATERMARK, mPool.size());
 
     // Fills in the pool again.
-    int newStartKey = HIGH_WATERMARK, newEndKey = newStartKey + HIGH_WATERMARK - LOW_WATERMARK;
+    int newStartKey = HIGH_WATERMARK;
+    int newEndKey = newStartKey + HIGH_WATERMARK - LOW_WATERMARK;
     Thread t4 = getKeys(newStartKey, newEndKey);
     Thread t5 = getKeys(newStartKey, newEndKey);
     t4.join();
