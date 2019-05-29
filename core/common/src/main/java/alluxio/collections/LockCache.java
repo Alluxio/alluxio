@@ -55,7 +55,7 @@ public class LockCache<K> {
    * Eviction happens whenever the evictor thread is signaled,
    * or is blocked for this period of time.
    */
-  private static final int EVICTION_INTERVAL = 1000; // milliseconds
+  private static final int EVICTION_MAX_AWAIT_TIME = 30000; // milliseconds
   private static final String EVICTOR_THREAD_NAME = "LockCache Evictor";
 
   private final Map<K, ValNode> mCache;
@@ -109,7 +109,7 @@ public class LockCache<K> {
   private void evictIfOverLimit() throws InterruptedException {
     try (LockResource l = new LockResource(mEvictLock)) {
       while (mCache.size() <= mSoftLimit) {
-        mOverSoftLimit.await(EVICTION_INTERVAL, TimeUnit.MILLISECONDS);
+        mOverSoftLimit.await(EVICTION_MAX_AWAIT_TIME, TimeUnit.MILLISECONDS);
       }
       int loop = 2; // Scan the cache at most twice.
       int numToEvict = mCache.size() - mSoftLimit;
