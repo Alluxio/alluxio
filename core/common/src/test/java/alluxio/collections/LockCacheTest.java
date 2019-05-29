@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
+import alluxio.util.CommonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,8 +54,8 @@ public class LockCacheTest {
     for (int i = highWaterMark; i < 2 * MAX_SIZE; i++) {
       try (LockResource resource = mCache.get(i, LockMode.READ)) {
         assertTrue(mCache.containsKey(i));
-        // Spin to wait for the eviction thread to finish.
-        while (mCache.size() > highWaterMark) {}
+        CommonUtils.waitFor("Cache size to go below high watermark",
+            () -> mCache.size() <= highWaterMark);
         assertEquals(highWaterMark, mCache.size());
       }
     }
