@@ -50,7 +50,8 @@ import java.util.concurrent.TimeUnit;
  */
 public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
-  private static final int LOCK_CACHE_MAX_SIZE = 100;
+  private static final int LOCK_POOL_LOW_WATERMARK = 50;
+  private static final int LOCK_POOL_HIGH_WATERMARK = 100;
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -61,7 +62,8 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
-          .setProperty(PropertyKey.MASTER_LOCKCACHE_MAXSIZE, LOCK_CACHE_MAX_SIZE)
+          .setProperty(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK, LOCK_POOL_LOW_WATERMARK)
+          .setProperty(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK, LOCK_POOL_HIGH_WATERMARK)
           .build();
 
   private FileSystem mFileSystem = null;
@@ -138,7 +140,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   @Test(timeout = 3000)
   public void deleteDir() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    for (int file = 0; file < 2 * LOCK_CACHE_MAX_SIZE; file++) {
+    for (int file = 0; file < 2 * LOCK_POOL_HIGH_WATERMARK; file++) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + file));
       mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder().setRecursive(true).build())
           .close();
