@@ -11,33 +11,23 @@
 
 package alluxio.client.block.policy;
 
+import static alluxio.client.util.ClientTestUtils.worker;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
-import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.TieredIdentity;
-import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +35,6 @@ import java.util.List;
 /**
  * Tests {@link LocalFirstPolicy}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(NettyUtils.class)
 public final class LocalFirstPolicyTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
@@ -132,33 +120,6 @@ public final class LocalFirstPolicyTest {
   }
 
   @Test
-  public void chooseLocalAccessibleDomainSocket() throws Exception {
-    List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(worker(Constants.GB, "node2", "rack2"));
-    // create worker info with domain socket path
-    BlockWorkerInfo workerWithDomainSocket = worker(Constants.GB, "node3", "rack3");
-    String domainSocketPath = "/tmp/domain/uuid-node3";
-    workerWithDomainSocket.getNetAddress().setDomainSocketPath(domainSocketPath);
-    workers.add(workerWithDomainSocket);
-
-    // mock NettyUtils
-    PowerMockito.mockStatic(NettyUtils.class);
-    when(NettyUtils.isDomainSocketAccessible(eq(workerWithDomainSocket.getNetAddress()),
-        any(AlluxioConfiguration.class))).thenReturn(true);
-
-    // choose worker with domain socket accessible ignoring rack
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
-    conf.set(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID, true);
-    LocalFirstPolicy policy = new LocalFirstPolicy(
-        TieredIdentityFactory.fromString("node=node1,rack=rack2", conf), conf);
-    GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workers)
-        .setBlockInfo(new BlockInfo().setLength(Constants.GB));
-    WorkerNetAddress chosen = policy.getWorker(options);
-    assertEquals(domainSocketPath, chosen.getDomainSocketPath());
-    assertEquals("node3", chosen.getHost());
-  }
-
-  @Test
   public void tieredLocalityEnoughSpace() throws Exception {
     List<BlockWorkerInfo> workers = new ArrayList<>();
     // Local node doesn't have enough space
@@ -182,19 +143,5 @@ public final class LocalFirstPolicyTest {
         .addEqualityGroup(new LocalFirstPolicy(TieredIdentityFactory.fromString("node=x,rack=z",
             sConf), sConf))
         .testEquals();
-  }
-
-  private BlockWorkerInfo worker(long capacity, String node, String rack) {
-    WorkerNetAddress address = new WorkerNetAddress();
-    List<LocalityTier> tiers = new ArrayList<>();
-    if (node != null && !node.isEmpty()) {
-      address.setHost(node);
-      tiers.add(new LocalityTier(Constants.LOCALITY_NODE, node));
-    }
-    if (rack != null && !rack.isEmpty()) {
-      tiers.add(new LocalityTier(Constants.LOCALITY_RACK, rack));
-    }
-    address.setTieredIdentity(new TieredIdentity(tiers));
-    return new BlockWorkerInfo(address, capacity, 0);
   }
 }
