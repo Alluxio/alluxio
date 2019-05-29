@@ -53,6 +53,8 @@ spec:
             - name: alluxio-fuse-mount
               mountPath: /alluxio-fuse
               mountPropagation: Bidirectional
+            - name: alluxio-domain
+              mountPath: /opt/domain
       restartPolicy: Always
       volumes:
         - name: alluxio-fuse-device
@@ -63,3 +65,7 @@ spec:
           hostPath:
             path: /alluxio-fuse
             type: DirectoryOrCreate
+        - name: alluxio-domain
+          hostPath:
+            path: /tmp/domain
+            type: ""
