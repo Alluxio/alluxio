@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Tests the {@link LockPool} class.
  */
 public class LockPoolTest {
-  private LockPool<Integer> mCache;
+  private LockPool<Integer> mPool;
   private static final int LOW_WATERMARK = 8;
   private static final int HIGH_WATERMARK = 16;
 
@@ -36,36 +36,49 @@ public class LockPoolTest {
    */
   @Before
   public void before() {
-    mCache = new LockPool<>(k -> new ReentrantReadWriteLock(), 2, LOW_WATERMARK, HIGH_WATERMARK, 4);
+    mPool = new LockPool<>(k -> new ReentrantReadWriteLock(), 2, LOW_WATERMARK, HIGH_WATERMARK, 4);
   }
 
   @Test(timeout = 10000)
   public void insertValueTest() throws Exception {
-    for (int i = 0; i < HIGH_WATERMARK; i++) {
-      assertEquals(i , mCache.size());
-      try (LockResource resource = mCache.get(i, LockMode.READ)) {
-        assertTrue(mCache.containsKey(i));
-        assertEquals(i + 1, mCache.size());
+    // Fills cache until high watermark.
+    for (int key = 0; key < HIGH_WATERMARK; key++) {
+      assertEquals(key , mPool.size());
+      try (LockResource resource = mPool.get(key, LockMode.READ)) {
+        assertTrue(mPool.containsKey(key));
+        assertEquals(key + 1, mPool.size());
       }
     }
-
-    // it should be full now
-    for (int i = HIGH_WATERMARK; i < 2 * HIGH_WATERMARK; i++) {
-      try (LockResource resource = mCache.get(i, LockMode.READ)) {
-        assertTrue(mCache.containsKey(i));
-        CommonUtils.waitFor("Cache size to go below low watermark",
-            () -> mCache.size() <= LOW_WATERMARK);
-        assertEquals(LOW_WATERMARK, mCache.size());
+    // Exceeds high watermark, will be evicted until low watermark.
+    try (LockResource r = mPool.get(HIGH_WATERMARK, LockMode.READ)) {
+      assertTrue(mPool.containsKey(HIGH_WATERMARK));
+      CommonUtils.waitFor("Pool size to go below low watermark",
+          () -> mPool.size() <= LOW_WATERMARK);
+      assertEquals(LOW_WATERMARK, mPool.size());
+    }
+    // Fills cache until high watermark again.
+    for (int newLock = 1; newLock <= HIGH_WATERMARK - LOW_WATERMARK; newLock++) {
+      int key = HIGH_WATERMARK + newLock;
+      try (LockResource resource = mPool.get(key, LockMode.READ)) {
+        assertTrue(mPool.containsKey(key));
+        assertEquals(LOW_WATERMARK + newLock, mPool.size());
       }
+    }
+    // Exceeds high watermark, will be evicted until low watermark.
+    try (LockResource r = mPool.get(2 * HIGH_WATERMARK, LockMode.READ)) {
+      assertTrue(mPool.containsKey(2 * HIGH_WATERMARK));
+      CommonUtils.waitFor("Pool size to go below low watermark",
+          () -> mPool.size() <= LOW_WATERMARK);
+      assertEquals(LOW_WATERMARK, mPool.size());
     }
   }
 
   private Thread getKeys(int low, int high, int totalThreadCount) {
     Thread t = new Thread(() -> {
       for (int i = low; i < high; i++) {
-        try (LockResource resource = mCache.get(i, LockMode.READ)) {
-          assertTrue(mCache.size() <= HIGH_WATERMARK + totalThreadCount);
-          assertTrue(mCache.containsKey(i));
+        try (LockResource resource = mPool.get(i, LockMode.READ)) {
+          assertTrue(mPool.size() <= HIGH_WATERMARK + totalThreadCount);
+          assertTrue(mPool.containsKey(i));
         }
       }
     });
@@ -87,17 +100,17 @@ public class LockPoolTest {
 
   @Test(timeout = 1000)
   public void referencedLockTest() throws InterruptedException {
-    LockResource lock0 = mCache.get(0, LockMode.READ);
-    LockResource lock1 = mCache.get(50, LockMode.READ);
-    LockResource lock2 = mCache.get(100, LockMode.READ);
+    LockResource lock0 = mPool.get(0, LockMode.READ);
+    LockResource lock1 = mPool.get(50, LockMode.READ);
+    LockResource lock2 = mPool.get(100, LockMode.READ);
 
     for (int j = 0; j < 10; j++) {
       for (int i = 0; i < 100; i++) {
-        mCache.get(i, LockMode.READ).close();
+        mPool.get(i, LockMode.READ).close();
       }
     }
-    assertTrue(lock0.hasSameLock(mCache.get(0, LockMode.READ)));
-    assertTrue(lock1.hasSameLock(mCache.get(50, LockMode.READ)));
-    assertTrue(lock2.hasSameLock(mCache.get(100, LockMode.READ)));
+    assertTrue(lock0.hasSameLock(mPool.get(0, LockMode.READ)));
+    assertTrue(lock1.hasSameLock(mPool.get(50, LockMode.READ)));
+    assertTrue(lock2.hasSameLock(mPool.get(100, LockMode.READ)));
   }
 }
