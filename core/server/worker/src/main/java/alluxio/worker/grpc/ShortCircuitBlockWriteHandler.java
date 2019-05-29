@@ -167,7 +167,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           if (isCanceled) {
             mBlockWorker.abortBlock(mSessionId, mRequest.getBlockId());
           } else {
-            mBlockWorker.commitBlock(mSessionId, mRequest.getBlockId());
+            mBlockWorker.commitBlock(mSessionId, mRequest.getBlockId(), mRequest.getPinned());
           }
         } finally {
           newContext.detach(previousContext);

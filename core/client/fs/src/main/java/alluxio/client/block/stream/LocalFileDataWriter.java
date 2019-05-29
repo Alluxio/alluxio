@@ -81,9 +81,9 @@ public final class LocalFileDataWriter implements DataWriter {
       long dataTimeout = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
       CreateLocalBlockRequest.Builder builder =
-          CreateLocalBlockRequest.newBuilder().setBlockId(blockId)
-              .setTier(options.getWriteTier()).setSpaceToReserve(fileBufferByes)
-              .setMediumType(options.getMediumType());
+          CreateLocalBlockRequest.newBuilder().setBlockId(blockId).setTier(options.getWriteTier())
+              .setSpaceToReserve(fileBufferByes).setMediumType(options.getMediumType())
+              .setPinned(options.getWriteType() == WriteType.ASYNC_THROUGH);
       if (options.getWriteType() == WriteType.ASYNC_THROUGH
           && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
         builder.setCleanupOnFailure(false);
