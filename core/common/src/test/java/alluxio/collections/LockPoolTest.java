@@ -73,12 +73,11 @@ public class LockPoolTest {
     }
   }
 
-  private Thread getKeys(int low, int high, int totalThreadCount) {
+  private Thread getKeys(int low, int high) {
     Thread t = new Thread(() -> {
       for (int i = low; i < high; i++) {
         try (LockResource resource = mPool.get(i, LockMode.READ)) {
-          assertTrue(mPool.size() <= HIGH_WATERMARK + totalThreadCount);
-          assertTrue(mPool.containsKey(i));
+          // Empty.
         }
       }
     });
@@ -87,15 +86,35 @@ public class LockPoolTest {
   }
 
   @Test(timeout = 1000)
-  public void parallelInsertTest() throws InterruptedException {
-    Thread t1 = getKeys(0, HIGH_WATERMARK * 2, 4);
-    Thread t2 = getKeys(0, HIGH_WATERMARK * 2, 4);
-    Thread t3 = getKeys(HIGH_WATERMARK * 2, HIGH_WATERMARK * 4, 4);
-    Thread t4 = getKeys(HIGH_WATERMARK * 2, HIGH_WATERMARK * 4, 4);
+  public void parallelInsertTest() throws Exception {
+    // Fills in the pool.
+    Thread t1 = getKeys(0, HIGH_WATERMARK);
+    Thread t2 = getKeys(0, HIGH_WATERMARK);
     t1.join();
     t2.join();
+    assertEquals(HIGH_WATERMARK, mPool.size());
+    for (int key = 0; key < HIGH_WATERMARK; key++) {
+      assertTrue(mPool.containsKey(key));
+    }
+    // Evicts the old locks until size goes below low watermark.
+    Thread t3 = getKeys(HIGH_WATERMARK + 1, HIGH_WATERMARK + 2);
     t3.join();
+    CommonUtils.waitFor("Pool size to go below low watermark",
+        () -> mPool.size() <= LOW_WATERMARK);
+    assertEquals(LOW_WATERMARK, mPool.size());
+    for (int key = HIGH_WATERMARK - LOW_WATERMARK; key < HIGH_WATERMARK; key++) {
+      assertTrue(Integer.toString(key), mPool.containsKey(key));
+    }
+    // Fills in the pool again.
+    Thread t4 = getKeys(HIGH_WATERMARK, 2 * HIGH_WATERMARK - LOW_WATERMARK);
+    Thread t5 = getKeys(HIGH_WATERMARK, 2 * HIGH_WATERMARK - LOW_WATERMARK);
     t4.join();
+    t5.join();
+    assertEquals(HIGH_WATERMARK, mPool.size());
+    int startKey = HIGH_WATERMARK - LOW_WATERMARK;
+    for (int i = 0; i < HIGH_WATERMARK; i++) {
+      assertTrue(mPool.containsKey(startKey + i));
+    }
   }
 
   @Test(timeout = 1000)
