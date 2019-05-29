@@ -96,5 +96,4 @@ public class LocalFirstAvoidEvictionPolicyTest {
             new LocalFirstAvoidEvictionPolicy(mConf))
         .testEquals();
   }
-
 }
