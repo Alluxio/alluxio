@@ -220,7 +220,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + GET_STATUS)
   @ApiOperation(value = "Get the file status of the path",
-                response = alluxio.client.file.URIStatus.class)
+    response = alluxio.client.file.URIStatus.class)
   public Response getStatus(@PathParam("path") final String path, final GetStatusOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<URIStatus>() {
       @Override
@@ -243,7 +243,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + LIST_STATUS)
   @ApiOperation(value = "List the URIStatuses of the path's children",
-                response = java.util.List.class)
+    response = java.util.List.class)
   public Response listStatus(@PathParam("path") final String path,
       final ListStatusOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
@@ -294,7 +294,7 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + OPEN_FILE)
   @Produces(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Opens the given path for reading, use the id with the stream api",
-                response = java.lang.Integer.class)
+    response = java.lang.Integer.class)
   public Response openFile(@PathParam("path") final String path, final OpenFileOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Integer>() {
       @Override
@@ -369,7 +369,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + UNMOUNT)
   @ApiOperation(value = "Unmount the path, the path must be a mount point",
-                response = java.lang.Void.class)
+    response = java.lang.Void.class)
   public Response unmount(@PathParam("path") final String path, final UnmountOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
