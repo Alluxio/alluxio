@@ -37,14 +37,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
 /**
- * A cache specifically designed to contain locks and will NOT evict any entries
- * that are in use. The cache size is unlimited, when the cache size is larger than the configured
+ * A resource pool specifically designed to contain locks and will NOT evict any entries
+ * that are in use. The pool size is unlimited, when the pool size is larger than the configured
  * max size, a background thread will try to evict locks that are no longer
  * locked, but if all the locks are locked, none of them will be evicted.
- * In the worst case (e.g. deadlock), the cache size might keep growing until exhausting system
- * resources.
+ * In the worst case (e.g. deadlock), the pool size might keep growing until exhausting system
+ * memories.
  *
- * @param <K> key to the cache
+ * @param <K> key for the locks
  */
 public class LockPool<K> {
   private static final Logger LOG = LoggerFactory.getLogger(LockPool.class);
@@ -52,7 +52,7 @@ public class LockPool<K> {
   private static final float SOFT_LIMIT_RATIO = 0.9f;
   private static final String EVICTOR_THREAD_NAME = "LockCache Evictor";
 
-  private final Map<K, ValNode> mCache;
+  private final Map<K, Resource> mPool;
   /**
    * SoftLimit = hardLimit * softLimitRatio
    * once the size reaches softlimit, eviction starts to happen,
@@ -67,19 +67,19 @@ public class LockPool<K> {
   private final ExecutorService mEvictor;
 
   /**
-   * Constructor for a lock cache.
+   * Constructor for a lock pool.
    *
    * @param defaultLoader specify a function to generate a value based on a key
-   * @param initialSize initial size of the cache
-   * @param maxSize maximum size of the cache
-   * @param concurrencyLevel concurrency level of the cache
+   * @param initialSize initial size of the pool
+   * @param maxSize maximum size of the pool
+   * @param concurrencyLevel concurrency level of the pool
    */
   public LockPool(Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader,
       int initialSize, int maxSize, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
     mHardLimit = maxSize;
     mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
-    mCache = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
+    mPool = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mEvictor = Executors.newSingleThreadExecutor(
         ThreadFactoryUtils.build(EVICTOR_THREAD_NAME, true));
     mEvictor.submit(new Evictor());
@@ -87,7 +87,7 @@ public class LockPool<K> {
 
   private final class Evictor implements Runnable {
     /**
-     * Interval in milliseconds for logging when cache size grows over hard limit.
+     * Interval in milliseconds for logging when pool size grows over hard limit.
      */
     private static final long OVER_HARD_LIMIT_LOG_INTERVAL = 60000;
     /**
@@ -100,16 +100,16 @@ public class LockPool<K> {
      * Creates a new instance.
      */
     public Evictor() {
-      mIterator = mCache.entrySet().iterator();
+      mIterator = mPool.entrySet().iterator();
     }
 
     /**
-     * Last millisecond that the cache size grows over hard limit.
+     * Last millisecond that the pool size grows over hard limit.
      * When size is over hard limit, a log will be printed. This time is used to limit the rate of
      * logging.
      */
     private long mLastOverHardLimitTime = 0;
-    private Iterator<Map.Entry<K, ValNode>> mIterator;
+    private Iterator<Map.Entry<K, Resource>> mIterator;
 
     @Override
     public void run() {
@@ -123,27 +123,27 @@ public class LockPool<K> {
     }
 
     /**
-     * Blocks until the size of the cache exceeds the soft limit, evicts entries with zero
-     * references until cache size decreases below the soft limit or the whole cache is scanned.
+     * Blocks until the size of the pool exceeds the soft limit, evicts entries with zero
+     * references until pool size decreases below the soft limit or the whole pool is scanned.
      */
     private void awaitAndEvict() throws InterruptedException {
       try (LockResource l = new LockResource(mEvictLock)) {
-        while (mCache.size() <= mSoftLimit) {
+        while (mPool.size() <= mSoftLimit) {
           mOverSoftLimit.await(EVICTION_MAX_AWAIT_TIME, TimeUnit.MILLISECONDS);
         }
-        int numToEvict = mCache.size() - mSoftLimit;
+        int numToEvict = mPool.size() - mSoftLimit;
         // The first round of scan uses the mIterator left from last eviction.
-        // Then scan the cache from a new iterator for at most two round:
+        // Then scan the pool from a new iterator for at most two round:
         // first round to mark candidate.mIsAccessed as false,
-        // second round to remove the candidate from the cache.
+        // second round to remove the candidate from the pool.
         int roundToScan = 3;
         while (numToEvict > 0 && roundToScan > 0) {
           if (!mIterator.hasNext()) {
-            mIterator = mCache.entrySet().iterator();
+            mIterator = mPool.entrySet().iterator();
             roundToScan--;
           }
-          Map.Entry<K, ValNode> candidateMapEntry = mIterator.next();
-          ValNode candidate = candidateMapEntry.getValue();
+          Map.Entry<K, Resource> candidateMapEntry = mIterator.next();
+          Resource candidate = candidateMapEntry.getValue();
           if (candidate.mIsAccessed) {
             candidate.mIsAccessed = false;
           } else {
@@ -153,9 +153,9 @@ public class LockPool<K> {
             }
           }
         }
-        if (mCache.size() >= mHardLimit) {
+        if (mPool.size() >= mHardLimit) {
           if (System.currentTimeMillis() - mLastOverHardLimitTime > OVER_HARD_LIMIT_LOG_INTERVAL) {
-            LOG.warn("LockCache at hard limit, cache size = " + mCache.size()
+            LOG.warn("LockCache at hard limit, pool size = " + mPool.size()
                 + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
           }
           mLastOverHardLimitTime = System.currentTimeMillis();
@@ -172,8 +172,8 @@ public class LockPool<K> {
    * @return a lock resource which must be closed to unlock the key
    */
   public LockResource get(K key, LockMode mode) {
-    ValNode valNode = getValNode(key);
-    ReentrantReadWriteLock lock = valNode.mValue;
+    Resource valNode = getResource(key);
+    ReentrantReadWriteLock lock = valNode.mLock;
     switch (mode) {
       case READ:
         return new RefCountLockResource(lock.readLock(), true, valNode.mRefCount);
@@ -192,8 +192,8 @@ public class LockPool<K> {
    * @return either empty or a lock resource which must be closed to unlock the key
    */
   public Optional<LockResource> tryGet(K key, LockMode mode) {
-    ValNode valNode = getValNode(key);
-    ReentrantReadWriteLock lock = valNode.mValue;
+    Resource valNode = getResource(key);
+    ReentrantReadWriteLock lock = valNode.mLock;
     Lock innerLock;
     switch (mode) {
       case READ:
@@ -212,27 +212,27 @@ public class LockPool<K> {
   }
 
   /**
-   * Get the raw readwrite lock from the cache.
+   * Get the raw readwrite lock from the pool.
    *
    * @param key key to look up the value
    * @return the lock associated with the key
    */
   @VisibleForTesting
   public ReentrantReadWriteLock getRawReadWriteLock(K key) {
-    return mCache.getOrDefault(key, new ValNode(new ReentrantReadWriteLock())).mValue;
+    return mPool.getOrDefault(key, new Resource(new ReentrantReadWriteLock())).mLock;
   }
 
-  private ValNode getValNode(K key) {
+  private Resource getResource(K key) {
     Preconditions.checkNotNull(key, "key can not be null");
-    ValNode cacheEntry = mCache.compute(key, (k, v) -> {
+    Resource resource = mPool.compute(key, (k, v) -> {
       if (v != null && v.mRefCount.incrementAndGet() > 0) {
         // If the entry is to be removed, ref count will be INT_MIN, so incrementAndGet will < 0.
         v.mIsAccessed = true;
         return v;
       }
-      return new ValNode(mDefaultLoader.apply(k));
+      return new Resource(mDefaultLoader.apply(k));
     });
-    if (mCache.size() > mSoftLimit) {
+    if (mPool.size() > mSoftLimit) {
       if (mEvictLock.tryLock()) {
         try {
           mOverSoftLimit.signal();
@@ -241,32 +241,32 @@ public class LockPool<K> {
         }
       }
     }
-    return cacheEntry;
+    return resource;
   }
 
   /**
-   * Returns whether the cache contains a particular key.
+   * Returns whether the pool contains a particular key.
    *
-   * @param key the key to look up in the cache
-   * @return true if the key is contained in the cache
+   * @param key the key to look up in the pool
+   * @return true if the key is contained in the pool
    */
   @VisibleForTesting
   public boolean containsKey(K key) {
     Preconditions.checkNotNull(key, "key can not be null");
-    return mCache.containsKey(key);
+    return mPool.containsKey(key);
   }
 
   /**
-   * Returns the size of the cache.
+   * Returns the size of the pool.
    *
-   * @return the number of entries cached
+   * @return the number of entries pool
    */
   public int size() {
-    return mCache.size();
+    return mPool.size();
   }
 
   /**
-   * Get the soft size limit for this cache.
+   * Get the soft size limit for this pool.
    *
    * @return the soft size limit
    */
@@ -276,27 +276,27 @@ public class LockPool<K> {
   }
 
   /**
-   * @return all entries in the cache, for debugging purposes
+   * @return all entries in the pool, for debugging purposes
    */
   @VisibleForTesting
   public Map<K, ReentrantReadWriteLock> getEntryMap() {
     Map<K, ReentrantReadWriteLock> entries = new HashMap<>();
-    mCache.entrySet().forEach(entry -> {
-      entries.put(entry.getKey(), entry.getValue().mValue);
+    mPool.entrySet().forEach(entry -> {
+      entries.put(entry.getKey(), entry.getValue().mLock);
     });
     return entries;
   }
 
   /**
-   * Node containing value and other information to be stored in the cache.
+   * Resource containing the lock and other information to be stored in the pool.
    */
-  private static final class ValNode {
-    private final ReentrantReadWriteLock mValue;
+  private static final class Resource {
+    private final ReentrantReadWriteLock mLock;
     private volatile boolean mIsAccessed;
     private AtomicInteger mRefCount;
 
-    private ValNode(ReentrantReadWriteLock value) {
-      mValue = value;
+    private Resource(ReentrantReadWriteLock lock) {
+      mLock = lock;
       mIsAccessed = false;
       mRefCount = new AtomicInteger(1);
     }
