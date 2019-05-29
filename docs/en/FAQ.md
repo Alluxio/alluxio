@@ -88,7 +88,7 @@ added nodes in order to balance memory space utilization between the nodes?
 17. How can I contribute to Alluxio?
 
     Thank you for the interest to contribute. Please look into [Contributing-to-
-    Alluxio](/contribute). Also, please look into some of the JIRA issues (marked for New
+    Alluxio](https://www.alluxio.io/community/). Also, please look into some of the JIRA issues (marked for New
     Contributors) [here](https://alluxio.atlassian.net/browse/ALLUXIO-2532?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))
 
 18. Where can I report issues or propose new features?
