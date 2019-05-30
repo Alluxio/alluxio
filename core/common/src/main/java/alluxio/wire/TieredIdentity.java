@@ -23,6 +23,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.net.UnknownHostException;
@@ -53,6 +54,7 @@ public final class TieredIdentity implements Serializable {
   /**
    * @return the tiers of the tier identity
    */
+  @ApiModelProperty(value = "Tiers included in the tier identity")
   public List<LocalityTier> getTiers() {
     return mTiers;
   }
@@ -163,6 +165,7 @@ public final class TieredIdentity implements Serializable {
     /**
      * @return the name of the tier
      */
+    @ApiModelProperty(value = "Name of the tier", example = "host")
     public String getTierName() {
       return mTierName;
     }
@@ -171,6 +174,7 @@ public final class TieredIdentity implements Serializable {
      * @return the value
      */
     @Nullable
+    @ApiModelProperty(value = "Value of the tier name", example = "localhost")
     public String getValue() {
       return mValue;
     }
