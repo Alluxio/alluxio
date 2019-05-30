@@ -300,13 +300,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId)
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
     // NOTE: this may be invoked multiple times due to retry on client side.
     // TODO(binfan): find a better way to handle retry logic
     try {
-      mBlockStore.commitBlock(sessionId, blockId);
+      mBlockStore.commitBlock(sessionId, blockId, pinOnCreate);
     } catch (BlockAlreadyExistsException e) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure, therefore ignore the exception", blockId, e);
@@ -558,7 +558,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
       if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
         try {
-          commitBlock(sessionId, blockId);
+          commitBlock(sessionId, blockId, false);
         } catch (BlockDoesNotExistException e) {
           // This can only happen if the session is expired. Ignore this exception if that happens.
           LOG.warn("Block {} does not exist while being committed.", blockId);

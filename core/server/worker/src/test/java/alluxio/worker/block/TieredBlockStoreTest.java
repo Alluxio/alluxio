@@ -187,7 +187,7 @@ public final class TieredBlockStoreTest {
   public void commitBlock() throws Exception {
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     assertFalse(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID, false);
     assertTrue(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
     assertFalse(
         FileUtils.exists(TempBlockMeta.tempPath(mTestDir1, SESSION_ID1, TEMP_BLOCK_ID)));
@@ -375,6 +375,23 @@ public final class TieredBlockStoreTest {
   }
 
   /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
+  public void freeSpaceWithPinnedBlocks() throws Exception {
+    // create a pinned block
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mBlockStore,
+        mTestDir1.toBlockStoreLocation(), true);
+
+    // Expect an empty eviction plan is feasible
+    mThrown.expect(WorkerOutOfSpaceException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+        mTestDir1.toBlockStoreLocation());
+  }
+
+  /**
    * Tests the {@link TieredBlockStore#requestSpace(long, long, long)} method.
    */
   @Test
@@ -546,7 +563,7 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID, false);
     mBlockStore.abortBlock(SESSION_ID1, TEMP_BLOCK_ID);
   }
 
@@ -612,8 +629,8 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID);
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID , false);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID, false);
   }
 
   /**
@@ -624,7 +641,7 @@ public final class TieredBlockStoreTest {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
-    mBlockStore.commitBlock(SESSION_ID1, BLOCK_ID1);
+    mBlockStore.commitBlock(SESSION_ID1, BLOCK_ID1, false);
   }
 
   /**
@@ -638,7 +655,7 @@ public final class TieredBlockStoreTest {
         SESSION_ID1, SESSION_ID2));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
-    mBlockStore.commitBlock(SESSION_ID2, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(SESSION_ID2, TEMP_BLOCK_ID, false);
   }
 
   /**
