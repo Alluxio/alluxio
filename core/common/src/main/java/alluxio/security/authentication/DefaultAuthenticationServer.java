@@ -123,15 +123,15 @@ public class DefaultAuthenticationServer
       try {
         channelInfo.getSaslServer().dispose();
       } catch (SaslException e) {
-        LogUtils.warnWithException(LOG,
-            String.format("Failed to dispose sasl client for channel-Id: {}", channelId), e);
+        LogUtils.warnWithException(LOG, "Failed to dispose sasl client for channel-Id: {}",
+            channelId, e);
       }
 
       try {
         channelInfo.getSaslServerDriver().onCompleted();
       } catch (Exception e) {
-        LogUtils.warnWithException(LOG, String.format(
-            "Failed to complete the authentication session for channel-Id: {}", channelId), e);
+        LogUtils.warnWithException(LOG,
+            "Failed to complete the authentication session for channel-Id: {}", channelId, e);
       }
     }
   }
