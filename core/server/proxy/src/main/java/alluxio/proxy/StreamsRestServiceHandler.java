@@ -94,7 +94,7 @@ public final class StreamsRestServiceHandler {
   @POST
   @Path(ID_PARAM + READ)
   @ApiOperation(value = "Returns the input stream associated with the id",
-                response = java.io.InputStream.class)
+      response = java.io.InputStream.class)
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response read(@PathParam("id") final Integer id) {
     // TODO(jiri): Support reading a file range.
@@ -119,7 +119,7 @@ public final class StreamsRestServiceHandler {
   @POST
   @Path(ID_PARAM + WRITE)
   @ApiOperation(value = "Writes to the given output stream associated with the id",
-                response = java.lang.Integer.class)
+      response = java.lang.Integer.class)
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response write(@PathParam("id") final Integer id, final InputStream is) {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {

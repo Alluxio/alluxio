@@ -416,24 +416,6 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary unmount a path
-   * @param path the file path
-   * @return the response object
-   */
-  @POST
-  @Path(UNMOUNT)
-  public Response unmount(@QueryParam("path") final String path) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystemMaster.unmount(new AlluxioURI(path));
-        return null;
-      }
-    });
-  }
-
-  /**
    * @summary set an attribute
    * @param path the file path
    * @param pinned the pinned flag value to use
@@ -487,6 +469,24 @@ public final class FileSystemMasterClientRestServiceHandler {
           options.setRecursive(recursive);
         }
         mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
+        return null;
+      }
+    });
+  }
+
+  /**
+   * @summary unmount a path
+   * @param path the file path
+   * @return the response object
+   */
+  @POST
+  @Path(UNMOUNT)
+  public Response unmount(@QueryParam("path") final String path) {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+        mFileSystemMaster.unmount(new AlluxioURI(path));
         return null;
       }
     });
