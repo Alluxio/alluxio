@@ -3210,7 +3210,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
       new Builder(Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD)
-          .setDefaultValue("60min")
+          .setDefaultValue("3day")
           .setDescription("Interval for which client channels that have been inactive "
                   + "will be regarded as unauthenticated. Such channels will reauthenticate with "
                   + "their target master upon being used for new RPCs.")

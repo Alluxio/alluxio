@@ -13,6 +13,8 @@ package alluxio.security.authentication;
 
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslMessage;
+import alluxio.grpc.SaslMessageType;
+import alluxio.util.LogUtils;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -75,7 +77,15 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
         mAuthenticationServer.unregisterChannel(mChannelId);
       }
       // Respond to client.
-      mRequestObserver.onNext(mSaslHandshakeServerHandler.handleSaslMessage(saslMessage));
+      SaslMessage response = mSaslHandshakeServerHandler.handleSaslMessage(saslMessage);
+      // Complete the call from server-side before sending success response to client.
+      // Because client will assume authenticated after receiving the success message.
+      if (response.getMessageType() == SaslMessageType.SUCCESS) {
+        mAuthenticationServer.registerChannel(mChannelId,
+            mSaslServerHandler.getAuthenticatedUserInfo(), this,
+            mSaslServerHandler.getSaslServer());
+      }
+      mRequestObserver.onNext(response);
     } catch (SaslException se) {
       LOG.debug("Exception while handling SASL message: {}", saslMessage, se);
       mRequestObserver.onError(new UnauthenticatedException(se).toGrpcStatusException());
@@ -89,12 +99,34 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   }
 
   @Override
-  public void onError(Throwable throwable) {}
+  public void onError(Throwable throwable) {
+    if (mChannelId != null) {
+      LOG.warn("Closing authenticated channel: {} due to error: {}", mChannelId, throwable);
+      mAuthenticationServer.unregisterChannel(mChannelId);
+    }
+  }
 
   @Override
   public void onCompleted() {
-    // Provide SaslServer handler with succeeded authentication information.
-    mSaslServerHandler.authenticationCompleted(mChannelId, mAuthenticationServer);
-    mRequestObserver.onCompleted();
+    // Client completes the stream when authenticated channel is being closed.
+    LOG.debug("Received completion for authenticated channel: {}", mChannelId);
+    // close() will be called by unregister channel if it was registered.
+    if (!mAuthenticationServer.unregisterChannel(mChannelId)) {
+      // Channel was not registered. Close stream explicitly.
+      close();
+    }
+  }
+
+  /**
+   * Closes the authentication stream.
+   */
+  public void close() {
+    try {
+      // Complete the client stream.
+      mRequestObserver.onCompleted();
+    } catch (Exception exc) {
+      LogUtils.warnWithException(LOG, "Failed to complete the client stream for channel: {}.",
+          (mChannelId != null) ? mChannelId : "<NULL>", exc);
+    }
   }
 }
