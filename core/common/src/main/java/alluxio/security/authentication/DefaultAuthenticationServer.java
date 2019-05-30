@@ -117,23 +117,27 @@ public class DefaultAuthenticationServer
   }
 
   @Override
-  public void unregisterChannel(UUID channelId) {
+  public boolean unregisterChannel(UUID channelId) {
+    // Remove channel.
     AuthenticatedChannelInfo channelInfo = mChannels.remove(channelId);
-    if (channelInfo != null) {
-      try {
-        channelInfo.getSaslServer().dispose();
-      } catch (SaslException e) {
-        LogUtils.warnWithException(LOG, "Failed to dispose sasl client for channel-Id: {}",
-            channelId, e);
-      }
-
-      try {
-        channelInfo.getSaslServerDriver().onCompleted();
-      } catch (Exception e) {
-        LogUtils.warnWithException(LOG,
-            "Failed to complete the authentication session for channel-Id: {}", channelId, e);
-      }
+    if (channelInfo == null) {
+      return false;
     }
+    // Dispose channel resources.
+    try {
+      channelInfo.getSaslServer().dispose();
+    } catch (SaslException e) {
+      LogUtils.warnWithException(LOG, "Failed to dispose sasl client for channel-Id: {}", channelId,
+          e);
+    }
+    // Close authentication driver.
+    try {
+      channelInfo.getSaslServerDriver().close();
+    } catch (Exception e) {
+      LogUtils.warnWithException(LOG,
+          "Failed to complete the authentication session for channel-Id: {}", channelId, e);
+    }
+    return true;
   }
 
   @Override
@@ -153,7 +157,7 @@ public class DefaultAuthenticationServer
   public void close() {
     for (Map.Entry<UUID, AuthenticatedChannelInfo> entry : mChannels.entrySet()) {
       try {
-        entry.getValue().getSaslServerDriver().onCompleted();
+        entry.getValue().getSaslServerDriver().close();
         LOG.debug("Closed authentication session for channel:{}", entry.getKey());
       } catch (Exception exc) {
         LOG.debug("Failed closing authentication session for channel:{}. Error:{}", entry.getKey(),

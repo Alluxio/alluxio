@@ -46,8 +46,9 @@ public interface AuthenticationServer extends BindableService {
    * Unregisters given channel.
    *
    * @param channelId channel id
+   * @return {@code true} if channel was registered
    */
-  void unregisterChannel(UUID channelId);
+  boolean unregisterChannel(UUID channelId);
 
   /**
    * Creates server-side Sasl handler for given scheme.

@@ -109,10 +109,18 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   @Override
   public void onCompleted() {
     // Client completes the stream when authenticated channel is being closed.
-    if (mChannelId != null) {
-      LOG.debug("Closing authenticated channel: {}", mChannelId);
-      mAuthenticationServer.unregisterChannel(mChannelId);
+    LOG.debug("Received completion for authenticated channel: {}", mChannelId);
+    // close() will be called by unregister channel if it was registered.
+    if (!mAuthenticationServer.unregisterChannel(mChannelId)) {
+      // Channel was not registered. Close stream explicitly.
+      close();
     }
+  }
+
+  /**
+   * Closes the authentication stream.
+   */
+  public void close() {
     try {
       // Complete the client stream.
       mRequestObserver.onCompleted();
