@@ -19,19 +19,23 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.SystemOutRule;
 import alluxio.client.file.FileSystem;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.master.MasterClientContext;
+import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.journal.tool.JournalTool;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -45,7 +49,7 @@ import io.atomix.copycat.server.storage.util.StorageSerialization;
 import io.atomix.copycat.server.util.ServerSerialization;
 import io.atomix.copycat.util.ProtocolSerialization;
 import org.hamcrest.Matchers;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -55,9 +59,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -66,56 +68,32 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class JournalToolTest extends BaseIntegrationTest {
   private static final int CHECKPOINT_SIZE = 100;
-  private static final int LOG_SIZE_BYTES_MAX = 100;
-  private static final int MASTER_COUNT = 2;
-  private static final int WORKER_COUNT = 1;
-  private static final int GET_MASTER_INDEX_TIMEOUT_MS = 10 * 1000;
 
   private final ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
 
   @Rule
   public SystemOutRule mSystemOutRule = new SystemOutRule(mOutput);
 
-  private MultiProcessCluster mMultiProcessCluster;
+  @Rule
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+          .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
+              Integer.toString(CHECKPOINT_SIZE))
+          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "100")
+          .build();
+
   private File mDumpDir;
   private FileSystem mFs;
 
-  private void initializeCluster(Map<PropertyKey, String> props) throws Throwable {
-    // Initialize default properties.
-    Map<PropertyKey, String> defaultProps = new HashMap<PropertyKey, String>() {
-      {
-        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
-        put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
-            Integer.toString(CHECKPOINT_SIZE));
-        put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(LOG_SIZE_BYTES_MAX));
-      }
-    };
-    // Override/merge with given props.
-    if (props != null) {
-      defaultProps.putAll(props);
-    }
-    // Build and start a multi-process cluster.
-    mMultiProcessCluster = MultiProcessCluster
-        .newBuilder(PortCoordination.JOURNAL_TOOL)
-        .setNumMasters(MASTER_COUNT)
-        .setNumWorkers(WORKER_COUNT)
-        .addProperties(defaultProps)
-        .build();
-    mMultiProcessCluster.start();
-    // Acquire FS client.
-    mFs = mMultiProcessCluster.getFileSystemClient();
-    // Ensure directory for dumping journal.
+  @Before
+  public void before() throws IOException {
     mDumpDir = AlluxioTestDirectory.createTemporaryDirectory("journal_dump");
-  }
-
-  @After
-  public void after() throws Throwable {
-    mMultiProcessCluster.destroy();
+    mFs = mLocalAlluxioClusterResource.get().getClient();
   }
 
   @Test
   public void dumpSimpleUfsJournal() throws Throwable {
-    initializeCluster(null);
     // Create a test directory to trigger journaling.
     mFs.createDirectory(new AlluxioURI("/test"));
     // Run journal tool.
@@ -123,38 +101,26 @@ public class JournalToolTest extends BaseIntegrationTest {
     // Verify that a non-zero dump file exists.
     assertThat(mOutput.toString(), containsString(mDumpDir.getAbsolutePath()));
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
-    mMultiProcessCluster.notifySuccess();
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_JOURNAL_TYPE, "EMBEDDED"})
   public void dumpSimpleEmbeddedJournal() throws Throwable {
-    initializeCluster(new HashMap<PropertyKey, String>() {
-      {
-        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
-      }
-    });
     // Create a test directory to trigger journaling.
     mFs.createDirectory(new AlluxioURI("/test"));
     // Run journal tool.
-    String masterJournalPath = mMultiProcessCluster.getJournalDir()
-        + Integer.toString(mMultiProcessCluster.getPrimaryMasterIndex(GET_MASTER_INDEX_TIMEOUT_MS));
-    JournalTool.main(new String[] {
-        "-inputDir", masterJournalPath,
-        "-outputDir", mDumpDir.getAbsolutePath()});
+    String masterJournalPath =
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getJournalFolder();
+    JournalTool.main(
+        new String[] {"-inputDir", masterJournalPath, "-outputDir", mDumpDir.getAbsolutePath()});
     // Verify that a non-zero dump file exists.
     assertThat(mOutput.toString(), containsString(mDumpDir.getAbsolutePath()));
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
-    mMultiProcessCluster.notifySuccess();
   }
 
   @Test
   public void dumpHeapCheckpointFromUfsJournal() throws Throwable {
-    initializeCluster(new HashMap<PropertyKey, String>() {
-      {
-        put(PropertyKey.MASTER_METASTORE, "HEAP");
-      }
-    });
-
     for (String name : Arrays.asList("/pin", "/max_replication", "/async_persist", "/ttl")) {
       mFs.createFile(new AlluxioURI(name)).close();
     }
@@ -168,7 +134,7 @@ public class JournalToolTest extends BaseIntegrationTest {
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(100000).build())
             .build());
     checkpointUfsJournal();
-    JournalTool.main(new String[]{"-outputDir", mDumpDir.getAbsolutePath()});
+    JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
 
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
@@ -177,26 +143,20 @@ public class JournalToolTest extends BaseIntegrationTest {
         "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
       assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_TREE", subPath));
     }
-    mMultiProcessCluster.notifySuccess();
   }
 
   @Test
-  public void dumpHeapCheckpointFromEmbeddedJournal() throws Throwable {
-    initializeCluster(new HashMap<PropertyKey, String>() {
-      {
-        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
-        put(PropertyKey.MASTER_METASTORE, "HEAP");
-        put(PropertyKey.USER_CONF_SYNC_INTERVAL, "60min");
-      }
-    });
 
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_JOURNAL_TYPE,
+      "EMBEDDED", PropertyKey.Name.MASTER_METASTORE, "HEAP"})
+  public void dumpHeapCheckpointFromEmbeddedJournal() throws Throwable {
     for (String name : Arrays.asList("/pin", "/max_replication", "/async_persist", "/ttl")) {
       mFs.createFile(new AlluxioURI(name)).close();
     }
     mFs.setAttribute(new AlluxioURI("/pin"),
-            SetAttributePOptions.newBuilder().setPinned(true).build());
+        SetAttributePOptions.newBuilder().setPinned(true).build());
     mFs.setAttribute(new AlluxioURI("/max_replication"),
-            SetAttributePOptions.newBuilder().setReplicationMax(5).build());
+        SetAttributePOptions.newBuilder().setReplicationMax(5).build());
     mFs.persist(new AlluxioURI("/async_persist"));
     mFs.setAttribute(new AlluxioURI("/ttl"),
         SetAttributePOptions.newBuilder()
@@ -204,8 +164,8 @@ public class JournalToolTest extends BaseIntegrationTest {
             .build());
     checkpointEmbeddedJournal();
     // Make sure to point the tool to leader's journal folder.
-    String leaderJournalDir = mMultiProcessCluster.getJournalDir()
-        + Integer.toString(mMultiProcessCluster.getPrimaryMasterIndex(GET_MASTER_INDEX_TIMEOUT_MS));
+    String leaderJournalDir =
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getJournalFolder();
     // Run journal tool.
     JournalTool.main(
         new String[] {"-inputDir", leaderJournalDir, "-outputDir", mDumpDir.getAbsolutePath()});
@@ -215,28 +175,21 @@ public class JournalToolTest extends BaseIntegrationTest {
     String fsMasterCheckpointsDir = PathUtils.concatPath(checkpointDir, "FILE_SYSTEM_MASTER");
 
     assertNonemptyFileExists(
-            PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_DIRECTORY_ID_GENERATOR"));
+        PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_DIRECTORY_ID_GENERATOR"));
     for (String subPath : Arrays.asList("HEAP_INODE_STORE", "INODE_COUNTER",
-            "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
+        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
       assertNonemptyFileExists(PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_TREE", subPath));
     }
-    mMultiProcessCluster.notifySuccess();
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_METASTORE, "ROCKS"})
   public void dumpRocksCheckpointFromUfsJournal() throws Throwable {
-    initializeCluster(new HashMap<PropertyKey, String>() {
-      {
-        put(PropertyKey.MASTER_METASTORE, "ROCKS");
-      }
-    });
-
     checkpointUfsJournal();
     JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
     assertNonemptyDirExists(
         PathUtils.concatPath(checkpointDir, "INODE_TREE", "CACHING_INODE_STORE"));
-    mMultiProcessCluster.notifySuccess();
   }
 
   private void checkpointUfsJournal() throws Exception {
@@ -248,33 +201,27 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   private void checkpointEmbeddedJournal() throws Throwable {
-    int leaderIdx = mMultiProcessCluster.getPrimaryMasterIndex(GET_MASTER_INDEX_TIMEOUT_MS);
-    int followerIdx = leaderIdx ^ 1; // Assumes 2 masters.
-    String followerJournalFolder =
-            mMultiProcessCluster.getJournalDir() + Integer.toString(followerIdx);
-
-    // Get current snapshot before issuing operations.
-    long initialSnapshotIdx = getCurrentCopyCatSnapshotIndex(followerJournalFolder);
-
-    // Perform operations to generate a checkpoint.
+    // Perform operations before generating a checkpoint.
     for (int i = 0; i < CHECKPOINT_SIZE * 2; i++) {
       mFs.createFile(new AlluxioURI("/" + i)).close();
     }
 
-    // Take snapshot on master.
-    mMultiProcessCluster.getMetaMasterClient().checkpoint();
-
-    // JournalTool just reads the current snapshot and returns.
-    // Since passive participant will keep receiving continious snapshots of a follower,
-    // we should wait here until snapshot has come to a reasonable point.
-    // Otherwise we might end up with one of initial snapshots with incomplete state.
-
     // Wait until snapshot index reached to a point that's safe to
     // contain content.
-    long snapshotIdxTarget = CHECKPOINT_SIZE * 2 + 50;
+    final long snapshotIdxTarget = CHECKPOINT_SIZE * 2 + 50;
     CommonUtils.waitFor("Copycat snapshotting", () -> {
       try {
-        return getCurrentCopyCatSnapshotIndex(followerJournalFolder) >= snapshotIdxTarget;
+        // Take snapshot on master.
+        new RetryHandlingMetaMasterClient(MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global()))
+            .setMasterInquireClient(new SingleMasterInquireClient(
+                mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress()))
+            .build()).checkpoint();
+        // Read current snapshot index.
+        long currentSnapshotIdx = getCurrentCopyCatSnapshotIndex(
+            mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getJournalFolder());
+        // Verify it's beyond target.
+        return currentSnapshotIdx >= snapshotIdxTarget;
       } catch (Throwable err) {
         throw new RuntimeException(err);
       }
