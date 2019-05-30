@@ -270,18 +270,18 @@ public final class TieredBlockStoreTestUtils {
    * @param bytes size of the block in bytes
    * @param blockStore block store that the block is written into
    * @param location the location where the block resides
+   * @param pinOnCreate whether to pin block on create
    */
   public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
-      BlockStoreLocation location) throws Exception {
+      BlockStoreLocation location, boolean pinOnCreate) throws Exception {
     TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, location, bytes);
     // write data
-    FileUtils.createFile(tempBlockMeta.getPath());
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
 
     // commit block
-    blockStore.commitBlock(sessionId, blockId, false);
+    blockStore.commitBlock(sessionId, blockId, pinOnCreate);
   }
 
   /**

@@ -375,6 +375,23 @@ public final class TieredBlockStoreTest {
   }
 
   /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
+  public void freeSpaceWithPinnedBlocks() throws Exception {
+    // create a pinned block
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mBlockStore,
+        mTestDir1.toBlockStoreLocation(), true);
+
+    // Expect an empty eviction plan is feasible
+    mThrown.expect(WorkerOutOfSpaceException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+        mTestDir1.toBlockStoreLocation());
+  }
+
+  /**
    * Tests the {@link TieredBlockStore#requestSpace(long, long, long)} method.
    */
   @Test
