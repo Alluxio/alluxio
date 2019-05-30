@@ -79,7 +79,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (context.getBlockWriter() != null) {
       context.getBlockWriter().close();
     }
-    mWorker.commitBlock(request.getSessionId(), request.getId());
+    mWorker.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
   }
 
   @Override

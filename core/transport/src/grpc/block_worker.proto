@@ -69,7 +69,7 @@ message ReadResponse {
 }
 
 // The write request command.
-// next available id: 9
+// next available id: 10
 message WriteRequestCommand {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -82,6 +82,7 @@ message WriteRequestCommand {
   optional alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
   optional alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;
   optional string medium_type = 8;
+  optional bool pin_on_create = 9;
 }
 
 // The write request.
@@ -126,7 +127,7 @@ message OpenLocalBlockResponse {
   optional string path = 1;
 }
 
-// next available id: 8
+// next available id: 9
 message CreateLocalBlockRequest {
   optional int64 block_id = 1;
   optional int32 tier = 3;
@@ -135,6 +136,7 @@ message CreateLocalBlockRequest {
   optional bool only_reserve_space = 5;
   optional bool cleanup_on_failure = 6;
   optional string medium_type = 7;
+  optional bool pin_on_create = 8;
 }
 
 // next available id: 2
