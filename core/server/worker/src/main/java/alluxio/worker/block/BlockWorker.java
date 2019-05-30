@@ -72,13 +72,13 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to commit
-   * @param isPinned is block pinned on create
+   * @param pinOnCreate whether to pin block on create
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
-  void commitBlock(long sessionId, long blockId, boolean isPinned)
+  void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;
 

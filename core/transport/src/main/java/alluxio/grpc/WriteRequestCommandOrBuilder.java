@@ -121,11 +121,11 @@ public interface WriteRequestCommandOrBuilder extends
       getMediumTypeBytes();
 
   /**
-   * <code>optional bool pinned = 9;</code>
+   * <code>optional bool pin_on_create = 9;</code>
    */
-  boolean hasPinned();
+  boolean hasPinOnCreate();
   /**
-   * <code>optional bool pinned = 9;</code>
+   * <code>optional bool pin_on_create = 9;</code>
    */
-  boolean getPinned();
+  boolean getPinOnCreate();
 }

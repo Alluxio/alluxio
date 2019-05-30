@@ -26,7 +26,7 @@ private static final long serialVersionUID = 0L;
     onlyReserveSpace_ = false;
     cleanupOnFailure_ = false;
     mediumType_ = "";
-    pinned_ = false;
+    pinOnCreate_ = false;
   }
 
   @java.lang.Override
@@ -93,7 +93,7 @@ private static final long serialVersionUID = 0L;
           }
           case 64: {
             bitField0_ |= 0x00000040;
-            pinned_ = input.readBool();
+            pinOnCreate_ = input.readBool();
             break;
           }
         }
@@ -246,19 +246,19 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int PINNED_FIELD_NUMBER = 8;
-  private boolean pinned_;
+  public static final int PIN_ON_CREATE_FIELD_NUMBER = 8;
+  private boolean pinOnCreate_;
   /**
-   * <code>optional bool pinned = 8;</code>
+   * <code>optional bool pin_on_create = 8;</code>
    */
-  public boolean hasPinned() {
+  public boolean hasPinOnCreate() {
     return ((bitField0_ & 0x00000040) == 0x00000040);
   }
   /**
-   * <code>optional bool pinned = 8;</code>
+   * <code>optional bool pin_on_create = 8;</code>
    */
-  public boolean getPinned() {
-    return pinned_;
+  public boolean getPinOnCreate() {
+    return pinOnCreate_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -292,7 +292,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 7, mediumType_);
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
-      output.writeBool(8, pinned_);
+      output.writeBool(8, pinOnCreate_);
     }
     unknownFields.writeTo(output);
   }
@@ -327,7 +327,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(8, pinned_);
+        .computeBoolSize(8, pinOnCreate_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -375,10 +375,10 @@ private static final long serialVersionUID = 0L;
       result = result && getMediumType()
           .equals(other.getMediumType());
     }
-    result = result && (hasPinned() == other.hasPinned());
-    if (hasPinned()) {
-      result = result && (getPinned()
-          == other.getPinned());
+    result = result && (hasPinOnCreate() == other.hasPinOnCreate());
+    if (hasPinOnCreate()) {
+      result = result && (getPinOnCreate()
+          == other.getPinOnCreate());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -419,10 +419,10 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + MEDIUM_TYPE_FIELD_NUMBER;
       hash = (53 * hash) + getMediumType().hashCode();
     }
-    if (hasPinned()) {
-      hash = (37 * hash) + PINNED_FIELD_NUMBER;
+    if (hasPinOnCreate()) {
+      hash = (37 * hash) + PIN_ON_CREATE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getPinned());
+          getPinOnCreate());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -569,7 +569,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000010);
       mediumType_ = "";
       bitField0_ = (bitField0_ & ~0x00000020);
-      pinned_ = false;
+      pinOnCreate_ = false;
       bitField0_ = (bitField0_ & ~0x00000040);
       return this;
     }
@@ -622,7 +622,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
         to_bitField0_ |= 0x00000040;
       }
-      result.pinned_ = pinned_;
+      result.pinOnCreate_ = pinOnCreate_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -685,8 +685,8 @@ private static final long serialVersionUID = 0L;
         mediumType_ = other.mediumType_;
         onChanged();
       }
-      if (other.hasPinned()) {
-        setPinned(other.getPinned());
+      if (other.hasPinOnCreate()) {
+        setPinOnCreate(other.getPinOnCreate());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -968,34 +968,34 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private boolean pinned_ ;
+    private boolean pinOnCreate_ ;
     /**
-     * <code>optional bool pinned = 8;</code>
+     * <code>optional bool pin_on_create = 8;</code>
      */
-    public boolean hasPinned() {
+    public boolean hasPinOnCreate() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <code>optional bool pinned = 8;</code>
+     * <code>optional bool pin_on_create = 8;</code>
      */
-    public boolean getPinned() {
-      return pinned_;
+    public boolean getPinOnCreate() {
+      return pinOnCreate_;
     }
     /**
-     * <code>optional bool pinned = 8;</code>
+     * <code>optional bool pin_on_create = 8;</code>
      */
-    public Builder setPinned(boolean value) {
+    public Builder setPinOnCreate(boolean value) {
       bitField0_ |= 0x00000040;
-      pinned_ = value;
+      pinOnCreate_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bool pinned = 8;</code>
+     * <code>optional bool pin_on_create = 8;</code>
      */
-    public Builder clearPinned() {
+    public Builder clearPinOnCreate() {
       bitField0_ = (bitField0_ & ~0x00000040);
-      pinned_ = false;
+      pinOnCreate_ = false;
       onChanged();
       return this;
     }

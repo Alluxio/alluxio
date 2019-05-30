@@ -25,15 +25,15 @@ public class WriteRequest {
   /** This ID can either be block ID or temp UFS file ID. */
   private final long mId;
 
-  /** Is block pinned to create. */
-  private boolean mIsPinned;
+  /** Whether to pin block on create. */
+  private boolean mPinOnCreate;
 
   /** The session id associated with all temporary resources of this request. */
   private final long mSessionId;
 
   WriteRequest(alluxio.grpc.WriteRequest request) {
     mId = request.getCommand().getId();
-    mIsPinned = request.getCommand().getPinned();
+    mPinOnCreate = request.getCommand().getPinOnCreate();
     mSessionId = IdUtils.createSessionId();
   }
 
@@ -45,10 +45,10 @@ public class WriteRequest {
   }
 
   /**
-   * @return is blocked pinned on create
+   * @return whether to pin block on create
    */
-  public boolean isPinned() {
-    return mIsPinned;
+  public boolean getPinOnCreate() {
+    return mPinOnCreate;
   }
 
   /**

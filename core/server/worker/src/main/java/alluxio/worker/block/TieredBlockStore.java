@@ -262,11 +262,11 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean isPinned)
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
       IOException {
     LOG.debug("commitBlock: sessionId={}, blockId={}", sessionId, blockId);
-    BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, isPinned);
+    BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onCommitBlock(sessionId, blockId, loc);
@@ -517,13 +517,13 @@ public class TieredBlockStore implements BlockStore {
    *
    * @param sessionId the id of session
    * @param blockId the id of block
-   * @param isPinned is block pinned on create
+   * @param pinOnCreate is block pinned on create
    * @return destination location to move the block
    * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
    */
-  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId, boolean isPinned)
+  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
       IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
@@ -554,7 +554,7 @@ public class TieredBlockStore implements BlockStore {
       }
 
       // Check if block is pinned on commit
-      if (isPinned) {
+      if (pinOnCreate) {
         addToPinnedInodes(BlockId.getFileId(blockId));
       }
 

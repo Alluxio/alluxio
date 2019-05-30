@@ -141,13 +141,13 @@ public interface BlockStore extends SessionCleanable {
    *
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
-   * @param isPinned is block pinned on create
+   * @param pinOnCreate whether to pin block on create
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block can not be found
    * @throws InvalidWorkerStateException if block id does not belong to session id
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
-  void commitBlock(long sessionId, long blockId, boolean isPinned)
+  void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;
 

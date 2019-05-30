@@ -75,11 +75,11 @@ public interface CreateLocalBlockRequestOrBuilder extends
       getMediumTypeBytes();
 
   /**
-   * <code>optional bool pinned = 8;</code>
+   * <code>optional bool pin_on_create = 8;</code>
    */
-  boolean hasPinned();
+  boolean hasPinOnCreate();
   /**
-   * <code>optional bool pinned = 8;</code>
+   * <code>optional bool pin_on_create = 8;</code>
    */
-  boolean getPinned();
+  boolean getPinOnCreate();
 }
