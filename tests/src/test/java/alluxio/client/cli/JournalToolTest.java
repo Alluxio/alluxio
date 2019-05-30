@@ -186,6 +186,7 @@ public class JournalToolTest extends BaseIntegrationTest {
       {
         put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
         put(PropertyKey.MASTER_METASTORE, "HEAP");
+        put(PropertyKey.USER_CONF_SYNC_INTERVAL, "60min");
       }
     });
 
