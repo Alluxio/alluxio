@@ -18,7 +18,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.io.ByteStreams;
-import com.qmino.miredot.annotations.ReturnType;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import java.io.InputStream;
 
@@ -37,6 +38,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for stream resources.
  */
 @NotThreadSafe
+@Api(value = "/streams", description = "RESTful gateway for Alluxio Filesystem Client (Data)")
 @Path(StreamsRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -68,7 +70,7 @@ public final class StreamsRestServiceHandler {
    */
   @POST
   @Path(ID_PARAM + CLOSE)
-  @ReturnType("java.lang.Void")
+  @ApiOperation(value = "Closes the stream associated with the id", response = java.lang.Void.class)
   public Response close(@PathParam("id") final Integer id) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -90,7 +92,8 @@ public final class StreamsRestServiceHandler {
    */
   @POST
   @Path(ID_PARAM + READ)
-  @ReturnType("java.io.InputStream")
+  @ApiOperation(value = "Returns the input stream associated with the id",
+      response = java.io.InputStream.class)
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response read(@PathParam("id") final Integer id) {
     // TODO(jiri): Support reading a file range.
@@ -114,7 +117,8 @@ public final class StreamsRestServiceHandler {
    */
   @POST
   @Path(ID_PARAM + WRITE)
-  @ReturnType("java.lang.Long")
+  @ApiOperation(value = "Writes to the given output stream associated with the id",
+      response = java.lang.Integer.class)
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response write(@PathParam("id") final Integer id, final InputStream is) {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
