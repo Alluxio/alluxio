@@ -17,13 +17,8 @@ on Kubernetes using the specification that comes in the Alluxio Github repositor
 - A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
 Please ensure the feature is enabled.
-- An Alluxio Docker image. Refer to
-[this page]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }}) for instructions to
-build an image. The image must be
-available for a pull from all Kubernetes hosts running Alluxio processes. This can be achieved by
-pushing the image to an accessible Docker registry, or pushing the image individually to all hosts.
-If using a private Docker registry, refer to the Kubernetes
-[documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+- An Alluxio Docker image [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/). If using a
+private Docker registry, refer to the Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
 ## Basic Setup
 
@@ -37,29 +32,6 @@ cd integration/kubernetes
 ```
 
 The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
-
-### Enable short-circuit operations
-
-Short-circuit access enables clients to perform read and write operations directly against the
-worker memory instead of having to go through the worker process. Set up a domain socket on all hosts
-eligible to run the Alluxio worker process to enable this mode of operation.
-
-As part of the Alluxio worker pod creation, a directory is created on the host for the shared domain
-socket.
-
-This step can be skipped in case short-circuit accesss is not desired or cannot be set up. To disable
-this feature, set the property `alluxio.user.short.circuit.enabled=false` according to the instructions
-in the configuration section below.
-
-By default, short-circuit operations between the Alluxio client and worker are enabled if the client
-hostname matches the worker hostname. This may not be true if the client is running as part of a container
-with virtual networking. In such a scenario, set the following property to use filesystem inspection
-to enable short-circuit. Short-circuit writes are then enabled if the worker UUID is located on the client
-filesystem.
-```properties
-alluxio.worker.data.server.domain.socket.as.uuid=true
-alluxio.worker.data.server.domain.socket.address=/opt/domain
-```
 
 ### Provision a Persistent Volume
 
@@ -86,11 +58,8 @@ kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ### Configure Alluxio properties
-Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to
-[Docker configuration]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }}) for the
-corresponding environment variable name for Alluxio properties in `conf/alluxio-site.properties`.
 
-Define all environment variables in a single file. Copy the properties template at
+Define environment variables in `alluxio.properties`. Copy the properties template at
 `integration/kubernetes/conf`, and modify or add any configuration properties as required.
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
@@ -195,7 +164,26 @@ across multiple containers.
 
 ## Troubleshooting
 
-### FUSE
+### Short-circuit Access
+
+Short-circuit access enables clients to perform read and write operations directly against the
+worker bypassing the networking interface. As part of the Alluxio worker pod creation, a directory
+is created on the host for the shared domain socket.
+
+To disable this feature, set the property `alluxio.user.short.circuit.enabled=false`. By default,
+short-circuit operations between the Alluxio client and worker are enabled if the client hostname
+matches the worker hostname. This may not be true if the client is running as part of a container
+with virtual networking. In such a scenario, set the following property to use filesystem inspection
+to enable short-circuit and make sure the client container mounts the directory specified as the
+domain socket address. Short-circuit writes are then enabled if the worker UUID is located on the
+client filesystem.
+
+```properties
+alluxio.worker.data.server.domain.socket.as.uuid=true
+alluxio.worker.data.server.domain.socket.address=/opt/domain
+```
+
+### POSIX API
 
 In order for an application container to mount the `hostPath` volume, the node running the container
 must have the Alluxio FUSE daemon running. The default spec `alluxio-fuse.yaml` runs as a DaemonSet,
