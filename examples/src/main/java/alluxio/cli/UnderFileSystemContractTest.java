@@ -23,7 +23,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
@@ -124,8 +123,6 @@ public final class UnderFileSystemContractTest {
         String testName = test.getName();
         if (testName.endsWith("Test")) {
           System.out.printf("Running test: %s...", testName);
-          Thread thread = CommonUtils.createProgressThread(System.out);
-          thread.start();
           try {
             test.invoke(operations);
           } catch (InvocationTargetException e) {
@@ -133,8 +130,6 @@ public final class UnderFileSystemContractTest {
               logRelatedS3Operations(test);
             }
             throw new IOException(e.getTargetException());
-          } finally {
-            thread.interrupt();
           }
           System.out.println("Test Passed!");
           cleanupUfs(testDir);
