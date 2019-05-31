@@ -85,7 +85,12 @@ public final class GrpcDataServer implements DataServer {
     mSocketAddress = bindAddress;
     mWorkerProcess = workerProcess;
     try {
-      BlockWorkerImpl blockWorkerService = new BlockWorkerImpl(workerProcess, mFsContext);
+      // There is no way to query domain socket address afterwards.
+      // So store the bind address if it's domain socket address.
+      if (bindAddress instanceof DomainSocketAddress) {
+        mDomainSocketAddress = (DomainSocketAddress) bindAddress;
+      }
+      BlockWorkerImpl blockWorkerService = new BlockWorkerImpl(workerProcess, mFsContext, mDomainSocketAddress != null);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           ServerConfiguration.global()))
           .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
@@ -98,11 +103,6 @@ public final class GrpcDataServer implements DataServer {
           .maxInboundMessageSize((int) mMaxInboundMessageSize)
           .build()
           .start();
-      // There is no way to query domain socket address afterwards.
-      // So store the bind address if it's domain socket address.
-      if (bindAddress instanceof DomainSocketAddress) {
-        mDomainSocketAddress = (DomainSocketAddress) bindAddress;
-      }
     } catch (IOException e) {
       LOG.error("Server failed to start on {}", bindAddress.toString(), e);
       throw new RuntimeException(e);

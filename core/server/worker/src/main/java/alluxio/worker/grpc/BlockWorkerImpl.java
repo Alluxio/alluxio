@@ -65,18 +65,22 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   private final AsyncCacheRequestManager mRequestManager;
   private ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
+  private final boolean mDomainSocketEnabled;
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
    *
    * @param workerProcess the worker process
    * @param fsContext context used to read blocks
+   * @param domainSocketEnabled is using domain sockets
    */
-  public BlockWorkerImpl(WorkerProcess workerProcess, FileSystemContext fsContext) {
+  public BlockWorkerImpl(WorkerProcess workerProcess, FileSystemContext fsContext,
+      boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
     mRequestManager = new AsyncCacheRequestManager(
         GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class),
         fsContext);
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   /**
@@ -105,7 +109,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
     }
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
         mWorkerProcess.getWorker(BlockWorker.class), callStreamObserver,
-        getAuthenticatedUserInfo());
+        getAuthenticatedUserInfo(), mDomainSocketEnabled);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
   }
