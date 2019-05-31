@@ -119,4 +119,13 @@ public interface WriteRequestCommandOrBuilder extends
    */
   com.google.protobuf.ByteString
       getMediumTypeBytes();
+
+  /**
+   * <code>optional bool pin_on_create = 9;</code>
+   */
+  boolean hasPinOnCreate();
+  /**
+   * <code>optional bool pin_on_create = 9;</code>
+   */
+  boolean getPinOnCreate();
 }
