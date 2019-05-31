@@ -28,8 +28,6 @@ import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -46,7 +44,6 @@ import java.util.UUID;
  * all tests in {@link S3ASpecificOperations} will also be run.
  */
 public final class UnderFileSystemContractTest {
-  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemContractTest.class);
   private static final String S3_IDENTIFIER = "s3";
 
   @Parameter(names = {"--path"}, required = true,
@@ -68,7 +65,7 @@ public final class UnderFileSystemContractTest {
         UnderFileSystemConfiguration.defaults(mConf));
     // Check if the ufs path is valid
     if (factory == null || !factory.supportsPath(mUfsPath)) {
-      LOG.error("{} is not a valid path", mUfsPath);
+      System.out.printf("%s is not a valid path", mUfsPath);
       System.exit(1);
     }
 
@@ -86,7 +83,7 @@ public final class UnderFileSystemContractTest {
     if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
       runS3AOperations();
     }
-    CliUtils.printPassInfo(true);
+    System.out.println("All tests passed!");
   }
 
   private void runCommonOperations() throws Exception {
@@ -125,7 +122,7 @@ public final class UnderFileSystemContractTest {
       for (Method test : tests) {
         String testName = test.getName();
         if (testName.endsWith("Test")) {
-          LOG.info("Running test: " + testName);
+          System.out.printf("Running test: %s...", testName);
           try {
             test.invoke(operations);
           } catch (InvocationTargetException e) {
@@ -134,7 +131,7 @@ public final class UnderFileSystemContractTest {
             }
             throw new IOException(e.getTargetException());
           }
-          LOG.info("Test Passed!");
+          System.out.println("Test Passed!");
           cleanupUfs(testDir);
         }
       }
@@ -182,7 +179,7 @@ public final class UnderFileSystemContractTest {
     if (annotation != null) {
       String[] ops = annotation.operations();
       if (ops.length > 0) {
-        LOG.info("Related S3 operations: " + String.join(", ", ops));
+        System.out.println("Related S3 operations: " + String.join(", ", ops));
       }
     }
   }
@@ -210,14 +207,14 @@ public final class UnderFileSystemContractTest {
     try {
       jc.parse(args);
     } catch (Exception e) {
-      LOG.error(e.getMessage());
+      System.out.println(e.getMessage());
       jc.usage();
-      LOG.info(getHelpMessage());
+      System.out.println(getHelpMessage());
       System.exit(1);
     }
     if (test.mHelp) {
       jc.usage();
-      LOG.info(getHelpMessage());
+      System.out.println(getHelpMessage());
     } else {
       test.run();
     }
