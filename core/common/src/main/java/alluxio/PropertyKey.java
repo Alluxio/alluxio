@@ -1601,7 +1601,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "You will need to set a path to this socket. The AlluxioWorker needs to be "
               + "able to create the path. If " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID
               + " is set, the path should be the home directory for the domain socket. The full "
-              + "path for the domain socket with be <path>/<uuid>.")
+              + "path for the domain socket with be {path}/{uuid}.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
