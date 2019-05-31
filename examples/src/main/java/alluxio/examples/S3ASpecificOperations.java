@@ -19,9 +19,6 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +29,6 @@ import java.util.Arrays;
  * S3A specific operations like streaming upload.
  */
 public final class S3ASpecificOperations {
-  private static final Logger LOG = LoggerFactory.getLogger(S3ASpecificOperations.class);
   // A safe test wait time to wait for all parts upload
   private static final long TEST_WAIT_TIME = 10000;
   private static final byte[] TEST_BYTES = "TestBytesInS3AFiles".getBytes();
@@ -143,11 +139,10 @@ public final class S3ASpecificOperations {
       outputStream.write(TEST_BYTES);
     }
 
-    LOG.info("Waiting for the in progress upload to be finished so that we can abort it. "
+    System.out.println("Waiting for the in progress upload to be finished so that we can abort it. "
         + "This file may need longer time to upload which may cause test to fail.");
     CommonUtils.sleepMs(TEST_WAIT_TIME);
 
-    LOG.info("Expected to see aborted multipart upload and failed to upload last part message");
     mUfs.cleanup();
 
     boolean getS3ExpectedError = false;

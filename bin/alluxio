@@ -317,7 +317,6 @@ function main {
   "runUfsTests")
     CLASS="alluxio.cli.UnderFileSystemContractTest"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "readJournal")
