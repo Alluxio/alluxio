@@ -123,8 +123,8 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
       responseObserver =
           new DataMessageServerRequestObserver<>(responseObserver, mWriteRequestMarshaller, null);
     }
-    DelegationWriteHandler handler =
-        new DelegationWriteHandler(mWorkerProcess, responseObserver, getAuthenticatedUserInfo());
+    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver,
+        getAuthenticatedUserInfo(), mDomainSocketEnabled);
     serverResponseObserver.setOnCancelHandler(handler::onCancel);
     return handler;
   }

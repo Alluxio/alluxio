@@ -69,13 +69,16 @@ public final class UfsFallbackBlockWriteHandler
    *
    * @param blockWorker the block worker
    * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether using a domain socket
    */
   UfsFallbackBlockWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
-      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
+      boolean domainSocketEnabled) {
     super(responseObserver, userInfo);
     mWorker = blockWorker;
     mUfsManager = ufsManager;
-    mBlockWriteHandler = new BlockWriteHandler(blockWorker, responseObserver, userInfo);
+    mBlockWriteHandler =
+        new BlockWriteHandler(blockWorker, responseObserver, userInfo, domainSocketEnabled);
   }
 
   @Override
