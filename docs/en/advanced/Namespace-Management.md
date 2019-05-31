@@ -315,5 +315,5 @@ bin/alluxio fs ls -R /
 
 ## Resources
 
-- A blog post explaining [Unified Namespace](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
-- A blog post on [Optimizations to speed up metadata operations](https://www.alluxio.com/blog/how-to-speed-up-alluxio-metadata-operations-up-to-100x)
+- A blog post explaining [Unified Namespace](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)
+- A blog post on [Optimizations to speed up metadata operations](https://www.alluxio.io/blog/how-to-speed-up-alluxio-metadata-operations-up-to-100x/)
