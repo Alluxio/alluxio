@@ -12,13 +12,13 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.migrate.MigrateConfig;
+import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -57,7 +57,7 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     if (mFileSystem.exists(dstPath)) {
       throw new RuntimeException(dstPath + " already exists");
     }
-    Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
+    Thread thread = CommonUtils.createProgressThread(System.out);
     thread.start();
     try {
       JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true,
