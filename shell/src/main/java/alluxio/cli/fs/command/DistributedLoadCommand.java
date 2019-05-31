@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -101,7 +100,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         load(newPath, replication);
       }
     } else {
-      Thread thread = CommonUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
+      Thread thread = CommonUtils.createProgressThread(System.out);
       thread.start();
       try {
         JobGrpcClientUtils.run(new LoadConfig(filePath.getPath(), replication), 3,

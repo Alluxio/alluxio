@@ -240,16 +240,15 @@ public final class UnderFileSystemCommonOperations {
     int offset = 0;
     while (offset < buf.length) {
       int bytesRead = inputStream.read(buf, offset, buf.length - offset);
-      if (bytesRead != -1) {
-        for (int i = 0; i < bytesRead; ++i) {
-          if (TEST_BYTES[(offset + i) % TEST_BYTES.length] != buf[offset + i]) {
-            throw new IOException(FILE_CONTENT_INCORRECT);
-          }
-        }
-        offset += bytesRead;
-      } else {
+      if (bytesRead == -1) {
         break;
       }
+      for (int i = 0; i < bytesRead; ++i) {
+        if (TEST_BYTES[(offset + i) % TEST_BYTES.length] != buf[offset + i]) {
+          throw new IOException(FILE_CONTENT_INCORRECT);
+        }
+      }
+      offset += bytesRead;
     }
     if (buf.length != offset) {
       throw new IOException(FILE_CONTENT_INCORRECT);

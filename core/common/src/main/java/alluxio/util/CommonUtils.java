@@ -84,28 +84,25 @@ public final class CommonUtils {
 
   /**
    * Creates a thread which will write "." to the given print stream at the given interval. The
-   * created thread is not started by this method. The created thread will be daemonic and will
-   * halt when interrupted.
+   * created thread is not started by this method. The created thread will be a daemon thread
+   * and will halt when interrupted.
    *
    * @param intervalMs the time interval in milliseconds between writes
    * @param stream the print stream to write to
    * @return the thread
    */
   public static Thread createProgressThread(final long intervalMs, final PrintStream stream) {
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (true) {
-          CommonUtils.sleepMs(intervalMs);
-          if (Thread.interrupted()) {
-            return;
-          }
-          stream.print(".");
+    Thread t = new Thread(() -> {
+      while (true) {
+        CommonUtils.sleepMs(intervalMs);
+        if (Thread.interrupted()) {
+          return;
         }
+        stream.print(".");
       }
     });
-    thread.setDaemon(true);
-    return thread;
+    t.setDaemon(true);
+    return t;
   }
 
   /**

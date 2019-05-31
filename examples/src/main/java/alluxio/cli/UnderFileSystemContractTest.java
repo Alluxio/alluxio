@@ -11,7 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.Constants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.examples.RelatedS3Operations;
@@ -125,7 +124,7 @@ public final class UnderFileSystemContractTest {
         String testName = test.getName();
         if (testName.endsWith("Test")) {
           System.out.printf("Running test: %s...", testName);
-          Thread thread = CommonUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
+          Thread thread = CommonUtils.createProgressThread(System.out);
           thread.start();
           try {
             test.invoke(operations);
