@@ -11,11 +11,10 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.Constants;
 import alluxio.cli.CommandUtils;
-import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -41,7 +40,7 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
+    Thread thread = CommonUtils.createProgressThread(System.out);
     thread.start();
     try {
       String masterHostname = mMetaClient.checkpoint();

@@ -29,9 +29,11 @@ public interface AuthenticationServer extends BindableService {
    *
    * @param channelId channel id
    * @param userInfo authanticated user info
+   * @param saslDriver sasl server driver
    * @param saslServer server that has been used for authentication
    */
-  void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo, SaslServer saslServer);
+  void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo,
+      SaslStreamServerDriver saslDriver, SaslServer saslServer);
 
   /**
    * @param channelId channel id
@@ -44,8 +46,9 @@ public interface AuthenticationServer extends BindableService {
    * Unregisters given channel.
    *
    * @param channelId channel id
+   * @return {@code true} if channel was registered
    */
-  void unregisterChannel(UUID channelId);
+  boolean unregisterChannel(UUID channelId);
 
   /**
    * Creates server-side Sasl handler for given scheme.
@@ -57,4 +60,9 @@ public interface AuthenticationServer extends BindableService {
    */
   SaslServerHandler createSaslHandler(ChannelAuthenticationScheme scheme)
       throws SaslException, UnauthenticatedException;
+
+  /**
+   * Closes the server, releases all authentication sessions.
+   */
+  void close();
 }
