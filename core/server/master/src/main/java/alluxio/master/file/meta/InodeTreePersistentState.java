@@ -717,6 +717,7 @@ public class InodeTreePersistentState implements Journaled {
 
       // Used to signal end of iteration.
       private static final long TERMINATION_SEQ = -1;
+      private static final long FAILURE_SEQ = -2;
 
       /** Buffered entry queue. */
       BlockingQueue<JournalEntry> mEntryBuffer;
@@ -856,6 +857,14 @@ public class InodeTreePersistentState implements Journaled {
             LOG.error("InodeTree buffering stopped due to crawler thread failure.",
                 ee.getCause());
             mBufferingFailure.set(ee.getCause());
+            // Signal failure during buffering.
+            try {
+              mEntryBuffer.put(JournalEntry.newBuilder().setSequenceNumber(FAILURE_SEQ).build());
+            } catch (InterruptedException ie) {
+              Thread.currentThread().interrupt();
+              throw new RuntimeException(
+                  "Thread interrupted while signaling for buffering failure.");
+            }
           } finally {
             // Signal completion of buffering.
             mBufferingActive.set(false);
@@ -876,11 +885,6 @@ public class InodeTreePersistentState implements Journaled {
          * until an entry is retrieved or buffering is completed with no entries.
          */
 
-        // Throw for buffering failure.
-        if (mBufferingFailure.get() != null) {
-          throw new RuntimeException(mBufferingFailure.get());
-        }
-
         // Check for termination entry.
         // This assumes the termination entry will be enqueued the last.
         if (mNextElements.size() == 1
@@ -896,6 +900,7 @@ public class InodeTreePersistentState implements Journaled {
 
         // Continue until taking an entry or failing due to having no entry.
         while (true) {
+          // Return {@code false} if buffering is completed but still no entries.
           if (!mBufferingActive.get() && mEntryBuffer.size() == 0) {
             return false;
           }
@@ -943,8 +948,14 @@ public class InodeTreePersistentState implements Journaled {
           // hasNext() has been called before and stored the next element.
           // Return and reset state for the next item.
         }
-        // Return next element.
-        return mNextElements.removeFirst();
+        // Store next element.
+        JournalEntry nextElement = mNextElements.removeFirst();
+        // Throw failure if current element is a signal for failure.
+        if (nextElement.getSequenceNumber() == FAILURE_SEQ) {
+          throw new RuntimeException(mBufferingFailure.get());
+        }
+
+        return nextElement;
       }
 
       @Override
