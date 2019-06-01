@@ -133,7 +133,7 @@ or `zk@host1:2181,host2:2181,host3:2181`.
 </property>
 ```
 
-See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority)
+See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority)
 for more details.
 
 ### Add additional Alluxio site properties to HBase

@@ -184,7 +184,7 @@ connect to Alluxio HA cluster using internal leader election:
 
 > Note that you must use semicolons rather than commas to separate different addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
-Please refer to the instructions in [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority).
+Please refer to the instructions in [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
 
 ### Cache RDD into Alluxio
 
