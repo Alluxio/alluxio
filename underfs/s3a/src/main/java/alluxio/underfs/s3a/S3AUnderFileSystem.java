@@ -93,7 +93,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   // TODO(binfan): make this a member of ObjectUnderFileSystem rather than a calculated string
   // each time on getRootKey() for efficiency
-  /** The root key of this under fs*/
+  /** The root key of this under fs. */
   private String mRootKey;
 
   /** Bucket name of user's configured Alluxio bucket. */
