@@ -93,10 +93,10 @@ public final class UnderFileSystemContractTest {
   }
 
   private void runS3AOperations() throws Exception {
-    mConf.set(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1, "true");
-    mConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED, "true");
-    mConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
-    mConf.set(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
+    mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, "true");
+    mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, "true");
+    mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
+    mConf.set(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
 
     mUfs = UnderFileSystem.Factory.create(mUfsPath,
         UnderFileSystemConfiguration.defaults(mConf));

@@ -776,38 +776,42 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_DEFAULT_MODE =
-      new Builder(Name.UNDERFS_S3A_DEFAULT_MODE)
+  public static final PropertyKey UNDERFS_S3_DEFAULT_MODE =
+      new Builder(Name.UNDERFS_S3_DEFAULT_MODE)
+          .setAlias(new String[] {"alluxio.underfs.s3a.default.mode"})
           .setDefaultValue("0700")
           .setDescription("Mode (in octal notation) for S3 objects if mode cannot be discovered.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
-      new Builder(Name.UNDERFS_S3A_DIRECTORY_SUFFIX)
+  public static final PropertyKey UNDERFS_S3_DIRECTORY_SUFFIX =
+      new Builder(Name.UNDERFS_S3_DIRECTORY_SUFFIX)
+          .setAlias(new String[] {"alluxio.underfs.s3a.directory.suffix"})
           .setDefaultValue("/")
           .setDescription("Directories are represented in S3 as zero-byte objects named with "
               + "the specified suffix.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_BULK_DELETE_ENABLED =
-      new Builder(Name.UNDERFS_S3A_BULK_DELETE_ENABLED)
+  public static final PropertyKey UNDERFS_S3_BULK_DELETE_ENABLED =
+      new Builder(Name.UNDERFS_S3_BULK_DELETE_ENABLED)
+          .setAlias(new String[] {"alluxio.underfs.s3a.bulk.delete.enabled"})
           .setDefaultValue(true)
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
-      new Builder(Name.UNDERFS_S3A_INHERIT_ACL)
+  public static final PropertyKey UNDERFS_S3_INHERIT_ACL =
+      new Builder(Name.UNDERFS_S3_INHERIT_ACL)
+          .setAlias(new String[] {"alluxio.underfs.s3a.inherit_acl"})
           .setDefaultValue(true)
-          .setDescription("Optionally disable this to disable inheriting bucket ACLs on "
-              + "objects.")
+          .setDescription("Optionally disable this to disable inheriting bucket ACLs on objects.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE =
-      new Builder(Name.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+  public static final PropertyKey UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+      new Builder(Name.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+          .setAlias(new String[] {"alluxio.underfs.s3a.intermediate.upload.clean.age"})
           .setDefaultValue("3day")
           .setDescription("Streaming uploads may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
@@ -817,16 +821,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
-      new Builder(Name.UNDERFS_S3A_LIST_OBJECTS_VERSION_1)
+  public static final PropertyKey UNDERFS_S3_LIST_OBJECTS_V1 =
+      new Builder(Name.UNDERFS_S3_LIST_OBJECTS_V1)
+          .setAlias(new String[] {"alluxio.underfs.s3a.list.objects.v1"})
           .setDefaultValue(false)
           .setDescription("Whether to use version 1 of GET Bucket (List Objects) API.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
-      new Builder(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.underfs.s3a.request.timeout.ms"})
+  public static final PropertyKey UNDERFS_S3_REQUEST_TIMEOUT =
+      new Builder(Name.UNDERFS_S3_REQUEST_TIMEOUT)
+          .setAlias(new String[]{"alluxio.underfs.s3a.request.timeout.ms",
+              "alluxio.underfs.s3a.request.timeout"})
           .setDefaultValue("1min")
           .setDescription("The timeout for a single request to S3. Infinity if set to 0. "
               + "Setting this property to a non-zero value can improve performance by "
@@ -835,22 +841,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_SECURE_HTTP_ENABLED =
-      new Builder(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED)
+  public static final PropertyKey UNDERFS_S3_SECURE_HTTP_ENABLED =
+      new Builder(Name.UNDERFS_S3_SECURE_HTTP_ENABLED)
+          .setAlias(new String[] {"alluxio.underfs.s3a.secure.http.enabled"})
           .setDefaultValue(false)
           .setDescription("Whether or not to use HTTPS protocol when communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
-      new Builder(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)
+  public static final PropertyKey UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED =
+      new Builder(Name.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED)
+          .setAlias(new String[] {"alluxio.underfs.s3a.server.side.encryption.enabled"})
           .setDefaultValue(false)
           .setDescription("Whether or not to encrypt data stored in S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_SIGNER_ALGORITHM =
-      new Builder(Name.UNDERFS_S3A_SIGNER_ALGORITHM)
+  public static final PropertyKey UNDERFS_S3_SIGNER_ALGORITHM =
+      new Builder(Name.UNDERFS_S3_SIGNER_ALGORITHM)
+          .setAlias(new String[] {"alluxio.underfs.s3a.signer.algorithm"})
           .setDescription("The signature algorithm which should be used to sign requests to "
               + "the s3 service. This is optional, and if not set, the client will "
               + "automatically determine it. For interacting with an S3 endpoint which only "
@@ -858,23 +867,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
-      new Builder(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.underfs.s3a.socket.timeout.ms"})
+  public static final PropertyKey UNDERFS_S3_SOCKET_TIMEOUT =
+      new Builder(Name.UNDERFS_S3_SOCKET_TIMEOUT)
+          .setAlias(new String[]{"alluxio.underfs.s3a.socket.timeout.ms",
+              "alluxio.underfs.s3a.socket.timeout"})
           .setDefaultValue("50sec")
           .setDescription("Length of the socket timeout when communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_STREAMING_UPLOAD_ENABLED =
-      new Builder(Name.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED)
+  public static final PropertyKey UNDERFS_S3_STREAMING_UPLOAD_ENABLED =
+      new Builder(Name.UNDERFS_S3_STREAMING_UPLOAD_ENABLED)
+          .setAlias(new String[] {"alluxio.underfs.s3a.streaming.upload.enabled"})
           .setDefaultValue(false)
-          .setDescription("(Experimental) If true, using streaming upload to write to S3A.")
+          .setDescription("(Experimental) If true, using streaming upload to write to S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE =
-      new Builder(Name.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE)
+  public static final PropertyKey UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE =
+      new Builder(Name.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE)
+          .setAlias(new String[] {"alluxio.underfs.s3a.streaming.upload.partition.size"})
           .setDefaultValue("64MB")
           .setDescription("Maximum allowable size of a single buffer file when using "
               + "S3A streaming upload. When the buffer file reaches the partition size, "
@@ -3643,30 +3655,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.connection.timeout";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
-    public static final String UNDERFS_S3A_BULK_DELETE_ENABLED =
-        "alluxio.underfs.s3a.bulk.delete.enabled";
-    public static final String UNDERFS_S3A_DEFAULT_MODE = "alluxio.underfs.s3a.default.mode";
-    public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
-        "alluxio.underfs.s3a.directory.suffix";
-    public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
-    public static final String UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE =
-        "alluxio.underfs.s3a.intermediate.upload.clean.age";
-    public static final String UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
-        "alluxio.underfs.s3a.list.objects.v1";
-    public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
-        "alluxio.underfs.s3a.request.timeout";
-    public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
-        "alluxio.underfs.s3a.secure.http.enabled";
-    public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
-        "alluxio.underfs.s3a.server.side.encryption.enabled";
-    public static final String UNDERFS_S3A_SIGNER_ALGORITHM =
-        "alluxio.underfs.s3a.signer.algorithm";
-    public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
-        "alluxio.underfs.s3a.socket.timeout";
-    public static final String UNDERFS_S3A_STREAMING_UPLOAD_ENABLED =
-        "alluxio.underfs.s3a.streaming.upload.enabled";
-    public static final String UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE =
-        "alluxio.underfs.s3a.streaming.upload.partition.size";
+    public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
+        "alluxio.underfs.s3.bulk.delete.enabled";
+    public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
+    public static final String UNDERFS_S3_DIRECTORY_SUFFIX =
+        "alluxio.underfs.s3.directory.suffix";
+    public static final String UNDERFS_S3_INHERIT_ACL = "alluxio.underfs.s3.inherit.acl";
+    public static final String UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+        "alluxio.underfs.s3.intermediate.upload.clean.age";
+    public static final String UNDERFS_S3_LIST_OBJECTS_V1 =
+        "alluxio.underfs.s3.list.objects.v1";
+    public static final String UNDERFS_S3_REQUEST_TIMEOUT =
+        "alluxio.underfs.s3.request.timeout";
+    public static final String UNDERFS_S3_SECURE_HTTP_ENABLED =
+        "alluxio.underfs.s3.secure.http.enabled";
+    public static final String UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED =
+        "alluxio.underfs.s3.server.side.encryption.enabled";
+    public static final String UNDERFS_S3_SIGNER_ALGORITHM =
+        "alluxio.underfs.s3.signer.algorithm";
+    public static final String UNDERFS_S3_SOCKET_TIMEOUT =
+        "alluxio.underfs.s3.socket.timeout";
+    public static final String UNDERFS_S3_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.s3.streaming.upload.enabled";
+    public static final String UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.s3.streaming.upload.partition.size";
     public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
         "alluxio.underfs.s3.admin.threads.max";
     public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =

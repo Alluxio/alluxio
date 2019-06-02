@@ -128,7 +128,7 @@ public class PathPropertiesTest {
     properties.remove(NoopJournalContext.INSTANCE, ROOT, new HashSet<>(Arrays.asList(
         PropertyKey.USER_APP_ID.getName())));
     properties.remove(NoopJournalContext.INSTANCE, DIR1, new HashSet<>(Arrays.asList(
-        PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED.getName())));
+        PropertyKey.UNDERFS_S3_BULK_DELETE_ENABLED.getName())));
     got = properties.get();
     Assert.assertEquals(2, got.size());
     assertPropertiesEqual(READ_CACHE_WRITE_CACHE_THROUGH, got.get(ROOT));

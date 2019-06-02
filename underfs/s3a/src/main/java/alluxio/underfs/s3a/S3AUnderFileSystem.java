@@ -175,10 +175,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     // Socket timeout
     clientConf
-        .setSocketTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+        .setSocketTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3_SOCKET_TIMEOUT));
 
     // HTTP protocol
-    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
+    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_SECURE_HTTP_ENABLED))) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
@@ -210,14 +210,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Set client request timeout for all requests since multipart copy is used,
     // and copy parts can only be set with the client configuration.
     clientConf
-        .setRequestTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+        .setRequestTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3_REQUEST_TIMEOUT));
 
     boolean streamingUploadEnabled =
-        conf.getBoolean(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED);
+        conf.getBoolean(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED);
 
     // Signer algorithm
-    if (conf.isSet(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
-      clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM));
+    if (conf.isSet(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM)) {
+      clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
 
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
@@ -289,9 +289,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public void cleanup() {
-    long cleanAge = mConf.isSet(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
-        ? mConf.getMs(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
-        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE
+    long cleanAge = mConf.isSet(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        ? mConf.getMs(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE
         .getDefaultValue());
     Date cleanBefore = new Date(new Date().getTime() - cleanAge);
     mManager.abortMultipartUploads(mBucketName, cleanBefore);
@@ -306,7 +306,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       try {
         CopyObjectRequest request = new CopyObjectRequest(mBucketName, src, mBucketName, dst);
         if (Boolean.parseBoolean(
-            mConf.get(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED))) {
+            mConf.get(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED))) {
           ObjectMetadata meta = new ObjectMetadata();
           meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
           request.setNewObjectMetadata(meta);
@@ -344,14 +344,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected OutputStream createObject(String key) throws IOException {
     if (mStreamingUploadEnabled) {
       return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor,
-          mUfsConf.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE),
+          mUfsConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE),
           mUfsConf.getList(PropertyKey.TMP_DIRS, ","),
-          mUfsConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
+          mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
     }
     return new S3AOutputStream(mBucketName, key, mManager,
         mUfsConf.getList(PropertyKey.TMP_DIRS, ","),
         mUfsConf
-            .getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
+            .getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 
   @Override
@@ -367,7 +367,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
-    if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
+    if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_BULK_DELETE_ENABLED)) {
       return super.deleteObjects(keys);
     }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
@@ -391,7 +391,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getFolderSuffix() {
-    return mUfsConf.get(PropertyKey.UNDERFS_S3A_DIRECTORY_SUFFIX);
+    return mUfsConf.get(PropertyKey.UNDERFS_S3_DIRECTORY_SUFFIX);
   }
 
   @Override
@@ -402,8 +402,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix.
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    if (mConf.isSet(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
-        .get(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
+    if (mConf.isSet(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1) && mConf
+        .get(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1).equals(Boolean.toString(true))) {
       ListObjectsRequest request =
           new ListObjectsRequest().withBucketName(mBucketName).withPrefix(key)
               .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mUfsConf));
@@ -571,11 +571,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   private ObjectPermissions getPermissionsInternal() {
     short bucketMode =
-        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_S3A_DEFAULT_MODE)).toShort();
+        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_S3_DEFAULT_MODE)).toShort();
     String accountOwner = DEFAULT_OWNER;
 
     // if ACL enabled try to inherit bucket acl for all the objects.
-    if (Boolean.parseBoolean(mConf.get(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
+    if (Boolean.parseBoolean(mConf.get(PropertyKey.UNDERFS_S3_INHERIT_ACL))) {
       try {
         Owner owner = mClient.getS3AccountOwner();
         AccessControlList acl = mClient.getBucketAcl(mBucketName);
