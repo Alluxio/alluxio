@@ -46,7 +46,7 @@ void unmount(AlluxioURI path, UnmountOptions options);
 例如，主存储（"primary storage"）可以是HDFS，其中可以包含用户的文件夹；`Data`文件夹可能存储在S3文件系统
 下，这可以通过以下命令实现。
 ```java
-mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3a://bucket/directory"));
+mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3://bucket/directory"));
 ```
 
 ## 示例
@@ -131,13 +131,13 @@ hello
 
 ```java
 ./bin/alluxio fs mkdir /mnt
-./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId1> --option aws.secretKey=<secretKey1>  /mnt/s3bucket1 s3a://data-bucket1/
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId1> --option aws.secretKey=<secretKey1>  /mnt/s3bucket1 s3://data-bucket1/
 ```
 
 接下来，使用可能不同的凭据`<accessKeyId2>`和`<secretKey2>`将第二个S3 bucket挂载到Alluxio中:
 
 ```java
-./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId2> --option aws.secretKey=<secretKey2>  /mnt/s3bucket2 s3a://data-bucket2/
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId2> --option aws.secretKey=<secretKey2>  /mnt/s3bucket2 s3://data-bucket2/
 ```
 
 最后，将HDFS存储也挂载到Alluxio中:

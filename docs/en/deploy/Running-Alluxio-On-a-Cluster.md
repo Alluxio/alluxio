@@ -49,7 +49,7 @@ workers. The configuration parameters which must be set are:
 - `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by the master node and all worker nodes.
-  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
 
 This is the minimal configuration to start Alluxio, but additional configuration may be added.
 
@@ -146,7 +146,7 @@ Add the following properties to the `conf/alluxio-site.properties` file:
 - `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by all master nodes and all worker nodes.
-  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
   
 ### Setting up HA cluster with internal leader election
 
