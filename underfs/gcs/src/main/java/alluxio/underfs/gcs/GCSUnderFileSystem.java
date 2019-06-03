@@ -352,12 +352,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy)
-      throws IOException {
-    try {
-      return new GCSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
-    } catch (ServiceException e) {
-      throw new IOException(e.getMessage());
-    }
+  protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy) {
+    return new GCSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
   }
 }

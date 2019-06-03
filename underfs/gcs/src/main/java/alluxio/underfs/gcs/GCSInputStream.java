@@ -65,7 +65,7 @@ public final class GCSInputStream extends InputStream {
    * @param retryPolicy retry policy in case the key does not exist
    */
   GCSInputStream(String bucketName, String key, GoogleStorageService client,
-      RetryPolicy retryPolicy) throws ServiceException {
+      RetryPolicy retryPolicy) {
     this(bucketName, key, client, 0L, retryPolicy);
   }
 
@@ -79,41 +79,12 @@ public final class GCSInputStream extends InputStream {
    * @param retryPolicy retry policy in case the key does not exist
    */
   GCSInputStream(String bucketName, String key, GoogleStorageService client,
-      long pos, RetryPolicy retryPolicy) throws ServiceException {
+      long pos, RetryPolicy retryPolicy) {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
     mPos = pos;
     mRetryPolicy = retryPolicy;
-  }
-
-  /**
-   * Retries getting a {@link GSObject}.
-   *
-   * @param retryPolicy the retry policy to solve eventual consistency issue
-   * @return the {@link GSObject}
-   */
-  private GSObject getObjectWithRetry(RetryPolicy retryPolicy) throws ServiceException {
-    ServiceException lastException = null;
-    while (retryPolicy.attempt()) {
-      try {
-        if (mPos > 0) {
-          return mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
-        } else {
-          return mClient.getObject(mBucketName, mKey);
-        }
-      } catch (ServiceException e) {
-        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
-            retryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
-        if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
-          throw e;
-        }
-        // Key does not exist
-        lastException = e;
-      }
-    }
-    // Failed after retrying key does not exist
-    throw lastException;
   }
 
   @Override
@@ -176,7 +147,7 @@ public final class GCSInputStream extends InputStream {
   }
 
   /**
-   * Opens a new stream at mPos if the wrapped stream mIn is null.
+   * Opens a new stream at mPos if the wrapped stream mInputStream is null.
    */
   private void openStream() throws IOException {
     ServiceException lastException = null;
