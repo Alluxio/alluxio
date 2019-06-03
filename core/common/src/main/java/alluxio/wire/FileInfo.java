@@ -24,6 +24,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -69,6 +70,7 @@ public final class FileInfo implements Serializable {
 
   private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
   private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
+  private Map<String, byte[]> mXAttr;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -306,6 +308,13 @@ public final class FileInfo implements Serializable {
    */
   public Set<String> getMediumTypes() {
     return mMediumTypes;
+  }
+
+  /**
+   * @return the extended attributes
+   */
+  public Map<String, byte[]> getXAttr() {
+    return mXAttr;
   }
 
   /**
@@ -591,6 +600,15 @@ public final class FileInfo implements Serializable {
    */
   public FileInfo setMediumTypes(Set<String> mediumTypes) {
     mMediumTypes = mediumTypes;
+    return this;
+  }
+
+  /**
+   * @param xAttr the extended attributes to use
+   * @return the updated {@link FileInfo}
+   */
+  public FileInfo setXAttr(Map<String, byte[]> xAttr) {
+    mXAttr = xAttr;
     return this;
   }
 
