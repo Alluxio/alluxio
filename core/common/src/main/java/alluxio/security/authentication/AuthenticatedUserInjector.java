@@ -76,7 +76,7 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
    * It sets thread-local authentication information for the call with the user information
    * that is kept on auth-server.
    *
-   * @return {@code true} if call was authenticated successfully.
+   * @return {@code true} if call was authenticated successfully
    */
   private <ReqT, RespT> boolean authenticateCall(ServerCall<ReqT, RespT> call, Metadata headers) {
     // Fail validation for cancelled server calls.
