@@ -104,30 +104,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private final boolean mStreamingUploadEnabled;
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
-  private final Supplier<ObjectPermissions> mPermissions = memoize(this::getPermissionsInternal);
-
-  /** Memoize implementation for java.util.function.supplier. */
-  private static <T> Supplier<T> memoize(Supplier<T> original) {
-    return new Supplier<T>() {
-      Supplier<T> mDelegate = this::firstTime;
-      boolean mInitialized;
-      public T get() {
-        return mDelegate.get();
-      }
-
-      private synchronized T firstTime() {
-        if (!mInitialized) {
-          T value = original.get();
-          mDelegate = () -> value;
-          mInitialized = true;
-        }
-        return mDelegate.get();
-      }
-    };
-  }
-
-  /** The configuration for ufs. */
-  private final UnderFileSystemConfiguration mConf;
+  private final Supplier<ObjectPermissions> mPermissions
+      = UnderFileSystemUtils.memoize(this::getPermissionsInternal);
 
   static {
     byte[] dirByteHash = DigestUtils.md5(new byte[0]);
@@ -260,7 +238,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     mBucketName = bucketName;
     mExecutor = MoreExecutors.listeningDecorator(executor);
     mManager = transferManager;
-    mConf = conf;
     mStreamingUploadEnabled = streamingUploadEnabled;
   }
 
@@ -279,8 +256,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public void cleanup() {
-    long cleanAge = mConf.isSet(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
-        ? mConf.getMs(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+    long cleanAge = mUfsConf.isSet(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        ? mUfsConf.getMs(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
         : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE
         .getDefaultValue());
     Date cleanBefore = new Date(new Date().getTime() - cleanAge);
@@ -296,7 +273,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       try {
         CopyObjectRequest request = new CopyObjectRequest(mBucketName, src, mBucketName, dst);
         if (Boolean.parseBoolean(
-            mConf.get(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED))) {
+            mUfsConf.get(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED))) {
           ObjectMetadata meta = new ObjectMetadata();
           meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
           request.setNewObjectMetadata(meta);
@@ -392,7 +369,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix.
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    if (mConf.isSet(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
+    if (mUfsConf.isSet(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mUfsConf
         .get(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
       ListObjectsRequest request =
           new ListObjectsRequest().withBucketName(mBucketName).withPrefix(key)
@@ -565,15 +542,15 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     String accountOwner = DEFAULT_OWNER;
 
     // if ACL enabled try to inherit bucket acl for all the objects.
-    if (Boolean.parseBoolean(mConf.get(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
+    if (Boolean.parseBoolean(mUfsConf.get(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
       try {
         Owner owner = mClient.getS3AccountOwner();
         AccessControlList acl = mClient.getBucketAcl(mBucketName);
 
         bucketMode = S3AUtils.translateBucketAcl(acl, owner.getId());
-        if (mConf.isSet(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)) {
+        if (mUfsConf.isSet(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)) {
           accountOwner = CommonUtils.getValueFromStaticMapping(
-              mConf.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
+              mUfsConf.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
         } else {
           // If there is no user-defined mapping, use display name or id.
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
