@@ -20,6 +20,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import javax.security.sasl.SaslException;
@@ -81,9 +82,15 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
       // Complete the call from server-side before sending success response to client.
       // Because client will assume authenticated after receiving the success message.
       if (response.getMessageType() == SaslMessageType.SUCCESS) {
+        // Register authorized user with the authentication server.
         mAuthenticationServer.registerChannel(mChannelId,
-            mSaslServerHandler.getAuthenticatedUserInfo(), this,
-            mSaslServerHandler.getSaslServer());
+            mSaslServerHandler.getAuthenticatedUserInfo(), this);
+        // Finished with the handler.
+        try {
+          mSaslServerHandler.close();
+        } catch (IOException exc) {
+          LOG.debug("Failed to close SaslServer.", exc);
+        }
       }
       mRequestObserver.onNext(response);
     } catch (SaslException se) {

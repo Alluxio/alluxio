@@ -18,6 +18,9 @@ import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.SaslServerHandler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.Security;
 import java.util.HashMap;
 
@@ -29,6 +32,8 @@ import javax.security.sasl.SaslServer;
  * {@link SaslServerHandler} implementation for Plain/Custom schemes.
  */
 public class SaslServerHandlerPlain implements SaslServerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(SaslServerHandlerPlain.class);
+
   static {
     Security.addProvider(new PlainSaslServerProvider());
   }
@@ -65,5 +70,16 @@ public class SaslServerHandlerPlain implements SaslServerHandler {
   @Override
   public SaslServer getSaslServer() {
     return mSaslServer;
+  }
+
+  @Override
+  public void close() {
+    if (mSaslServer != null) {
+      try {
+        mSaslServer.dispose();
+      } catch (SaslException exc) {
+        LOG.debug("Failed to close SaslClient.", exc);
+      }
+    }
   }
 }

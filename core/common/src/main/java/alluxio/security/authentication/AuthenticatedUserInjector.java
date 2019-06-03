@@ -32,8 +32,8 @@ import java.util.UUID;
  */
 @ThreadSafe
 public final class AuthenticatedUserInjector implements ServerInterceptor {
-
   private static final Logger LOG = LoggerFactory.getLogger(AuthenticatedUserInjector.class);
+
   private final AuthenticationServer mAuthenticationServer;
 
   /**

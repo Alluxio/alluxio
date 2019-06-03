@@ -12,11 +12,12 @@
 package alluxio.security.authentication;
 
 import javax.security.sasl.SaslServer;
+import java.io.IOException;
 
 /**
  * Interface for authentication scheme specific {@link SaslServer} management.
  */
-public interface SaslServerHandler {
+public interface SaslServerHandler extends AutoCloseable {
 
   /**
    * @return the {@link SaslServer} instance
@@ -36,4 +37,10 @@ public interface SaslServerHandler {
    * @return the authenticated user info
    */
   AuthenticatedUserInfo getAuthenticatedUserInfo();
+
+  /**
+   * Close the handler and dispose internal resources.
+   */
+  @Override
+  void close() throws IOException;
 }
