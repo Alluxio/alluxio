@@ -166,8 +166,10 @@ public class AbstractFileSystemTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void cannotInitializeWithoutMasterHostname() throws Exception {
-    URI uri = URI.create(Constants.HEADER + "/tmp/path.txt");
-    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_HOSTNAME, null).toResource()) {
+      URI uri = URI.create(Constants.HEADER + "/tmp/path.txt");
+      org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+    }
   }
 
   /**
