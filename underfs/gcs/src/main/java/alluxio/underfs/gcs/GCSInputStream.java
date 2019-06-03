@@ -162,8 +162,8 @@ public final class GCSInputStream extends InputStream {
         mInputStream = new BufferedInputStream(object.getDataInputStream());
         return;
       } catch (ServiceException e) {
-        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+        LOG.warn("Attempt {} to open key {} on position {} in bucket {} failed with exception : {}",
+            mRetryPolicy.getAttemptCount(), mKey, mPos, mBucketName, e.toString());
         if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
           throw new IOException(e);
         }
