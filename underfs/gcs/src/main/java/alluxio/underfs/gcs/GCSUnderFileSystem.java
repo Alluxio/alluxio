@@ -56,6 +56,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(GCSUnderFileSystem.class);
 
+  /** Default owner of objects if owner cannot be determined. */
+  private static final String DEFAULT_OWNER = "";
+
   private static final byte[] DIR_HASH;
 
   /** Jets3t GCS client. */
@@ -310,8 +313,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     // getAccountOwner() can return null even when the account is authenticated.
     // TODO(chaomin): investigate the root cause why Google cloud service is returning
     // null StorageOwner.
-    String accountOwnerId = "unknown";
-    String accountOwner = "unknown";
+    String accountOwnerId = DEFAULT_OWNER;
+    String accountOwner = DEFAULT_OWNER;
     try {
       StorageOwner storageOwner = mClient.getAccountOwner();
       if (storageOwner != null) {
