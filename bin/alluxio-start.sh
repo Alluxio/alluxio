@@ -520,7 +520,11 @@ main() {
       ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
       ALLUXIO_JOB_MASTER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
       ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
-      start_master "${FORMAT}"
+      if [[ "${FORMAT}" == "-f" ]]; then
+        ${LAUNCHER} ${BIN}/alluxio formatJournal
+        ${LAUNCHER} ${BIN}/alluxio formatWorker
+      fi
+      start_master
       ALLUXIO_MASTER_SECONDARY=true
       # We only start a secondary master when using a UFS journal.
       local journal_type=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} \
