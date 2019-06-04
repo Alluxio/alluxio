@@ -26,6 +26,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -39,6 +41,7 @@ import java.util.Arrays;
  * The class should contain all the Alluxio ufs semantics.
  */
 public final class UnderFileSystemCommonOperations {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemCommonOperations.class);
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   private static final String FILE_CONTENT_INCORRECT
@@ -210,7 +213,13 @@ public final class UnderFileSystemCommonOperations {
     int offset = 0;
     int noReadCount = 0;
     while (offset < buf.length && noReadCount < 3) {
-      int bytesRead = inputStream.read(buf, offset, buf.length - offset);
+      int bytesRead;
+      try {
+        bytesRead = inputStream.read(buf, offset, buf.length - offset);
+      } catch (Exception e) {
+        LOG.info("Failed to read from file {}", testFile, e);
+        bytesRead = -1;
+      }
       if (bytesRead != -1) {
         noReadCount = 0;
         for (int i = 0; i < bytesRead; ++i) {
