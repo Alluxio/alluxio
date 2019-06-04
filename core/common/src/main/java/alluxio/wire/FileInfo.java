@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -313,6 +314,7 @@ public final class FileInfo implements Serializable {
   /**
    * @return the extended attributes
    */
+  @Nullable
   public Map<String, byte[]> getXAttr() {
     return mXAttr;
   }
