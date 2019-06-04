@@ -907,7 +907,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       try (LockResource lr = lockBlock(removedBlockId)) {
         Optional<BlockMeta> block = mBlockStore.getBlock(removedBlockId);
         if (block.isPresent()) {
-          LOG.info("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
+          LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
           mBlockStore.removeLocation(removedBlockId, workerInfo.getId());
           if (mBlockStore.getLocations(removedBlockId).size() == 0) {
             mLostBlocks.add(removedBlockId);
