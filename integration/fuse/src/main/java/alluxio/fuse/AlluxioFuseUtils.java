@@ -134,7 +134,8 @@ public final class AlluxioFuseUtils {
         String result = ShellUtils.execCommand("fusermount", "-V");
         return !result.isEmpty();
       } else if (OSUtils.isMacOS()) {
-        String result = ShellUtils.execCommand("bash", "-c", "mount | grep FUSE");
+        String result = ShellUtils.execCommand("bash", "-c",
+            "pkgutil --pkgs | grep -i com.github.osxfuse.pkg.Core");
         return !result.isEmpty();
       }
     } catch (Exception e) {
