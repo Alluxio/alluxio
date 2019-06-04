@@ -166,19 +166,8 @@ public class AbstractFileSystemTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void cannotInitializeWithoutMasterHostname() throws Exception {
-    String previousValue = "";
-    if (alluxio.Configuration.isSet(PropertyKey.MASTER_HOSTNAME)) {
-      previousValue = alluxio.Configuration.get(PropertyKey.MASTER_HOSTNAME);
-      alluxio.Configuration.unset(PropertyKey.MASTER_HOSTNAME);
-    }
-    try {
-      URI uri = URI.create(Constants.HEADER + "/tmp/path.txt");
-      org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-    } finally {
-      if (!previousValue.isEmpty()) {
-        alluxio.Configuration.set(PropertyKey.MASTER_HOSTNAME, previousValue);
-      }
-    }
+    URI uri = URI.create(Constants.HEADER + "/tmp/path.txt");
+    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
   }
 
   /**
