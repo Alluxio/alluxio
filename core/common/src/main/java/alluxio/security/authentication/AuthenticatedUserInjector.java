@@ -125,6 +125,8 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
   private <ReqT, RespT> void safeClose(ServerCall<ReqT, RespT> call, Status status,
       Metadata headers) {
     try {
+      LOG.debug("Closing the call:{} with Status:{}: {}",
+          call.getMethodDescriptor().getFullMethodName(), status);
       call.close(status, headers);
     } catch (RuntimeException exc) {
       LOG.debug("Error while closing the call:{} with Status:{}: {}",
