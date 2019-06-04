@@ -218,7 +218,7 @@ public final class UnderFileSystemCommonOperations {
       try {
         bytesRead = inputStream.read(buf, offset, buf.length - offset);
       } catch (Exception e) {
-        LOG.info("Failed to read from file {}", testFile, e);
+        LOG.info("Failed to read from file {}", testFile, e.toString());
         bytesRead = -1;
       }
       if (bytesRead != -1) {
