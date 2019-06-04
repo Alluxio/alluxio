@@ -89,7 +89,7 @@ public class ControllableQueue<T> {
    * @return true if the element removed successfully, false otherwise
    */
   public boolean remove(T element) {
-    return mQueue.removeIf(x -> x.mValue == element);
+    return mQueue.removeIf(x -> x.getValue() == element);
   }
 
   @Override
