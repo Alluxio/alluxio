@@ -59,16 +59,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <testExcludes>
-                        <!-- Skip UFS contract tests unless -DtestKodoBucket="kodo://bucketName/testDir" is specified -->
-                        <exclude>**/KodoUnderFileSystemContractTest.java</exclude>
-                    </testExcludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
             </plugin>
             <plugin>
