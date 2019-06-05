@@ -104,25 +104,25 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
       } catch (UnauthenticatedException e) {
         String message = String.format("Channel: %s is not authenticated for call: %s",
             channelId.toString(), call.getMethodDescriptor().getFullMethodName());
-        safeClose(call, Status.UNAUTHENTICATED.withDescription(message), headers);
+        closeQuietly(call, Status.UNAUTHENTICATED.withDescription(message), headers);
       }
     } else {
       String message = String.format("Channel Id is missing for call: %s.",
           call.getMethodDescriptor().getFullMethodName());
-      safeClose(call, Status.UNAUTHENTICATED.withDescription(message), headers);
+      closeQuietly(call, Status.UNAUTHENTICATED.withDescription(message), headers);
     }
     return callAuthenticated;
   }
 
   /**
-   * Closes the call while blanketing runtime exceptions.
-   * This is mostly to avoid dumping "already closed" exceptions to logs.
+   * Closes the call while blanketing runtime exceptions. This is mostly to avoid dumping "already
+   * closed" exceptions to logs.
    *
    * @param call call to close
    * @param status status to close the call with
    * @param headers headers to close the call with
    */
-  private <ReqT, RespT> void safeClose(ServerCall<ReqT, RespT> call, Status status,
+  private <ReqT, RespT> void closeQuietly(ServerCall<ReqT, RespT> call, Status status,
       Metadata headers) {
     try {
       LOG.debug("Closing the call:{} with Status:{}: {}",
