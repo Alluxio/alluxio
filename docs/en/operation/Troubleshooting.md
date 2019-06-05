@@ -225,10 +225,11 @@ A: When writing files to Alluxio, one of the several write type can be used to t
 
 `THROUGH`: data will be only written to UFS
 
-By default the write type used by Alluxio client is `MUST_CACHE`, therefore a new file written to Alluxio is only stored in Alluxio
-worker storage, and can be evicted when Alluxio worker storage is full and some new data needs to be cached. To make sure
-data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type, or [pin]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#pin) the files
-you would like to preserve.
+`ASYNC_THROUGH`: data will be stored in Alluxio synchronously and then written to UFS asynchronously
+
+By default the write type used by Alluxio client is `ASYNC_THROUGH`, therefore a new file written to Alluxio is only stored in Alluxio
+worker storage, and can be lost if a worker crashes. To make sure data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type,
+or increase `alluxio.user.file.replication.durable` to an acceptable degree of redundancy.
 
 Another possible cause for this error is that the block exists in the file system, but no worker has connected to master. In that
 case the error will go away once at least one worker containing this block is connected.
