@@ -2840,11 +2840,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TYPE_DEFAULT)
-          .setDefaultValue("MUST_CACHE")
+          .setDefaultValue("ASYNC_THROUGH")
           .setDescription("Default write type when creating Alluxio files. Valid options are "
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` "
-              + "(no cache, write to UnderFS synchronously).")
+              + "(no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, "
+              + "write to UnderFS synchronously.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
