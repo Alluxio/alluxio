@@ -535,6 +535,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey UNDERFS_GCS_DEFAULT_MODE =
+      new Builder(Name.UNDERFS_GCS_DEFAULT_MODE)
+          .setDefaultValue("0700")
+          .setDescription("Mode (in octal notation) for GCS objects if mode cannot be discovered.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_GCS_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_GCS_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
@@ -3617,6 +3624,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
         "alluxio.underfs.eventual.consistency.retry.max.sleep";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
+    public static final String UNDERFS_GCS_DEFAULT_MODE = "alluxio.underfs.gcs.default.mode";
     public static final String UNDERFS_GCS_DIRECTORY_SUFFIX =
         "alluxio.underfs.gcs.directory.suffix";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
