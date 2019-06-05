@@ -74,24 +74,32 @@ public class MetricsCommand {
     mPrintStream.println("Total IO: ");
     printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
         "Short-circuit Read", true);
+    printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN),
+        "Short-circuit Read (Domain Socket)", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
         "From Remote Instances", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL),
         "Under Filesystem Read", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO),
         "Alluxio Write", true);
+    printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN),
+        "Alluxio Write (Domain Socket)", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL),
         "Under Filesystem Write", true);
 
     mPrintStream.println("\nTotal IO Throughput (Last Minute): ");
     printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT),
         "Short-circuit Read", true);
+    printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT),
+        "Short-circuit Read (Domain Socket)", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT),
         "From Remote Instances", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT),
         "Under Filesystem Read", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT),
         "Alluxio Write", true);
+    printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT),
+        "Alluxio Write (Domain Socket)", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
         "Under Filesystem Write", true);
 

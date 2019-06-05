@@ -73,10 +73,14 @@ public class MetricsCommandTest {
         MetricValue.newBuilder().setLongValue(12312312312L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
         MetricValue.newBuilder().setLongValue(421312312L).build());
+    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN),
+        MetricValue.newBuilder().setLongValue(4245232L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL),
         MetricValue.newBuilder().setLongValue(534214123L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO),
         MetricValue.newBuilder().setLongValue(23532L).build());
+    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN),
+        MetricValue.newBuilder().setLongValue(65463532L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL),
         MetricValue.newBuilder().setLongValue(325324L).build());
 
@@ -84,10 +88,14 @@ public class MetricsCommandTest {
         MetricValue.newBuilder().setLongValue(123125324L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT),
         MetricValue.newBuilder().setLongValue(543534623L).build());
+    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT),
+        MetricValue.newBuilder().setLongValue(31423412L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT),
         MetricValue.newBuilder().setLongValue(745632L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT),
         MetricValue.newBuilder().setLongValue(8423432L).build());
+    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT),
+        MetricValue.newBuilder().setLongValue(1231231L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
         MetricValue.newBuilder().setLongValue(34264L).build());
 

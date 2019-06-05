@@ -131,6 +131,10 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO));
     addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT,
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_DOMAIN,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_DOMAIN));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT));
     addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_ALL,
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS));
     addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT,
@@ -140,6 +144,10 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
     addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT,
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_DOMAIN,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_DOMAIN));
+    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT,
+        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT));
     addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_ALL,
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS));
     addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,

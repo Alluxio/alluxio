@@ -40,7 +40,8 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
    * @param domainSocketEnabled whether using a domain socket
    */
   public DelegationWriteHandler(WorkerProcess workerProcess,
-      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
+      boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
