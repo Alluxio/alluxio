@@ -147,8 +147,10 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
     try {
       // Complete the client stream.
       mRequestObserver.onCompleted();
+      // Close handler if not already.
+      mSaslServerHandler.close();
     } catch (Exception exc) {
-      LogUtils.warnWithException(LOG, "Failed to complete the client stream for channel: {}.",
+      LogUtils.warnWithException(LOG, "Failed to close server driver for channel: {}.",
           (mChannelId != null) ? mChannelId : "<NULL>", exc);
     }
   }

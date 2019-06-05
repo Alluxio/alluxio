@@ -40,6 +40,7 @@ public interface SaslServerHandler extends AutoCloseable {
 
   /**
    * Close the handler and dispose internal resources.
+   * Implementations should be idempotent.
    */
   @Override
   void close() throws IOException;
