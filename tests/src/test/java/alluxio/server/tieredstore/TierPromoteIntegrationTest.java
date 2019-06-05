@@ -92,6 +92,8 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
             String.valueOf(CAPACITY_BYTES)).build();
   }
 
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT,
+      "MUST_CACHE"})
   @Test
   public void promoteBlock() throws Exception {
     final int size = (int) CAPACITY_BYTES / 2;
