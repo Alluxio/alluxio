@@ -15,6 +15,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Random;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -61,6 +62,17 @@ public class ControllableSchedulerTest {
     scheduler.jumpAndExecute(daysToJump, TimeUnit.DAYS);
     Assert.assertEquals(daysToJump / periodDays + 1, task.runTimes());
     Assert.assertTrue(scheduler.schedulerIsIdle());
+  }
+
+  @Test
+  public void cancel() {
+    CountTask task = new CountTask();
+    ControllableScheduler scheduler = new ControllableScheduler();
+    ScheduledFuture<?> future = scheduler.schedule(task, 5, TimeUnit.HOURS);
+    Assert.assertTrue(scheduler.schedulerIsIdle());
+    future.cancel(true);
+    scheduler.jumpAndExecute(5, TimeUnit.HOURS);
+    Assert.assertEquals(0, task.runTimes());
   }
 
   /**
