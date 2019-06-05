@@ -126,6 +126,8 @@ alluxio.underfs.eventual.consistency.retry.max.num:
   'To handle eventually consistent storage semantics for certain under storages, Alluxio will perform retries when under storage metadata doesn''t match Alluxio''s expectations. These retries use exponential backoff. This property determines the maximum number of retries.'
 alluxio.underfs.eventual.consistency.retry.max.sleep:
   'To handle eventually consistent storage semantics for certain under storages, Alluxio will perform retries when under storage metadata doesn''t match Alluxio''s expectations. These retries use exponential backoff. This property determines the maximum wait time in the backoff.'
+alluxio.underfs.gcs.default.mode:
+  'Mode (in octal notation) for GCS objects if mode cannot be discovered.'
 alluxio.underfs.gcs.directory.suffix:
   'Directories are represented in GCS as zero-byte objects named with the specified suffix.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
@@ -204,6 +206,14 @@ alluxio.underfs.s3a.streaming.upload.enabled:
   '(Experimental) If true, using streaming upload to write to S3A.'
 alluxio.underfs.s3a.streaming.upload.partition.size:
   'Maximum allowable size of a single buffer file when using S3A streaming upload. When the buffer file reaches the partition size, it will be uploaded and the upcoming data will write to other buffer files.If the partition size is too small, S3A upload speed might be affected. '
+alluxio.underfs.web.connnection.timeout:
+  'Default timeout for a http connection.'
+alluxio.underfs.web.header.last.modified:
+  'Date format of last modified for a http response header.'
+alluxio.underfs.web.parent.names:
+  'The text of the http link for the parent directory.'
+alluxio.underfs.web.titles:
+  'The title of the content for a http url.'
 alluxio.web.file.info.enabled:
   'Whether detailed file information are enabled for the web UI.'
 alluxio.web.resources:
