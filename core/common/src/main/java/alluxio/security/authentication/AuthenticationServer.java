@@ -17,7 +17,6 @@ import alluxio.grpc.ChannelAuthenticationScheme;
 import io.grpc.BindableService;
 
 import javax.security.sasl.SaslException;
-import javax.security.sasl.SaslServer;
 import java.util.UUID;
 
 /**
@@ -30,10 +29,9 @@ public interface AuthenticationServer extends BindableService {
    * @param channelId channel id
    * @param userInfo authanticated user info
    * @param saslDriver sasl server driver
-   * @param saslServer server that has been used for authentication
    */
   void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo,
-      SaslStreamServerDriver saslDriver, SaslServer saslServer);
+      SaslStreamServerDriver saslDriver);
 
   /**
    * @param channelId channel id
