@@ -141,13 +141,13 @@ public class ChannelAuthenticator {
     }
 
     public void authenticate() throws AlluxioStatusException {
-      try {
-        // Determine channel authentication scheme to use.
-        ChannelAuthenticationScheme authScheme =
-            getChannelAuthScheme(mParentSubject, mServerAddress.getSocketAddress());
-        // Create SaslHandler for talking with target host's authentication service.
-        SaslClientHandler saslClientHandler =
-            createSaslClientHandler(mServerAddress, authScheme, mParentSubject);
+      // Determine channel authentication scheme to use.
+      ChannelAuthenticationScheme authScheme =
+              getChannelAuthScheme(mParentSubject, mServerAddress.getSocketAddress());
+      try (
+          // Create SaslHandler for talking with target host's authentication service.
+          SaslClientHandler saslClientHandler =
+              createSaslClientHandler(mServerAddress, authScheme, mParentSubject)) {
         // Create authentication scheme specific handshake handler.
         SaslHandshakeClientHandler handshakeClient =
             new DefaultSaslHandshakeClientHandler(saslClientHandler);

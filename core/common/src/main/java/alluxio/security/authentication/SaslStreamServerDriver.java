@@ -20,6 +20,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import javax.security.sasl.SaslException;
@@ -60,6 +61,8 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
 
   @Override
   public void onNext(SaslMessage saslMessage) {
+    /** Whether to close the handler after this message.  */
+    boolean closeHandler = false;
     try {
       LOG.debug("SaslServerDriver received message: {}",
           saslMessage != null ? saslMessage.getMessageType().toString() : "<NULL>");
@@ -81,20 +84,33 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
       // Complete the call from server-side before sending success response to client.
       // Because client will assume authenticated after receiving the success message.
       if (response.getMessageType() == SaslMessageType.SUCCESS) {
+        // Register authorized user with the authentication server.
         mAuthenticationServer.registerChannel(mChannelId,
-            mSaslServerHandler.getAuthenticatedUserInfo(), this,
-            mSaslServerHandler.getSaslServer());
+            mSaslServerHandler.getAuthenticatedUserInfo(), this);
+        // Finished with the handler.
+        closeHandler = true;
       }
       mRequestObserver.onNext(response);
     } catch (SaslException se) {
       LOG.debug("Exception while handling SASL message: {}", saslMessage, se);
       mRequestObserver.onError(new UnauthenticatedException(se).toGrpcStatusException());
+      closeHandler = true;
     } catch (UnauthenticatedException ue) {
       LOG.debug("Exception while handling SASL message: {}", saslMessage, ue);
       mRequestObserver.onError(ue.toGrpcStatusException());
+      closeHandler = true;
     } catch (Exception e) {
       LOG.debug("Exception while handling SASL message: {}", saslMessage, e);
+      closeHandler = true;
       throw e;
+    } finally {
+      if (closeHandler) {
+        try {
+          mSaslServerHandler.close();
+        } catch (IOException exc) {
+          LOG.debug("Failed to close SaslServer.", exc);
+        }
+      }
     }
   }
 
@@ -103,6 +119,13 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
     if (mChannelId != null) {
       LOG.warn("Closing authenticated channel: {} due to error: {}", mChannelId, throwable);
       mAuthenticationServer.unregisterChannel(mChannelId);
+    }
+    if (mSaslServerHandler != null) {
+      try {
+        mSaslServerHandler.close();
+      } catch (IOException exc) {
+        LOG.debug("Failed to close SaslServer.", exc);
+      }
     }
   }
 
@@ -124,8 +147,10 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
     try {
       // Complete the client stream.
       mRequestObserver.onCompleted();
+      // Close handler if not already.
+      mSaslServerHandler.close();
     } catch (Exception exc) {
-      LogUtils.warnWithException(LOG, "Failed to complete the client stream for channel: {}.",
+      LogUtils.warnWithException(LOG, "Failed to close server driver for channel: {}.",
           (mChannelId != null) ? mChannelId : "<NULL>", exc);
     }
   }
