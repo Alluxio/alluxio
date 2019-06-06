@@ -28,12 +28,16 @@ export interface IMetrics {
   timeSeriesMetrics: LineSerieData[];
   totalBytesReadLocal: string;
   totalBytesReadLocalThroughput: string;
+  totalBytesReadDomainSocket: string;
+  totalBytesReadDomainSocketThroughput: string;
   totalBytesReadRemote: string;
   totalBytesReadRemoteThroughput: string;
   totalBytesReadUfs: string;
   totalBytesReadUfsThroughput: string;
   totalBytesWrittenAlluxio: string;
   totalBytesWrittenAlluxioThroughput: string;
+  totalBytesWrittenDomainSocket: string;
+  totalBytesWrittenDomainSocketThroughput: string;
   totalBytesWrittenUfs: string;
   totalBytesWrittenUfsThroughput: string;
   ufsOps: {
