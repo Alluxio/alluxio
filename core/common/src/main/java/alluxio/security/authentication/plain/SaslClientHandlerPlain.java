@@ -18,6 +18,9 @@ import alluxio.security.User;
 import alluxio.security.authentication.SaslClientHandler;
 import alluxio.security.authentication.AuthenticationUserUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
@@ -29,6 +32,7 @@ import java.util.Set;
  * {@link SaslClientHandler} implementation for Plain/Custom schemes.
  */
 public class SaslClientHandlerPlain implements SaslClientHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(SaslClientHandlerPlain.class);
 
   /** Underlying SaslClient. */
   private final SaslClient mSaslClient;
@@ -91,5 +95,16 @@ public class SaslClientHandlerPlain implements SaslClientHandler {
   @Override
   public SaslClient getSaslClient() {
     return mSaslClient;
+  }
+
+  @Override
+  public void close() {
+    if (mSaslClient != null) {
+      try {
+        mSaslClient.dispose();
+      } catch (SaslException exc) {
+        LOG.debug("Failed to close SaslClient.", exc);
+      }
+    }
   }
 }

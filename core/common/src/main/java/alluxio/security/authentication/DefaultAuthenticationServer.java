@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.security.sasl.SaslException;
-import javax.security.sasl.SaslServer;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,10 +92,10 @@ public class DefaultAuthenticationServer
 
   @Override
   public void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo,
-      SaslStreamServerDriver saslDriver, SaslServer saslServer) {
+      SaslStreamServerDriver saslDriver) {
     LOG.debug("Registering new channel:{} for user:{}", channelId, userInfo);
     if (null != mChannels.putIfAbsent(channelId,
-        new AuthenticatedChannelInfo(userInfo, saslDriver, saslServer))) {
+        new AuthenticatedChannelInfo(userInfo, saslDriver))) {
       AuthenticatedChannelInfo existingInfo = mChannels.remove(channelId);
       throw new RuntimeException(
           String.format("Channel: %s already exists in authentication registry for user: %s.",
@@ -122,13 +121,6 @@ public class DefaultAuthenticationServer
     AuthenticatedChannelInfo channelInfo = mChannels.remove(channelId);
     if (channelInfo == null) {
       return false;
-    }
-    // Dispose channel resources.
-    try {
-      channelInfo.getSaslServer().dispose();
-    } catch (SaslException e) {
-      LogUtils.warnWithException(LOG, "Failed to dispose sasl client for channel-Id: {}", channelId,
-          e);
     }
     // Close authentication driver.
     try {
@@ -213,20 +205,17 @@ public class DefaultAuthenticationServer
    */
   class AuthenticatedChannelInfo {
     private LocalTime mLastAccessTime;
-    private SaslServer mAuthenticatedServer;
     private AuthenticatedUserInfo mUserInfo;
     private SaslStreamServerDriver mSaslServerDriver;
 
     /**
      * @param userInfo authenticated user info
      * @param saslServerDriver sasl server driver
-     * @param authenticatedServer authenticated sasl server
      */
     public AuthenticatedChannelInfo(AuthenticatedUserInfo userInfo,
-        SaslStreamServerDriver saslServerDriver, SaslServer authenticatedServer) {
+        SaslStreamServerDriver saslServerDriver) {
       mUserInfo = userInfo;
       mSaslServerDriver = saslServerDriver;
-      mAuthenticatedServer = authenticatedServer;
       mLastAccessTime = LocalTime.now();
     }
 
@@ -239,16 +228,6 @@ public class DefaultAuthenticationServer
      */
     public synchronized LocalTime getLastAccessTime() {
       return mLastAccessTime;
-    }
-
-    /**
-     * Note: Updates the last-access-time for this instance.
-     *
-     * @return the sasl server
-     */
-    public SaslServer getSaslServer() {
-      updateLastAccessTime();
-      return mAuthenticatedServer;
     }
 
     /**
