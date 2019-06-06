@@ -156,7 +156,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void stop() throws Exception {
     stopRejectingServers();
     if (isServing()) {
-      stopMasters();
+      stopMasters(true);
       stopServing();
       mJournalSystem.stop();
     }
@@ -208,10 +208,16 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   /**
    * Stops all masters, including block master, fileSystem master and additional masters.
+   *
+   * @param isClose {@code true} if process is exiting
    */
-  protected void stopMasters() {
+  protected void stopMasters(boolean isClose) {
     try {
-      mRegistry.stop();
+      if (isClose) {
+        mRegistry.close();
+      } else {
+        mRegistry.stop();
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

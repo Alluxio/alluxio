@@ -669,6 +669,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
+  public void close() throws IOException {
+    super.close();
+    mInodeTree.close();
+  }
+
+  @Override
   public void validateInodeBlocks(boolean repair) throws UnavailableException {
     mBlockMaster.validateBlocks((blockId) -> {
       long fileId = IdUtils.fileIdFromBlockId(blockId);
