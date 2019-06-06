@@ -52,7 +52,7 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
         .thenReturn(mBlockWriter)
         .thenReturn(new LocalFileBlockWriter(mTestFolder.newFile().getPath()));
     mResponseObserver = Mockito.mock(StreamObserver.class);
-    mWriteHandler = new BlockWriteHandler(mBlockWorker, mResponseObserver, mUserInfo);
+    mWriteHandler = new BlockWriteHandler(mBlockWorker, mResponseObserver, mUserInfo, false);
     setupResponseTrigger();
   }
 
