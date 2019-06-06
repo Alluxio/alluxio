@@ -37,7 +37,7 @@ public class MetricsCommand {
 
   private final MetaMasterClient mMetaMasterClient;
   private final PrintStream mPrintStream;
-  private String mInfoFormat = "%-30s %20s";
+  private String mInfoFormat = "%-40s %20s";
   private Map<String, MetricValue> mMetricsMap;
 
   /**
