@@ -203,7 +203,7 @@ ensure that this file is on the classpath of Hive service on each node.
 - Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
 
 For example, change
-`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
+`alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`.
 
 One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
 of each Hive node:

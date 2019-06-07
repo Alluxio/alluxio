@@ -88,6 +88,12 @@ export class Metrics extends React.Component<AllProps> {
                   <td>{data.totalBytesWrittenAlluxio}</td>
                 </tr>
                 <tr>
+                  <th>Domain Socket Alluxio Read</th>
+                  <td>{data.totalBytesReadDomainSocket}</td>
+                  <th>Domain Socket Alluxio Write</th>
+                  <td>{data.totalBytesWrittenDomainSocket}</td>
+                </tr>
+                <tr>
                   <th>Under Filesystem Read</th>
                   <td>{data.totalBytesReadUfs}</td>
                   <th>Under Filesystem Write</th>
@@ -105,6 +111,12 @@ export class Metrics extends React.Component<AllProps> {
                   <td>{data.totalBytesReadRemoteThroughput}</td>
                   <th>Remote Alluxio Write</th>
                   <td>{data.totalBytesWrittenAlluxioThroughput}</td>
+                </tr>
+                <tr>
+                  <th>Domain Socket Alluxio Read</th>
+                  <td>{data.totalBytesReadDomainSocketThroughput}</td>
+                  <th>Domain Socket Alluxio Write</th>
+                  <td>{data.totalBytesWrittenDomainSocketThroughput}</td>
                 </tr>
                 <tr>
                   <th>Under Filesystem Read</th>

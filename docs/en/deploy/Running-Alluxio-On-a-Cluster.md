@@ -19,8 +19,10 @@ the cluster as a whole would be unavailable. We highly recommend running Alluxio
 ### Prerequisites
 
 * A single master node, and 1 or more worker nodes
-* SSH login without password to all nodes. You can add a public SSH key for the host into
+* SSH login without password from master node to worker nodes. You can add a public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
+* TCP traffic across all nodes is allowed. For basic functionality make sure RPC port (default :19998) is open
+on all nodes.
 * A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3.
 
 ### Setup
@@ -31,7 +33,7 @@ The following sections describe how to install and configure Alluxio with a sing
 
 To deploy Alluxio in a cluster, first [download](https://alluxio.io/download) the Alluxio tar file,
 and copy it to every node (master node, worker nodes). Extract the tarball to the same path on
-every node.
+every node. You can download Alluxio tar file alternatively from [FTP](https://downloads.alluxio.io).
 
 #### Configuration
 

@@ -131,12 +131,11 @@ or worker settings (e.g., `alluxio.worker.*`)
 in `${ALLUXIO_HOME}/conf/alluxio-site.properties` on all the masters,
 which will be distributed and become cluster-wide default values when clients and workers connect.
 
-For example, the property `alluxio.user.file.writetype.default` defaults to `MUST_CACHE`,
-which only writes to Alluxio space.
-In an Alluxio cluster where data persistence is preferred
-and all jobs need to write to both the UFS and Alluxio,
-the administrator can add `alluxio.user.file.writetype.default=CACHE_THROUGH` in each master's
-`alluxio-site.properties` file.
+For example, the property `alluxio.user.file.writetype.default` defaults to `ASYNC_THROUGH`, which
+first writes to Alluxio and then asynchronously writes to the UFS.
+In an Alluxio cluster where data persistence is preferred and all jobs need to write to both the UFS
+and Alluxio, the administrator can add `alluxio.user.file.writetype.default=CACHE_THROUGH` in each
+master's `alluxio-site.properties` file.
 After restarting the cluster, all jobs will automatically set `alluxio.user.file.writetype.default`
 to `CACHE_THROUGH`.
 

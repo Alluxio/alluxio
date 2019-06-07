@@ -88,7 +88,7 @@ Visit `instance-hostname:19999` to view the Alluxio web UI. You should see one w
 To run tests, enter the worker container
 
 ```bash
-docker exec -it ${worker_container_id} /bin/bash
+docker exec -it alluxio-worker /bin/bash
 ```
 
 Run the tests

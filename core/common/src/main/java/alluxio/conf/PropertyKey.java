@@ -535,6 +535,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey UNDERFS_GCS_DEFAULT_MODE =
+      new Builder(Name.UNDERFS_GCS_DEFAULT_MODE)
+          .setDefaultValue("0700")
+          .setDescription("Mode (in octal notation) for GCS objects if mode cannot be discovered.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_GCS_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_GCS_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
@@ -2848,11 +2855,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TYPE_DEFAULT)
-          .setDefaultValue("MUST_CACHE")
-          .setDescription("Default write type when creating Alluxio files. Valid options are "
+          .setDefaultValue("ASYNC_THROUGH")
+      .setDescription(
+          String.format("Default write type when creating Alluxio files. Valid " + "options are "
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` "
-              + "(no cache, write to UnderFS synchronously).")
+              + "(no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, "
+              + "write to UnderFS synchronously, replicated %s times in Alluxio before data is "
+              + "persisted.", USER_FILE_REPLICATION_DURABLE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3632,6 +3642,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
         "alluxio.underfs.eventual.consistency.retry.max.sleep";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
+    public static final String UNDERFS_GCS_DEFAULT_MODE = "alluxio.underfs.gcs.default.mode";
     public static final String UNDERFS_GCS_DIRECTORY_SUFFIX =
         "alluxio.underfs.gcs.directory.suffix";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
