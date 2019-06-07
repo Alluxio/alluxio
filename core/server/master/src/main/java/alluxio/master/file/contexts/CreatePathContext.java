@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 /**
  * Wrapper for {@link CreateFilePOptions} or {@link CreateDirectoryPOptions} with additional context
  * data.
@@ -264,6 +266,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   /**
    * @return extended attributes on this context
    */
+  @Nullable
   public Map<String, byte[]> getXAttr() {
     return mXAttr;
   }
@@ -272,7 +275,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    * @param xattr extended attributes to set when creating
    * @return the updated context
    */
-  public K setXAttr(Map<String, byte[]> xattr) {
+  public K setXAttr(@Nullable Map<String, byte[]> xattr) {
     mXAttr = xattr;
     return getThis();
   }
@@ -293,6 +296,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
         .add("Owner", mOwner)
         .add("Group", mGroup)
         .add("MetadataLoad", mMetadataLoad)
+        .add("xattr", mXAttr)
         .toString();
   }
 }

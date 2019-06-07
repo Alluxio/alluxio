@@ -667,11 +667,13 @@ public class InodeTree implements DelegatingJournaled {
       try (LockResource lr = mInodeLockManager.lockUpdate(currentId)) {
         long updatedLastModified = mInodeStore.get(currentId).get().getLastModificationTimeMs();
         if (updatedLastModified < context.getOperationTimeMs()) {
-          mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
+          UpdateInodeEntry.Builder updateInodeEntry = UpdateInodeEntry.newBuilder()
               .setId(currentId)
-              .setLastModificationTimeMs(context.getOperationTimeMs())
-              .putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()))
-              .build());
+              .setLastModificationTimeMs(context.getOperationTimeMs());
+          if (context.getXAttr() != null) {
+            updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
+          }
+          mState.applyAndJournal(rpcContext, updateInodeEntry.build());
         }
       }
     }
