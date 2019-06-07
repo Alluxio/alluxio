@@ -38,7 +38,7 @@ dependency management tool, and forwards all operations to a local filesystem.
 
 ### Implement the Under Storage Interface
 
-The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A
+The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3
 Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are good examples of how
 to enable a storage system to serve as Alluxio's underlying storage.
 

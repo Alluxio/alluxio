@@ -10,7 +10,7 @@ priority: 10
 {:toc}
 
 This guide describes how to configure Alluxio with [Minio](https://minio.io/) as the
-under storage system. Alluxio natively provides the `s3a://` scheme (recommended for better
+under storage system. Alluxio natively provides the `s3://` scheme (recommended for better
 performance). You can use this scheme to connect Alluxio with Minio server.
 
 ## Prerequisites
@@ -39,16 +39,16 @@ bucket name is called `MINIO_BUCKET`, and the directory in that bucket is called
 You need to configure Alluxio to use Minio as its under storage system by modifying
 `conf/alluxio-site.properties`. The first modification is to specify an **existing** Minio
 bucket and directory as the under storage system.
-Because Minio supports the `s3a` protocol, it is possible to configure Alluxio as if it were
+Because Minio supports the `s3` protocol, it is possible to configure Alluxio as if it were
 pointing to an AWS S3 endpoint.
 
 All the fields to be modified in `conf/alluxio-site.properties` file are listed here:
 
 ```properties
-alluxio.master.mount.table.root.ufs=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.master.mount.table.root.ufs=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
-alluxio.underfs.s3a.inherit_acl=false
+alluxio.underfs.s3.inherit.acl=false
 aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
 aws.secretKey=<MINIO_SECRET_KEY_ID>
 ```
