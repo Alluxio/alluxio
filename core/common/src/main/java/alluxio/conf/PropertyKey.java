@@ -812,10 +812,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_S3_INHERIT_ACL)
           .setAlias(new String[] {"alluxio.underfs.s3a.inherit_acl"})
           .setDefaultValue(true)
-          .setDescription("Set this property to false to disable inheriting bucket ACLs on " +
-              "objects. Note that the translation from bucket ACLs to Alluxio user permissions is" +
-              " best effort as some S3-like storage services doe not implement ACLs fully " +
-              "compatible with S3.")
+          .setDescription("Set this property to false to disable inheriting bucket ACLs on "
+              + "objects. Note that the translation from bucket ACLs to Alluxio user permissions "
+              + "is best effort as some S3-like storage services doe not implement ACLs fully "
+              + "compatible with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
