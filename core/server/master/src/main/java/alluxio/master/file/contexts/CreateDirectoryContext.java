@@ -116,7 +116,7 @@ public class CreateDirectoryContext
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("PathContext", super.toString())
-        .add("UfsStatus", mUfsStatus.toString())
+        .add("UfsStatus", mUfsStatus)
         .toString();
   }
 }
