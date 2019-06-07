@@ -107,7 +107,7 @@ message UpdateInodeDirectoryEntry {
   optional alluxio.proto.shared.AccessControlList defaultAcl = 4;
 }
 
-// next available id: 14
+// next available id: 13
 message UpdateInodeFileEntry {
   optional int64 id = 1;
   optional int64 block_size_bytes = 2;
@@ -121,7 +121,6 @@ message UpdateInodeFileEntry {
   optional int64 persist_job_id = 10;
   optional string temp_ufs_path = 11;
   optional string path = 12;
-  map<string, bytes> xAttrs = 13;
 }
 
 // next available id: 20
