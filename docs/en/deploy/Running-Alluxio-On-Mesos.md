@@ -9,20 +9,20 @@ priority: 4
 * Table of Contents
 {:toc}
 
-Note: This legacy scheduler is DEPRECATED and is no longer maintained. Please expect a new scheduler in Alluxio 2.0.
+**Note: This legacy scheduler is DEPRECATED and is no longer maintained. Please expect a new scheduler in Alluxio 2.0.**
 
-Alluxio can be deployed through Mesos. This allows Mesos to manage the resources used by Alluxio. For the Alluxio
-master the managed resources are the CPU and memory needed by the JVM process. For the worker, the additional resources
+Alluxio can be deployed through [Mesos](http://mesos.apache.org/getting-started/). This allows Mesos to manage the resources used by Alluxio. For the Alluxio
+master, the managed resources are the CPU and memory needed by the JVM process. For the worker, the additional resources
 include the ramdisk memory (if configuring memory as a storage tier) and other optional tiered storage such as SSD or HDD.
 
 ## Mesos version
 
-Alluxio is compatible with Mesos 0.23.0 and later.
+Alluxio is compatible with Mesos **0.23.0 and later**.
 
 ## Mesos requirements
 
-By default, the Alluxio Master needs ports 19998 and 19999, and the Alluxio Worker needs ports 29998, 29999, and 30000.
-For Mesos to run Alluxio, you must either make these ports available to Mesos frameworks, or change the Alluxio ports.
+By default, the Alluxio Master needs ports *19998* and *19999*, and the Alluxio Worker needs ports *29998*, *29999*, and *30000*.
+For Mesos to run Alluxio, you must either make these ports available to the Mesos framework, or change the Alluxio ports.
 
 ### Making ports available
 
@@ -78,8 +78,8 @@ Note that the tarball should be compiled with `-Pmesos`. Released Alluxio tarbal
 
 ### Java
 
-By default, the Alluxio Mesos framework will use whatever version of Java is available on the Mesos executor. To download a
-Java 8 jdk and use it to run Alluxio, set the configuration property
+By default, the Alluxio Mesos framework will use whatever version of Java is available on the Mesos executor. Download a
+Java 8 jdk and use it to run Alluxio by setting the configuration property
 
 ```properties
 alluxio.integration.mesos.jdk.url=JDK_URL
