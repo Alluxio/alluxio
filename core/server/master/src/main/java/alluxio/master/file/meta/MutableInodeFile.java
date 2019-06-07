@@ -349,6 +349,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     if (entry.getSetBlocksCount() > 0) {
       setBlockIds(entry.getSetBlocksList());
     }
+    if (entry.getXAttrCount() > 0) {
+      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+    }
   }
 
   @Override
@@ -397,8 +400,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtl(entry.getTtl())
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
-            Constants.INVALID_UFS_FINGERPRINT)
-        .setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+            Constants.INVALID_UFS_FINGERPRINT);
     if (entry.hasAcl()) {
       ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
@@ -411,14 +413,16 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
       ret.mAcl = acl;
     }
 
+    if (entry.getXAttrCount() > 0) {
+      ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+    }
+
     ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     return ret;
   }
 
   /**
    * Creates an {@link MutableInodeFile}.
-   *
-   * Setting xAttributes is not yet supported on clients. It is intentionally left out.
    *
    * @param blockContainerId block container id of this inode
    * @param parentId id of the parent of this inode
@@ -452,7 +456,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
             : PersistenceState.NOT_PERSISTED)
         .setShouldPersistTime(options.getPersistenceWaitTime() == Constants.NO_AUTO_PERSIST
             ? Constants.NO_AUTO_PERSIST :
-            System.currentTimeMillis() + options.getPersistenceWaitTime());
+            System.currentTimeMillis() + options.getPersistenceWaitTime())
+        .setXAttr(context.getXAttr());
   }
 
   @Override
@@ -513,7 +518,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    * @return the {@link MutableInodeFile} for the inode
    */
   public static MutableInodeFile fromProto(InodeOrBuilder inode) {
-    return new MutableInodeFile(BlockId.getContainerId(inode.getId()))
+    MutableInodeFile f = new MutableInodeFile(BlockId.getContainerId(inode.getId()))
         .setCreationTimeMs(inode.getCreationTimeMs())
         .setLastModificationTimeMs(inode.getLastModifiedMs(), true)
         .setTtl(inode.getTtl())
@@ -535,7 +540,10 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setPersistJobId(inode.getPersistJobId())
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath())
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()))
-        .setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+    if (inode.getXAttrCount() > 0) {
+      f.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
+    }
+    return f;
   }
 }

@@ -105,6 +105,7 @@ message UpdateInodeDirectoryEntry {
   optional bool mount_point = 2;
   optional bool direct_children_loaded = 3;
   optional alluxio.proto.shared.AccessControlList defaultAcl = 4;
+  map<string, bytes> xAttr = 5;
 }
 
 // next available id: 14
@@ -121,7 +122,7 @@ message UpdateInodeFileEntry {
   optional int64 persist_job_id = 10;
   optional string temp_ufs_path = 11;
   optional string path = 12;
-  map<string, bytes> xAttrs = 13;
+  map<string, bytes> xAttr = 13;
 }
 
 // next available id: 20
