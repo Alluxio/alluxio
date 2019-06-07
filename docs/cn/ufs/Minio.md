@@ -10,7 +10,7 @@ priority: 0
 {:toc}
 
 该指南介绍如何配置Alluxio以使用[Minio](https://minio.io/)作为底层存储系统。
-Alluxio本地提供了s3a:// scheme(建议使用以获取更好的性能)。您可以使用此方案连接Alluxio与Minio服务器。
+Alluxio本地提供了`s3://` scheme(建议使用以获取更好的性能)。您可以使用此方案连接Alluxio与Minio服务器。
 
 ## 初始步骤
 
@@ -40,10 +40,10 @@ Minio是为云应用程序和DevOps构建的对象存储服务器。 Minio提供
 在`conf/alluxio-site.properties`文件中要修改的所有字段如下所示：
 
 ```properties
-alluxio.master.mount.table.root.ufs=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.master.mount.table.root.ufs=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
-alluxio.underfs.s3a.inherit_acl=false
+alluxio.underfs.s3.inherit.acl=false
 aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
 aws.secretKey=<MINIO_SECRET_KEY_ID>
 ```
