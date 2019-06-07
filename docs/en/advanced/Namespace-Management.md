@@ -38,7 +38,7 @@ void unmount(AlluxioURI path, UnmountOptions options);
 
 For example, mount a S3 bucket to the `Data` directory through
 ```java
-mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3a://bucket/directory"));
+mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3://bucket/directory"));
 ```
 
 ### UFS namespace
@@ -112,7 +112,7 @@ to the mount operation, such as credentials for S3 storage.
 ```bash
 ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 ./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey>
-  /mnt/s3 s3a://data-bucket/
+  /mnt/s3 s3://data-bucket/
 ```
 
 Note that mount points can be nested as well. For example, if a UFS is mounted at
@@ -345,13 +345,13 @@ Mount the first S3 bucket into Alluxio using its corresponding credentials `<acc
 
 ```java
 ./bin/alluxio fs mkdir /mnt
-./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId1> --option aws.secretKey=<secretKey1>  /mnt/s3bucket1 s3a://data-bucket1/
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId1> --option aws.secretKey=<secretKey1>  /mnt/s3bucket1 s3://data-bucket1/
 ```
 
 Mount the second S3 bucket into Alluxio using its corresponding credentials `<accessKeyId2>` and `<secretKey2>`:
 
 ```java
-./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId2> --option aws.secretKey=<secretKey2>  /mnt/s3bucket2 s3a://data-bucket2/
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId2> --option aws.secretKey=<secretKey2>  /mnt/s3bucket2 s3://data-bucket2/
 ```
 
 Mount the HDFS storage into Alluxio:

@@ -42,7 +42,7 @@ with the required AWS Access/Secret key.
 1. Run `aws emr create-default-roles`. This will set up the required IAM roles for the account to be able to use the EMR
 service.
 2. Make sure that the `alluxio-emr.sh` script is uploaded to a location in S3 and `alluxio-presto.json` is saved somewhere on your local filesystem.
-3. Configure the below command with the required parameters. The root-ufs-uri should be an s3a:// or hdfs:// URI designating the root mount of the Alluxio file system.
+3. Configure the below command with the required parameters. The root-ufs-uri should be an `s3://` or `hdfs://` URI designating the root mount of the Alluxio file system.
 
 ```bash
 aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=<web-download-url>,<root-ufs-uri>,<additional-properties> --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name>
