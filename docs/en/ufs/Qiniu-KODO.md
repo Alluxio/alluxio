@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configuring Alluxio with Kodo
-nickname: Alluxio with Kodo
+title: Qiniu Kodo
+nickname: Qiniu Kodo
 group: Under Store
 priority: 4
 ---
