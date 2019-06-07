@@ -87,15 +87,22 @@ alluxio.locality.order=node,rack,availability_zone
 If the user does nothing to provide tiered identity info,
 each entity will perform a hostname lookup to set its node-level identity info.
 If other locality tiers are left unset, they will not be used to inform locality decisions.
-To set the value for a locality tier, set the configuration property:
+
+### Setting locality
+
+#### Locality script
+
+By default, Alluxio clients and servers search the classpath for a script named `alluxio-locality.sh`. 
+Output format of this script is a comma-separated list of tierName=tierValue pairs.
+The script name can be overridden by setting:
 
 ```
-alluxio.locality.<tierName>=<tierValue>
+alluxio.locality.script=locality_script_name
 ```
 
-### Set locality via configuration properties
+#### Configuration properties
 
-The `alluxio-locality.sh` script is the preferred way to configure tiered locality
+Using locality script is the preferred way to configure tiered locality
 because the same script can be used for Alluxio servers and compute applications.
 In situations where users do not have access to application classpaths,
 tiered locality can be configured by setting `alluxio.locality.[tiername]`:
@@ -105,28 +112,25 @@ alluxio.locality.node=node_name
 alluxio.locality.rack=rack_name
 ```
 
-See the [Configuration-Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) page for the different
+See the [Configuration-Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) page
 for the different ways to set configuration properties.
 
-### Custom locality script name
+### Tier value priority order
 
-By default, Alluxio clients and servers search the classpath for a script named `alluxio-locality.sh`.
-This name can be overridden by setting:
-
-```
-alluxio.locality.script=locality_script_name
-```
-
-### Node locality priority order
-
-There exists multiple ways of defining the `node` value for tiered locality.
-The order of precedence obtaining this value, from highest priority to lowest priority, is as follows:
+For every tier name (e.g. `node`, `rack`, `availibility_zone` etc.) the order of precedence for 
+obtaining its value, from highest priority to lowest priority, is as follows:
 
 1. From `alluxio.locality.node` set in `alluxio-site.properties`
 1. From `node=...` in the output of the script, whose name is configured by `alluxio.locality.script`
+
+In order to supply a default value for a particular `node` tier, above list is followed by two more sources, 
+from highest to lowest priority:
+ 
 1. From `alluxio.worker.hostname` on a worker, `alluxio.master.hostname` on a master, or
 `alluxio.user.hostname` on a client in their respective `alluxio-site.properties`
 1. If none of the above are configured, node locality is determined by hostname lookup
+
+
 
 ### When exactly is tiered locality used?
 
