@@ -349,9 +349,6 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     if (entry.getSetBlocksCount() > 0) {
       setBlockIds(entry.getSetBlocksList());
     }
-    if (entry.getXAttrCount() > 0) {
-      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
-    }
   }
 
   @Override

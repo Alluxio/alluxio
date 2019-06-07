@@ -163,9 +163,6 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     if (entry.hasMountPoint()) {
       setMountPoint(entry.getMountPoint());
     }
-    if (entry.getXAttrCount() > 0) {
-      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
-    }
   }
 
   @Override
