@@ -81,7 +81,7 @@ public final class UnderFileSystemContractTest {
     runCommonOperations();
 
     if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
-      runS3AOperations();
+      runS3Operations();
     }
     System.out.println("All tests passed!");
   }
@@ -92,7 +92,7 @@ public final class UnderFileSystemContractTest {
         testDir);
   }
 
-  private void runS3AOperations() throws Exception {
+  private void runS3Operations() throws Exception {
     mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, "true");
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, "true");
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
@@ -191,7 +191,7 @@ public final class UnderFileSystemContractTest {
         + "a S3 compatibility test to test if the target under filesystem can "
         + "fulfill the minimum S3 compatibility requirements in order to "
         + "work well with Alluxio through Alluxio's integration with S3. \n"
-        + "Command line example: 'bin/alluxio runUfsTests --path s3a://testPath "
+        + "Command line example: 'bin/alluxio runUfsTests --path s3://testPath "
         + "-Daws.accessKeyId=<accessKeyId> -Daws.secretKeyId=<secretKeyId>"
         + "-Dalluxio.underfs.s3.endpoint=<endpoint_url> "
         + "-Dalluxio.underfs.s3.disable.dns.buckets=true'";
