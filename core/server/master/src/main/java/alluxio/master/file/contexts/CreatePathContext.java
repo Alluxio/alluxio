@@ -27,6 +27,7 @@ import com.google.protobuf.GeneratedMessageV3;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Wrapper for {@link CreateFilePOptions} or {@link CreateDirectoryPOptions} with additional context
@@ -45,6 +46,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   protected String mGroup;
   protected boolean mMetadataLoad;
   protected boolean mPersisted;
+  protected Map<String, byte[]> mXAttr;
 
   //
   // Values for the below fields will be extracted from given proto options
@@ -84,6 +86,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
       writeType = ((CreateDirectoryPOptions.Builder) optionsBuilder).getWriteType();
     }
     mPersisted = WriteType.fromProto(writeType).isThrough();
+    mXAttr = null;
   }
 
   private void loadExtractedFields() {
@@ -255,6 +258,22 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    */
   public K setMetadataLoad(boolean metadataLoad) {
     mMetadataLoad = metadataLoad;
+    return getThis();
+  }
+
+  /**
+   * @return extended attributes on this context
+   */
+  public Map<String, byte[]> getXAttr() {
+    return mXAttr;
+  }
+
+  /**
+   * @param xattr extended attributes to set when creating
+   * @return the updated context
+   */
+  public K setXAttr(Map<String, byte[]> xattr) {
+    mXAttr = xattr;
     return getThis();
   }
 

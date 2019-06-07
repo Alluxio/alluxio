@@ -53,6 +53,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
@@ -64,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -668,6 +670,7 @@ public class InodeTree implements DelegatingJournaled {
           mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
               .setId(currentId)
               .setLastModificationTimeMs(context.getOperationTimeMs())
+              .putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()))
               .build());
         }
       }
@@ -685,6 +688,7 @@ public class InodeTree implements DelegatingJournaled {
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
     missingDirContext.setGroup(context.getGroup());
+    missingDirContext.setXAttr(context.getXAttr());
     StringBuilder pathBuilder = new StringBuilder().append(
         String.join(AlluxioURI.SEPARATOR, Arrays.asList(pathComponents).subList(0, pathIndex))
     );
@@ -1070,6 +1074,11 @@ public class InodeTree implements DelegatingJournaled {
               .setGroup(status.getGroup())
               .setMode(status.getMode());
 
+          Map<String, byte[]> xattr = status.getXAttr();
+          if (xattr != null) {
+            entry.putAllXAttr(CommonUtils.convertToByteString(xattr));
+          }
+
           Long lastModificationTime = status.getLastModifiedTime();
           if (lastModificationTime != null) {
             entry.setLastModificationTimeMs(lastModificationTime)
@@ -1100,7 +1109,8 @@ public class InodeTree implements DelegatingJournaled {
       // If the directory already exists in the UFS, update our metadata to match the UFS.
       dir.setOwner(status.getOwner())
           .setGroup(status.getGroup())
-          .setMode(status.getMode());
+          .setMode(status.getMode())
+          .setXAttr(status.getXAttr());
 
       Long lastModificationTime = status.getLastModifiedTime();
       if (lastModificationTime != null) {

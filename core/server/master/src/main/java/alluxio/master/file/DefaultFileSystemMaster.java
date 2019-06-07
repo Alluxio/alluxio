@@ -2454,6 +2454,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
     createFileContext.setPersisted(true);
+    createFileContext.setXAttr(context.getUfsStatus().getXAttr());
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = context.getUfsStatus().getLastModifiedTime();
@@ -2513,6 +2514,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     createDirectoryContext.setMountPoint(mMountTable.isMountPoint(inodePath.getUri()));
     createDirectoryContext.setMetadataLoad(true);
     createDirectoryContext.setPersisted(true);
+    createDirectoryContext.setXAttr(context.getUfsStatus().getXAttr());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
 
     AlluxioURI ufsUri = resolution.getUri();
