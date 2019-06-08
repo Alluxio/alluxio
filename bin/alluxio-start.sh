@@ -515,11 +515,12 @@ main() {
       start_proxies
       ;;
     local)
-      ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
-      ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
-      ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
-      ALLUXIO_JOB_MASTER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
-      ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.master.hostname=localhost"
+      local hostname=$(${BIN}/alluxio getConf alluxio.master.hostname)
+      if [[ "${hostname}" != "localhost" \
+        && "${hostname}" != $(hostname -s) \
+        && "${hostname}" != $(hostname -f) ]]; then
+        echo "alluxio.master.hostname=localhost" >> "${ALLUXIO_CONF_DIR}/alluxio-site.properties"
+      fi
       if [[ "${FORMAT}" == "-f" ]]; then
         ${LAUNCHER} ${BIN}/alluxio formatJournal
         ${LAUNCHER} ${BIN}/alluxio formatWorker
