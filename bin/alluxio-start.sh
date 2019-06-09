@@ -47,7 +47,7 @@ MOPT (Mount Option) is one of:
              set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
   NoMount is assumed if MOPT is not specified.
 
--a         asynchonously start all processes. The script may exit before all
+-a         asynchronously start all processes. The script may exit before all
            processes have been started.
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
