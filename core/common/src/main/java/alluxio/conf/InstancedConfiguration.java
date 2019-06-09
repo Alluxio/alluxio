@@ -422,7 +422,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         throw new UnresolvablePropertyException(ExceptionMessage
             .UNDEFINED_CONFIGURATION_KEY.getMessage(match));
       }
-      LOG.debug("Replacing {} with {}", matcher.group(1), value);
       resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
     }
     return resolved;
