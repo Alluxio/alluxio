@@ -45,8 +45,8 @@ to enable a storage system to serve as Alluxio's underlying storage.
 Step 1: Implement the interface `UnderFileSystem`
 
 The `UnderFileSystem` interface is defined in the module `org.alluxio:alluxio-core-common`. Choose
-to extend either `ConsistentUnderFileSystem` or `ObjectUnderFileSystem` to implement the `UnderFileSystem`
-interface. `ConsistentUnderFileSystem` is used for storage like HDFS which does not have eventual consistency issue. 
+to extend either **`ConsistentUnderFileSystem`** or **`ObjectUnderFileSystem`** to implement the `UnderFileSystem`
+interface. `ConsistentUnderFileSystem` is used for storage like HDFS which is not eventually consistent. 
 `ObjectUnderFileSystem` is suitable for connecting to object storage and abstracts away
 mapping file system operations to an object store.
 
@@ -142,16 +142,16 @@ mvn package
 Install the tarball to Alluxio:
 
 ```bash
-/bin/alluxio extensions install <path>/<to>/<probject>/target/alluxio-underfs-<ufsName>-<version>.jar
+./bin/alluxio extensions install <path>/<to>/<probject>/target/alluxio-underfs-<ufsName>-<version>.jar
 ```
 
 ### Test the Under Storage Extension
 
-To ensure the new under storage develop correctly and fulfill the minimum requirements to work with Alluxio, 
-one can run UFS tests to issue different UFS workflow combinations to the created under storage.
+To ensure the new under storage module develop correctly and fulfill the minimum requirements to work with Alluxio, 
+one can run contract tests to test different workflows with various combinations of operations against the under storage.
 
 ```bash
-/bin/alluxio runUfsTests --path <scheme>://<path>/ -D<key>=<value>
+./bin/alluxio runUfsTests --path <scheme>://<path>/ -D<key>=<value>
 ```
 
 In addition, one can also mount the under storage and run other kinds of tests on it. Please refer to 
