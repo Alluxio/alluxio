@@ -218,6 +218,24 @@ the journal. The journal should only be formatted the first time the image is ru
 Formatting the journal deletes all Alluxio metadata, and starts the cluster in
 a fresh state.
 
+### Enable POSIX API access
+
+Using the [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/), you can enable
+access to Alluxio using the POSIX API.
+
+Launch the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+capability. This runs the FUSE daemon on a client node that needs to access Alluxio using the POSIX
+API with a mount accessible at `/alluxio-fuse`.
+
+```bash
+docker run -e \
+           ...
+           --cap-add SYS_ADMIN
+           --device /dev/fuse
+           alluxio-fuse fuse
+```
+
+
 ## Troubleshooting
 
 Alluxio server logs can be accessed by running `docker logs $container_id`.
