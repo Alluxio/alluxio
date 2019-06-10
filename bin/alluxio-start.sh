@@ -230,6 +230,16 @@ start_logserver() {
 }
 
 start_master() {
+  if [[ `${LAUNCHER} ${BIN}/alluxio getConf alluxio.master.journal.type` == "EMBEDDED" ]]; then
+    echo "foo"
+    JOURNAL_DIR=`${LAUNCHER} ${BIN}/alluxio getConf alluxio.master.journal.folder`
+    if [ -f "${JOURNAL_DIR}" ]; then
+      echo "Journal location ${JOURNAL_DIR} is a file not a directory. Please remove the file before retrying."
+    elif [ ! -e "${JOURNAL_DIR}" ]; then
+      mkdir ${JOURNAL_DIR}
+      exit 0
+    fi
+  fi
   if [[ "$1" == "-f" ]]; then
     ${LAUNCHER} ${BIN}/alluxio format
   fi
