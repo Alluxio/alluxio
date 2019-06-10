@@ -148,7 +148,7 @@ Install the tarball to Alluxio:
 
 ### Test the Under Storage Extension
 
-To ensure the new under storage module develop correctly and fulfills the minimum requirements to work with Alluxio, 
+To ensure the new under storage module fulfills the minimum requirements to work with Alluxio, 
 one can run contract tests to test different workflows with various combinations of operations against the under storage.
 
 ```bash
