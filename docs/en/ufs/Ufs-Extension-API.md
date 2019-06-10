@@ -45,9 +45,10 @@ to enable a storage system to serve as Alluxio's underlying storage.
 Step 1: Implement the interface `UnderFileSystem`
 
 The `UnderFileSystem` interface is defined in the module `org.alluxio:alluxio-core-common`. Choose
-to extend either **`ConsistentUnderFileSystem`** or **`ObjectUnderFileSystem`** to implement the `UnderFileSystem`
-interface. `ConsistentUnderFileSystem` is used for storage like HDFS which is not eventually consistent. 
-`ObjectUnderFileSystem` is suitable for connecting to object storage and abstracts away
+to extend either `ConsistentUnderFileSystem` or `ObjectUnderFileSystem` to implement the `UnderFileSystem`
+interface. 
+- **`ConsistentUnderFileSystem`**: used for storage like HDFS which is not eventually consistent. 
+- **`ObjectUnderFileSystem`**: suitable for connecting to object storage and abstracts away
 mapping file system operations to an object store.
 
 ```java
@@ -147,7 +148,7 @@ Install the tarball to Alluxio:
 
 ### Test the Under Storage Extension
 
-To ensure the new under storage module develop correctly and fulfill the minimum requirements to work with Alluxio, 
+To ensure the new under storage module develop correctly and fulfills the minimum requirements to work with Alluxio, 
 one can run contract tests to test different workflows with various combinations of operations against the under storage.
 
 ```bash
