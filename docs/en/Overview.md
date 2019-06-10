@@ -10,12 +10,9 @@ priority: 0
 
 ## What is Alluxio
 
-Alluxio unifies data at memory-speed.
-It is the world’s first virtual distributed storage system.
-It bridges the gap between computation frameworks and storage systems, enabling applications
-to connect to numerous storage systems through a common interface.
-Alluxio’s memory-centric architecture enables data access at speeds orders of
-magnitude faster than existing solutions.
+Alluxio is world's first data orchestration technology for analytics and AI in the cloud. 
+It bridges the gap between computation frameworks and storage systems, bringing data from the storage tier closer to the compute frameworks and makes it easily accessible enabling applications to connect to numerous storage systems through a common interface.
+Alluxio’s memory-first tiered architecture enables data access at speeds orders of magnitude faster than existing solutions.
 
 In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark,
 Presto, Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various kinds of
@@ -57,7 +54,7 @@ access their data, regardless of format or location. The benefits of Alluxio inc
 
 * **Memory-Speed I/O**: Alluxio can be used as a distributed shared caching service so that compute
 applications talking to Alluxio can transparently cache frequently accessed data, especially
-from remote locations, to provide in-memory I/O throughput.
+from remote locations, to provide in-memory I/O throughput. In addition, Alluxio's tiered storage that can utilize memory, SSD or disk makes elastically scale data-driven applications cost effective. 
 
 * **Simplified Cloud and Object Storage Adoption**: Cloud and object storage systems use different
 semantics that have performance implications compared to traditional file systems. Common file
