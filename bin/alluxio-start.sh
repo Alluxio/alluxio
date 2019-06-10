@@ -235,7 +235,7 @@ start_master() {
     if [ -f "${JOURNAL_DIR}" ]; then
       echo "Journal location ${JOURNAL_DIR} is a file not a directory. Please remove the file before retrying."
     elif [ ! -e "${JOURNAL_DIR}" ]; then
-      mkdir ${JOURNAL_DIR}
+      ${LAUNCHER} ${BIN}/alluxio format
     fi
   fi
   if [[ "$1" == "-f" ]]; then
