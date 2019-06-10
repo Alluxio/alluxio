@@ -237,7 +237,6 @@ start_master() {
       echo "Journal location ${JOURNAL_DIR} is a file not a directory. Please remove the file before retrying."
     elif [ ! -e "${JOURNAL_DIR}" ]; then
       mkdir ${JOURNAL_DIR}
-      exit 0
     fi
   fi
   if [[ "$1" == "-f" ]]; then
