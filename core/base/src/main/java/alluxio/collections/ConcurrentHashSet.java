@@ -27,13 +27,26 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ConcurrentHashSet<T> extends AbstractSet<T> {
+  private static final int DEFAULT_INIT_CAPACITY = 2;
+  private static final float DEFAULT_LOAD_FACTOR = 0.95f;
+  private static final int DEFAULT_CONCURRENCY_LEVEL = 1;
+
   private final ConcurrentHashMap<T, Boolean> mMap;
 
   /**
    * Creates a new {@link ConcurrentHashSet}.
    */
   public ConcurrentHashSet() {
-    this(2, 0.95f, 1);
+    this(DEFAULT_INIT_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);
+  }
+
+  /**
+   * Creates a new {@link ConcurrentHashSet}.
+   *
+   * @param initialCapacity the initial capacity
+   */
+  public ConcurrentHashSet(int initialCapacity) {
+    this(initialCapacity, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);
   }
 
   /**
