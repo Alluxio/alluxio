@@ -168,7 +168,7 @@ across multiple containers.
 
 Short-circuit access enables clients to perform read and write operations directly against the
 worker bypassing the networking interface. As part of the Alluxio worker pod creation, a directory
-is created on the host for the shared domain socket.
+is created on the host at `/tmp/domain` for the shared domain socket.
 
 To disable this feature, set the property `alluxio.user.short.circuit.enabled=false`. By default,
 short-circuit operations between the Alluxio client and worker are enabled if the client hostname
@@ -182,6 +182,12 @@ client filesystem.
 alluxio.worker.data.server.domain.socket.as.uuid=true
 alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
+
+To verify short-circuit reads and writes monitor the metrics displayed in the metrics tab of the web
+UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`. These metrics are also exposed
+as `cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`:
+- under the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }})
+- and, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }})
 
 ### POSIX API
 
