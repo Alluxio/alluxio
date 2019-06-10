@@ -185,7 +185,7 @@ alluxio.worker.data.server.domain.socket.address=/opt/domain
 
 To verify short-circuit reads and writes monitor the metrics displayed in the metrics tab of the web
 UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`. These metrics are also exposed
-as `cluster.BytesReadDomainThroughput` and `cluster.BytesWrittenDomainThroughput`:
+as `cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`:
 - under the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }})
 - and, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }})
 
