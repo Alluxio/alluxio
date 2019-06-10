@@ -110,7 +110,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
       }
       curatorClient.blockUntilConnectedOrTimedOut();
       String leaderPath = mConnectDetails.getLeaderPath();
-      while (tried < mInquireRetryCount) {
+      while (tried++ < mInquireRetryCount) {
         ZooKeeper zookeeper = curatorClient.getZooKeeper();
         if (zookeeper.exists(leaderPath, false) != null) {
           List<String> masters = zookeeper.getChildren(leaderPath, null);
@@ -133,7 +133,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
             return NetworkAddressUtils.parseInetSocketAddress(leader);
           }
         } else {
-          LOG.info("{} does not exist ({})", leaderPath, ++tried);
+          LOG.info("{} does not exist ({})", leaderPath, tried);
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
