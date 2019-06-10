@@ -30,8 +30,8 @@ which similarly only supports `floor(#zookeeper_nodes / 2)` failures.
 
 * embedded journal does not support dynamically changing master membership. 
 With UFS journal, replacing a master on `host1` with a new master on `host2` is as simple as starting a new master on `host2`, 
-then killing the master on `host1`. Changing the masters in an embedded journal cluster requires backing up the cluster, 
-shutting it down, and then starting up again with the new masters using the backup.
+then killing the master on `host1`. Changing the masters in an embedded journal cluster requires [backing up](#backing-up-the-journal) 
+the cluster, shutting it down, and then starting up again with the new masters using the backup.
 
 If a fast UFS and Zookeeper cluster are readily available and stable, it is recommended to use the UFS journal. 
 Otherwise, we recommend using the embedded journal.
@@ -106,7 +106,7 @@ Before starting Alluxio for the first time, the journal must be formatted.
 ./bin/alluxio formatMaster
 ```
 
-## Operations
+## Backing up the journal
 
 ### Manually backing up the journal
 
@@ -205,6 +205,8 @@ setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setti
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
 
+#### Checkpointing on secondary master
+
 If HA mode is not an option, it is possible to run a master on the same node as a
 dedicated standby master. This second master exists only to write checkpoints, and
 will not serve client requests if the leading master dies. In this setup, both
@@ -216,6 +218,24 @@ run
 ./bin/alluxio-start.sh secondary_master
 ```
 
+#### Checkpointing on primary master
+
+Checkpointing requires a pause in master metadata changes and causes temporary service
+unavailability while the checkpoint is written. If Alluxio contains millions or billions of files, it may take hours
+to finish a checkpoint. Therefore, Alluxio primary master will not create checkpoints by default.
+
+Restarting the current primary master to transfer the leadership to another running master periodically 
+can help avoiding primary master journal logs from growing unbounded when Alluxio is running in HA mode.
+
+If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
+
+```bash
+./bin/alluxio fsadmin checkpoint
+```
+
+Similar to the `backup` command, `checkpoint` command should be used sparingly 
+to avoid interfering with other users of the system.
+
 ### Recovering from journal issues
 
 The journal is integral to Alluxio's health. If the filesystem storing the journal
@@ -224,3 +244,14 @@ if the journal is accidentally deleted or its storage system becomes corrupted,
 Alluxio must be reformatted to recover. To avoid the need for full reformatting,
 we recommend taking regular journal backups at a time when the cluster is under low
 load. Then if something happens to the journal, you can recover from one of the backups.
+
+### Get human-readable journal
+
+The journal in the journal folder is serialized and not human-readable. The following command 
+is given to read the Alluxio journal and write it to a directory in a human-readable format.
+
+```bash
+./bin/alluxio readJournal 
+```
+
+Run `./bin/alluxio readJournal -help` to see the detailed usage.
