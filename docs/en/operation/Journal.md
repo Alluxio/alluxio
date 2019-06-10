@@ -233,8 +233,8 @@ If HA mode is not an option, the following command can be used to manually trigg
 ./bin/alluxio fsadmin checkpoint
 ```
 
-Similar to the `backup` command, `checkpoint` command should be used sparingly 
-to avoid interfering with other users of the system.
+Similar to the `backup` command, `checkpoint` command should 
+be used on an off-peak time to avoid interfering with other users of the system.
 
 ### Recovering from journal issues
 
@@ -247,11 +247,11 @@ load. Then if something happens to the journal, you can recover from one of the 
 
 ### Get human-readable journal
 
-The journal in the journal folder is serialized and not human-readable. The following command 
+Alluxio journal is serialized and not human-readable. The following command 
 is given to read the Alluxio journal and write it to a directory in a human-readable format.
 
 ```bash
 ./bin/alluxio readJournal 
 ```
 
-Run `./bin/alluxio readJournal -help` to see the detailed usage.
+Run `./bin/alluxio readJournal -help` for more detailed usage.
