@@ -35,6 +35,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.SyncPointInfo;
@@ -210,9 +211,14 @@ public class ActiveSyncManager implements Journaled {
   public void launchPollingThread(long mountId, long txId) {
     LOG.debug("launch polling thread for mount id {}, txId {}", mountId, txId);
     if (!mPollerMap.containsKey(mountId)) {
-      try (CloseableResource<UnderFileSystem> ufsClient =
-               mMountTable.getUfsClient(mountId).acquireUfsResource()) {
-        ufsClient.get().startActiveSyncPolling(txId);
+      UfsManager.UfsClient ufsClient = mMountTable.getUfsClient(mountId);
+      if (ufsClient == null) {
+        LOG.warn("Mount id {} does not exist", mountId);
+        return;
+      }
+      try (CloseableResource<UnderFileSystem> ufsResource =
+               ufsClient.acquireUfsResource()) {
+        ufsResource.get().startActiveSyncPolling(txId);
       } catch (IOException e) {
         LOG.warn("IO Exception trying to launch Polling thread {}", e);
       }
@@ -560,12 +566,13 @@ public class ActiveSyncManager implements Journaled {
    */
   public void stop() {
     for (AlluxioURI syncPoint : mSyncPathList) {
-      MountTable.Resolution resolution = null;
+      MountTable.Resolution resolution;
       try {
         resolution = mMountTable.resolve(syncPoint);
       } catch (InvalidPathException e) {
         LOG.warn("stop: InvalidPathException resolving syncPoint {}, exception {}",
             syncPoint,  e);
+        return;
       }
       long mountId = resolution.getMountId();
       // Remove initial sync thread
