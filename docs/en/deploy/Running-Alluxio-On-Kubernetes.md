@@ -31,7 +31,7 @@ The kubernetes specifications required to deploy Alluxio can be found under `int
 
 ```bash
 git clone https://github.com/Alluxio/alluxio.git
-git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
+git checkout v{{site.ALLUXIO_RELEASED_VERSION}} # Only if not using the master (edge) branch
 cd integration/kubernetes
 ```
 
@@ -78,11 +78,15 @@ kubectl create configmap alluxio-config --from-env-file=conf/alluxio.properties
 ### Deploy
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
-location of the Docker image, and CPU and memory requirements for pods.
+location of the **Docker image**, and CPU and memory requirements for pods.
 ```bash
 cp alluxio-master.yaml.template alluxio-master.yaml
 cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
+Note: Please make sure that the version of the kubernetes specification checked out from github
+matches the version of the Alluxio Docker image being used. For example, checkout `master` for
+`SNAPSHOT` images, and checkout the corresponding tag (such as `v2.0.0`) for a released docker image
+(such as `alluxio/alluxio:2.0.0`).
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```bash
@@ -172,15 +176,41 @@ across multiple containers.
 To change the log level for Alluxio servers (master and workers), use the CLI command `logLevel` as
 follows:
 
-- Access the Alluxio CLI from the master pod.
+Access the Alluxio CLI from the master pod.
 ```bash
 kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
-- From the master pod, execute the following:
+From the master pod, execute the following:
 ```bash
 cd /opt/alluxio
 ./bin/alluxio logLevel --level DEBUG --logName alluxio
+```
+
+### Accessing Logs
+
+The Alluxio master and job master run as separate containers of the master pod. Similarly, the
+Alluxio worker and job worker run as separate containers of a worker pod. Logs can be accessed for
+the individual containers as follows.
+
+Master:
+```bash
+kubectl logs -f alluxio-master-0 -c alluxio-master
+```
+
+Worker:
+```bash
+kubectl logs -f alluxio-worker-<id> -c alluxio-worker
+```
+
+Job Master:
+```bash
+kubectl logs -f alluxio-master-0 -c alluxio-job-master
+```
+
+Job Worker:
+```bash
+kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
 ```
 
 ### Short-circuit Access
@@ -202,7 +232,7 @@ alluxio.worker.data.server.domain.socket.as.uuid=true
 alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
 
-To verify short-circuit reads and writes monitor the metrics displayed under
+To verify short-circuit reads and writes monitor the metrics displayed under:
 1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
 1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
 `cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
