@@ -12,17 +12,22 @@ running in a Kubernetes environment.
 * Table of Contents
 {:toc}
 
-## Basic Tutorial
+## Overview
 
-This tutorial walks through an example Spark job on Alluxio in Kubernetes. The example used in this
-tutorial is a job to count the number of lines in a file. We refer to this job as `count` in the
-following text.
+Spark running on Kubernetes can use Alluxio as the data access layer. This guide walks through an
+example Spark job on Alluxio in Kubernetes. The example used in this tutorial is a job to count the
+number of lines in a file. We refer to this job as `count` in the following text.
 
-### Prerequisites
+## Prerequisites
 
 - A Kubernetes cluster (version >= 1.8).
 - Alluxio is deployed on the Kubernetes cluster. For instructions on how to deploy Alluxio, refer to
 [this page]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+
+## Basic Setup
+
+First, prepare the Spark Docker image including the Alluxio client and any other required jars. This
+image should be made available on all Kubernetes nodes.
 
 ### Download Binaries
 
@@ -39,6 +44,25 @@ wget https://alluxio-documentation.s3.amazonaws.com/examples/spark/alluxio-examp
 cp <path_to_alluxio_examples>/alluxio-examples_2.12-1.0.jar jars/
 ```
 Note: Any jar copied to the `jars` directory is included in the Spark Docker image when built.
+
+### Build the Spark Docker Image
+
+Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
+pods. Run the following from the Spark distribution directory.
+
+Add the Alluxio client jar
+```bash
+cp <path_to_alluxio_client>/client/alluxio-2.0.0-preview-client.jar jars/
+```
+
+Build the Spark Docker image
+```bash
+docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
+```
+
+## Example(s)
+
+This section shows how to use the built Docker image to launch a Spark job with Alluxio as the source.
 
 ### Short-circuit operations
 
@@ -65,21 +89,6 @@ Note:
 - Volume support in Spark was added in version 2.4.0.
 - You may observe a performance hit when not using short-circuit access via a domain socket.
 
-### Build the Spark Docker Image
-
-Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
-pods. Run the following from the Spark distribution directory.
-
-Add the Alluxio client jar
-```bash
-cp <path_to_alluxio_client>/client/alluxio-2.0.0-preview-client.jar jars/
-```
-
-Build the Spark Docker image
-```bash
-docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
-```
-
 ### Run a Spark job
 
 The following command runs an example job to count the number of lines in the Alluxio location `/LICENSE`.
@@ -104,3 +113,11 @@ Run the job from the Spark distribution directory
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory \
 local:///opt/spark/jars/alluxio-examples_2.12-1.0.jar alluxio://alluxio-master.default.svc.cluster.local:19998/LICENSE
 ```
+
+## Troubleshooting
+
+### Accessing Alluxio Client Logs
+
+The Alluxio client logs can be found in the Spark driver and executor logs. Refer to
+[Spark documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html#debugging) for
+further instructions.
