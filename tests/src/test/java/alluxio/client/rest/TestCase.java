@@ -200,22 +200,27 @@ public final class TestCase {
   public void run() throws Exception {
     String expected = "";
     if (mExpectedResult != null) {
-      if (mOptions.getContentType().equals(TestCaseOptions.JSON_CONTENT_TYPE)) {
-        ObjectMapper mapper = new ObjectMapper();
-        if (mOptions.isPrettyPrint()) {
-          expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
-        } else {
-          expected = mapper.writeValueAsString(mExpectedResult);
+      switch (mOptions.getContentType()) {
+        case TestCaseOptions.JSON_CONTENT_TYPE: {
+          ObjectMapper mapper = new ObjectMapper();
+          if (mOptions.isPrettyPrint()) {
+            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+          } else {
+            expected = mapper.writeValueAsString(mExpectedResult);
+          }
+          break;
         }
-      } else if (mOptions.getContentType().equals(TestCaseOptions.XML_CONTENT_TYPE)) {
-        XmlMapper mapper = new XmlMapper();
-        if (mOptions.isPrettyPrint()) {
-          expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
-        } else {
-          expected = mapper.writeValueAsString(mExpectedResult);
+        case TestCaseOptions.XML_CONTENT_TYPE: {
+          XmlMapper mapper = new XmlMapper();
+          if (mOptions.isPrettyPrint()) {
+            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+          } else {
+            expected = mapper.writeValueAsString(mExpectedResult);
+          }
+          break;
         }
-      } else {
-        throw new InvalidArgumentException("Invalid content type in TestCaseOptions!");
+        default:
+          throw new InvalidArgumentException("Invalid content type in TestCaseOptions!");
       }
     }
     String result = call();
