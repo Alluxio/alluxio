@@ -565,7 +565,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getRootKey() {
-    if (mUri.getScheme() != null && mUri.getScheme().equals("s3a")) {
+    if ("s3a".equals(mUri.getScheme())) {
       return Constants.HEADER_S3A + mBucketName;
     } else {
       return Constants.HEADER_S3 + mBucketName;
