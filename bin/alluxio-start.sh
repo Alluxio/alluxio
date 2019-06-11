@@ -517,23 +517,23 @@ main() {
     local)
       local master_hostname=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS}\
                               alluxio.master.hostname)
+      local is_master_set_and_local=false
       if [[ -n ${master_hostname} ]]; then
         local local_addresses=( "localhost" "127.0.0.1" $(hostname -s) $(hostname -f) )
         if [[ $(uname -a) != Darwin* ]]; then
           # Assuming Linux
           local_addresses+=( $(hostname --ip-address) )
         fi
-        local is_master_local=false
         for local_address in ${local_addresses[*]}
         do
            if [[ ${local_address} == ${master_hostname} ]]; then
-             is_master_local=true
+             is_master_set_and_local=true
              break
            fi
         done
-        if [[ ${is_master_local} == false ]]; then
-          echo "alluxio.master.hostname=localhost" >> "${ALLUXIO_CONF_DIR}/alluxio-site.properties"
-        fi
+      fi
+      if [[ ${is_master_set_and_local} != true ]]; then
+        echo "alluxio.master.hostname=localhost" >> "${ALLUXIO_CONF_DIR}/alluxio-site.properties"
       fi
       if [[ "${FORMAT}" == "-f" ]]; then
         ${LAUNCHER} ${BIN}/alluxio formatJournal
