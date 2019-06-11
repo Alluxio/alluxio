@@ -17,7 +17,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ChannelAuthenticator;
 
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.netty.channel.EventLoopGroup;
 
@@ -203,25 +202,27 @@ public final class GrpcChannelBuilder {
             mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS),
             mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
     try {
-      Channel clientChannel = underlyingChannel;
-
-      if (mAuthenticateChannel) {
+      AuthType authType =
+          mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+      if (mAuthenticateChannel && authType != AuthType.NOSASL) {
         // Create channel authenticator based on provided content.
         ChannelAuthenticator channelAuthenticator;
         if (mUseSubject) {
           channelAuthenticator = new ChannelAuthenticator(mParentSubject, mConfiguration);
         } else {
-          channelAuthenticator =
-              new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
-                  mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
-                  mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT));
+          channelAuthenticator = new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
+              mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
+              mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT));
         }
-        // Get an authenticated wrapper channel over given managed channel.
-        clientChannel = channelAuthenticator.authenticate(mServerAddress, underlyingChannel);
+        // Return a wrapper over authenticated channel.
+        return new GrpcChannel(mChannelKey,
+            channelAuthenticator.authenticate(mServerAddress, underlyingChannel),
+            mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
+      } else {
+        // Return a wrapper over original channel.
+        return new GrpcChannel(mChannelKey, underlyingChannel,
+            mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
       }
-      // Create the channel after authentication with the target.
-      return new GrpcChannel(mChannelKey, clientChannel,
-          mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
     } catch (Exception exc) {
       // Release the managed channel to the pool before throwing.
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey,

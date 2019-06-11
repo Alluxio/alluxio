@@ -124,8 +124,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
           .setServiceType(serviceType).build());
     } catch (StatusRuntimeException e) {
       throw AlluxioStatusException.fromThrowable(e);
+    } finally {
+      channel.shutdown();
     }
-    channel.shutdown();
   }
 
   @Override

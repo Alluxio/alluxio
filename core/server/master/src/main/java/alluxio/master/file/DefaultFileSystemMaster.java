@@ -778,6 +778,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         throw new FileDoesNotExistException(e.getMessage(), e);
       }
     }
+    fileInfo.setXAttr(inode.getXAttr());
     MountTable.Resolution resolution;
     try {
       resolution = mMountTable.resolve(uri);
@@ -2453,6 +2454,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
     createFileContext.setPersisted(true);
+    createFileContext.setXAttr(context.getUfsStatus().getXAttr());
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = context.getUfsStatus().getLastModifiedTime();
@@ -2540,6 +2542,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     createDirectoryContext.getOptions().setMode(mode.toProto());
     createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup)
         .setUfsStatus(context.getUfsStatus());
+    createDirectoryContext.setXAttr(context.getUfsStatus().getXAttr());
     if (acl != null) {
       createDirectoryContext.setAcl(acl.getEntries());
     }
@@ -2944,6 +2947,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             throw new InvalidArgumentException(
                 "Deleting the mask for an extended ACL is not allowed. entry: " + entry);
           }
+        }
+      }
+    }
+
+    // Check that we are not setting default ACL to a file
+    if (inode.isFile()) {
+      for (AclEntry entry : entries) {
+        if (entry.isDefault()) {
+          throw new UnsupportedOperationException("Can not set default ACL for a file");
         }
       }
     }

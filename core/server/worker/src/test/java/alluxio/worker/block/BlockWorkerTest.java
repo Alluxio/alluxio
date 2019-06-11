@@ -189,7 +189,7 @@ public class BlockWorkerTest {
     when(blockMeta.getBlockSize()).thenReturn(length);
     when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
-    mBlockWorker.commitBlock(sessionId, blockId);
+    mBlockWorker.commitBlock(sessionId, blockId, mRandom.nextBoolean());
     verify(mBlockMasterClient).commitBlock(anyLong(), eq(usedBytes), eq(tierAlias), eq(mediumType),
         eq(blockId), eq(length));
     verify(mBlockStore).unlockBlock(lockId);
@@ -221,8 +221,9 @@ public class BlockWorkerTest {
     when(blockMeta.getBlockSize()).thenReturn(length);
     when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
-    doThrow(new BlockAlreadyExistsException("")).when(mBlockStore).commitBlock(sessionId, blockId);
-    mBlockWorker.commitBlock(sessionId, blockId);
+    doThrow(new BlockAlreadyExistsException("")).when(mBlockStore).commitBlock(sessionId, blockId,
+        false);
+    mBlockWorker.commitBlock(sessionId, blockId, mRandom.nextBoolean());
   }
 
   /**

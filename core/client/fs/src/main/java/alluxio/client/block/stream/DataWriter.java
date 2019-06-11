@@ -59,7 +59,7 @@ public interface DataWriter extends Closeable, Cancelable {
       AlluxioConfiguration alluxioConf = context.getClusterConf();
       if (CommonUtils.isLocalHost(address, alluxioConf) && alluxioConf
           .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
-          .isDomainSocketSupported(address, alluxioConf)) {
+          .isDomainSocketSupported(address)) {
         if (options.getWriteType() == WriteType.ASYNC_THROUGH
             && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,

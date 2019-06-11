@@ -53,6 +53,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
@@ -64,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -145,7 +147,7 @@ public class InodeTree implements DelegatingJournaled {
      *
      * path to lock: /a/b/c
      * existing inodes: /a/b/c
-     * result: Read locks on [a, a->b, b], Write locks on [b->c]
+     * result: Read locks on [a, a->b, b], Write locks on [b->c, c]
      *
      * path to lock: /a/b/c
      * existing inodes: /a
@@ -157,26 +159,6 @@ public class InodeTree implements DelegatingJournaled {
      * @return whether the lock pattern is one of the write-type patterns
      */
     public boolean isWrite() {
-      return this == WRITE_INODE || this == WRITE_EDGE;
-    }
-
-    /**
-     * If the full path exists, the last edge is the edge leading to the last inode.
-     * Otherwise, it is the edge leaving the last existing inode.
-     *
-     * Examples
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a/b/c
-     * last edge: b->c
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a
-     * last edge: a->b
-     *
-     * @return whether the last edge should be write locked
-     */
-    public boolean writeLockLastEdge() {
       return this == WRITE_INODE || this == WRITE_EDGE;
     }
   }
@@ -685,10 +667,13 @@ public class InodeTree implements DelegatingJournaled {
       try (LockResource lr = mInodeLockManager.lockUpdate(currentId)) {
         long updatedLastModified = mInodeStore.get(currentId).get().getLastModificationTimeMs();
         if (updatedLastModified < context.getOperationTimeMs()) {
-          mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
+          UpdateInodeEntry.Builder updateInodeEntry = UpdateInodeEntry.newBuilder()
               .setId(currentId)
-              .setLastModificationTimeMs(context.getOperationTimeMs())
-              .build());
+              .setLastModificationTimeMs(context.getOperationTimeMs());
+          if (context.getXAttr() != null) {
+            updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
+          }
+          mState.applyAndJournal(rpcContext, updateInodeEntry.build());
         }
       }
     }
@@ -705,6 +690,7 @@ public class InodeTree implements DelegatingJournaled {
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
     missingDirContext.setGroup(context.getGroup());
+    missingDirContext.setXAttr(context.getXAttr());
     StringBuilder pathBuilder = new StringBuilder().append(
         String.join(AlluxioURI.SEPARATOR, Arrays.asList(pathComponents).subList(0, pathIndex))
     );
@@ -1090,6 +1076,11 @@ public class InodeTree implements DelegatingJournaled {
               .setGroup(status.getGroup())
               .setMode(status.getMode());
 
+          Map<String, byte[]> xattr = status.getXAttr();
+          if (xattr != null) {
+            entry.putAllXAttr(CommonUtils.convertToByteString(xattr));
+          }
+
           Long lastModificationTime = status.getLastModifiedTime();
           if (lastModificationTime != null) {
             entry.setLastModificationTimeMs(lastModificationTime)
@@ -1120,7 +1111,8 @@ public class InodeTree implements DelegatingJournaled {
       // If the directory already exists in the UFS, update our metadata to match the UFS.
       dir.setOwner(status.getOwner())
           .setGroup(status.getGroup())
-          .setMode(status.getMode());
+          .setMode(status.getMode())
+          .setXAttr(status.getXAttr());
 
       Long lastModificationTime = status.getLastModifiedTime();
       if (lastModificationTime != null) {

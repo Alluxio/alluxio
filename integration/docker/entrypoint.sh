@@ -127,6 +127,8 @@ case ${service,,} in
     integration/docker/bin/alluxio-proxy.sh
     ;;
   fuse)
+    # Unmount first if cleanup failed and ignore error
+    ! integration/fuse/bin/alluxio-fuse unmount /alluxio-fuse
     integration/fuse/bin/alluxio-fuse mount -o allow_other /alluxio-fuse /
     tail -f /opt/alluxio/logs/fuse.log
     ;;

@@ -797,6 +797,8 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               "operationMetrics": Object {},
                               "rpcInvocationMetrics": Object {},
                               "timeSeriesMetrics": Array [],
+                              "totalBytesReadDomainSocket": "",
+                              "totalBytesReadDomainSocketThroughput": "",
                               "totalBytesReadLocal": "",
                               "totalBytesReadLocalThroughput": "",
                               "totalBytesReadRemote": "",
@@ -805,6 +807,8 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               "totalBytesReadUfsThroughput": "",
                               "totalBytesWrittenAlluxio": "",
                               "totalBytesWrittenAlluxioThroughput": "",
+                              "totalBytesWrittenDomainSocket": "",
+                              "totalBytesWrittenDomainSocketThroughput": "",
                               "totalBytesWrittenUfs": "",
                               "totalBytesWrittenUfsThroughput": "",
                               "ufsOps": Object {},
@@ -1072,6 +1076,16 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
             </tr>
             <tr>
               <th>
+                Domain Socket Alluxio Read
+              </th>
+              <td />
+              <th>
+                Domain Socket Alluxio Write
+              </th>
+              <td />
+            </tr>
+            <tr>
+              <th>
                 Under Filesystem Read
               </th>
               <td />
@@ -1102,6 +1116,16 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
               <td />
               <th>
                 Remote Alluxio Write
+              </th>
+              <td />
+            </tr>
+            <tr>
+              <th>
+                Domain Socket Alluxio Read
+              </th>
+              <td />
+              <th>
+                Domain Socket Alluxio Write
               </th>
               <td />
             </tr>

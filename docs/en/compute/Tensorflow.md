@@ -82,11 +82,11 @@ If the training data is already in a remote data storage, you can mount it as a 
 the Alluxio `/training-data` directory. Those data will be visible to the applications running on
 local `/mnt/fuse/`.
 
-Suppose the ImageNet data is stored in a S3 bucket `s3a://alluxio-tensorflow-imagenet/`.
+Suppose the ImageNet data is stored in a S3 bucket `s3://alluxio-tensorflow-imagenet/`.
 Run the following command to mount this S3 bucket to Alluxio path `/training-data/imagenet`:
 
 ```bash
-./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+./bin/alluxio fs mount /training-data/imagenet/ s3://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
 ```
 
 Note this command takes options to pass the S3 credentials of the bucket. These credentials
@@ -100,7 +100,7 @@ wget http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.t
 ./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /trainning-data/imagenet 
 ```
 
-Suppose the ImageNet data is stored in an S3 bucket `s3a://alluxio-tensorflow-imagenet/`, 
+Suppose the ImageNet data is stored in an S3 bucket `s3://alluxio-tensorflow-imagenet/`, 
 the following three commands will show the exact same data after the two mount processes:
 
 ```
@@ -138,10 +138,13 @@ earthstar (score = 0.00117)
 ## Examples: Tensorflow benchmark
 
 Mount the ImageNet data stored in an S3 bucket into path `/training-data/imagenet`,
-assuming the data is at the S3 path `s3a://alluxio-tensorflow-imagenet/`.
+assuming the data is at the S3 path `s3://alluxio-tensorflow-imagenet/`.
 
 ```bash
-./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+./bin/alluxio fs mount /training-data/imagenet/ \
+s3://alluxio-tensorflow-imagenet/ \
+--option aws.accessKeyID=<ACCESS_KEY_ID> \
+--option aws.secretKey=<SECRET_KEY>
 ```
 
 To access the training data in S3 via Alluxio, with the Alluxio POSIX API,

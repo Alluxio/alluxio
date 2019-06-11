@@ -71,8 +71,6 @@ all the dependencies. Subsequent builds, however, will be much faster.
 Once Alluxio is built, you can validate and start it with:
 
 ```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
-echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 ./bin/alluxio validateEnv local
 ./bin/alluxio format
 ./bin/alluxio-start.sh local SudoMount

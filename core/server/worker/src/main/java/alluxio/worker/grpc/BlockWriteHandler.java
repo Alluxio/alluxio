@@ -49,17 +49,21 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
+  private final boolean mDomainSocketEnabled;
+
   /**
    * Creates an instance of {@link BlockWriteHandler}.
    *
    * @param blockWorker the block worker
    * @param responseObserver the stream observer for the write response
    * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether reading block over domain socket
    */
   BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver,
-      AuthenticatedUserInfo userInfo) {
+      AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
     super(responseObserver, userInfo);
     mWorker = blockWorker;
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   @Override
@@ -70,6 +74,13 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     mWorker.createBlockRemote(request.getSessionId(), request.getId(),
         mStorageTierAssoc.getAlias(request.getTier()),
         request.getMediumType(), FILE_BUFFER_SIZE);
+    if (mDomainSocketEnabled) {
+      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_DOMAIN));
+      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT));
+    } else {
+      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
+      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
+    }
     return context;
   }
 
@@ -79,7 +90,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (context.getBlockWriter() != null) {
       context.getBlockWriter().close();
     }
-    mWorker.commitBlock(request.getSessionId(), request.getId());
+    mWorker.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
   }
 
   @Override
@@ -116,11 +127,8 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.setBytesReserved(bytesReserved + bytesToReserve);
     }
     if (context.getBlockWriter() == null) {
-      String metricName = WorkerMetrics.BYTES_WRITTEN_ALLUXIO;
       context.setBlockWriter(
           mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId()));
-      context.setCounter(MetricsSystem.counter(metricName));
-      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
     }
     Preconditions.checkState(context.getBlockWriter() != null);
     int sz = buf.readableBytes();

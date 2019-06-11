@@ -623,7 +623,7 @@ public final class NetworkAddressUtils {
   public static SocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress,
       AlluxioConfiguration conf) {
     SocketAddress address;
-    if (NettyUtils.isDomainSocketSupported(netAddress, conf)) {
+    if (NettyUtils.isDomainSocketAccessible(netAddress, conf)) {
       address = new DomainSocketAddress(netAddress.getDomainSocketPath());
     } else {
       String host = netAddress.getHost();

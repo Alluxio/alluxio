@@ -190,11 +190,8 @@ public final class UIFileInfo {
     UIFileBlockInfo block =
         new UIFileBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias,
             mAlluxioConfiguration);
-    List<UIFileBlockInfo> blocksOnTier = mBlocksOnTier.get(tierAlias);
-    if (blocksOnTier == null) {
-      blocksOnTier = new ArrayList<>();
-      mBlocksOnTier.put(tierAlias, blocksOnTier);
-    }
+    List<UIFileBlockInfo> blocksOnTier = mBlocksOnTier.computeIfAbsent(tierAlias,
+        k -> new ArrayList<>());
     blocksOnTier.add(block);
 
     Long sizeOnTier = mSizeOnTier.get(tierAlias);

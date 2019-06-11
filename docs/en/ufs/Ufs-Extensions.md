@@ -73,7 +73,7 @@ To install an extension from maven, download the JAR first and then install as f
 mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=<extension-group> \
  -DartifactId=<extension-artifact> -Dversion=<version> -Dtransitive=false -Ddest=<extension>.jar
 
-bin/alluxio extensions install <extension.jar>
+./bin/alluxio extensions install <extension.jar>
 ```
 
 ## Validation
@@ -82,12 +82,12 @@ Once the extension JAR has been distributed, you should be able to mount your un
 the Alluxio CLI as follows:
 
 ```bash
-bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
+./bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
 ```
 where, `<key>=<value>` can be replaced with any required configuration for the under storage.
 
 To run sanity tests execute:
 
 ```bash
-bin/alluxio runTests --directory /my-storage
+./bin/alluxio runTests --directory /my-storage
 ```

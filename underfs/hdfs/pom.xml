@@ -114,26 +114,6 @@
     </profile>
 
     <profile>
-      <id>ufsContractTest</id>
-      <activation>
-        <property>
-          <name>testHdfsBaseDir</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <testExcludes combine.self="override" />
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
       <id>hdfsAclandActiveSync</id>
       <build>
         <plugins>
@@ -194,10 +174,6 @@
             <exclude>**/SupportedHdfsAclProvider.java</exclude>
             <exclude>**/SupportedHdfsActiveSyncProvider.java</exclude>
           </excludes>
-          <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified -->
-            <exclude>**/HdfsUnderFileSystemContractTest.java</exclude>
-          </testExcludes>
         </configuration>
       </plugin>
       <plugin>

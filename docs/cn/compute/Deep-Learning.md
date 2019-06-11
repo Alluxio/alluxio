@@ -55,10 +55,13 @@ Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面
 ./bin/alluxio fs mkdir /training-data
 ```
 
-然后我们可以把存储在S3桶中的ImageNet数据挂载到路径 `/training-data/imagenet`上。假定数据在s3中的路径是 `s3a://alluxio-tensorflow-imagenet/`。
+然后我们可以把存储在S3桶中的ImageNet数据挂载到路径 `/training-data/imagenet`上。假定数据在s3中的路径是 `s3://alluxio-tensorflow-imagenet/`。
 
 ```bash
-./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+./bin/alluxio fs mount /training-data/imagenet/ \
+s3://alluxio-tensorflow-imagenet/ \
+--option aws.accessKeyID=<ACCESS_KEY_ID> \
+--option aws.secretKey=<SECRET_KEY>
 ```
 
 请注意，此命令需要传递存储桶的S3证书。这些证书与挂载点相关联，这样之后的访问就不需要证书了。
