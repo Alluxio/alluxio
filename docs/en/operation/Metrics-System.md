@@ -51,6 +51,11 @@ curl 127.0.0.1:19999/metrics/json/
 
 This section gives an example of writing collected metrics to a CSV file.
 
+First, create the polling directory for CsvSink (if it does not already exist):
+```bash
+mkdir /tmp/alluxio-metrics
+```
+
 In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default, add the following
 properties.
 
