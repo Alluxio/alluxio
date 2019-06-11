@@ -281,9 +281,10 @@ func generateTarball(hadoopClients []string) error {
 		replace(filepath.Join("integration/checker", file), "target/alluxio-checker-${VERSION}-jar-with-dependencies.jar", "alluxio-checker-${VERSION}.jar")
 	}
 	// Update the kubernetes image tags
-	for _, file := range []string{"alluxio-master.yaml.template", "alluxio-worker.yaml.template", "alluxio-fuse.yaml.template"} {
+	for _, file := range []string{"alluxio-master.yaml.template", "alluxio-worker.yaml.template"} {
 		replace(filepath.Join("integration/kubernetes", file), "alluxio/alluxio:latest", fmt.Sprintf("alluxio/alluxio:%v", version))
 	}
+	replace("integration/kubernetes/alluxio-fuse.yaml.template", "alluxio/alluxio-fuse:latest", fmt.Sprintf("alluxio/alluxio-fuse:%v", version))
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	run("compiling repo", "mvn", mvnArgs...)
