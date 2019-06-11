@@ -208,7 +208,7 @@ public class ActiveSyncManager implements Journaled {
    * @param mountId launch polling thread on a mount id
    * @param txId specifies the transaction id to initialize the pollling thread
    */
-  public void launchPollingThread(long mountId, long txId) {
+  public void launchPollingThread(long mountId, long txId){
     LOG.debug("launch polling thread for mount id {}, txId {}", mountId, txId);
     if (!mPollerMap.containsKey(mountId)) {
       UfsManager.UfsClient ufsClient = mMountTable.getUfsClient(mountId);
@@ -237,6 +237,7 @@ public class ActiveSyncManager implements Journaled {
    * @param entry addSyncPoint entry
    */
   public void applyAndJournal(Supplier<JournalContext> context, AddSyncPointEntry entry) {
+    LOG.info("Apply startSync {}", entry.getSyncpointPath());
     try {
       apply(entry);
       context.get().append(Journal.JournalEntry.newBuilder().setAddSyncPoint(entry).build());
@@ -266,8 +267,8 @@ public class ActiveSyncManager implements Journaled {
    *
    * @param mountId mountId to stop active sync
    */
-  public void stopSyncForMount(long mountId) throws InvalidPathException, IOException {
-    LOG.debug("Stop sync for mount id {}", mountId);
+  public void stopSyncForMount(long mountId) throws InvalidPathException {
+    LOG.info("Stop sync for mount id {}", mountId);
     if (mFilterMap.containsKey(mountId)) {
       List<Pair<AlluxioURI, MountTable.Resolution>> toBeDeleted = new ArrayList<>();
       for (AlluxioURI uri : mFilterMap.get(mountId)) {
@@ -420,7 +421,7 @@ public class ActiveSyncManager implements Journaled {
     long mountId = removeSyncPoint.getMountId();
 
     try (LockResource r = new LockResource(mSyncManagerLock)) {
-      LOG.debug("stop syncPoint {}", syncPoint.getPath());
+      LOG.info("SyncPoint stopped {}", syncPoint.getPath());
 
       if (mFilterMap.containsKey(mountId)) {
         List list = mFilterMap.get(mountId);
@@ -442,7 +443,7 @@ public class ActiveSyncManager implements Journaled {
     AlluxioURI syncPoint = new AlluxioURI(addSyncPoint.getSyncpointPath());
     long mountId = addSyncPoint.getMountId();
 
-    LOG.debug("adding syncPoint {}, mount id {}", syncPoint.getPath(), mountId);
+    LOG.info("SyncPoint added {}, mount id {}", syncPoint.getPath(), mountId);
     // Add the new sync point to the filter map
     if (mFilterMap.containsKey(mountId)) {
       mFilterMap.get(mountId).add(syncPoint);
