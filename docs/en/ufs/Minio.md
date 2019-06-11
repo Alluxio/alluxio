@@ -9,7 +9,7 @@ priority: 10
 * Table of Contents
 {:toc}
 
-This guide describes how to configure Alluxio with [MinIO](https://minio.io/) as the
+This guide describes how to configure Alluxio with [MinIO](https://min.io/) as the
 under storage system. Alluxio natively provides the `s3://` scheme (recommended for better
 performance). You can use this scheme to connect Alluxio with a MinIO server.
 
@@ -26,7 +26,7 @@ MinIO is an object storage server built for cloud applications and DevOps. MinIO
 source alternative to AWS S3.
 
 Launch a MinIO server instance using the steps mentioned
-[here](http://docs.minio.io/docs/minio-quickstart-guide).
+[here](http://docs.min.io/docs/minio-quickstart-guide).
 Then, either create a new bucket or use an existing one.
 Once the MinIO server is launched, keep a note of the server endpoint, accessKey and secretKey.
 
