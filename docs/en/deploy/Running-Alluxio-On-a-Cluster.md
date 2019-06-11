@@ -19,8 +19,10 @@ the cluster as a whole would be unavailable. We highly recommend running Alluxio
 ### Prerequisites
 
 * A single master node, and 1 or more worker nodes
-* SSH login without password to all nodes. You can add a public SSH key for the host into
+* SSH login without password from master node to worker nodes. You can add a public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
+* TCP traffic across all nodes is allowed. For basic functionality make sure RPC port (default :19998) is open
+on all nodes.
 * A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3.
 
 ### Setup
@@ -31,7 +33,7 @@ The following sections describe how to install and configure Alluxio with a sing
 
 To deploy Alluxio in a cluster, first [download](https://alluxio.io/download) the Alluxio tar file,
 and copy it to every node (master node, worker nodes). Extract the tarball to the same path on
-every node.
+every node. You can download Alluxio tar file alternatively from [FTP](https://downloads.alluxio.io).
 
 #### Configuration
 
@@ -49,7 +51,7 @@ workers. The configuration parameters which must be set are:
 - `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by the master node and all worker nodes.
-  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
 
 This is the minimal configuration to start Alluxio, but additional configuration may be added.
 
@@ -146,7 +148,7 @@ Add the following properties to the `conf/alluxio-site.properties` file:
 - `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by all master nodes and all worker nodes.
-  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
   
 ### Setting up HA cluster with internal leader election
 

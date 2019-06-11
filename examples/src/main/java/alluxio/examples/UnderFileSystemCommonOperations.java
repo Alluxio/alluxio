@@ -27,6 +27,9 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +42,7 @@ import java.util.Arrays;
  * The class should contain all the Alluxio ufs semantics.
  */
 public final class UnderFileSystemCommonOperations {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemCommonOperations.class);
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   private static final String FILE_CONTENT_INCORRECT
@@ -210,7 +214,13 @@ public final class UnderFileSystemCommonOperations {
     int offset = 0;
     int noReadCount = 0;
     while (offset < buf.length && noReadCount < 3) {
-      int bytesRead = inputStream.read(buf, offset, buf.length - offset);
+      int bytesRead;
+      try {
+        bytesRead = inputStream.read(buf, offset, buf.length - offset);
+      } catch (Exception e) {
+        LOG.info("Failed to read from file {}: {}", testFile, e.toString());
+        bytesRead = -1;
+      }
       if (bytesRead != -1) {
         noReadCount = 0;
         for (int i = 0; i < bytesRead; ++i) {
@@ -237,14 +247,21 @@ public final class UnderFileSystemCommonOperations {
     int numCopies = prepareMultiBlockFile(testFile);
     InputStream inputStream = mUfs.openExistingFile(testFile);
     byte[] buf = new byte[numCopies * TEST_BYTES.length];
-    int bytesRead = inputStream.read(buf, 0, buf.length);
-    if (buf.length != bytesRead) {
-      throw new IOException(FILE_CONTENT_INCORRECT);
-    }
-    for (int i = 0; i < bytesRead; ++i) {
-      if (TEST_BYTES[i % TEST_BYTES.length] != buf[i]) {
-        throw new IOException(FILE_CONTENT_INCORRECT);
+    int offset = 0;
+    while (offset < buf.length) {
+      int bytesRead = inputStream.read(buf, offset, buf.length - offset);
+      if (bytesRead == -1) {
+        break;
       }
+      for (int i = 0; i < bytesRead; ++i) {
+        if (TEST_BYTES[(offset + i) % TEST_BYTES.length] != buf[offset + i]) {
+          throw new IOException(FILE_CONTENT_INCORRECT);
+        }
+      }
+      offset += bytesRead;
+    }
+    if (buf.length != offset) {
+      throw new IOException(FILE_CONTENT_INCORRECT);
     }
   }
 

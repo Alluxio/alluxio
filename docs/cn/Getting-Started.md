@@ -181,8 +181,8 @@ Alluxio 通过统一命名空间的特性统一了对存储系统的访问。你
 接着，我们挂载一个已有的 S3 bucket 到 Alluxio。本指南使用`alluxio-quick-start`S3 bucket。
 
 ```bash
-./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
-# Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
+./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3://alluxio-quick-start/data
+# Mounted s3://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
 我们可以通过 Alluxio 命名空间列出 S3 中的文件。使用熟悉的`ls`命令列出 S3 挂载目录下的文件。

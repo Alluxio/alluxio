@@ -236,7 +236,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setAcl(context.getAcl())
         // SetAcl call is also setting default AclEntries
         .setAcl(context.getDefaultAcl())
-        .setMountPoint(context.isMountPoint());
+        .setMountPoint(context.isMountPoint())
+        .setXAttr(context.getXAttr());
   }
 
   @Override
@@ -283,7 +284,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
    * @return the {@link MutableInodeDirectory} representation for the inode
    */
   public static MutableInodeDirectory fromProto(InodeOrBuilder inode) {
-    return new MutableInodeDirectory(inode.getId())
+    MutableInodeDirectory d = new MutableInodeDirectory(inode.getId())
         .setCreationTimeMs(inode.getCreationTimeMs())
         .setLastModificationTimeMs(inode.getLastModifiedMs(), true)
         .setTtl(inode.getTtl())
@@ -298,7 +299,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount())
         .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()))
-        .setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+    if (inode.getXAttrCount() > 0) {
+      d.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
+    }
+    return d;
   }
 }
