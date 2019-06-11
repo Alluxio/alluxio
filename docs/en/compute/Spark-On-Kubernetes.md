@@ -29,7 +29,6 @@ following text.
 [Download](https://spark.apache.org/downloads.html) the desired Spark version. We use the pre-built
 binary for the `spark-submit` command as well as building the Docker image using the included Dockerfile.
 ```bash
-wget http://apache.mirrors.tds.net/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
 tar -xf spark-2.4.0-bin-hadoop2.7.tgz
 cd spark-2.4.0-bin-hadoop2.7
 ```
@@ -71,13 +70,6 @@ Note:
 Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
 pods. Run the following from the Spark distribution directory.
 
-Copy certificates if using minikube
-```bash
-cp ~/.minikube/apiserver.key bin/
-cp ~/.minikube/apiserver.crt bin/
-cp ~/.minikube/ca.crt bin/
-```
-
 Add the Alluxio client jar
 ```bash
 cp <path_to_alluxio_client>/client/alluxio-2.0.0-preview-client.jar jars/
@@ -106,9 +98,6 @@ Run the job from the Spark distribution directory
 --class alluxio.examples.Count --driver-memory 500m --executor-memory 1g \
 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
 --conf spark.kubernetes.container.image=spark-alluxio \
---conf spark.kubernetes.authenticate.submission.caCertFile=./bin/ca.crt \
---conf spark.kubernetes.authenticate.submission.clientKeyFile=./bin/apiserver.key \
---conf spark.kubernetes.authenticate.submission.clientCertFile=./bin/apiserver.crt \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.path=/opt/domain \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.readOnly=true \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/domain \

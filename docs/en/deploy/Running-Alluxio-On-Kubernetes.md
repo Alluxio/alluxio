@@ -26,12 +26,15 @@ This tutorial walks through a basic Alluxio setup on Kubernetes.
 
 ### Clone the Alluxio repo
 
+Clone the Alluxio Github repository and checkout the branch corresponding to the version being used.
+The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
+
 ```bash
 git clone https://github.com/Alluxio/alluxio.git
+git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
 cd integration/kubernetes
 ```
 
-The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
 
 ### Provision a Persistent Volume
 
