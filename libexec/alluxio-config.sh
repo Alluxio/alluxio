@@ -46,7 +46,7 @@ if [[ -z "${JAVA}" ]]; then
   elif [[ -n "${JAVA_HOME}" ]] && [[ -x "${JAVA_HOME}/bin/java" ]];  then
     JAVA="${JAVA_HOME}/bin/java"
   else
-    echo "Error: Cannot find 'java' on path on under \$JAVA_HOME/bin/."
+    echo "Error: Cannot find 'java' on path or under \$JAVA_HOME/bin/."
     exit 1
   fi
 fi
