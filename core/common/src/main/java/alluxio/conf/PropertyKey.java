@@ -2861,7 +2861,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` "
               + "(no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, "
-              + "write to UnderFS synchronously, replicated %s times in Alluxio before data is "
+              + "write to UnderFS asynchronously, replicated %s times in Alluxio before data is "
               + "persisted.", USER_FILE_REPLICATION_DURABLE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
