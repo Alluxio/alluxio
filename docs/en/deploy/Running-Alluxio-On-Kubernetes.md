@@ -167,6 +167,22 @@ across multiple containers.
 
 ## Troubleshooting
 
+### Enable Debug Logging
+
+To change the log level for Alluxio servers (master and workers), use the CLI command `logLevel` as
+follows:
+
+- Access the Alluxio CLI from the master pod.
+```bash
+kubectl exec -ti alluxio-master-0 /bin/bash
+```
+
+- From the master pod, execute the following:
+```bash
+cd /opt/alluxio
+./bin/alluxio logLevel --level DEBUG --logName alluxio
+```
+
 ### Short-circuit Access
 
 Short-circuit access enables clients to perform read and write operations directly against the
