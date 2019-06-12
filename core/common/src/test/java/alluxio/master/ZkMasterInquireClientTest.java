@@ -75,7 +75,7 @@ public class ZkMasterInquireClientTest {
   public void testNoPath() throws Exception {
     // Create zk inquire client.
     MasterInquireClient zkInquirer = ZkMasterInquireClient.getClient(mZkServer.getConnectString(),
-        ELECTION_PATH, LEADER_PATH, 3);
+        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT);
     // Query should fail with no leader path created.
     boolean queryFailed = false;
     try {
