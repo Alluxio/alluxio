@@ -56,7 +56,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:latest
+          image: alluxio/alluxio:2.0.0-RC3
           resources:
             requests:
               cpu: "0.5"
@@ -78,7 +78,7 @@ spec:
             - name: alluxio-journal
               mountPath: /journal
         - name: alluxio-job-master
-          image: alluxio/alluxio:latest
+          image: alluxio/alluxio:2.0.0-RC3
           resources:
             requests:
               cpu: "0.5"
