@@ -216,8 +216,7 @@ public class ActiveSyncManager implements Journaled {
         LOG.warn("Mount id {} does not exist", mountId);
         return;
       }
-      try (CloseableResource<UnderFileSystem> ufsResource =
-               ufsClient.acquireUfsResource()) {
+      try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
         ufsResource.get().startActiveSyncPolling(txId);
       } catch (IOException e) {
         LOG.warn("IO Exception trying to launch Polling thread {}", e);
@@ -471,9 +470,7 @@ public class ActiveSyncManager implements Journaled {
       syncFuture.cancel(true);
     }
 
-    if (mFilterMap.get(mountId).isEmpty()) {
-      // syncPoint removed was the last syncPoint for the mountId
-      mFilterMap.remove(mountId);
+    if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
       Future<?> future = mPollerMap.remove(mountId);
       if (future != null) {
         future.cancel(true);
@@ -489,6 +486,8 @@ public class ActiveSyncManager implements Journaled {
 
     // Stop active sync polling on a particular UFS if it is the last sync point
     if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
+      // syncPoint removed was the last syncPoint for the mountId
+      mFilterMap.remove(mountId);
       try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
         ufs.get().stopActiveSyncPolling();
       } catch (IOException e) {
