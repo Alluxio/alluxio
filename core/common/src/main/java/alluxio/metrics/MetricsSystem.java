@@ -357,8 +357,9 @@ public final class MetricsSystem {
   }
 
   /**
-   * Escapes a URI, replacing "." with "%2E" and "/" with "%2F".
-   * Replaces "%" with "%25" as well.
+   * Escapes a URI, replacing "/" with "%2F".
+   * Replaces "." with "%2E" because dots are used as tag separators in metric names.
+   * Replaces "%" with "%25" because it now has special use.
    * So when the URI is used in a metric name, the "." and "/" won't be interpreted as
    * path separators unescaped and interfere with the internal logic of AlluxioURI.
    *

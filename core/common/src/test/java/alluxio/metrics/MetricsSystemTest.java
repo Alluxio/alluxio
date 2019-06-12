@@ -27,8 +27,7 @@ import java.util.Properties;
  */
 public final class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
-  private static Counter sCounter =
-          MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMetricName("counter"));
+  private static Counter sCounter = MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMetricName("counter"));
 
   /**
    * Sets up the properties for the configuration of the metrics before a test runs.
@@ -67,26 +66,21 @@ public final class MetricsSystemTest {
     String localUriEscaped1 = MetricsSystem.escape(localUri1);
     assertEquals("%2Ffoo%2Falluxio%2FunderFSStorage",
             localUriEscaped1);
-    assertFalse(localUriEscaped1.contains("/"));
 
     AlluxioURI localUri2 = new AlluxioURI("/.alluxio.wololo/alluxio/underFSStorage");
     String localUriEscaped2 = MetricsSystem.escape(localUri2);
     assertEquals("%2F%2Ealluxio%2Ewololo%2Falluxio%2FunderFSStorage",
             localUriEscaped2);
-    assertFalse(localUriEscaped2.contains("/"));
-    assertFalse(localUriEscaped2.contains("."));
 
     AlluxioURI localUri3 = new AlluxioURI("/%25alluxio%20user%2Ffoo%2Ebar/alluxio/underFSStorage");
     String localUriEscaped3 = MetricsSystem.escape(localUri3);
     assertEquals("%2F%2525alluxio%2520user%252Ffoo%252Ebar%2Falluxio%2FunderFSStorage",
             localUriEscaped3);
-    assertFalse(localUriEscaped3.contains("/"));
 
     AlluxioURI localUri4 = new AlluxioURI("s3a://test/Tasks+Export+%282017–11–05+06%3A10+PM%2Ecsv");
     String localUriEscaped4 = MetricsSystem.escape(localUri4);
     assertEquals("s3a:%2F%2Ftest%2FTasks+Export+%25282017–11–05+06%253A10+PM%252Ecsv",
             localUriEscaped4);
-    assertFalse(localUriEscaped4.contains("/"));
   }
 
   /**
