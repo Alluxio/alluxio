@@ -217,9 +217,11 @@ and immediately returns the requested data to the client.
 The worker will asynchronously continue to read the remainder of the block without blocking the client request.
 
 The number of asynchronous threads used to finish reading partial blocks is set by the
-`alluxio.worker.network.netty.async.cache.manager.threads.max` property, with a default value of `512`.
+`alluxio.worker.network.async.cache.manager.threads.max` property.
 When large amounts of data are expected to be asynchronously cached concurrently, it may be helpful
-to reduce this value to reduce resource contention.
+to increase this value to handle a higher workload.
+However, increase this number sparingly, as it will consume more CPU resources on the worker node
+as the number is increased.
 
 ## Client Tuning
 
