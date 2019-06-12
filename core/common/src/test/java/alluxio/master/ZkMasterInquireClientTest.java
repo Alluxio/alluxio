@@ -31,13 +31,14 @@ public class ZkMasterInquireClientTest {
   private static final String ELECTION_PATH = "/election";
   private static final String LEADER_PATH = "/leader";
   private static final String LOOPBACK_IP = "127.0.0.1";
+  private static final int TESTING_SERVER_PORT = 11111;
   private static final int INQUIRE_RETRY_COUNT = 2;
 
   private TestingServer mZkServer;
 
   @Before
   public void before() throws Exception {
-    mZkServer = new TestingServer(1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
+    mZkServer = new TestingServer(TESTING_SERVER_PORT, AlluxioTestDirectory.createTemporaryDirectory("zk"));
   }
 
   @After
@@ -113,8 +114,8 @@ public class ZkMasterInquireClientTest {
     CuratorFramework client = CuratorFrameworkFactory.newClient(mZkServer.getConnectString(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, INQUIRE_RETRY_COUNT));
     // Create the leader path with multiple participants.
-    InetSocketAddress localLeader1 = new InetSocketAddress(LOOPBACK_IP, 1);
-    InetSocketAddress localLeader2 = new InetSocketAddress(LOOPBACK_IP, 2);
+    InetSocketAddress localLeader1 = new InetSocketAddress(LOOPBACK_IP, 12345);
+    InetSocketAddress localLeader2 = new InetSocketAddress(LOOPBACK_IP, 54321);
     client.start();
     client.create().forPath(LEADER_PATH);
     client.create().forPath(LEADER_PATH + localLeader1);
