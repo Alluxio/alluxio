@@ -92,7 +92,7 @@ AlluxioURI normalPath = new AlluxioURI("/normalFile");
 // Create a file with default properties
 FileOutStream normalOut = normalFs.createFile(normalPath);
 ...
-out.close();
+normalOut.close();
 
 // Create a file system with custom configuration
 InstancedConfiguration conf = InstancedConfiguration.defaults();
