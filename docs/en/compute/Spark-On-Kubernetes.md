@@ -47,12 +47,19 @@ Note: Any jar copied to the `jars` directory is included in the Spark Docker ima
 
 ### Build the Spark Docker Image
 
-Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
+Extract the Alluxio client jar from the Alluxio Docker image:
+```bash
+id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
+docker cp $id:/opt/alluxio/client/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar - > alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar
+docker rm -v $id 1>/dev/null
+```
+
+Add the required Alluxio client jar and build a Docker image used for the Spark driver and executor
 pods. Run the following from the Spark distribution directory.
 
 Add the Alluxio client jar
 ```bash
-cp <path_to_alluxio_client>/client/alluxio-2.0.0-preview-client.jar jars/
+cp <path_to_alluxio_client>/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar jars/
 ```
 
 Build the Spark Docker image
