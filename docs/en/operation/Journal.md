@@ -221,8 +221,8 @@ run
 #### Checkpointing on primary master
 
 Checkpointing requires a pause in master metadata changes and causes temporary service
-unavailability while the checkpoint is written. If Alluxio contains millions or billions of files, it may take hours
-to finish a checkpoint. Therefore, Alluxio primary master will not create checkpoints by default.
+unavailability while the checkpoint is written. This operation may take hours depending on Alluxio namespace size. 
+Therefore, Alluxio primary master will not create checkpoints by default.
 
 Restarting the current primary master to transfer the leadership to another running master periodically 
 can help avoiding primary master journal logs from growing unbounded when Alluxio is running in HA mode.
