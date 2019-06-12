@@ -12,6 +12,8 @@ ALLUXIO_MASTER_VERSION_SHORT: master
 # For release candidates and release branches, this should be the major Alluxio version, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"
 # For master branch, this should be "master"
 ALLUXIO_MAJOR_VERSION: master
+# The version string must match the version string part of the client jar path
+ALLUXIO_VERSION_STRING: 2.0.0-SNAPSHOT
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
 ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.0.0-SNAPSHOT-client.jar
