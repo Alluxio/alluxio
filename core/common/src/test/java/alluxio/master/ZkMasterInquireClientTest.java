@@ -38,7 +38,8 @@ public class ZkMasterInquireClientTest {
 
   @Before
   public void before() throws Exception {
-    mZkServer = new TestingServer(TESTING_SERVER_PORT, AlluxioTestDirectory.createTemporaryDirectory("zk"));
+    mZkServer =
+        new TestingServer(TESTING_SERVER_PORT, AlluxioTestDirectory.createTemporaryDirectory("zk"));
   }
 
   @After
