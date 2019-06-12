@@ -187,7 +187,7 @@ shows the file as **PERSISTED**.
 ## [Bonus] Mounting in Alluxio
 
 Alluxio unifies access to storage systems with the unified namespace feature. Read the [Unified
-Namespace blog post](https://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
+Namespace blog post](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)
 and the [unified namespace documentation]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more detailed
 explanations of the feature.
 

@@ -171,7 +171,7 @@ leverage the Scala shell, as discussed in this
 
 - The fuse tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the correct libraries mentioned in
-[the Alluxio FUSE documentation]({{ '/en/api/FUSE-API.html' | relativize_url }}#requirements).
+[the Alluxio FUSE documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}#requirements).
 
 ## Modifying a gRPC definition
 

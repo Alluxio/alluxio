@@ -11,6 +11,10 @@ priority: 10
 This guide describes the instructions to configure [NFS](http://nfs.sourceforge.net) as Alluxio's under
 storage system.
 
+You'll need to have a configured and running installation of NFS for the rest of this guide.
+If you need to get your own NFS installation up and running, we recommend taking a look at the
+[NFS-HOW TO](http://nfs.sourceforge.net/nfs-howto/)
+
 ## Initial Setup
 
 The Alluxio binaries must be on your machine. You can either
@@ -27,9 +31,9 @@ template.
 cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Assuming the NFS clients are co-located with Alluxio nodes, all the NFS shares are mounted at
-directory `/mnt/nfs`, the following environment variable assignment needs to be added to
-`conf/alluxio-site.properties`:
+The following configuration assumes that all NFS clients are co-located with Alluxio nodes.
+We also assume that all of the NFS shares are located at the same location of `/mnt/nfs`.
+Given those assumptions, the following lines should be exist within the `conf/alluxio-site.properties` file.
 
 ```
 alluxio.master.hostname=localhost
@@ -54,8 +58,8 @@ Run a simple example program:
 ./bin/alluxio runTests
 ```
 
-Visit your NFS volume to verify the files and directories created
-by Alluxio exist. For this test, you should see files named like:
+Visit your NFS volume at `/mtn/nfs` to verify the files and directories created by Alluxio exist.
+For this test, you should see files named like:
 
 ```
 /mnt/nfs/default_tests_files/Basic_CACHE_THROUGH

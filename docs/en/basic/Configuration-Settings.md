@@ -9,20 +9,21 @@ priority: 0
 {:toc}
 
 An Alluxio cluster can be configured by setting the values of Alluxio
-[configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}).
+[configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}) within `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
+
 The two major components to configure are
-[Alluxio servers](#configure-alluxio-cluster), consisting of masters and workers, and
-[Alluxio clients](#configure-applications), which are a part of applications.
+- [Alluxio servers](#configure-an-alluxio-cluster), consisting of masters and workers
+- [Alluxio clients](#configure-applications), which are typically a part of compute applications.
 
 ## Configure Applications
 
-Customizing how an application job interacts with Alluxio service is specific to each application.
+Customizing how an application interacts with Alluxio is specific to each application.
 The following are recommendations for some common applications.
 
 Note that it is only valid to set client-side configurations for applications,
 such as properties prefixed with `alluxio.user`.
-Setting server-side properties on the application has no effect,
-suchj as properties prefixed with either `alluxio.master` or `alluxio.worker`.
+Similarly, setting server-side properties on a compute application has no effect,
+such as properties prefixed with either `alluxio.master` or `alluxio.worker`.
 
 ### Alluxio Shell Commands
 
@@ -34,16 +35,16 @@ For example, the following Alluxio shell command sets the write type to `CACHE_T
 ./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
 ```
 
-Note that, as a part of Alluxio deployment, Alluxio shell will also take the configuration in
+Note that, as a part of Alluxio deployment, the Alluxio shell will also take the configuration in
 `${ALLUXIO_HOME}/conf/alluxio-site.properties` when it is run from Alluxio installation at
 `${ALLUXIO_HOME}`.
 
 ### Spark
 
-To customize Alluxio client-side properties in Spark,
+To customize Alluxio client-side properties in Spark applications,
 Spark users can use pass Alluxio properties as JVM system properties.
 See examples for
-[the entire Spark Service]({{ '/en/compute/Spark.html' | relativize_url }}#customize-alluxio-user-properties-for-all-spark-jobs)
+[the entire Spark Service]({{ '/en/compute/Spark.html' | relativize_url }}#basic-setup)
 or for
 [individual Spark Jobs]({{ '/en/compute/Spark.html' | relativize_url }}#customize-alluxio-user-properties-for-individual-spark-jobs).
 
@@ -154,12 +155,12 @@ An Alluxio property can be possibly configured in multiple sources.
 In this case, its final value is determined by the following priority list, from highest priority to lowest:
 
 1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
-2. [Environment variables](#use-environment-variables)
-3. [Property files](#use-site-property-files-recommended):
+2. [Environment variables](#environment-variables)
+3. [Property files](#alluxio-siteproperties-files-recommended):
 When an Alluxio cluster starts, each server process including master and worker searches for
 `alluxio-site.properties` within the following directories in the given order, stopping when a match is found:
 `${HOME}/.alluxio/`, `/etc/alluxio/`, and `${ALLUXIO_HOME}/conf`
-4. [Cluster default values](#specify-cluster-wide-defaults):
+4. [Cluster default values](#cluster-defaults):
 An Alluxio client may initialize its configuration based on the cluster-wide default configuration served by the masters.
 
 If no user-specified configuration is found for a property, Alluxio runtime will fallback to
