@@ -7,7 +7,7 @@ priority: 3
 ---
 
 Alluxio can be run on Kubernetes. This guide demonstrates how to run Alluxio
-on Kubernetes using the specification that comes in the Alluxio Github repository.
+on Kubernetes using the specification included in the Alluxio Docker image.
 
 * Table of Contents
 {:toc}
@@ -24,17 +24,17 @@ private Docker registry, refer to the Kubernetes [documentation](https://kuberne
 
 This tutorial walks through a basic Alluxio setup on Kubernetes.
 
-### Clone the Alluxio repo
+### Extract Kubernetes Specs
 
-Clone the Alluxio Github repository and checkout the branch corresponding to the version being used.
-The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
+Extract the Kubernetes specifications required to deploy Alluxio from the Docker image.
 
 ```bash
-git clone https://github.com/Alluxio/alluxio.git
-git checkout v{{site.ALLUXIO_RELEASED_VERSION}} # Only if not using the master (edge) branch
-cd integration/kubernetes
+id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
+docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
+docker rm -v $id 1>/dev/null
+tar -xvf kubernetes.tar
+cd kubernetes
 ```
-
 
 ### Provision a Persistent Volume
 
@@ -83,10 +83,8 @@ location of the **Docker image**, and CPU and memory requirements for pods.
 cp alluxio-master.yaml.template alluxio-master.yaml
 cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
-Note: Please make sure that the version of the kubernetes specification checked out from github
-matches the version of the Alluxio Docker image being used. For example, checkout `master` for
-`SNAPSHOT` images, and checkout the corresponding tag (such as `v2.0.0`) for a released docker image
-(such as `alluxio/alluxio:2.0.0`).
+Note: Please make sure that the version of the Kubernetes specification matches the version of the
+Alluxio Docker image being used.
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```bash
