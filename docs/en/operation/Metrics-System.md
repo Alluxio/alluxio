@@ -76,8 +76,8 @@ If Alluxio is deployed in a cluster, this file needs to be distributed to all th
 Then, start Alluxio, CSV files containing metrics will be found in the `sink.csv.directory`. The
 file name will correspond with the metric name.
 
-To configure another sink, simply update `sink.csv.class` to sink of choice. Sink specific parameters can be found 
-within their respective class files: `$ALLUXIO_HOME/core/common/src/main/java/alluxio/metrics/sink/`. 
+All possible sink specific configurations can be found within their respective class files: 
+`$ALLUXIO_HOME/core/common/src/main/java/alluxio/metrics/sink/`. 
 
 ## Supported Metrics
 
