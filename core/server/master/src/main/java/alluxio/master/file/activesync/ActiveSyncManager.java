@@ -208,7 +208,7 @@ public class ActiveSyncManager implements Journaled {
    * @param mountId launch polling thread on a mount id
    * @param txId specifies the transaction id to initialize the pollling thread
    */
-  public void launchPollingThread(long mountId, long txId){
+  public void launchPollingThread(long mountId, long txId) {
     LOG.debug("launch polling thread for mount id {}, txId {}", mountId, txId);
     if (!mPollerMap.containsKey(mountId)) {
       UfsManager.UfsClient ufsClient = mMountTable.getUfsClient(mountId);
