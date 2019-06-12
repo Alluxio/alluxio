@@ -357,14 +357,24 @@ public final class MetricsSystem {
   }
 
   /**
-   * Escapes a URI, replacing "." with "_" so that when the URI is used in a metric name,
-   * the "." won't be interpreted as path separators.
+   * Escapes a URI, replacing "." with "\\." and "/" with "\\/" so that when the URI is used in a metric name,
+   * the "." and "/" won't be interpreted as path separators unescaped.
    *
    * @param uri the URI to escape
    * @return the string representing the escaped URI
    */
   public static String escape(AlluxioURI uri) {
-    return uri.toString().replace(".", "_");
+    return uri.toString().replace("/", "\\/").replace(".", "\\.");
+  }
+
+  /**
+   * Unescapes a URI, replacing "\\." with "." and "\\/" with "/" to revert URI to the unescaped form.
+   *
+   * @param uri the escaped URI to unescape
+   * @return the string representing the unescaped original URI
+   */
+  public static String unescape(String uri){
+    return uri.replace("\\.", ".").replace("\\/","/");
   }
 
   // Some helper functions.

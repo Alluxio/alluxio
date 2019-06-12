@@ -997,9 +997,10 @@ public final class AlluxioMasterRestServiceHandler {
         }
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
+          // Unescape the URI for display
           Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-          perUfsMap.put(ufs, (long) metric.getValue());
-          ufsOpsMap.put(ufs, perUfsMap);
+          perUfsMap.put(MetricsSystem.unescape(ufs), (long) metric.getValue());
+          ufsOpsMap.put(MetricsSystem.unescape(ufs), perUfsMap);
         }
       }
       response.setUfsOps(ufsOpsMap);
