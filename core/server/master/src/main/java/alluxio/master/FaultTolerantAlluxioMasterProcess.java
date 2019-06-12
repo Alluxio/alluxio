@@ -109,7 +109,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       if (mLeaderSelector.getState() != State.PRIMARY) {
         unstable.set(true);
       }
-      stopMasters(false);
+      stopMasters();
       LOG.info("Secondary stopped");
       mJournalSystem.gainPrimacy();
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
@@ -156,7 +156,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
             mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
       }
       mServingThread = null;
-      stopMasters(false);
+      stopMasters();
       LOG.info("Primary stopped");
     }
     startMasters(false);
