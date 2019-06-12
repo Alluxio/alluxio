@@ -365,7 +365,7 @@ public final class MetricsSystem {
    * @return the string representing the escaped URI
    */
   public static String escape(AlluxioURI uri) {
-    return uri.toString().replace("/", "\\/").replace(".", "\\.");
+    return uri.toString().replace("%", "%25").replace("/", "%2F").replace(".", "%2E");
   }
 
   /**
@@ -376,7 +376,7 @@ public final class MetricsSystem {
    * @return the string representing the unescaped original URI
    */
   public static String unescape(String uri) {
-    return uri.replace("\\.", ".").replace("\\/", "/");
+    return uri.replace("%2F", "/").replace("%2E", ".").replace("%25", "%");
   }
 
   // Some helper functions.
