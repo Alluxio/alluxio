@@ -80,9 +80,9 @@ FileOutStream out = fs.createFile(path, options);
 
 #### Programmatically Modifying Configuration
 
-Alluxio configuration can be set through alluxio-site.properties, but these properties apply to all
-instances of Alluxio that read from the file. If fine-grained configuration management is required,
-pass in a customized configuration object when creating the `FileSystem` object.
+Alluxio configuration can be set through `alluxio-site.properties`, but these properties apply to
+all instances of Alluxio that read from the file. If fine-grained configuration management is
+required, pass in a customized configuration object when creating the `FileSystem` object.
 The generated `FileSystem` object will have modified configuration properties, independent of any
 other `FileSystem` clients.
 
@@ -95,17 +95,17 @@ FileOutStream normalOut = normalFs.createFile(normalPath);
 out.close();
 
 // Create a file system with custom configuration
-InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-conf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "256MB");
+InstancedConfiguration conf = InstancedConfiguration.defaults();
+conf.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alice");
 FileSystem customizedFs = FileSystem.Factory.create(conf);
 AlluxioURI normalPath = new AlluxioURI("/customizedFile");
-// The newly created file will have the custom block size 256MB
+// The newly created file will be created under the username "alice"
 FileOutStream customizedOut = customizedFs.createFile(customizedPath);
 ...
 customizedOut.close();
 
-// NormalFs can still be used to create files with the default block size.
-// Likewise, using customizedFs will create files with 256 block size.
+// normalFs can still be used as a FileSystem client with the default username.
+// Likewise, using customizedFs will use the username "alice".
 ```
 
 #### IO Options

@@ -14,6 +14,7 @@ package alluxio.conf;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -52,6 +53,30 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private final boolean mClusterDefaultsLoaded;
 
   /**
+   * WARNING: This API is unstable and may be changed in a future minor release.
+   *
+   * Users should use this API to obtain a configuration for modification before passing to a
+   * FileSystem constructor. The default configuration contains all default configuration params
+   * and configuration properties modified in the alluxio-site.properties file.
+   *
+   * Example usage:
+   *
+   * InstancedConfiguration conf = InstancedConfiguration.defaults();
+   * conf.set(...);
+   * FileSystem fs = FileSystem.Factory.create(conf);
+   *
+   * @return an instanced configuration preset with defaults
+   */
+  public static InstancedConfiguration defaults() {
+    return new InstancedConfiguration(ConfigurationUtils.defaults());
+  }
+
+  /**
+   * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
+   * changed or removed in a future minor release.
+   *
+   * Application code should use {@link InstancedConfiguration#defaults}.
+   *
    * @param properties alluxio properties underlying this configuration
    */
   public InstancedConfiguration(AlluxioProperties properties) {
@@ -60,6 +85,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
+   * changed or removed in a future minor release.
+   *
+   * Application code should use {@link InstancedConfiguration#defaults}.
+   *
    * @param properties alluxio properties underlying this configuration
    * @param clusterDefaultsLoaded Whether or not the properties represent the cluster defaults
    */
@@ -69,6 +99,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
+   * changed or removed in a future minor release.
+   *
+   * Application code should use {@link InstancedConfiguration#defaults}.
+   *
    * @param conf configuration to copy
    */
   public InstancedConfiguration(AlluxioConfiguration conf) {
