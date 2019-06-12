@@ -53,8 +53,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private final boolean mClusterDefaultsLoaded;
 
   /**
-   * WARNING: This API is unstable and may be changed in a future minor release.
-   *
    * Users should use this API to obtain a configuration for modification before passing to a
    * FileSystem constructor. The default configuration contains all default configuration params
    * and configuration properties modified in the alluxio-site.properties file.
@@ -65,6 +63,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * conf.set(...);
    * FileSystem fs = FileSystem.Factory.create(conf);
    *
+   * WARNING: This API is unstable and may be changed in a future minor release.
+   *
    * @return an instanced configuration preset with defaults
    */
   public static InstancedConfiguration defaults() {
@@ -72,6 +72,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * Creates a new instance of {@link InstancedConfiguration}.
+   *
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
@@ -85,6 +87,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * Creates a new instance of {@link InstancedConfiguration}.
+   *
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
@@ -99,6 +103,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * Creates a new instance of {@link InstancedConfiguration}.
+   *
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
