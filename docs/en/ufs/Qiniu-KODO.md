@@ -58,7 +58,7 @@ according to this [order](https://mars-assets.qnssl.com/alluxio_host.png)
 ### Nested Mount
 An Kodo location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command]({{ 'en/Basic/Command-Line-Interface.html' | relativize_url}}#mount) can be used for this purpose.
+[mount command]({{ 'en/Basic/Command-Line-Interface.html' | relativize_url}}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an Kodo bucket into Alluxio directory
 
 ```bash 

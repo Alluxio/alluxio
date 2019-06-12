@@ -58,8 +58,8 @@ Run a simple example program:
 ./bin/alluxio runTests
 ```
 
-Visit your NFS volume at `/mtn/nfs` to verify the files and directories created by Alluxio exist.
-For this test, you should see files named like:
+Visit your NFS volume at `/mnt/nfs` to verify the files and directories created by Alluxio exist.
+For this test, you should see files named:
 
 ```
 /mnt/nfs/default_tests_files/Basic_CACHE_THROUGH
