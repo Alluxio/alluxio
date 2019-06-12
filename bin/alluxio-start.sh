@@ -233,12 +233,11 @@ start_master() {
   if [[ "$1" == "-f" ]]; then
     ${LAUNCHER} ${BIN}/alluxio format
   elif [[ `${LAUNCHER} ${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type` == "EMBEDDED" ]]; then
-      JOURNAL_DIR=`${LAUNCHER} ${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.folder`
-      if [ -f "${JOURNAL_DIR}" ]; then
-        echo "Journal location ${JOURNAL_DIR} is a file not a directory. Please remove the file before retrying."
-      elif [ ! -e "${JOURNAL_DIR}" ]; then
-        ${LAUNCHER} ${BIN}/alluxio format
-      fi
+    JOURNAL_DIR=`${LAUNCHER} ${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.folder`
+    if [ -f "${JOURNAL_DIR}" ]; then
+      echo "Journal location ${JOURNAL_DIR} is a file not a directory. Please remove the file before retrying."
+    elif [ ! -e "${JOURNAL_DIR}" ]; then
+      ${LAUNCHER} ${BIN}/alluxio format
     fi
   fi
 
