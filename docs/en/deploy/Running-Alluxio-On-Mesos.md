@@ -74,7 +74,13 @@ From anywhere with Alluxio installed:
 
 {% include Running-Alluxio-on-Mesos/alluxio-mesos.md %}
 
-Note that the tarball should be compiled with `-Pmesos`. Released Alluxio tarballs from version 1.3.0 onwards are compiled this way.
+- Note that the tarball should be compiled with `-Pmesos`. Released Alluxio tarballs from version 1.3.0 onwards are compiled this way.
+- Mesos library path is assumed to be at `/usr/lib`. If it is not, you can update `MESOS_LIBRARY_PATH` in `alluxio-mesos-start.sh` with the correct path
+
+Verify that the Alluxio Mesos framework is working by starting a Mesos master and confirming that it is detected in `alluxio/logs/framework.out` 
+
+- Example from `alluxio/logs/framework.out`  
+*I0612 18:08:31.251133  3047 sched.cpp:336] New master detected at master@127.0.0.1:5050*
 
 ### Java
 
