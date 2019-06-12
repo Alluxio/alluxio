@@ -357,9 +357,10 @@ public final class MetricsSystem {
   }
 
   /**
-   * Escapes a URI, replacing "." with "\\." and "/" with "\\/".
+   * Escapes a URI, replacing "." with "%2E" and "/" with "%2F".
+   * Replaces "%" with "%25" as well.
    * So when the URI is used in a metric name, the "." and "/" won't be interpreted as
-   * path separators unescaped.
+   * path separators unescaped and interfere with the internal logic of AlluxioURI.
    *
    * @param uri the URI to escape
    * @return the string representing the escaped URI
@@ -369,8 +370,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Unescapes a URI, replacing "\\." with "." and "\\/" with "/" to revert URI to
-   * the unescaped form.
+   * Unescapes a URI, reverts it to before the escape, to display it correctly.
    *
    * @param uri the escaped URI to unescape
    * @return the string representing the unescaped original URI
