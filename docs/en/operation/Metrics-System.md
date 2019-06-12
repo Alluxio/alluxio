@@ -23,13 +23,13 @@ following instances are currently supported:
 * Master: The Alluxio master process.
 * Worker: The Alluxio worker process.
 
-Each instance can report to zero or more sinks.
+Each instance can report to zero or more sinks, found in `$ALLUXIO_HOME/core/common/src/main/java/alluxio/metrics/sink/`.
 
-* ConsoleSink: Outputs metrics values to the console.
-* CsvSink: Exports metrics data to CSV files at regular intervals.
-* JmxSink: Registers metrics for viewing in a JMX console.
-* GraphiteSink: Sends metrics to a Graphite server.
-* MetricsServlet: Adds a servlet in Web UI to serve metrics data as JSON data.
+* `ConsoleSink`: Outputs metrics values to the console.
+* `CsvSink`: Exports metrics data to CSV files at regular intervals.
+* `JmxSink`: Registers metrics for viewing in a JMX console.
+* `GraphiteSink`: Sends metrics to a Graphite server.
+* `MetricsServlet`: Adds a servlet in Web UI to serve metrics data as JSON data.
 
 ## Configuration
 
@@ -75,6 +75,9 @@ If Alluxio is deployed in a cluster, this file needs to be distributed to all th
 
 Then, start Alluxio, CSV files containing metrics will be found in the `sink.csv.directory`. The
 file name will correspond with the metric name.
+
+To configure another sink, simply update `sink.csv.class` to sink of choice. Sink specific parameters can be found 
+within their respective class files: `$ALLUXIO_HOME/core/common/src/main/java/alluxio/metrics/sink/`. 
 
 ## Supported Metrics
 
