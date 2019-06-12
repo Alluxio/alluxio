@@ -91,11 +91,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** AWS-SDK S3 client. */
   private final AmazonS3Client mClient;
 
-  // TODO(binfan): make this a member of ObjectUnderFileSystem rather than a calculated string
-  // each time on getRootKey() for efficiency
-  /** The root key of this under fs. */
-  private String mRootKey;
-
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
@@ -241,11 +236,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     super(uri, conf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
-    if (uri.getScheme() != null && uri.getScheme().equals("s3a")) {
-      mRootKey = Constants.HEADER_S3A + mBucketName;
-    } else {
-      mRootKey = Constants.HEADER_S3 + mBucketName;
-    }
     mExecutor = MoreExecutors.listeningDecorator(executor);
     mManager = transferManager;
     mStreamingUploadEnabled = streamingUploadEnabled;
@@ -575,7 +565,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getRootKey() {
-    return mRootKey;
+    if ("s3a".equals(mUri.getScheme())) {
+      return Constants.HEADER_S3A + mBucketName;
+    } else {
+      return Constants.HEADER_S3 + mBucketName;
+    }
   }
 
   @Override
