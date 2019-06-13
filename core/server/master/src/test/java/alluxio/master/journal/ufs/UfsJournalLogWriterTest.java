@@ -268,6 +268,38 @@ public final class UfsJournalLogWriterTest {
   }
 
   /**
+   * Test that failures during {@link UfsJournalLogWriter#flush()} will complete the current file.
+   */
+  @Test
+  public void flushFailureCompletesFile() throws Exception {
+    Mockito.when(mUfs.supportsFlush()).thenReturn(true);
+
+    // Write several journal entries, creating and closing journal file.
+    // This file is complete.
+    long startSN = 0x10;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, startSN);
+    final int numberOfEntriesWrittenBeforeFailure = 10;
+    long nextSN = writeJournalEntries(writer, startSN, numberOfEntriesWrittenBeforeFailure);
+    writer.flush();
+    writer.close();
+
+    // Write another entry and then fail the flush.
+    writer = new UfsJournalLogWriter(mJournal, nextSN);
+    nextSN = writeJournalEntries(writer, nextSN, 1);
+    DataOutputStream badOut = createMockDataOutputStream(writer);
+    Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut).flush();
+    tryFlushAndExpectToFail(writer);
+
+    // Verify that current file is completed with current SN.
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertNull(snapshot.getCurrentLog(mJournal));
+    Assert.assertEquals(2, snapshot.getLogs().size());
+    Assert.assertEquals(nextSN, snapshot.getLogs().get(1).getEnd());
+
+    writer.close();
+  }
+
+  /**
    * Tests that {@link UfsJournalLogWriter} can detect the failure in which some flushed journal
    * entries are missing from the journal during recovery.
    */
@@ -357,12 +389,14 @@ public final class UfsJournalLogWriterTest {
 
   /**
    * Creates a mock {@link DataOutputStream} for {@link UfsJournalLogWriter#mJournalOutputStream}.
+   * Mock's internal state is altered to report its written byte count as 1.
    *
    * @param writer the {@link UfsJournalLogWriter} instance for which the mock is created
    * @return the created mock {@link DataOutputStream} instance
    */
   private DataOutputStream createMockDataOutputStream(UfsJournalLogWriter writer) {
     DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
+    Whitebox.setInternalState(badOut, "written", 1);
     Object journalOutputStream = writer.getJournalOutputStream();
     Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
     return badOut;
@@ -377,6 +411,20 @@ public final class UfsJournalLogWriterTest {
   private void tryWriteAndExpectToFail(UfsJournalLogWriter writer, long nextSN) throws Exception {
     try {
       writer.write(newEntry(nextSN));
+      Assert.fail("Should not reach here.");
+    } catch (IOException e) {
+      Assert.assertThat(e.getMessage(), containsString(INJECTED_IO_ERROR_MESSAGE));
+    }
+  }
+
+  /**
+   * Tries to flush a journalwriter it to fail due to {@link IOException}.
+   *
+   * @param writer {@link UfsJournalLogWriter} that attempts the write
+   */
+  private void tryFlushAndExpectToFail(UfsJournalLogWriter writer) throws Exception {
+    try {
+      writer.flush();
       Assert.fail("Should not reach here.");
     } catch (IOException e) {
       Assert.assertThat(e.getMessage(), containsString(INJECTED_IO_ERROR_MESSAGE));
