@@ -79,6 +79,11 @@ public interface BlockStore extends Iterable<Block> {
   void removeLocation(long blockId, long workerId);
 
   /**
+   * Closes the block store and releases all resources.
+   */
+  void close();
+
+  /**
    * Block metadata.
    */
   class Block {

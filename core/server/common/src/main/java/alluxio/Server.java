@@ -52,4 +52,9 @@ public interface Server<T> {
    * cleaned up and shutdown.
    */
   void stop() throws IOException;
+
+  /**
+   * Closes the server.
+   */
+  void close() throws IOException;
 }
