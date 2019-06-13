@@ -39,18 +39,23 @@ if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
   . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 fi
 
-if [[ -z "$(which java)" ]]; then
-  echo "Cannot find the 'java' command."
-  exit 1
+# Check if java is found
+if [[ -z "${JAVA}" ]]; then
+  if [[ -n "$(which java)" ]]; then
+    JAVA=$(which java)
+  elif [[ -n "${JAVA_HOME}" ]] && [[ -x "${JAVA_HOME}/bin/java" ]];  then
+    JAVA="${JAVA_HOME}/bin/java"
+  else
+    echo "Error: Cannot find 'java' on path or under \$JAVA_HOME/bin/."
+    exit 1
+  fi
 fi
 
-JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
-JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
-
-if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
-  echo "ALLUXIO_MASTER_ADDRESS is deprecated since version 1.1 and will be remove in version 2.0."
-  echo "Please use \"ALLUXIO_MASTER_HOSTNAME\" instead."
-  ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_ADDRESS}
+# Check Java version == 1.8
+JAVA_VERSION=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}')
+if [[ $(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}') != 001008 ]]; then
+  echo "Error: Alluxio requires Java 8, currently Java $JAVA_VERSION found."
+  exit 1
 fi
 
 if [[ -n "${ALLUXIO_HOME}" ]]; then
@@ -69,6 +74,10 @@ if [[ -n "${ALLUXIO_MASTER_HOSTNAME}" ]]; then
 fi
 
 if [[ -n "${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.mount.table.root.ufs=${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}"
+elif [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
+  echo "Warning: ALLUXIO_UNDERFS_ADDRESS is deprecated by ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS"
+  ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="${ALLUXIO_UNDERFS_ADDRESS}"
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.mount.table.root.ufs=${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}"
 fi
 
