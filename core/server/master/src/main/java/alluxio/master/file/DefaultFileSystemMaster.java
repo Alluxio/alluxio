@@ -1543,7 +1543,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(inodePath.getUri());
       if (resolution != null) {
-        mSyncManager.stopSyncInternal(inodePath.getUri(), resolution);
+        mSyncManager.stopSyncInternal(inodePath.getUri(), resolution.getMountId());
       }
 
       // Delete Inodes
