@@ -705,7 +705,7 @@ public class ActiveSyncManager implements Journaled {
         // stops sync point under this mount point. Note this clears the sync point and
         // stops associated polling threads.
         stopSyncForMount(mountId);
-      } catch (IOException | InvalidPathException e) {
+      } catch (InvalidPathException e) {
         LOG.info("Exception resetting mountId {}, exception: {}", mountId, e);
       }
     }
