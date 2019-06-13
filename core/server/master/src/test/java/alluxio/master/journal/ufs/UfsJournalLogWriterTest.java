@@ -390,6 +390,7 @@ public final class UfsJournalLogWriterTest {
 
   /**
    * Creates a mock {@link DataOutputStream} for {@link UfsJournalLogWriter#mJournalOutputStream}.
+   * Mock's internal state is altered to report its written byte count as 1.
    *
    * @param writer the {@link UfsJournalLogWriter} instance for which the mock is created
    * @return the created mock {@link DataOutputStream} instance
