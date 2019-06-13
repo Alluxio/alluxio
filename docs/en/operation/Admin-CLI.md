@@ -50,7 +50,8 @@ Successfully backed up journal to /opt/alluxio/backups/alluxio-backup-2018-5-29-
 
 ### doctor
 
-The `doctor` command gives recommendations and warnings for inconsistent configurations across different alluxio nodes.
+The `doctor` command gives recommendations and warnings. It can diagnose inconsistent configurations
+across different Alluxio nodes as well as alert the operator when worker storage volumes are missing.
 
 ```bash
 # shows server-side configuration errors and warnings
