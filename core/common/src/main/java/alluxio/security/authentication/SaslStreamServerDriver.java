@@ -153,6 +153,9 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
     }
   }
 
+  /**
+   * Completes the stream with a debug blanket over possible exceptions.
+   */
   private void completeStreamQuietly() {
     if (mRequestObserver != null) {
       try {
