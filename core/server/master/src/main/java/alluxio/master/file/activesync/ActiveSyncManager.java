@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -684,7 +685,7 @@ public class ActiveSyncManager implements Journaled {
    */
   @Override
   public void resetState() {
-    for (long mountId : mFilterMap.keySet()) {
+    for (long mountId : new HashSet<>(mFilterMap.keySet())) {
       try {
         // stops sync point under this mount point. Note this clears the sync point and
         // stops associated polling threads.
