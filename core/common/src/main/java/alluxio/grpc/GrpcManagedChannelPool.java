@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Optional;
@@ -220,7 +221,17 @@ public class GrpcManagedChannelPool {
    * @return the created channel
    */
   private ManagedChannel createManagedChannel(ChannelKey channelKey) {
-    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+    NettyChannelBuilder channelBuilder;
+    // Use constructor that does auto resolving if given an unresolved inet address.
+    if (channelKey.mAddress instanceof InetSocketAddress
+        && ((InetSocketAddress) channelKey.mAddress).isUnresolved()) {
+      InetSocketAddress inetServerAddress = (InetSocketAddress) channelKey.mAddress;
+      channelBuilder = NettyChannelBuilder.forAddress(inetServerAddress.getHostName(),
+          inetServerAddress.getPort());
+    } else {
+      channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+    }
+
     if (channelKey.mKeepAliveTime.isPresent()) {
       channelBuilder.keepAliveTime(channelKey.mKeepAliveTime.get().getFirst(),
           channelKey.mKeepAliveTime.get().getSecond());
