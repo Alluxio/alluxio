@@ -3760,7 +3760,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       try {
         long mountId = resolution.getMountId();
-        mSyncManager.stopSyncPostJournal(lockedInodePath.getUri(), mountId);
+        mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
       } catch (Throwable e) {
         // revert state;
         AddSyncPointEntry addSyncPoint =
