@@ -78,6 +78,36 @@ CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(6
 FileOutStream out = fs.createFile(path, options);
 ```
 
+#### Programmatically Modifying Configuration
+
+Alluxio configuration can be set through `alluxio-site.properties`, but these properties apply to
+all instances of Alluxio that read from the file. If fine-grained configuration management is
+required, pass in a customized configuration object when creating the `FileSystem` object.
+The generated `FileSystem` object will have modified configuration properties, independent of any
+other `FileSystem` clients.
+
+```java
+FileSystem normalFs = FileSystem.Factory.get();
+AlluxioURI normalPath = new AlluxioURI("/normalFile");
+// Create a file with default properties
+FileOutStream normalOut = normalFs.createFile(normalPath);
+...
+normalOut.close();
+
+// Create a file system with custom configuration
+InstancedConfiguration conf = InstancedConfiguration.defaults();
+conf.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alice");
+FileSystem customizedFs = FileSystem.Factory.create(conf);
+AlluxioURI normalPath = new AlluxioURI("/customizedFile");
+// The newly created file will be created under the username "alice"
+FileOutStream customizedOut = customizedFs.createFile(customizedPath);
+...
+customizedOut.close();
+
+// normalFs can still be used as a FileSystem client with the default username.
+// Likewise, using customizedFs will use the username "alice".
+```
+
 #### IO Options
 
 Alluxio uses two different storage types: Alluxio managed storage and under storage. Alluxio managed
