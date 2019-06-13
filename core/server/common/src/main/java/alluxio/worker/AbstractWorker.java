@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -37,5 +38,10 @@ public abstract class AbstractWorker implements Worker {
    */
   protected ExecutorService getExecutorService() {
     return mExecutorService;
+  }
+
+  @Override
+  public void close() throws IOException {
+    stop();
   }
 }
