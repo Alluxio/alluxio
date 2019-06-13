@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
+import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalEntryStateMachine;
@@ -121,9 +122,9 @@ public final class UfsJournalCheckpointThread extends Thread {
   public void run() {
     try {
       runInternal();
-    } catch (RuntimeException e) {
-      LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
-      throw e;
+    } catch (Throwable e) {
+      ProcessUtils.fatalError(LOG, e, "%s: Failed to run journal checkpoint thread, crashing.",
+          mMaster.getName());
     }
   }
 
