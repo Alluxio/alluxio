@@ -34,7 +34,7 @@ RUN cd /opt && \
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
 
-RUN adduser -u 1000 -S alluxio -G root
+RUN useradd -r -u 1000 -s /bin/false alluxio -G root
 USER 1000
 
 ENTRYPOINT ["/entrypoint.sh"]
