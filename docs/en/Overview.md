@@ -10,22 +10,24 @@ priority: 0
 
 ## What is Alluxio
 
-Alluxio is world's first data orchestration technology for analytics and AI in the cloud. 
-It bridges the gap between computation frameworks and storage systems, bringing data from the storage tier closer to the compute frameworks and makes it easily accessible enabling applications to connect to numerous storage systems through a common interface.
-Alluxio’s memory-first tiered architecture enables data access at speeds orders of magnitude faster than existing solutions.
+Alluxio is world's first open source [data orchestration technology](https://www.alluxio.io/blog/data-orchestration-the-missing-piece-in-the-data-world/)
+for analytics and AI for the cloud. It bridges the gap between data driven applications and storage
+systems, bringing data from the storage tier closer to the data driven applications and makes it
+easily accessible enabling applications to connect to numerous storage systems through a common
+interface. Alluxio’s memory-first tiered architecture enables data access at speeds orders of
+magnitude faster than existing solutions.
 
-In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark,
-Presto, Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various kinds of
-persistent storage systems, such as Amazon S3, Google Cloud Storage, OpenStack Swift, GlusterFS,
-HDFS, IBM Cleversafe, EMC ECS, Ceph, NFS, and Alibaba OSS.
-Alluxio unifes the data stored in these different storage systems, presenting unified client
-APIs and a global namespace to its upper layer data driven applications.
+In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark, Presto,
+Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various persistent storage systems, such
+as Amazon S3, Google Cloud Storage, OpenStack Swift, HDFS, GlusterFS, IBM Cleversafe, EMC ECS, Ceph,
+NFS, Minio, and Alibaba OSS. Alluxio unifes the data stored in these different storage systems,
+presenting unified client APIs and a global namespace to its upper layer data driven applications.
 
-The Alluxio project originated from [the UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/software/) (see [papers](https://www.alluxio.io/resources/whitepapers/)) as
+The Alluxio project originated from [the UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/software/) (see [papers](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html)) as
 the data access layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
 It is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE).
-Alluxio is one of the fastest growing open source projects that has attracted more than [900 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
-from over 200 institutions including
+Alluxio is one of the fastest growing open source projects that has attracted more than [1000 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
+from over 300 institutions including
 [Alibaba](http://www.alibaba.com),
 [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com),
@@ -39,9 +41,8 @@ from over 200 institutions including
 [UC Berkeley](https://amplab.cs.berkeley.edu/),
 and [Yahoo](https://www.yahoo.com/).
 
-Today, Alluxio is deployed in production by
-[hundreds of organizations](https://www.alluxio.io/powered-by-alluxio)
-with the largest deployment exceeding 1,000 nodes.
+Today, Alluxio is deployed in production by [hundreds of organizations](https://www.alluxio.io/powered-by-alluxio)
+with the largest deployment exceeding 1,500 nodes.
 
 <p align="center">
 <img src="{{ "/img/stack.png" | relativize_url }}" width="800" alt="Ecosystem"/>
@@ -53,8 +54,9 @@ Alluxio helps overcome the obstacles in extracting insight from data by simplify
 access their data, regardless of format or location. The benefits of Alluxio include:
 
 * **Memory-Speed I/O**: Alluxio can be used as a distributed shared caching service so that compute
-applications talking to Alluxio can transparently cache frequently accessed data, especially
-from remote locations, to provide in-memory I/O throughput. In addition, Alluxio's tiered storage that can utilize memory, SSD or disk makes elastically scale data-driven applications cost effective. 
+applications talking to Alluxio can transparently cache frequently accessed data, especially from
+remote locations, to provide in-memory I/O throughput. In addition, Alluxio's tiered storage that
+can utilize memory, SSD or disk makes elastically scale data-driven applications cost effective.
 
 * **Simplified Cloud and Object Storage Adoption**: Cloud and object storage systems use different
 semantics that have performance implications compared to traditional file systems. Common file
@@ -82,16 +84,17 @@ systems regardless of physical location. This provides a unified view of all dat
 standard interface for applications. See
 [Namespace Management]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more details.
 
-1. **Intelligent Cache**: Alluxio clusters act as a read and write cache for data in connected storage
-systems. Configurable policies automatically optimize data placement for performance and reliability
-across both memory and disk (SSD/HDD). Caching is transparent to the user and uses
-buffering to maintain consistency with persistent storage. See
+1. **Intelligent Multi-tiering Caching**: Alluxio clusters act as a read and write cache for data in
+connected storage systems. Configurable policies automatically optimize data placement for
+performance and reliability across both memory and disk (SSD/HDD). Caching is transparent to the
+user and uses buffering to maintain consistency with persistent storage. See
 [Alluxio Storage Management]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}) for more details.
 
-1. **Server-Side API Translation**: Alluxio transparently converts from a standard client-side
-interface to any storage interface. Alluxio manages communication between applications and file or
-object storage, eliminating the need for complex system configuration and management. File data can
-look like object data and vice versa.
+1. **Server-Side API Translation**: Alluxio supports industry common APIs, such as HDFS API, S3 API,
+FUSE API, REST API. It transparently converts from a standard client-side interface to any storage
+interface. Alluxio manages communication between applications and file or object storage,
+eliminating the need for complex system configuration and management. File data can look like object
+data and vice versa.
 
 To understand more details on Alluxio internals, please read
 [Alluxio architecture and data flow]({{ '/en/Architecture-DataFlow.html' | relativize_url }}).
@@ -112,13 +115,14 @@ explains how to build the project from source code. Questions can be directed to
 (users who can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/))
 or our [Community Slack Channel](https://alluxio.io/slack).
 
-- [Downloads](https://alluxio.io/download/)
-- [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
-- [Developer Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }})
-- [Meetup Group](https://www.meetup.com/Alluxio/)
-- [Issue Tracking](https://github.com/Alluxio/alluxio/issues)
-- [Community Slack Channel](https://alluxio.io/slack)
-- [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
-- [Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA)
-- [Github](https://github.com/alluxio/alluxio/)
-- [Releases](https://www.alluxio.io/download/releases)
+[Downloads](https://alluxio.org/download/)
+| [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
+| [Developer Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }})
+| [Meetup Group](https://www.meetup.com/Alluxio/)
+| [Issue Tracking](https://github.com/Alluxio/alluxio/issues)
+| [Community Slack Channel](https://slackin.alluxio.io)
+| [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+| [Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA)
+| [Github](https://github.com/alluxio/alluxio/)
+| [Releases](https://www.alluxio.org/download/releases)
+
