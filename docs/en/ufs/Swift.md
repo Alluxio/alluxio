@@ -110,9 +110,12 @@ To stop Alluxio, you can run:
 
 ## Running functional tests
 
-For developers, to run functional tests against a Swift endpoint run:
+The following command can be used to test if the given Swift credentials are valid.
+Developers can also use it to run functional tests against a Swift endpoint 
+to validate the contract between Alluxio and Swift.
+
 ```bash
-mvn test -DtestSwiftContainerKey=swift://<bucket> \
+./bin/alluxio runUfsTests --path swift://<bucket> \
     -Dfs.swift.user=<SWIFT_USER> -Dfs.swift.tenant=<SWIFT_TENANT> -Dfs.swift.password=<SWIFT_PASSWORD> \
     -Dfs.swift.auth.url=<AUTH_URL> -Dfs.swift.use.public.url=<USE_PUBLIC> \
     -Dfs.swift.auth.method=<AUTH_METHOD> 
