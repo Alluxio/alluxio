@@ -15,7 +15,7 @@ We greatly appreciate any contribution; whether new features or bug fixes.
 > If you are a first time contributor to the Alluxio open source project, we strongly encourage
 > you to follow the step-by-step instructions within the
 > [Contribution Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}) and
-> finish a new contributor task before making more advanced changes to Alluxio.
+> finish new contributor tasks before making more advanced changes to the Alluxio codebase.
 
 ## Submitting Code
 
@@ -24,15 +24,14 @@ Submitting changes to Alluxio is done via pull requests. Please read our
 for details on how to submit a pull request to the Alluxio repository. Below are some tips for
 the pull requests.
 
-- We encourage you to break your work into small, single-purpose patches if possible. It is much
-harder to merge in a large change with a lot of disjoint features.
+- We encourage you to break your work into small, single-purpose patches if possible. It is more
+difficult to merge in a large change with a lot of disjoint features.
 - We track issues and features in our [Github Issues](https://github.com/alluxio/alluxio/issues).
 Open a ticket detailing the proposed change and what purpose it serves.
 - Submit the patch as a GitHub pull request.
 - If your pull request aims to solve an existing Github issue,
 please include a link to the Github Issue in the last line of the description field of the pull request,
-like "Fixes #1234", "Fixed #1234", "Fix #1234", "Closes #1234",
-"Closed #1234", or "Close #1234".
+like `Fixes #1234`, `Fixed #1234`, `Fix #1234`, `Closes #1234`, `Closed #1234`, or `Close #1234`.
 - Please read our
 [pull request guidelines]({{ 'en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
 for details.
@@ -44,10 +43,10 @@ for details.
 with the following changes or deviations:
   - Maximum line length of **100** characters.
   - Third-party imports are grouped together to make IDE formatting much simpler.
-  - Class member variable names should be prefixed with `m`, for example `private WorkerClient
-    mWorkerClient;`
-  - Static variable names should be prefixed with `s`, for example `public static String
-    sUnderFSAddress;`
+  - Class member variable names should be prefixed with `m`
+    - example: `private WorkerClient mWorkerClient;`
+  - Static variable names should be prefixed with `s`
+    - example: `public static String sUnderFSAddress;`
 - Bash scripts follow [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
 - If you use Eclipse:
@@ -85,7 +84,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public MyClass {
-
   private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);
 
   public void someMethod() {
@@ -125,7 +123,7 @@ LOG.error("Client failed to register");
 Log messages should be written with readability in mind. Here are some tips for writing good log
 messages.
 
-* Log levels INFO and above should be easily human readable 
+* Log levels INFO and above should be easily human readable
   * Log files should be concise and easy to read, noise reduces the value of logs
 * Keep the amount of additional English to a minimum
 * Clearly indicate if a variable reference is being printed by formatting the output as `variable: value`
@@ -245,7 +243,11 @@ debug level. These debug level stack traces should eventually be phased out.
 
 ## Exceptions
 
+These are the guidelines for throwing and handling exceptions throughout the Alluxio codebase.
+
 ### Throwing Exceptions
+
+These are the guidelines for how and when to throw exceptions.
 
 #### Use unchecked exceptions for events which indicate bugs
 
@@ -292,14 +294,16 @@ There are so many sources of IOException that it's almost never useful to includ
 
 #### AlluxioStatusExceptions
 
-On the wire we represent exceptions with one of 14 status codes, e.g. NOT_FOUND, UNAVAILABLE. Within
-our server and client code, we represent these exceptions using exception classes corresponding to
-these statuses, e.g. NotFoundException and UnavailableException. AlluxioStatusException is the
-superclass for these Java exceptions.
+On the wire we represent exceptions with one of 14 status codes, e.g. `NOT_FOUND`, `UNAVAILABLE`.
+Within our server and client code, we represent these exceptions using exception classes
+corresponding to these statuses, e.g. `NotFoundException` and `UnavailableException`.
+`AlluxioStatusException` is the superclass for these Java exceptions.
 
 ### Handling exceptions
 
-#### Never swallow an unchecked exception.
+These are the guidelines for how to handle exceptions.
+
+#### Never swallow an unchecked exception
 
 Either log the exception or propagate it.
 
@@ -471,7 +475,7 @@ try {
 This will improve static analysis of our code so that we can detect potential NullPointerExceptions
 before they happen.
 
-Use the **javax.annotation.Nullable** import.
+Use the `javax.annotation.Nullable` import.
 
 ```java
 import javax.annotation.Nullable;
@@ -488,9 +492,9 @@ public String getName() {
 ### Use the @Nullable annotation for method parameters which are allowed to be null
 
 When a method is specifically designed to be able to handle null parameters, those parameters
-should be annotated with @Nullable.
+should be annotated with `@Nullable`.
 
-Use the **javax.annotation.Nullable** import.
+Use the `javax.annotation.Nullable` import.
 
 ```java
 import javax.annotation.Nullable;
@@ -510,14 +514,14 @@ The preconditions check gives a more useful error message when you tell it the n
 being checked.
 
 ```java
-Preconditions.checkNotNull(blockInfo); // Do not do this
-Preconditions.checkNotNull(blockInfo, "blockInfo") // Do this instead
+Preconditions.checkNotNull(blockInfo, "blockInfo") // Do this
+Preconditions.checkNotNull(blockInfo); // Do NOT do this
 ```
 
 ### Use static imports for standard test utilities
 
 Tests are easier to read when there is less boilerplate. Use static imports for methods in
-org.junit.Assert, org.junit.Assume, org.mockito.Matchers, and org.mockito.Mockito.
+`org.junit.Assert`, `org.junit.Assume`, `org.mockito.Matchers`, and `org.mockito.Mockito`.
 
 ```java
 // Change
@@ -607,10 +611,10 @@ HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeU
 ```java
 // Make sure the worker is detected as lost.
 Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
-Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
+assertEquals(worker1, Iterables.getOnlyElement(info).getId());
 }
 ```
-7. Loop back to step #3 until the class's entire public API has been tested.
+7. Repeat from step #3 until the class's entire public API has been tested.
 
 ### Conventions
 
@@ -685,7 +689,9 @@ public void test() {
 
 #### Other global state
 
-If a test needs to modify other types of global state, create a new `@Rule` for managing the state so that it can be shared across tests. One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).
+If a test needs to modify other types of global state, create a new `@Rule` for managing the
+state so that it can be shared across tests.
+One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).
 
 ### System Settings for Unit Tests
 
