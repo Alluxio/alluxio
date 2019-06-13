@@ -1,7 +1,13 @@
 alluxio.user.app.id:
   'The custom id to use for labeling this client''s info, such as metrics. If unset, a random long will be used. This value is displayed in the client logs on initialization. Note that using the same app id will cause client info to be aggregated, so different applications must set their own ids or leave this value unset to use a randomly generated id.'
-alluxio.user.block.master.client.threads:
-  'The number of threads used by a block master client pool to talk to the block master.'
+alluxio.user.block.master.client.pool.gc.interval:
+  'The interval at which block master client GC checks occur.'
+alluxio.user.block.master.client.pool.gc.threshold:
+  'A block master client is closed if it has been idle for more than this threshold.'
+alluxio.user.block.master.client.pool.size.max:
+  'The maximum number of block master clients cached in the block master client pool.'
+alluxio.user.block.master.client.pool.size.min:
+  'The minimum number of block master clients cached in the block master client pool. For long running processes, this should be set to zero.'
 alluxio.user.block.remote.read.buffer.size.bytes:
   'The size of the file buffer to read data from remote Alluxio worker.'
 alluxio.user.block.remote.reader.class:
@@ -32,8 +38,14 @@ alluxio.user.file.copyfromlocal.write.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks using copyFromLocal command.'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
-alluxio.user.file.master.client.threads:
-  'The number of threads used by a file master client to talk to the file master.'
+alluxio.user.file.master.client.pool.gc.interval:
+  'The interval at which file system master client GC checks occur.'
+alluxio.user.file.master.client.pool.gc.threshold:
+  'A fs master client is closed if it has been idle for more than this threshold.'
+alluxio.user.file.master.client.pool.size.max:
+  'The maximum number of fs master clients cached in the fs master client pool.'
+alluxio.user.file.master.client.pool.size.min:
+  'The minimum number of fs master clients cached in the fs master client pool. For long running processes, this should be set to zero.'
 alluxio.user.file.metadata.load.type:
   'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. `Always` will always access UFS to see if the path exists in the UFS. `Never` will never consult the UFS. `Once` will access the UFS the "first" time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter "alluxio.user.file.metadata.sync.interval"'
 alluxio.user.file.metadata.sync.interval:
@@ -78,6 +90,8 @@ alluxio.user.network.netty.channel.pool.gc.threshold:
   'A netty channel is closed if it has been idle for more than this threshold.'
 alluxio.user.network.netty.channel.pool.size.max:
   'The maximum number of netty channels cached in the netty channel pool.'
+alluxio.user.network.netty.channel.pool.size.min:
+  'The minimum number of netty channels cached in the netty channel pool. For long running processes, this should be set to zero.'
 alluxio.user.network.netty.reader.buffer.size.packets:
   'When a client reads from a remote worker, the maximum number of packets to buffer by the client.'
 alluxio.user.network.netty.reader.packet.size.bytes:
