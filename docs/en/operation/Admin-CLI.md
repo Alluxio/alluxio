@@ -122,3 +122,72 @@ write operations on the under storage.
 
 The `fsadmin ufs` subcommand takes a UFS URI as an argument. The argument should be a root
 UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
+
+### pathConf
+
+The `pathConf` command manages [path defaults]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}#path-defaults).
+
+#### list
+
+`pathConf list` lists paths configured with path defaults.
+
+```bash
+./bin/alluxio fsadmin pathConf list
+
+/a
+/b
+```
+The above command shows that there are path defaults set for paths with prefix `/a` and `/b`.
+
+#### show
+
+`pathConf show` shows path defaults for a specific path.
+
+It has two modes:
+1. without option `--all`, only show path defaults set for the specific path;
+2. with option `--all`, show path defaults set for all paths that are prefixes of the specified path.
+
+For example, suppose path defaults `property1=value1` is set for `/a`,
+and `property2=value2` is set for `/a/b`.
+
+Then without `--all`, only properties for `/a/b` are shown:
+```bash
+./bin/alluxio fsadmin pathConf show /a/b
+
+property2=value2
+```
+
+With `--all`, since `/a` is a prefix of `/a/b`, properties for both `/a` and `/a/b` are shown:
+```bash
+./bin/alluxio fsadmin pathConf show --all /a/b
+
+property1=value1
+property2=value2
+```
+
+#### add
+
+`pathConf add` adds or updates path defaults, only properties with scope equal to or broader than the
+client scope can be set as path defaults.
+
+```bash
+./bin/alluxio fsadmin pathConf add --property property1=value1 --property property2=value2 /tmp
+```
+
+The above command adds two properties as path defaults for paths with prefix `/tmp`.
+
+```bash
+./bin/alluxio fsadmin pathConf add --property property1=value2 /tmp
+```
+The above command updates the value of `property1` from `value1` to `value2` for path defaults of `/tmp`.
+
+#### remove
+
+`pathConf remove` removes properties from path defaults for a path.
+
+```bash
+./bin/alluxio fsadmin pathConf remove --keys property1,property2 /tmp
+```
+
+The above command removes properties with key `property1` and `property2` from path
+defaults for paths with prefix `/tmp`.

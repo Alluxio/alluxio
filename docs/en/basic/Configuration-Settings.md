@@ -146,6 +146,27 @@ Clients can ignore or overwrite the cluster-wide default values by following the
 by Alluxio server processes and will be ignored by applications interacting with Alluxio service
 through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
 
+### Path Defaults
+
+Since version 2.0, Alluxio administrator can set default client side configurations for Alluxio paths.
+FileSystem client operations have options, by default, the options are derived from client side configuration
+properties. Only these configuration properties can be set as as path defaults.
+
+For example, `createFile` has an option to specify write type, by default, the write type is
+the value of the configuration key `alluxio.user.file.writetype.default`.
+The administrator can set default value of `alluxio.user.file.write.type.default` to `MUST_CACHE`
+for all paths with prefix `/tmp` by
+`bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=MUST_CACHE /tmp`.
+Then for any `createFile` on paths with prefix `/tmp`, by default, the write type will be `MUST_CACHE`.
+
+Path defaults will be automatically propagated to long running clients if they are updated.
+If the administrator updates path defaults by
+`bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp`,
+afterwards, all `createFile` will by default have write type `THROUGH`.
+
+See [fsadmin pathConf]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#pathConf) on how to
+show, add, update, and remove path defaults.
+
 ## Configuration Sources
 
 An Alluxio property can be possibly configured in multiple sources.
@@ -157,7 +178,8 @@ In this case, its final value is determined by the following priority list, from
 When an Alluxio cluster starts, each server process including master and worker searches for
 `alluxio-site.properties` within the following directories in the given order, stopping when a match is found:
 `${HOME}/.alluxio/`, `/etc/alluxio/`, and `${ALLUXIO_HOME}/conf`
-4. [Cluster default values](#specify-cluster-wide-defaults):
+4. [Path default values](#path-defaults)
+5. [Cluster default values](#specify-cluster-wide-defaults):
 An Alluxio client may initialize its configuration based on the cluster-wide default configuration served by the masters.
 
 If no user-specified configuration is found for a property, Alluxio runtime will fallback to
