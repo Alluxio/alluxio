@@ -127,6 +127,11 @@ public class RocksBlockStore implements BlockStore {
   }
 
   @Override
+  public void close() {
+    mRocksStore.close();
+  }
+
+  @Override
   public List<BlockLocation> getLocations(long id) {
     try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
         new ReadOptions().setPrefixSameAsStart(true))) {

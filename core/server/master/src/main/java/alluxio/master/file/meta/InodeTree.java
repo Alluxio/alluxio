@@ -1157,4 +1157,13 @@ public class InodeTree implements DelegatingJournaled {
     }
     return Optional.empty();
   }
+
+  /**
+   * Close resources associated with this tree instance.
+   *
+   * @throws IOException
+   */
+  public void close() throws IOException {
+    mInodeStore.close();
+  }
 }
