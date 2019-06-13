@@ -46,8 +46,6 @@ Back up to a specific directory on the leading master's local filesystem.
 Successfully backed up journal to /opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
 ```
 
-### checkpoint
-
 ### doctor
 
 The `doctor` command gives recommendations and warnings. It can diagnose inconsistent configurations
@@ -68,8 +66,6 @@ It is primarily intended to assist power users in debugging their system.
 BlockInfo{id=16793993216, length=6, locations=[BlockLocation{workerId=8265394007253444396, address=WorkerNetAddress{host=local-mbp, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity(node=local-mbp, rack=null)}, tierAlias=MEM, mediumType=MEM}]}
 This block belongs to file {id=16810770431, path=/test2}
 ```
-
-### pathConf
 
 ### report
 
