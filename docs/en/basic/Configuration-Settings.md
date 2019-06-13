@@ -139,10 +139,8 @@ master's `alluxio-site.properties` file.
 After restarting the cluster, all jobs will automatically set `alluxio.user.file.writetype.default`
 to `CACHE_THROUGH`.
 
-Clients can ignore or overwrite the cluster-wide default values by either specifying the user property
-`alluxio.user.conf.cluster.default.enabled=false` to decline loading the cluster-wide default values
-or following the approaches described in [Configure Alluxio for Applications](#configure-applications)
-to overwrite the same properties.
+Clients can ignore or overwrite the cluster-wide default values by following the approaches described in
+[Configure Alluxio for Applications](#configure-applications) to overwrite the same properties.
 
 > Note that, before version 1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded
 by Alluxio server processes and will be ignored by applications interacting with Alluxio service
