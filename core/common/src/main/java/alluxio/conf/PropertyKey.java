@@ -328,7 +328,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey LOGS_DIR =
       new Builder(Name.LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
-          .setDescription("The path to store log files.")
+          .setDescription("The path under Alluxio home directory to store log files. It has a "
+              + "corresponding environment variable $ALLUXIO_LOGS_DIR.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -336,7 +337,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_LOGS_DIR =
       new Builder(Name.USER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
-          .setDescription("The path to store alluxio CLI logs.")
+          .setDescription("The path to store logs of Alluxio shell. It has a "
+              + "corresponding environment variable $ALLUXIO_USER_LOGS_DIR.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -1575,7 +1577,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_PERSISTENCE_MAX_INTERVAL_MS)
           .setDefaultValue("1hr")
           .setDescription("Max wait interval for master persistence checker persistence status "
-              + "for files written usingASYNC_THROUGH")
+              + "for files written using ASYNC_THROUGH")
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)
@@ -1592,8 +1594,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =
       new Builder(Name.MASTER_REPLICATION_CHECK_INTERVAL_MS)
           .setDefaultValue("1min")
-          .setDescription("How often the master runs background process to check replication " +
-              "level for files")
+          .setDescription("How often the master runs background process to check replication "
+              + "level for files")
           .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
