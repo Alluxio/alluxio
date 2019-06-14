@@ -28,7 +28,7 @@ system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin
 
 ### extensions
 
-The `extensions` command is meant to for managing any extensions to Alluxio. For additional information, refer
+The `extensions` command is for managing UFS extensions to Alluxio. For additional information, refer
 to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
 
 ### format
@@ -166,11 +166,6 @@ And the following command returns the log level of the class `alluxio.heartbeat.
 alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
 
-### runClass
-
-The `runClass` command runs the main method of the class provided as the first argument. This is mostly designed
-as a tool to help developers debug and test new extensions/features.
-
 ### runTests
 
 The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
@@ -202,11 +197,6 @@ The usage of this command includes:
 ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key>
 -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
-
-### readJournal
-
-The `readJournal` command prints the existing journal to stdout in a human readable format. This is generally
-meant for low level debugging and troubleshooting by experienced administrators/developers.
 
 ### upgradeJournal
 
