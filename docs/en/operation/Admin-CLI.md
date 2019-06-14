@@ -46,6 +46,18 @@ Back up to a specific directory on the leading master's local filesystem.
 Successfully backed up journal to /opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
 ```
 
+### checkpoint 
+
+The `checkpoint` command creates a checkpoint in the primary master journal system.
+
+This command is mainly used for debugging and to avoid master journal logs from growing unbounded.
+Checkpointing requires a pause in master metadata changes, so use this command sparingly to avoid 
+interfering with other users of the system.
+
+```
+./bin/alluxio fsadmin checkpoint
+```
+
 ### doctor
 
 The `doctor` command gives recommendations and warnings. It can diagnose inconsistent configurations
