@@ -64,6 +64,8 @@ The `doctor` command shows Alluxio errors and warnings.
 ```bash
 # shows server-side configuration errors and warnings
 ./bin/alluxio fsadmin doctor configuration
+# shows worker lost storage warnings
+./bin/alluixo fsadmin doctor storage
 ```
 
 ### getBlockInfo
