@@ -38,19 +38,19 @@ An exception message like `java.lang.OutOfMemoryError: unable to create new nati
 indicates that operating system limits may need tuning.
 
 Several parameters limit the number of threads that a process can spawn:
-- `kernel.pid_max`: Run `sysctl -w kernel.pid_max=<new value>`
-- `vm.max_map_count`: Run command `sysctl -w vm.max_map_count=<new value>`
-- Max user process limit: `ulimit -u`
-- Max open files limit: `ulimit -n`
+- `kernel.pid_max`: Run `sysctl -w kernel.pid_max=<new value>` as root
+- `vm.max_map_count`: Run command `sysctl -w vm.max_map_count=<new value>` as root
+- Max user process limit: Run `ulimit -u <new value>`
+- Max open files limit: Run `ulimit -n <new value>`
 
 These limits are often set for the particular user that launch the Alluxio process.
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads
-as set by `alluxio.master.worker.threads.max`.
+as set by `alluxio.master.executor.fork.pool.size.max`.
 
 ### Heartbeat Intervals and Timeouts
 
 The frequency in which the master checks for lost workers is set by the
-`alluxio.master.heartbeat.interval.ms` property, with a default value of `60s`.
+`alluxio.master.heartbeat.interval.ms` property, with a default value of `10s`.
 Increase the interval to reduce the number of heartbeat checks.
 
 ## Alluxio Worker Configuration
@@ -59,8 +59,8 @@ Increase the interval to reduce the number of heartbeat checks.
 
 The frequency in which a worker checks in with the master is set by the following properties:
 ```properties
-alluxio.worker.block.heartbeat.interval=60s
-alluxio.worker.filesystem.heartbeat.interval=60s
+alluxio.worker.block.heartbeat.interval=1s
+alluxio.worker.filesystem.heartbeat.interval=1s
 ```
 `alluxio.worker.block.heartbeat.interval` controls the heartbeat intervals for the block service in Alluxio and
 `alluxio.worker.filesystem.heartbeat.interval` for the filesystem service.
