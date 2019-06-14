@@ -16,7 +16,6 @@ import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -45,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -263,17 +263,9 @@ public class ActiveSyncManager implements Journaled {
   public void stopSyncForMount(long mountId) throws InvalidPathException, IOException {
     LOG.debug("Stop sync for mount id {}", mountId);
     if (mFilterMap.containsKey(mountId)) {
-      List<Pair<AlluxioURI, MountTable.Resolution>> toBeDeleted = new ArrayList<>();
-      for (AlluxioURI uri : mFilterMap.get(mountId)) {
-        MountTable.Resolution resolution = resolveSyncPoint(uri);
-        if (resolution != null) {
-          toBeDeleted.add(new Pair<>(uri, resolution));
-        }
-      }
-      // Calling stopSyncInternal outside of the traversal of mFilterMap.get(mountId) to avoid
-      // ConcurrentModificationException
-      for (Pair<AlluxioURI, MountTable.Resolution> deleteInfo : toBeDeleted) {
-        stopSyncInternal(deleteInfo.getFirst(), deleteInfo.getSecond());
+      List<AlluxioURI> toBeDeleted = new ArrayList<>(mFilterMap.get(mountId));
+      for (AlluxioURI uri : toBeDeleted) {
+        stopSyncInternal(uri, mountId);
       }
     }
   }
@@ -298,14 +290,14 @@ public class ActiveSyncManager implements Journaled {
    * stop active sync on a URI.
    *
    * @param syncPoint sync point to be stopped
-   * @param resolution path resolution for the sync point
+   * @param mountId mountId
    */
-  public void stopSyncInternal(AlluxioURI syncPoint, MountTable.Resolution resolution) {
+  public void stopSyncInternal(AlluxioURI syncPoint, long mountId) {
     try (LockResource r = new LockResource(mSyncManagerLock)) {
       LOG.debug("stop syncPoint {}", syncPoint.getPath());
       RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
           .setSyncpointPath(syncPoint.toString())
-          .setMountId(resolution.getMountId())
+          .setMountId(mountId)
           .build();
       apply(removeSyncPoint);
       try {
@@ -316,7 +308,7 @@ public class ActiveSyncManager implements Journaled {
             File.AddSyncPointEntry.newBuilder()
                 .setSyncpointPath(syncPoint.toString()).build();
         apply(addSyncPoint);
-        recoverFromStopSync(syncPoint, resolution.getMountId());
+        recoverFromStopSync(syncPoint, mountId);
       }
     }
   }
@@ -693,7 +685,7 @@ public class ActiveSyncManager implements Journaled {
    */
   @Override
   public void resetState() {
-    for (long mountId : mFilterMap.keySet()) {
+    for (long mountId : new HashSet<>(mFilterMap.keySet())) {
       try {
         // stops sync point under this mount point. Note this clears the sync point and
         // stops associated polling threads.
