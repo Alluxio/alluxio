@@ -88,6 +88,7 @@ Start Alluxio locally:
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
 
 ```bash
+./bin/alluxio fs mkdir /wordcount
 ./bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 ```
 
