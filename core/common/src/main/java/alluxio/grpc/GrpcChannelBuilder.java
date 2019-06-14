@@ -199,7 +199,7 @@ public final class GrpcChannelBuilder {
   public GrpcChannel build() throws AlluxioStatusException {
     ManagedChannel underlyingChannel =
         GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(mChannelKey,
-            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS),
+            mConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT),
             mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
     try {
       AuthType authType =

@@ -34,42 +34,50 @@ import javax.annotation.Nullable;
  */
 public class RemovedKey {
 
-  private static final String V2_REMOVED = "v2.0 removed the ability to configure this parameter.";
+  private static final String V2_0_0_REMOVED = "this parameter is removed since v2.0.0.";
 
   private static final Map<String, String> REMOVED_KEYS = new HashMap<String, String>(20) {
     {
       put(Name.WEB_TEMP_PATH, "The alluxio web UI overhaul in v2.0 removed this parameter.");
-      put(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, V2_REMOVED);
-      put(Name.SWIFT_USE_PUBLIC_URI_KEY, V2_REMOVED);
-      put(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL, V2_REMOVED);
-      put(Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT, V2_REMOVED);
-      put(Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL, V2_REMOVED);
+      put(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, V2_0_0_REMOVED);
+      put(Name.SWIFT_USE_PUBLIC_URI_KEY, V2_0_0_REMOVED);
+      put(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL, V2_0_0_REMOVED);
+      put(Name.MASTER_CONNECTION_TIMEOUT, V2_0_0_REMOVED);
+      put(Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT, V2_0_0_REMOVED);
+      put(Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL, V2_0_0_REMOVED);
+      put(Name.MASTER_HEARTBEAT_INTERVAL, V2_0_0_REMOVED + " Use "
+          + PropertyKey.Name.MASTER_WORKER_HEARTBEAT_INTERVAL + " instead.");
       put(Name.MASTER_JOURNAL_FORMATTER_CLASS, "v2.0 removed the ability to specify the master "
           + "journal formatter");
-      put(Name.LOGSERVER_LOGS_DIR, V2_REMOVED);
-      put(Name.LOGSERVER_HOSTNAME, V2_REMOVED);
-      put(Name.SWIFT_API_KEY, V2_REMOVED + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " "
+      put(Name.LOGSERVER_LOGS_DIR, V2_0_0_REMOVED);
+      put(Name.LOGSERVER_HOSTNAME, V2_0_0_REMOVED);
+      put(Name.SWIFT_API_KEY, V2_0_0_REMOVED + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " "
           + "instead.");
-      put(Name.USER_FAILED_SPACE_REQUEST_LIMITS, V2_REMOVED);
-      put(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, V2_REMOVED);
-      put(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, V2_REMOVED);
-      put(Name.USER_HOSTNAME, V2_REMOVED + " Use "
+      put(Name.USER_FAILED_SPACE_REQUEST_LIMITS, V2_0_0_REMOVED);
+      put(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, V2_0_0_REMOVED);
+      put(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, V2_0_0_REMOVED);
+      put(Name.USER_HOSTNAME, V2_0_0_REMOVED + " Use "
           + PropertyKey.Template.LOCALITY_TIER.format("node")
           + " instead to set the client hostname.");
-      put(Name.USER_NETWORK_SOCKET_TIMEOUT, V2_REMOVED);
-      put("alluxio.security.authentication.socket.timeout", V2_REMOVED);
-      put("alluxio.security.authentication.socket.timeout.ms", V2_REMOVED);
-      put(Name.USER_RPC_RETRY_MAX_NUM_RETRY, V2_REMOVED);
-      put(Name.MASTER_RETRY, V2_REMOVED);
-      put(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, V2_REMOVED);
-      put(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, V2_REMOVED);
+      put(Name.USER_NETWORK_SOCKET_TIMEOUT, V2_0_0_REMOVED);
+      put("alluxio.security.authentication.socket.timeout", V2_0_0_REMOVED);
+      put("alluxio.security.authentication.socket.timeout.ms", V2_0_0_REMOVED);
+      put(Name.USER_RPC_RETRY_MAX_NUM_RETRY, V2_0_0_REMOVED);
+      put(Name.MASTER_RETRY, V2_0_0_REMOVED);
+      put(Name.USER_BLOCK_WORKER_CLIENT_THREADS, V2_0_0_REMOVED);
+      put(Name.USER_HEARTBEAT_INTERVAL, V2_0_0_REMOVED);
+      put(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, V2_0_0_REMOVED);
+      put(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, V2_0_0_REMOVED);
+      put(Name.WORKER_BLOCK_THREADS_MAX, V2_0_0_REMOVED);
+      put(Name.WORKER_BLOCK_THREADS_MIN, V2_0_0_REMOVED);
+      put(Name.WORKER_DATA_BIND_HOST, V2_0_0_REMOVED);
       put(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
           + ".watermark.{high/low}.ratio instead");
       put(Name.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
           + ".watermark.{high/low}.ratio instead");
       put(Name.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
           + ".watermark.{high/low}.ratio instead");
-      put(Name.WORKER_TIERED_STORE_RETRY, V2_REMOVED);
+      put(Name.WORKER_TIERED_STORE_RETRY, V2_0_0_REMOVED);
 
       put(Name.TEST_REMOVED_KEY, "This key is used only for testing. It is always removed");
     }
@@ -84,6 +92,10 @@ public class RemovedKey {
         "alluxio.master.activesync.retry.timeout";
     public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
         "alluxio.master.client.socket.cleanup.interval";
+    public static final String MASTER_CONNECTION_TIMEOUT =
+        "alluxio.master.connection.timeout";
+    public static final String MASTER_HEARTBEAT_INTERVAL =
+        "alluxio.master.heartbeat.interval";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
         "alluxio.master.journal.formatter.class";
     public static final String MASTER_RETRY = "alluxio.master.retry";
@@ -91,6 +103,8 @@ public class RemovedKey {
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout";
+    public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
+        "alluxio.user.block.worker.client.threads";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
@@ -105,8 +119,12 @@ public class RemovedKey {
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
     public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.write.buffer.size.bytes";
+    public static final String USER_HEARTBEAT_INTERVAL = "alluxio.user.heartbeat.interval";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String WEB_TEMP_PATH = "alluxio.web.temp.path";
+    public static final String WORKER_BLOCK_THREADS_MAX = "alluxio.worker.block.threads.max";
+    public static final String WORKER_BLOCK_THREADS_MIN = "alluxio.worker.block.threads.min";
+    public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
     public static final String WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
         Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0);
     public static final String WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =

@@ -294,11 +294,11 @@ public class AlluxioMasterProcess extends MasterProcess {
           ForkJoinPool.defaultForkJoinWorkerThreadFactory,
           null,
           true,
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_CORE_SIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_MAX_SIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_MIN_RUNNABLE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_FORK_POOL_SIZE_CORE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_SIZE_MAX),
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_RUNNABLE),
           null,
-          ServerConfiguration.getMs(PropertyKey.MASTER_EXECUTOR_POOL_KEEPALIVE_TIME_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_EXECUTOR_FORK_POOL_KEEPALIVE),
           TimeUnit.MILLISECONDS);
 
       serverBuilder.executor(mRPCExecutor);

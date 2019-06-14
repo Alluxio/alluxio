@@ -113,8 +113,6 @@ public final class ConfigurationTestUtils {
         PathUtils.concatPath(System.getProperty("user.dir"), "../webui"));
     conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
-    conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");
-    conf.put(PropertyKey.WORKER_BLOCK_THREADS_MAX, "2048");
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, "2");
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
