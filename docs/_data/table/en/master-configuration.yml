@@ -3,11 +3,17 @@ alluxio.master.audit.logging.enabled:
 alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
 alluxio.master.backup.directory:
-  'Default directory for writing master metadata backups. This path is relative to the root directory of the root UFS. For example, if the root ufs directory is hdfs://cluster/alluxio/data, the default backup directory will be hdfs://cluster/alluxio_backups'
+  'Default directory for writing master metadata backups. This path is an absolute path of the root UFS. For example, if the root ufs directory is hdfs://host:port/alluxio/data, the default backup directory will be hdfs://host:port/alluxio_backups.'
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.master.connection.timeout:
   'Timeout of connections between master and client. A value of 0 means never timeout'
+alluxio.master.daily.backup.enabled:
+  'Whether or not to enable daily primary master metadata backup.'
+alluxio.master.daily.backup.files.retained:
+  'The maximum number of backup files to keep in the backup directory.'
+alluxio.master.daily.backup.time:
+  'Default UTC time for writing daily master metadata backups. The accepted time format is hour:minute which is based on a 24-hour clock (E.g., 05:30, 06:00, and 22:04). Backing up metadata requires a pause in master metadata changes, so please set this value to an off-peak time to avoid interfering with other users of the system.'
 alluxio.master.file.async.persist.handler:
   'The handler for processing the async persistence requests.'
 alluxio.master.format.file_prefix:
@@ -62,6 +68,8 @@ alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
 alluxio.master.master.heartbeat.interval:
   'The interval between Alluxio masters'' heartbeats.'
+alluxio.master.metastore.inode.inherit.owner.and.group:
+  'Whether to inherit the owner/group from the parent when creating a new inode path if empty'
 alluxio.master.mount.table.root.alluxio:
   'Alluxio root mount point.'
 alluxio.master.mount.table.root.option:

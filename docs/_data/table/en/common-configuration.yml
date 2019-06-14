@@ -78,6 +78,8 @@ alluxio.underfs.address:
   'Alluxio directory in the under file system.'
 alluxio.underfs.allow.set.owner.failure:
   'Whether to allow setting owner in UFS to fail. When set to true, it is possible file or directory owners diverge between Alluxio and UFS.'
+alluxio.underfs.gcs.directory.suffix:
+  'Directories are represented in GCS as zero-byte objects named with the specified suffix.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the "Owners" one.'
 alluxio.underfs.hdfs.configuration:
@@ -126,6 +128,8 @@ alluxio.underfs.s3.upload.threads.max:
   'The maximum number of threads to use for uploading data to S3 for multipart uploads. These operations can be fairly expensive, so multiple threads are encouraged. However, this also splits the bandwidth between threads, meaning the overall latency for completing an upload will be higher for more threads.'
 alluxio.underfs.s3a.consistency.timeout:
   'The duration to wait for metadata consistency from the under storage. This is only used by internal Alluxio operations which should be successful, but may appear unsuccessful due to eventual consistency.'
+alluxio.underfs.s3a.default.mode:
+  'Mode (in octal notation) for S3 objects if mode cannot be discovered.'
 alluxio.underfs.s3a.directory.suffix:
   'Directories are represented in S3 as zero-byte objects named with the specified suffix.'
 alluxio.underfs.s3a.inherit_acl:
