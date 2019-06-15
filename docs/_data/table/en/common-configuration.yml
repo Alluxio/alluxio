@@ -1,5 +1,5 @@
 alluxio.conf.dir:
-  'The directory containing files used to configure Alluxio. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.conf.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS) or specifying the corresponding environment variable (if applicable). Setting it in alluxio-site.properties will not work.'
+  'The directory containing files used to configure Alluxio. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.conf.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
@@ -77,9 +77,13 @@ alluxio.locality.script:
 alluxio.logger.type:
   'The type of logger.'
 alluxio.logs.dir:
-  'The path under Alluxio home directory to store log files. It has a corresponding environment variable $ALLUXIO_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logs.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS) or specifying the corresponding environment variable (if applicable). Setting it in alluxio-site.properties will not work.'
+  'The path under Alluxio home directory to store log files. It has a corresponding environment variable $ALLUXIO_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logs.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.logserver.hostname:
+  'The hostname of Alluxio logserver. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.hostname"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.logserver.logs.dir:
+  'Default location for remote log files. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.logs.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.port:
-  'Default port number to receive logs from alluxio servers. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.port"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS) or specifying the corresponding environment variable (if applicable). Setting it in alluxio-site.properties will not work.'
+  'Default port of logserver to receive logs from alluxio servers. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.port"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.threads.max:
   'The maximum number of threads used by logserver to service logging requests.'
 alluxio.logserver.threads.min:
@@ -107,7 +111,7 @@ alluxio.proxy.web.port:
 alluxio.secondary.master.metastore.dir:
   'The secondary master metastore work directory. Only some metastores need disk.'
 alluxio.site.conf.dir:
-  'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.site.conf.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS) or specifying the corresponding environment variable (if applicable). Setting it in alluxio-site.properties will not work.'
+  'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.site.conf.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.test.deprecated.key:
   'N/A'
 alluxio.test.mode:
@@ -133,7 +137,7 @@ alluxio.underfs.gcs.directory.suffix:
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the "Owners" one.'
 alluxio.underfs.hdfs.configuration:
-  'Location of the HDFS configuration file.'
+  'Location of the HDFS configuration file to overwrite the default HDFS client configuration. Note that, these files must be availableon every node.'
 alluxio.underfs.hdfs.impl:
   'The implementation class of the HDFS as the under storage system.'
 alluxio.underfs.hdfs.prefixes:
@@ -150,8 +154,6 @@ alluxio.underfs.kodo.requests.max:
   'The maximum number of kodo connections.'
 alluxio.underfs.listing.length:
   'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
-alluxio.underfs.managed.blocking.enabled:
-  'Whether to run UFS operations with managed blocking.  This will provide RPC layer a hint that UFS is possible slow.The default is true for object stores and false for the rest. unless set explicitly.'
 alluxio.underfs.object.store.mount.shared.publicly:
   'Whether or not to share object storage under storage system mounted point with all Alluxio users. Note that this configuration has no effect on HDFS nor local UFS.'
 alluxio.underfs.object.store.multi.range.chunk.size:
@@ -220,8 +222,6 @@ alluxio.web.file.info.enabled:
   'Whether detailed file information are enabled for the web UI.'
 alluxio.web.refresh.interval:
   'The amount of time to await before refreshing the Web UI if it is set to auto refresh.'
-alluxio.web.resources:
-  'Path to the web UI resources. User should never modify this property.'
 alluxio.web.threads:
   'How many threads to serve Alluxio web UI.'
 alluxio.work.dir:

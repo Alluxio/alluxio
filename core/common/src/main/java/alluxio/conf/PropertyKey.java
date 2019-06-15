@@ -333,12 +333,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  // Used in alluxio-config.sh
+  // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey USER_LOGS_DIR =
       new Builder(Name.USER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
-          .setDescription("The path to store logs of Alluxio shell. It has a "
-              + "corresponding environment variable $ALLUXIO_USER_LOGS_DIR.")
+          .setDescription("The path to store logs of Alluxio shell. To change its value, one can "
+              + " set environment variable $ALLUXIO_USER_LOGS_DIR.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -2585,10 +2585,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Log server related properties
   //
+  // Used in alluxio-config.sh and conf/log4j.properties
+  public static final PropertyKey LOGSERVER_LOGS_DIR =
+      new Builder(Name.LOGSERVER_LOGS_DIR)
+          .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
+          .setDescription("Default location for remote log files.")
+          .setIgnoredSiteProperty(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  // Used in alluxio-config.sh and conf/log4j.properties
+  public static final PropertyKey LOGSERVER_HOSTNAME =
+      new Builder(Name.LOGSERVER_HOSTNAME)
+          .setDescription("The hostname of Alluxio logserver.")
+          .setIgnoredSiteProperty(true)
+          .setScope(Scope.SERVER)
+          .build();
+  // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGSERVER_PORT =
       new Builder(Name.LOGSERVER_PORT)
           .setDefaultValue(45600)
-          .setDescription("Default port number to receive logs from alluxio servers.")
+          .setDescription("Default port of logserver to receive logs from alluxio servers.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -4020,6 +4037,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Log server related properties
     //
+    public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
+    public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
     public static final String LOGSERVER_PORT = "alluxio.logserver.port";
     public static final String LOGSERVER_THREADS_MAX = "alluxio.logserver.threads.max";
     public static final String LOGSERVER_THREADS_MIN = "alluxio.logserver.threads.min";

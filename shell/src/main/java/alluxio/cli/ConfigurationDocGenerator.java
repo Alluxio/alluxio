@@ -171,8 +171,7 @@ public final class ConfigurationDocGenerator {
         if (iteratorPK.isIgnoredSiteProperty()) {
           description += " Note: overwriting this property will only work when it is passed as a "
               + "JVM system property (e.g., appending \"-D" + iteratorPK + "\"=<NEW_VALUE>\" to "
-              + "$ALLUXIO_JAVA_OPTS) or specifying the corresponding environment variable (if "
-              + "applicable). Setting it in alluxio-site.properties will not work.";
+              + "$ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.";
         }
         String keyValueStr = pKey + ":\n  '" + description + "'\n";
         if (pKey.startsWith("alluxio.user.")) {

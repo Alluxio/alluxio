@@ -65,11 +65,11 @@ alluxio.user.local.reader.chunk.size.bytes:
 alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logs.dir:
-  'The path to store logs of Alluxio shell. It has a corresponding environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.user.logs.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS) or specifying the corresponding environment variable (if applicable). Setting it in alluxio-site.properties will not work.'
+  'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.user.logs.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and heartbeat them to master'
 alluxio.user.metrics.heartbeat.interval:
-  'The time period of client master hearbeat to send the client-side metrics.'
+  'The time period of client master heartbeat to send the client-side metrics.'
 alluxio.user.network.data.timeout:
   'The maximum time for an Alluxio client to wait for a data response (e.g. block reads and block writes) from Alluxio worker.'
 alluxio.user.network.flowcontrol.window:

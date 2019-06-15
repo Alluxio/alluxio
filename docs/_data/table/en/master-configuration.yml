@@ -1,5 +1,5 @@
 alluxio.master.audit.logging.enabled:
-  'Set to true to enable file system master audit. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.master.audit.logging.enabled"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS) or specifying the corresponding environment variable (if applicable). Setting it in alluxio-site.properties will not work.'
+  'Set to true to enable file system master audit. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.master.audit.logging.enabled"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
 alluxio.master.backup.directory:
@@ -30,12 +30,12 @@ alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
   'Maximum time to wait for the triggered snapshot to finish.'
 alluxio.master.executor.fork.pool.keepalive:
   'Master RPC executor service threads keep alive time.'
-alluxio.master.executor.fork.pool.size.core:
-  'Master RPC executor service threads core count.'
 alluxio.master.executor.fork.pool.size.max:
   'Master RPC executor service threads max count.'
 alluxio.master.executor.parallelism:
   'Master RPC executor service parallelism level.'
+alluxio.master.executor.pool.core.size:
+  'core thread count of master RPC executor service.'
 alluxio.master.executor.runnable:
   'Master RPC executor service minimum runnable task count.'
 alluxio.master.file.async.persist.handler:
@@ -133,11 +133,11 @@ alluxio.master.periodic.block.integrity.check.interval:
 alluxio.master.periodic.block.integrity.check.repair:
   'Whether the system should delete orphaned blocks found during the periodic integrity check. This is an experimental feature.'
 alluxio.master.persistence.checker.interval:
-  'How often the master checks persistence status for files written usingASYNC_THROUGH'
+  'How often the master checks persistence status for files written using ASYNC_THROUGH'
 alluxio.master.persistence.initial.interval:
   'How often the  master persistence checker checks persistence status for files written using ASYNC_THROUGH'
 alluxio.master.persistence.max.interval:
-  'Max wait interval for master persistence checker persistence status for files written usingASYNC_THROUGH'
+  'Max wait interval for master persistence checker persistence status for files written using ASYNC_THROUGH'
 alluxio.master.persistence.max.total.wait.time:
   'Total wait time for master persistence checker persistence status for files written using ASYNC_THROUGH'
 alluxio.master.persistence.scheduler.interval:
@@ -164,24 +164,24 @@ alluxio.master.tieredstore.global.media:
   'The list of medium types we support in the system.'
 alluxio.master.ttl.checker.interval:
   'How often to periodically check and delete the files with expired ttl value.'
+alluxio.master.ufs.active.sync.event.rate.interval:
+  'The time interval we use to estimate incoming event rate'
+alluxio.master.ufs.active.sync.interval:
+  'Time interval to periodically actively sync UFS'
+alluxio.master.ufs.active.sync.max.activities:
+  'Max number of changes in a directory to be considered for active syncing'
+alluxio.master.ufs.active.sync.max.age:
+  'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
+alluxio.master.ufs.active.sync.poll.timeout:
+  'Max time to wait before timing out a polling operation'
+alluxio.master.ufs.active.sync.thread.pool.size:
+  'Max number of threads used to perform active sync'
 alluxio.master.ufs.block.location.cache.capacity:
   'The capacity of the UFS block locations cache. This cache caches UFS block locations for files that are persisted but not in Alluxio space, so that listing status of these files do not need to repeatedly ask UFS for their block locations. If this is set to 0, the cache will be disabled.'
 alluxio.master.ufs.path.cache.capacity:
   'The capacity of the UFS path cache. This cache is used to approximate the `ONCE` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `ONCE` behavior.'
 alluxio.master.ufs.path.cache.threads:
   'The maximum size of the thread pool for asynchronously processing paths for the UFS path cache. Greater number of threads will decrease the amount of staleness in the async cache, but may impact performance. If this is set to 0, the cache will be disabled, and `alluxio.user.file.metadata.load.type=ONCE` will behave like `ALWAYS`.'
-alluxio.master.ufs.sync.event.rate.interval:
-  'The time interval we use to estimate incoming event rate'
-alluxio.master.ufs.sync.interval:
-  'Time interval to periodically actively sync UFS'
-alluxio.master.ufs.sync.max.activity:
-  'Max number of changes in a directory to be considered for active syncing'
-alluxio.master.ufs.sync.max.age:
-  'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
-alluxio.master.ufs.sync.poll.timeout:
-  'Max time to wait before timing out a polling operation'
-alluxio.master.ufs.sync.thread.pool.size:
-  'Max number of threads used to perform active sync'
 alluxio.master.web.bind.host:
   'The hostname Alluxio master web UI binds to.'
 alluxio.master.web.hostname:

@@ -47,8 +47,6 @@ public class RemovedKey {
           + PropertyKey.Name.MASTER_WORKER_HEARTBEAT_INTERVAL + " instead.");
       put(Name.MASTER_JOURNAL_FORMATTER_CLASS, "v2.0 removed the ability to specify the master "
           + "journal formatter");
-      put(Name.LOGSERVER_LOGS_DIR, V2_0_0_REMOVED);
-      put(Name.LOGSERVER_HOSTNAME, V2_0_0_REMOVED);
       put(Name.SWIFT_API_KEY, V2_0_0_REMOVED + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " "
           + "instead.");
       put(Name.USER_FAILED_SPACE_REQUEST_LIMITS, V2_0_0_REMOVED);
@@ -83,8 +81,6 @@ public class RemovedKey {
   };
 
   static final class Name {
-    public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
-    public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
     public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
         "alluxio.master.client.socket.cleanup.interval";
     public static final String MASTER_CONNECTION_TIMEOUT =
