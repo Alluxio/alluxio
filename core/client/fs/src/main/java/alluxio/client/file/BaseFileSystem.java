@@ -289,8 +289,13 @@ public class BaseFileSystem implements FileSystem {
     return blockLocations;
   }
 
+  @Override
+  public List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
+    return mBlockStore.getEligibleWorkers();
+  }
+
   private Map<String, WorkerNetAddress> getHostWorkerMap() throws IOException {
-    List<BlockWorkerInfo> workers = mBlockStore.getEligibleWorkers();
+    List<BlockWorkerInfo> workers = getEligibleWorkers();
     return workers.stream().collect(
         toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
             (worker1, worker2) -> worker1));

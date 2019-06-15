@@ -12,9 +12,11 @@
 package alluxio.hadoop;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -52,6 +54,7 @@ import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -67,10 +70,12 @@ import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -351,11 +356,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       throw new IOException(e);
     }
 
-    return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
+    Map<String, WorkerNetAddress> workerHosts = getHostWorkerMap();
+    BlockLocation[] locations =
+        getBlockLocations(fileStatus.getFileBlockInfos(), workerHosts, 0L, fileStatus.getLength());
+
+    return new LocatedFileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         getReplica(fileStatus), fileStatus.getBlockSizeBytes(),
         fileStatus.getLastModificationTimeMs(),
         fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getMode()),
-        fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
+        fileStatus.getOwner(), fileStatus.getGroup(), null,
+        new Path(mAlluxioHeader + uri), locations);
   }
 
   private int getReplica(URIStatus status) {
@@ -623,14 +633,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       throw new IOException(e);
     }
 
+    Map<String, WorkerNetAddress> workerHosts = getHostWorkerMap();
     FileStatus[] ret = new FileStatus[statuses.size()];
     for (int k = 0; k < statuses.size(); k++) {
       URIStatus status = statuses.get(k);
-
-      ret[k] = new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
+      BlockLocation[] locations =
+          getBlockLocations(status.getFileBlockInfos(), workerHosts, 0L, status.getLength());
+      ret[k] = new LocatedFileStatus(status.getLength(), status.isFolder(), getReplica(status),
           status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
           status.getCreationTimeMs(), new FsPermission((short) status.getMode()), status.getOwner(),
-          status.getGroup(), new Path(mAlluxioHeader + status.getPath()));
+          status.getGroup(), null, new Path(mAlluxioHeader + status.getPath()), locations);
     }
     return ret;
   }
@@ -743,5 +755,53 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
+  }
+
+  private BlockLocation[] getBlockLocations(
+      List<FileBlockInfo> fileBlockInfos,
+      Map<String, WorkerNetAddress> workerHosts,
+      long start,
+      long len) {
+    List<BlockLocation> blockLocations = new ArrayList<>();
+
+    for (FileBlockInfo fileBlockInfo : fileBlockInfos) {
+      long offset = fileBlockInfo.getOffset();
+      long end = offset + fileBlockInfo.getBlockInfo().getLength();
+      if (end >= start && offset <= start + len) {
+        // add the existing in-Alluxio block locations
+        List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
+            .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
+        // No in-Alluxio location
+        if (locations.isEmpty() && !fileBlockInfo.getUfsLocations().isEmpty()) {
+          // Case 1: Fallback to use under file system locations with co-located workers.
+          // This maps UFS locations to a worker which is co-located.
+          locations = fileBlockInfo.getUfsLocations().stream().map(
+              location -> workerHosts.get(HostAndPort.fromString(location).getHost()))
+              .filter(Objects::nonNull).collect(toList());
+        }
+        if (locations.isEmpty() && mFileSystem.getConf()
+            .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
+          // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
+          locations.addAll(workerHosts.values());
+          Collections.shuffle(locations);
+        }
+
+        List<HostAndPort> addresses = locations.stream()
+            .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
+            .collect(toList());
+        String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
+        String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
+        blockLocations.add(new BlockLocation(names, hosts, offset,
+            fileBlockInfo.getBlockInfo().getLength()));
+      }
+    }
+    return blockLocations.toArray(new BlockLocation[blockLocations.size()]);
+  }
+
+  private Map<String, WorkerNetAddress> getHostWorkerMap() throws IOException {
+    List<BlockWorkerInfo> workers = mFileSystem.getEligibleWorkers();
+    return workers.stream().collect(
+        toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
+            (worker1, worker2) -> worker1));
   }
 }

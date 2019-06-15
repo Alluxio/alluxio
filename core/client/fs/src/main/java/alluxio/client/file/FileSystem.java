@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -372,6 +373,11 @@ public interface FileSystem extends Closeable {
    */
   List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * @return the info of all block workers eligible for reads and writes
+   */
+  List<BlockWorkerInfo> getEligibleWorkers() throws IOException;
 
   /**
    * @return the configuration which the FileSystem is using to connect to Alluxio
