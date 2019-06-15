@@ -84,7 +84,14 @@ SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
 
 ```
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
+alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 ```
+
+Note that the ordering of the medium types must match with the ordering of the paths.
+Here, MEM and SSD are two types preconfigured in Alluxio.
+`alluxio.master.tieredstore.global.media` is a configuration parameter that has a list of 
+all available medium types and by default it is set to `MEM, SSD, HDD`. This list can be modified
+if the user has additional storage media types.
 
 The paths provided should point to paths in the local filesystem mounting the appropriate storage
 media. To enable short circuit operations, the permissions of these paths should be permissive for the
@@ -100,15 +107,6 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 Note that the ordering of the quotas must match with the ordering of the paths.
 
-We also need to specify what kind of storage medium each path is on. Our previous example had one path that is ramdisk, followed by two SSDs. We can indicate that by using:
-
-```
-alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
-```
-
-Note that the ordering of the medium types must match with the ordering of the paths.
-Here, MEM and SSD are two types preconfigured in Alluxio.
-`alluxio.master.tieredstore.global.media` is a configuration parameter that has a list of all available medium types and is defaulted to `MEM, SSD, HDD`. This list can be modified if the user has additional storage media types.
 
 There is a subtle difference between `alluxio.worker.memory.size` and
 `alluxio.worker.tieredstore.level0.dirs.quota`, which defaults to the former. Alluxio will
