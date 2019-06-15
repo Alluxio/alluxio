@@ -134,11 +134,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @param alias aliases for the property
+     * @param aliases aliases for the property
      * @return the updated builder instance
      */
-    public Builder setAlias(String[] alias) {
-      mAlias = Arrays.copyOf(alias, alias.length);
+    public Builder setAlias(String... aliases) {
+      mAlias = Arrays.copyOf(aliases, aliases.length);
       return this;
     }
 
@@ -361,7 +361,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       new Builder(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.network.host.resolution.timeout.ms"})
+          .setAlias("alluxio.network.host.resolution.timeout.ms")
           .setDefaultValue("5sec")
           .setDescription("During startup of the Master and Worker processes Alluxio needs to "
               + "ensure that they are listening on externally resolvable and reachable host "
@@ -373,7 +373,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT =
       new Builder(Name.NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT)
-          .setAlias(new String[] {"alluxio.network.channel.health.check.timeout.ms"})
+          .setAlias("alluxio.network.channel.health.check.timeout.ms")
           .setDefaultValue("5sec")
           .setDescription("Allowed duration for checking health of client connections "
               + " before being assigned to a client. If a connection does not become active "
@@ -696,7 +696,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_CONNECT_TIMEOUT)
-          .setAlias(new String[]{"alluxio.underfs.oss.connection.timeout.ms"})
+          .setAlias("alluxio.underfs.oss.connection.timeout.ms")
           .setDefaultValue("50sec")
           .setDescription("The timeout when connecting to OSS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -711,7 +711,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_OSS_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_SOCKET_TIMEOUT)
-          .setAlias(new String[]{"alluxio.underfs.oss.socket.timeout.ms"})
+          .setAlias("alluxio.underfs.oss.socket.timeout.ms")
           .setDefaultValue("50sec")
           .setDescription("The timeout of OSS socket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -791,7 +791,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_DEFAULT_MODE =
       new Builder(Name.UNDERFS_S3_DEFAULT_MODE)
-          .setAlias(new String[] {"alluxio.underfs.s3a.default.mode"})
+          .setAlias("alluxio.underfs.s3a.default.mode")
           .setDefaultValue("0700")
           .setDescription("Mode (in octal notation) for S3 objects if mode cannot be discovered.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -799,7 +799,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_S3_DIRECTORY_SUFFIX)
-          .setAlias(new String[] {"alluxio.underfs.s3a.directory.suffix"})
+          .setAlias("alluxio.underfs.s3a.directory.suffix")
           .setDefaultValue("/")
           .setDescription("Directories are represented in S3 as zero-byte objects named with "
               + "the specified suffix.")
@@ -808,7 +808,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_BULK_DELETE_ENABLED =
       new Builder(Name.UNDERFS_S3_BULK_DELETE_ENABLED)
-          .setAlias(new String[] {"alluxio.underfs.s3a.bulk.delete.enabled"})
+          .setAlias("alluxio.underfs.s3a.bulk.delete.enabled")
           .setDefaultValue(true)
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -816,7 +816,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_INHERIT_ACL =
       new Builder(Name.UNDERFS_S3_INHERIT_ACL)
-          .setAlias(new String[] {"alluxio.underfs.s3a.inherit_acl"})
+          .setAlias("alluxio.underfs.s3a.inherit_acl")
           .setDefaultValue(true)
           .setDescription("Set this property to false to disable inheriting bucket ACLs on "
               + "objects. Note that the translation from bucket ACLs to Alluxio user permissions "
@@ -827,7 +827,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE =
       new Builder(Name.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
-          .setAlias(new String[] {"alluxio.underfs.s3a.intermediate.upload.clean.age"})
+          .setAlias("alluxio.underfs.s3a.intermediate.upload.clean.age")
           .setDefaultValue("3day")
           .setDescription("Streaming uploads may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
@@ -839,7 +839,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_LIST_OBJECTS_V1 =
       new Builder(Name.UNDERFS_S3_LIST_OBJECTS_V1)
-          .setAlias(new String[] {"alluxio.underfs.s3a.list.objects.v1"})
+          .setAlias("alluxio.underfs.s3a.list.objects.v1")
           .setDefaultValue(false)
           .setDescription("Whether to use version 1 of GET Bucket (List Objects) API.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -847,8 +847,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_REQUEST_TIMEOUT =
       new Builder(Name.UNDERFS_S3_REQUEST_TIMEOUT)
-          .setAlias(new String[]{"alluxio.underfs.s3a.request.timeout.ms",
-              "alluxio.underfs.s3a.request.timeout"})
+          .setAlias("alluxio.underfs.s3a.request.timeout.ms", "alluxio.underfs.s3a.request.timeout")
           .setDefaultValue("1min")
           .setDescription("The timeout for a single request to S3. Infinity if set to 0. "
               + "Setting this property to a non-zero value can improve performance by "
@@ -859,7 +858,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_SECURE_HTTP_ENABLED =
       new Builder(Name.UNDERFS_S3_SECURE_HTTP_ENABLED)
-          .setAlias(new String[] {"alluxio.underfs.s3a.secure.http.enabled"})
+          .setAlias("alluxio.underfs.s3a.secure.http.enabled")
           .setDefaultValue(false)
           .setDescription("Whether or not to use HTTPS protocol when communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -867,7 +866,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED =
       new Builder(Name.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED)
-          .setAlias(new String[] {"alluxio.underfs.s3a.server.side.encryption.enabled"})
+          .setAlias("alluxio.underfs.s3a.server.side.encryption.enabled")
           .setDefaultValue(false)
           .setDescription("Whether or not to encrypt data stored in S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -875,7 +874,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_SIGNER_ALGORITHM =
       new Builder(Name.UNDERFS_S3_SIGNER_ALGORITHM)
-          .setAlias(new String[] {"alluxio.underfs.s3a.signer.algorithm"})
+          .setAlias("alluxio.underfs.s3a.signer.algorithm")
           .setDescription("The signature algorithm which should be used to sign requests to "
               + "the s3 service. This is optional, and if not set, the client will "
               + "automatically determine it. For interacting with an S3 endpoint which only "
@@ -885,8 +884,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_S3_SOCKET_TIMEOUT)
-          .setAlias(new String[]{"alluxio.underfs.s3a.socket.timeout.ms",
-              "alluxio.underfs.s3a.socket.timeout"})
+          .setAlias("alluxio.underfs.s3a.socket.timeout.ms", "alluxio.underfs.s3a.socket.timeout")
           .setDefaultValue("50sec")
           .setDescription("Length of the socket timeout when communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -894,7 +892,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_STREAMING_UPLOAD_ENABLED =
       new Builder(Name.UNDERFS_S3_STREAMING_UPLOAD_ENABLED)
-          .setAlias(new String[] {"alluxio.underfs.s3a.streaming.upload.enabled"})
+          .setAlias("alluxio.underfs.s3a.streaming.upload.enabled")
           .setDefaultValue(false)
           .setDescription("(Experimental) If true, using streaming upload to write to S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -902,7 +900,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE =
       new Builder(Name.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE)
-          .setAlias(new String[] {"alluxio.underfs.s3a.streaming.upload.partition.size"})
+          .setAlias("alluxio.underfs.s3a.streaming.upload.partition.size")
           .setDefaultValue("64MB")
           .setDescription("Maximum allowable size of a single buffer file when using "
               + "S3A streaming upload. When the buffer file reaches the partition size, "
@@ -1106,7 +1104,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
       new Builder(Template.MASTER_MOUNT_TABLE_UFS, "root")
-          .setAlias(new String[]{"alluxio.underfs.address"})
+          .setAlias("alluxio.underfs.address")
           .setDescription("The storage address of the UFS at the Alluxio root mount point.")
           .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1409,7 +1407,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
-          .setAlias(new String[]{"alluxio.master.journal.flush.batch.time.ms"})
+          .setAlias("alluxio.master.journal.flush.batch.time.ms")
           .setDefaultValue("5ms")
           .setDescription("Time to wait for batching journal writes.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1417,7 +1415,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.master.journal.flush.timeout.ms"})
+          .setAlias("alluxio.master.journal.flush.timeout.ms")
           .setDefaultValue("5min")
           .setDescription("The amount of time to keep retrying journal "
               + "writes before giving up and shutting down the master.")
@@ -1479,7 +1477,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS)
-          .setAlias(new String[]{"alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms"})
+          .setAlias("alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms")
           .setDefaultValue("5sec")
           .setDescription("Before the standby master shuts down its tailer thread, there "
               + "should be no update to the leader master's journal in this specified time "
@@ -1489,7 +1487,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS)
-          .setAlias(new String[]{"alluxio.master.journal.tailer.sleep.time.ms"})
+          .setAlias("alluxio.master.journal.tailer.sleep.time.ms")
           .setDefaultValue("1sec")
           .setDescription("Time for the standby master to sleep for when it "
               + "cannot find anything new in leader master's journal.")
@@ -1506,7 +1504,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_GC_PERIOD_MS =
       new Builder(Name.MASTER_JOURNAL_GC_PERIOD_MS)
-          .setAlias(new String[] {"alluxio.master.journal.gc.period.ms"})
+          .setAlias("alluxio.master.journal.gc.period.ms")
           .setDefaultValue("2min")
           .setDescription("Frequency with which to scan for and delete stale journal checkpoints.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1514,7 +1512,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_GC_THRESHOLD_MS =
       new Builder(Name.MASTER_JOURNAL_GC_THRESHOLD_MS)
-          .setAlias(new String[]{"alluxio.master.journal.gc.threshold.ms"})
+          .setAlias("alluxio.master.journal.gc.threshold.ms")
           .setDefaultValue("5min")
           .setDescription("Minimum age for garbage collecting checkpoints.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1522,7 +1520,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
       new Builder(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
-          .setAlias(new String[]{"alluxio.master.journal.temporary.file.gc.threshold.ms"})
+          .setAlias("alluxio.master.journal.temporary.file.gc.threshold.ms")
           .setDescription("Minimum age for garbage collecting temporary checkpoint files.")
           .setDefaultValue("30min")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1557,7 +1555,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
       new Builder(Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)
           .setDefaultValue("1s")
-          .setDescription("How often the master checks persistence status for files written using"
+          .setDescription("How often the master checks persistence status for files written using "
               + "ASYNC_THROUGH")
           .setScope(Scope.MASTER)
           .build();
@@ -1680,7 +1678,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
       new Builder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.master.ttl.checker.interval.ms"})
+          .setAlias("alluxio.master.ttl.checker.interval.ms")
           .setDefaultValue("1hour")
           .setDescription("How often to periodically check and delete the files "
               + "with expired ttl value.")
@@ -1820,7 +1818,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.master.worker.timeout.ms"})
+          .setAlias("alluxio.master.worker.timeout.ms")
           .setDefaultValue("5min")
           .setDescription("Timeout between master and worker indicating a lost worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1841,10 +1839,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EXECUTOR_FORK_POOL_SIZE_CORE =
-      new Builder("alluxio.master.executor.fork.pool.size.core")
+  public static final PropertyKey MASTER_EXECUTOR_POOL_CORE_SIZE =
+      new Builder("alluxio.master.executor.pool.core.size")
           .setDefaultValue(0)
-          .setDescription("Master RPC executor service threads core count.")
+          .setDescription("core thread count of master RPC executor service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1910,7 +1908,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.worker.block.heartbeat.interval.ms"})
+          .setAlias("alluxio.worker.block.heartbeat.interval.ms")
           .setDefaultValue("1sec")
           .setDescription("The interval between block workers' heartbeats.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1918,7 +1916,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.worker.block.heartbeat.timeout.ms"})
+          .setAlias("alluxio.worker.block.heartbeat.timeout.ms")
           .setDefaultValue(String.format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
           .setDescription("The timeout value of block workers' heartbeats. If the worker can't "
               + "connect to master before this interval expires, the worker will exit.")
@@ -2045,7 +2043,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.worker.filesystem.heartbeat.interval.ms"})
+          .setAlias("alluxio.worker.filesystem.heartbeat.interval.ms")
           .setDefaultValue("1sec")
           .setDescription("The heartbeat interval between the worker and file system master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2251,7 +2249,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
-          .setAlias(new String[]{Name.WORKER_DATA_PORT})
           .setDefaultValue(29999)
           .setDescription("The port Alluxio's worker node runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2259,7 +2256,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_SESSION_TIMEOUT_MS =
       new Builder(Name.WORKER_SESSION_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.worker.session.timeout.ms"})
+          .setAlias("alluxio.worker.session.timeout.ms")
           .setDefaultValue("1min")
           .setDescription("Timeout between worker and client connection "
               + "indicating a lost session connection.")
@@ -2429,7 +2426,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
       new Builder(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.worker.tieredstore.reserver.interval.ms"})
+          .setAlias("alluxio.worker.tieredstore.reserver.interval.ms")
           .setDefaultValue("1sec")
           .setDescription("The time period of space reserver service, which "
               + "keeps certain portion of available space on each layer.")
@@ -2457,7 +2454,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       new Builder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.worker.ufs.block.open.timeout.ms"})
+          .setAlias("alluxio.worker.ufs.block.open.timeout.ms")
           .setDefaultValue("5min")
           .setDescription("Timeout to open a block from UFS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2524,7 +2521,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.proxy.stream.cache.timeout.ms"})
+          .setAlias("alluxio.proxy.stream.cache.timeout.ms")
           .setDefaultValue("1hour")
           .setDescription("The timeout for the input and output streams cache eviction in the "
               + "proxy.")
@@ -2802,7 +2799,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       new Builder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
-          .setAlias(new String[]{"alluxio.user.file.waitcompleted.poll.ms"})
+          .setAlias("alluxio.user.file.waitcompleted.poll.ms")
           .setDefaultValue("1sec")
           .setDescription("The time interval to poll a file for its completion status when "
               + "using waitCompleted.")
@@ -2892,9 +2889,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_METRICS_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.USER_METRICS_HEARTBEAT_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.user.heartbeat.interval.ms"})
+          .setAlias("alluxio.user.heartbeat.interval.ms")
           .setDefaultValue("3sec")
-          .setDescription("The time period of client master hearbeat to "
+          .setDescription("The time period of client master heartbeat to "
               + "send the client-side metrics.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2910,7 +2907,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_DATA_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_DATA_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.user.network.data.timeout.ms"})
+          .setAlias("alluxio.user.network.data.timeout.ms")
           .setDefaultValue("30sec")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
               + "(e.g. block reads and block writes) from Alluxio worker.")
@@ -2998,7 +2995,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.user.network.writer.close.timeout.ms"})
+          .setAlias("alluxio.user.network.writer.close.timeout.ms")
           .setDefaultValue("30min")
           .setDescription("The timeout to close a writer client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3020,7 +3017,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_BASE_SLEEP_MS)
-          .setAlias(new String[]{"alluxio.user.rpc.retry.base.sleep.ms"})
+          .setAlias("alluxio.user.rpc.retry.base.sleep.ms")
           .setDefaultValue("50ms")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the base time "
@@ -3044,7 +3041,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
-          .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})
+          .setAlias("alluxio.user.rpc.retry.max.sleep.ms")
           .setDefaultValue("3sec")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum wait time "
@@ -3188,7 +3185,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
       new Builder(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.security.group.mapping.cache.timeout.ms"})
+          .setAlias("alluxio.security.group.mapping.cache.timeout.ms")
           .setDefaultValue("1min")
           .setDescription("Time for cached group mapping to expire.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -3911,7 +3908,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
     public static final String WORKER_DATA_FOLDER_PERMISSIONS =
         "alluxio.worker.data.folder.permissions";
-    public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
     public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
         "alluxio.worker.data.server.domain.socket.address";
