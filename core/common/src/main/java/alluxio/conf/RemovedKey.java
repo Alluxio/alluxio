@@ -43,8 +43,6 @@ public class RemovedKey {
       put(Name.SWIFT_USE_PUBLIC_URI_KEY, V2_0_0_REMOVED);
       put(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL, V2_0_0_REMOVED);
       put(Name.MASTER_CONNECTION_TIMEOUT, V2_0_0_REMOVED);
-      put(Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT, V2_0_0_REMOVED);
-      put(Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL, V2_0_0_REMOVED);
       put(Name.MASTER_HEARTBEAT_INTERVAL, V2_0_0_REMOVED + " Use "
           + PropertyKey.Name.MASTER_WORKER_HEARTBEAT_INTERVAL + " instead.");
       put(Name.MASTER_JOURNAL_FORMATTER_CLASS, "v2.0 removed the ability to specify the master "
@@ -86,10 +84,6 @@ public class RemovedKey {
   static final class Name {
     public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
     public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
-    public static final String MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
-        "alluxio.master.activesync.batchinterval";
-    public static final String MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
-        "alluxio.master.activesync.retry.timeout";
     public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
         "alluxio.master.client.socket.cleanup.interval";
     public static final String MASTER_CONNECTION_TIMEOUT =

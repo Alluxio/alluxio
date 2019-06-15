@@ -179,7 +179,7 @@ public class ActiveSyncManager implements Journaled {
 
       try {
         if ((txId == SyncInfo.INVALID_TXID)
-            && ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+            && ServerConfiguration.getBoolean(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
           mExecutorService.submit(
               () -> mFilterMap.get(mountId).parallelStream().forEach(
                   syncPoint -> {
@@ -188,7 +188,7 @@ public class ActiveSyncManager implements Journaled {
                           () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
                               null, getExecutor()),
                           RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                              .getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT)));
+                              .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
                     } catch (IOException e) {
                       LOG.warn("IOException encountered during active sync while starting {}", e);
                     }
@@ -219,7 +219,7 @@ public class ActiveSyncManager implements Journaled {
       ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, mountId);
       Future<?> future = getExecutor().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_UFS_SYNC,
-              syncer, (int) ServerConfiguration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL),
+              syncer, (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL),
               ServerConfiguration.global(), ServerUserState.global()));
       mPollerMap.put(mountId, future);
     }
@@ -602,7 +602,8 @@ public class ActiveSyncManager implements Journaled {
               // Notify ufs polling thread to keep track of events related to specified uri
               ufsResource.get().startSync(resolution.getUri());
               // Start the initial metadata sync between the ufs and alluxio for the specified uri
-              if (ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+              if (ServerConfiguration.getBoolean(
+                  PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
                 mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
               }
             } catch (IOException e) {

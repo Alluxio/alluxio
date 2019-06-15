@@ -79,8 +79,8 @@ public class RemoveCommandIntegrationTest extends AbstractShellIntegrationTest {
       mOutput.reset();
       ret = shell.run("pathConf", "show", DIR1);
       Assert.assertEquals(0, ret);
-      String expected = format(PROPERTY_KEY12, PROPERTY_VALUE12) + "\n"
-          + format(PROPERTY_KEY13, PROPERTY_VALUE13) + "\n";
+      String expected = format(PROPERTY_KEY13, PROPERTY_VALUE13) + "\n"
+          + format(PROPERTY_KEY12, PROPERTY_VALUE12) + "\n";
       output = mOutput.toString();
       Assert.assertEquals(expected, output);
 

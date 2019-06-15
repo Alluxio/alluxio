@@ -1693,53 +1693,53 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INTERVAL =
-      new Builder(Name.MASTER_UFS_SYNC_INTERVAL)
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_INTERVAL =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_INTERVAL)
           .setDefaultValue("30sec")
           .setDescription("Time interval to periodically actively sync UFS")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_AGE =
-      new Builder(Name.MASTER_UFS_SYNC_MAX_AGE)
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_MAX_AGE =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_MAX_AGE)
           .setDefaultValue("10")
           .setDescription("The maximum number of intervals we will wait to find a quiet "
             + "period before we have to sync the directories")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC =
-      new Builder(Name.MASTER_UFS_SYNC_INITIAL_SYNC)
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)
           .setDefaultValue("true")
-          .setDescription("Perform an initial sync when we add a sync point")
+          .setDescription("Whether to perform an initial sync when we add a sync point")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
-      new Builder(Name.MASTER_UFS_SYNC_MAX_ACTIVITY)
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITY =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITY)
           .setDefaultValue("10")
           .setDescription("Max number of changes in a directory "
               + "to be considered for active syncing")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE =
-      new Builder(Name.MASTER_UFS_SYNC_THREAD_POOL_SIZE)
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE)
           .setDefaultValue("3")
           .setDescription("Max number of threads used to perform active sync")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_POLL_TIMEOUT =
-      new Builder(Name.MASTER_UFS_SYNC_POLL_TIMEOUT)
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)
           .setDefaultValue("10sec")
           .setDescription("Max time to wait before timing out a polling operation")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL =
-      new Builder(Name.MASTER_UFS_SYNC_EVENT_RATE_INTERVAL)
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_EVENT_RATE_INTERVAL =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_EVENT_RATE_INTERVAL)
           .setDefaultValue("60sec")
           .setDescription("The time interval we use to estimate incoming event rate")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3852,20 +3852,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.media";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
-    public static final String MASTER_UFS_SYNC_INTERVAL =
-        "alluxio.master.ufs.sync.interval";
-    public static final String MASTER_UFS_SYNC_MAX_ACTIVITY =
-        "alluxio.master.ufs.sync.max.activity";
-    public static final String MASTER_UFS_SYNC_THREAD_POOL_SIZE =
-        "alluxio.master.ufs.sync.thread.pool.size";
-    public static final String MASTER_UFS_SYNC_POLL_TIMEOUT =
-        "alluxio.master.ufs.sync.poll.timeout";
-    public static final String MASTER_UFS_SYNC_EVENT_RATE_INTERVAL =
-        "alluxio.master.ufs.sync.event.rate.interval";
-    public static final String MASTER_UFS_SYNC_MAX_AGE =
-        "alluxio.master.ufs.sync.max.age";
-    public static final String MASTER_UFS_SYNC_INITIAL_SYNC =
-        "alluxio.master.ufs.sync.initial.sync";
+    public static final String MASTER_UFS_ACTIVE_SYNC_INTERVAL =
+        "alluxio.master.ufs.active.sync.interval";
+    public static final String MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITY =
+        "alluxio.master.ufs.active.sync.max.activity";
+    public static final String MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
+        "alluxio.master.ufs.active.sync.thread.pool.size";
+    public static final String MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT =
+        "alluxio.master.ufs.active.sync.poll.timeout";
+    public static final String MASTER_UFS_ACTIVE_SYNC_EVENT_RATE_INTERVAL =
+        "alluxio.master.ufs.active.sync.event.rate.interval";
+    public static final String MASTER_UFS_ACTIVE_SYNC_MAX_AGE =
+        "alluxio.master.ufs.active.sync.max.age";
+    public static final String MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED =
+        "alluxio.master.ufs.active.sync.initial.sync.enabled";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =

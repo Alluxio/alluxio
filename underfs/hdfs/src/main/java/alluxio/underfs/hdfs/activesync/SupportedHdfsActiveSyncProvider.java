@@ -92,18 +92,18 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mExecutorService = Executors
-        .newFixedThreadPool(ufsConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE),
+        .newFixedThreadPool(ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE),
             ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", true));
     mPollingThread = null;
     mUfsUriList = new CopyOnWriteArrayList<>();
     mEventMissed = false;
     mTxIdMap = new ConcurrentHashMap<>();
     mCurrentTxId = SyncInfo.INVALID_TXID;
-    mActiveUfsSyncMaxActivity = ufsConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY);
-    mActiveUfsSyncMaxAge = ufsConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_AGE);
-    mActiveUfsPollTimeoutMs = ufsConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT);
+    mActiveUfsSyncMaxActivity = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITY);
+    mActiveUfsSyncMaxAge = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_MAX_AGE);
+    mActiveUfsPollTimeoutMs = ufsConf.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT);
     mActiveUfsSyncEventRateInterval =
-        ufsConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL);
+        ufsConf.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_EVENT_RATE_INTERVAL);
   }
 
   /**
