@@ -178,8 +178,8 @@ public class ActiveSyncManager implements Journaled {
       launchPollingThread(mountId, txId);
 
       try {
-        if ((txId == SyncInfo.INVALID_TXID)
-            && ServerConfiguration.getBoolean(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
+        if ((txId == SyncInfo.INVALID_TXID) && ServerConfiguration.getBoolean(
+            PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
           mExecutorService.submit(
               () -> mFilterMap.get(mountId).parallelStream().forEach(
                   syncPoint -> {

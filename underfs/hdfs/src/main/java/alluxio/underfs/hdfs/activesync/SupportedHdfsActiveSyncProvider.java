@@ -99,7 +99,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     mEventMissed = false;
     mTxIdMap = new ConcurrentHashMap<>();
     mCurrentTxId = SyncInfo.INVALID_TXID;
-    mActiveUfsSyncMaxActivity = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITY);
+    mActiveUfsSyncMaxActivity = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES);
     mActiveUfsSyncMaxAge = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_MAX_AGE);
     mActiveUfsPollTimeoutMs = ufsConf.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT);
     mActiveUfsSyncEventRateInterval =

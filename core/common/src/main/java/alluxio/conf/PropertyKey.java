@@ -427,6 +427,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Path to the web UI resources. User should never modify this property.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey WEB_THREADS =
       new Builder(Name.WEB_THREADS)
@@ -567,7 +568,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
           .setDefaultValue(String.format(
               "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
-          .setDescription("Location of the HDFS configuration file.")
+          .setDescription("Location of the HDFS configuration file to overwrite "
+              + "the default HDFS client configuration. Note that, these files must be available"
+              + "on every node.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -919,15 +922,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_KODO_CONNECT_TIMEOUT)
           .setDefaultValue("50sec")
           .setDescription("The connect timeout of kodo.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_MANAGED_BLOCKING_ENABLED =
-      new Builder(Name.UNDERFS_MANAGED_BLOCKING_ENABLED)
-          .setDescription("Whether to run UFS operations with managed blocking. "
-              + " This will provide RPC layer a hint that UFS is possible slow."
-              + "The default is true for object stores and false for the rest. "
-              + "unless set explicitly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1716,8 +1710,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
-  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITY =
-      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITY)
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES)
           .setDefaultValue("10")
           .setDescription("Max number of changes in a directory "
               + "to be considered for active syncing")
@@ -1756,6 +1750,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "will be disabled.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_UFS_MANAGED_BLOCKING_ENABLED =
+      new Builder(Name.MASTER_UFS_MANAGED_BLOCKING_ENABLED)
+          .setDescription("Whether to run UFS operations with managed blocking. "
+              + "This will provide RPC layer a hint that UFS is possible slow."
+              + "The default is true for object stores and false for the rest. "
+              + "unless set explicitly.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
@@ -3686,8 +3690,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
         "alluxio.underfs.kodo.connect.timeout";
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
-    public static final String UNDERFS_MANAGED_BLOCKING_ENABLED =
-        "alluxio.underfs.managed.blocking.enabled";
 
     //
     // UFS access control related properties
@@ -3781,10 +3783,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
         "alluxio.master.embedded.journal.port";
-    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_TIME =
-        "alluxio.master.embedded.journal.snapshot.time";
-    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_FREQUENCY =
-        "alluxio.master.embedded.journal.snapshot.frequency";
     public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
         "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
@@ -3837,9 +3835,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
         "alluxio.master.grpc.channel.auth.timeout";
     public static final String MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
-            "alluxio.master.grpc.channel.shutdown.timeout";
+        "alluxio.master.grpc.channel.shutdown.timeout";
     public static final String MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =
-            "alluxio.master.grpc.server.shutdown.timeout";
+        "alluxio.master.grpc.server.shutdown.timeout";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
@@ -3854,8 +3852,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ttl.checker.interval";
     public static final String MASTER_UFS_ACTIVE_SYNC_INTERVAL =
         "alluxio.master.ufs.active.sync.interval";
-    public static final String MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITY =
-        "alluxio.master.ufs.active.sync.max.activity";
+    public static final String MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES =
+        "alluxio.master.ufs.active.sync.max.activities";
     public static final String MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
         "alluxio.master.ufs.active.sync.thread.pool.size";
     public static final String MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT =
@@ -3868,6 +3866,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.active.sync.initial.sync.enabled";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
+    public static final String MASTER_UFS_MANAGED_BLOCKING_ENABLED =
+        "alluxio.master.ufs.managed.blocking.enabled";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
