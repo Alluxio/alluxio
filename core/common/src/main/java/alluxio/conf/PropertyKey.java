@@ -396,6 +396,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Flag used only during tests to allow special behavior.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TMP_DIRS =
       new Builder(Name.TMP_DIRS)
@@ -1245,13 +1246,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "masters when using multiple masters without Zookeeper. This property is not "
               + "used when Zookeeper is enabled, since Zookeeper already stores the master "
               + "addresses.")
-          .build();
-  public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
-      new Builder(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER)
-          .setDefaultValue("alluxio.master.file.async.DefaultAsyncPersistHandler")
-          .setDescription("The handler for processing the async persistence requests.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
       new Builder(Name.MASTER_FORMAT_FILE_PREFIX)
@@ -3762,8 +3756,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.daily.backup.files.retained";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
-    public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
-        "alluxio.master.file.async.persist.handler";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_MASTER_HEARTBEAT_INTERVAL =
         "alluxio.master.master.heartbeat.interval";

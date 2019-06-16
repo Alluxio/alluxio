@@ -43,6 +43,7 @@ public class RemovedKey {
       put(Name.SWIFT_USE_PUBLIC_URI_KEY, V2_0_0_REMOVED);
       put(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL, V2_0_0_REMOVED);
       put(Name.MASTER_CONNECTION_TIMEOUT, V2_0_0_REMOVED);
+      put(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER, V2_0_0_REMOVED);
       put(Name.MASTER_HEARTBEAT_INTERVAL, V2_0_0_REMOVED + " Use "
           + PropertyKey.Name.MASTER_WORKER_HEARTBEAT_INTERVAL + " instead.");
       put(Name.MASTER_JOURNAL_FORMATTER_CLASS, "v2.0 removed the ability to specify the master "
@@ -85,6 +86,8 @@ public class RemovedKey {
         "alluxio.master.client.socket.cleanup.interval";
     public static final String MASTER_CONNECTION_TIMEOUT =
         "alluxio.master.connection.timeout";
+    public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
+        "alluxio.master.file.async.persist.handler";
     public static final String MASTER_HEARTBEAT_INTERVAL =
         "alluxio.master.heartbeat.interval";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
@@ -117,7 +120,6 @@ public class RemovedKey {
     public static final String WORKER_BLOCK_THREADS_MIN = "alluxio.worker.block.threads.min";
     public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
     public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
-
     public static final String WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
         Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0);
     public static final String WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
