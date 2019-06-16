@@ -1,5 +1,5 @@
 alluxio.master.audit.logging.enabled:
-  'Set to true to enable file system master audit. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.master.audit.logging.enabled"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'Set to true to enable file system master audit.'
 alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
 alluxio.master.backup.directory:
@@ -28,21 +28,11 @@ alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
 alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
   'Maximum time to wait for the triggered snapshot to finish.'
-alluxio.master.executor.fork.pool.keepalive:
-  'Master RPC executor service threads keep alive time.'
-alluxio.master.executor.fork.pool.size.max:
-  'Master RPC executor service threads max count.'
-alluxio.master.executor.parallelism:
-  'Master RPC executor service parallelism level.'
-alluxio.master.executor.pool.core.size:
-  'core thread count of master RPC executor service.'
-alluxio.master.executor.runnable:
-  'Master RPC executor service minimum runnable task count.'
 alluxio.master.file.async.persist.handler:
   'The handler for processing the async persistence requests.'
 alluxio.master.filesystem.liststatus.result.message.length:
   'Count of items on each list-status response message.'
-alluxio.master.format.file_prefix:
+alluxio.master.format.file.prefix:
   'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
 alluxio.master.grpc.channel.auth.timeout:
   'Maximum time to wait for gRPC channel to attempt to receive an authentication response.'
@@ -150,6 +140,16 @@ alluxio.master.replication.check.interval:
   'How often the master runs background process to check replication level for files'
 alluxio.master.rpc.addresses:
   'A list of comma-separated host:port RPC addresses where the client should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.'
+alluxio.master.rpc.executor.core.pool.size:
+  'the number of threads to keep in thread pool of master RPC executor service. By default it is same as the parallelism level, but may be set to a larger value to reduce dynamic overhead if tasks regularly block. A smaller value (for example 0) is equivalent to the default.'
+alluxio.master.rpc.executor.keepalive:
+  'the keep alive time of a thread in master RPC executor servicelast used before this thread is terminated (and replaced if necessary).'
+alluxio.master.rpc.executor.max.pool.size:
+  'the maximum number of threads allowed for master RPC executor service. When the maximum is reached, attempts to replace blocked threads fail.'
+alluxio.master.rpc.executor.min.runnable:
+  'the minimum allowed number of core threads not blocked. To ensure progress, when too few unblocked threads exist and unexecuted tasks may exist, new threads are constructed up to the value of alluxio.master.rpc.executor.max.pool.size. A value of 1 ensures liveness. A larger value might improve throughput but might also increase overhead.'
+alluxio.master.rpc.executor.parallelism:
+  'The parallelism level of master RPC executor service .'
 alluxio.master.startup.block.integrity.check.enabled:
   'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
 alluxio.master.tieredstore.global.level0.alias:

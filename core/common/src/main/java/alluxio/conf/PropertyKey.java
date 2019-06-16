@@ -1255,6 +1255,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
       new Builder(Name.MASTER_FORMAT_FILE_PREFIX)
+          .setAlias("alluxio.master.format.file_prefix")
           .setDefaultValue("_format_")
           .setDescription("The file prefix of the file generated in the journal directory "
               + "when the journal is formatted. The master will search for a file with this "
@@ -1823,39 +1824,49 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EXECUTOR_PARALLELISM =
-      new Builder("alluxio.master.executor.parallelism")
+  public static final PropertyKey MASTER_RPC_EXECUTOR_PARALLELISM =
+      new Builder(Name.MASTER_RPC_EXECUTOR_PARALLELISM)
           .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
-              "Use executor parallelism : 2 * {CPU core count}")
-          .setDescription("Master RPC executor service parallelism level.")
+              "2 * {CPU core count}")
+          .setDescription("The parallelism level of master RPC executor service .")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EXECUTOR_RUNNABLE =
-      new Builder("alluxio.master.executor.runnable")
+  public static final PropertyKey MASTER_RPC_EXECUTOR_MIN_RUNNABLE =
+      new Builder(Name.MASTER_RPC_EXECUTOR_MIN_RUNNABLE)
           .setDefaultValue(1)
-          .setDescription("Master RPC executor service minimum runnable task count.")
+          .setDescription("the minimum allowed number of core threads not blocked. "
+              + "To ensure progress, when too few unblocked threads exist and unexecuted tasks may "
+              + "exist, new threads are constructed up to the value of "
+              + Name.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE
+              + ". A value of 1 ensures liveness. A larger value might improve "
+              + "throughput but might also increase overhead.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EXECUTOR_POOL_CORE_SIZE =
-      new Builder("alluxio.master.executor.pool.core.size")
+  public static final PropertyKey MASTER_RPC_EXECUTOR_CORE_POOL_SIZE =
+      new Builder(Name.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)
           .setDefaultValue(0)
-          .setDescription("core thread count of master RPC executor service.")
+          .setDescription("the number of threads to keep in thread pool of master RPC executor "
+              + "service. By default it is same as the parallelism level, but may be "
+              + "set to a larger value to reduce dynamic overhead if tasks regularly block. "
+              + "A smaller value (for example 0) is equivalent to the default.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EXECUTOR_POOL_SIZE_MAX =
-      new Builder("alluxio.master.executor.fork.pool.size.max")
+  public static final PropertyKey MASTER_RPC_EXECUTOR_MAX_POOL_SIZE =
+      new Builder(Name.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
           .setDefaultValue(500)
-          .setDescription("Master RPC executor service threads max count.")
+          .setDescription("the maximum number of threads allowed for master RPC executor service."
+              + " When the maximum is reached, attempts to replace blocked threads fail.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EXECUTOR_FORK_POOL_KEEPALIVE =
-      new Builder("alluxio.master.executor.fork.pool.keepalive")
+  public static final PropertyKey MASTER_RPC_EXECUTOR_KEEPALIVE =
+      new Builder(Name.MASTER_RPC_EXECUTOR_KEEPALIVE)
           .setDefaultValue("60sec")
-          .setDescription("Master RPC executor service threads keep alive time.")
+          .setDescription("the keep alive time of a thread in master RPC executor service"
+              + "last used before this thread is terminated (and replaced if necessary).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3753,7 +3764,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.daily.backup.time";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
         "alluxio.master.file.async.persist.handler";
-    public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
+    public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_MASTER_HEARTBEAT_INTERVAL =
         "alluxio.master.master.heartbeat.interval";
     public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
@@ -3841,6 +3852,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_REPLICATION_CHECK_INTERVAL_MS =
         "alluxio.master.replication.check.interval";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
+    public static final String MASTER_RPC_EXECUTOR_PARALLELISM =
+        "alluxio.master.rpc.executor.parallelism";
+    public static final String MASTER_RPC_EXECUTOR_MIN_RUNNABLE =
+        "alluxio.master.rpc.executor.min.runnable";
+    public static final String MASTER_RPC_EXECUTOR_CORE_POOL_SIZE =
+        "alluxio.master.rpc.executor.core.pool.size";
+    public static final String MASTER_RPC_EXECUTOR_MAX_POOL_SIZE =
+        "alluxio.master.rpc.executor.max.pool.size";
+    public static final String MASTER_RPC_EXECUTOR_KEEPALIVE =
+        "alluxio.master.rpc.executor.keepalive";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =

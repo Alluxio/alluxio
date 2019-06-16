@@ -290,15 +290,15 @@ public class AlluxioMasterProcess extends MasterProcess {
               ServerConfiguration.global(), ServerUserState.global());
 
       mRPCExecutor = new ForkJoinPool(
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_PARALLELISM),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM),
           ForkJoinPool.defaultForkJoinWorkerThreadFactory,
           null,
           true,
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_CORE_SIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_SIZE_MAX),
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_RUNNABLE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MIN_RUNNABLE),
           null,
-          ServerConfiguration.getMs(PropertyKey.MASTER_EXECUTOR_FORK_POOL_KEEPALIVE),
+          ServerConfiguration.getMs(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE),
           TimeUnit.MILLISECONDS);
 
       serverBuilder.executor(mRPCExecutor);
