@@ -331,7 +331,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       mRPCExecutor.shutdown();
       try {
         mRPCExecutor.awaitTermination(
-            ServerConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT),
+            ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
             TimeUnit.MILLISECONDS);
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();

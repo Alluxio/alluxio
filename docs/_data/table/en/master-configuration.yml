@@ -28,18 +28,10 @@ alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
 alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
   'Maximum time to wait for the triggered snapshot to finish.'
-alluxio.master.file.async.persist.handler:
-  'The handler for processing the async persistence requests.'
 alluxio.master.filesystem.liststatus.result.message.length:
   'Count of items on each list-status response message.'
 alluxio.master.format.file.prefix:
   'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
-alluxio.master.grpc.channel.auth.timeout:
-  'Maximum time to wait for gRPC channel to attempt to receive an authentication response.'
-alluxio.master.grpc.channel.shutdown.timeout:
-  'Maximum time to wait for gRPC channel to stop on shutdown'
-alluxio.master.grpc.server.shutdown.timeout:
-  'Maximum time to wait for gRPC server to stop on shutdown'
 alluxio.master.heartbeat.timeout:
   'Timeout between leader master and standby master indicating a lost master.'
 alluxio.master.hostname:

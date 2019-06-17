@@ -252,6 +252,6 @@ public final class GrpcServerBuilder {
     addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
         .disableAuthentication());
     return new GrpcServer(mNettyServerBuilder.build(), mAuthenticationServer,
-        mConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT));
+        mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT));
   }
 }

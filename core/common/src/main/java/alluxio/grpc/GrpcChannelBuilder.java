@@ -200,8 +200,8 @@ public final class GrpcChannelBuilder {
   public GrpcChannel build() throws AlluxioStatusException {
     ManagedChannel underlyingChannel =
         GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(mChannelKey,
-            mConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT),
-            mConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_SHUTDOWN_TIMEOUT));
+            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT),
+            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
     try {
       AuthType authType =
           mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
@@ -213,21 +213,21 @@ public final class GrpcChannelBuilder {
         } else {
           channelAuthenticator = new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
               mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
-              mConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_AUTH_TIMEOUT));
+              mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT));
         }
         // Return a wrapper over authenticated channel.
         return new GrpcChannel(mChannelKey,
             channelAuthenticator.authenticate(mServerAddress, underlyingChannel),
-            mConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_SHUTDOWN_TIMEOUT));
+            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
       } else {
         // Return a wrapper over original channel.
         return new GrpcChannel(mChannelKey, underlyingChannel,
-            mConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_SHUTDOWN_TIMEOUT));
+            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
       }
     } catch (Exception exc) {
       // Release the managed channel to the pool before throwing.
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey,
-          mConfiguration.getMs(PropertyKey.NETWORK_CHANNEL_SHUTDOWN_TIMEOUT));
+          mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
       throw exc;
     }
   }

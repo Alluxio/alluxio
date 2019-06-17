@@ -359,35 +359,37 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey NETWORK_CHANNEL_AUTH_TIMEOUT =
-      new Builder(Name.NETWORK_CHANNEL_AUTH_TIMEOUT)
+  public static final PropertyKey NETWORK_CONNECTION_AUTH_TIMEOUT =
+      new Builder(Name.NETWORK_CONNECTION_AUTH_TIMEOUT)
           .setDefaultValue("30sec")
-          .setDescription("Maximum time to wait for gRPC channel to attempt to receive an "
-              + "authentication response.")
+          .setDescription("Maximum time to wait for a connection (gRPC channel) to attempt to "
+              + "receive an authentication response.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT =
-      new Builder(Name.NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT)
-          .setAlias("alluxio.network.channel.health.check.timeout.ms")
+  public static final PropertyKey NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT =
+      new Builder(Name.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT)
+          .setAlias("alluxio.network.connection.health.check.timeout.ms")
           .setDefaultValue("5sec")
-          .setDescription("Allowed duration for checking health of client connections "
-              + " before being assigned to a client. If a connection does not become active "
-              + " within configured time, it will be shut down and a new connection will be "
+          .setDescription("Allowed duration for checking health of client connections (gRPC "
+              + "channels) before being assigned to a client. If a connection does not become "
+              + "active  within configured time, it will be shut down and a new connection will be "
               + "created for the client")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT =
-      new Builder(Name.NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT)
+  public static final PropertyKey NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT =
+      new Builder(Name.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT)
           .setDefaultValue("60sec")
           .setDescription("Maximum time to wait for gRPC server to stop on shutdown")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey NETWORK_CHANNEL_SHUTDOWN_TIMEOUT =
-      new Builder(Name.NETWORK_CHANNEL_SHUTDOWN_TIMEOUT)
+  public static final PropertyKey NETWORK_CONNECTION_SHUTDOWN_TIMEOUT =
+      new Builder(Name.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT)
           .setDefaultValue("60sec")
-          .setDescription("Maximum time to wait for gRPC channel to stop on shutdown")
+          .setDescription("Maximum time to wait for connections (gRPC channels) to stop on "
+              + "shutdown")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -3602,14 +3604,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
         "alluxio.metrics.context.shutdown.timeout";
-    public static final String NETWORK_CHANNEL_AUTH_TIMEOUT =
-        "alluxio.network.channel.auth.timeout";
-    public static final String NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT =
-        "alluxio.network.channel.health.check.timeout";
-    public static final String NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT =
-        "alluxio.network.channel.server.shutdown.timeout";
-    public static final String NETWORK_CHANNEL_SHUTDOWN_TIMEOUT =
-        "alluxio.network.channel.shutdown.timeout";
+    public static final String NETWORK_CONNECTION_AUTH_TIMEOUT =
+        "alluxio.network.connection.auth.timeout";
+    public static final String NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT =
+        "alluxio.network.connection.health.check.timeout";
+    public static final String NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT =
+        "alluxio.network.connection.server.shutdown.timeout";
+    public static final String NETWORK_CONNECTION_SHUTDOWN_TIMEOUT =
+        "alluxio.network.connection.shutdown.timeout";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";

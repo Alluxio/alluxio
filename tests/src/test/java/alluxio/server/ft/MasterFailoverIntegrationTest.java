@@ -75,7 +75,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     mMultiMasterLocalAlluxioCluster.initConfiguration();
     ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
     ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
-    ServerConfiguration.set(PropertyKey.NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT, "30sec");
+    ServerConfiguration.set(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "30sec");
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH);
