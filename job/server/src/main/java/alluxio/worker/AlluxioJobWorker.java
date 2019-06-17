@@ -71,7 +71,8 @@ public final class AlluxioJobWorker {
               ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (IOException e) {
       ProcessUtils.fatalError(LOG,
-          "Failed to load cluster default configuration for job worker: %s", e.getMessage());
+          "Failed to load cluster default configuration for job worker. Please make sure that "
+              + "Alluxio master is running: %s", e.getMessage());
     }
     JobWorkerProcess process = JobWorkerProcess.Factory.create();
     ProcessUtils.run(process);
