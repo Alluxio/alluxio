@@ -359,6 +359,38 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey NETWORK_CHANNEL_AUTH_TIMEOUT =
+      new Builder(Name.NETWORK_CHANNEL_AUTH_TIMEOUT)
+          .setDefaultValue("30sec")
+          .setDescription("Maximum time to wait for gRPC channel to attempt to receive an "
+              + "authentication response.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT =
+      new Builder(Name.NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT)
+          .setAlias("alluxio.network.channel.health.check.timeout.ms")
+          .setDefaultValue("5sec")
+          .setDescription("Allowed duration for checking health of client connections "
+              + " before being assigned to a client. If a connection does not become active "
+              + " within configured time, it will be shut down and a new connection will be "
+              + "created for the client")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT =
+      new Builder(Name.NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Maximum time to wait for gRPC server to stop on shutdown")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey NETWORK_CHANNEL_SHUTDOWN_TIMEOUT =
+      new Builder(Name.NETWORK_CHANNEL_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Maximum time to wait for gRPC channel to stop on shutdown")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       new Builder(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)
           .setAlias("alluxio.network.host.resolution.timeout.ms")
@@ -371,15 +403,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "name is resolvable over the network.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  public static final PropertyKey NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT =
-      new Builder(Name.NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT)
-          .setAlias("alluxio.network.channel.health.check.timeout.ms")
-          .setDefaultValue("5sec")
-          .setDescription("Allowed duration for checking health of client connections "
-              + " before being assigned to a client. If a connection does not become active "
-              + " within configured time, it will be shut down and a new connection will be "
-              + "created for the client")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultSupplier(
@@ -1611,28 +1634,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "(blocks having no corresponding files but still taking system resource due to "
               + "various system failures). Orphaned blocks will be deleted during master startup "
               + "if this property is true. This property is available since 1.7.1")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
-      new Builder(Name.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT)
-          .setDefaultValue("30sec")
-          .setDescription("Maximum time to wait for gRPC channel to attempt to receive an "
-              + "authentication response.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
-      new Builder(Name.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("60sec")
-          .setDescription("Maximum time to wait for gRPC channel to stop on shutdown")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =
-      new Builder(Name.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("60sec")
-          .setDescription("Maximum time to wait for gRPC server to stop on shutdown")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
@@ -3601,10 +3602,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
         "alluxio.metrics.context.shutdown.timeout";
-    public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
-        "alluxio.network.host.resolution.timeout";
+    public static final String NETWORK_CHANNEL_AUTH_TIMEOUT =
+        "alluxio.network.channel.auth.timeout";
     public static final String NETWORK_CHANNEL_HEALTH_CHECK_TIMEOUT =
         "alluxio.network.channel.health.check.timeout";
+    public static final String NETWORK_CHANNEL_SERVER_SHUTDOWN_TIMEOUT =
+        "alluxio.network.channel.server.shutdown.timeout";
+    public static final String NETWORK_CHANNEL_SHUTDOWN_TIMEOUT =
+        "alluxio.network.channel.shutdown.timeout";
+    public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
+        "alluxio.network.host.resolution.timeout";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
@@ -3858,12 +3865,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
         "alluxio.master.startup.block.integrity.check.enabled";
-    public static final String MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
-        "alluxio.master.grpc.channel.auth.timeout";
-    public static final String MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
-        "alluxio.master.grpc.channel.shutdown.timeout";
-    public static final String MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =
-        "alluxio.master.grpc.server.shutdown.timeout";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
