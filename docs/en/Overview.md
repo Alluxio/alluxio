@@ -82,10 +82,10 @@ systems regardless of physical location. This provides a unified view of all dat
 standard interface for applications. See
 [Namespace Management]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more details.
 
-1. **Intelligent Multi-Tiered Caching**: Alluxio clusters act as a read and write cache for data in 
-connected storage systems. Configurable policies automatically optimize data placement for performance and reliability
-across both memory and disk (SSD/HDD). Caching is transparent to the user and uses
-buffering to maintain consistency with persistent storage. See
+1. **Intelligent Multi-Tiered Caching**: Alluxio clusters act as a read and write cache for data in
+connected storage systems. Configurable policies automatically optimize data placement for
+performance and reliability across both memory and disk (SSD/HDD). Caching is transparent to the
+user and uses buffering to maintain consistency with persistent storage. See
 [Alluxio Storage Management]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}) for more details.
 
 1. **Server-Side API Translation**: Alluxio transparently converts from a standard client-side
