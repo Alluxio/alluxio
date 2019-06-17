@@ -41,6 +41,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -669,6 +670,9 @@ public final class CommonUtils {
    * @return a map using protobuf {@link ByteString} for values instead of {@code byte[]}
    */
   public static Map<String, ByteString> convertToByteString(Map<String, byte[]> input) {
+    if (input == null) {
+      return Collections.emptyMap();
+    }
     Map<String, ByteString> output = new HashMap<>(input.size());
     input.forEach((k, v) -> output.put(k, ByteString.copyFrom(v)));
     return output;
@@ -679,6 +683,9 @@ public final class CommonUtils {
    * @return a map using {@code byte[]} for values instead of protobuf {@link ByteString}
    */
   public static Map<String, byte[]> convertFromByteString(Map<String, ByteString> input) {
+    if (input == null) {
+      return Collections.emptyMap();
+    }
     Map<String, byte[]> output = new HashMap<>(input.size());
     input.forEach((k, v) -> output.put(k, v.toByteArray()));
     return output;
