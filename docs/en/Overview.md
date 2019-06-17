@@ -25,7 +25,7 @@ The Alluxio project originated from [the UC Berkeley AMPLab](https://amplab.cs.b
 the data access layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
 It is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE).
 Alluxio is one of the fastest growing open source projects that has attracted more than [1000 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
-from over 200 institutions including
+from over 300 institutions including
 [Alibaba](http://www.alibaba.com),
 [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com),
@@ -82,7 +82,7 @@ systems regardless of physical location. This provides a unified view of all dat
 standard interface for applications. See
 [Namespace Management]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more details.
 
-1. **Intelligent Multi-Tiered Cache**: Alluxio clusters act as a read and write cache for data in connected storage
+1. **Intelligent Multi-Tiered Caching**: Alluxio clusters act as a read and write cache for data in connected storage
 systems. Configurable policies automatically optimize data placement for performance and reliability
 across both memory and disk (SSD/HDD). Caching is transparent to the user and uses
 buffering to maintain consistency with persistent storage. See
