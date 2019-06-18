@@ -24,7 +24,7 @@ latency especially when data is remote or network is slow or congested.
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * [Deploy Presto](https://prestosql.io/docs/current/installation/deployment.html).
-This guide is tested with `presto-0.208`.
+This guide is tested with `presto-315`.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
