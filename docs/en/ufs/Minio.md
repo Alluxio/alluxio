@@ -98,8 +98,8 @@ t; Request ID: 158681CA87E59BA0; S3 Extended Request ID: 2d47b54e-7dd4-4e32-bc6e
 
 ### DNS Resolution - Unable to execute HTTP request
 
-If an exception like this is encountered then it may be that the alluxio property
-[`alluxio.underfs.s3.disable.dns.bucket`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.underfs.s3.disable.dns.bucket)
+If an exception like this is encountered then it may be that the Alluxio property
+[`alluxio.underfs.s3.disable.dns.buckets`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.underfs.s3.disable.dns.buckets)
 is set to `false`.
 Setting this value to `true` for Minio will allow alluxio to resolve the proper bucket location.
 

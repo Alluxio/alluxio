@@ -16,8 +16,8 @@ Service (Kodo) is a massive, secure and highly reliable cloud storage service.
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines.You can
-[compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+[compile the binaries from Alluxio source code]({{ 'en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
+or [download the precompiled binaries directly]({{ 'en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 A Qiniu Kodo bucket is necessary before using Kodo with alluxio. In this guide, the Qiniu Kodo bucket
 is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTORY`. In addition, you should provide a domain to identify the specified bucket, which is called `KODO_DOWNLOAD_HOST`.
@@ -25,7 +25,7 @@ is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTO
 ## Mounting Kodo
 
 Alluxio unifies access to different storage systems through the
-[unified namespace]({{ '/en/advanced/Namespace-Management.html#unified-namespace' | relativize_url }}) feature. The root of Alluxio namespace or its subdirectories are all available for the mount point of Kodo.
+[unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) feature. The root of Alluxio namespace or its subdirectories are all available for the mount point of Kodo.
 ### Root Mount
 
 If you want to use Qiniu Kodo as its under storage system in Alluxio, `conf/alluxio-site.properties` must be modified. In the beginning, an existing Kodo bucket and its directory should be specified for storage by the following code:
@@ -58,7 +58,7 @@ according to this [order](https://mars-assets.qnssl.com/alluxio_host.png)
 ### Nested Mount
 An Kodo location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/basic/Command-Line-Interface.html#mount' | relativize_url }}) can be used for this purpose.
+[mount command]({{ 'en/Basic/Command-Line-Interface.html' | relativize_url}}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an Kodo bucket into Alluxio directory
 
 ```bash 

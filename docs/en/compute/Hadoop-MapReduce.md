@@ -110,7 +110,7 @@ in Alluxio. You can see the resulting files by running:
 
 > Tips：The previous wordcount example is also applicable to Alluxio in HA mode.
 Please follow the instructions in
-[HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
+[HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#configure-alluxio-clients-for-ha).
 
 ## Advanced Setup
 
