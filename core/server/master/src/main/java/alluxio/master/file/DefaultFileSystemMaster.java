@@ -181,6 +181,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
@@ -496,7 +497,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public void resetState() {
-    mJournaledComponents.forEach(Journaled::resetState);
+    // we resetState in the reverse order that we replay the journal
+    Lists.reverse(mJournaledComponents).forEach(Journaled::resetState);
   }
 
   @Override
@@ -666,6 +668,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     mSyncManager.stop();
     super.stop();
+  }
+
+  @Override
+  public void close() throws IOException {
+    super.close();
+    mInodeTree.close();
   }
 
   @Override
@@ -1543,7 +1551,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(inodePath.getUri());
       if (resolution != null) {
-        mSyncManager.stopSyncInternal(inodePath.getUri(), resolution);
+        mSyncManager.stopSyncInternal(inodePath.getUri(), resolution.getMountId());
       }
 
       // Delete Inodes
@@ -3757,6 +3765,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
 
       try {
+        long mountId = resolution.getMountId();
         mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
       } catch (Throwable e) {
         // revert state;

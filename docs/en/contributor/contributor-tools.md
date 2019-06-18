@@ -214,8 +214,9 @@ the syntax of each command.
 </table>
 
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
-`formatWorker`, `journalCrashTest`, `readJournal`, `version`, `validateConf` and `validateEnv` commands is that you
-have already built Alluxio (see
-[Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) about how to build Alluxio manually).
-Further, the prerequisite for the `fs`, `logLevel`, `runTest` and `runTests` commands is that you
-have a running Alluxio system.
+`formatWorker`, `journalCrashTest`, `readJournal`, `runClass`, `version`, `validateConf` and `validateEnv` commands is
+that you have already built Alluxio (see
+[Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) about how to
+build Alluxio manually). Further, the prerequisite for the `fs`, `logLevel`, `runTest` and `runTests` commands is that
+the Alluxio service is up and running.
+

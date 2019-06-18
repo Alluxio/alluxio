@@ -16,7 +16,6 @@ import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -35,6 +34,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.SyncPointInfo;
@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -210,9 +211,13 @@ public class ActiveSyncManager implements Journaled {
   public void launchPollingThread(long mountId, long txId) {
     LOG.debug("launch polling thread for mount id {}, txId {}", mountId, txId);
     if (!mPollerMap.containsKey(mountId)) {
-      try (CloseableResource<UnderFileSystem> ufsClient =
-               mMountTable.getUfsClient(mountId).acquireUfsResource()) {
-        ufsClient.get().startActiveSyncPolling(txId);
+      UfsManager.UfsClient ufsClient = mMountTable.getUfsClient(mountId);
+      if (ufsClient == null) {
+        LOG.warn("Mount id {} does not exist", mountId);
+        return;
+      }
+      try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
+        ufsResource.get().startActiveSyncPolling(txId);
       } catch (IOException e) {
         LOG.warn("IO Exception trying to launch Polling thread {}", e);
       }
@@ -231,6 +236,7 @@ public class ActiveSyncManager implements Journaled {
    * @param entry addSyncPoint entry
    */
   public void applyAndJournal(Supplier<JournalContext> context, AddSyncPointEntry entry) {
+    LOG.info("Apply startSync {}", entry.getSyncpointPath());
     try {
       apply(entry);
       context.get().append(Journal.JournalEntry.newBuilder().setAddSyncPoint(entry).build());
@@ -260,20 +266,12 @@ public class ActiveSyncManager implements Journaled {
    *
    * @param mountId mountId to stop active sync
    */
-  public void stopSyncForMount(long mountId) throws InvalidPathException, IOException {
-    LOG.debug("Stop sync for mount id {}", mountId);
+  public void stopSyncForMount(long mountId) throws InvalidPathException {
+    LOG.info("Stop sync for mount id {}", mountId);
     if (mFilterMap.containsKey(mountId)) {
-      List<Pair<AlluxioURI, MountTable.Resolution>> toBeDeleted = new ArrayList<>();
-      for (AlluxioURI uri : mFilterMap.get(mountId)) {
-        MountTable.Resolution resolution = resolveSyncPoint(uri);
-        if (resolution != null) {
-          toBeDeleted.add(new Pair<>(uri, resolution));
-        }
-      }
-      // Calling stopSyncInternal outside of the traversal of mFilterMap.get(mountId) to avoid
-      // ConcurrentModificationException
-      for (Pair<AlluxioURI, MountTable.Resolution> deleteInfo : toBeDeleted) {
-        stopSyncInternal(deleteInfo.getFirst(), deleteInfo.getSecond());
+      List<AlluxioURI> toBeDeleted = new ArrayList<>(mFilterMap.get(mountId));
+      for (AlluxioURI uri : toBeDeleted) {
+        stopSyncInternal(uri, mountId);
       }
     }
   }
@@ -298,14 +296,14 @@ public class ActiveSyncManager implements Journaled {
    * stop active sync on a URI.
    *
    * @param syncPoint sync point to be stopped
-   * @param resolution path resolution for the sync point
+   * @param mountId mountId
    */
-  public void stopSyncInternal(AlluxioURI syncPoint, MountTable.Resolution resolution) {
+  public void stopSyncInternal(AlluxioURI syncPoint, long mountId) {
     try (LockResource r = new LockResource(mSyncManagerLock)) {
       LOG.debug("stop syncPoint {}", syncPoint.getPath());
       RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
           .setSyncpointPath(syncPoint.toString())
-          .setMountId(resolution.getMountId())
+          .setMountId(mountId)
           .build();
       apply(removeSyncPoint);
       try {
@@ -316,7 +314,7 @@ public class ActiveSyncManager implements Journaled {
             File.AddSyncPointEntry.newBuilder()
                 .setSyncpointPath(syncPoint.toString()).build();
         apply(addSyncPoint);
-        recoverFromStopSync(syncPoint, resolution.getMountId());
+        recoverFromStopSync(syncPoint, mountId);
       }
     }
   }
@@ -414,7 +412,7 @@ public class ActiveSyncManager implements Journaled {
     long mountId = removeSyncPoint.getMountId();
 
     try (LockResource r = new LockResource(mSyncManagerLock)) {
-      LOG.debug("stop syncPoint {}", syncPoint.getPath());
+      LOG.info("SyncPoint stopped {}", syncPoint.getPath());
 
       if (mFilterMap.containsKey(mountId)) {
         List list = mFilterMap.get(mountId);
@@ -436,7 +434,7 @@ public class ActiveSyncManager implements Journaled {
     AlluxioURI syncPoint = new AlluxioURI(addSyncPoint.getSyncpointPath());
     long mountId = addSyncPoint.getMountId();
 
-    LOG.debug("adding syncPoint {}, mount id {}", syncPoint.getPath(), mountId);
+    LOG.info("SyncPoint added {}, mount id {}", syncPoint.getPath(), mountId);
     // Add the new sync point to the filter map
     if (mFilterMap.containsKey(mountId)) {
       mFilterMap.get(mountId).add(syncPoint);
@@ -464,9 +462,7 @@ public class ActiveSyncManager implements Journaled {
       syncFuture.cancel(true);
     }
 
-    if (mFilterMap.get(mountId).isEmpty()) {
-      // syncPoint removed was the last syncPoint for the mountId
-      mFilterMap.remove(mountId);
+    if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
       Future<?> future = mPollerMap.remove(mountId);
       if (future != null) {
         future.cancel(true);
@@ -482,6 +478,8 @@ public class ActiveSyncManager implements Journaled {
 
     // Stop active sync polling on a particular UFS if it is the last sync point
     if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
+      // syncPoint removed was the last syncPoint for the mountId
+      mFilterMap.remove(mountId);
       try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
         ufs.get().stopActiveSyncPolling();
       } catch (IOException e) {
@@ -560,12 +558,13 @@ public class ActiveSyncManager implements Journaled {
    */
   public void stop() {
     for (AlluxioURI syncPoint : mSyncPathList) {
-      MountTable.Resolution resolution = null;
+      MountTable.Resolution resolution;
       try {
         resolution = mMountTable.resolve(syncPoint);
       } catch (InvalidPathException e) {
         LOG.warn("stop: InvalidPathException resolving syncPoint {}, exception {}",
             syncPoint,  e);
+        return;
       }
       long mountId = resolution.getMountId();
       // Remove initial sync thread
@@ -693,12 +692,12 @@ public class ActiveSyncManager implements Journaled {
    */
   @Override
   public void resetState() {
-    for (long mountId : mFilterMap.keySet()) {
+    for (long mountId : new HashSet<>(mFilterMap.keySet())) {
       try {
         // stops sync point under this mount point. Note this clears the sync point and
         // stops associated polling threads.
         stopSyncForMount(mountId);
-      } catch (IOException | InvalidPathException e) {
+      } catch (InvalidPathException e) {
         LOG.info("Exception resetting mountId {}, exception: {}", mountId, e);
       }
     }

@@ -117,14 +117,10 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   @Override
   public void onError(Throwable throwable) {
     if (mChannelId != null) {
-      LOG.warn("Closing authenticated channel: {} due to error: {}", mChannelId, throwable);
-      mAuthenticationServer.unregisterChannel(mChannelId);
-    }
-    if (mSaslServerHandler != null) {
-      try {
-        mSaslServerHandler.close();
-      } catch (IOException exc) {
-        LOG.debug("Failed to close SaslServer.", exc);
+      LOG.debug("Closing authenticated channel: {} due to error: {}", mChannelId, throwable);
+      if (!mAuthenticationServer.unregisterChannel(mChannelId)) {
+        // Channel was not registered. Close driver explicitly.
+        close();
       }
     }
   }
@@ -135,7 +131,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
     LOG.debug("Received completion for authenticated channel: {}", mChannelId);
     // close() will be called by unregister channel if it was registered.
     if (!mAuthenticationServer.unregisterChannel(mChannelId)) {
-      // Channel was not registered. Close stream explicitly.
+      // Channel was not registered. Close driver explicitly.
       close();
     }
   }
@@ -144,14 +140,29 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
    * Closes the authentication stream.
    */
   public void close() {
-    try {
-      // Complete the client stream.
-      mRequestObserver.onCompleted();
-      // Close handler if not already.
-      mSaslServerHandler.close();
-    } catch (Exception exc) {
-      LogUtils.warnWithException(LOG, "Failed to close server driver for channel: {}.",
-          (mChannelId != null) ? mChannelId : "<NULL>", exc);
+    // Complete the client stream.
+    completeStreamQuietly();
+    // Close handler if not already.
+    if (mSaslServerHandler != null) {
+      try {
+        mSaslServerHandler.close();
+      } catch (Exception exc) {
+        LogUtils.warnWithException(LOG, "Failed to close server driver for channel: {}.",
+            (mChannelId != null) ? mChannelId : "<NULL>", exc);
+      }
+    }
+  }
+
+  /**
+   * Completes the stream with a debug blanket over possible exceptions.
+   */
+  private void completeStreamQuietly() {
+    if (mRequestObserver != null) {
+      try {
+        mRequestObserver.onCompleted();
+      } catch (Exception exc) {
+        LOG.debug("Failed to close authentication stream from server.", exc);
+      }
     }
   }
 }
