@@ -148,11 +148,11 @@ through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classp
 
 ### Path Defaults
 
-Since version 2.0, Alluxio administrator can set default client side configurations for Alluxio paths.
-FileSystem client operations have options, by default, the options are derived from client side configuration
+Since version 2.0, Alluxio administrators can set default client side configurations for Alluxio paths.
+FileSystem client operations have options, FileSystem options are derived from client side configuration
 properties. Only these configuration properties can be set as as path defaults.
 
-For example, `createFile` has an option to specify write type, by default, the write type is
+For example, `createFile` has an option to specify write type. By default, the write type is
 the value of the configuration key `alluxio.user.file.writetype.default`.
 The administrator can set default value of `alluxio.user.file.write.type.default` to `MUST_CACHE`
 for all paths with prefix `/tmp` by
