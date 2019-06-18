@@ -16,7 +16,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted). If you are using Hive2.1+, 
-  make sure [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
+  make sure to [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
   before starting Hive. `$HIVE_HOME/bin/schematool -dbType derby -initSchema`
 * Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/deploy/Running-Alluxio-Locally.html).
 * Make sure that the Alluxio client jar is available.
