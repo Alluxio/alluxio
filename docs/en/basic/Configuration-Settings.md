@@ -171,8 +171,6 @@ users can run the following command:
 
 ```bash
 ./bin/alluxio getConf alluxio.worker.port
-```
-```
 29998
 ./bin/alluxio getConf --source alluxio.worker.port
 DEFAULT
@@ -182,9 +180,6 @@ To list all of the configuration properties with sources:
 
 ```bash
 ./bin/alluxio getConf --source
-```
-
-```
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
 ...
@@ -198,9 +193,6 @@ Otherwise, without `--master` option, this command only checks the local configu
 
 ```bash
 ./bin/alluxio getConf --master --source
-```
-
-```
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
 ...
