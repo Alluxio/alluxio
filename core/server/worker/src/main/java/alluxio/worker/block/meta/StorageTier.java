@@ -82,7 +82,8 @@ public final class StorageTier {
     PropertyKey tierDirMediumConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(mTierOrdinal);
     String rawDirMedium = ServerConfiguration.get(tierDirMediumConf);
-    Preconditions.checkState(rawDirMedium.length() > 0, "Tier medium type configuration should not be blank");
+    Preconditions.checkState(rawDirMedium.length() > 0,
+        "Tier medium type configuration should not be blank");
     String[] dirMedium = rawDirMedium.split(",");
 
     mDirs = new ArrayList<>(dirPaths.length);
