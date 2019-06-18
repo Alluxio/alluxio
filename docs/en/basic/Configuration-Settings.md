@@ -159,7 +159,7 @@ In this case, its final value is determined by the following priority list, from
 3. [Property files](#alluxio-siteproperties-files-recommended):
 When an Alluxio cluster starts, each server process including master and worker searches for
 `alluxio-site.properties` within the following directories in the given order, stopping when a match is found:
-`${HOME}/.alluxio/`, `/etc/alluxio/`, and `${ALLUXIO_HOME}/conf`
+`${CLASSPATH}`, `${HOME}/.alluxio/`, `/etc/alluxio/`, and `${ALLUXIO_HOME}/conf`
 4. [Cluster default values](#cluster-defaults):
 An Alluxio client may initialize its configuration based on the cluster-wide default configuration served by the masters.
 
