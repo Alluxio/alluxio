@@ -69,9 +69,14 @@ you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 An GCS location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
 
+First, within `conf/alluxio-site.properties`, specify the master host:
+```properties
+alluxio.master.hostname=localhost
+```
+
+Then, mount GCS:
 ```bash
-./bin/alluxio fs mount --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>\
-  /mnt/gcs gs://GCS_BUCKET/GCS_DIRECTORY
+./bin/alluxio fs mount --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> /gcs gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 
 ## Running Alluxio Locally with GCS
