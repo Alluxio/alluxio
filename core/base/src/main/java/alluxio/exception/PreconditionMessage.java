@@ -42,7 +42,6 @@ public enum PreconditionMessage {
   ERR_SEEK_PAST_END_OF_REGION("Seek position past the end of the read region (block or file)."),
   ERR_SET_STATE_UNPERSIST("Cannot set the state of a file to not-persisted"),
   ERR_TIER_QUOTA_BLANK("Tier capacity configuration should not be blank"),
-  ERR_TIER_MEDIUM_TYPE_BLANK("Tier medium type configuration should not be blank"),
   ERR_UFS_MANAGER_OPERATION_INVALID_SESSION("Attempted to %s ufs file with invalid session id."),
   ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT(
       "Failed to remove agent %s from ufs manager's internal state."),
