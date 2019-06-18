@@ -7,11 +7,11 @@ priority: 0
 ---
 
 Applications primarily interact with Alluxio through its Filesystem API. Java users
-can either use the [Alluxio Java Client](#Java-Client), or the
-[Hadoop-Compatible Java Client](#Hadoop-Compatible-Java-Client), which
+can either use the [Alluxio Java Client](#java-client), or the
+[Hadoop-Compatible Java Client](#hadoop-compatible-java-client), which
 wraps the Alluxio Java Client to implement the Hadoop API.
 
-Alluxio also provides a [POSIX API]({{ '/en/api/FUSE-API.html' | relativize_url }}) after mounting
+Alluxio also provides a [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}) after mounting
 Alluxio as a local FUSE volume.
 
 By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST
@@ -225,7 +225,7 @@ and a Hadoop compatible API. The Alluxio API provides additional functionality, 
 compatible API gives users the flexibility of leveraging Alluxio without having to modify existing
 code written using Hadoop's API.
 
-Alluxio has a wrapper of the [Alluxio client](#Java-Client) which provides the Hadoop
+Alluxio has a wrapper of the [Alluxio client](#java-client) which provides the Hadoop
 compatible `FileSystem` interface. With this client, Hadoop file operations will be translated to
 FileSystem operations. The latest documentation for the `FileSystem` interface may be found
 [here](http://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/FileSystem.html).
@@ -235,7 +235,7 @@ previous code written for Hadoop.
 
 ## Rest API
 
-For portability with other languages, the [Alluxio API](#Java-Client) is also
+For portability with other languages, the [Alluxio API](#java-client) is also
 accessible via an HTTP proxy in the form of a REST API.
 
 The [REST API documentation](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
@@ -256,7 +256,7 @@ worker on each compute node.
 ## Python
 
 Alluxio has a [Python Client](https://github.com/Alluxio/alluxio-py) for interacting with Alluxio through its
-[REST API](#Rest-API). The Python client exposes an API similar to the [Alluxio Java API](#Java-Client).
+[REST API](#rest-api). The Python client exposes an API similar to the [Alluxio Java API](#java-client).
 See the [doc](http://alluxio-py.readthedocs.io) for detailed documentation about all available
 methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) of how to perform basic filesystem
 operations in Alluxio.
@@ -376,7 +376,7 @@ if __name__ == '__main__':
 ## Go
 
 Alluxio has a [Go Client](https://github.com/Alluxio/alluxio-go) for interacting with Alluxio through its
-[REST API](#Rest-API). The Go client exposes an API similar to the [Alluxio Java API](#Java-Client).
+[REST API](#rest-api). The Go client exposes an API similar to the [Alluxio Java API](#java-client).
 See the [godoc](http://godoc.org/github.com/Alluxio/alluxio-go) for detailed documentation about all available
 methods. The godoc includes examples of how to download, upload, check existence for, and list status for files in
 Alluxio.
