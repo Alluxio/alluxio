@@ -23,13 +23,13 @@ following instances are currently supported:
 * Master: The Alluxio master process.
 * Worker: The Alluxio worker process.
 
-Each instance can report to zero or more sinks.
+Each instance can report to zero or more sinks, found [here](https://github.com/Alluxio/alluxio/tree/master/core/common/src/main/java/alluxio/metrics/sink).
 
-* ConsoleSink: Outputs metrics values to the console.
-* CsvSink: Exports metrics data to CSV files at regular intervals.
-* JmxSink: Registers metrics for viewing in a JMX console.
-* GraphiteSink: Sends metrics to a Graphite server.
-* MetricsServlet: Adds a servlet in Web UI to serve metrics data as JSON data.
+* `ConsoleSink`: Outputs metrics values to the console.
+* `CsvSink`: Exports metrics data to CSV files at regular intervals.
+* `JmxSink`: Registers metrics for viewing in a JMX console.
+* `GraphiteSink`: Sends metrics to a Graphite server.
+* `MetricsServlet`: Adds a servlet in Web UI to serve metrics data as JSON data.
 
 ## Configuration
 
@@ -51,6 +51,11 @@ curl 127.0.0.1:19999/metrics/json/
 
 This section gives an example of writing collected metrics to a CSV file.
 
+First, create the polling directory for CsvSink (if it does not already exist):
+```bash
+mkdir /tmp/alluxio-metrics
+```
+
 In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default, add the following
 properties.
 
@@ -70,6 +75,8 @@ If Alluxio is deployed in a cluster, this file needs to be distributed to all th
 
 Then, start Alluxio, CSV files containing metrics will be found in the `sink.csv.directory`. The
 file name will correspond with the metric name.
+
+Refer to `metrics.properties.template` for all possible sink specific configurations. 
 
 ## Supported Metrics
 
