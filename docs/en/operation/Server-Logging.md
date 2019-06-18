@@ -144,9 +144,7 @@ ALLUXIO_LOGSERVER_PORT=45010
 ```
 
 These variables propagate their values to the `alluxio.logserver.hostname` and
-`alluxio.logserver.port`
-[system properties]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.logserver.hostname)
-when set via `alluxio-env.sh` which are then referenced within `log4j.properties`
+`alluxio.logserver.port` [system properties] when set via `alluxio-env.sh` which are then referenced within `log4j.properties`
 
 #### Enable Remote Logging with `log4j.properties`
 
