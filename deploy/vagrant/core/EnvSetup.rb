@@ -278,9 +278,9 @@ class HadoopVersion
         # It's the release distribution, so no suffix
         suffix = ''
       elsif @version.start_with?('2.4')
-        suffix = 'hadoop2.4'
+        suffix = 'hadoop-2.4'
       elsif @version.start_with?('2.6')
-        suffix = 'hadoop2.6'
+        suffix = 'hadoop-2.6'
       else
         puts errmsg
         exit(1)

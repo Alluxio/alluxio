@@ -22,7 +22,7 @@ There are several prerequisites for all three deployment scenarios that are supp
 * Download and Install [Vagrant](https://www.vagrantup.com/downloads.html)
 * [Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine
 * Download and Install [python>=2.7](https://www.python.org/), not python3.
-* Install python library dependencies, under `deploy/vagrant` directory in your home directory, run:
+* Install python library dependencies, under `deploy/vagrant` directory in your Alluxio home directory, run:
 
 ```bash
 sudo bash bin/install.sh
@@ -299,7 +299,7 @@ You will need your JSON keys for your GCE project. Go to the
 [Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) section of the
 [IAM & Admin](https://console.cloud.google.com/projectselector/iam-admin) page in the Console.
 
-If you are creating a new service account, make sure to check the option "Furnish a new private key"
+If you are creating a new service account, make sure to check the option "CREATE KEY"
 and the "JSON" key type, and the JSON key will be downloaded.
 Save the JSON key in a safe location.
 

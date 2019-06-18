@@ -2,15 +2,15 @@
 # Release means using binary distribution from https://github.com/alluxio/alluxio/releases.
 # Github means cloning and compiling github repo.
 # {Github | Local | Release}
-Type: Local
+Type: Release
 
 # github repo and version(can be branch, commit hash)
 Github:
   Repo: https://github.com/alluxio/alluxio
-  Version: branch-1.6
+  Version: branch-2.0
 
 Release:
-  Version: 1.6.1 # name of release version
+  Version: 2.0.0-RC3 # name of release version
 
 # how much memory to use (e.g. 1000MB, 2GB) per worker
 # make sure your virtual machine has more memory than what is specified here
