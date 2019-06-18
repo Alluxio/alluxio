@@ -11,7 +11,7 @@ can either use the [Alluxio Java Client](#Java-Client), or the
 [Hadoop-Compatible Java Client](#Hadoop-Compatible-Java-Client), which
 wraps the Alluxio Java Client to implement the Hadoop API.
 
-Alluxio also provides a [POSIX API]({{ '/en/api/FUSE-API.html' | relativize_url }}) after mounting
+Alluxio also provides a [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}) after mounting
 Alluxio as a local FUSE volume.
 
 By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST

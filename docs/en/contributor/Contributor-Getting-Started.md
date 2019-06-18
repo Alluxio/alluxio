@@ -189,7 +189,7 @@ with:
 git commit -m "<concise but descriptive commit message>"
 ```
 
-Please read the [Alluxio coding conventions]({{ '/en/deploy/Code-Conventions.html' | relativize_url }})
+Please read the [Alluxio coding conventions]({{ '/en/contributor/Code-Conventions.html' | relativize_url }})
 for more details and tips on how to update the Alluxio source code.
 
 If you want more details for creating commits, please visit [instructions on how to create
