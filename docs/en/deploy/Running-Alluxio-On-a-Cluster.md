@@ -162,7 +162,7 @@ alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostnam
 Note that embedded journal feature relies on Copycat which has built-in leader election. 
 The built-in leader election cannot work with Zookeeper since we cannot have two leaders which might not match. 
 Enabling embedded journal enables Alluxio's internal leader election. 
-See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#Embedded-Journal-Configuration) 
+See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration) 
 for alternative ways to set up HA cluster with internal leader election.
 
 ### Setting up HA cluster with Zookeeper-based leader election

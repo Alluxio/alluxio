@@ -245,7 +245,7 @@ The default value is `8`.
 ### Cache Skip
 
 It is possible to turn off caching in Alluxio by setting the property
-[`alluxio.user.file.readtype.default`]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.user.file.cache.partially.read.block)
+[`alluxio.user.file.readtype.default`]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.user.file.readtype.default)
 in the client to `NO_CACHE`.
 
 ## Data flow: Write
