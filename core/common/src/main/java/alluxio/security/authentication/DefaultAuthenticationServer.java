@@ -117,9 +117,11 @@ public class DefaultAuthenticationServer
 
   @Override
   public boolean unregisterChannel(UUID channelId) {
+    LOG.debug("Unregistering channel: {}", channelId);
     // Remove channel.
     AuthenticatedChannelInfo channelInfo = mChannels.remove(channelId);
     if (channelInfo == null) {
+      LOG.debug("Channel was not registered: {}", channelId);
       return false;
     }
     // Close authentication driver.

@@ -288,3 +288,4 @@ With this configuration, the protocol translates to the following:
 
 Overall, a copy and delete operation in the object store is saved, and the slow portion of writing
 to the object store is moved off the critical path.
+

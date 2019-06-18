@@ -46,7 +46,7 @@ In addition to the unified namespace Alluxio provides, each underlying file syst
 in Alluxio namespace has its own namespace; this is referred to as the UFS namespace.
 If a file in the UFS namespace is changed without going through Alluxio,
 the UFS namespace and the Alluxio namespace can potentially get out of sync.
-When this happens, a [UFS Metadata Sync](#Ufs-Metadata-Sync) operation is required to synchronize
+When this happens, a [UFS Metadata Sync](#ufs-metadata-sync) operation is required to synchronize
 the two namespaces.
 
 ### Transparent Naming
@@ -370,5 +370,5 @@ All three directories are all contained in one space in Alluxio:
 
 ## Resources
 
-- A blog post explaining [Unified Namespace](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
-- A blog post on [Optimizations to speed up metadata operations](https://www.alluxio.com/blog/how-to-speed-up-alluxio-metadata-operations-up-to-100x)
+- A blog post explaining [Unified Namespace](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)
+- A blog post on [Optimizations to speed up metadata operations](https://www.alluxio.io/blog/how-to-speed-up-alluxio-metadata-operations-up-to-100x/)

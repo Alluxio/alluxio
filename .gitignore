@@ -17,6 +17,7 @@
 .port_coordination/
 .project
 .settings/
+/alluxio_backups/
 /client/
 /conf/alluxio-env.sh
 /conf/alluxio-env.sh.bootstrap.bk
