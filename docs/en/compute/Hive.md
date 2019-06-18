@@ -15,8 +15,10 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 ## Prerequisites
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
-* [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted).
-* Alluxio has been set up and is running.
+* [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted). If you are using Hive2.1+, 
+  make sure [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
+  before starting Hive. `$HIVE_HOME/bin/schematool -dbType derby -initSchema`
+* Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/deploy/Running-Alluxio-Locally.html).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](http://www.alluxio.io/download).
@@ -31,7 +33,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 
 Distribute Alluxio client jar on all Hive nodes and include the Alluxio client jar to Hive
 classpath so Hive can query and access data on Alluxio.
-Set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
+Within Hive installation directory , set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
 ```bash
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
