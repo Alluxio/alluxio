@@ -113,9 +113,9 @@ Running the `groups` command for every query may be expensive, so
 the user group mapping is cached, with an expiration period configured by the
 `alluxio.security.group.mapping.cache.timeout` property, with a default value of `60s`.
 If set to a value of `0`, the caching is disabled.
-If the cache timeout is too low or disable, the `groups` command will be run very frequently, but
+If the cache timeout is too low or disabled, the `groups` command will be run very frequently, but
 may increase latency for operations.
-If the cache timeout is too higg, the `groups` command will not be run frequently, but the cached
+If the cache timeout is too high, the `groups` command will not be run frequently, but the cached
 results may become stale.
 
 Alluxio has super user, a user with special privileges typically needed to administer and maintain the system.
@@ -360,5 +360,6 @@ respective under file system, such as HDFS transparent encryption or Linux disk 
 
 ## Deployment
 
-It is recommended to start Alluxio master and workers using the same operating system user.
-In the case where there is a user mismatch, file operations may fail because of permission checks.
+It is required to start Alluxio master and workers using the same operating system user.
+In the case where there is a user mismatch, secondary master healthcheck, the command `alluxio-start.sh all`
+and certain file operations may fail because of permission checks.
