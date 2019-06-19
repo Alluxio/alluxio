@@ -120,7 +120,7 @@ public final class RestUtils {
       headers.forEach(rb::header);
     }
 
-    if (alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED)) {
+    if (alluxioConf.getBoolean(PropertyKey.WEB_CORS_ENABLED)) {
       return makeCORS(rb).build();
     }
 
@@ -176,7 +176,7 @@ public final class RestUtils {
     ErrorResponse response = new ErrorResponse(se.getStatus().getCode(), se.getMessage());
 
     Response.ResponseBuilder rb = Response.serverError().entity(response);
-    if (alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED)) {
+    if (alluxioConf.getBoolean(PropertyKey.WEB_CORS_ENABLED)) {
       return makeCORS(rb).build();
     }
 

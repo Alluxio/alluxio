@@ -34,13 +34,13 @@ public final class GrpcManagedChannelPoolTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
   private static final long SHUTDOWN_TIMEOUT =
-      sConf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
+      sConf.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT);
   private static final long HEALTH_CHECK_TIMEOUT =
-      sConf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS);
+      sConf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT);
 
   @BeforeClass
   public static void classSetup() {
-    sConf.set(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS, "1sec");
+    sConf.set(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT, "1sec");
   }
 
   @After

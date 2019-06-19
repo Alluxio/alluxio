@@ -187,7 +187,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
   @Test
   public void nonClientScopeKey() throws Exception {
     try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
-      PropertyKey key = PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT;
+      PropertyKey key = PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT;
       int ret = shell.run("pathConf", "add", "--property",
           format(key, "10ms"), "/");
       Assert.assertEquals(-1, ret);

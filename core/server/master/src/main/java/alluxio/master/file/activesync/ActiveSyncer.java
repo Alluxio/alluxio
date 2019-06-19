@@ -87,7 +87,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
                   mFileSystemMaster.activeSyncMetadata(alluxioUri, null,
                       mSyncManager.getExecutor());
                 }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                    .getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT)));
+                    .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
               } else {
                 LOG.debug("sync {}", ufsUri.toString());
                 RetryUtils.retry("Incremental Sync", () -> {
@@ -97,7 +97,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
                       mSyncManager.getExecutor()
                   );
                 }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                    .getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT)));
+                    .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
               }
               // Journal the latest processed txId
               mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);

@@ -196,7 +196,7 @@ public final class AlluxioWorkerRestServiceHandler {
               .getConnectHost(NetworkAddressUtils.ServiceType.MASTER_WEB,
                   ServerConfiguration.global()))
           .setMasterPort(ServerConfiguration.getInt(PropertyKey.MASTER_WEB_PORT))
-          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+          .setRefreshInterval((int) ServerConfiguration.getMs(PropertyKey.WEB_REFRESH_INTERVAL));
 
       return response;
     }, ServerConfiguration.global());
