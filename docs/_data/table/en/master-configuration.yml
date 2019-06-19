@@ -1,17 +1,5 @@
-alluxio.master.activesync.eventrate.interval:
-  'The time interval we use to estimate incoming event rate'
-alluxio.master.activesync.interval:
-  'Time interval to periodically actively sync UFS'
-alluxio.master.activesync.maxactivity:
-  'Max number of changes in a directory to be considered for active syncing'
-alluxio.master.activesync.maxage:
-  'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
-alluxio.master.activesync.polltimeout:
-  'Max time to wait before timing out a polling operation'
-alluxio.master.activesync.threadpoolsize:
-  'Max number of threads used to perform active sync'
 alluxio.master.audit.logging.enabled:
-  'Set to true to enable file system master audit. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+  'Set to true to enable file system master audit.'
 alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
 alluxio.master.backup.directory:
@@ -20,8 +8,6 @@ alluxio.master.backup.entry.buffer.count:
   'How many journal entries to buffer during a back-up.'
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to.'
-alluxio.master.connection.timeout:
-  'Timeout of connections between master and client. A value of 0 means never timeout'
 alluxio.master.daily.backup.enabled:
   'Whether or not to enable daily primary master metadata backup.'
 alluxio.master.daily.backup.files.retained:
@@ -42,28 +28,10 @@ alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
 alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
   'Maximum time to wait for the triggered snapshot to finish.'
-alluxio.master.executor.fork.pool.keepalive.ms:
-  'Master RPC executor service threads keep alive time.'
-alluxio.master.executor.fork.pool.size.core:
-  'Master RPC executor service threads core count.'
-alluxio.master.executor.fork.pool.size.max:
-  'Master RPC executor service threads max count.'
-alluxio.master.executor.parallelism:
-  'Master RPC executor service parallelism level.'
-alluxio.master.executor.runnable:
-  'Master RPC executor service minimum runnable task count.'
-alluxio.master.file.async.persist.handler:
-  'The handler for processing the async persistence requests.'
 alluxio.master.filesystem.liststatus.result.message.length:
   'Count of items on each list-status response message.'
-alluxio.master.format.file_prefix:
+alluxio.master.format.file.prefix:
   'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
-alluxio.master.grpc.channel.auth.timeout:
-  'Maximum time to wait for gRPC channel to attempt to receive an authentication response.'
-alluxio.master.grpc.channel.shutdown.timeout:
-  'Maximum time to wait for gRPC channel to stop on shutdown'
-alluxio.master.grpc.server.shutdown.timeout:
-  'Maximum time to wait for gRPC server to stop on shutdown'
 alluxio.master.heartbeat.timeout:
   'Timeout between leader master and standby master indicating a lost master.'
 alluxio.master.hostname:
@@ -105,7 +73,7 @@ alluxio.master.lock.pool.concurrency.level:
 alluxio.master.lock.pool.high.watermark:
   'High watermark of lock pool size. When the size grows over the high watermark, a background thread starts evicting unused locks from the pool.'
 alluxio.master.lock.pool.initsize:
-  'Initial lock pool size'
+  'Initial size of the lock pool for master inodes.'
 alluxio.master.lock.pool.low.watermark:
   'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.log.config.report.heartbeat.interval:
@@ -146,24 +114,34 @@ alluxio.master.periodic.block.integrity.check.interval:
   'The period for the block integrity check, disabled if <= 0.'
 alluxio.master.periodic.block.integrity.check.repair:
   'Whether the system should delete orphaned blocks found during the periodic integrity check. This is an experimental feature.'
-alluxio.master.persistence.checker.interval.ms:
-  'N/A'
-alluxio.master.persistence.initial.interval.ms:
-  'N/A'
-alluxio.master.persistence.max.interval.ms:
-  'N/A'
-alluxio.master.persistence.max.total.wait.time.ms:
-  'N/A'
-alluxio.master.persistence.scheduler.interval.ms:
-  'N/A'
+alluxio.master.persistence.checker.interval:
+  'How often the master checks persistence status for files written using ASYNC_THROUGH'
+alluxio.master.persistence.initial.interval:
+  'How often the  master persistence checker checks persistence status for files written using ASYNC_THROUGH'
+alluxio.master.persistence.max.interval:
+  'Max wait interval for master persistence checker persistence status for files written using ASYNC_THROUGH'
+alluxio.master.persistence.max.total.wait.time:
+  'Total wait time for master persistence checker persistence status for files written using ASYNC_THROUGH'
+alluxio.master.persistence.scheduler.interval:
+  'How often the master schedules persistence jobs for files written using ASYNC_THROUGH'
 alluxio.master.port:
   'The port that Alluxio master node runs on.'
 alluxio.master.principal:
   'Kerberos principal for Alluxio master.'
-alluxio.master.replication.check.interval.ms:
-  'N/A'
+alluxio.master.replication.check.interval:
+  'How often the master runs background process to check replication level for files'
 alluxio.master.rpc.addresses:
   'A list of comma-separated host:port RPC addresses where the client should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.'
+alluxio.master.rpc.executor.core.pool.size:
+  'the number of threads to keep in thread pool of master RPC executor service. By default it is same as the parallelism level, but may be set to a larger value to reduce dynamic overhead if tasks regularly block. A smaller value (for example 0) is equivalent to the default.'
+alluxio.master.rpc.executor.keepalive:
+  'the keep alive time of a thread in master RPC executor servicelast used before this thread is terminated (and replaced if necessary).'
+alluxio.master.rpc.executor.max.pool.size:
+  'the maximum number of threads allowed for master RPC executor service. When the maximum is reached, attempts to replace blocked threads fail.'
+alluxio.master.rpc.executor.min.runnable:
+  'the minimum allowed number of core threads not blocked. To ensure progress, when too few unblocked threads exist and unexecuted tasks may exist, new threads are constructed up to the value of alluxio.master.rpc.executor.max.pool.size. A value of 1 ensures liveness. A larger value might improve throughput but might also increase overhead.'
+alluxio.master.rpc.executor.parallelism:
+  'The parallelism level of master RPC executor service .'
 alluxio.master.startup.block.integrity.check.enabled:
   'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
 alluxio.master.tieredstore.global.level0.alias:
@@ -177,7 +155,19 @@ alluxio.master.tieredstore.global.levels:
 alluxio.master.tieredstore.global.media:
   'The list of medium types we support in the system.'
 alluxio.master.ttl.checker.interval:
-  'Time interval to periodically delete the files with expired ttl value.'
+  'How often to periodically check and delete the files with expired ttl value.'
+alluxio.master.ufs.active.sync.event.rate.interval:
+  'The time interval we use to estimate incoming event rate'
+alluxio.master.ufs.active.sync.interval:
+  'Time interval to periodically actively sync UFS'
+alluxio.master.ufs.active.sync.max.activities:
+  'Max number of changes in a directory to be considered for active syncing'
+alluxio.master.ufs.active.sync.max.age:
+  'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
+alluxio.master.ufs.active.sync.poll.timeout:
+  'Max time to wait before timing out a polling operation'
+alluxio.master.ufs.active.sync.thread.pool.size:
+  'Max number of threads used to perform active sync'
 alluxio.master.ufs.block.location.cache.capacity:
   'The capacity of the UFS block locations cache. This cache caches UFS block locations for files that are persisted but not in Alluxio space, so that listing status of these files do not need to repeatedly ask UFS for their block locations. If this is set to 0, the cache will be disabled.'
 alluxio.master.ufs.path.cache.capacity:

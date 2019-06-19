@@ -80,7 +80,7 @@ public class ChannelAuthenticator {
     mConfiguration = conf;
     mChannelId = UUID.randomUUID();
     mAuthType = conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    mGrpcAuthTimeoutMs = conf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT);
+    mGrpcAuthTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT);
   }
 
   /**
