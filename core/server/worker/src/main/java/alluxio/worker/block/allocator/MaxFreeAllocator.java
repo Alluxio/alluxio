@@ -43,17 +43,17 @@ public final class MaxFreeAllocator implements Allocator {
   }
 
   @Override
-  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view, "view");
-    return allocateBlock(sessionId, blockSize, location);
-  }
-
-  @Override
   public StorageDir allocateBlockWithTierInfo(long sessionId, long blockSize,
       BlockStoreLocation location, List<StorageTier> tierList,
       Map<String, StorageTier> aliasToTiersMap) {
     return allocateBlock(sessionId, blockSize, location, tierList, aliasToTiersMap);
+  }
+
+  @Override
+  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
+      BlockStoreLocation location, BlockMetadataManagerView view) {
+    mManagerView = Preconditions.checkNotNull(view, "view");
+    return allocateBlock(sessionId, blockSize, location);
   }
 
   /**
@@ -65,7 +65,7 @@ public final class MaxFreeAllocator implements Allocator {
    * @param location the location in block store
    * @param tierList a list of {@link StorageTier}
    * @param aliasToTiersMap a map from tier alias to {@link StorageTier}
-   * @return a {@link StorageDirView} in which to create the temp block meta if success, null
+   * @return a {@link StorageDir} in which to create the temp block meta if success, null
    *         otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
@@ -87,8 +87,8 @@ public final class MaxFreeAllocator implements Allocator {
       StorageTier tier = aliasToTiersMap.get(location.tierAlias());
       candidateDir = getCandidateDirInTier(tier, blockSize, BlockStoreLocation.ANY_MEDIUM);
     } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
-      for (StorageTier tierView : tierList) {
-        candidateDir = getCandidateDirInTier(tierView, blockSize, location.mediumType());
+      for (StorageTier tier : tierList) {
+        candidateDir = getCandidateDirInTier(tier, blockSize, location.mediumType());
         if (candidateDir != null) {
           break;
         }
@@ -104,8 +104,19 @@ public final class MaxFreeAllocator implements Allocator {
     return candidateDir;
   }
 
+  /**
+   * Allocates a block from the given block store location. The location can be a specific location,
+   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
+   *
+   * @param sessionId the id of session to apply for the block allocation
+   * @param blockSize the size of block in bytes
+   * @param location the location in block store
+   * @return a {@link StorageDirView} in which to create the temp block meta if success, null
+   *         otherwise
+   * @throws IllegalArgumentException if block location is invalid
+   */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
-                                       BlockStoreLocation location) {
+      BlockStoreLocation location) {
     Preconditions.checkNotNull(location, "location");
     StorageDirView candidateDirView = null;
 
@@ -162,12 +173,12 @@ public final class MaxFreeAllocator implements Allocator {
   }
 
   /**
-   * Finds a directory in a tier view that has max free space and is able to store the block.
+   * Finds a directory in a tier that has max free space and is able to store the block.
    *
    * @param tier the storage tier
    * @param blockSize the size of block in bytes
    * @param mediumType the medium type that must match
-   * @return the storage directory view if found, null otherwise
+   * @return the storage directory if found, null otherwise
    */
   private StorageDir getCandidateDirInTier(StorageTier tier, long blockSize,
       String mediumType) {
