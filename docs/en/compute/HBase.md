@@ -75,7 +75,7 @@ Ensure alluxio scheme is recognized before starting HBase:
 ${HBASE_HOME}/bin/start-hbase.sh
 ```
 
-If not, follow the [Usage FAQs](https://docs.alluxio.io/os/user/{{site.ALLUXIO_MAJOR_VERSION}}/en/operation/Troubleshooting.html#usage-faq)
+If not, follow the [Usage FAQs]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#usage-faq)
  as needed.
 
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
