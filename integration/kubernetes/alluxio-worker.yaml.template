@@ -43,7 +43,7 @@ spec:
               fieldRef:
                 fieldPath: status.hostIP
           - name: ALLUXIO_WORKER_JAVA_OPTS
-            value: -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME)
+            value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -76,7 +76,7 @@ spec:
               fieldRef:
                 fieldPath: status.hostIP
           - name: ALLUXIO_WORKER_JAVA_OPTS
-            value: -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME)
+            value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
               name: alluxio-config
