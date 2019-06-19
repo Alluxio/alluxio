@@ -1666,8 +1666,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES =
-      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES)
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
+      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)
           .setDefaultValue("MEM, SSD, HDD")
           .setDescription("The list of medium types we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2292,13 +2292,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  // TODO(binfan): Use alluxio.worker.tieredstore.level0.dirs.mediumtype instead
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
           .setDefaultValue("MEM")
           .setDescription("The alias of the top storage tier on this worker. It must "
               + "match one of the global storage tiers from the master configuration. We "
               + "disable placing an alias lower in the global hierarchy before an alias with "
-              + "a higher postion on the worker hierarchy. So by default, SSD cannot come "
+              + "a higher position on the worker hierarchy. So by default, SSD cannot come "
               + "before MEM on any worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -2312,10 +2313,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIATYPE =
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
-          .setDefaultValue("MEM")
-          .setDescription("The media type for the top storage tier directories ")
+          .setDefaultValue(
+              String.format("${%s}", PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS.mName))
+          .setDescription(String.format(
+              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+                  + "directory on the top storage tier specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2342,6 +2347,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  // TODO(binfan): Use alluxio.worker.tieredstore.level1.dirs.mediumtype instead"
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 1)
           .setDescription("The alias of the second storage tier on this worker.")
@@ -2354,10 +2360,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIATYPE =
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
           .setDefaultValue("SSD")
-          .setDescription("The media type for the second storage tier directories ")
+          .setDescription(String.format(
+              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+                  + "directory on the second storage tier specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2383,6 +2392,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  //TODO(binfan): Use alluxio.worker.tieredstore.level2.dirs.mediumtype instead"
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 2)
           .setDescription("The alias of the third storage tier on this worker.")
@@ -2395,10 +2405,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_MEDIATYPE =
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
           .setDefaultValue("HDD")
-          .setDescription("The media type for the third storage tier directories ")
+          .setDescription(String.format(
+              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+                  + "directory on the third storage tier specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3875,8 +3888,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.level2.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
         "alluxio.master.tieredstore.global.levels";
-    public static final String MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES =
-        "alluxio.master.tieredstore.global.media";
+    public static final String MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
+        "alluxio.master.tieredstore.global.mediumtype";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
     public static final String MASTER_UFS_ACTIVE_SYNC_INTERVAL =
@@ -4290,6 +4303,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",
         PropertyCreators.fromBuilder(new Builder("fs.azure.account.key.%s.blob.core.windows.net")
             .setDisplayType(DisplayType.CREDENTIALS))),
+    // TODO(binfan): use alluxio.worker.tieredstore.levelX.mediatype instead
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
     WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",

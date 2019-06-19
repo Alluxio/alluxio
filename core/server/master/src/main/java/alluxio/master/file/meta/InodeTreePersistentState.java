@@ -388,7 +388,7 @@ public class InodeTreePersistentState implements Journaled {
       if (entry.getPinned()) {
         MutableInodeFile file = inode.asFile();
         List<String> mediaList = ServerConfiguration.getList(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES, ",");
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
         if (entry.getMediumTypeList().isEmpty()) {
           // if user does not specify a pinned media list, any location is OK
           file.setMediumTypes(new HashSet<>());
