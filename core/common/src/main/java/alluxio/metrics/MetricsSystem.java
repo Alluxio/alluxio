@@ -451,6 +451,9 @@ public final class MetricsSystem {
         // On restarts counters will be reset to 0, so whatever the value is the first time
         // this method is called represents the value which should be added to the master's
         // counter.
+        if (prev == null) {
+          LAST_REPORTED_METRICS.put(m.getFullMetricName(), m);
+        }
         double diff = prev != null ? m.getValue() - prev.getValue() : m.getValue();
         rpcMetrics.add(m.toProto().toBuilder().setValue(diff).build());
       } else {
