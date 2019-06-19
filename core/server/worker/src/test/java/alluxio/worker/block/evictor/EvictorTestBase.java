@@ -13,8 +13,8 @@ package alluxio.worker.block.evictor;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
@@ -29,7 +29,7 @@ import java.util.Collections;
  * Base class for unit tests of evictors.
  *
  * It provides some utilities and initializes an {@link Evictor}, a {@link BlockMetadataManager} and
- * a {@link BlockMetadataManagerView} for a default tiered storage defined in
+ * a {@link BlockMetadataEvictableView} for a default tiered storage defined in
  * {@link TieredBlockStoreTestUtils#defaultMetadataManagerView(String)}.
  */
 public class EvictorTestBase {
@@ -37,7 +37,7 @@ public class EvictorTestBase {
   protected static final long BLOCK_ID = 10;
 
   protected BlockMetadataManager mMetaManager;
-  protected BlockMetadataManagerView mManagerView;
+  protected BlockMetadataEvictableView mManagerView;
   protected Evictor mEvictor;
   protected Allocator mAllocator;
 
@@ -63,7 +63,7 @@ public class EvictorTestBase {
 
   /**
    * Initialize an {@link Evictor}, a {@link BlockMetadataManager} and a
-   * {@link BlockMetadataManagerView} for a default tiered storage defined in
+   * {@link BlockMetadataEvictableView} for a default tiered storage defined in
    * {@link TieredBlockStoreTestUtils#defaultMetadataManagerView(String)}.
    *
    * @param evictorClassName class name of the specific evictor to be tested
@@ -72,7 +72,7 @@ public class EvictorTestBase {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
+        new BlockMetadataEvictableView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
     ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());

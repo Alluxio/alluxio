@@ -11,8 +11,7 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.block.BlockMetadataManagerView;
-import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockMetadataEvictableView;
 
 import com.google.common.base.Preconditions;
 
@@ -28,14 +27,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * of blocks.
  */
 @NotThreadSafe
-public final class StorageDirEvictableView {
+public final class StorageDirEvictableView extends StorageDirView {
 
-  /** The {@link StorageDir} this view is derived from. */
-  private final StorageDir mDir;
-  /** The {@link StorageTierEvictableView} this view under. */
-  private final StorageTierEvictableView mTierView;
-  /** The {@link BlockMetadataManagerView} this view is associated with. */
-  private final BlockMetadataManagerView mManagerView;
+  /** The {@link BlockMetadataEvictableView} this view is associated with. */
+  private final BlockMetadataEvictableView mManagerView;
 
   // The below data structures are used by the evictor to mark blocks to move in/out during
   // generating an eviction plan.
@@ -46,26 +41,16 @@ public final class StorageDirEvictableView {
 
   /**
    * Creates a {@link StorageDirEvictableView} using the actual {@link StorageDir}
-   * and the associated {@link BlockMetadataManagerView}.
+   * and the associated {@link BlockMetadataEvictableView}.
    *
    * @param dir which the dirView is constructed from
    * @param tierView which the dirView is under
    * @param managerView which the dirView is associated with
    */
   public StorageDirEvictableView(StorageDir dir, StorageTierEvictableView tierView,
-                                 BlockMetadataManagerView managerView) {
-    mDir = Preconditions.checkNotNull(dir, "dir");
-    mTierView = Preconditions.checkNotNull(tierView, "tierView");
+      BlockMetadataEvictableView managerView) {
+    super(dir, tierView);
     mManagerView = Preconditions.checkNotNull(managerView, "managerView");
-  }
-
-  /**
-   * Gets the index of this Dir.
-   *
-   * @return index of the dir
-   */
-  public int getDirViewIndex() {
-    return mDir.getDirIndex();
   }
 
   /**
@@ -85,31 +70,9 @@ public final class StorageDirEvictableView {
     return filteredList;
   }
 
-  /**
-   * Gets capacity bytes for this dir.
-   *
-   * @return capacity bytes for this dir
-   */
-  public long getCapacityBytes() {
-    return mDir.getCapacityBytes();
-  }
-
-  /**
-   * Gets available bytes for this dir.
-   *
-   * @return available bytes for this dir
-   */
+  @Override
   public long getAvailableBytes() {
     return mDir.getAvailableBytes() + mBlocksToMoveOutSize - mBlocksToMoveInSize;
-  }
-
-  /**
-   * Gets committed bytes for this dir. This includes all blocks, locked, pinned, committed etc.
-   *
-   * @return committed bytes for this dir
-   */
-  public long getCommittedBytes() {
-    return mDir.getCommittedBytes();
   }
 
   /**
@@ -150,13 +113,6 @@ public final class StorageDirEvictableView {
   }
 
   /**
-   * @return parent tier view
-   */
-  public StorageTierEvictableView getParentTierView() {
-    return mTierView;
-  }
-
-  /**
    * Returns an indication whether the given block is marked to be moved out.
    *
    * @param blockId the block ID
@@ -188,24 +144,5 @@ public final class StorageDirEvictableView {
     if (mBlocksToMoveOut.add(blockId)) {
       mBlocksToMoveOutSize += blockSize;
     }
-  }
-
-  /**
-   * Get medium type of the dir view, which is derived from the dir.
-   *
-   * @return the medium type
-   */
-  public String getMediumType() {
-    return mDir.getDirMedium();
-  }
-
-  /**
-   * Creates a {@link BlockStoreLocation} for this directory view. Redirecting to
-   * {@link StorageDir#toBlockStoreLocation}
-   *
-   * @return {@link BlockStoreLocation} created
-   */
-  public BlockStoreLocation toBlockStoreLocation() {
-    return mDir.toBlockStoreLocation();
   }
 }

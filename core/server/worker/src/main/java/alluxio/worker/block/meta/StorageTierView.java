@@ -23,12 +23,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is a wrapper of {@link StorageTier} to provide more limited access.
  */
 @ThreadSafe
-public final class StorageTierView {
+public class StorageTierView {
 
   /** The {@link StorageTier} this view is derived from. */
-  private final StorageTier mTier;
+  final StorageTier mTier;
   /** A list of {@link StorageDirView} under this StorageTierView. */
-  private final List<StorageDirView> mDirViews = new ArrayList<>();
+  final List<StorageDirView> mDirViews = new ArrayList<>();
 
   /**
    * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
@@ -36,11 +36,23 @@ public final class StorageTierView {
    * @param tier which the tierView is constructed from
    */
   public StorageTierView(StorageTier tier) {
+    this(tier, false);
+  }
+
+  /**
+   * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
+   *
+   * @param tier which the tierView is constructed from
+   * @param evictable whether this class contains evict-related methods
+   */
+  public StorageTierView(StorageTier tier, boolean evictable) {
     mTier = Preconditions.checkNotNull(tier, "tier");
 
-    for (StorageDir dir : mTier.getStorageDirs()) {
-      StorageDirView dirView = new StorageDirView(dir, this);
-      mDirViews.add(dirView);
+    if (!evictable) {
+      for (StorageDir dir : mTier.getStorageDirs()) {
+        StorageDirView dirView = new StorageDirView(dir, this);
+        mDirViews.add(dirView);
+      }
     }
   }
 

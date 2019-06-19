@@ -11,12 +11,13 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictableView;
-import alluxio.worker.block.meta.StorageTierEvictableView;
+import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTierView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,13 +54,14 @@ public class LRUEvictor extends AbstractEvictor {
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
-  public LRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
+  public LRUEvictor(BlockMetadataEvictableView view, Allocator allocator) {
     super(view, allocator);
 
     // preload existing blocks loaded by StorageDir to Evictor
-    for (StorageTierEvictableView tierView : mManagerView.getTierViews()) {
-      for (StorageDirEvictableView dirView : tierView.getDirViews()) {
-        for (BlockMeta blockMeta : dirView.getEvictableBlocks()) { // all blocks with initial view
+    for (StorageTierView tierView : mManagerView.getTierViews()) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        for (BlockMeta blockMeta : ((StorageDirEvictableView) dirView)
+            .getEvictableBlocks()) { // all blocks with initial view
           mLRUCache.put(blockMeta.getBlockId(), UNUSED_MAP_VALUE);
         }
       }

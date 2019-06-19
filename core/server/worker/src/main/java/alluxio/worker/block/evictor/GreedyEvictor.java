@@ -12,12 +12,13 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.collections.Pair;
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictableView;
-import alluxio.worker.block.meta.StorageTierEvictableView;
+import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -45,32 +46,32 @@ public final class GreedyEvictor implements Evictor {
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
-  public GreedyEvictor(BlockMetadataManagerView view, Allocator allocator) {}
+  public GreedyEvictor(BlockMetadataEvictableView view, Allocator allocator) {}
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view) {
+      BlockMetadataEvictableView view) {
     return freeSpaceWithView(availableBytes, location, view, Mode.GUARANTEED);
   }
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view, Mode mode) {
+                                        BlockMetadataEvictableView view, Mode mode) {
     Preconditions.checkNotNull(location, "location");
     Preconditions.checkNotNull(view, "view");
 
-    // 1. Select a StorageDirEvictableView that has enough capacity for required bytes.
+    // 1. Select a StorageDirView that has enough capacity for required bytes.
     StorageDirEvictableView selectedDirView = null;
     if (location.equals(BlockStoreLocation.anyTier())) {
       selectedDirView = selectEvictableDirFromAnyTier(view, availableBytes);
     } else {
       String tierAlias = location.tierAlias();
-      StorageTierEvictableView tierView = view.getTierView(tierAlias);
+      StorageTierView tierView = view.getTierView(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
         selectedDirView = selectEvictableDirFromTier(tierView, availableBytes);
       } else {
         int dirIndex = location.dir();
-        StorageDirEvictableView dir = tierView.getDirView(dirIndex);
+        StorageDirEvictableView dir = (StorageDirEvictableView) tierView.getDirView(dirIndex);
         if (canEvictBlocksFromDir(dir, availableBytes)) {
           selectedDirView = dir;
         }
@@ -103,17 +104,17 @@ public final class GreedyEvictor implements Evictor {
     }
 
     // 4. Make best effort to transfer victim blocks to lower tiers rather than evict them.
-    Map<StorageDirEvictableView, Long> pendingBytesInDir = new HashMap<>();
+    Map<StorageDirView, Long> pendingBytesInDir = new HashMap<>();
     for (BlockMeta block : victimBlocks) {
       // TODO(qifan): Should avoid calling getParentDir.
       String fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
-      List<StorageTierEvictableView> candidateTiers = view.getTierViewsBelow(fromTierAlias);
-      StorageDirEvictableView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);
+      List<StorageTierView> candidateTiers = view.getTierViewsBelow(fromTierAlias);
+      StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);
       if (dstDir == null) {
         // Not possible to transfer
         toEvict.add(new Pair<>(block.getBlockId(), block.getBlockLocation()));
       } else {
-        StorageTierEvictableView dstTier = dstDir.getParentTierView();
+        StorageTierView dstTier = dstDir.getParentTierView();
         toTransfer.add(new BlockTransferInfo(block.getBlockId(), block.getBlockLocation(),
             new BlockStoreLocation(dstTier.getTierViewAlias(), dstDir.getDirViewIndex(),
                 dstDir.getMediumType())));
@@ -134,12 +135,13 @@ public final class GreedyEvictor implements Evictor {
   }
 
   // Selects a dir with enough space (including space evictable) from all tiers
-  private StorageDirEvictableView selectEvictableDirFromAnyTier(BlockMetadataManagerView view,
+  private StorageDirEvictableView selectEvictableDirFromAnyTier(BlockMetadataEvictableView view,
                                                                 long availableBytes) {
-    for (StorageTierEvictableView tierView : view.getTierViews()) {
-      for (StorageDirEvictableView dirView : tierView.getDirViews()) {
-        if (canEvictBlocksFromDir(dirView, availableBytes)) {
-          return dirView;
+    for (StorageTierView tierView : view.getTierViews()) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        StorageDirEvictableView evictableView = (StorageDirEvictableView) dirView;
+        if (canEvictBlocksFromDir(evictableView, availableBytes)) {
+          return evictableView;
         }
       }
     }
@@ -147,21 +149,22 @@ public final class GreedyEvictor implements Evictor {
   }
 
   // Selects a dir with enough space (including space evictable) from a given tier
-  private StorageDirEvictableView selectEvictableDirFromTier(StorageTierEvictableView tierView,
+  private StorageDirEvictableView selectEvictableDirFromTier(StorageTierView tierView,
       long availableBytes) {
-    for (StorageDirEvictableView dirView : tierView.getDirViews()) {
-      if (canEvictBlocksFromDir(dirView, availableBytes)) {
-        return dirView;
+    for (StorageDirView dirView : tierView.getDirViews()) {
+      StorageDirEvictableView evictableView = (StorageDirEvictableView) dirView;
+      if (canEvictBlocksFromDir(evictableView, availableBytes)) {
+        return evictableView;
       }
     }
     return null;
   }
 
-  private StorageDirEvictableView selectAvailableDir(BlockMeta block,
-      List<StorageTierEvictableView> candidateTiers,
-      Map<StorageDirEvictableView, Long> pendingBytesInDir) {
-    for (StorageTierEvictableView candidateTier : candidateTiers) {
-      for (StorageDirEvictableView candidateDir : candidateTier.getDirViews()) {
+  private StorageDirView selectAvailableDir(BlockMeta block,
+      List<StorageTierView> candidateTiers,
+      Map<StorageDirView, Long> pendingBytesInDir) {
+    for (StorageTierView candidateTier : candidateTiers) {
+      for (StorageDirView candidateDir : candidateTier.getDirViews()) {
         long pendingBytes = 0;
         if (pendingBytesInDir.containsKey(candidateDir)) {
           pendingBytes = pendingBytesInDir.get(candidateDir);

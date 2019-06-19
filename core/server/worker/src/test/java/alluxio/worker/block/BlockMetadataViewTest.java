@@ -24,8 +24,10 @@ import alluxio.master.block.BlockId;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirEvictableView;
+import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierEvictableView;
+import alluxio.worker.block.meta.StorageTierView;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,16 +41,16 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Unit tests for {@link BlockMetadataManagerView}.
+ * Unit tests for {@link BlockMetadataEvictableView}.
  */
-public final class BlockMetadataManagerViewTest {
+public final class BlockMetadataViewTest {
   private static final int TEST_TIER_ORDINAL = 0;
   private static final int TEST_DIR = 0;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_BLOCK_SIZE = 20;
 
   private BlockMetadataManager mMetaManager;
-  private BlockMetadataManagerView mMetaManagerView;
+  private BlockMetadataEvictableView mMetaManagerView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -65,25 +67,25 @@ public final class BlockMetadataManagerViewTest {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mMetaManagerView = spy(new BlockMetadataManagerView(mMetaManager,
+    mMetaManagerView = spy(new BlockMetadataEvictableView(mMetaManager,
         new HashSet<Long>(), new HashSet<Long>()));
   }
 
   /**
-   * Tests the {@link BlockMetadataManagerView#getTierView(String)} method.
+   * Tests the {@link BlockMetadataEvictableView#getTierView(String)} method.
    */
   @Test
   public void getTierView() {
     for (StorageTier tier : mMetaManager.getTiers()) {
       String tierAlias = tier.getTierAlias();
-      StorageTierEvictableView tierView = mMetaManagerView.getTierView(tierAlias);
+      StorageTierView tierView = mMetaManagerView.getTierView(tierAlias);
       assertEquals(tier.getTierAlias(), tierView.getTierViewAlias());
       assertEquals(tier.getTierOrdinal(), tierView.getTierViewOrdinal());
     }
   }
 
   /**
-   * Tests the {@link BlockMetadataManagerView#getTierViews()} method.
+   * Tests the {@link BlockMetadataEvictableView#getTierViews()} method.
    */
   @Test
   public void getTierViews() {
@@ -91,7 +93,7 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Tests the {@link BlockMetadataManagerView#getTierViewsBelow(String)} method.
+   * Tests the {@link BlockMetadataEvictableView#getTierViewsBelow(String)} method.
    */
   @Test
   public void getTierViewsBelow() {
@@ -103,7 +105,7 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Tests the {@link BlockMetadataManagerView#getAvailableBytes(BlockStoreLocation)} method.
+   * Tests the {@link BlockMetadataEvictableView#getAvailableBytes(BlockStoreLocation)} method.
    */
   @Test
   public void getAvailableBytes() {
@@ -128,7 +130,7 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Tests that an exception is thrown in the {@link BlockMetadataManagerView#getBlockMeta(long)}
+   * Tests that an exception is thrown in the {@link BlockMetadataEvictableView#getBlockMeta(long)}
    * method when the block does not exist.
    */
   @Test
@@ -139,7 +141,7 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Tests that an exception is thrown in the {@link BlockMetadataManagerView#getTierView(String)}
+   * Tests that an exception is thrown in the {@link BlockMetadataEvictableView#getTierView(String)}
    * method when the tier alias does not exist.
    */
   @Test
@@ -151,7 +153,7 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Tests the {@link BlockMetadataManagerView#getBlockMeta(long)}  method.
+   * Tests the {@link BlockMetadataEvictableView#getBlockMeta(long)}  method.
    */
   @Test
   public void getBlockMeta() throws Exception {
@@ -183,8 +185,8 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Tests the {@link BlockMetadataManagerView#isBlockLocked(long)} and the
-   * {@link BlockMetadataManagerView#isBlockPinned(long)} method.
+   * Tests the {@link BlockMetadataEvictableView#isBlockLocked(long)} and the
+   * {@link BlockMetadataEvictableView#isBlockPinned(long)} method.
    */
   @Test
   public void isBlockPinnedOrLocked() {
@@ -198,7 +200,7 @@ public final class BlockMetadataManagerViewTest {
     HashSet<Long> pinnedInodes = new HashSet<>();
     Collections.addAll(pinnedInodes, inode);
     mMetaManagerView =
-        new BlockMetadataManagerView(mMetaManager, pinnedInodes, new HashSet<Long>());
+        new BlockMetadataEvictableView(mMetaManager, pinnedInodes, new HashSet<Long>());
     assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
@@ -206,13 +208,13 @@ public final class BlockMetadataManagerViewTest {
     HashSet<Long> testBlockIdSet = new HashSet<>();
     Collections.addAll(testBlockIdSet, TEST_BLOCK_ID);
     Collections.addAll(pinnedInodes, TEST_BLOCK_ID);
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, new HashSet<Long>(),
+    mMetaManagerView = new BlockMetadataEvictableView(mMetaManager, new HashSet<Long>(),
         testBlockIdSet);
     assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // Pin and lock block
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, pinnedInodes,
+    mMetaManagerView = new BlockMetadataEvictableView(mMetaManager, pinnedInodes,
         testBlockIdSet);
     assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
@@ -225,12 +227,12 @@ public final class BlockMetadataManagerViewTest {
       StorageTierEvictableView tierView2) {
     assertEquals(tierView1.getTierViewAlias(), tierView2.getTierViewAlias());
     assertEquals(tierView1.getTierViewOrdinal(), tierView2.getTierViewOrdinal());
-    List<StorageDirEvictableView> dirViews1 = tierView1.getDirViews();
-    List<StorageDirEvictableView> dirViews2 = tierView2.getDirViews();
+    List<StorageDirView> dirViews1 = tierView1.getDirViews();
+    List<StorageDirView> dirViews2 = tierView2.getDirViews();
     assertEquals(dirViews1.size(), dirViews2.size());
     for (int i = 0; i < dirViews1.size(); i++) {
-      StorageDirEvictableView dirView1 = dirViews1.get(i);
-      StorageDirEvictableView dirView2 = dirViews2.get(i);
+      StorageDirEvictableView dirView1 = (StorageDirEvictableView) dirViews1.get(i);
+      StorageDirEvictableView dirView2 = (StorageDirEvictableView) dirViews2.get(i);
       assertEquals(dirView1.getAvailableBytes(), dirView2.getAvailableBytes());
       assertEquals(dirView1.getCapacityBytes(), dirView2.getCapacityBytes());
       assertEquals(dirView1.getCommittedBytes(), dirView2.getCommittedBytes());
@@ -241,13 +243,13 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Tests that {@code BlockMetadataManagerView.getTierView(tierAlias)} returns the same
+   * Tests that {@code BlockMetadataEvictableView.getTierView(tierAlias)} returns the same
    * TierView as {@code new StorageTierEvictableView(mMetadataManager.getTier(tierAlias), this)}.
    */
   @Test
   public void sameTierView() {
     String tierAlias = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getTierAlias();
-    StorageTierEvictableView tierView1 = mMetaManagerView.getTierView(tierAlias);
+    StorageTierView tierView1 = mMetaManagerView.getTierView(tierAlias);
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getDir(TEST_DIR);
@@ -259,17 +261,17 @@ public final class BlockMetadataManagerViewTest {
     }
     StorageTierEvictableView tierView2 =
         new StorageTierEvictableView(mMetaManager.getTier(tierAlias), mMetaManagerView);
-    assertSameTierView(tierView1, tierView2);
+    assertSameTierView((StorageTierEvictableView) tierView1, tierView2);
   }
 
   /**
-   * Tests that {@link BlockMetadataManagerView#getTierViewsBelow(String)} returns the same
+   * Tests that {@link BlockMetadataEvictableView#getTierViewsBelow(String)} returns the same
    * TierViews as constructing by {@link BlockMetadataManager#getTiersBelow(String)}.
    */
   @Test
   public void sameTierViewsBelow() {
     String tierAlias = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getTierAlias();
-    List<StorageTierEvictableView> tierViews1 = mMetaManagerView.getTierViewsBelow(tierAlias);
+    List<StorageTierView> tierViews1 = mMetaManagerView.getTierViewsBelow(tierAlias);
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL + 1).getDir(TEST_DIR);
@@ -282,7 +284,7 @@ public final class BlockMetadataManagerViewTest {
     List<StorageTier> tiers2 = mMetaManager.getTiersBelow(tierAlias);
     assertEquals(tierViews1.size(), tiers2.size());
     for (int i = 0; i < tierViews1.size(); i++) {
-      assertSameTierView(tierViews1.get(i),
+      assertSameTierView((StorageTierEvictableView) tierViews1.get(i),
           new StorageTierEvictableView(tiers2.get(i), mMetaManagerView));
     }
   }

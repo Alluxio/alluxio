@@ -14,13 +14,13 @@ package alluxio.worker.block.allocator;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
+import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageDirEvictableView;
+import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -101,8 +101,8 @@ public class AllocatorTestBase {
       long blockSize, boolean avail) throws IOException {
 
     mTestBlockId++;
-    StorageDirEvictableView dirView =
-        allocator.allocateBlockWithEvictableView(SESSION_ID, blockSize, location, getManagerView());
+    StorageDirView dirView =
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -129,8 +129,8 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
 
-    StorageDirEvictableView dirView =
-        allocator.allocateBlockWithEvictableView(SESSION_ID, blockSize, location, getManagerView());
+    StorageDirView dirView =
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -150,7 +150,7 @@ public class AllocatorTestBase {
     }
   }
 
-  protected BlockMetadataManagerView getManagerView() {
-    return new BlockMetadataManagerView(mManager, new HashSet<Long>(), new HashSet<Long>());
+  protected BlockMetadataEvictableView getManagerView() {
+    return new BlockMetadataEvictableView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
 }

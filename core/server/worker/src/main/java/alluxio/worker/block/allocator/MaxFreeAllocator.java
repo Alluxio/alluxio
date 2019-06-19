@@ -11,13 +11,9 @@
 
 package alluxio.worker.block.allocator;
 
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageDirEvictableView;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageMetadataView;
-import alluxio.worker.block.meta.StorageTierEvictableView;
+import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
@@ -30,27 +26,21 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MaxFreeAllocator implements Allocator {
-  private BlockMetadataManagerView mManagerView;
+  private BlockMetadataView mMetadataView;
 
   /**
    * Creates a new instance of {@link MaxFreeAllocator}.
    *
-   * @param view {@link BlockMetadataManagerView} to pass to the allocator
+   * @param view {@link BlockMetadataView} to pass to the allocator
    */
-  public MaxFreeAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view, "view");
+  public MaxFreeAllocator(BlockMetadataView view) {
+    mMetadataView = Preconditions.checkNotNull(view, "view");
   }
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
-      BlockStoreLocation location, StorageMetadataView storageView) {
-    return allocateBlock(sessionId, blockSize, location, storageView);
-  }
-
-  @Override
-  public StorageDirEvictableView allocateBlockWithEvictableView(long sessionId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view, "view");
+      BlockStoreLocation location, BlockMetadataView metadataView) {
+    mMetadataView = Preconditions.checkNotNull(metadataView, "view");
     return allocateBlock(sessionId, blockSize, location);
   }
 
@@ -61,63 +51,16 @@ public final class MaxFreeAllocator implements Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @param storageView the view of the storage metadata
-   * @return a {@link StorageDir} in which to create the temp block meta if success, null
-   *         otherwise
-   * @throws IllegalArgumentException if block location is invalid
+   * @return a {@link StorageDirView} in which to create the temp block meta if success,
+   *         null otherwise
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
-      BlockStoreLocation location, StorageMetadataView storageView) {
-    Preconditions.checkNotNull(location, "location");
-    StorageDirView candidateDir = null;
-
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tier : storageView.getTierViews()) {
-        candidateDir = getCandidateDirInTier(tier, blockSize,
-            BlockStoreLocation.ANY_MEDIUM);
-        if (candidateDir != null) {
-          break;
-        }
-      }
-    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTierView tier = storageView.getTierView(location.tierAlias());
-      candidateDir = getCandidateDirInTier(tier, blockSize, BlockStoreLocation.ANY_MEDIUM);
-    } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
-      for (StorageTierView tier : storageView.getTierViews()) {
-        candidateDir = getCandidateDirInTier(tier, blockSize, location.mediumType());
-        if (candidateDir != null) {
-          break;
-        }
-      }
-    } else {
-      StorageTierView tier = storageView.getTierView(location.tierAlias());
-      StorageDirView dir = tier.getDirView(location.dir());
-      if (dir.getAvailableBytes() >= blockSize) {
-        candidateDir = dir;
-      }
-    }
-
-    return candidateDir;
-  }
-
-  /**
-   * Allocates a block from the given block store location. The location can be a specific location,
-   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
-   *
-   * @param sessionId the id of session to apply for the block allocation
-   * @param blockSize the size of block in bytes
-   * @param location the location in block store
-   * @return a {@link StorageDirEvictableView} in which to create the temp block meta if success,
-   *         null otherwise
-   * @throws IllegalArgumentException if block location is invalid
-   */
-  private StorageDirEvictableView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
     Preconditions.checkNotNull(location, "location");
-    StorageDirEvictableView candidateDirView = null;
+    StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierEvictableView tierView : mManagerView.getTierViews()) {
+      for (StorageTierView tierView : mMetadataView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize,
             BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
@@ -125,18 +68,18 @@ public final class MaxFreeAllocator implements Allocator {
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTierEvictableView tierView = mManagerView.getTierView(location.tierAlias());
+      StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
     } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
-      for (StorageTierEvictableView tierView : mManagerView.getTierViews()) {
+      for (StorageTierView tierView : mMetadataView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
         if (candidateDirView != null) {
           break;
         }
       }
     } else {
-      StorageTierEvictableView tierView = mManagerView.getTierView(location.tierAlias());
-      StorageDirEvictableView dirView = tierView.getDirView(location.dir());
+      StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
+      StorageDirView dirView = tierView.getDirView(location.dir());
       if (dirView.getAvailableBytes() >= blockSize) {
         candidateDirView = dirView;
       }
@@ -153,11 +96,11 @@ public final class MaxFreeAllocator implements Allocator {
    * @param mediumType the medium type that must match
    * @return the storage directory view if found, null otherwise
    */
-  private StorageDirEvictableView getCandidateDirInTier(StorageTierEvictableView tierView,
+  private StorageDirView getCandidateDirInTier(StorageTierView tierView,
       long blockSize, String mediumType) {
-    StorageDirEvictableView candidateDirView = null;
+    StorageDirView candidateDirView = null;
     long maxFreeBytes = blockSize - 1;
-    for (StorageDirEvictableView dirView : tierView.getDirViews()) {
+    for (StorageDirView dirView : tierView.getDirViews()) {
       if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
           || dirView.getMediumType().equals(mediumType))
           && dirView.getAvailableBytes() > maxFreeBytes) {
@@ -166,28 +109,5 @@ public final class MaxFreeAllocator implements Allocator {
       }
     }
     return candidateDirView;
-  }
-
-  /**
-   * Finds a directory in a tier that has max free space and is able to store the block.
-   *
-   * @param tier the storage tier
-   * @param blockSize the size of block in bytes
-   * @param mediumType the medium type that must match
-   * @return the storage directory if found, null otherwise
-   */
-  private StorageDirView getCandidateDirInTier(StorageTierView tier, long blockSize,
-      String mediumType) {
-    StorageDirView candidateDir = null;
-    long maxFreeBytes = blockSize - 1;
-    for (StorageDirView dir : tier.getDirViews()) {
-      if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-          || dir.getMediumType().equals(mediumType))
-          && dir.getAvailableBytes() > maxFreeBytes) {
-        maxFreeBytes = dir.getAvailableBytes();
-        candidateDir = dir;
-      }
-    }
-    return candidateDir;
   }
 }

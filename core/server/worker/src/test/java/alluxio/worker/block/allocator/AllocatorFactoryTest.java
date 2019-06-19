@@ -15,7 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.After;
@@ -29,7 +29,7 @@ import org.junit.rules.TemporaryFolder;
  * conf and test if it generates the correct {@link Allocator} instance.
  */
 public final class AllocatorFactoryTest {
-  private BlockMetadataManagerView mManagerView;
+  private BlockMetadataEvictableView mManagerView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -51,7 +51,7 @@ public final class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the {@link GreedyAllocator} via the
-   * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(BlockMetadataEvictableView)} method.
    */
   @Test
   public void createGreedyAllocator() {
@@ -62,7 +62,7 @@ public final class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the {@link MaxFreeAllocator} via the
-   * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(BlockMetadataEvictableView)} method.
    */
   @Test
   public void createMaxFreeAllocator() {
@@ -73,7 +73,7 @@ public final class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the {@link RoundRobinAllocator} via the
-   * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(BlockMetadataEvictableView)} method.
    */
   @Test
   public void createRoundRobinAllocator() {
@@ -85,7 +85,7 @@ public final class AllocatorFactoryTest {
 
   /**
    * Tests the creation of the default allocator via the
-   * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(BlockMetadataEvictableView)} method.
    */
   @Test
   public void createDefaultAllocator() {

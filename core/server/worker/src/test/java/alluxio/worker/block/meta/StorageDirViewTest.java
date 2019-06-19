@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Lists;
@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Tests for the {@link StorageDirEvictableView} class.
  */
-public class StorageDirEvictableViewTest {
+public class StorageDirViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR = 0;
   private static final long TEST_SESSION_ID = 2;
@@ -41,7 +41,7 @@ public class StorageDirEvictableViewTest {
   private StorageDir mTestDir;
   private StorageDirEvictableView mTestDirView;
   private StorageTierEvictableView mTestTierView;
-  private BlockMetadataManagerView mMetaManagerView;
+  private BlockMetadataEvictableView mMetaManagerView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -56,7 +56,7 @@ public class StorageDirEvictableViewTest {
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView =
-        Mockito.spy(new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+        Mockito.spy(new BlockMetadataEvictableView(metaManager, new HashSet<Long>(),
           new HashSet<Long>()));
     StorageTier testTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestDir = testTier.getDir(TEST_DIR);

@@ -11,13 +11,9 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataEvictableView;
 
 import com.google.common.base.Preconditions;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -25,24 +21,20 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is a wrapper of {@link StorageTier} to provide more limited access.
  */
 @ThreadSafe
-public final class StorageTierEvictableView {
+public final class StorageTierEvictableView extends StorageTierView {
 
-  /** The {@link StorageTier} this view is derived from. */
-  private final StorageTier mTier;
-  /** A list of {@link StorageDirEvictableView} under this StorageTierEvictableView. */
-  private final List<StorageDirEvictableView> mDirViews = new ArrayList<>();
-  /** The {@link BlockMetadataManagerView} this {@link StorageTierEvictableView} is under. */
-  private final BlockMetadataManagerView mManagerView;
+  /** The {@link BlockMetadataEvictableView} this {@link StorageTierEvictableView} is under. */
+  private final BlockMetadataEvictableView mManagerView;
 
   /**
    * Creates a {@link StorageTierEvictableView} using the actual {@link StorageTier} and the above
-   * {@link BlockMetadataManagerView}.
+   * {@link BlockMetadataEvictableView}.
    *
    * @param tier which the tierView is constructed from
-   * @param view the {@link BlockMetadataManagerView} this tierView is associated with
+   * @param view the {@link BlockMetadataEvictableView} this tierView is associated with
    */
-  public StorageTierEvictableView(StorageTier tier, BlockMetadataManagerView view) {
-    mTier = Preconditions.checkNotNull(tier, "tier");
+  public StorageTierEvictableView(StorageTier tier, BlockMetadataEvictableView view) {
+    super(tier, true);
     mManagerView = Preconditions.checkNotNull(view, "view");
 
     for (StorageDir dir : mTier.getStorageDirs()) {
@@ -52,40 +44,9 @@ public final class StorageTierEvictableView {
   }
 
   /**
-   * @return a list of directory views in this storage tier view
-   */
-  public List<StorageDirEvictableView> getDirViews() {
-    return Collections.unmodifiableList(mDirViews);
-  }
-
-  /**
-   * Returns a directory view for the given index.
-   *
-   * @param dirIndex the directory view index
-   * @return a directory view
-   */
-  public StorageDirEvictableView getDirView(int dirIndex) {
-    return mDirViews.get(dirIndex);
-  }
-
-  /**
-   * @return the storage tier view alias
-   */
-  public String getTierViewAlias() {
-    return mTier.getTierAlias();
-  }
-
-  /**
-   * @return the ordinal value of the storage tier view
-   */
-  public int getTierViewOrdinal() {
-    return mTier.getTierOrdinal();
-  }
-
-  /**
    * @return the block metadata manager view for this storage tier view
    */
-  public BlockMetadataManagerView getBlockMetadataManagerView() {
+  public BlockMetadataEvictableView getBlockMetadataManagerView() {
     return mManagerView;
   }
 }

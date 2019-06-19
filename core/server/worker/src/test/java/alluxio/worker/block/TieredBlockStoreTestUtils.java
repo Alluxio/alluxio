@@ -211,16 +211,16 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Creates a {@link BlockMetadataManagerView} with {@link #setupDefaultConf(String)}.
+   * Creates a {@link BlockMetadataEvictableView} with {@link #setupDefaultConf(String)}.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
    * @return the created metadata manager view
    */
-  public static BlockMetadataManagerView defaultMetadataManagerView(String baseDir)
+  public static BlockMetadataEvictableView defaultMetadataManagerView(String baseDir)
       throws Exception {
     BlockMetadataManager metaManager = TieredBlockStoreTestUtils.defaultMetadataManager(baseDir);
-    return new BlockMetadataManagerView(metaManager, Collections.<Long>emptySet(),
+    return new BlockMetadataEvictableView(metaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
   }
 

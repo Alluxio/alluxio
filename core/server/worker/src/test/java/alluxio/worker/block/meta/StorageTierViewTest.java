@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.Assert;
@@ -28,7 +28,7 @@ import java.util.HashSet;
 /**
  * Unit tests for {@link StorageTierEvictableView}.
  */
-public class StorageTierEvictableViewTest {
+public class StorageTierViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private StorageTier mTestTier;
   private StorageTierEvictableView mTestTierView;
@@ -49,8 +49,8 @@ public class StorageTierEvictableViewTest {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    BlockMetadataManagerView metaManagerView =
-        new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+    BlockMetadataEvictableView metaManagerView =
+        new BlockMetadataEvictableView(metaManager, new HashSet<Long>(),
             new HashSet<Long>());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestTierView = new StorageTierEvictableView(mTestTier, metaManagerView);

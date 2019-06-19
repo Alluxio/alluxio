@@ -21,12 +21,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is a wrapper of {@link StorageDir} to provide more limited access.
  */
 @NotThreadSafe
-public final class StorageDirView {
+public class StorageDirView {
 
   /** The {@link StorageDir} this view is derived from. */
-  private final StorageDir mDir;
+  final StorageDir mDir;
   /** The {@link StorageTierView} this view under. */
-  private final StorageTierView mTierView;
+  final StorageTierView mTierView;
 
   /**
    * Creates a {@link StorageDirView} using the actual {@link StorageDir}.
@@ -55,6 +55,15 @@ public final class StorageDirView {
    */
   public long getAvailableBytes() {
     return mDir.getAvailableBytes();
+  }
+
+  /**
+   * Gets capacity bytes for this dir.
+   *
+   * @return capacity bytes for this dir
+   */
+  public long getCapacityBytes() {
+    return mDir.getCapacityBytes();
   }
 
   /**

@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -290,13 +290,6 @@ public final class BlockMetadataManager {
           ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(tierAlias));
     }
     return tier;
-  }
-
-  /**
-   * @return the the map from tier alias to tiers
-   */
-  public Map<String, StorageTier> getAliasToTiersMap() {
-    return mAliasToTiers;
   }
 
   /**

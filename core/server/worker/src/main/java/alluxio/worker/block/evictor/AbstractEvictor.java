@@ -15,12 +15,13 @@ import alluxio.Sessions;
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.worker.block.AbstractBlockStoreEventListener;
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictableView;
-import alluxio.worker.block.meta.StorageTierEvictableView;
+import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractEvictor.class);
   protected final Allocator mAllocator;
-  protected BlockMetadataManagerView mManagerView;
+  protected BlockMetadataEvictableView mManagerView;
 
   /**
    * Creates a new instance of {@link AbstractEvictor}.
@@ -47,7 +48,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
-  public AbstractEvictor(BlockMetadataManagerView view, Allocator allocator) {
+  public AbstractEvictor(BlockMetadataEvictableView view, Allocator allocator) {
     mManagerView = Preconditions.checkNotNull(view, "view");
     mAllocator = Preconditions.checkNotNull(allocator, "allocator");
   }
@@ -62,12 +63,12 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
    * blocks, the next tier will continue to evict its blocks to free space.
    *
    * This method is only used in
-   * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataManagerView)}.
+   * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataEvictableView)}.
    *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location target location to evict blocks from
    * @param plan the plan to be recursively updated, is empty when first called in
-   *        {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataManagerView)}
+   *        {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataEvictableView)}
    * @param mode the eviction mode
    * @return the first {@link StorageDirEvictableView} in the range of location
    *         to evict/move bytes from, or null if there is no plan
@@ -78,7 +79,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
 
     // 1. If bytesToBeAvailable can already be satisfied without eviction, return the eligible
     // StoargeDirView
-    StorageDirEvictableView candidateDirView =
+    StorageDirEvictableView candidateDirView = (StorageDirEvictableView)
         EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
     if (candidateDirView != null) {
       return candidateDirView;
@@ -97,8 +98,8 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           if (block.getBlockLocation().belongsTo(location)) {
             String tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
-            dirCandidates.add(mManagerView.getTierView(tierAlias).getDirView(dirIndex), blockId,
-                block.getBlockSize());
+            dirCandidates.add((StorageDirEvictableView) mManagerView.getTierView(tierAlias)
+                .getDirView(dirIndex), blockId, block.getBlockSize());
           }
         }
       } catch (BlockDoesNotExistException e) {
@@ -121,7 +122,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
       return null;
     }
     List<Long> candidateBlocks = dirCandidates.candidateBlocks();
-    StorageTierEvictableView nextTierView
+    StorageTierView nextTierView
         = mManagerView.getNextTier(candidateDirView.getParentTierView());
     if (nextTierView == null) {
       // This is the last tier, evict all the blocks.
@@ -143,7 +144,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           if (block == null) {
             continue;
           }
-          StorageDirEvictableView nextDirView = mAllocator.allocateBlockWithEvictableView(
+          StorageDirView nextDirView = mAllocator.allocateBlockWithView(
               Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
               BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
           if (nextDirView == null) {
@@ -160,7 +161,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           plan.toMove().add(new BlockTransferInfo(blockId, block.getBlockLocation(),
               nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
-          nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
+          ((StorageDirEvictableView) nextDirView).markBlockMoveIn(blockId, block.getBlockSize());
         } catch (BlockDoesNotExistException e) {
           continue;
         }
@@ -172,13 +173,13 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
 
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataManagerView view) {
+      BlockMetadataEvictableView view) {
     return freeSpaceWithView(bytesToBeAvailable, location, view, Mode.GUARANTEED);
   }
 
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataManagerView view, Mode mode) {
+                                        BlockMetadataEvictableView view, Mode mode) {
     mManagerView = view;
 
     List<BlockTransferInfo> toMove = new ArrayList<>();
