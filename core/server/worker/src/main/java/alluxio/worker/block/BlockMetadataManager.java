@@ -293,6 +293,13 @@ public final class BlockMetadataManager {
   }
 
   /**
+   * @return the the map from tier alias to tiers
+   */
+  public Map<String, StorageTier> getAliasToTiersMap() {
+    return mAliasToTiers;
+  }
+
+  /**
    * Gets the list of {@link StorageTier} managed.
    *
    * @return the list of {@link StorageTier}s

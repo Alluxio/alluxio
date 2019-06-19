@@ -17,9 +17,14 @@ import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.base.Preconditions;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Interface for the allocation policy of Alluxio managed data.
@@ -63,4 +68,20 @@ public interface Allocator {
    */
   StorageDirView allocateBlockWithView(long sessionId, long blockSize, BlockStoreLocation location,
       BlockMetadataManagerView view);
+
+  /**
+   * Allocates a block from the given block store location under a given view. The location can be a
+   * specific location, or {@link BlockStoreLocation#anyTier()} or
+   * {@link BlockStoreLocation#anyDirInTier(String)}.
+   *
+   * @param sessionId the id of session to apply for the block allocation
+   * @param blockSize the size of block in bytes
+   * @param location the location in block store
+   * @param tierList a list of {@link StorageTier}
+   * @param aliasToTiersMap a map from tier alias to {@link StorageTier}
+   * @return a {@link StorageDir} in which to create the temp block meta if success, null
+   *         otherwise
+   */
+  StorageDir allocateBlockWithTierInfo(long sessionId, long blockSize, BlockStoreLocation location,
+      List<StorageTier> tierList, Map<String, StorageTier> aliasToTiersMap);
 }
