@@ -222,7 +222,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
         Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
         // Used to denote whether space could be reserved for the new job
         // It's 'true' if job master is at full capacity
-        boolean isfull = true;
+        boolean isFull = true;
         while (jobIterator.hasNext()) {
           JobInfo oldestJob = jobIterator.next();
           long completedBeforeMs = CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs();
@@ -232,9 +232,9 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
           }
           jobIterator.remove();
           mIdToJobCoordinator.remove(oldestJob.getId());
-          isfull = false;
+          isFull = false;
         }
-        if (isfull) {
+        if (isFull) {
           throw new ResourceExhaustedException(
               ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
         }
