@@ -146,7 +146,7 @@ public class MetricsStore {
         Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
         double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
         Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
-            metric.getMetricType(), metric.getName(), metric.getValue() - oldVal);
+            metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
         metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
         newMetrics.add(newMetric);
       } else {
