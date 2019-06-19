@@ -25,6 +25,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -58,6 +59,8 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   private SettableFuture<Boolean> mHandshakeFuture;
   /** Current authenticated state. */
   private AtomicBoolean mAuthenticated;
+  /** Channel Id that has started the authentication. */
+  private UUID mChannelId;
 
   private final long mGrpcAuthTimeoutMs;
 
@@ -66,12 +69,14 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    *
    * @param handshakeClient client handshake handler
    * @param authenticated boolean reference to receive authentication state changes
+   * @param channelId channel Id for authentication
    * @param grpcAuthTimeoutMs authentication timeout in milliseconds
    */
   public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient,
-      AtomicBoolean authenticated, long grpcAuthTimeoutMs) {
+      AtomicBoolean authenticated, UUID channelId, long grpcAuthTimeoutMs) {
     mSaslHandshakeClientHandler = handshakeClient;
     mHandshakeFuture = SettableFuture.create();
+    mChannelId = channelId;
     mGrpcAuthTimeoutMs = grpcAuthTimeoutMs;
     mAuthenticated = authenticated;
   }
@@ -88,8 +93,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   @Override
   public void onNext(SaslMessage saslMessage) {
     try {
-      LOG.debug("SaslClientDriver received message: {}",
-          saslMessage != null ? saslMessage.getMessageType().toString() : "<NULL>");
+      LOG.debug("SaslClientDriver received message: {} for channel: {}", saslMessage, mChannelId);
       SaslMessage response = mSaslHandshakeClientHandler.handleSaslMessage(saslMessage);
       if (response != null) {
         mRequestObserver.onNext(response);
@@ -97,34 +101,36 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
         // {@code null} response means server message was a success.
         mHandshakeFuture.set(true);
       }
-    } catch (SaslException e) {
+    } catch (Exception e) {
+      LOG.debug("Exception while handling SASL message: {} for channel: {}. Error: {}", saslMessage,
+          mChannelId, e);
       mHandshakeFuture.setException(e);
-      mRequestObserver
-          .onError(Status.fromCode(Status.Code.UNAUTHENTICATED).withCause(e).asException());
+      mRequestObserver.onError(e);
     }
   }
 
   @Override
   public void onError(Throwable throwable) {
+    LOG.warn("Received error on client driver for channel: {}. Error: {}", mChannelId, throwable);
     mHandshakeFuture.setException(throwable);
   }
 
   @Override
   public void onCompleted() {
+    LOG.debug("Client authentication closed by server for channel: {}", mChannelId);
     // Server completes the stream when authenticated session is terminated/revoked.
     mAuthenticated.set(false);
   }
 
   /**
    * Starts authentication with the server and wait until completion.
-   * @param channelId channel that is authenticating with the server
    * @throws UnauthenticatedException
    */
-  public void start(String channelId) throws AlluxioStatusException {
+  public void start() throws AlluxioStatusException {
     try {
-      LOG.debug("Starting SASL handshake for ChannelId:{}", channelId);
+      LOG.debug("Starting SASL handshake for channel: {}", mChannelId);
       // Send the server initial message.
-      mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(channelId));
+      mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(mChannelId));
       // Wait until authentication status changes.
       mAuthenticated.set(mHandshakeFuture.get(mGrpcAuthTimeoutMs, TimeUnit.MILLISECONDS));
     } catch (SaslException se) {
@@ -152,6 +158,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    * Stops authenticated session with the server by releasing the long poll.
    */
   public void stop() {
+    LOG.debug("Closing client driver for channel: {}", mChannelId);
     try {
       if (mAuthenticated.get()) {
         mRequestObserver.onCompleted();

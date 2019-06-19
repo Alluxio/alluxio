@@ -70,7 +70,7 @@ public final class GrpcChannel extends Channel {
 
     // Store {@link AuthenticatedChannel::#close) for signaling end of
     // authenticated session during shutdown.
-    mAuthCloseCallback = ((AuthenticatedChannel) channel)::close;
+    mAuthCloseCallback = channel::close;
   }
 
   @Override
