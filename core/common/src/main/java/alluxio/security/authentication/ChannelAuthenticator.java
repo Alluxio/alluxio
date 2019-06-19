@@ -152,14 +152,14 @@ public class ChannelAuthenticator {
         SaslHandshakeClientHandler handshakeClient =
             new DefaultSaslHandshakeClientHandler(saslClientHandler);
         // Create driver for driving sasl traffic from client side.
-        mClientDriver =
-            new SaslStreamClientDriver(handshakeClient, mAuthenticated, mGrpcAuthTimeoutMs);
+        mClientDriver = new SaslStreamClientDriver(handshakeClient, mAuthenticated, mChannelId,
+            mGrpcAuthTimeoutMs);
         // Start authentication call with the service and update the client driver.
         StreamObserver<SaslMessage> requestObserver =
             SaslAuthenticationServiceGrpc.newStub(mManagedChannel).authenticate(mClientDriver);
         mClientDriver.setServerObserver(requestObserver);
         // Start authentication traffic with the target.
-        mClientDriver.start(mChannelId.toString());
+        mClientDriver.start();
         // Authentication succeeded!
         mManagedChannel.notifyWhenStateChanged(ConnectivityState.READY, () -> {
           mAuthenticated.set(false);
