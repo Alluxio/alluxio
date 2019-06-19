@@ -2316,7 +2316,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
           .setDefaultValue(
-              String.format("${%s}", PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS.mName))
+              String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0)))
           .setDescription(String.format(
               "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
                   + "directory on the top storage tier specified by %s.",
@@ -2363,7 +2363,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
           .setDefaultValue(
-              String.format("${%s}", PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS.mName))
+              String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1)))
           .setDescription(String.format(
               "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
                   + "directory on the second storage tier specified by %s.",
@@ -2409,7 +2409,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
           .setDefaultValue(
-              String.format("${%s}", PropertyKey.WORKER_TIERED_STORE_LEVEL2_ALIAS.mName))
+              String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2)))
           .setDescription(String.format(
               "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
                   + "directory on the third storage tier specified by %s.",
