@@ -69,11 +69,14 @@ Alternative ways are described in the [Advanced Setup]({{ '/en/compute/HBase.htm
 
 ## Example
 
-Start HBase:
+Ensure alluxio scheme is recognized before starting HBase:
 
 ```bash
 ${HBASE_HOME}/bin/start-hbase.sh
 ```
+
+If not, follow the [Usage FAQs](https://docs.alluxio.io/os/user/1.4/en/Debugging-Guide.html#q-why-do-i-see-exceptions-like-no-filesystem-for-scheme-alluxio)
+ as needed.
 
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
