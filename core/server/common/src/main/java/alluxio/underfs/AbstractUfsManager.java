@@ -129,8 +129,8 @@ public abstract class AbstractUfsManager implements UfsManager {
 
       // Detect whether to use managed blocking on UFS operations.
       boolean useManagedBlocking = fs.isObjectStorage();
-      if (ufsConf.isSet(PropertyKey.UNDERFS_RUN_WITH_MANAGEDBLOCKING)) {
-        useManagedBlocking = ufsConf.getBoolean(PropertyKey.UNDERFS_RUN_WITH_MANAGEDBLOCKING);
+      if (ufsConf.isSet(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED)) {
+        useManagedBlocking = ufsConf.getBoolean(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED);
       }
       // Wrap UFS under managed blocking forwarder if required.
       if (useManagedBlocking) {

@@ -61,7 +61,7 @@ just created:
 ```
 
 The above CLI spawns a background user-space java process (`alluxio-fuse`) that mounts the Alluxio path specified at `/training-data` 
-to the local file system on the specified mount point `/mnt/alluxio`. Please refer to [POSIX API documentation]({{ '/en/api/FUSE-API.html' | relativize_url }}) 
+to the local file system on the specified mount point `/mnt/alluxio`. Please refer to [POSIX API documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}) 
 for details about how to mount Alluxio-FUSE and set up fuse related options. 
 
 Check the status of the FUSE process with:
@@ -96,8 +96,8 @@ If the data is not in a remote data storage, you can copy it to Alluxio namespac
 
 ```bash
 wget http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
-./bin/alluxio fs mkdir /trainning-data/imagenet 
-./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /trainning-data/imagenet 
+./bin/alluxio fs mkdir /training-data/imagenet 
+./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /training-data/imagenet 
 ```
 
 Suppose the ImageNet data is stored in an S3 bucket `s3://alluxio-tensorflow-imagenet/`, 
