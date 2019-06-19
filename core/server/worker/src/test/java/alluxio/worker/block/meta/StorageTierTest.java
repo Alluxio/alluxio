@@ -152,4 +152,18 @@ public class StorageTierTest {
     Assert.assertEquals(1, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
   }
+
+  @Test
+  public void tolerantMisconfigurationInStorageDir() throws Exception {
+    ServerConfiguration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0),
+            "MEM");
+    ServerConfiguration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
+            2000);
+    mTier = StorageTier.newStorageTier("MEM");
+    List<StorageDir> dirs = mTier.getStorageDirs();
+    Assert.assertEquals(2, dirs.size());
+    Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
+  }
 }
