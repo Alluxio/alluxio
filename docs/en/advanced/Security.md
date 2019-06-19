@@ -18,10 +18,11 @@ Alluxio also supports `NOSASL` mode which ignores authentication.
 Authentication mode `SIMPLE` is required to enable authorization.
 1. [User Authorization](#authorization): 
 Alluxio filesystem will grant or deny user access based on the requesting user and
-the permissions of the files or directories when enabled.
-Note that authentication mode cannot be `NOSASL`.
-1. [Access Control Lists](#Access-Control-Lists): In addition to the POSIX permission model, Alluxio
-supports an Access Control List (ACL) model similar to those found in Linux and HDFS. The ACL model
+the POSIX permissions model of the files or directories to access,
+when `alluxio.security.authorization.permission.enabled=true`.
+Note that, authentication cannot be `NOSASL` as authorization requires user information.
+1. [Access Control Lists](#access-control-lists): In addition to the POSIX permission model, Alluxio
+implements an Access Control List (ACL) model similar to those found in Linux and HDFS. The ACL model
 is more flexible and allows administrators to manage any user or group's permissions to any file
 system object.
 1. [Client-Side Hadoop Impersonation](#client-side-hadoop-impersonation): Alluxio supports

@@ -494,10 +494,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     if (waitTime < retryInterval) {
       LOG.warn("{}={}ms is smaller than {}={}ms. Workers might not have enough time to register. "
               + "Consider either increasing {} or decreasing {}",
-          PropertyKey.Name.MASTER_WORKER_CONNECT_WAIT_TIME, waitTime,
-          PropertyKey.Name.USER_RPC_RETRY_MAX_SLEEP_MS, retryInterval,
-          PropertyKey.Name.MASTER_WORKER_CONNECT_WAIT_TIME,
-          PropertyKey.Name.USER_RPC_RETRY_MAX_SLEEP_MS);
+          PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, waitTime,
+          PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, retryInterval,
+          PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME,
+          PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
     }
     checkHeartbeatTimeout(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL,
         PropertyKey.MASTER_HEARTBEAT_TIMEOUT);

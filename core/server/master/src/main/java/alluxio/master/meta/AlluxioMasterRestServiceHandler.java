@@ -246,7 +246,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setSecurityAuthorizationPermissionEnabled(
               ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setWorkerPort(ServerConfiguration.getInt(PropertyKey.WORKER_WEB_PORT))
-          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS))
+          .setRefreshInterval((int) ServerConfiguration.getMs(PropertyKey.WEB_REFRESH_INTERVAL))
           .setProxyDownloadFileApiUrl(proxyDowloadFileApiUrl);
 
       return response;

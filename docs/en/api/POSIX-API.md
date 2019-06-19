@@ -184,7 +184,7 @@ characteristics, please be aware that:
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to
 be worse than what you would see by using the
-[Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#Java-Client) directly.
+[Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#java-client) directly.
 
 Most of the overheads come from the fact that there are several memory copies going on for each call
 on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This

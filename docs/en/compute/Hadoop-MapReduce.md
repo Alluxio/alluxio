@@ -88,6 +88,7 @@ Start Alluxio locally:
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
 
 ```bash
+./bin/alluxio fs mkdir /wordcount
 ./bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 ```
 
@@ -110,7 +111,7 @@ in Alluxio. You can see the resulting files by running:
 
 > Tips：The previous wordcount example is also applicable to Alluxio in HA mode.
 Please follow the instructions in
-[HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
+[HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#configure-alluxio-clients-for-ha).
 
 ## Advanced Setup
 
