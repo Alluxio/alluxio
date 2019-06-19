@@ -152,7 +152,7 @@ alluxio.master.tieredstore.global.level2.alias:
   'The name of the third highest storage tier in the entire system.'
 alluxio.master.tieredstore.global.levels:
   'The total number of storage tiers in the system.'
-alluxio.master.tieredstore.global.media:
+alluxio.master.tieredstore.global.mediumtype:
   'The list of medium types we support in the system.'
 alluxio.master.ttl.checker.interval:
   'How often to periodically check and delete the files with expired ttl value.'
