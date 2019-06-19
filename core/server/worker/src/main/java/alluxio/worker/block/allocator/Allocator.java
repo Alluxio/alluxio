@@ -15,9 +15,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
+import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.BlockMetadataView;
 
 import com.google.common.base.Preconditions;
 
@@ -49,14 +49,14 @@ public interface Allocator {
   }
 
   /**
-   * Allocates a block from the given block store location. The location can be a
+   * Allocates a block from the given block store location under a given view. The location can be a
    * specific location, or {@link BlockStoreLocation#anyTier()} or
    * {@link BlockStoreLocation#anyDirInTier(String)}.
    *
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @param view of the storage metadata
+   * @param view of the block metadata
    * @return a {@link StorageDirView} in which to create the temp block meta if success, null
    *         otherwise
    */

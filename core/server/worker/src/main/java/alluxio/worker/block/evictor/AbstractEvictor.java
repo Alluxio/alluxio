@@ -20,7 +20,6 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictableView;
-import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
@@ -144,9 +143,10 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           if (block == null) {
             continue;
           }
-          StorageDirView nextDirView = mAllocator.allocateBlockWithView(
-              Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
-              BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
+          StorageDirEvictableView nextDirView
+              = (StorageDirEvictableView) mAllocator.allocateBlockWithView(
+                  Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
+                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
           if (nextDirView == null) {
             nextDirView = cascadingEvict(block.getBlockSize(),
                 BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan, mode);
@@ -161,7 +161,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           plan.toMove().add(new BlockTransferInfo(blockId, block.getBlockLocation(),
               nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
-          ((StorageDirEvictableView) nextDirView).markBlockMoveIn(blockId, block.getBlockSize());
+          nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
         } catch (BlockDoesNotExistException e) {
           continue;
         }
@@ -179,7 +179,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
 
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-                                        BlockMetadataEvictableView view, Mode mode) {
+      BlockMetadataEvictableView view, Mode mode) {
     mManagerView = view;
 
     List<BlockTransferInfo> toMove = new ArrayList<>();

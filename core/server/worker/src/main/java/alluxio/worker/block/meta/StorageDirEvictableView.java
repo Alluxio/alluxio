@@ -101,18 +101,6 @@ public final class StorageDirEvictableView extends StorageDirView {
   }
 
   /**
-   * Creates a {@link TempBlockMeta} given sessionId, blockId, and initialBlockSize.
-   *
-   * @param sessionId of the owning session
-   * @param blockId of the new block
-   * @param initialBlockSize of the new block
-   * @return a new {@link TempBlockMeta} under the underlying directory
-   */
-  public TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize) {
-    return new TempBlockMeta(sessionId, blockId, initialBlockSize, mDir);
-  }
-
-  /**
    * Returns an indication whether the given block is marked to be moved out.
    *
    * @param blockId the block ID

@@ -13,7 +13,6 @@ package alluxio.worker.block.evictor;
 
 import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.meta.StorageDirEvictableView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
@@ -79,7 +78,7 @@ public final class EvictorUtils {
    * @param bytesToBeAvailable the capacity bound
    * @param location the location range
    * @param mManagerView the storage manager view
-   * @return a {@link StorageDirEvictableView} in the range of location that already
+   * @return a {@link StorageDirView} in the range of location that already
    *         has availableBytes larger than bytesToBeAvailable, otherwise null
    */
   @Nullable

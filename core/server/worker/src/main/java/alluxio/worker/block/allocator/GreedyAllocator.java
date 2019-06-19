@@ -11,9 +11,9 @@
 
 package alluxio.worker.block.allocator;
 
+import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;

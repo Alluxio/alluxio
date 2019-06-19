@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.exception.ExceptionMessage;
-
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierEvictableView;
 import alluxio.worker.block.meta.StorageTierView;
@@ -87,15 +86,12 @@ public class BlockMetadataView {
   }
 
   /**
-   * Gets all tierViews before certain tierView. Throws an {@link IllegalArgumentException} if the
-   * tierAlias is not found.
+   * Gets all tierViews under this storage metadata view.
    *
-   * @param tierAlias the alias of a tierView
-   * @return the list of {@link StorageTierEvictableView}
+   * @return the list of {@link StorageTierView}s
    */
-  public List<StorageTierView> getTierViewsBelow(String tierAlias) {
-    int ordinal = getTierView(tierAlias).getTierViewOrdinal();
-    return mTierViews.subList(ordinal + 1, mTierViews.size());
+  public List<StorageTierView> getTierViews() {
+    return Collections.unmodifiableList(mTierViews);
   }
 
   /**
@@ -114,11 +110,14 @@ public class BlockMetadataView {
   }
 
   /**
-   * Gets all tierViews under this storage metadata view.
+   * Gets all tierViews before certain tierView. Throws an {@link IllegalArgumentException} if the
+   * tierAlias is not found.
    *
-   * @return the list of {@link StorageTierView}s
+   * @param tierAlias the alias of a tierView
+   * @return the list of {@link StorageTierEvictableView}
    */
-  public List<StorageTierView> getTierViews() {
-    return Collections.unmodifiableList(mTierViews);
+  public List<StorageTierView> getTierViewsBelow(String tierAlias) {
+    int ordinal = getTierView(tierAlias).getTierViewOrdinal();
+    return mTierViews.subList(ordinal + 1, mTierViews.size());
   }
 }

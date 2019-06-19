@@ -58,7 +58,7 @@ public class BlockMetadataEvictableView extends BlockMetadataView {
    */
   // TODO(qifan): Incrementally update the view.
   public BlockMetadataEvictableView(BlockMetadataManager manager, Set<Long> pinnedInodes,
-                                    Set<Long> lockedBlocks) {
+      Set<Long> lockedBlocks) {
     super(manager, true);
     mMetadataManager = manager;
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes, "pinnedInodes"));

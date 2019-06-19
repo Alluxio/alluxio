@@ -11,9 +11,9 @@
 
 package alluxio.worker.block.allocator;
 
+import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
@@ -44,6 +44,9 @@ public final class RoundRobinAllocator implements Allocator {
    */
   public RoundRobinAllocator(BlockMetadataView view) {
     mMetadataView = Preconditions.checkNotNull(view, "view");
+    for (StorageTierView tierView : mMetadataView.getTierViews()) {
+      mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), -1);
+    }
   }
 
   @Override
@@ -115,18 +118,18 @@ public final class RoundRobinAllocator implements Allocator {
   /**
    * Finds an available dir in a given tier for a block with blockSize.
    *
-   * @param tier the tier to find a dir
+   * @param tierView the tier to find a dir
    * @param blockSize the requested block size
    * @param mediumType the medium type to find a dir
    * @return the index of the dir if non-negative; -1 if fail to find a dir
    */
-  private int getNextAvailDirInTier(StorageTierView tier, long blockSize, String mediumType) {
-    int dirIndex = mTierAliasToLastDirMap.get(tier.getTierViewAlias());
-    for (int i = 0; i < tier.getDirViews().size(); i++) { // try this many times
-      dirIndex = (dirIndex + 1) % tier.getDirViews().size();
+  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize, String mediumType) {
+    int dirIndex = mTierAliasToLastDirMap.get(tierView.getTierViewAlias());
+    for (int i = 0; i < tierView.getDirViews().size(); i++) { // try this many times
+      dirIndex = (dirIndex + 1) % tierView.getDirViews().size();
       if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-          || tier.getDirView(dirIndex).getMediumType().equals(mediumType))
-          && tier.getDirView(dirIndex).getAvailableBytes() >= blockSize) {
+          || tierView.getDirView(dirIndex).getMediumType().equals(mediumType))
+          && tierView.getDirView(dirIndex).getAvailableBytes() >= blockSize) {
         return dirIndex;
       }
     }
