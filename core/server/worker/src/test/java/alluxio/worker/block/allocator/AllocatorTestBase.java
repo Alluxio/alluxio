@@ -20,7 +20,7 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageDirEvictableView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -101,8 +101,8 @@ public class AllocatorTestBase {
       long blockSize, boolean avail) throws IOException {
 
     mTestBlockId++;
-    StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
+    StorageDirEvictableView dirView =
+        allocator.allocateBlockWithEvictableView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -129,8 +129,8 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
 
-    StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
+    StorageDirEvictableView dirView =
+        allocator.allocateBlockWithEvictableView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 

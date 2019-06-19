@@ -14,14 +14,15 @@ package alluxio.worker.block.allocator;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageDirEvictableView;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageMetadataView;
+import alluxio.worker.block.meta.StorageTierEvictableView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -47,20 +48,19 @@ public final class RoundRobinAllocator implements Allocator {
    */
   public RoundRobinAllocator(BlockMetadataManagerView view) {
     mManagerView = Preconditions.checkNotNull(view, "view");
-    for (StorageTierView tierView : mManagerView.getTierViews()) {
+    for (StorageTierEvictableView tierView : mManagerView.getTierViews()) {
       mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), -1);
     }
   }
 
   @Override
-  public StorageDir allocateBlockWithTierInfo(long sessionId, long blockSize,
-      BlockStoreLocation location, List<StorageTier> tierList,
-      Map<String, StorageTier> aliasToTierMap) {
-    return allocateBlock(sessionId, blockSize, location, tierList, aliasToTierMap);
+  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
+      BlockStoreLocation location, StorageMetadataView storageView) {
+    return allocateBlock(sessionId, blockSize, location, storageView);
   }
 
   @Override
-  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
+  public StorageDirEvictableView allocateBlockWithEvictableView(long sessionId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
     mManagerView = Preconditions.checkNotNull(view, "view");
     return allocateBlock(sessionId, blockSize, location);
@@ -73,53 +73,51 @@ public final class RoundRobinAllocator implements Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @param tierList a list of {@link StorageTier}
-   * @param aliasToTiersMap a map from tier alias to {@link StorageTier}
+   * @param storageView the view of the storage metadata
    * @return a {@link StorageDir} in which to create the temp block meta if success, null
    *         otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
   @Nullable
-  private StorageDir allocateBlock(long sessionId, long blockSize,
-      BlockStoreLocation location, List<StorageTier> tierList,
-      Map<String, StorageTier> aliasToTiersMap) {
+  private StorageDirView allocateBlock(long sessionId, long blockSize,
+      BlockStoreLocation location, StorageMetadataView storageView) {
     Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       int tierIndex = 0; // always starting from the first tier
-      for (int i = 0; i < tierList.size(); i++) {
-        StorageTier tier = tierList.get(tierIndex);
+      for (int i = 0; i < storageView.getTierViews().size(); i++) {
+        StorageTierView tier = storageView.getTierViews().get(tierIndex);
         int dirIndex = getNextAvailDirInTier(tier, blockSize,
             BlockStoreLocation.ANY_MEDIUM);
         if (dirIndex >= 0) {
-          mTierAliasToLastDirMap.put(tier.getTierAlias(), dirIndex);
-          return tier.getDir(dirIndex);
+          mTierAliasToLastDirMap.put(tier.getTierViewAlias(), dirIndex);
+          return tier.getDirView(dirIndex);
         } else { // we didn't find one in this tier, go to next tier
           tierIndex++;
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTier tier = aliasToTiersMap.get(location.tierAlias());
+      StorageTierView tier = storageView.getTierView(location.tierAlias());
       int dirIndex = getNextAvailDirInTier(tier, blockSize, BlockStoreLocation.ANY_MEDIUM);
       if (dirIndex >= 0) {
-        mTierAliasToLastDirMap.put(tier.getTierAlias(), dirIndex);
-        return tier.getDir(dirIndex);
+        mTierAliasToLastDirMap.put(tier.getTierViewAlias(), dirIndex);
+        return tier.getDirView(dirIndex);
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
       String medium = location.mediumType();
       int tierIndex = 0; // always starting from the first tier
-      for (int i = 0; i < tierList.size(); i++) {
-        StorageTier tier = tierList.get(tierIndex);
+      for (int i = 0; i < storageView.getTierViews().size(); i++) {
+        StorageTierView tier = storageView.getTierViews().get(tierIndex);
         int dirIndex = getNextAvailDirInTier(tier, blockSize, medium);
         if (dirIndex >= 0) {
-          mTierAliasToLastDirMap.put(tier.getTierAlias(), dirIndex);
-          return tier.getDir(dirIndex);
+          mTierAliasToLastDirMap.put(tier.getTierViewAlias(), dirIndex);
+          return tier.getDirView(dirIndex);
         } else { // we didn't find one in this tier, go to next tier
           tierIndex++;
         }
       }
     } else {
-      StorageTier tier = aliasToTiersMap.get(location.tierAlias());
-      StorageDir dir = tier.getDir(location.dir());
+      StorageTierView tier = storageView.getTierView(location.tierAlias());
+      StorageDirView dir = tier.getDirView(location.dir());
       if (dir.getAvailableBytes() >= blockSize) {
         return dir;
       }
@@ -135,18 +133,18 @@ public final class RoundRobinAllocator implements Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return a {@link StorageDirView} in which to create the temp block meta if success, null
-   *         otherwise
+   * @return a {@link StorageDirEvictableView} in which to create the temp block meta if success,
+   *         null otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
   @Nullable
-  private StorageDirView allocateBlock(long sessionId, long blockSize,
+  private StorageDirEvictableView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
     Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       int tierIndex = 0; // always starting from the first tier
       for (int i = 0; i < mManagerView.getTierViews().size(); i++) {
-        StorageTierView tierView = mManagerView.getTierViews().get(tierIndex);
+        StorageTierEvictableView tierView = mManagerView.getTierViews().get(tierIndex);
         int dirViewIndex = getNextAvailDirInTier(tierView, blockSize,
             BlockStoreLocation.ANY_MEDIUM);
         if (dirViewIndex >= 0) {
@@ -157,7 +155,7 @@ public final class RoundRobinAllocator implements Allocator {
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      StorageTierEvictableView tierView = mManagerView.getTierView(location.tierAlias());
       int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
       if (dirViewIndex >= 0) {
         mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
@@ -167,7 +165,7 @@ public final class RoundRobinAllocator implements Allocator {
       String medium = location.mediumType();
       int tierIndex = 0; // always starting from the first tier
       for (int i = 0; i < mManagerView.getTierViews().size(); i++) {
-        StorageTierView tierView = mManagerView.getTierViews().get(tierIndex);
+        StorageTierEvictableView tierView = mManagerView.getTierViews().get(tierIndex);
         int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, medium);
         if (dirViewIndex >= 0) {
           mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
@@ -177,8 +175,8 @@ public final class RoundRobinAllocator implements Allocator {
         }
       }
     } else {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      StorageDirView dirView = tierView.getDirView(location.dir());
+      StorageTierEvictableView tierView = mManagerView.getTierView(location.tierAlias());
+      StorageDirEvictableView dirView = tierView.getDirView(location.dir());
       if (dirView.getAvailableBytes() >= blockSize) {
         return dirView;
       }
@@ -195,7 +193,8 @@ public final class RoundRobinAllocator implements Allocator {
    * @param mediumType the medium type to find a dir
    * @return the index of the dir if non-negative; -1 if fail to find a dir
    */
-  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize, String mediumType) {
+  private int getNextAvailDirInTier(StorageTierEvictableView tierView, long blockSize,
+      String mediumType) {
     int dirViewIndex = mTierAliasToLastDirMap.get(tierView.getTierViewAlias());
     for (int i = 0; i < tierView.getDirViews().size(); i++) { // try this many times
       dirViewIndex = (dirViewIndex + 1) % tierView.getDirViews().size();
@@ -216,13 +215,13 @@ public final class RoundRobinAllocator implements Allocator {
    * @param mediumType the medium type to find a dir
    * @return the index of the dir if non-negative; -1 if fail to find a dir
    */
-  private int getNextAvailDirInTier(StorageTier tier, long blockSize, String mediumType) {
-    int dirIndex = mTierAliasToLastDirMap.get(tier.getTierAlias());
-    for (int i = 0; i < tier.getStorageDirs().size(); i++) { // try this many times
-      dirIndex = (dirIndex + 1) % tier.getStorageDirs().size();
+  private int getNextAvailDirInTier(StorageTierView tier, long blockSize, String mediumType) {
+    int dirIndex = mTierAliasToLastDirMap.get(tier.getTierViewAlias());
+    for (int i = 0; i < tier.getDirViews().size(); i++) { // try this many times
+      dirIndex = (dirIndex + 1) % tier.getDirViews().size();
       if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-          || tier.getDir(dirIndex).getDirMedium().equals(mediumType))
-          && tier.getDir(dirIndex).getAvailableBytes() >= blockSize) {
+          || tier.getDirView(dirIndex).getMediumType().equals(mediumType))
+          && tier.getDirView(dirIndex).getAvailableBytes() >= blockSize) {
         return dirIndex;
       }
     }

@@ -14,14 +14,13 @@ package alluxio.worker.block.allocator;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageDirEvictableView;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageMetadataView;
+import alluxio.worker.block.meta.StorageTierEvictableView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
-
-import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.Nullable;
@@ -44,14 +43,13 @@ public final class GreedyAllocator implements Allocator {
   }
 
   @Override
-  public StorageDir allocateBlockWithTierInfo(long sessionId, long blockSize,
-      BlockStoreLocation location, List<StorageTier> tierList,
-      Map<String, StorageTier> aliasToTiersMap) {
-    return allocateBlock(sessionId, blockSize, location, tierList, aliasToTiersMap);
+  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
+      BlockStoreLocation location, StorageMetadataView storageView) {
+    return allocateBlock(sessionId, blockSize, location, storageView);
   }
 
   @Override
-  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
+  public StorageDirEvictableView allocateBlockWithEvictableView(long sessionId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
     mManagerView = Preconditions.checkNotNull(view, "view");
     return allocateBlock(sessionId, blockSize, location);
@@ -64,22 +62,20 @@ public final class GreedyAllocator implements Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @param tierList a list of {@link StorageTier}
-   * @param aliasToTiersMap a map from tier alias to {@link StorageTier}
+   * @param storageView
    * @return a {@link StorageDir} in which to create the temp block meta if success, null
    *         otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
   @Nullable
-  private StorageDir allocateBlock(long sessionId, long blockSize,
-      BlockStoreLocation location, List<StorageTier> tierList,
-      Map<String, StorageTier> aliasToTiersMap) {
+  private StorageDirView allocateBlock(long sessionId, long blockSize,
+      BlockStoreLocation location, StorageMetadataView storageView) {
     Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all tiers and dirs,
       // and return a temp block meta from the first available dir.
-      for (StorageTier tier : tierList) {
-        for (StorageDir dir : tier.getStorageDirs()) {
+      for (StorageTierView tier : storageView.getTierViews()) {
+        for (StorageDirView dir : tier.getDirViews()) {
           if (dir.getAvailableBytes() >= blockSize) {
             return dir;
           }
@@ -91,9 +87,9 @@ public final class GreedyAllocator implements Allocator {
     String mediumType = location.mediumType();
     if (!mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
         && location.equals(BlockStoreLocation.anyDirInTierWithMedium(mediumType))) {
-      for (StorageTier tier : tierList) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getDirMedium().equals(mediumType)
+      for (StorageTierView tier : storageView.getTierViews()) {
+        for (StorageDirView dir : tier.getDirViews()) {
+          if (dir.getMediumType().equals(mediumType)
               && dir.getAvailableBytes() >= blockSize) {
             return dir;
           }
@@ -103,10 +99,10 @@ public final class GreedyAllocator implements Allocator {
     }
 
     String tierAlias = location.tierAlias();
-    StorageTier tier = aliasToTiersMap.get(tierAlias);
+    StorageTierView tier = storageView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       // Loop over all dirs in the given tier
-      for (StorageDir dir : tier.getStorageDirs()) {
+      for (StorageDirView dir : tier.getDirViews()) {
         if (dir.getAvailableBytes() >= blockSize) {
           return dir;
         }
@@ -114,8 +110,8 @@ public final class GreedyAllocator implements Allocator {
       return null;
     }
 
-    int dirIndex = location.dir();
-    StorageDir dir = tier.getDir(dirIndex);
+    int dirViewIndex = location.dir();
+    StorageDirView dir = tier.getDirView(dirViewIndex);
     if (dir.getAvailableBytes() >= blockSize) {
       return dir;
     }
@@ -129,19 +125,19 @@ public final class GreedyAllocator implements Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return a {@link StorageDirView} in which to create the temp block meta if success, null
-   *         otherwise
+   * @return a {@link StorageDirEvictableView} in which to create the temp block meta if success,
+   *         null otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
   @Nullable
-  private StorageDirView allocateBlock(long sessionId, long blockSize,
+  private StorageDirEvictableView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
     Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all tier views and dir views,
       // and return a temp block meta from the first available dirview.
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
+      for (StorageTierEvictableView tierView : mManagerView.getTierViews()) {
+        for (StorageDirEvictableView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= blockSize) {
             return dirView;
           }
@@ -153,8 +149,8 @@ public final class GreedyAllocator implements Allocator {
     String mediumType = location.mediumType();
     if (!mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
         && location.equals(BlockStoreLocation.anyDirInTierWithMedium(mediumType))) {
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
+      for (StorageTierEvictableView tierView : mManagerView.getTierViews()) {
+        for (StorageDirEvictableView dirView : tierView.getDirViews()) {
           if (dirView.getMediumType().equals(mediumType)
               && dirView.getAvailableBytes() >= blockSize) {
             return dirView;
@@ -165,10 +161,10 @@ public final class GreedyAllocator implements Allocator {
     }
 
     String tierAlias = location.tierAlias();
-    StorageTierView tierView = mManagerView.getTierView(tierAlias);
+    StorageTierEvictableView tierView = mManagerView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       // Loop over all dir views in the given tier
-      for (StorageDirView dirView : tierView.getDirViews()) {
+      for (StorageDirEvictableView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= blockSize) {
           return dirView;
         }
@@ -177,7 +173,7 @@ public final class GreedyAllocator implements Allocator {
     }
 
     int dirIndex = location.dir();
-    StorageDirView dirView = tierView.getDirView(dirIndex);
+    StorageDirEvictableView dirView = tierView.getDirView(dirIndex);
     if (dirView.getAvailableBytes() >= blockSize) {
       return dirView;
     }

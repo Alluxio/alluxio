@@ -18,8 +18,8 @@ import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTierView;
+import alluxio.worker.block.meta.StorageDirEvictableView;
+import alluxio.worker.block.meta.StorageTierEvictableView;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
@@ -78,8 +78,8 @@ public final class LRFUEvictor extends AbstractEvictor {
         "Attenuation factor should be no less than 2.0");
 
     // Preloading blocks
-    for (StorageTierView tier : mManagerView.getTierViews()) {
-      for (StorageDirView dir : tier.getDirViews()) {
+    for (StorageTierEvictableView tier : mManagerView.getTierViews()) {
+      for (StorageDirEvictableView dir : tier.getDirViews()) {
         for (BlockMeta block : dir.getEvictableBlocks()) {
           mBlockIdToLastUpdateTime.put(block.getBlockId(), 0L);
           mBlockIdToCRFValue.put(block.getBlockId(), 0.0);
@@ -110,7 +110,8 @@ public final class LRFUEvictor extends AbstractEvictor {
       List<BlockTransferInfo> toMove = new ArrayList<>();
       List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
-      StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, mode);
+      StorageDirEvictableView candidateDir
+          = cascadingEvict(bytesToBeAvailable, location, plan, mode);
 
       mManagerView.clearBlockMarks();
       if (candidateDir == null) {

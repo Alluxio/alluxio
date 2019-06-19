@@ -13,8 +13,8 @@ package alluxio.worker.block.evictor;
 
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTierView;
+import alluxio.worker.block.meta.StorageDirEvictableView;
+import alluxio.worker.block.meta.StorageTierEvictableView;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
@@ -27,21 +27,21 @@ import javax.annotation.Nullable;
 public final class EvictorUtils {
 
   /**
-   * Gets {@link StorageDirView} with max free space.
+   * Gets {@link StorageDirEvictableView} with max free space.
    *
    * @param bytesToBeAvailable space size to be requested
    * @param location location that the space will be allocated in
    * @param mManagerView a view of block metadata information
-   * @return the {@link StorageDirView} selected
+   * @return the {@link StorageDirEvictableView} selected
    */
-  public static StorageDirView getDirWithMaxFreeSpace(long bytesToBeAvailable,
+  public static StorageDirEvictableView getDirWithMaxFreeSpace(long bytesToBeAvailable,
       BlockStoreLocation location, BlockMetadataManagerView mManagerView) {
     long maxFreeSize = -1;
-    StorageDirView selectedDirView = null;
+    StorageDirEvictableView selectedDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
+      for (StorageTierEvictableView tierView : mManagerView.getTierViews()) {
+        for (StorageDirEvictableView dirView : tierView.getDirViews()) {
           if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
               && dirView.getAvailableBytes() > maxFreeSize) {
             selectedDirView = dirView;
@@ -51,9 +51,9 @@ public final class EvictorUtils {
       }
     } else {
       String tierAlias = location.tierAlias();
-      StorageTierView tierView = mManagerView.getTierView(tierAlias);
+      StorageTierEvictableView tierView = mManagerView.getTierView(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
+        for (StorageDirEvictableView dirView : tierView.getDirViews()) {
           if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
               && dirView.getAvailableBytes() > maxFreeSize) {
             selectedDirView = dirView;
@@ -62,7 +62,7 @@ public final class EvictorUtils {
         }
       } else {
         int dirIndex = location.dir();
-        StorageDirView dirView = tierView.getDirView(dirIndex);
+        StorageDirEvictableView dirView = tierView.getDirView(dirIndex);
         if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
             && dirView.getAvailableBytes() > maxFreeSize) {
           selectedDirView = dirView;
@@ -78,15 +78,15 @@ public final class EvictorUtils {
    * @param bytesToBeAvailable the capacity bound
    * @param location the location range
    * @param mManagerView the storage manager view
-   * @return a {@link StorageDirView} in the range of location that already has availableBytes
-   *         larger than bytesToBeAvailable, otherwise null
+   * @return a {@link StorageDirEvictableView} in the range of location that already
+   *         has availableBytes larger than bytesToBeAvailable, otherwise null
    */
   @Nullable
-  public static StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
+  public static StorageDirEvictableView selectDirWithRequestedSpace(long bytesToBeAvailable,
       BlockStoreLocation location, BlockMetadataManagerView mManagerView) {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
+      for (StorageTierEvictableView tierView : mManagerView.getTierViews()) {
+        for (StorageDirEvictableView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
             return dirView;
           }
@@ -96,9 +96,9 @@ public final class EvictorUtils {
     }
 
     String tierAlias = location.tierAlias();
-    StorageTierView tierView = mManagerView.getTierView(tierAlias);
+    StorageTierEvictableView tierView = mManagerView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-      for (StorageDirView dirView : tierView.getDirViews()) {
+      for (StorageDirEvictableView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
           return dirView;
         }
@@ -106,7 +106,7 @@ public final class EvictorUtils {
       return null;
     }
 
-    StorageDirView dirView = tierView.getDirView(location.dir());
+    StorageDirEvictableView dirView = tierView.getDirView(location.dir());
     return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
   }
 

@@ -18,13 +18,11 @@ import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageDirEvictableView;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageMetadataView;
 
 import com.google.common.base.Preconditions;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Interface for the allocation policy of Alluxio managed data.
@@ -61,13 +59,12 @@ public interface Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @param tierList a list of {@link StorageTier}
-   * @param aliasToTiersMap a map from tier alias to {@link StorageTier}
+   * @param view of the storage metadata
    * @return a {@link StorageDir} in which to create the temp block meta if success, null
    *         otherwise
    */
-  StorageDir allocateBlockWithTierInfo(long sessionId, long blockSize, BlockStoreLocation location,
-      List<StorageTier> tierList, Map<String, StorageTier> aliasToTiersMap);
+  StorageDirView allocateBlockWithView(long sessionId, long blockSize, BlockStoreLocation location,
+      StorageMetadataView view);
 
   /**
    * Allocates a block from the given block store location under a given view. The location can be a
@@ -79,9 +76,9 @@ public interface Allocator {
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @param view of the metadata manager
-   * @return a {@link StorageDirView} in which to create the temp block meta if success, null
-   *         otherwise
+   * @return a {@link StorageDirEvictableView} in which to create the temp block meta if success,
+   *         null otherwise
    */
-  StorageDirView allocateBlockWithView(long sessionId, long blockSize, BlockStoreLocation location,
-      BlockMetadataManagerView view);
+  StorageDirEvictableView allocateBlockWithEvictableView(long sessionId, long blockSize,
+      BlockStoreLocation location, BlockMetadataManagerView view);
 }

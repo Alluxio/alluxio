@@ -14,7 +14,7 @@ package alluxio.worker.block.evictor;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageDirEvictableView;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -41,7 +41,7 @@ public class PartialLRUEvictor extends LRUEvictor {
   @Override
   protected BlockStoreLocation updateBlockStoreLocation(long bytesToBeAvailable,
       BlockStoreLocation location) {
-    StorageDirView candidateDirView =
+    StorageDirEvictableView candidateDirView =
         EvictorUtils.getDirWithMaxFreeSpace(bytesToBeAvailable, location, mManagerView);
     if (candidateDirView != null) {
       return new BlockStoreLocation(location.tierAlias(), candidateDirView.getDirViewIndex(),

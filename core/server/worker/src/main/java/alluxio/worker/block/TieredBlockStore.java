@@ -38,6 +38,8 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageMetadataView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -585,15 +587,15 @@ public class TieredBlockStore implements BlockStore {
       if (newBlock) {
         checkTempBlockIdAvailable(blockId);
       }
-      StorageDir dir = mAllocator.allocateBlockWithTierInfo(sessionId, initialBlockSize, location,
-          mMetaManager.getTiers(), mMetaManager.getAliasToTiersMap());
-      if (dir == null) {
+      StorageDirView dirView = mAllocator.allocateBlockWithView(sessionId,
+          initialBlockSize, location, new StorageMetadataView(mMetaManager));
+      if (dirView == null) {
         // Allocator fails to find a proper place for this new block.
         return null;
       }
       // TODO(carson): Add tempBlock to corresponding storageDir and remove the use of
       // StorageDirView.createTempBlockMeta.
-      TempBlockMeta tempBlock = new TempBlockMeta(sessionId, blockId, initialBlockSize, dir);
+      TempBlockMeta tempBlock = dirView.createTempBlockMeta(sessionId, blockId, initialBlockSize);
       try {
         // Add allocated temp block to metadata manager. This should never fail if allocator
         // correctly assigns a StorageDir.

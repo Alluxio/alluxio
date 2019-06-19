@@ -15,9 +15,9 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.block.BlockId;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageDirEvictableView;
 import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.meta.StorageTierView;
+import alluxio.worker.block.meta.StorageTierEvictableView;
 
 import com.google.common.base.Preconditions;
 
@@ -47,10 +47,10 @@ public class BlockMetadataManagerView {
   private final BlockMetadataManager mMetadataManager;
 
   /**
-   * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
+   * A list of {@link StorageTierEvictableView}, derived from {@link StorageTier}s from the
    * {@link BlockMetadataManager}.
    */
-  private final List<StorageTierView> mTierViews = new ArrayList<>();
+  private final List<StorageTierEvictableView> mTierViews = new ArrayList<>();
 
   /** A list of pinned inodes, including inodes which are scheduled for async persist. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
@@ -58,8 +58,8 @@ public class BlockMetadataManagerView {
   /** Indices of locks that are being used. */
   private final Set<Long> mInUseBlocks = new HashSet<>();
 
-  /** A map from tier alias to {@link StorageTierView}. */
-  private Map<String, StorageTierView> mAliasToTierViews = new HashMap<>();
+  /** A map from tier alias to {@link StorageTierEvictableView}. */
+  private Map<String, StorageTierEvictableView> mAliasToTierViews = new HashMap<>();
 
   /**
    * Creates a new instance of {@link BlockMetadataManagerView}. Now we always create a new view
@@ -79,7 +79,7 @@ public class BlockMetadataManagerView {
 
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
-      StorageTierView tierView = new StorageTierView(tier, this);
+      StorageTierEvictableView tierView = new StorageTierEvictableView(tier, this);
       mTierViews.add(tierView);
       mAliasToTierViews.put(tier.getTierAlias(), tierView);
     }
@@ -89,8 +89,8 @@ public class BlockMetadataManagerView {
    * Clears all marks of blocks to move in/out in all dir views.
    */
   public void clearBlockMarks() {
-    for (StorageTierView tierView : mTierViews) {
-      for (StorageDirView dirView : tierView.getDirViews()) {
+    for (StorageTierEvictableView tierView : mTierViews) {
+      for (StorageDirEvictableView dirView : tierView.getDirViews()) {
         dirView.clearBlockMarks();
       }
     }
@@ -133,8 +133,8 @@ public class BlockMetadataManagerView {
    * @return boolean, true if the block is marked to move out
    */
   public boolean isBlockMarked(long blockId) {
-    for (StorageTierView tierView : mTierViews) {
-      for (StorageDirView dirView : tierView.getDirViews()) {
+    for (StorageTierEvictableView tierView : mTierViews) {
+      for (StorageDirEvictableView dirView : tierView.getDirViews()) {
         if (dirView.isMarkedToMoveOut(blockId)) {
           return true;
         }
@@ -144,14 +144,14 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Provides {@link StorageTierView} given tierAlias. Throws an {@link IllegalArgumentException} if
-   * the tierAlias is not found.
+   * Provides {@link StorageTierEvictableView} given tierAlias.
+   * Throws an {@link IllegalArgumentException} if the tierAlias is not found.
    *
    * @param tierAlias the alias of this tierView
-   * @return the {@link StorageTierView} object associated with the alias
+   * @return the {@link StorageTierEvictableView} object associated with the alias
    */
-  public StorageTierView getTierView(String tierAlias) {
-    StorageTierView tierView = mAliasToTierViews.get(tierAlias);
+  public StorageTierEvictableView getTierView(String tierAlias) {
+    StorageTierEvictableView tierView = mAliasToTierViews.get(tierAlias);
     if (tierView == null) {
       throw new IllegalArgumentException(
           ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierAlias));
@@ -163,9 +163,9 @@ public class BlockMetadataManagerView {
   /**
    * Gets all tierViews under this managerView.
    *
-   * @return the list of {@link StorageTierView}s
+   * @return the list of {@link StorageTierEvictableView}s
    */
-  public List<StorageTierView> getTierViews() {
+  public List<StorageTierEvictableView> getTierViews() {
     return Collections.unmodifiableList(mTierViews);
   }
 
@@ -174,9 +174,9 @@ public class BlockMetadataManagerView {
    * tierAlias is not found.
    *
    * @param tierAlias the alias of a tierView
-   * @return the list of {@link StorageTierView}
+   * @return the list of {@link StorageTierEvictableView}
    */
-  public List<StorageTierView> getTierViewsBelow(String tierAlias) {
+  public List<StorageTierEvictableView> getTierViewsBelow(String tierAlias) {
     int ordinal = getTierView(tierAlias).getTierViewOrdinal();
     return mTierViews.subList(ordinal + 1, mTierViews.size());
   }
@@ -188,7 +188,7 @@ public class BlockMetadataManagerView {
    * @return the next storage tier view, null if this is the last tier view
    */
   @Nullable
-  public StorageTierView getNextTier(StorageTierView tierView) {
+  public StorageTierEvictableView getNextTier(StorageTierEvictableView tierView) {
     int nextOrdinal = tierView.getTierViewOrdinal() + 1;
     if (nextOrdinal < mTierViews.size()) {
       return mTierViews.get(nextOrdinal);
