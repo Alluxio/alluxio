@@ -112,9 +112,9 @@ public final class MetricsSystemTest {
   @Test
   public void testReportMetrics() {
     sCounter.inc();
-    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(),0);
+    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
     MetricsSystem.reportWorkerMetrics();
     sCounter.inc();
-    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(),0);
+    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
   }
 }
