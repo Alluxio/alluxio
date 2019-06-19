@@ -10,7 +10,7 @@ Github:
   Version: branch-2.0
 
 Release:
-  Version: 2.0.0-RC3 # name of release version
+  Version: 2.0.0 # name of release version
 
 # how much memory to use (e.g. 1000MB, 2GB) per worker
 # make sure your virtual machine has more memory than what is specified here
