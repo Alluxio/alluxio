@@ -36,8 +36,8 @@ public final class ProcessUtils {
       LOG.info("Stopping {}.", process);
       System.exit(0);
     } catch (Throwable t) {
-      LOG.error("Uncaught exception while running {}, stopping it and exiting. Exception {}, Root Cause {}",
-          process, t, ExceptionUtils.getRootCause(t));
+      LOG.error("Uncaught exception while running {}, stopping it and exiting."
+              + "Exception {}, Root Cause {}", process, t, ExceptionUtils.getRootCause(t));
       try {
         process.stop();
       } catch (Throwable t2) {
