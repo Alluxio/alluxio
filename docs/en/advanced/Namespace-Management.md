@@ -315,7 +315,7 @@ Active sync also tries to avoid syncing when the target directory is heavily use
 It tries to look for a quiet period in UFS activity to start syncing between the UFS and the Alluxio space, to avoid overloading the UFS when it is busy.
 There are two configuration options that control this behavior.
 
-`alluxio.master.active.sync.max.activities` is the maximum number of activities in the UFS directory. 
+`alluxio.master.ufs.active.sync.max.activities` is the maximum number of activities in the UFS directory. 
 Activity is a heuristic based on the exponential moving average of number of events in a directory.
 For example, if a directory had 100, 10, 1 event in the past three intervals. 
 Its activity would be `100/10*10 + 10/10 + 1 = 3` 
