@@ -108,4 +108,13 @@ public final class MetricsSystemTest {
     String localUriUnescaped4 = MetricsSystem.unescape(localUriEscaped4);
     assertEquals(localUri4.toString(), localUriUnescaped4);
   }
+
+  @Test
+  public void testReportMetrics() {
+    sCounter.inc();
+    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+    MetricsSystem.reportWorkerMetrics();
+    sCounter.inc();
+    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+  }
 }
