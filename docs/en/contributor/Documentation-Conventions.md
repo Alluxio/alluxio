@@ -78,8 +78,7 @@ to differentiate from the commonly used term, but remain in lowercase if not a p
 Documentation is not a conversation.
 Don’t follow the same style as you would use when chatting with someone.
 
-* Use the [serial comma](https://en.wikipedia.org/wiki/Serial_comma), also known as the
-Oxford comma, when listing items
+* Use the [serial comma](https://en.wikipedia.org/wiki/Serial_comma), also known as the Oxford comma, when listing items
     * Example: "Alluxio integrates with storage systems such as Amazon S3, Apache HDFS, and Microsoft Azure Object Store."
     Note the last comma after "HDFS".
 * Avoid using contractions; remove the apostrophe and expand
