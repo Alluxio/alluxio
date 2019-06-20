@@ -89,7 +89,7 @@ alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 
 Note that the ordering of the medium types must match with the ordering of the paths.
 Here, MEM and SSD are two types preconfigured in Alluxio.
-`alluxio.master.tieredstore.global.media` is a configuration parameter that has a list of 
+`alluxio.master.tieredstore.global.mediumtype` is a configuration parameter that has a list of
 all available medium types and by default it is set to `MEM, SSD, HDD`. This list can be modified
 if the user has additional storage media types.
 
