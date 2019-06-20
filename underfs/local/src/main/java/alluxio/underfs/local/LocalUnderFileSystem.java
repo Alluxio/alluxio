@@ -181,6 +181,9 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     try {
       PosixFileAttributes attr =
           Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+      if (!attr.isDirectory()) {
+        throw new IOException(String.format("path %s is not directory", path));
+      }
       return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
           FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
     } catch (FileSystemException e) {

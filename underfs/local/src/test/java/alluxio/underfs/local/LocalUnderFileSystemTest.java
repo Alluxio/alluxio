@@ -14,11 +14,13 @@ package alluxio.underfs.local;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -223,6 +225,25 @@ public class LocalUnderFileSystemTest {
     is.close();
 
     Assert.assertArrayEquals(bytes, bytes1);
+  }
+
+  @Test
+  public void getDirStatus() throws IOException {
+    String file = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    String dir = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+
+    mLocalUfs.create(file).close();
+    mLocalUfs.mkdirs(dir);
+    try {
+      UfsDirectoryStatus s = mLocalUfs.getDirectoryStatus(dir);
+      assertTrue(s.isDirectory());
+      assertFalse(s.isFile());
+
+      mLocalUfs.getDirectoryStatus(file);
+      fail("Should have failed to get dir status on file");
+    } catch (IOException e) {
+      // Expect exception
+    }
   }
 
   private byte[] getBytes() {
