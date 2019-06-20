@@ -11,44 +11,30 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.block.BlockMetadataManagerView;
-
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * This class is a wrapper of {@link StorageTier} to provide more limited access.
+ * This class is an abstract class for allocators and evictors to extend to provide
+ * limited access to {@link StorageTier}.
  */
-@ThreadSafe
-public final class StorageTierView {
+public abstract class StorageTierView {
 
   /** The {@link StorageTier} this view is derived from. */
-  private final StorageTier mTier;
+  final StorageTier mTier;
   /** A list of {@link StorageDirView} under this StorageTierView. */
-  private final List<StorageDirView> mDirViews = new ArrayList<>();
-  /** The {@link BlockMetadataManagerView} this {@link StorageTierView} is under. */
-  private final BlockMetadataManagerView mManagerView;
+  final List<StorageDirView> mDirViews = new ArrayList<>();
 
   /**
-   * Creates a {@link StorageTierView} using the actual {@link StorageTier} and the above
-   * {@link BlockMetadataManagerView}.
+   * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
    *
    * @param tier which the tierView is constructed from
-   * @param view the {@link BlockMetadataManagerView} this tierView is associated with
    */
-  public StorageTierView(StorageTier tier, BlockMetadataManagerView view) {
+  public StorageTierView(StorageTier tier) {
     mTier = Preconditions.checkNotNull(tier, "tier");
-    mManagerView = Preconditions.checkNotNull(view, "view");
-
-    for (StorageDir dir : mTier.getStorageDirs()) {
-      StorageDirView dirView = new StorageDirView(dir, this, view);
-      mDirViews.add(dirView);
-    }
   }
 
   /**
@@ -80,12 +66,5 @@ public final class StorageTierView {
    */
   public int getTierViewOrdinal() {
     return mTier.getTierOrdinal();
-  }
-
-  /**
-   * @return the block metadata manager view for this storage tier view
-   */
-  public BlockMetadataManagerView getBlockMetadataManagerView() {
-    return mManagerView;
   }
 }
