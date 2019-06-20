@@ -11,10 +11,26 @@
 
 package alluxio.worker.block.evictor;
 
+<<<<<<< HEAD
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
+=======
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockMetadataEvictorView;
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -46,7 +62,7 @@ public class LRFUEvictorTest {
   private static final long BLOCK_ID = 10;
 
   private BlockMetadataManager mMetaManager;
-  private BlockMetadataManagerView mManagerView;
+  private BlockMetadataEvictorView mMetadataView;
   private Evictor mEvictor;
 
   private double mStepFactor;
@@ -63,16 +79,36 @@ public class LRFUEvictorTest {
   public final void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
+    mMetadataView =
+        new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
+<<<<<<< HEAD
     Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
     mStepFactor = Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mManagerView);
+    mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+=======
+    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mMetadataView);
+    mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     mAttenuationFactor =
+<<<<<<< HEAD
         Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
     mEvictor = Evictor.Factory.create(mManagerView, allocator);
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+        ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+    mEvictor = Evictor.Factory.create(mManagerView, allocator);
+=======
+        ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+    mEvictor = Evictor.Factory.create(mMetadataView, allocator);
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
   }
 
   /**
@@ -165,10 +201,22 @@ public class LRFUEvictorTest {
     // to evict blocks from should be in the same order as sorted blockCRF
     for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
+<<<<<<< HEAD
           mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mManagerView);
       Assert.assertNotNull(plan);
       Assert.assertTrue(plan.toMove().isEmpty());
       Assert.assertEquals(1, plan.toEvict().size());
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+          mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mManagerView);
+      assertNotNull(plan);
+      assertTrue(plan.toMove().isEmpty());
+      assertEquals(1, plan.toEvict().size());
+=======
+          mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mMetadataView);
+      assertNotNull(plan);
+      assertTrue(plan.toMove().isEmpty());
+      assertEquals(1, plan.toEvict().size());
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
       long toEvictBlockId = plan.toEvict().get(0).getFirst();
       long objectBlockId = blockCRF.get(i).getKey();
       Assert.assertEquals(objectBlockId + " " + toEvictBlockId, objectBlockId, toEvictBlockId);
@@ -221,10 +269,22 @@ public class LRFUEvictorTest {
     // to move blocks from should be in the same order as sorted blockCRF
     for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
+<<<<<<< HEAD
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       Assert.assertEquals(0, plan.toEvict().size());
       Assert.assertEquals(1, plan.toMove().size());
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+      assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+      assertEquals(0, plan.toEvict().size());
+      assertEquals(1, plan.toMove().size());
+=======
+          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
+      assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+      assertEquals(0, plan.toEvict().size());
+      assertEquals(1, plan.toMove().size());
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
       long blockId = plan.toMove().get(0).getBlockId();
       long objectBlockId = blockCRF.get(i).getKey();
       Assert.assertEquals(objectBlockId, blockId);
@@ -298,8 +358,16 @@ public class LRFUEvictorTest {
     long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
     for (int i = 0; i < nDirInFirstTier; i++) {
       EvictionPlan plan =
+<<<<<<< HEAD
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+      assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+=======
+          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
+      assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
       // block with minimum CRF in the first tier needs to be moved to the second tier
       Assert.assertEquals(1, plan.toMove().size());
       long blockIdMovedInFirstTier = plan.toMove().get(0).getBlockId();

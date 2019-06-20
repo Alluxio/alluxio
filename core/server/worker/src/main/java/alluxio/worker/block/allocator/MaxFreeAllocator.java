@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.allocator;
 
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
@@ -26,21 +26,21 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MaxFreeAllocator implements Allocator {
-  private BlockMetadataManagerView mManagerView;
+  private BlockMetadataView mMetadataView;
 
   /**
    * Creates a new instance of {@link MaxFreeAllocator}.
    *
-   * @param view {@link BlockMetadataManagerView} to pass to the allocator
+   * @param view {@link BlockMetadataView} to pass to the allocator
    */
-  public MaxFreeAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view, "view");
+  public MaxFreeAllocator(BlockMetadataView view) {
+    mMetadataView = Preconditions.checkNotNull(view, "view");
   }
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view, "view");
+      BlockStoreLocation location, BlockMetadataView metadataView) {
+    mMetadataView = Preconditions.checkNotNull(metadataView, "view");
     return allocateBlock(sessionId, blockSize, location);
   }
 
@@ -51,9 +51,8 @@ public final class MaxFreeAllocator implements Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return a {@link StorageDirView} in which to create the temp block meta if success, null
-   *         otherwise
-   * @throws IllegalArgumentException if block location is invalid
+   * @return a {@link StorageDirView} in which to create the temp block meta if success,
+   *         null otherwise
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
@@ -61,17 +60,49 @@ public final class MaxFreeAllocator implements Allocator {
     StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
+<<<<<<< HEAD
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize);
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        candidateDirView = getCandidateDirInTier(tierView, blockSize,
+            BlockStoreLocation.ANY_MEDIUM);
+=======
+      for (StorageTierView tierView : mMetadataView.getTierViews()) {
+        candidateDirView = getCandidateDirInTier(tierView, blockSize,
+            BlockStoreLocation.ANY_MEDIUM);
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
         if (candidateDirView != null) {
           break;
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
+<<<<<<< HEAD
       StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
       candidateDirView = getCandidateDirInTier(tierView, blockSize);
-    } else {
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
       StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
+    } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
+        if (candidateDirView != null) {
+          break;
+        }
+      }
+=======
+      StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
+      candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
+    } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
+      for (StorageTierView tierView : mMetadataView.getTierViews()) {
+        candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
+        if (candidateDirView != null) {
+          break;
+        }
+      }
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+    } else {
+      StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       StorageDirView dirView = tierView.getDirView(location.dir());
       if (dirView.getAvailableBytes() >= blockSize) {
         candidateDirView = dirView;
@@ -88,7 +119,15 @@ public final class MaxFreeAllocator implements Allocator {
    * @param blockSize the size of block in bytes
    * @return the storage directory view if found, null otherwise
    */
+<<<<<<< HEAD
   private StorageDirView getCandidateDirInTier(StorageTierView tierView, long blockSize) {
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+  private StorageDirView getCandidateDirInTier(StorageTierView tierView, long blockSize,
+      String mediumType) {
+=======
+  private StorageDirView getCandidateDirInTier(StorageTierView tierView,
+      long blockSize, String mediumType) {
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     StorageDirView candidateDirView = null;
     long maxFreeBytes = blockSize - 1;
     for (StorageDirView dirView : tierView.getDirViews()) {

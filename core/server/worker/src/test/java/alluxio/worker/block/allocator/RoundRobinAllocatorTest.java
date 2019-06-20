@@ -27,8 +27,18 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
    */
   @Test
   public void allocateBlock() throws Exception {
+<<<<<<< HEAD
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
+        RoundRobinAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(getManagerView());
+=======
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
+        RoundRobinAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(getMetadataEvictorView());
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000

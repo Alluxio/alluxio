@@ -11,8 +11,18 @@
 
 package alluxio.worker.block.allocator;
 
+<<<<<<< HEAD
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+=======
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import alluxio.worker.block.BlockMetadataEvictorView;
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.meta.BlockMeta;
@@ -98,7 +108,7 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -126,7 +136,7 @@ public class AllocatorTestBase {
     mTestBlockId++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -146,7 +156,7 @@ public class AllocatorTestBase {
     }
   }
 
-  protected BlockMetadataManagerView getManagerView() {
-    return new BlockMetadataManagerView(mManager, new HashSet<Long>(), new HashSet<Long>());
+  protected BlockMetadataEvictorView getMetadataEvictorView() {
+    return new BlockMetadataEvictorView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
 }

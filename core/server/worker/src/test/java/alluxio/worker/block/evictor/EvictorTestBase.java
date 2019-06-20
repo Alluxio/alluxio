@@ -11,10 +11,18 @@
 
 package alluxio.worker.block.evictor;
 
+<<<<<<< HEAD
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
+=======
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockMetadataEvictorView;
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
@@ -29,7 +37,7 @@ import java.util.Collections;
  * Base class for unit tests of evictors.
  *
  * It provides some utilities and initializes an {@link Evictor}, a {@link BlockMetadataManager} and
- * a {@link BlockMetadataManagerView} for a default tiered storage defined in
+ * a {@link BlockMetadataEvictorView} for a default tiered storage defined in
  * {@link TieredBlockStoreTestUtils#defaultMetadataManagerView(String)}.
  */
 public class EvictorTestBase {
@@ -37,7 +45,7 @@ public class EvictorTestBase {
   protected static final long BLOCK_ID = 10;
 
   protected BlockMetadataManager mMetaManager;
-  protected BlockMetadataManagerView mManagerView;
+  protected BlockMetadataEvictorView mMetadataView;
   protected Evictor mEvictor;
   protected Allocator mAllocator;
 
@@ -63,7 +71,7 @@ public class EvictorTestBase {
 
   /**
    * Initialize an {@link Evictor}, a {@link BlockMetadataManager} and a
-   * {@link BlockMetadataManagerView} for a default tiered storage defined in
+   * {@link BlockMetadataEvictorView} for a default tiered storage defined in
    * {@link TieredBlockStoreTestUtils#defaultMetadataManagerView(String)}.
    *
    * @param evictorClassName class name of the specific evictor to be tested
@@ -71,12 +79,24 @@ public class EvictorTestBase {
   protected void init(String evictorClassName) throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
+    mMetadataView =
+        new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
+<<<<<<< HEAD
     Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.create(mManagerView);
     mEvictor = Evictor.Factory.create(mManagerView, mAllocator);
+||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(mManagerView);
+    mEvictor = Evictor.Factory.create(mManagerView, mAllocator);
+=======
+    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(mMetadataView);
+    mEvictor = Evictor.Factory.create(mMetadataView, mAllocator);
+>>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
   }
 }
