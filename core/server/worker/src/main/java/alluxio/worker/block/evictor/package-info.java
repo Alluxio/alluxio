@@ -20,12 +20,12 @@
  * All evictors implement {@link alluxio.worker.block.evictor.Evictor} interface. In order to evict
  * blocks by different policies, each evictor only need to implement
  * {@link alluxio.worker.block.evictor.Evictor#freeSpaceWithView(long,
- * alluxio.worker.block.BlockStoreLocation, alluxio.worker.block.BlockMetadataManagerView)}
+ * alluxio.worker.block.BlockStoreLocation, alluxio.worker.block.BlockMetadataEvictorView)}
  * method. When this method is called, blocks will be evicted or moved if no enough space left.
  *
  * <h3>Cascading Eviction</h3> Cascading Eviction means evict blocks recursively and is only called
  * in {@link alluxio.worker.block.evictor.Evictor#freeSpaceWithView(long,
- * alluxio.worker.block.BlockStoreLocation, alluxio.worker.block.BlockMetadataManagerView)}
+ * alluxio.worker.block.BlockStoreLocation, alluxio.worker.block.BlockMetadataEvictorView)}
  * method. Cascading Eviction will try to free space in next tier view where blocks need to be
  * transferred to, if the next tier view does not have enough free space to hold the blocks, the
  * next next tier view will be tried and so on until the bottom tier is reached, if blocks can not
@@ -41,7 +41,7 @@
  *
  * Eviction plan will be returned when
  * {@link alluxio.worker.block.evictor.Evictor#freeSpaceWithView(long,
- * alluxio.worker.block.BlockStoreLocation, alluxio.worker.block.BlockMetadataManagerView)}
+ * alluxio.worker.block.BlockStoreLocation, alluxio.worker.block.BlockMetadataEvictorView)}
  * is called. The eviction plan will return two block lists, one is the blocks to be removed
  * directly and another is the blocks to be moved to lower tier views.
  */

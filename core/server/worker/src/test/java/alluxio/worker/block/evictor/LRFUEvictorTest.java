@@ -17,8 +17,8 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -49,7 +49,7 @@ public class LRFUEvictorTest {
   private static final long BLOCK_ID = 10;
 
   private BlockMetadataManager mMetaManager;
-  private BlockMetadataManagerView mManagerView;
+  private BlockMetadataEvictorView mMetadataView;
   private Evictor mEvictor;
 
   private double mStepFactor;
@@ -66,16 +66,16 @@ public class LRFUEvictorTest {
   public final void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
+    mMetadataView =
+        new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
     ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(mManagerView);
+    Allocator allocator = Allocator.Factory.create(mMetadataView);
     mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
         ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
-    mEvictor = Evictor.Factory.create(mManagerView, allocator);
+    mEvictor = Evictor.Factory.create(mMetadataView, allocator);
   }
 
   /**
@@ -168,7 +168,7 @@ public class LRFUEvictorTest {
     // to evict blocks from should be in the same order as sorted blockCRF
     for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
-          mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mManagerView);
+          mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mMetadataView);
       assertNotNull(plan);
       assertTrue(plan.toMove().isEmpty());
       assertEquals(1, plan.toEvict().size());
@@ -224,7 +224,7 @@ public class LRFUEvictorTest {
     // to move blocks from should be in the same order as sorted blockCRF
     for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
-          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
       assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       assertEquals(0, plan.toEvict().size());
       assertEquals(1, plan.toMove().size());
@@ -301,7 +301,7 @@ public class LRFUEvictorTest {
     long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
     for (int i = 0; i < nDirInFirstTier; i++) {
       EvictionPlan plan =
-          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
       assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       // block with minimum CRF in the first tier needs to be moved to the second tier
       assertEquals(1, plan.toMove().size());
