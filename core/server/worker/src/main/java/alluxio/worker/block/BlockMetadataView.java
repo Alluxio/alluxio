@@ -24,12 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class exposes a narrower read-only view of storage metadata to Allocators.
+ * This class is an abstract class for allocators and evictors to extend to provide
+ * limited access to block metadata.
  */
-@NotThreadSafe
 public abstract class BlockMetadataView {
   /**
    * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the

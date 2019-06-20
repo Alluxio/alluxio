@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors,
- * filtering out un-Evictor blocks and un-allocatable space internally, so that evictors and
+ * filtering out un-evictable blocks and un-allocatable space internally, so that evictors and
  * allocators can be developed with much simpler logic, without worrying about various constraints,
  * e.g. pinned files, locked blocks, etc.
  *

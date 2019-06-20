@@ -18,7 +18,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This class is an abstract class for allocators and evictors to access to {@link StorageTier}.
+ * This class is an abstract class for allocators and evictors to extend to provide
+ * limited access to {@link StorageTier}.
  */
 public abstract class StorageTierView {
 
