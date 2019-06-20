@@ -68,7 +68,7 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[bottomTierLevel]);
     // free the StorageDir with max free space
     EvictionPlan plan =
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInBottomTier, mManagerView);
+        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInBottomTier, mMetadataView);
     assertNotNull(plan);
     assertTrue(plan.toMove().isEmpty());
     assertEquals(1, plan.toEvict().size());
@@ -96,7 +96,7 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
     BlockStoreLocation anyDirInFirstTier =
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[firstTierOrdinal]);
     EvictionPlan plan =
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
     assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
     assertEquals(0, plan.toEvict().size());
     assertEquals(1, plan.toMove().size());
@@ -131,7 +131,7 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
     }
 
     EvictionPlan plan =
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
     assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
     // block in StorageDir with max free space in the first tier needs to be moved to the second
     // tier

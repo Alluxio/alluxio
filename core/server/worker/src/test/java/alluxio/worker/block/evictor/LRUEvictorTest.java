@@ -71,7 +71,7 @@ public class LRUEvictorTest extends EvictorTestBase {
     // to evict blocks from should be in the same order as caching
     for (int i = nDir - 1; i >= 0; i--) {
       EvictionPlan plan =
-          mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mManagerView);
+          mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mMetadataView);
       assertNotNull(plan);
       assertTrue(plan.toMove().isEmpty());
       assertEquals(1, plan.toEvict().size());
@@ -102,7 +102,7 @@ public class LRUEvictorTest extends EvictorTestBase {
     long smallestCapacity = firstTierDirCapacity[0];
     for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
-          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
       assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       assertEquals(0, plan.toEvict().size());
       assertEquals(1, plan.toMove().size());
@@ -138,7 +138,7 @@ public class LRUEvictorTest extends EvictorTestBase {
     long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
     for (int i = 0; i < nDirInFirstTier; i++) {
       EvictionPlan plan =
-          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+          mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
       assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       // least recently used block in the first tier needs to be moved to the second tier
       assertEquals(1, plan.toMove().size());
@@ -178,7 +178,7 @@ public class LRUEvictorTest extends EvictorTestBase {
     BlockStoreLocation secondDirSecondTier = new BlockStoreLocation("SSD", 1, "SSD");
     BlockStoreLocation thirdDirSecondTier = new BlockStoreLocation("SSD", 2, "SSD");
 
-    EvictionPlan plan = mEvictor.freeSpaceWithView(blockSize * 2, anyDirInFirstTier, mManagerView);
+    EvictionPlan plan = mEvictor.freeSpaceWithView(blockSize * 2, anyDirInFirstTier, mMetadataView);
     assertNotNull(plan);
     assertEquals(0, plan.toEvict().size());
     assertEquals(2, plan.toMove().size());
@@ -204,7 +204,7 @@ public class LRUEvictorTest extends EvictorTestBase {
     // After caching more blocks, the free space looks like
     // First Tier 0, 0
     // Second Tier 0, 0, 1500
-    plan = mEvictor.freeSpaceWithView(blockSize * 3, anyDirInFirstTier, mManagerView);
+    plan = mEvictor.freeSpaceWithView(blockSize * 3, anyDirInFirstTier, mMetadataView);
     assertNotNull(plan);
     assertEquals(1, plan.toEvict().size());
     assertEquals(3, plan.toMove().size());
