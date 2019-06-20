@@ -46,7 +46,7 @@ public final class StorageTierEvictableView extends StorageTierView {
   /**
    * @return the block metadata manager view for this storage tier view
    */
-  public BlockMetadataEvictableView getBlockMetadataManagerView() {
+  public BlockMetadataEvictableView getBlockMetadataEvictableView() {
     return mManagerView;
   }
 }

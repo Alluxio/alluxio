@@ -41,7 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Unit tests for {@link BlockMetadataEvictableView}.
+ * Unit tests for {@link BlockMetadataView}.
  */
 public final class BlockMetadataViewTest {
   private static final int TEST_TIER_ORDINAL = 0;

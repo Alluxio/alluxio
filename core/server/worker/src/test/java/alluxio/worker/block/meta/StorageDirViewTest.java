@@ -65,14 +65,6 @@ public class StorageDirViewTest {
   }
 
   /**
-   * Tests the {@link StorageDirEvictableView#getDirViewIndex()} method.
-   */
-  @Test
-  public void getDirViewIndex() {
-    Assert.assertEquals(mTestDir.getDirIndex(), mTestDirView.getDirViewIndex());
-  }
-
-  /**
    * Tests the {@link StorageDirEvictableView#getParentTierView()} method.
    */
   @Test
@@ -81,23 +73,7 @@ public class StorageDirViewTest {
   }
 
   /**
-   * Tests the {@link StorageDirEvictableView#toBlockStoreLocation()} method.
-   */
-  @Test
-  public void toBlockStoreLocation() {
-    Assert.assertEquals(mTestDir.toBlockStoreLocation(), mTestDirView.toBlockStoreLocation());
-  }
-
-  /**
-   * Tests the {@link StorageDirEvictableView#getCapacityBytes()} method.
-   */
-  @Test
-  public void getCapacityBytes() {
-    Assert.assertEquals(mTestDir.getCapacityBytes(), mTestDirView.getCapacityBytes());
-  }
-
-  /**
-   * Tests the {@link StorageDirEvictableView#getAvailableBytes()} method.
+   * Tests the {@link StorageDirView#getAvailableBytes()} method.
    */
   @Test
   public void getAvailableBytes() {
@@ -105,11 +81,43 @@ public class StorageDirViewTest {
   }
 
   /**
-   * Tests the {@link StorageDirEvictableView#getCommittedBytes()} method.
+   * Tests the {@link StorageDirView#getCommittedBytes()} method.
    */
   @Test
   public void getCommittedBytes() {
     Assert.assertEquals(mTestDir.getCommittedBytes(), mTestDirView.getCommittedBytes());
+  }
+
+  /**
+   * Tests the {@link StorageDirView#getCapacityBytes()} method.
+   */
+  @Test
+  public void getCapacityBytes() {
+    Assert.assertEquals(mTestDir.getCapacityBytes(), mTestDirView.getCapacityBytes());
+  }
+
+  /**
+   * Tests the {@link StorageDirView#getDirViewIndex()} method.
+   */
+  @Test
+  public void getDirViewIndex() {
+    Assert.assertEquals(mTestDir.getDirIndex(), mTestDirView.getDirViewIndex());
+  }
+
+  /**
+   * Tests the {@link StorageDirView#getMediumType()} method.
+   */
+  @Test
+  public void getMediumType() {
+    Assert.assertEquals(mTestDir.getDirMedium(), mTestDirView.getMediumType());
+  }
+
+  /**
+   * Tests the {@link StorageDirView#toBlockStoreLocation()} method.
+   */
+  @Test
+  public void toBlockStoreLocation() {
+    Assert.assertEquals(mTestDir.toBlockStoreLocation(), mTestDirView.toBlockStoreLocation());
   }
 
   /**

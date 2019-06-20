@@ -26,12 +26,13 @@ import java.io.File;
 import java.util.HashSet;
 
 /**
- * Unit tests for {@link StorageTierEvictableView}.
+ * Unit tests for {@link StorageTierView}.
  */
 public class StorageTierViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private StorageTier mTestTier;
   private StorageTierEvictableView mTestTierView;
+  private BlockMetadataEvictableView mMetadataEvictableView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -49,11 +50,11 @@ public class StorageTierViewTest {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    BlockMetadataEvictableView metaManagerView =
+    mMetadataEvictableView =
         new BlockMetadataEvictableView(metaManager, new HashSet<Long>(),
             new HashSet<Long>());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
-    mTestTierView = new StorageTierEvictableView(mTestTier, metaManagerView);
+    mTestTierView = new StorageTierEvictableView(mTestTier, mMetadataEvictableView);
   }
 
   /**
@@ -99,5 +100,13 @@ public class StorageTierViewTest {
   @Test
   public void getTierViewOrdinal() {
     Assert.assertEquals(mTestTier.getTierOrdinal(), mTestTierView.getTierViewOrdinal());
+  }
+
+  /**
+   * Tests the {@link StorageTierEvictableView#getTierViewOrdinal()} method.
+   */
+  @Test
+  public void getBlockMetadataEvictableView() {
+    Assert.assertEquals(mMetadataEvictableView, mTestTierView.getBlockMetadataEvictableView());
   }
 }
