@@ -27,6 +27,7 @@ import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -40,13 +41,16 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A job that persists a file into the under storage.
@@ -131,30 +135,38 @@ public final class PersistDefinition
         AlluxioURI dstPath = new AlluxioURI(ufsPath);
         // Create ancestor directories from top to the bottom. We cannot use recursive create
         // parents here because the permission for the ancestors can be different.
-        Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
+        Stack<Pair<String, String>> ancestorUfsAndAlluxioPaths = new Stack<>();
         AlluxioURI curAlluxioPath = uri.getParent();
         AlluxioURI curUfsPath = dstPath.getParent();
         // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not
         // exist.
         while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
-          URIStatus curDirStatus = context.getFileSystem().getStatus(curAlluxioPath);
-          ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
-              MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
-                  .setOwner(curDirStatus.getOwner())
-                  .setGroup(curDirStatus.getGroup())
-                  .setMode(new Mode((short) curDirStatus.getMode()))));
+          ancestorUfsAndAlluxioPaths.push(
+              new Pair<>(curUfsPath.toString(), curAlluxioPath.toString()));
+
           curAlluxioPath = curAlluxioPath.getParent();
           curUfsPath = curUfsPath.getParent();
         }
-        while (!ufsDirsToMakeWithOptions.empty()) {
-          Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+        while (!ancestorUfsAndAlluxioPaths.empty()) {
+          Pair<String, String> ancestorUfsAndAlluxioPath = ancestorUfsAndAlluxioPaths.pop();
+          String ancestorUfsPath = ancestorUfsAndAlluxioPath.getFirst();
+          String ancestorAlluxioPath = ancestorUfsAndAlluxioPath.getSecond();
+          URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(ancestorAlluxioPath));
+          MkdirsOptions mkdirOptions = MkdirsOptions.defaults(ServerConfiguration.global())
+              .setCreateParent(false)
+              .setOwner(status.getOwner())
+              .setGroup(status.getGroup())
+              .setMode(new Mode((short) status.getMode()));
           // UFS mkdirs might fail if the directory is already created. If so, skip the mkdirs
           // and assume the directory is already prepared, regardless of permission matching.
-          if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())
-              && !ufs.isDirectory(ufsDirAndPerm.getFirst())) {
+          if (ufs.mkdirs(ancestorUfsPath, mkdirOptions)) {
+            List<AclEntry> allAcls = Stream.concat(status.getDefaultAcl().getEntries().stream(),
+                status.getAcl().getEntries().stream()).collect(Collectors.toList());
+            ufs.setAclEntries(ancestorUfsPath, allAcls);
+          } else if (!ufs.isDirectory(ancestorUfsPath)) {
             throw new IOException(
-                "Failed to create " + ufsDirAndPerm.getFirst() + " with permission " + ufsDirAndPerm
-                    .getSecond().toString());
+                "Failed to create " + ufsPath + " with permission " + options.toString()
+                + " because its ancestor " + ancestorUfsPath + " is not a directory");
           }
         }
         OutputStream out = closer.register(
