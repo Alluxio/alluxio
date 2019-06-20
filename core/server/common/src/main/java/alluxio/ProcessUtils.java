@@ -37,11 +37,13 @@ public final class ProcessUtils {
       System.exit(0);
     } catch (Throwable t) {
       LOG.error("Uncaught exception while running {}, stopping it and exiting.", process, t);
+      LOG.error("Root cause of the exception: ", ExceptionUtils.getRootCause(t));
       try {
         process.stop();
       } catch (Throwable t2) {
         // continue to exit
         LOG.error("Uncaught exception while stopping {}, simply exiting.", process, t2);
+        LOG.error("Root cause of the exception: ", ExceptionUtils.getRootCause(t2));
       }
       System.exit(-1);
     }
