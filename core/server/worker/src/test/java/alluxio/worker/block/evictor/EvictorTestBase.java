@@ -37,7 +37,7 @@ public class EvictorTestBase {
   protected static final long BLOCK_ID = 10;
 
   protected BlockMetadataManager mMetaManager;
-  protected BlockMetadataEvictorView mManagerView;
+  protected BlockMetadataEvictorView mMetadataView;
   protected Evictor mEvictor;
   protected Allocator mAllocator;
 
@@ -71,12 +71,12 @@ public class EvictorTestBase {
   protected void init(String evictorClassName) throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView =
+    mMetadataView =
         new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
     ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(mManagerView);
-    mEvictor = Evictor.Factory.create(mManagerView, mAllocator);
+    mAllocator = Allocator.Factory.create(mMetadataView);
+    mEvictor = Evictor.Factory.create(mMetadataView, mAllocator);
   }
 }

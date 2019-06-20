@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Tests for the {@link StorageDirEvictorView} class.
+ * Tests for the {@link StorageDirView} class.
  */
 public class StorageDirViewTest {
   private static final int TEST_TIER_LEVEL = 0;
@@ -41,7 +41,7 @@ public class StorageDirViewTest {
   private StorageDir mTestDir;
   private StorageDirEvictorView mTestDirView;
   private StorageTierEvictorView mTestTierView;
-  private BlockMetadataEvictorView mMetaManagerView;
+  private BlockMetadataEvictorView mMetadataView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -55,13 +55,13 @@ public class StorageDirViewTest {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mMetaManagerView =
+    mMetadataView =
         Mockito.spy(new BlockMetadataEvictorView(metaManager, new HashSet<Long>(),
           new HashSet<Long>()));
     StorageTier testTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestDir = testTier.getDir(TEST_DIR);
-    mTestTierView = new StorageTierEvictorView(testTier, mMetaManagerView);
-    mTestDirView = new StorageDirEvictorView(mTestDir, mTestTierView, mMetaManagerView);
+    mTestTierView = new StorageTierEvictorView(testTier, mMetadataView);
+    mTestDirView = new StorageDirEvictorView(mTestDir, mTestTierView, mMetadataView);
   }
 
   /**
@@ -124,40 +124,40 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirEvictorView#getEvictableBlocks()} method.
    */
   @Test
-  public void getEvictorBlocks() throws Exception {
-    // When test dir is empty, expect no block to be Evictor
+  public void getEvictableBlocks() throws Exception {
+    // When test dir is empty, expect no block to be evictable
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
-    // Add one block to test dir, expect this block to be Evictor
+    // Add one block to test dir, expect this block to be evictable
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mTestDir);
     mTestDir.addBlockMeta(blockMeta);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),
         CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
 
-    // Lock this block, expect this block to be non-Evictor
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
+    // Lock this block, expect this block to be non-evictable
+    Mockito.when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
+    Mockito.when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
-    // Pin this block, expect this block to be non-Evictor
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
+    // Pin this block, expect this block to be non-evictable
+    Mockito.when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
+    Mockito.when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
-    // Release pin/lock, expect this block to be Evictor
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
+    // Release pin/lock, expect this block to be evictable
+    Mockito.when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
+    Mockito.when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),
         CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
   }
 
   /**
-   * Tests the {@link StorageDirEvictorView#createTempBlockMeta(long, long, long)} method.
+   * Tests the {@link StorageDirView#createTempBlockMeta(long, long, long)} method.
    */
   @Test
   public void createTempBlockMeta() {

@@ -215,7 +215,7 @@ public final class TieredBlockStoreTestUtils {
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
-   * @return the created metadata manager view
+   * @return the created metadata evictor view
    */
   public static BlockMetadataEvictorView defaultMetadataManagerView(String baseDir)
       throws Exception {

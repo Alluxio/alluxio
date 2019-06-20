@@ -58,7 +58,7 @@ public class LRUEvictor extends AbstractEvictor {
     super(view, allocator);
 
     // preload existing blocks loaded by StorageDir to Evictor
-    for (StorageTierView tierView : mManagerView.getTierViews()) {
+    for (StorageTierView tierView : mMetadataView.getTierViews()) {
       for (StorageDirView dirView : tierView.getDirViews()) {
         for (BlockMeta blockMeta : ((StorageDirEvictorView) dirView)
             .getEvictableBlocks()) { // all blocks with initial view

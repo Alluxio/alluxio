@@ -32,7 +32,7 @@ public class StorageTierViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private StorageTier mTestTier;
   private StorageTierEvictorView mTestTierView;
-  private BlockMetadataEvictorView mMetadataEvictorView;
+  private BlockMetadataEvictorView mMetadataView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -50,11 +50,11 @@ public class StorageTierViewTest {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mMetadataEvictorView =
+    mMetadataView =
         new BlockMetadataEvictorView(metaManager, new HashSet<Long>(),
             new HashSet<Long>());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
-    mTestTierView = new StorageTierEvictorView(mTestTier, mMetadataEvictorView);
+    mTestTierView = new StorageTierEvictorView(mTestTier, mMetadataView);
   }
 
   /**
@@ -107,6 +107,6 @@ public class StorageTierViewTest {
    */
   @Test
   public void getBlockMetadataEvictorView() {
-    Assert.assertEquals(mMetadataEvictorView, mTestTierView.getBlockMetadataEvictorView());
+    Assert.assertEquals(mMetadataView, mTestTierView.getBlockMetadataEvictorView());
   }
 }

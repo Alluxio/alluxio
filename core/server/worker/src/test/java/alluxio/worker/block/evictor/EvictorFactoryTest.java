@@ -35,7 +35,7 @@ import java.util.Collections;
  */
 public class EvictorFactoryTest {
   private static BlockMetadataManager sBlockMetadataManager;
-  private static BlockMetadataEvictorView sBlockMetadataManagerView;
+  private static BlockMetadataEvictorView sBlockMetadataView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -47,12 +47,12 @@ public class EvictorFactoryTest {
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
-    if (sBlockMetadataManagerView == null) {
+    if (sBlockMetadataView == null) {
       if (sBlockMetadataManager == null) {
         sBlockMetadataManager =
             TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
       }
-      sBlockMetadataManagerView = new BlockMetadataEvictorView(sBlockMetadataManager,
+      sBlockMetadataView = new BlockMetadataEvictorView(sBlockMetadataManager,
           Collections.<Long>emptySet(), Collections.<Long>emptySet());
     }
   }
@@ -71,8 +71,8 @@ public class EvictorFactoryTest {
   public void createGreedyEvictor() {
     ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
+    Allocator allocator = Allocator.Factory.create(sBlockMetadataView);
+    Evictor evictor = Evictor.Factory.create(sBlockMetadataView, allocator);
     Assert.assertTrue(evictor instanceof GreedyEvictor);
   }
 
@@ -85,8 +85,8 @@ public class EvictorFactoryTest {
   public void createLRUEvictor() {
     ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
+    Allocator allocator = Allocator.Factory.create(sBlockMetadataView);
+    Evictor evictor = Evictor.Factory.create(sBlockMetadataView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 
@@ -98,8 +98,8 @@ public class EvictorFactoryTest {
   @Test
   public void createDefaultEvictor() {
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
+    Allocator allocator = Allocator.Factory.create(sBlockMetadataView);
+    Evictor evictor = Evictor.Factory.create(sBlockMetadataView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 }

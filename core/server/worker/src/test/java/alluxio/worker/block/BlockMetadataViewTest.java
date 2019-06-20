@@ -50,7 +50,7 @@ public final class BlockMetadataViewTest {
   private static final long TEST_BLOCK_SIZE = 20;
 
   private BlockMetadataManager mMetaManager;
-  private BlockMetadataEvictorView mMetaManagerView;
+  private BlockMetadataEvictorView mMetadataView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -67,7 +67,7 @@ public final class BlockMetadataViewTest {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mMetaManagerView = spy(new BlockMetadataEvictorView(mMetaManager,
+    mMetadataView = spy(new BlockMetadataEvictorView(mMetaManager,
         new HashSet<Long>(), new HashSet<Long>()));
   }
 
@@ -78,7 +78,7 @@ public final class BlockMetadataViewTest {
   public void getTierView() {
     for (StorageTier tier : mMetaManager.getTiers()) {
       String tierAlias = tier.getTierAlias();
-      StorageTierView tierView = mMetaManagerView.getTierView(tierAlias);
+      StorageTierView tierView = mMetadataView.getTierView(tierAlias);
       assertEquals(tier.getTierAlias(), tierView.getTierViewAlias());
       assertEquals(tier.getTierOrdinal(), tierView.getTierViewOrdinal());
     }
@@ -89,7 +89,7 @@ public final class BlockMetadataViewTest {
    */
   @Test
   public void getTierViews() {
-    assertEquals(mMetaManager.getTiers().size(), mMetaManagerView.getTierViews().size());
+    assertEquals(mMetaManager.getTiers().size(), mMetadataView.getTierViews().size());
   }
 
   /**
@@ -100,7 +100,7 @@ public final class BlockMetadataViewTest {
     for (StorageTier tier : mMetaManager.getTiers()) {
       String tierAlias = tier.getTierAlias();
       assertEquals(mMetaManager.getTiersBelow(tierAlias).size(),
-          mMetaManagerView.getTierViewsBelow(tierAlias).size());
+          mMetadataView.getTierViewsBelow(tierAlias).size());
     }
   }
 
@@ -113,18 +113,18 @@ public final class BlockMetadataViewTest {
     // When location represents anyTier
     location = BlockStoreLocation.anyTier();
     assertEquals(mMetaManager.getAvailableBytes(location),
-        mMetaManagerView.getAvailableBytes(location));
+        mMetadataView.getAvailableBytes(location));
     // When location represents one particular tier
     for (StorageTier tier : mMetaManager.getTiers()) {
       String tierAlias = tier.getTierAlias();
       location = BlockStoreLocation.anyDirInTier(tierAlias);
       assertEquals(mMetaManager.getAvailableBytes(location),
-          mMetaManagerView.getAvailableBytes(location));
+          mMetadataView.getAvailableBytes(location));
       for (StorageDir dir : tier.getStorageDirs()) {
         // When location represents one particular dir
         location = dir.toBlockStoreLocation();
         assertEquals(mMetaManager.getAvailableBytes(location),
-            mMetaManagerView.getAvailableBytes(location));
+            mMetadataView.getAvailableBytes(location));
       }
     }
   }
@@ -137,7 +137,7 @@ public final class BlockMetadataViewTest {
   public void getBlockMetaNotExisting() throws BlockDoesNotExistException {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
-    mMetaManagerView.getBlockMeta(TEST_BLOCK_ID);
+    mMetadataView.getBlockMeta(TEST_BLOCK_ID);
   }
 
   /**
@@ -149,7 +149,7 @@ public final class BlockMetadataViewTest {
     String badTierAlias = "HDD";
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(badTierAlias));
-    mMetaManagerView.getTierView(badTierAlias);
+    mMetadataView.getTierView(badTierAlias);
   }
 
   /**
@@ -162,26 +162,26 @@ public final class BlockMetadataViewTest {
     // Add one block to test dir, expect block meta found
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
     dir.addBlockMeta(blockMeta);
-    assertEquals(blockMeta, mMetaManagerView.getBlockMeta(TEST_BLOCK_ID));
-    assertTrue(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
+    assertEquals(blockMeta, mMetadataView.getBlockMeta(TEST_BLOCK_ID));
+    assertTrue(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
 
     // Lock this block, expect null result
-    when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
-    when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
-    assertNull(mMetaManagerView.getBlockMeta(TEST_BLOCK_ID));
-    assertFalse(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
+    when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
+    when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
+    assertNull(mMetadataView.getBlockMeta(TEST_BLOCK_ID));
+    assertFalse(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
 
     // Pin this block, expect null result
-    when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
-    when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
-    assertNull(mMetaManagerView.getBlockMeta(TEST_BLOCK_ID));
-    assertFalse(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
+    when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
+    when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
+    assertNull(mMetadataView.getBlockMeta(TEST_BLOCK_ID));
+    assertFalse(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
 
     // No Pin or lock on this block, expect block meta found
-    when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
-    when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
-    assertEquals(blockMeta, mMetaManagerView.getBlockMeta(TEST_BLOCK_ID));
-    assertTrue(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
+    when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
+    when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
+    assertEquals(blockMeta, mMetadataView.getBlockMeta(TEST_BLOCK_ID));
+    assertTrue(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
   }
 
   /**
@@ -193,31 +193,31 @@ public final class BlockMetadataViewTest {
     long inode = BlockId.getFileId(TEST_BLOCK_ID);
 
     // With no pinned and locked blocks
-    assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
-    assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
+    assertFalse(mMetadataView.isBlockLocked(TEST_BLOCK_ID));
+    assertFalse(mMetadataView.isBlockPinned(TEST_BLOCK_ID));
 
-    // Pin block by passing its inode to mMetaManagerView
+    // Pin block by passing its inode to mMetadataView
     HashSet<Long> pinnedInodes = new HashSet<>();
     Collections.addAll(pinnedInodes, inode);
-    mMetaManagerView =
+    mMetadataView =
         new BlockMetadataEvictorView(mMetaManager, pinnedInodes, new HashSet<Long>());
-    assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
-    assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
+    assertFalse(mMetadataView.isBlockLocked(TEST_BLOCK_ID));
+    assertTrue(mMetadataView.isBlockPinned(TEST_BLOCK_ID));
 
     // lock block
     HashSet<Long> testBlockIdSet = new HashSet<>();
     Collections.addAll(testBlockIdSet, TEST_BLOCK_ID);
     Collections.addAll(pinnedInodes, TEST_BLOCK_ID);
-    mMetaManagerView = new BlockMetadataEvictorView(mMetaManager, new HashSet<Long>(),
+    mMetadataView = new BlockMetadataEvictorView(mMetaManager, new HashSet<Long>(),
         testBlockIdSet);
-    assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
-    assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
+    assertTrue(mMetadataView.isBlockLocked(TEST_BLOCK_ID));
+    assertFalse(mMetadataView.isBlockPinned(TEST_BLOCK_ID));
 
     // Pin and lock block
-    mMetaManagerView = new BlockMetadataEvictorView(mMetaManager, pinnedInodes,
+    mMetadataView = new BlockMetadataEvictorView(mMetaManager, pinnedInodes,
         testBlockIdSet);
-    assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
-    assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
+    assertTrue(mMetadataView.isBlockLocked(TEST_BLOCK_ID));
+    assertTrue(mMetadataView.isBlockPinned(TEST_BLOCK_ID));
   }
 
   /**
@@ -249,7 +249,7 @@ public final class BlockMetadataViewTest {
   @Test
   public void sameTierView() {
     String tierAlias = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getTierAlias();
-    StorageTierView tierView1 = mMetaManagerView.getTierView(tierAlias);
+    StorageTierView tierView1 = mMetadataView.getTierView(tierAlias);
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getDir(TEST_DIR);
@@ -260,7 +260,7 @@ public final class BlockMetadataViewTest {
       e.printStackTrace();
     }
     StorageTierEvictorView tierView2 =
-        new StorageTierEvictorView(mMetaManager.getTier(tierAlias), mMetaManagerView);
+        new StorageTierEvictorView(mMetaManager.getTier(tierAlias), mMetadataView);
     assertSameTierView((StorageTierEvictorView) tierView1, tierView2);
   }
 
@@ -271,7 +271,7 @@ public final class BlockMetadataViewTest {
   @Test
   public void sameTierViewsBelow() {
     String tierAlias = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getTierAlias();
-    List<StorageTierView> tierViews1 = mMetaManagerView.getTierViewsBelow(tierAlias);
+    List<StorageTierView> tierViews1 = mMetadataView.getTierViewsBelow(tierAlias);
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL + 1).getDir(TEST_DIR);
@@ -285,7 +285,7 @@ public final class BlockMetadataViewTest {
     assertEquals(tierViews1.size(), tiers2.size());
     for (int i = 0; i < tierViews1.size(); i++) {
       assertSameTierView((StorageTierEvictorView) tierViews1.get(i),
-          new StorageTierEvictorView(tiers2.get(i), mMetaManagerView));
+          new StorageTierEvictorView(tiers2.get(i), mMetadataView));
     }
   }
 }

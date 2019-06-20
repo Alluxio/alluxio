@@ -102,7 +102,7 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -130,7 +130,7 @@ public class AllocatorTestBase {
     mTestBlockId++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -150,7 +150,7 @@ public class AllocatorTestBase {
     }
   }
 
-  protected BlockMetadataEvictorView getManagerView() {
+  protected BlockMetadataEvictorView getMetadataEvictorView() {
     return new BlockMetadataEvictorView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
 }

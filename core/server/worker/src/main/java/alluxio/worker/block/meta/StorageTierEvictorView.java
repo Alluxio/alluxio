@@ -23,11 +23,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class StorageTierEvictorView extends StorageTierView {
 
-  /** The {@link BlockMetadataEvictorView} this {@link StorageTierEvictableView} is under. */
-  private final BlockMetadataEvictorView mManagerView;
+  /** The {@link BlockMetadataEvictorView} this {@link StorageTierEvictorView} is under. */
+  private final BlockMetadataEvictorView mMetadataView;
 
   /**
-   * Creates a {@link StorageTierEvictableView} using the actual {@link StorageTier} and the above
+   * Creates a {@link StorageTierEvictorView} using the actual {@link StorageTier} and the above
    * {@link BlockMetadataEvictorView}.
    *
    * @param tier which the tierView is constructed from
@@ -35,7 +35,7 @@ public class StorageTierEvictorView extends StorageTierView {
    */
   public StorageTierEvictorView(StorageTier tier, BlockMetadataEvictorView view) {
     super(tier);
-    mManagerView = Preconditions.checkNotNull(view, "view");
+    mMetadataView = Preconditions.checkNotNull(view, "view");
 
     for (StorageDir dir : mTier.getStorageDirs()) {
       StorageDirEvictorView dirView = new StorageDirEvictorView(dir, this, view);
@@ -47,6 +47,6 @@ public class StorageTierEvictorView extends StorageTierView {
    * @return the block metadata evictor view for this storage tier view
    */
   public BlockMetadataEvictorView getBlockMetadataEvictorView() {
-    return mManagerView;
+    return mMetadataView;
   }
 }

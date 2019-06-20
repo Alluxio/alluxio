@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This class is a wrapper of {@link StorageDir} to provide more limited access.
+ * This class is a wrapper of {@link StorageDir} to provide more limited access for evictors.
  */
 public class StorageDirEvictorView extends StorageDirView {
   /** The {@link BlockMetadataEvictorView} this view is associated with. */
-  private final BlockMetadataEvictorView mManagerView;
+  private final BlockMetadataEvictorView mMetadataView;
 
   // The below data structures are used by the evictor to mark blocks to move in/out during
   // generating an eviction plan.
@@ -45,7 +45,7 @@ public class StorageDirEvictorView extends StorageDirView {
   public StorageDirEvictorView(StorageDir dir, StorageTierEvictorView tierView,
       BlockMetadataEvictorView managerView) {
     super(dir, tierView);
-    mManagerView = Preconditions.checkNotNull(managerView, "view");
+    mMetadataView = Preconditions.checkNotNull(managerView, "view");
   }
 
   @Override
@@ -63,7 +63,7 @@ public class StorageDirEvictorView extends StorageDirView {
 
     for (BlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
-      if (mManagerView.isBlockEvictable(blockId)) {
+      if (mMetadataView.isBlockEvictable(blockId)) {
         filteredList.add(blockMeta);
       }
     }
@@ -79,7 +79,7 @@ public class StorageDirEvictorView extends StorageDirView {
     long bytes = 0;
     for (BlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
-      if (mManagerView.isBlockEvictable(blockId)) {
+      if (mMetadataView.isBlockEvictable(blockId)) {
         bytes += blockMeta.getBlockSize();
       }
     }

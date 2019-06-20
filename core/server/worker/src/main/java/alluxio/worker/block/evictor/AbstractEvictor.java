@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractEvictor.class);
   protected final Allocator mAllocator;
-  protected BlockMetadataEvictorView mManagerView;
+  protected BlockMetadataEvictorView mMetadataView;
 
   /**
    * Creates a new instance of {@link AbstractEvictor}.
@@ -48,7 +48,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
    * @param allocator an allocation policy
    */
   public AbstractEvictor(BlockMetadataEvictorView view, Allocator allocator) {
-    mManagerView = Preconditions.checkNotNull(view, "view");
+    mMetadataView = Preconditions.checkNotNull(view, "view");
     mAllocator = Preconditions.checkNotNull(allocator, "allocator");
   }
 
@@ -79,7 +79,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     // 1. If bytesToBeAvailable can already be satisfied without eviction, return the eligible
     // StoargeDirView
     StorageDirEvictorView candidateDirView = (StorageDirEvictorView)
-        EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
+        EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mMetadataView);
     if (candidateDirView != null) {
       return candidateDirView;
     }
@@ -92,12 +92,12 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
       long blockId = it.next();
       try {
-        BlockMeta block = mManagerView.getBlockMeta(blockId);
+        BlockMeta block = mMetadataView.getBlockMeta(blockId);
         if (block != null) { // might not present in this view
           if (block.getBlockLocation().belongsTo(location)) {
             String tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
-            dirCandidates.add((StorageDirEvictorView) mManagerView.getTierView(tierAlias)
+            dirCandidates.add((StorageDirEvictorView) mMetadataView.getTierView(tierAlias)
                 .getDirView(dirIndex), blockId, block.getBlockSize());
           }
         }
@@ -122,12 +122,12 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     }
     List<Long> candidateBlocks = dirCandidates.candidateBlocks();
     StorageTierView nextTierView
-        = mManagerView.getNextTier(candidateDirView.getParentTierView());
+        = mMetadataView.getNextTier(candidateDirView.getParentTierView());
     if (nextTierView == null) {
       // This is the last tier, evict all the blocks.
       for (Long blockId : candidateBlocks) {
         try {
-          BlockMeta block = mManagerView.getBlockMeta(blockId);
+          BlockMeta block = mMetadataView.getBlockMeta(blockId);
           if (block != null) {
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             plan.toEvict().add(new Pair<>(blockId, candidateDirView.toBlockStoreLocation()));
@@ -139,14 +139,14 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     } else {
       for (Long blockId : candidateBlocks) {
         try {
-          BlockMeta block = mManagerView.getBlockMeta(blockId);
+          BlockMeta block = mMetadataView.getBlockMeta(blockId);
           if (block == null) {
             continue;
           }
           StorageDirEvictorView nextDirView
               = (StorageDirEvictorView) mAllocator.allocateBlockWithView(
                   Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
-                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
+                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mMetadataView);
           if (nextDirView == null) {
             nextDirView = cascadingEvict(block.getBlockSize(),
                 BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan, mode);
@@ -180,14 +180,14 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataEvictorView view, Mode mode) {
-    mManagerView = view;
+    mMetadataView = view;
 
     List<BlockTransferInfo> toMove = new ArrayList<>();
     List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
     StorageDirEvictorView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, mode);
 
-    mManagerView.clearBlockMarks();
+    mMetadataView.clearBlockMarks();
     if (candidateDir == null) {
       return null;
     }

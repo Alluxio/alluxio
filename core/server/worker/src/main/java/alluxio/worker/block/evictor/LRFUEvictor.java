@@ -79,7 +79,7 @@ public final class LRFUEvictor extends AbstractEvictor {
         "Attenuation factor should be no less than 2.0");
 
     // Preloading blocks
-    for (StorageTierView tier : mManagerView.getTierViews()) {
+    for (StorageTierView tier : mMetadataView.getTierViews()) {
       for (StorageDirView dir : tier.getDirViews()) {
         for (BlockMeta block : ((StorageDirEvictorView) dir).getEvictableBlocks()) {
           mBlockIdToLastUpdateTime.put(block.getBlockId(), 0L);
@@ -106,7 +106,7 @@ public final class LRFUEvictor extends AbstractEvictor {
       BlockMetadataEvictorView view, Mode mode) {
     synchronized (mBlockIdToLastUpdateTime) {
       updateCRFValue();
-      mManagerView = view;
+      mMetadataView = view;
 
       List<BlockTransferInfo> toMove = new ArrayList<>();
       List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
@@ -114,7 +114,7 @@ public final class LRFUEvictor extends AbstractEvictor {
       StorageDirEvictorView candidateDir
           = cascadingEvict(bytesToBeAvailable, location, plan, mode);
 
-      mManagerView.clearBlockMarks();
+      mMetadataView.clearBlockMarks();
       if (candidateDir == null) {
         return null;
       }

@@ -31,16 +31,16 @@ public final class EvictorUtils {
    *
    * @param bytesToBeAvailable space size to be requested
    * @param location location that the space will be allocated in
-   * @param mManagerView a view of block metadata information
+   * @param metadataView a view of block metadata information
    * @return the {@link StorageDirView} selected
    */
   public static StorageDirView getDirWithMaxFreeSpace(long bytesToBeAvailable,
-      BlockStoreLocation location, BlockMetadataEvictorView mManagerView) {
+      BlockStoreLocation location, BlockMetadataEvictorView metadataView) {
     long maxFreeSize = -1;
     StorageDirView selectedDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
+      for (StorageTierView tierView : metadataView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
               && dirView.getAvailableBytes() > maxFreeSize) {
@@ -51,7 +51,7 @@ public final class EvictorUtils {
       }
     } else {
       String tierAlias = location.tierAlias();
-      StorageTierView tierView = mManagerView.getTierView(tierAlias);
+      StorageTierView tierView = metadataView.getTierView(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
