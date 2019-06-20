@@ -16,6 +16,7 @@ import alluxio.worker.block.BlockMetadataEvictableView;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 
 /**
  * This class is a wrapper of {@link StorageTier} to provide more limited access.
@@ -33,14 +34,9 @@ public final class StorageTierEvictableView extends StorageTierView {
    * @param tier which the tierView is constructed from
    * @param view the {@link BlockMetadataEvictableView} this tierView is associated with
    */
-  public StorageTierEvictableView(StorageTier tier, BlockMetadataEvictableView view) {
-    super(tier, true);
+  public StorageTierEvictableView(StorageTier tier, List<StorageDirEvictableView> dirViews, BlockMetadataEvictableView view) {
+    super(tier, dirViews);
     mManagerView = Preconditions.checkNotNull(view, "view");
-
-    for (StorageDir dir : mTier.getStorageDirs()) {
-      StorageDirEvictableView dirView = new StorageDirEvictableView(dir, this, view);
-      mDirViews.add(dirView);
-    }
   }
 
   /**

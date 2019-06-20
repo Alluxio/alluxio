@@ -21,12 +21,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is a wrapper of {@link StorageDir} to provide more limited access.
  */
 @NotThreadSafe
-public class StorageDirView {
+public class StorageDirView<T extends StorageTierView> {
 
   /** The {@link StorageDir} this view is derived from. */
   final StorageDir mDir;
   /** The {@link StorageTierView} this view under. */
-  final StorageTierView mTierView;
+  final T mTierView;
 
   /**
    * Creates a {@link StorageDirView} using the actual {@link StorageDir}.
@@ -34,7 +34,7 @@ public class StorageDirView {
    * @param dir which the dirView is constructed from
    * @param tierView which the dirView is under
    */
-  public StorageDirView(StorageDir dir, StorageTierView tierView) {
+  public StorageDirView(StorageDir dir, T tierView) {
     mDir = Preconditions.checkNotNull(dir, "dir");
     mTierView = Preconditions.checkNotNull(tierView, "tierView");
   }
@@ -90,7 +90,7 @@ public class StorageDirView {
   /**
    * @return parent tier view
    */
-  public StorageTierView getParentTierView() {
+  public T getParentTierView() {
     return mTierView;
   }
 

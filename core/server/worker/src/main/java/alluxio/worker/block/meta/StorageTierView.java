@@ -13,7 +13,6 @@ package alluxio.worker.block.meta;
 
 import com.google.common.base.Preconditions;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,43 +22,28 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is a wrapper of {@link StorageTier} to provide more limited access.
  */
 @ThreadSafe
-public class StorageTierView {
+public class StorageTierView<T extends StorageDirView> {
 
   /** The {@link StorageTier} this view is derived from. */
   final StorageTier mTier;
   /** A list of {@link StorageDirView} under this StorageTierView. */
-  final List<StorageDirView> mDirViews = new ArrayList<>();
+  final List<T> mDirViews;
 
   /**
    * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
    *
    * @param tier which the tierView is constructed from
+   * @param dirViews a list of dirViews under this tierView
    */
-  public StorageTierView(StorageTier tier) {
-    this(tier, false);
-  }
-
-  /**
-   * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
-   *
-   * @param tier which the tierView is constructed from
-   * @param evictable whether this class contains evict-related methods
-   */
-  public StorageTierView(StorageTier tier, boolean evictable) {
+  public StorageTierView(StorageTier tier, List<T> dirViews) {
     mTier = Preconditions.checkNotNull(tier, "tier");
-
-    if (!evictable) {
-      for (StorageDir dir : mTier.getStorageDirs()) {
-        StorageDirView dirView = new StorageDirView(dir, this);
-        mDirViews.add(dirView);
-      }
-    }
+    mDirViews = dirViews;
   }
 
   /**
    * @return a list of directory views in this storage tier view
    */
-  public List<StorageDirView> getDirViews() {
+  public List<T> getDirViews() {
     return Collections.unmodifiableList(mDirViews);
   }
 
@@ -69,7 +53,7 @@ public class StorageTierView {
    * @param dirIndex the directory view index
    * @return a directory view
    */
-  public StorageDirView getDirView(int dirIndex) {
+  public T getDirView(int dirIndex) {
     return mDirViews.get(dirIndex);
   }
 

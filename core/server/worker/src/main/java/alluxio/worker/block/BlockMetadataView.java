@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.exception.ExceptionMessage;
+import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierEvictableView;
 import alluxio.worker.block.meta.StorageTierView;
@@ -45,26 +46,19 @@ public class BlockMetadataView {
    * Creates a new instance of {@link BlockMetadataView}.
    *
    * @param manager which the view should be constructed from
-   */
-  public BlockMetadataView(BlockMetadataManager manager) {
-    this(manager, false);
-  }
-
-  /**
-   * Creates a new instance of {@link BlockMetadataView}.
-   *
-   * @param manager which the view should be constructed from
    * @param evictable whether the view includes evict-related methods
    */
-  public BlockMetadataView(BlockMetadataManager manager, boolean evictable) {
+  public BlockMetadataView(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager, "manager");
+    for (StorageTier tier : manager.getTiers()) {
+      tier.getStorageDirs().stream().map(a -> new StorageDirView<StorageTierView>(a, this))
+          .
+      for (StorageDir dir : tier.getStorageDirs()) {
 
-    if (!evictable) {
-      for (StorageTier tier : manager.getTiers()) {
-        StorageTierView tierView = new StorageTierView(tier);
-        mTierViews.add(tierView);
-        mAliasToTierViews.put(tier.getTierAlias(), tierView);
       }
+      StorageTierView tierView = new StorageTierView(tier, List<StorageDirView>);
+      mTierViews.add(tierView);
+      mAliasToTierViews.put(tier.getTierAlias(), tierView);
     }
   }
 
