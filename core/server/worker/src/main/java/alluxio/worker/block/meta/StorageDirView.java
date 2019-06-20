@@ -15,13 +15,10 @@ import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
  * This class is a wrapper of {@link StorageDir} to provide more limited access.
  */
-@NotThreadSafe
-public class StorageDirView {
+public abstract class StorageDirView {
 
   /** The {@link StorageDir} this view is derived from. */
   final StorageDir mDir;
@@ -40,21 +37,19 @@ public class StorageDirView {
   }
 
   /**
+   * Gets available bytes for this dir.
+   *
+   * @return available bytes for this dir
+   */
+  public abstract long getAvailableBytes();
+
+  /**
    * Gets the index of this Dir.
    *
    * @return index of the dir
    */
   public int getDirViewIndex() {
     return mDir.getDirIndex();
-  }
-
-  /**
-   * Gets available bytes for this dir.
-   *
-   * @return available bytes for this dir
-   */
-  public long getAvailableBytes() {
-    return mDir.getAvailableBytes();
   }
 
   /**

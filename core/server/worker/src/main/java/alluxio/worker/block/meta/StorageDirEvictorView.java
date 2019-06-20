@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.block.BlockMetadataEvictableView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 
 import com.google.common.base.Preconditions;
 
@@ -20,17 +20,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
- * This class is a wrapper of {@link StorageDir} to provide more limited access and a filtered list
- * of blocks.
+ * This class is a wrapper of {@link StorageDir} to provide more limited access.
  */
-@NotThreadSafe
-public final class StorageDirEvictableView extends StorageDirView {
-
-  /** The {@link BlockMetadataEvictableView} this view is associated with. */
-  private final BlockMetadataEvictableView mManagerView;
+public class StorageDirEvictorView extends StorageDirView {
+  /** The {@link BlockMetadataEvictorView} this view is associated with. */
+  private final BlockMetadataEvictorView mManagerView;
 
   // The below data structures are used by the evictor to mark blocks to move in/out during
   // generating an eviction plan.
@@ -40,17 +35,22 @@ public final class StorageDirEvictableView extends StorageDirView {
   private long mBlocksToMoveOutSize = 0L;
 
   /**
-   * Creates a {@link StorageDirEvictableView} using the actual {@link StorageDir}
-   * and the associated {@link BlockMetadataEvictableView}.
+   * Creates a {@link StorageDirEvictorView} using the actual {@link StorageDir}
+   * and the associated {@link BlockMetadataEvictorView}.
    *
    * @param dir which the dirView is constructed from
    * @param tierView which the dirView is under
    * @param managerView which the dirView is associated with
    */
-  public StorageDirEvictableView(StorageDir dir, StorageTierEvictableView tierView,
-      BlockMetadataEvictableView managerView) {
+  public StorageDirEvictorView(StorageDir dir, StorageTierEvictorView tierView,
+      BlockMetadataEvictorView managerView) {
     super(dir, tierView);
-    mManagerView = Preconditions.checkNotNull(managerView, "managerView");
+    mManagerView = Preconditions.checkNotNull(managerView, "view");
+  }
+
+  @Override
+  public long getAvailableBytes() {
+    return mDir.getAvailableBytes() + mBlocksToMoveOutSize - mBlocksToMoveInSize;
   }
 
   /**
@@ -68,11 +68,6 @@ public final class StorageDirEvictableView extends StorageDirView {
       }
     }
     return filteredList;
-  }
-
-  @Override
-  public long getAvailableBytes() {
-    return mDir.getAvailableBytes() + mBlocksToMoveOutSize - mBlocksToMoveInSize;
   }
 
   /**

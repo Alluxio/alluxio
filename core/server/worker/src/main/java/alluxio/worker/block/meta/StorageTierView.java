@@ -17,13 +17,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * This class is a wrapper of {@link StorageTier} to provide more limited access.
+ * This class is an abstract class for allocators and evictors to access to {@link StorageTier}.
  */
-@ThreadSafe
-public class StorageTierView {
+public abstract class StorageTierView {
 
   /** The {@link StorageTier} this view is derived from. */
   final StorageTier mTier;
@@ -36,24 +33,7 @@ public class StorageTierView {
    * @param tier which the tierView is constructed from
    */
   public StorageTierView(StorageTier tier) {
-    this(tier, false);
-  }
-
-  /**
-   * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
-   *
-   * @param tier which the tierView is constructed from
-   * @param evictable whether this class contains evict-related methods
-   */
-  public StorageTierView(StorageTier tier, boolean evictable) {
     mTier = Preconditions.checkNotNull(tier, "tier");
-
-    if (!evictable) {
-      for (StorageDir dir : mTier.getStorageDirs()) {
-        StorageDirView dirView = new StorageDirView(dir, this);
-        mDirViews.add(dirView);
-      }
-    }
   }
 
   /**

@@ -12,7 +12,7 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.collections.Pair;
-import alluxio.worker.block.meta.StorageDirEvictableView;
+import alluxio.worker.block.meta.StorageDirEvictorView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,13 +34,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 class EvictionDirCandidates {
   /**
-   * Map from {@link StorageDirEvictableView} to pair of list of candidate blockIds
+   * Map from {@link StorageDirEvictorView} to pair of list of candidate blockIds
    * and their total size in bytes.
    */
-  private Map<StorageDirEvictableView, Pair<List<Long>, Long>> mDirCandidates = new HashMap<>();
+  private Map<StorageDirEvictorView, Pair<List<Long>, Long>> mDirCandidates = new HashMap<>();
   /** Maximum sum of available bytes in a StorageDir and all its added blocks. */
   private long mMaxBytes = 0;
-  private StorageDirEvictableView mDirWithMaxBytes = null;
+  private StorageDirEvictorView mDirWithMaxBytes = null;
 
   /**
    * Constructs a new {@link EvictionDirCandidates}.
@@ -54,7 +54,7 @@ class EvictionDirCandidates {
    * @param blockId blockId of the block
    * @param blockSizeBytes block size in bytes
    */
-  public void add(StorageDirEvictableView dir, long blockId, long blockSizeBytes) {
+  public void add(StorageDirEvictorView dir, long blockId, long blockSizeBytes) {
     Pair<List<Long>, Long> candidate;
     if (mDirCandidates.containsKey(dir)) {
       candidate = mDirCandidates.get(dir);
@@ -99,7 +99,7 @@ class EvictionDirCandidates {
    * @return the {@link alluxio.worker.block.meta.StorageDir} that has the maximum
    *         {@link #candidateSize()}, otherwise null if no directory has been added
    */
-  public StorageDirEvictableView candidateDir() {
+  public StorageDirEvictorView candidateDir() {
     return mDirWithMaxBytes;
   }
 }

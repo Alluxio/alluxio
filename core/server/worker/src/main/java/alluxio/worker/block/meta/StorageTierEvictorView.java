@@ -11,42 +11,42 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.block.BlockMetadataEvictableView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class is a wrapper of {@link StorageTier} to provide more limited access.
+ * This class is a wrapper of {@link StorageTier} to provide more limited access for evictors.
  */
 @ThreadSafe
-public final class StorageTierEvictableView extends StorageTierView {
+public class StorageTierEvictorView extends StorageTierView {
 
-  /** The {@link BlockMetadataEvictableView} this {@link StorageTierEvictableView} is under. */
-  private final BlockMetadataEvictableView mManagerView;
+  /** The {@link BlockMetadataEvictorView} this {@link StorageTierEvictableView} is under. */
+  private final BlockMetadataEvictorView mManagerView;
 
   /**
    * Creates a {@link StorageTierEvictableView} using the actual {@link StorageTier} and the above
-   * {@link BlockMetadataEvictableView}.
+   * {@link BlockMetadataEvictorView}.
    *
    * @param tier which the tierView is constructed from
-   * @param view the {@link BlockMetadataEvictableView} this tierView is associated with
+   * @param view the {@link BlockMetadataEvictorView} this tierView is associated with
    */
-  public StorageTierEvictableView(StorageTier tier, BlockMetadataEvictableView view) {
-    super(tier, true);
+  public StorageTierEvictorView(StorageTier tier, BlockMetadataEvictorView view) {
+    super(tier);
     mManagerView = Preconditions.checkNotNull(view, "view");
 
     for (StorageDir dir : mTier.getStorageDirs()) {
-      StorageDirEvictableView dirView = new StorageDirEvictableView(dir, this, view);
+      StorageDirEvictorView dirView = new StorageDirEvictorView(dir, this, view);
       mDirViews.add(dirView);
     }
   }
 
   /**
-   * @return the block metadata manager view for this storage tier view
+   * @return the block metadata evictor view for this storage tier view
    */
-  public BlockMetadataEvictableView getBlockMetadataEvictableView() {
+  public BlockMetadataEvictorView getBlockMetadataEvictorView() {
     return mManagerView;
   }
 }

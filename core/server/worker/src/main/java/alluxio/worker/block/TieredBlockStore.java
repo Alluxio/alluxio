@@ -126,14 +126,14 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
-    BlockMetadataEvictableView initManagerView = new BlockMetadataEvictableView(mMetaManager,
+    BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
     mAllocator = Allocator.Factory.create(initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
-    initManagerView = new BlockMetadataEvictableView(mMetaManager, Collections.<Long>emptySet(),
+    initManagerView = new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
     mEvictor = Evictor.Factory.create(initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
@@ -587,7 +587,7 @@ public class TieredBlockStore implements BlockStore {
         checkTempBlockIdAvailable(blockId);
       }
       StorageDirView dirView = mAllocator.allocateBlockWithView(sessionId,
-          initialBlockSize, location, new BlockMetadataView(mMetaManager));
+          initialBlockSize, location, new BlockMetadataAllocatorView(mMetaManager));
       if (dirView == null) {
         // Allocator fails to find a proper place for this new block.
         return null;
@@ -732,12 +732,12 @@ public class TieredBlockStore implements BlockStore {
    * Gets the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.
    *
-   * @return {@link BlockMetadataEvictableView}, an updated view with most recent information
+   * @return {@link BlockMetadataEvictorView}, an updated view with most recent information
    */
-  private BlockMetadataEvictableView getUpdatedView() {
+  private BlockMetadataEvictorView getUpdatedView() {
     // TODO(calvin): Update the view object instead of creating new one every time.
     synchronized (mPinnedInodes) {
-      return new BlockMetadataEvictableView(mMetaManager, mPinnedInodes,
+      return new BlockMetadataEvictorView(mMetaManager, mPinnedInodes,
           mLockManager.getLockedBlocks());
     }
   }

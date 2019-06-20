@@ -15,11 +15,11 @@ import alluxio.Sessions;
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.worker.block.AbstractBlockStoreEventListener;
-import alluxio.worker.block.BlockMetadataEvictableView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDirEvictableView;
+import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractEvictor.class);
   protected final Allocator mAllocator;
-  protected BlockMetadataEvictableView mManagerView;
+  protected BlockMetadataEvictorView mManagerView;
 
   /**
    * Creates a new instance of {@link AbstractEvictor}.
@@ -47,7 +47,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
-  public AbstractEvictor(BlockMetadataEvictableView view, Allocator allocator) {
+  public AbstractEvictor(BlockMetadataEvictorView view, Allocator allocator) {
     mManagerView = Preconditions.checkNotNull(view, "view");
     mAllocator = Preconditions.checkNotNull(allocator, "allocator");
   }
@@ -62,29 +62,29 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
    * blocks, the next tier will continue to evict its blocks to free space.
    *
    * This method is only used in
-   * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataEvictableView)}.
+   * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataEvictorView)}.
    *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location target location to evict blocks from
    * @param plan the plan to be recursively updated, is empty when first called in
-   *        {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataEvictableView)}
+   *        {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataEvictorView)}
    * @param mode the eviction mode
-   * @return the first {@link StorageDirEvictableView} in the range of location
+   * @return the first {@link StorageDirEvictorView} in the range of location
    *         to evict/move bytes from, or null if there is no plan
    */
-  protected StorageDirEvictableView cascadingEvict(long bytesToBeAvailable,
+  protected StorageDirEvictorView cascadingEvict(long bytesToBeAvailable,
       BlockStoreLocation location, EvictionPlan plan, Mode mode) {
     location = updateBlockStoreLocation(bytesToBeAvailable, location);
 
     // 1. If bytesToBeAvailable can already be satisfied without eviction, return the eligible
     // StoargeDirView
-    StorageDirEvictableView candidateDirView = (StorageDirEvictableView)
+    StorageDirEvictorView candidateDirView = (StorageDirEvictorView)
         EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
     if (candidateDirView != null) {
       return candidateDirView;
     }
 
-    // 2. Iterate over blocks in order until we find a StorageDirEvictableView that is
+    // 2. Iterate over blocks in order until we find a StorageDirEvictorView that is
     // in the range of location and can satisfy bytesToBeAvailable
     // after evicting its blocks iterated so far
     EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
@@ -97,7 +97,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           if (block.getBlockLocation().belongsTo(location)) {
             String tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
-            dirCandidates.add((StorageDirEvictableView) mManagerView.getTierView(tierAlias)
+            dirCandidates.add((StorageDirEvictorView) mManagerView.getTierView(tierAlias)
                 .getDirView(dirIndex), blockId, block.getBlockSize());
           }
         }
@@ -108,7 +108,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
       }
     }
 
-    // 3. If there is no eligible StorageDirEvictableView, return null
+    // 3. If there is no eligible StorageDirEvictorView, return null
     if (mode == Mode.GUARANTEED && dirCandidates.candidateSize() < bytesToBeAvailable) {
       return null;
     }
@@ -143,8 +143,8 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           if (block == null) {
             continue;
           }
-          StorageDirEvictableView nextDirView
-              = (StorageDirEvictableView) mAllocator.allocateBlockWithView(
+          StorageDirEvictorView nextDirView
+              = (StorageDirEvictorView) mAllocator.allocateBlockWithView(
                   Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
                   BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
           if (nextDirView == null) {
@@ -173,19 +173,19 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
 
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataEvictableView view) {
+      BlockMetadataEvictorView view) {
     return freeSpaceWithView(bytesToBeAvailable, location, view, Mode.GUARANTEED);
   }
 
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataEvictableView view, Mode mode) {
+                                        BlockMetadataEvictorView view, Mode mode) {
     mManagerView = view;
 
     List<BlockTransferInfo> toMove = new ArrayList<>();
     List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
-    StorageDirEvictableView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, mode);
+    StorageDirEvictorView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, mode);
 
     mManagerView.clearBlockMarks();
     if (candidateDir == null) {

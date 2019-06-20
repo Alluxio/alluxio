@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.worker.block.BlockMetadataEvictableView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;
@@ -34,7 +34,7 @@ public class PartialLRUEvictor extends LRUEvictor {
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
-  public PartialLRUEvictor(BlockMetadataEvictableView view, Allocator allocator) {
+  public PartialLRUEvictor(BlockMetadataEvictorView view, Allocator allocator) {
     super(view, allocator);
   }
 

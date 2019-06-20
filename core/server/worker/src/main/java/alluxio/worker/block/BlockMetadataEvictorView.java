@@ -14,10 +14,10 @@ package alluxio.worker.block;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.master.block.BlockId;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDirEvictableView;
+import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.meta.StorageTierEvictableView;
+import alluxio.worker.block.meta.StorageTierEvictorView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
@@ -29,15 +29,15 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
- * filtering out un-evictable blocks and un-allocatable space internally, so that evictors and
+ * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors,
+ * filtering out un-Evictor blocks and un-allocatable space internally, so that evictors and
  * allocators can be developed with much simpler logic, without worrying about various constraints,
  * e.g. pinned files, locked blocks, etc.
  *
  * TODO(cc): Filter un-allocatable space.
  */
 @NotThreadSafe
-public class BlockMetadataEvictableView extends BlockMetadataView {
+public class BlockMetadataEvictorView extends BlockMetadataView {
 
   /** The {@link BlockMetadataManager} this view is derived from. */
   private final BlockMetadataManager mMetadataManager;
@@ -49,7 +49,7 @@ public class BlockMetadataEvictableView extends BlockMetadataView {
   private final Set<Long> mInUseBlocks = new HashSet<>();
 
   /**
-   * Creates a new instance of {@link BlockMetadataEvictableView}. Now we always create a new view
+   * Creates a new instance of {@link BlockMetadataEvictorView}. Now we always create a new view
    * before freespace.
    *
    * @param manager which the view should be constructed from
@@ -57,9 +57,9 @@ public class BlockMetadataEvictableView extends BlockMetadataView {
    * @param lockedBlocks a set of locked blocks
    */
   // TODO(qifan): Incrementally update the view.
-  public BlockMetadataEvictableView(BlockMetadataManager manager, Set<Long> pinnedInodes,
+  public BlockMetadataEvictorView(BlockMetadataManager manager, Set<Long> pinnedInodes,
       Set<Long> lockedBlocks) {
-    super(manager, true);
+    super(manager);
     mMetadataManager = manager;
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes, "pinnedInodes"));
     Preconditions.checkNotNull(lockedBlocks, "lockedBlocks");
@@ -67,7 +67,7 @@ public class BlockMetadataEvictableView extends BlockMetadataView {
 
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
-      StorageTierEvictableView tierView = new StorageTierEvictableView(tier, this);
+      StorageTierEvictorView tierView = new StorageTierEvictorView(tier, this);
       mTierViews.add(tierView);
       mAliasToTierViews.put(tier.getTierAlias(), tierView);
     }
@@ -79,7 +79,7 @@ public class BlockMetadataEvictableView extends BlockMetadataView {
   public void clearBlockMarks() {
     for (StorageTierView tierView : mTierViews) {
       for (StorageDirView dirView : tierView.getDirViews()) {
-        ((StorageDirEvictableView) dirView).clearBlockMarks();
+        ((StorageDirEvictorView) dirView).clearBlockMarks();
       }
     }
   }
@@ -105,7 +105,7 @@ public class BlockMetadataEvictableView extends BlockMetadataView {
   }
 
   /**
-   * Tests if the block is evictable.
+   * Tests if the block is Evictor.
    *
    * @param blockId to be tested
    * @return boolean, true if the block can be evicted
@@ -123,7 +123,7 @@ public class BlockMetadataEvictableView extends BlockMetadataView {
   public boolean isBlockMarked(long blockId) {
     for (StorageTierView tierView : mTierViews) {
       for (StorageDirView dirView : tierView.getDirViews()) {
-        if (((StorageDirEvictableView) dirView).isMarkedToMoveOut(blockId)) {
+        if (((StorageDirEvictorView) dirView).isMarkedToMoveOut(blockId)) {
           return true;
         }
       }

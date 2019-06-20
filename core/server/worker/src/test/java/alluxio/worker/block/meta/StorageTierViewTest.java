@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.block.BlockMetadataEvictableView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
@@ -31,8 +31,8 @@ import java.util.HashSet;
 public class StorageTierViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private StorageTier mTestTier;
-  private StorageTierEvictableView mTestTierView;
-  private BlockMetadataEvictableView mMetadataEvictableView;
+  private StorageTierEvictorView mTestTierView;
+  private BlockMetadataEvictorView mMetadataEvictorView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -50,15 +50,15 @@ public class StorageTierViewTest {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mMetadataEvictableView =
-        new BlockMetadataEvictableView(metaManager, new HashSet<Long>(),
+    mMetadataEvictorView =
+        new BlockMetadataEvictorView(metaManager, new HashSet<Long>(),
             new HashSet<Long>());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
-    mTestTierView = new StorageTierEvictableView(mTestTier, mMetadataEvictableView);
+    mTestTierView = new StorageTierEvictorView(mTestTier, mMetadataEvictorView);
   }
 
   /**
-   * Tests the {@link StorageTierEvictableView#getDirViews()} method.
+   * Tests the {@link StorageTierEvictorView#getDirViews()} method.
    */
   @Test
   public void getDirViews() {
@@ -67,7 +67,7 @@ public class StorageTierViewTest {
   }
 
   /**
-   * Tests the {@link StorageTierEvictableView#getDirView(int)} method.
+   * Tests the {@link StorageTierEvictorView#getDirView(int)} method.
    */
   @Test
   public void getDirView() {
@@ -87,7 +87,7 @@ public class StorageTierViewTest {
   }
 
   /**
-   * Tests the {@link StorageTierEvictableView#getTierViewAlias()} method.
+   * Tests the {@link StorageTierEvictorView#getTierViewAlias()} method.
    */
   @Test
   public void getTierViewAlias() {
@@ -95,7 +95,7 @@ public class StorageTierViewTest {
   }
 
   /**
-   * Tests the {@link StorageTierEvictableView#getTierViewOrdinal()} method.
+   * Tests the {@link StorageTierEvictorView#getTierViewOrdinal()} method.
    */
   @Test
   public void getTierViewOrdinal() {
@@ -103,10 +103,10 @@ public class StorageTierViewTest {
   }
 
   /**
-   * Tests the {@link StorageTierEvictableView#getTierViewOrdinal()} method.
+   * Tests the {@link StorageTierEvictorView#getTierViewOrdinal()} method.
    */
   @Test
-  public void getBlockMetadataEvictableView() {
-    Assert.assertEquals(mMetadataEvictableView, mTestTierView.getBlockMetadataEvictableView());
+  public void getBlockMetadataEvictorView() {
+    Assert.assertEquals(mMetadataEvictorView, mTestTierView.getBlockMetadataEvictorView());
   }
 }

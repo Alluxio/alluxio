@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.meta.StorageTierEvictableView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
@@ -31,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class exposes a narrower read-only view of storage metadata to Allocators.
  */
 @NotThreadSafe
-public class BlockMetadataView {
+public abstract class BlockMetadataView {
   /**
    * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
    * {@link BlockMetadataManager}.
@@ -47,25 +46,7 @@ public class BlockMetadataView {
    * @param manager which the view should be constructed from
    */
   public BlockMetadataView(BlockMetadataManager manager) {
-    this(manager, false);
-  }
-
-  /**
-   * Creates a new instance of {@link BlockMetadataView}.
-   *
-   * @param manager which the view should be constructed from
-   * @param evictable whether the view includes evict-related methods
-   */
-  public BlockMetadataView(BlockMetadataManager manager, boolean evictable) {
     Preconditions.checkNotNull(manager, "manager");
-
-    if (!evictable) {
-      for (StorageTier tier : manager.getTiers()) {
-        StorageTierView tierView = new StorageTierView(tier);
-        mTierViews.add(tierView);
-        mAliasToTierViews.put(tier.getTierAlias(), tierView);
-      }
-    }
   }
 
   /**
@@ -114,7 +95,7 @@ public class BlockMetadataView {
    * tierAlias is not found.
    *
    * @param tierAlias the alias of a tierView
-   * @return the list of {@link StorageTierEvictableView}
+   * @return the list of {@link StorageTierView}
    */
   public List<StorageTierView> getTierViewsBelow(String tierAlias) {
     int ordinal = getTierView(tierAlias).getTierViewOrdinal();

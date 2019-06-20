@@ -13,8 +13,8 @@ package alluxio.worker.block.evictor;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataEvictableView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
@@ -35,7 +35,7 @@ import java.util.Collections;
  */
 public class EvictorFactoryTest {
   private static BlockMetadataManager sBlockMetadataManager;
-  private static BlockMetadataEvictableView sBlockMetadataManagerView;
+  private static BlockMetadataEvictorView sBlockMetadataManagerView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -52,7 +52,7 @@ public class EvictorFactoryTest {
         sBlockMetadataManager =
             TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
       }
-      sBlockMetadataManagerView = new BlockMetadataEvictableView(sBlockMetadataManager,
+      sBlockMetadataManagerView = new BlockMetadataEvictorView(sBlockMetadataManager,
           Collections.<Long>emptySet(), Collections.<Long>emptySet());
     }
   }
@@ -65,7 +65,7 @@ public class EvictorFactoryTest {
   /**
    * Tests that a {@link GreedyEvictor} can be created from
    * {@link alluxio.worker.block.evictor.Evictor.Factory#create(
-   *        BlockMetadataEvictableView, Allocator)}.
+   *        BlockMetadataEvictorView, Allocator)}.
    */
   @Test
   public void createGreedyEvictor() {
@@ -79,7 +79,7 @@ public class EvictorFactoryTest {
   /**
    * Tests that a {@link LRUEvictor} can be created from
    * {@link alluxio.worker.block.evictor.Evictor.Factory#create(
-   *        BlockMetadataEvictableView, Allocator)}.
+   *        BlockMetadataEvictorView, Allocator)}.
    */
   @Test
   public void createLRUEvictor() {
@@ -93,7 +93,7 @@ public class EvictorFactoryTest {
   /**
    * Tests that the default evictor can be created from
    * {@link alluxio.worker.block.evictor.Evictor.Factory#create(
-   *        BlockMetadataEvictableView, Allocator)}.
+   *        BlockMetadataEvictorView, Allocator)}.
    */
   @Test
   public void createDefaultEvictor() {

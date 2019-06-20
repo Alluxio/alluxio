@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.worker.block.BlockMetadataEvictableView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
@@ -35,7 +35,7 @@ public final class EvictorUtils {
    * @return the {@link StorageDirView} selected
    */
   public static StorageDirView getDirWithMaxFreeSpace(long bytesToBeAvailable,
-      BlockStoreLocation location, BlockMetadataEvictableView mManagerView) {
+      BlockStoreLocation location, BlockMetadataEvictorView mManagerView) {
     long maxFreeSize = -1;
     StorageDirView selectedDirView = null;
 
@@ -83,7 +83,7 @@ public final class EvictorUtils {
    */
   @Nullable
   public static StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
-      BlockStoreLocation location, BlockMetadataEvictableView mManagerView) {
+      BlockStoreLocation location, BlockMetadataEvictorView mManagerView) {
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {

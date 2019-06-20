@@ -14,7 +14,7 @@ package alluxio.worker.block.allocator;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.worker.block.BlockMetadataEvictableView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -150,7 +150,7 @@ public class AllocatorTestBase {
     }
   }
 
-  protected BlockMetadataEvictableView getManagerView() {
-    return new BlockMetadataEvictableView(mManager, new HashSet<Long>(), new HashSet<Long>());
+  protected BlockMetadataEvictorView getManagerView() {
+    return new BlockMetadataEvictorView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
 }

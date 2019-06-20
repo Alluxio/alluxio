@@ -348,7 +348,7 @@ public final class TieredBlockStoreTest {
     Evictor evictor = mock(Evictor.class);
     when(
         evictor.freeSpaceWithView(any(Long.class), any(BlockStoreLocation.class),
-            any(BlockMetadataEvictableView.class), any(Mode.class)))
+            any(BlockMetadataEvictorView.class), any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
           CommonUtils.sleepMs(20);
           return new EvictionPlan(new ArrayList<>(), new ArrayList<>());

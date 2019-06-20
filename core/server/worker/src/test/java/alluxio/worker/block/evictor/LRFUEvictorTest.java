@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.worker.block.BlockMetadataEvictableView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
@@ -49,7 +49,7 @@ public class LRFUEvictorTest {
   private static final long BLOCK_ID = 10;
 
   private BlockMetadataManager mMetaManager;
-  private BlockMetadataEvictableView mManagerView;
+  private BlockMetadataEvictorView mManagerView;
   private Evictor mEvictor;
 
   private double mStepFactor;
@@ -67,7 +67,7 @@ public class LRFUEvictorTest {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView =
-        new BlockMetadataEvictableView(mMetaManager, Collections.<Long>emptySet(),
+        new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
     ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
