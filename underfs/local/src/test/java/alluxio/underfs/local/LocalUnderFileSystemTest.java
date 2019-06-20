@@ -14,7 +14,6 @@ package alluxio.underfs.local;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
@@ -35,6 +34,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -56,6 +56,9 @@ public class LocalUnderFileSystemTest {
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
+
+  @Rule
+  public ExpectedException mException = ExpectedException.none();
 
   @Before
   public void before() throws IOException {
@@ -229,41 +232,37 @@ public class LocalUnderFileSystemTest {
   }
 
   @Test
-  public void getDirStatus() throws IOException {
+  public void getDirStatusFails() throws IOException {
+    mException.expect(IOException.class);
     String file = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    String dir = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-
     mLocalUfs.create(file).close();
-    mLocalUfs.mkdirs(dir);
-    try {
-      UfsDirectoryStatus s = mLocalUfs.getDirectoryStatus(dir);
-      assertTrue(s.isDirectory());
-      assertFalse(s.isFile());
+    mLocalUfs.getDirectoryStatus(file);
+  }
 
-      mLocalUfs.getDirectoryStatus(file);
-      fail("Should have failed to get dir status on file");
-    } catch (IOException e) {
-      // Expect exception
-    }
+  @Test
+  public void getDirStatus() throws IOException {
+    String dir = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    mLocalUfs.mkdirs(dir);
+    UfsDirectoryStatus s = mLocalUfs.getDirectoryStatus(dir);
+    assertTrue(s.isDirectory());
+    assertFalse(s.isFile());
+  }
+
+  @Test
+  public void getFileStatusFails() throws IOException {
+    mException.expect(IOException.class);
+    String dir = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    mLocalUfs.mkdirs(dir);
+    mLocalUfs.getFileStatus(dir);
   }
 
   @Test
   public void getFileStatus() throws IOException {
     String file = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    String dir = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-
     mLocalUfs.create(file).close();
-    mLocalUfs.mkdirs(dir);
-    try {
-      UfsFileStatus s = mLocalUfs.getFileStatus(file);
-      assertFalse(s.isDirectory());
-      assertTrue(s.isFile());
-
-      mLocalUfs.getDirectoryStatus(dir);
-      fail("Should have failed to get dir status on file");
-    } catch (IOException e) {
-      // Expect exception
-    }
+    UfsFileStatus s = mLocalUfs.getFileStatus(file);
+    assertFalse(s.isDirectory());
+    assertTrue(s.isFile());
   }
 
   private byte[] getBytes() {
