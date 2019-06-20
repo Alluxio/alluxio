@@ -319,16 +319,16 @@ There are two configuration options that control this behavior.
 Activity is a heuristic based on the exponential moving average of number of events in a directory.
 For example, if a directory had 100, 10, 1 event in the past three intervals. 
 Its activity would be `100/10*10 + 10/10 + 1 = 3` 
-`alluxio.master.active.sync.max.age` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
+`alluxio.master.ufs.active.sync.max.age` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
 
 The system guarantees that we will start syncing a directory if it is "quiet", or it has not been synced for a long period (period longer than the max age).
 
 For example, the following setting 
 
 ```
-alluxio.master.active.sync.interval=30secs
+alluxio.master.ufs.active.sync.interval=30secs
 alluxio.master.ufs.active.sync.max.activities=100
-alluxio.master.active.sync.max.age=5
+alluxio.master.ufs.active.sync.max.age=5
 ```
 
 means that every 30 seconds, the system will count the number of events in the directory and calculate its activity. If the activity is less than 100, it will be considered a quiet period, and syncing will start for that directory. If the activity is greater than 100, and it has not synced for the last 5 intervals, or 5 * 30 = 150 seconds, it will start syncing the directory. It will not perform active sync if the activity is greater than 100 and it has synced at least once in the last 5 intervals.
