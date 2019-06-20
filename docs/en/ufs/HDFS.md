@@ -65,6 +65,8 @@ address and the HDFS directory you want to mount to Alluxio. For example, the un
 can be `hdfs://localhost:8020` if you are running the HDFS namenode locally with default port and
 mapping HDFS root directory to Alluxio, or `hdfs://localhost:8020/alluxio/data` if only the HDFS
 directory `/alluxio/data` is mapped to Alluxio.
+To find out where hdfs is runing, use `hdfs getconf -confKey fs.defaultFS` to get the default hostname
+and port HDFS is listening on.
 
 ```
 alluxio.master.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
@@ -80,10 +82,10 @@ exists. Start the Alluxio servers:
 ./bin/alluxio-start.sh local
 ```
 
-If your ramdisk is not mounted, likely because this is the first time you are running Alluxio, you may need to start Alluxio with the `SudoMount` option.
+If your ramdisk is not mounted, the format command can fail. This is likely because this is the first time you are running Alluxio, you may need to start Alluxio with the `SudoMount` option.
 
 ```bash
-$ bin/alluxio-start.sh local SudoMount
+bin/alluxio-start.sh local SudoMount
 ```
 
 This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
