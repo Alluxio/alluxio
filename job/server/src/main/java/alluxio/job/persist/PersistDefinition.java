@@ -173,6 +173,10 @@ public final class PersistDefinition
             ufs.createNonexistingFile(dstPath.toString(),
                 CreateOptions.defaults(ServerConfiguration.global()).setOwner(uriStatus.getOwner())
                 .setGroup(uriStatus.getGroup()).setMode(new Mode((short) uriStatus.getMode()))));
+        URIStatus status = context.getFileSystem().getStatus(uri);
+        List<AclEntry> allAcls = Stream.concat(status.getDefaultAcl().getEntries().stream(),
+            status.getAcl().getEntries().stream()).collect(Collectors.toList());
+        ufs.setAclEntries(dstPath.toString(), allAcls);
         bytesWritten = IOUtils.copyLarge(in, out);
         incrementPersistedMetric(ufsClient.getUfsMountPointUri(), bytesWritten);
       }
