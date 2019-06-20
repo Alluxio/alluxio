@@ -17,7 +17,7 @@ import alluxio.worker.block.meta.StorageTierAllocatorView;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class exposes a narrower read-only view of storage metadata to allocators.
+ * This class exposes a narrower read-only view of block metadata to allocators.
  */
 @NotThreadSafe
 public class BlockMetadataAllocatorView extends BlockMetadataView {

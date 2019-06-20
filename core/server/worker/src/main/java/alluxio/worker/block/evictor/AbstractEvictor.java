@@ -179,7 +179,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
 
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-                                        BlockMetadataEvictorView view, Mode mode) {
+      BlockMetadataEvictorView view, Mode mode) {
     mManagerView = view;
 
     List<BlockTransferInfo> toMove = new ArrayList<>();

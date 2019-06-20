@@ -12,12 +12,12 @@
 package alluxio.worker.block.meta;
 
 /**
- * This class is a wrapper of {@link StorageDir} to provide more limited access.
+ * This class is a wrapper of {@link StorageDir} to provide more limited access for allocators.
  */
 public class StorageDirAllocatorView extends StorageDirView {
 
   /**
-   * Creates a {@link StorageDirView} using the actual {@link StorageDir}.
+   * Creates a {@link StorageDirAllocatorView} using the actual {@link StorageDir}.
    *
    * @param dir which the dirView is constructed from
    * @param tierView which the dirView is under

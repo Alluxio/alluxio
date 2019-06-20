@@ -103,7 +103,7 @@ public final class LRFUEvictor extends AbstractEvictor {
   @Nullable
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-                                        BlockMetadataEvictorView view, Mode mode) {
+      BlockMetadataEvictorView view, Mode mode) {
     synchronized (mBlockIdToLastUpdateTime) {
       updateCRFValue();
       mManagerView = view;

@@ -97,5 +97,5 @@ public interface Evictor {
    *         if no plan is feasible
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-                                 BlockMetadataEvictorView view, Mode mode);
+      BlockMetadataEvictorView view, Mode mode);
 }

@@ -105,7 +105,7 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
   }
 
   /**
-   * Tests if the block is Evictor.
+   * Tests if the block is evictable.
    *
    * @param blockId to be tested
    * @return boolean, true if the block can be evicted

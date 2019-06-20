@@ -56,7 +56,7 @@ public final class GreedyEvictor implements Evictor {
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-                                        BlockMetadataEvictorView view, Mode mode) {
+      BlockMetadataEvictorView view, Mode mode) {
     Preconditions.checkNotNull(location, "location");
     Preconditions.checkNotNull(view, "view");
 
@@ -68,7 +68,7 @@ public final class GreedyEvictor implements Evictor {
       String tierAlias = location.tierAlias();
       StorageTierView tierView = view.getTierView(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-        selectedDirView = selectEvictorDirFromTier(tierView, availableBytes);
+        selectedDirView = selectEvictableDirFromTier(tierView, availableBytes);
       } else {
         int dirIndex = location.dir();
         StorageDirEvictorView dir = (StorageDirEvictorView) tierView.getDirView(dirIndex);
