@@ -886,7 +886,7 @@ public class InodeTree implements DelegatingJournaled {
 
   private boolean checkPinningValidity(Set<String> pinnedMediumTypes) {
     List<String> mediumTypeList = ServerConfiguration.getList(
-        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES, ",");
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
     for (String medium : pinnedMediumTypes) {
       if (!mediumTypeList.contains(medium)) {
         // mediumTypeList does not contains medium
