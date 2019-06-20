@@ -21,6 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -240,6 +241,25 @@ public class LocalUnderFileSystemTest {
       assertFalse(s.isFile());
 
       mLocalUfs.getDirectoryStatus(file);
+      fail("Should have failed to get dir status on file");
+    } catch (IOException e) {
+      // Expect exception
+    }
+  }
+
+  @Test
+  public void getFileStatus() throws IOException {
+    String file = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    String dir = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+
+    mLocalUfs.create(file).close();
+    mLocalUfs.mkdirs(dir);
+    try {
+      UfsFileStatus s = mLocalUfs.getFileStatus(file);
+      assertFalse(s.isDirectory());
+      assertTrue(s.isFile());
+
+      mLocalUfs.getDirectoryStatus(dir);
       fail("Should have failed to get dir status on file");
     } catch (IOException e) {
       // Expect exception
