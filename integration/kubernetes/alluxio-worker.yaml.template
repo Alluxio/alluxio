@@ -27,7 +27,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: alluxio-worker
-          image: alluxio/alluxio:2.0.0-RC3
+          image: alluxio/alluxio:2.0.0-RC4
           resources:
             requests:
               cpu: "0.5"
@@ -60,7 +60,7 @@ spec:
             - name: alluxio-domain
               mountPath: /opt/domain
         - name: alluxio-job-worker
-          image: alluxio/alluxio:2.0.0-RC3
+          image: alluxio/alluxio:2.0.0-RC4
           resources:
             requests:
               cpu: "0.5"
