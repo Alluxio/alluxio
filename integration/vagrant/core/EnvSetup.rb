@@ -10,7 +10,6 @@ def validate_provider(provider)
     else
       current_provider = (ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_s
     end
-    # puts "vagrant up #{current_provider}"
     if ( provider == current_provider )
       return
     end
@@ -41,7 +40,7 @@ class ZookeeperVersion
     when "None"
       puts 'No zookeeper will be set up'
     else
-      puts "Unknown Type"
+      puts "ERROR: Unknown Zookeeper type #{@type}"
       exit(1)
     end
   end
@@ -79,7 +78,7 @@ class AlluxioVersion
       major, minor = @version.split(".")
       puts "Using alluxio version #{@version}"
     else
-      puts "Unknown VersionType"
+      puts "ERROR: Unknown Alluxio type #{@type}"
       exit(1)
     end
 
@@ -144,7 +143,7 @@ class MesosVersion
       puts 'No Mesos will be set up'
       @use_mesos = false
     else
-      puts "Unknown VersionType"
+      puts "ERROR: Unknown Mesos type #{@type}"
       exit(1)
     end
   end
@@ -190,7 +189,7 @@ class SparkVersion
       @dist = @yml['Release']['Dist']
       puts "Using spark distribution #{@dist}"
     else
-      puts "Unknown VersionType"
+      puts "ERROR: Unknown Spark type #{@yml['Type']"
       exit(1)
     end
   end
@@ -428,13 +427,13 @@ class UfsVersion
   def get_default_ufs(provider)
     case provider
     when 'vb'
-      puts 'use hadoop2 as default ufs'
+      puts 'Using hadoop2 as default ufs'
       return 'hadoop2'
     when 'google'
-      puts 'use gcs as default ufs'
+      puts 'Using gcs as default ufs'
       return 'gcs'
     when 'aws'
-      puts 'use s3 as default ufs'
+      puts 'Using s3 as default ufs'
       return 's3'
     else
       return ''
@@ -464,7 +463,7 @@ class UfsVersion
       @swift = SwiftVersion.new(@yml['Swift'])
     when 'glusterfs'
     else
-      puts 'unsupported ufs'
+      puts "ERROR: Unsupported ufs #{@yml['Type']}"
       exit(1)
     end
   end
@@ -503,7 +502,7 @@ class UfsVersion
     # The base version should work for glusterfs
       return "alluxio-#{alluxio_version}-bin.tar.gz"
     else
-      puts 'unsupported ufs'
+      puts "ERROR: Unsupported ufs #{@yml['Type']}"
       exit(1)
     end
   end
