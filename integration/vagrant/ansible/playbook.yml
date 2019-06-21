@@ -5,14 +5,6 @@
     - include: roles/lib/tasks/mount.yml
       when: provider == "aws"
 
-    - name: open PasswordAuthentication of sshd for openstack
-      replace: >
-        dest=/etc/ssh/sshd_config
-        regexp='PasswordAuthentication no'
-        replace='PasswordAuthentication yes'
-      sudo: yes
-      when: provider == "os"
-
 # Download, compile, configure all the cluster components.
 - hosts: AlluxioMaster
   tasks:
