@@ -5,14 +5,13 @@
 Type:
 
 Hadoop:
-  # apache: http://archive.apache.org/dist/hadoop/common/hadoop-${Version}/hadoop-${Version}.tar.gz
-  # cdh: https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/${Version}/hadoop-dist-${Version}.tar.gz
-  # apache | cdh
-  Type: apache
-  # e.x. 2.4.1, 2.0.0-cdh4.7.1 for hadoop2
-  #      1.2.1 for hadoop1
-  Version: 2.4.1
-  # for some version of hadoop, profile is needed when compiling spark
+  # Hadoop version can be checked at
+  # http://archive.apache.org/dist/hadoop/common/.
+  #
+  # Supported hadoop versions for Alluxio can be checked at
+  # https://www.alluxio.io/download/.
+  Version: 2.7.7
+  # For some version of hadoop, profile is needed when compiling spark
   # https://spark.apache.org/docs/latest/building-spark.html#specifying-the-hadoop-version
   # e.x. 2.4 for hadoop 2.4.1
   # if you don't compile spark, this can be empty

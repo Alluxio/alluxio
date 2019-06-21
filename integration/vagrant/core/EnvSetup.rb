@@ -27,10 +27,9 @@ end
 
 require 'yaml'
 
-# parse zookeeper.yml
 class ZookeeperVersion
   def initialize(yaml_path)
-    puts 'parsing zookeeper.yml'
+    puts 'Parsing zookeeper.yml'
     @yml = YAML.load_file(yaml_path)
 
     @type = @yml['Type']
@@ -38,7 +37,7 @@ class ZookeeperVersion
     case @type
     when "Release"
       @version = @yml['Release']['Version']
-      puts "using zookeeper version #{@version}"
+      puts "Using zookeeper version #{@version}"
     when "None"
       puts 'No zookeeper will be set up'
     else
@@ -56,10 +55,9 @@ class ZookeeperVersion
   end
 end
 
-# parse alluxio_version.yml
 class AlluxioVersion
   def initialize(yaml_path)
-    puts 'parsing alluxio_version.yml'
+    puts 'Parsing alluxio.yml'
     @yml = YAML.load_file(yaml_path)
 
     @type = @yml['Type']
@@ -68,18 +66,18 @@ class AlluxioVersion
     major, minor = nil
     case @type
     when "Local"
-      puts 'using local alluxio dir'
+      puts 'Using local Alluxio repository'
     when "Github"
       @repo = @yml['Github']['Repo']
       @version = @yml['Github']['Version']
       if @version.start_with?("branch-")
         major, minor = @version.sub("branch-", "").split(".")
       end
-      puts "using github #{@repo}, version #{@version}"
+      puts "Using github #{@repo}, version #{@version}"
     when "Release"
       @version = @yml['Release']['Version']
       major, minor = @version.split(".")
-      puts "using alluxio version #{@version}"
+      puts "Using alluxio version #{@version}"
     else
       puts "Unknown VersionType"
       exit(1)
@@ -124,10 +122,9 @@ class AlluxioVersion
   end
 end
 
-# parse mesos_version.yml
 class MesosVersion
   def initialize(yaml_path)
-    puts 'parsing mesos_version.yml'
+    puts 'Parsing mesos.yml'
     @yml = YAML.load_file(yaml_path)
 
     @type = @yml['Type']
@@ -139,10 +136,10 @@ class MesosVersion
     when "Github"
       @repo = @yml['Github']['Repo']
       @version = @yml['Github']['Version']
-      puts "using github #{@repo}, version #{@version}"
+      puts "Using github #{@repo}, version #{@version}"
     when "Release"
       @dist = @yml['Release']['Dist']
-      puts "using mesos dist #{@dist}"
+      puts "Using mesos distribution #{@dist}"
     when "None"
       puts 'No Mesos will be set up'
       @use_mesos = false
@@ -169,10 +166,9 @@ class MesosVersion
   end
 end
 
-# parse spark_version.yml
 class SparkVersion
   def initialize(yaml_path)
-    puts 'parsing spark_version.yml'
+    puts 'Parsing spark.yml'
     @yml = YAML.load_file(yaml_path)
 
     @use_spark = true
@@ -189,10 +185,10 @@ class SparkVersion
       @repo = @git['Repo']
       @version = @git['Version']
       @v_lt_1 = @git['Version_LessThan_1.0.0']
-      puts "using github #{@repo}, version #{@version}"
+      puts "Using github #{@repo}, version #{@version}"
     when "Release"
       @dist = @yml['Release']['Dist']
-      puts "using spark dist #{@dist}"
+      puts "Using spark distribution #{@dist}"
     else
       puts "Unknown VersionType"
       exit(1)
@@ -222,16 +218,10 @@ end
 
 class HadoopVersion
   def initialize(yml)
-    @type = ''
     @version = ''
     @spark_profile = ''
     if yml == nil
       return
-    end
-    @type = yml['Type']
-    if @type == nil
-      puts 'ERROR: Hadoop:Type is not set'
-      exit(1)
     end
     @version = yml['Version']
     if @version == nil
@@ -239,26 +229,10 @@ class HadoopVersion
       exit(1)
     end
     @spark_profile = yml['SparkProfile'] or @spark_profile
-
-    apache_url = "http://archive.apache.org/dist/hadoop/common/hadoop-%{Version}/hadoop-%{Version}.tar.gz"
-    cdh_url = "https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/%{Version}/hadoop-dist-%{Version}.tar.gz"
-    # cdh repository is different for cdh5
-    if @version.include?('cdh5')
-      cdh_url = "https://archive.cloudera.com/cdh5/cdh/5/hadoop-%{Version}.tar.gz"
-    end
-    @url_template = {
-      "apache" => apache_url,
-      "cdh"    => cdh_url,
-    }
-
   end
 
   def tarball_url
-    if @type == ''
-      return ''
-    else
-      return @url_template[@type] % {Version: @version}
-    end
+		return "http://archive.apache.org/dist/hadoop/common/hadoop-#{@version}/hadoop-#{@version}.tar.gz"
   end
 
   def version
@@ -270,39 +244,8 @@ class HadoopVersion
   end
 
   def alluxio_dist(alluxio_version)
-    # compute the alluxio distribution string
-    errmsg = "ERROR: hadoop #{@type}-#{@version} does not have a " \
-             "corresponding alluxio distribution"
-    if @type == 'apache'
-      if @version.start_with?('1')
-        # It's the release distribution, so no suffix
-        suffix = ''
-      elsif @version.start_with?('2.4')
-        suffix = 'hadoop2.4'
-      elsif @version.start_with?('2.6')
-        suffix = 'hadoop2.6'
-      else
-        puts errmsg
-        exit(1)
-      end
-    elsif @type == 'cdh'
-      if @version.start_with?('2') and @version.include?('cdh4')
-        suffix = 'cdh4'
-      elsif @version.start_with?('2') and @version.include?('cdh5')
-        suffix = 'cdh5'
-      else
-        puts errmsg
-        exit(1)
-      end
-    else
-      puts "Unknown hadoop type #{@type}"
-      exit(1)
-    end
-    if suffix.empty?
-      return "alluxio-#{alluxio_version}-bin.tar.gz"
-    else
-      return "alluxio-#{alluxio_version}-#{suffix}-bin.tar.gz"
-    end
+		hadoop_major_minor_version = @version.split('.')[0..1].join('.')
+    return "alluxio-#{alluxio_version}-hadoop-#{hadoop_major_minor_version}-bin.tar.gz"
   end
 end
 
