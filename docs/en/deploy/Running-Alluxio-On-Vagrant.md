@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Deploy Alluxio Using Vagrant
-nickname: Alluxio on Vagrant
+title: Deploy Alluxio On Vagrant
+nickname: Vagrant
 group: Deploying Alluxio
 priority: 5
 ---
@@ -11,7 +11,7 @@ priority: 5
 
 ## Introduction
 Alluxio can be deployed locally or in the cloud using the [Vagrant
-scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with Alluxio. The
+scripts](https://github.com/alluxio/alluxio/tree/master/integration/vagrant) that come with Alluxio. The
 scripts let you create, configure, and destroy clusters that come automatically configured locally,
 with [Amazon EC2](https://aws.amazon.com/ec2/) or with [Google Compute Engine](https://cloud.google.com).
 
@@ -22,14 +22,14 @@ There are several prerequisites for all three deployment scenarios that are supp
 * Download and Install [Vagrant](https://www.vagrantup.com/downloads.html)
 * [Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine
 * Download and Install [python>=2.7](https://www.python.org/), not python3.
-* Install python library dependencies, under `deploy/vagrant` directory in your home directory, run:
+* Install python library dependencies, under `integration/vagrant` directory in your Alluxio home directory, run:
 
 ```bash
 sudo bash bin/install.sh
 ```
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
-in `deploy/vagrant` run:
+in `integration/vagrant` run:
 
 ```bash
 sudo pip install -r pip-req.txt
@@ -49,7 +49,7 @@ when launching cluster.
 
 ### Launch Cluster
 
-Now you can launch the Alluxio cluster with Hadoop as under storage by running the script under deploy/vagrant:
+Now you can launch the Alluxio cluster with Hadoop as under storage by running the script under integration/vagrant:
 
 ```bash
 ./create <number of machines> vb
@@ -110,7 +110,7 @@ ssh AlluxioWorker1
 
 ### Destroy the cluster
 
-Under `deploy/vagrant` directory, you can run:
+Under `integration/vagrant` directory, you can run:
 
 ```bash
 ./destroy
@@ -154,13 +154,13 @@ the permissions of your private key file that only you can read it:
 chmod 400 <your key pair>.pem
 ```
 
-Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
+Copy `integration/vagrant/conf/ec2.yml.template` to `integration/vagrant/conf/ec2.yml` by:
 
 ```bash
-cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+cp integration/vagrant/conf/ec2.yml.template integration/vagrant/conf/ec2.yml
 ```
 
-In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
+In the configuration file `integration/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a
@@ -180,7 +180,7 @@ console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's n
 the corresponding configurations in `conf/ufs.yml`.
 
 Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
-the script under `deploy/vagrant`:
+the script under `integration/vagrant`:
 
 ```bash
 ./create <number of machines> aws
@@ -251,7 +251,7 @@ ssh AlluxioWorker1
 
 ### Destroy the cluster
 
-Under `deploy/vagrant` directory, you can run:
+Under `integration/vagrant` directory, you can run:
 
 ```bash
 ./destroy
@@ -270,7 +270,7 @@ However, for short-term testing, spot instances are very appropriate, because it
 
 By default, the deploy scripts DO NOT use spot instances. Therefore, you have to enable deploy scripts to use spot instances.
 
-In order to enable spot instances, you have to modify the file: `deploy/vagrant/conf/ec2.yml`:
+In order to enable spot instances, you have to modify the file: `integration/vagrant/conf/ec2.yml`:
 
     Spot_Price: “X.XX”
 
@@ -320,10 +320,10 @@ gcloud compute config-ssh
 Create the Vagrant GCE config file by copying the provided template:
 
 ```bash
-cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
+cp integration/vagrant/conf/gce.yml.template integration/vagrant/conf/gce.yml
 ```
 
-In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account,
+In the configuration file `integration/vagrant/conf/gce.yml`, set the project id, service account,
 location to JSON key and SSH username you've just created, if you follow the steps to set up
 SSH, the SSH username is the username of your local machine where you run `gcloud compute config-ssh`.
 
@@ -342,7 +342,7 @@ export GCS_ACCESS_KEY_ID=<your access key>
 export GCS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
-Now you can launch the Alluxio cluster by running the script under `deploy/vagrant`:
+Now you can launch the Alluxio cluster by running the script under `integration/vagrant`:
 
 ```bash
 ./create <number of machines> google
@@ -416,7 +416,7 @@ ssh AlluxioWorker1
 
 ### Destroy the cluster
 
-In the `deploy/vagrant` directory, you can run:
+In the `integration/vagrant` directory, you can run:
 
 ```bash
 ./destroy
