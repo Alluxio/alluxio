@@ -70,7 +70,7 @@ def gen_boto_config(access_key, secret_key):
 
 
 def get_ec2_conf():
-    return yaml.load(open('conf/ec2.yml'))
+    return yaml.load(open('conf/ec2.yml'), Loader=yaml.FullLoader)
 
 
 def get_conn():

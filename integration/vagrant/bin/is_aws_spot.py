@@ -16,7 +16,7 @@ def is_spot(price):
     return price is not None and price != ''
 
 if __name__ == '__main__':
-    price = yaml.load(open('conf/ec2.yml')).get('Spot_Price')
+    price = yaml.load(open('conf/ec2.yml'), Loader=yaml.FullLoader).get('Spot_Price')
     if is_spot(price):
       try:
         float(price)
