@@ -14,10 +14,10 @@ def config_google(config, i, total, name)
 
   config.vm.provider :google do |google, override|
     google.google_project_id = GOOGLE_CLOUD_PROJECT_ID
-    google.google_client_email = SERVICE_ACCOUNT_EMAIL_ADDRESS
     google.google_json_key_location = JSON_KEY_LOCATION
 
-    google.image = IMAGE
+    google.image_family = IMAGE_FAMILY
+    google.image_project_id = IMAGE_PROJECT_ID
     google.machine_type = MACHINE_TYPE
     google.scopes = SCOPES
     google.disk_size = DISK_SIZE

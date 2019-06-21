@@ -3,9 +3,6 @@
 # The Project ID for your Google Cloud Platform account.
 Google_Cloud_Project_ID:
 
-# The Client Email address for your Service Account.
-Service_Acount_Email_Address:
-
 # The location of the JSON private key file matching your Service Account.
 Json_Key_Location:
 
@@ -76,4 +73,5 @@ Instance_Group:
 # 
 # Image: See the web docs (https://cloud.google.com/compute/docs/operating-systems)
 # or CLI (gcloud compute images list) for a list of available images.
-Image: "centos-7-v20160301"
+Image_Family: "centos-7"
+Image_Project_ID: "gce-uefi-images"
