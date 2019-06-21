@@ -299,14 +299,17 @@ You will need your JSON keys for your GCE project. Go to the
 [Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) section of the
 [IAM & Admin](https://console.cloud.google.com/projectselector/iam-admin) page in the Console.
 
-If you are creating a new service account, make sure to check the option "Furnish a new private key"
-and the "JSON" key type, and the JSON key will be downloaded.
+If you are creating a new service account, make sure to click the button "CREATE KEY"
+and choose the "JSON" key type, then the JSON key will be downloaded.
 Save the JSON key in a safe location.
 
 If you are using an existing service account, you should have already downloaded the JSON keys.
 If not, you can create a new JSON key for the existing service account (click on the 3 dots to the
 right, then "create key"), which will download the JSON key.
 Save the JSON key in a safe location.
+
+Make sure the service account you are using has permissions as the
+[Compute Instance Admin](https://cloud.google.com/compute/docs/access/iam).
 
 Using the [gcloud sdk](https://console.cloud.google.com) configure keys for SSH:
 
