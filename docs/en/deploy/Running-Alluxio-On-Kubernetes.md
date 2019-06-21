@@ -64,6 +64,14 @@ kubectl create -f alluxio-journal-volume.yaml
 
 Define environment variables in `alluxio.properties`. Copy the properties template at
 `integration/kubernetes/conf`, and modify or add any configuration properties as required.
+The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
+
+```
+# Replace <under_storage_address> with the appropriate URI, for example s3://my-bucket
+# If using an under storage which requires credentials be sure to specify those as well
+ALLUXIO_JAVA_OPTS=-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
+```
+
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 ```bash
