@@ -26,7 +26,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
@@ -173,18 +172,21 @@ public class FileOutStream extends AbstractOutStream {
         }
       }
 
+      // Whether to complete file with async persist request.
+      if (!mCanceled && mUnderStorageType.isAsyncPersist()
+          && mOptions.getPersistenceWaitTime() != Constants.NO_AUTO_PERSIST) {
+        optionsBuilder.setAsyncPersistOptions(
+            FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
+                .setCommonOptions(mOptions.getCommonOptions())
+                .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()));
+      }
+
       // Complete the file if it's ready to be completed.
       if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
         try (CloseableResource<FileSystemMasterClient> masterClient = mContext
             .acquireMasterClientResource()) {
           masterClient.get().completeFile(mUri, optionsBuilder.build());
         }
-      }
-
-      if (!mCanceled && mUnderStorageType.isAsyncPersist()
-          && mOptions.getPersistenceWaitTime() != Constants.NO_AUTO_PERSIST) {
-        // only schedule the persist for completed files.
-        scheduleAsyncPersist();
       }
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is.
@@ -304,20 +306,6 @@ public class FileOutStream extends AbstractOutStream {
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();
-    }
-  }
-
-  /**
-   * Schedules the async persistence of the current file.
-   */
-  protected void scheduleAsyncPersist() throws IOException {
-    try (CloseableResource<FileSystemMasterClient> masterClient = mContext
-        .acquireMasterClientResource()) {
-      ScheduleAsyncPersistencePOptions persistOptions =
-          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
-              .setCommonOptions(mOptions.getCommonOptions())
-              .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()).build();
-      masterClient.get().scheduleAsyncPersist(mUri, persistOptions);
     }
   }
 
