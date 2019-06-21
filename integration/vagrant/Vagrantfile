@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 require 'yaml'
-require "./core/config_software"
+require "./vagrant/config_software"
 
 # load configuration from init.yml
 @cmd = YAML.load_file('conf/init.yml')
@@ -42,7 +42,7 @@ Alluxio = Alluxio.new('conf/alluxio.yml')
 Spark = Spark.new('conf/spark.yml')
 Ufs = Ufs.new('conf/ufs.yml', Provider)
 
-require "./core/config_#{Provider}"
+require "./vagrant/config_#{Provider}"
 
 # Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
@@ -65,7 +65,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Start parallel provision when it is the last machine
       if i == Total
         n.vm.provision :ansible do |ans|
-          ans.playbook = "provision/playbook.yml"
+          ans.playbook = "ansible/playbook.yml"
           ans.limit = "all" # to let "- hosts: all" work in playbooks
           mesos_repo, mesos_version = Mesos.repo_version
           alluxio_repo, alluxio_version = Alluxio.repo_version
