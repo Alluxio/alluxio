@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 require 'yaml'
-require "./core/EnvSetup"
+require "./core/config_software"
 
 # load configuration from init.yml
 @cmd = YAML.load_file('conf/init.yml')
@@ -50,7 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           spark_repo, spark_version = SparkV.repo_version
           is_vb = Provider == "vb"
           alluxio_dist = UfsV.alluxio_dist(alluxio_version)
-          puts "using alluxio distribution #{alluxio_dist}"
+          puts "Using alluxio distribution #{alluxio_dist}"
           alluxio_platform = "standalone"
           if MesosV.type != "None"
             alluxio_platform = "mesos"

@@ -189,7 +189,7 @@ class SparkVersion
       @dist = @yml['Release']['Dist']
       puts "Using spark distribution #{@dist}"
     else
-      puts "ERROR: Unknown Spark type #{@yml['Type']"
+      puts "ERROR: Unknown Spark type #{@yml['Type']}"
       exit(1)
     end
   end
@@ -228,10 +228,11 @@ class HadoopVersion
       exit(1)
     end
     @spark_profile = yml['SparkProfile'] or @spark_profile
+		@hadoop_tarball_url = "http://archive.apache.org/dist/hadoop/common/hadoop-#{@version}/hadoop-#{@version}.tar.gz"
   end
 
   def tarball_url
-		return "http://archive.apache.org/dist/hadoop/common/hadoop-#{@version}/hadoop-#{@version}.tar.gz"
+		return @hadoop_tarball_url
   end
 
   def version
