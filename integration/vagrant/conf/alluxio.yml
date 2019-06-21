@@ -12,7 +12,7 @@ Github:
 Release:
   # Version should match one of the versions at
   # https://downloads.alluxio.io/downloads/files/.
-  Version: 1.8.1
+  Version: 2.0.0
 
 # how much memory to use (e.g. 1000MB, 2GB) per worker
 # make sure your virtual machine has more memory than what is specified here
