@@ -1,7 +1,3 @@
-- name: include alluxio jar in SPARK_CLASSPATH
-  script: classpath.sh
-  when: spark_version_lessthan_1
-
 - name: set spark/conf/slaves and set spark-env.sh
   script: spark_env.sh
 

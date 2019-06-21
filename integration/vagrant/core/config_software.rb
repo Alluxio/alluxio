@@ -1,32 +1,9 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-def validate_provider(provider)
-  current_provider = nil
-  if ARGV[0] and ARGV[0] == "up"
-    if ARGV[1] and \
-      (ARGV[1].split('=')[0] == "--provider" or ARGV[2])
-      current_provider = (ARGV[1].split('=')[1] || ARGV[2])
-    else
-      current_provider = (ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_s
-    end
-    if ( provider == current_provider )
-      return
-    end
-
-    if ("virtualbox" == current_provider and provider == "vb")
-      return
-    end
-
-    raise "\nMISMATCH FOUND\nProvider in init.yml is #{provider}." +
-          "\nBut vagrant provider is #{current_provider}."
-  end
-end
-
-
 require 'yaml'
 
-class ZookeeperVersion
+class Zookeeper
   def initialize(yaml_path)
     puts 'Parsing zookeeper.yml'
     @yml = YAML.load_file(yaml_path)
@@ -54,7 +31,7 @@ class ZookeeperVersion
   end
 end
 
-class AlluxioVersion
+class Alluxio
   def initialize(yaml_path)
     puts 'Parsing alluxio.yml'
     @yml = YAML.load_file(yaml_path)
@@ -62,7 +39,6 @@ class AlluxioVersion
     @type = @yml['Type']
     @repo = ''
     @version = ''
-    major, minor = nil
     case @type
     when "Local"
       puts 'Using local Alluxio repository'
@@ -76,22 +52,17 @@ class AlluxioVersion
     when "Release"
       @version = @yml['Release']['Version']
       major, minor = @version.split(".")
+      major = Integer(major) rescue nil
+      minor = Integer(minor) rescue nil
+      if (major < 1) or (major == 1 and minor < 4)
+        puts "ERROR: Only support Alluxio version 1.4.0 and later, check downloads.alluxio.io."
+        exit(1)
+      end
       puts "Using alluxio version #{@version}"
     else
       puts "ERROR: Unknown Alluxio type #{@type}"
       exit(1)
     end
-
-    # Determine if the version is less than 1.1, only for release and github release branch types
-    major = Integer(major) rescue nil
-    minor = Integer(minor) rescue nil
-    @v_lt_0_8 = false
-    @v_lt_1_1 = false
-    if not major.nil? and not minor.nil?
-      @v_lt_0_8 = ((major == 0) and (minor < 8))
-      @v_lt_1_1 = ((major < 1) or (major == 1 and minor < 1))
-    end
-
     @mem = @yml['WorkerMemory']
     @masters = @yml['Masters']
   end
@@ -111,17 +82,9 @@ class AlluxioVersion
   def masters
     return @masters
   end
-
-  def v_lt_0_8
-    return @v_lt_0_8
-  end
-
-  def v_lt_1_1
-    return @v_lt_1_1
-  end
 end
 
-class MesosVersion
+class Mesos
   def initialize(yaml_path)
     puts 'Parsing mesos.yml'
     @yml = YAML.load_file(yaml_path)
@@ -165,7 +128,7 @@ class MesosVersion
   end
 end
 
-class SparkVersion
+class Spark
   def initialize(yaml_path)
     puts 'Parsing spark.yml'
     @yml = YAML.load_file(yaml_path)
@@ -174,7 +137,6 @@ class SparkVersion
     @repo = ''
     @version = ''
     @dist = ''
-    @v_lt_1 = false
     case @yml['Type']
     when "None"
       puts 'No Spark will be set up'
@@ -183,7 +145,6 @@ class SparkVersion
       @git = @yml['Github']
       @repo = @git['Repo']
       @version = @git['Version']
-      @v_lt_1 = @git['Version_LessThan_1.0.0']
       puts "Using github #{@repo}, version #{@version}"
     when "Release"
       @dist = @yml['Release']['Dist']
@@ -210,12 +171,9 @@ class SparkVersion
     return @repo, @version
   end
 
-  def v_lt_1
-    return @v_lt_1
-  end
 end
 
-class HadoopVersion
+class Hadoop
   def initialize(yml)
     @version = ''
     @spark_profile = ''
@@ -249,7 +207,7 @@ class HadoopVersion
   end
 end
 
-class S3Version
+class S3
   def initialize(yml)
     @bucket = ''
     @id = ''
@@ -294,7 +252,7 @@ class S3Version
   end
 end
 
-class SwiftVersion
+class Swift
   def initialize(yml)
     @container = ''
     @user = ''
@@ -379,7 +337,7 @@ class SwiftVersion
   end
 end
 
-class GCSVersion
+class GCS
   def initialize(yml)
     @bucket = ''
     @id = ''
@@ -424,7 +382,7 @@ class GCSVersion
   end
 end
 
-class UfsVersion
+class Ufs
   def get_default_ufs(provider)
     case provider
     when 'vb'
@@ -448,21 +406,20 @@ class UfsVersion
     end
     puts @yml
 
-    @hadoop = HadoopVersion.new(nil)
-    @s3 = S3Version.new(nil)
-    @gcs = GCSVersion.new(nil)
-    @swift = SwiftVersion.new(nil)
+    @hadoop = Hadoop.new(nil)
+    @s3 = S3.new(nil)
+    @gcs = GCS.new(nil)
+    @swift = Swift.new(nil)
 
     case @yml['Type']
     when 'hadoop1', 'hadoop2'
-      @hadoop = HadoopVersion.new(@yml['Hadoop'])
+      @hadoop = Hadoop.new(@yml['Hadoop'])
     when 's3'
-      @s3 = S3Version.new(@yml['S3'])
+      @s3 = S3.new(@yml['S3'])
     when 'gcs'
-      @gcs = GCSVersion.new(@yml['GCS'])
+      @gcs = GCS.new(@yml['GCS'])
     when 'swift'
-      @swift = SwiftVersion.new(@yml['Swift'])
-    when 'glusterfs'
+      @swift = Swift.new(@yml['Swift'])
     else
       puts "ERROR: Unsupported ufs #{@yml['Type']}"
       exit(1)

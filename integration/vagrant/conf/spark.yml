@@ -8,7 +8,6 @@ Type: None
 Github:
   Repo: https://github.com/apache/spark # Repo URL
   Version: branch-1.6 # branch name or commit hash, repo of this version must contain make-distribution.sh, that is branch-0.8 afterwards
-  Version_LessThan_1.0.0: false # is the version less than release1.0.0, {true|false}
 
 # used when Type is Release
 Release:

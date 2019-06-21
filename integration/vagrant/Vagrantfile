@@ -11,14 +11,36 @@ puts @cmd.inspect
 Total = @cmd['MachineNumber']
 Provider = @cmd['Provider']
 
+def validate_provider(provider)
+  current_provider = nil
+  if ARGV[0] and ARGV[0] == "up"
+    if ARGV[1] and \
+      (ARGV[1].split('=')[0] == "--provider" or ARGV[2])
+      current_provider = (ARGV[1].split('=')[1] || ARGV[2])
+    else
+      current_provider = (ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_s
+    end
+    if ( provider == current_provider )
+      return
+    end
+
+    if ("virtualbox" == current_provider and provider == "vb")
+      return
+    end
+
+    raise "\nMISMATCH FOUND\nProvider in init.yml is #{provider}." +
+          "\nBut vagrant provider is #{current_provider}."
+  end
+end
+
 validate_provider(Provider)
 
-# load version configuration
-ZookeeperV = ZookeeperVersion.new('conf/zookeeper.yml')
-MesosV = MesosVersion.new('conf/mesos.yml')
-AlluxioV = AlluxioVersion.new('conf/alluxio.yml')
-SparkV = SparkVersion.new('conf/spark.yml')
-UfsV = UfsVersion.new('conf/ufs.yml', Provider)
+# load software configuration
+Zookeeper = Zookeeper.new('conf/zookeeper.yml')
+Mesos = Mesos.new('conf/mesos.yml')
+Alluxio = Alluxio.new('conf/alluxio.yml')
+Spark = Spark.new('conf/spark.yml')
+Ufs = Ufs.new('conf/ufs.yml', Provider)
 
 require "./core/config_#{Provider}"
 
@@ -28,14 +50,14 @@ Vagrant.require_version ">= 1.6.5"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   (1..Total).each do |i|
     # multi vm config
-    if i <= AlluxioV.masters
+    if i <= Alluxio.masters
       if i == 1
         name = "AlluxioMaster"
       else
         name = "AlluxioMaster#{i}"
       end
     else
-      name = "AlluxioWorker#{i - AlluxioV.masters}"
+      name = "AlluxioWorker#{i - Alluxio.masters}"
     end
     config.vm.define "#{name}" do |n|
       n.vm.hostname = "#{name}"
@@ -45,62 +67,59 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         n.vm.provision :ansible do |ans|
           ans.playbook = "provision/playbook.yml"
           ans.limit = "all" # to let "- hosts: all" work in playbooks
-          mesos_repo, mesos_version = MesosV.repo_version
-          alluxio_repo, alluxio_version = AlluxioV.repo_version
-          spark_repo, spark_version = SparkV.repo_version
+          mesos_repo, mesos_version = Mesos.repo_version
+          alluxio_repo, alluxio_version = Alluxio.repo_version
+          spark_repo, spark_version = Spark.repo_version
           is_vb = Provider == "vb"
-          alluxio_dist = UfsV.alluxio_dist(alluxio_version)
+          alluxio_dist = Ufs.alluxio_dist(alluxio_version)
           puts "Using alluxio distribution #{alluxio_dist}"
           alluxio_platform = "standalone"
-          if MesosV.type != "None"
+          if Mesos.type != "None"
             alluxio_platform = "mesos"
           end
           ans.extra_vars = {
-              zookeeper_type: ZookeeperV.type,
-              zookeeper_version: ZookeeperV.version,
+              zookeeper_type: Zookeeper.type,
+              zookeeper_version: Zookeeper.version,
 
-              mesos_type: MesosV.type,
+              mesos_type: Mesos.type,
               mesos_repo: mesos_repo,
-              mesos_dist: MesosV.dist,
+              mesos_dist: Mesos.dist,
               mesos_version: mesos_version,
 
-              alluxio_type:    AlluxioV.type,
+              alluxio_type:    Alluxio.type,
               alluxio_repo:    alluxio_repo,
               alluxio_dist:    alluxio_dist,
-              alluxio_memory:  AlluxioV.memory,
+              alluxio_memory:  Alluxio.memory,
               alluxio_version: alluxio_version,
-              alluxio_version_lessthan_0_8: AlluxioV.v_lt_0_8,
-              alluxio_version_lessthan_1_1: AlluxioV.v_lt_1_1,
-              alluxio_masters: AlluxioV.masters,
+              alluxio_masters: Alluxio.masters,
               alluxio_platform: alluxio_platform,
 
-              spark_type:    SparkV.type,
+              spark_type:    Spark.type,
               spark_repo:    spark_repo,
-              spark_dist:    SparkV.dist,
-              spark_profile: UfsV.hadoop.spark_profile,
+              spark_dist:    Spark.dist,
+              spark_profile: Ufs.hadoop.spark_profile,
               spark_version: spark_version,
-              spark_version_lessthan_1: SparkV.v_lt_1,
 
-              ufs: UfsV.type,
+              ufs: Ufs.type,
 
-              hadoop_version:     UfsV.hadoop.version,
-              hadoop_tarball_url: UfsV.hadoop.tarball_url,
+              hadoop_version:     Ufs.hadoop.version,
+              hadoop_tarball_url: Ufs.hadoop.tarball_url,
 
-              s3_id:     UfsV.s3.id,
-              s3_key:    UfsV.s3.key,
-              s3_bucket: UfsV.s3.bucket,
+              s3_id:     Ufs.s3.id,
+              s3_key:    Ufs.s3.key,
+              s3_bucket: Ufs.s3.bucket,
 
-              gcs_id:     UfsV.gcs.id,
-              gcs_key:    UfsV.gcs.key,
-              gcs_bucket: UfsV.gcs.bucket,
+              gcs_id:     Ufs.gcs.id,
+              gcs_key:    Ufs.gcs.key,
+              gcs_bucket: Ufs.gcs.bucket,
               
-              swift_container: UfsV.swift.container,
-              swift_user: UfsV.swift.user,
-              swift_tenant: UfsV.swift.tenant,
-              swift_password: UfsV.swift.password,
-              swift_auth_url: UfsV.swift.auth_url,
-              swift_use_public_url: UfsV.swift.use_public_url,
-              swift_auth_method: UfsV.swift.auth_method,
+              swift_container: Ufs.swift.container,
+              swift_user: Ufs.swift.user,
+              swift_tenant: Ufs.swift.tenant,
+              swift_password: Ufs.swift.password,
+              swift_auth_url: Ufs.swift.auth_url,
+              swift_use_public_url: Ufs.swift.use_public_url,
+              swift_auth_method: Ufs.swift.auth_method,
 
               provider: Provider,
           }
@@ -111,7 +130,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       # Provider specific init
       if Provider == "vb"
-        config_vb(n, i, Total, name, AlluxioV.type == "Local")
+        config_vb(n, i, Total, name, Alluxio.type == "Local")
       end
 
       if Provider == "aws"
