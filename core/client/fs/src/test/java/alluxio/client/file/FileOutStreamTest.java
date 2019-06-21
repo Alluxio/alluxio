@@ -50,7 +50,6 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.network.TieredIdentityFactory;
@@ -62,6 +61,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -396,9 +396,12 @@ public class FileOutStreamTest {
 
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
-    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
-    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME),
-        any(ScheduleAsyncPersistencePOptions.class));
+
+    // Verify that async persist request is sent with complete file request.
+    ArgumentCaptor<CompleteFilePOptions> parameterCaptor =
+            ArgumentCaptor.forClass(CompleteFilePOptions.class);
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), parameterCaptor.capture());
+    Assert.assertTrue(parameterCaptor.getValue().hasAsyncPersistOptions());
   }
 
   /**
@@ -426,10 +429,12 @@ public class FileOutStreamTest {
     verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
 
     // Verify that common options for OutStreamOptions are propagated to ScheduleAsyncPersistence.
-    ArgumentCaptor<ScheduleAsyncPersistencePOptions> parameterCaptor =
-            ArgumentCaptor.forClass(ScheduleAsyncPersistencePOptions.class);
-    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME), parameterCaptor.capture());
-    assertEquals(parameterCaptor.getValue().getCommonOptions(), options.getCommonOptions());
+    ArgumentCaptor<CompleteFilePOptions> parameterCaptor =
+            ArgumentCaptor.forClass(CompleteFilePOptions.class);
+
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), parameterCaptor.capture());
+    assertEquals(parameterCaptor.getValue().getAsyncPersistOptions().getCommonOptions(),
+        options.getCommonOptions());
   }
 
   /**

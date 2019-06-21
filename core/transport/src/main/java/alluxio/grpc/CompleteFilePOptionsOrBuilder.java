@@ -17,15 +17,28 @@ public interface CompleteFilePOptionsOrBuilder extends
   long getUfsLength();
 
   /**
-   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 2;</code>
+   * <code>optional .alluxio.grpc.file.ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;</code>
+   */
+  boolean hasAsyncPersistOptions();
+  /**
+   * <code>optional .alluxio.grpc.file.ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;</code>
+   */
+  alluxio.grpc.ScheduleAsyncPersistencePOptions getAsyncPersistOptions();
+  /**
+   * <code>optional .alluxio.grpc.file.ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;</code>
+   */
+  alluxio.grpc.ScheduleAsyncPersistencePOptionsOrBuilder getAsyncPersistOptionsOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 2;</code>
+   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 2;</code>
+   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }
