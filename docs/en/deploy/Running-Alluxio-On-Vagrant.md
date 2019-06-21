@@ -21,8 +21,8 @@ There are several prerequisites for all three deployment scenarios that are supp
 
 * Download and Install [Vagrant](https://www.vagrantup.com/downloads.html)
 * [Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine
-* Download and Install [python>=2.7](https://www.python.org/), not python3.
-* Install python library dependencies, under `integration/vagrant` directory in your Alluxio home directory, run:
+* Download and Install [Python>=2.7](https://www.python.org/), not Python3.
+* Install Python library dependencies, under `integration/vagrant` directory in your Alluxio home directory, run:
 
 ```bash
 sudo bash bin/install.sh

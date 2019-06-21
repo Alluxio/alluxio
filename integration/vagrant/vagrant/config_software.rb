@@ -13,9 +13,9 @@ class Zookeeper
     case @type
     when "Release"
       @version = @yml['Release']['Version']
-      puts "Using zookeeper version #{@version}"
+      puts "Using Zookeeper version #{@version}"
     when "None"
-      puts 'No zookeeper will be set up'
+      puts 'No Zookeeper will be set up'
     else
       puts "ERROR: Unknown Zookeeper type #{@type}"
       exit(1)
@@ -58,7 +58,7 @@ class Alluxio
         puts "ERROR: Only support Alluxio version 1.4.0 and later, check downloads.alluxio.io."
         exit(1)
       end
-      puts "Using alluxio version #{@version}"
+      puts "Using Alluxio version #{@version}"
     else
       puts "ERROR: Unknown Alluxio type #{@type}"
       exit(1)
@@ -101,7 +101,7 @@ class Mesos
       puts "Using github #{@repo}, version #{@version}"
     when "Release"
       @dist = @yml['Release']['Dist']
-      puts "Using mesos distribution #{@dist}"
+      puts "Using Mesos distribution #{@dist}"
     when "None"
       puts 'No Mesos will be set up'
       @use_mesos = false
@@ -148,7 +148,7 @@ class Spark
       puts "Using github #{@repo}, version #{@version}"
     when "Release"
       @dist = @yml['Release']['Dist']
-      puts "Using spark distribution #{@dist}"
+      puts "Using Spark distribution #{@dist}"
     else
       puts "ERROR: Unknown Spark type #{@yml['Type']}"
       exit(1)
@@ -186,11 +186,11 @@ class Hadoop
       exit(1)
     end
     @spark_profile = yml['SparkProfile'] or @spark_profile
-		@hadoop_tarball_url = "http://archive.apache.org/dist/hadoop/common/hadoop-#{@version}/hadoop-#{@version}.tar.gz"
+    @hadoop_tarball_url = "http://archive.apache.org/dist/hadoop/common/hadoop-#{@version}/hadoop-#{@version}.tar.gz"
   end
 
   def tarball_url
-		return @hadoop_tarball_url
+    return @hadoop_tarball_url
   end
 
   def version
@@ -202,7 +202,7 @@ class Hadoop
   end
 
   def alluxio_dist(alluxio_version)
-		hadoop_major_minor_version = @version.split('.')[0..1].join('.')
+    hadoop_major_minor_version = @version.split('.')[0..1].join('.')
     return "alluxio-#{alluxio_version}-hadoop-#{hadoop_major_minor_version}-bin.tar.gz"
   end
 end

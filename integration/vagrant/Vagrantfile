@@ -20,6 +20,7 @@ def validate_provider(provider)
     else
       current_provider = (ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_s
     end
+
     if ( provider == current_provider )
       return
     end
@@ -72,7 +73,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           spark_repo, spark_version = Spark.repo_version
           is_vb = Provider == "vb"
           alluxio_dist = Ufs.alluxio_dist(alluxio_version)
-          puts "Using alluxio distribution #{alluxio_dist}"
+          puts "Using Alluxio distribution #{alluxio_dist}"
           alluxio_platform = "standalone"
           if Mesos.type != "None"
             alluxio_platform = "mesos"
