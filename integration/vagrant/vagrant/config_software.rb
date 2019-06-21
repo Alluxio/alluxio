@@ -420,6 +420,8 @@ class Ufs
       @gcs = GCS.new(@yml['GCS'])
     when 'swift'
       @swift = Swift.new(@yml['Swift'])
+    when 'glusterfs'
+      # Nothing to configure for glusterfs.
     else
       puts "ERROR: Unsupported ufs #{@yml['Type']}"
       exit(1)
