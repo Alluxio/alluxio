@@ -64,7 +64,7 @@ public final class AlluxioWorker {
     } catch (IOException e) {
       ProcessUtils.fatalError(LOG,
           "Failed to load cluster default configuration for worker. Please make sure that Alluxio "
-              + "master is running: %s", e.getMessage());
+              + "master is running: %s", e.toString());
     }
     WorkerProcess process = WorkerProcess.Factory.create();
     ProcessUtils.run(process);
