@@ -33,11 +33,11 @@ The following is a checklist to run through to address common problems when tuni
    the compute application is likely not interfacing with a local Alluxio worker.
    The Alluxio client uses hostname matching to discover a local Alluxio worker;
    check that the client and worker use the same hostname string.
-   Configuring `alluxio.locality.node` and `alluxio.worker.hostname` sets the client and worker
+   Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
    
    Note: In order to retrieve metrics for short circuit IO, the client metrics collection need to be enabled by setting
-   `alluxio.user.metrics.collection.enabled=true` in alluxio-site.properties or corresponding application configuration.
+   `alluxio.user.metrics.collection.enabled=true` in `alluxio-site.properties` or corresponding application configuration.
 
 1. Is data is well-distributed across Alluxio workers?
 
@@ -52,7 +52,7 @@ The following is a checklist to run through to address common problems when tuni
    Alluxio clients maintain a connection to the master to avoid using a new connection each time.
    Each client will occupy a server thread while an RPC request is pending.
    This may deplete the master's thread pool; its size can be increased by setting
-   `alluxio.master.executor.fork.pool.size.max`, which has a default value of 500.
+   `alluxio.master.rpc.executor.max.pool.siz`, which has a default value of 500.
    The file descriptor limit may also need to be increased to allow the desired number of open connections.
    The default number of threads used by a client can be decreased by setting
    `alluxio.user.file.master.client.threads` and `alluxio.user.block.master.client.threads`,

@@ -63,7 +63,7 @@ public final class RemovedKey {
       put("alluxio.master.connection.timeout", removedSince(V2_0_0));
       put("alluxio.master.file.async.persist.handler", removedSince(V2_0_0));
       put("alluxio.master.heartbeat.interval",
-          replacedSince(V2_0_0, PropertyKey.Name.MASTER_WORKER_HEARTBEAT_INTERVAL));
+          replacedSince(V2_0_0, PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL.getName()));
       put("alluxio.master.journal.formatter.class",
           "v2.0 removed the ability to specify the master journal formatter");
       put("alluxio.master.lineage.checkpoint.class", removedSince(V2_0_0));
@@ -93,17 +93,21 @@ public final class RemovedKey {
       put("alluxio.user.block.worker.client.threads", removedSince(V2_0_0));
       put("alluxio.user.failed.space.request.limits", removedSince(V2_0_0));
       put("alluxio.user.file.cache.partially.read.block", removedSince(V2_0_0));
-      put("alluxio.user.file.copyfromlocal.write.location.policy.class", removedSince(V2_0_0));
+      put("alluxio.user.file.copyfromlocal.write.location.policy.class", replacedSince(V2_0_0,
+          PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
       put("alluxio.user.file.master.client.pool.gc.interval", removedSince(V2_0_0));
       put("alluxio.user.file.master.client.pool.gc.threshold", removedSince(V2_0_0));
       put("alluxio.user.file.master.client.pool.size.max", removedSince(V2_0_0));
       put("alluxio.user.file.master.client.pool.size.min", removedSince(V2_0_0));
       put("alluxio.user.file.seek.buffer.size.bytes", removedSince(V2_0_0));
-      put("alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes", removedSince(V2_0_0));
-      put("alluxio.user.file.write.location.policy.class", removedSince(V2_0_0));
+      put("alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes",
+          replacedSince(V2_0_0,
+              PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES.getName()));
+      put("alluxio.user.file.write.location.policy.class",
+          replacedSince(V2_0_0, PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY.getName()));
       put("alluxio.user.heartbeat.interval", removedSince(V2_0_0));
       put("alluxio.user.hostname",
-          replacedSince(V2_0_0, PropertyKey.Template.LOCALITY_TIER.format("node").getName()));
+          replacedSince(V2_0_0, PropertyKey.LOCALITY_TIER_NODE.getName()));
       put("alluxio.user.lineage.enabled", removedSince(V2_0_0));
       put("alluxio.user.lineage.master.client.threads", removedSince(V2_0_0));
       put("alluxio.user.local.reader.packet.size.bytes", removedSince(V2_0_0));
@@ -129,7 +133,7 @@ public final class RemovedKey {
       put("alluxio.worker.block.threads.min", removedSince(V2_0_0));
       put("alluxio.worker.data.bind.host", removedSince(V2_0_0));
       put("alluxio.worker.data.hostname", removedSince(V2_0_0));
-      put("alluxio.worker.data.port", removedSince(V2_0_0));
+      put("alluxio.worker.data.port", replacedSince(V2_0_0, PropertyKey.WORKER_RPC_PORT.getName()));
       put("alluxio.worker.network.netty.async.cache.manager.threads.max", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.backlog", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.block.reader.threads.max", removedSince(V2_0_0));

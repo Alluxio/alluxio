@@ -49,10 +49,10 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
     InstancedConfiguration conf = new InstancedConfiguration(
         fsContext.getClusterConf().copyProperties());
     conf.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
-        conf.get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY));
+        conf.get(PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY));
     LOG.debug(String.format("copyFromLocal block write location policy is %s from property %s",
         conf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
-        PropertyKey.Name.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY));
+        PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
     FileSystemContext updatedCtx = FileSystemContext.create(conf);
     mFsContext = updatedCtx;
     mFileSystem = FileSystem.Factory.create(updatedCtx);

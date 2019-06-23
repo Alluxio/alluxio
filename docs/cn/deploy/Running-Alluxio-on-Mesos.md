@@ -37,7 +37,6 @@ alluxio.master.port=31398
 alluxio.master.web.port=31399
 
 alluxio.worker.port=31498
-alluxio.worker.data.port=31499
 alluxio.worker.web.port=31500
 ```
 

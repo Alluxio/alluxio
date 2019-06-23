@@ -1615,6 +1615,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey MASTER_RPC_PORT =
       new Builder(Name.MASTER_RPC_PORT)
+          .setAlias("alluxio.master.rpc.port")
           .setDefaultValue(19998)
           .setDescription("The port that Alluxio master node runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2256,6 +2257,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
+          .setAlias("alluxio.worker.rpc.port")
           .setDefaultValue(29999)
           .setDescription("The port Alluxio's worker node runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2588,6 +2590,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey LOCALITY_TIER_NODE =
       new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
+          .setAlias("alluxio.user.hostname")
           .setDescription("Value to use for determining node locality")
           .build();
   // This property defined so that it is included in the documentation.
@@ -2748,8 +2751,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
-      new Builder(Name.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY)
+  public static final PropertyKey USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
+      new Builder(Name.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.RoundRobinPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks using copyFromLocal command.")
@@ -2864,6 +2867,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false).build();
   public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
+          .setAlias("alluxio.user.block.write.location.policy.class")
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks.")
@@ -2928,7 +2932,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_METRICS_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.USER_METRICS_HEARTBEAT_INTERVAL_MS)
-          .setAlias("alluxio.user.heartbeat.interval.ms")
+          .setAlias("alluxio.user.metrics.heartbeat.interval.ms")
           .setDefaultValue("3sec")
           .setDescription("The time period of client master heartbeat to "
               + "send the client-side metrics.")
@@ -4091,14 +4095,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
-        "alluxio.user.block.write.location.policy.class";
+        "alluxio.user.block.write.location.policy";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
-    public static final String USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
-        "alluxio.user.file.copyfromlocal.block.location.policy.class";
+    public static final String USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
+        "alluxio.user.file.copyfromlocal.block.location.policy";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =

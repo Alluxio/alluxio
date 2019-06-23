@@ -204,9 +204,7 @@ To use multiple hard drives in the HDD tier, specify multiple paths when configu
 When Alluxio storage is full, Alluxio frees up space for new data as its storage is designed to be
 volatile. Eviction is the mechanism that removes old data.
 
-There are two modes of eviction in Alluxio: asynchronous and synchronous.
-
-Asynchronous eviction is the default implementation of eviction. It relies on a periodic space
+Alluxio applies asynchronous eviction in the background. It relies on a periodic space
 reserver thread in each worker to evict data. When the worker storage utilization reaches a
 maximum threshold, it evicts data until the usage reaches a minimum threshold. The two thresholds
 are configurable, labeled as the high and low watermarks respectively. In the case where we have
@@ -223,13 +221,7 @@ Asynchronous eviction is particularly useful for write or read-cache heavy workl
 Synchronous eviction waits for a client to request more space than is currently available on the
 worker and then kicks off the eviction process to free up enough space to serve that request. This
 leads to many small eviction attempts, which is less efficient, but maximizes the utilization of
-available Alluxio space. Synchronous eviction is enabled by configuring the setting:
-
-```
-alluxio.worker.tieredstore.reserver.enabled=false
-```
-
-In general, it is recommended to use the default asynchronous eviction.
+available Alluxio space.
 
 ### Eviction Policies
 
@@ -396,10 +388,6 @@ the same TTL attributes.
 
 Passive TTL works with the following configuration options:
 
-* `alluxio.user.file.load.ttl` - The TTL duration to set on any file newly loaded into Alluxio
-from an under store. By default, no TTL duration is set.
-* `alluxio.user.file.load.ttl.action` - The TTL action to set on any file newly loaded into Alluxio
-from an under store. By default, this action is `DELETE`.
 * `alluxio.user.file.create.ttl` - The TTL duration to set on any file newly created in Alluxio.
 By default, no TTL duration is set.
 * `alluxio.user.file.create.ttl.action` - The TTL action to set on any file newly created

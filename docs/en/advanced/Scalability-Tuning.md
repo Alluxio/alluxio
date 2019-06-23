@@ -50,7 +50,7 @@ as set by `alluxio.master.executor.fork.pool.size.max`.
 ### Heartbeat Intervals and Timeouts
 
 The frequency in which the master checks for lost workers is set by the
-`alluxio.master.heartbeat.interval.ms` property, with a default value of `10s`.
+`alluxio.master.worker.heartbeat.interval` property, with a default value of `10s`.
 Increase the interval to reduce the number of heartbeat checks.
 
 ## Alluxio Worker Configuration

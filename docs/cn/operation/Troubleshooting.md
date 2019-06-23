@@ -135,16 +135,6 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 
-- 在版本1.6.0及以上，`copyFromLocal`命令默认使用`RoundRobinPolicy`定位策略。你可以通过更改 `alluxio.user.file.copyfromlocal.write.location.policy.class` 属性值来改变该命令的定位策略.
-
-    在版本1.6.0以前，如果你使用`copyFromLocal`命令向Alluxio写数据，该命令默认使用`LocalFirstPolicy`定位策略将数据存储到本地worker节点上(查看[location policy](File-System-API.html#location-policy))。
-如果本地worker节点没有足够空间，你将会看到上述错误。你可以通过将策略修改为`RoundRobinPolicy`(如下所述)来将你的文件分散存储到不同worker节点上。
-
-```bash
-./bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
-```
-
-
 - 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[Command-Line-Interface](Command-Line-Interface.html)获取更多信息。
 - 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[Configuration](Configuration-Settings.html#common-configuration) 获取更多信息。
 
@@ -153,21 +143,6 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 解决办法： 当你看见类似"Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being avilabe to try"。
 这是因为Alluxio master还没有根据`alluxio.master.journal.folder`属性来更新HDFS目录下的日志文件。有多种原因可以导致这种类型的错误，其中典型的原因是：
 一些用来管理日志文件的HDFS datanode处于高负载状态或者磁盘空间已经用完。当日志目录设置在HDFS中时，请确保HDFS部署处于连接状态并且能够让Alluxio正常存储日志文件。
-
-### 问题：当我看见客户端请求被主机所拒绝。
-
-解决办法: 当你看见类似 `"alluxio.exception.status.UnavailableException:
-Failed to connect to BlockMasterClient @ hostname:19998 after 13 attempts"` 并且
-在 `logs/master.log`中有如下警告: `"WARN  TThreadPoolServer - Task has been rejected by
-ExecutorService 9 times till timedout, reason: java.util.concurrent.RejectedExecutionException:
-Task org.apache.thrift.server.TThreadPoolServer$WorkerProcess@22fba58c rejected from
-java.util.concurrent.ThreadPoolExecutor@19593091[Running, pool size = 2048, active threads = 2048,
-queued tasks = 0, completed tasks = 14]"`, 这表明Alluxio服务器主机用完了线程池因而不能为后面的客户端提供服务。
-
-要解决该问题，你可以尝试：
-- 增大`alluxio.master.worker.threads.max`来增加主机响应客户端请求的线程池容量。你可以在`conf/alluxio-site.properties`中将其设置为一个更大的值。要注意，这个值不能比系统允许的最大打开文件数量更大。在Linux中你可以用`"ulimit -n"`查看该上限或者用
-[other approaches](https://stackoverflow.com/questions/880557/socket-accept-too-many-open-files)。
-- 减小`alluxio.user.block.master.client.threads` (默认为10)和`alluxio.user.file.master.client.threads` (默认为10)来减少客户端向主机发送请求的连接池容量。你可以在`conf/alluxio-site.properties`中将其设置为一个更小的值。要注意，减小这两个值可能会增加主机响应请求的延时。
 
 ## Alluxio性能常见问题
 
