@@ -45,7 +45,7 @@ Several parameters limit the number of threads that a process can spawn:
 
 These limits are often set for the particular user that launch the Alluxio process.
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads
-as set by `alluxio.master.executor.fork.pool.size.max`.
+as set by `alluxio.master.rpc.executor.max.pool.size`.
 
 ### Heartbeat Intervals and Timeouts
 
