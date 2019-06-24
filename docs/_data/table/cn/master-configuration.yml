@@ -46,7 +46,7 @@ alluxio.master.periodic.block.integrity.check.interval:
   块完整性检查的间隔，如果小于0则不启用。
 alluxio.master.periodic.block.integrity.check.repair:
   完整性检查时是否要删除孤儿块。这是个实验性的属性。
-alluxio.master.port:
+alluxio.master.rpc.port:
   Alluxio master的运行端口。
 alluxio.master.startup.block.integrity.check.enabled:
   是否应该在启动时检查系统孤立的块(由于各种系统故障而没有相应文件但仍然占用系统资源的块)。如果此属性为真，则在主启动期间将删除孤立的块。此属性自1.7.1开始可用。

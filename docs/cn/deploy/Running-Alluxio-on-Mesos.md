@@ -33,10 +33,10 @@ Alluxio兼容Mesos 0.23.0及之后的版本。
 或者，您可以在`alluxio-site.properties`文件中指定Alluxio端口，如下所示：
 
 ```properties
-alluxio.master.port=31398
+alluxio.master.rpc.port=31398
 alluxio.master.web.port=31399
 
-alluxio.worker.port=31498
+alluxio.worker.rpc.port=31498
 alluxio.worker.web.port=31500
 ```
 

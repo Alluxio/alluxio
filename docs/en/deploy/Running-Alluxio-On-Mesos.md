@@ -37,10 +37,10 @@ When you launch the Mesos slave, you can specify the port resources for it to ma
 Alternately, you may specify the Alluxio ports in `alluxio-site.properties`:
 
 ```properties
-alluxio.master.port=31398
+alluxio.master.rpc.port=31398
 alluxio.master.web.port=31399
 
-alluxio.worker.port=31498
+alluxio.worker.rpc.port=31498
 alluxio.worker.web.port=31500
 ```
 
