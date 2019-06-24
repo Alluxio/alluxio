@@ -214,8 +214,8 @@ async cache on Alluxio workers.
 
 ### Avoid Presto timeout reading large files
 
-It is recommended to increase `alluxio.user.network.netty.timeout` to a bigger value (e.g.
-`10min`) to avoid the timeout
+It is recommended to increase `alluxio.user.network.data.timeout` to a bigger value (e.g
+`10min`) to avoid a timeout
  failure when reading large files from remote worker.
 
 ## Troubleshooting

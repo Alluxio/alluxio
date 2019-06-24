@@ -102,8 +102,6 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("worker");
         } else if (pKey.startsWith("alluxio.security.")) {
           fileWriter = fileWriterMap.get("security");
-        } else if (pKey.startsWith("alluxio.keyvalue.")) {
-          fileWriter = fileWriterMap.get("key-value");
         } else if (pKey.startsWith("alluxio.integration")) {
           fileWriter = fileWriterMap.get("cluster-management");
         } else {

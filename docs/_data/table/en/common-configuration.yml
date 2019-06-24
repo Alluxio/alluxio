@@ -35,7 +35,7 @@ alluxio.job.master.lost.worker.interval:
 alluxio.job.master.rpc.addresses:
   'The list of RPC addresses to use for the job service configured in non-zookeeper HA mode. If this property is not specifically defined, it will first fall back to using alluxio.master.rpc.addresses, replacing those address ports with the port defined by alluxio.job.master.rpc.port. Otherwise the addresses are inherited from alluxio.job.master.embedded.journal.addresses using the port defined in alluxio.job.master.rpc.port'
 alluxio.job.master.rpc.port:
-  'The RPC port that the job master uses.'
+  'The port for Alluxio job master''s RPC service.'
 alluxio.job.master.web.bind.host:
   'The host that the job master web server binds to.'
 alluxio.job.master.web.hostname:
@@ -53,7 +53,7 @@ alluxio.job.worker.data.port:
 alluxio.job.worker.hostname:
   'The hostname of the Alluxio job worker.'
 alluxio.job.worker.rpc.port:
-  'The port the job worker uses to send RPCs'
+  'The port for Alluxio job worker''s RPC service.'
 alluxio.job.worker.web.bind.host:
   'The host the job worker web server binds to.'
 alluxio.job.worker.web.port:

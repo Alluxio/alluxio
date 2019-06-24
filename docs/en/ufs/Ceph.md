@@ -61,7 +61,6 @@ alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
 alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
 alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
 alluxio.master.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
-alluxio.master.mount.table.root.option.fs.swift.use.public.url=<swift-use-public>
 alluxio.master.mount.table.root.option.fs.swift.auth.method=<swift-auth-method>
 ```
 Replace `<bucket>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>` are
@@ -84,7 +83,7 @@ Similarly, to use the Swift interface:
 ```bash
 $ ./bin/alluxio fs mount --option fs.swift.user=<SWIFT_USER> --option fs.swift.tenant=<SWIFT_TENANT> \
 --option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
---option fs.swift.use.public.url=<USE_PUBLIC> --option fs.swift.auth.method=<AUTH_METHOD> \
+--option fs.swift.auth.method=<AUTH_METHOD> \
 /mnt/ceph swift://<BUCKET>/<FOLDER>
 ```
 

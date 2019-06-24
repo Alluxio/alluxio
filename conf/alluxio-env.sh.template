@@ -26,15 +26,15 @@
 # ALLUXIO_LOGS_DIR
 
 # Config properties set for Alluxio master, worker and shell. (Default: "")
-# E.g. "-Dalluxio.master.port=39999"
+# E.g. "-Dalluxio.master.rpc.port=39999"
 # ALLUXIO_JAVA_OPTS
 
 # Config properties set for Alluxio master daemon. (Default: "")
-# E.g. "-Dalluxio.master.port=39999"
+# E.g. "-Dalluxio.master.rpc.port=39999"
 # ALLUXIO_MASTER_JAVA_OPTS
 
 # Config properties set for Alluxio worker daemon. (Default: "")
-# E.g. "-Dalluxio.worker.port=49999" to set worker port, "-Xms2048M -Xmx2048M" to limit the heap size of worker.
+# E.g. "-Dalluxio.worker.rpc.port=49999" to set worker port, "-Xms2048M -Xmx2048M" to limit the heap size of worker.
 # ALLUXIO_WORKER_JAVA_OPTS
 
 # Config properties set for Alluxio shell. (Default: "")

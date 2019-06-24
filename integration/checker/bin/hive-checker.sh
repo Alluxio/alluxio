@@ -114,11 +114,11 @@ function main {
 
   if [[ "${HIVE_USER_MODE}" == "location" ]]; then
     ALLUXIO_MASTER_HOSTNAME=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" getConf alluxio.master.hostname)
-    ALLUXIO_MASTER_PORT=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" getConf alluxio.master.port)
+    ALLUXIO_MASTER_PORT=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" getConf alluxio.master.rpc.port)
     ALLUXIO_URL="alluxio://${ALLUXIO_MASTER_HOSTNAME}:${ALLUXIO_MASTER_PORT}"
     if [[ "${ALLUXIO_MASTER_HOSTNAME}" == "" ]] || [[ "${ALLUXIO_MASTER_PORT}" == "" ]]; then
       echo -e "${USAGE}" >&2
-      echo "Please set the alluxio.master.hostname and alluxio.master.port in your ${ALLUXIO_PATH}/conf/alluxio-site.properties."
+      echo "Please set the alluxio.master.hostname and alluxio.master.rpc.port in your ${ALLUXIO_PATH}/conf/alluxio-site.properties."
       exit 1
     fi
   fi
