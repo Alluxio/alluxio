@@ -118,8 +118,7 @@ function main {
     ALLUXIO_URL="alluxio://${ALLUXIO_MASTER_HOSTNAME}:${ALLUXIO_MASTER_PORT}"
     if [[ "${ALLUXIO_MASTER_HOSTNAME}" == "" ]] || [[ "${ALLUXIO_MASTER_PORT}" == "" ]]; then
       echo -e "${USAGE}" >&2
-      echo "Please set the alluxio.master.hostname and alluxio.master.rpc.port in your
-      ${ALLUXIO_PATH}/conf/alluxio-site.properties."
+      echo "Please set the alluxio.master.hostname and alluxio.master.rpc.port in your ${ALLUXIO_PATH}/conf/alluxio-site.properties."
       exit 1
     fi
   fi
