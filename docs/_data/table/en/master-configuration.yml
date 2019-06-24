@@ -139,7 +139,7 @@ alluxio.master.rpc.executor.min.runnable:
 alluxio.master.rpc.executor.parallelism:
   'The parallelism level of master RPC executor service .'
 alluxio.master.rpc.port:
-  'The port that Alluxio master node runs on.'
+  'The port for Alluxio master''s RPC service.'
 alluxio.master.standby.heartbeat.interval:
   'The heartbeat interval between Alluxio primary master and standby masters.'
 alluxio.master.startup.block.integrity.check.enabled:

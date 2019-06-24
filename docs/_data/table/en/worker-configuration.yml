@@ -89,7 +89,7 @@ alluxio.worker.network.zerocopy.enabled:
 alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
 alluxio.worker.rpc.port:
-  'The port Alluxio''s worker node runs on.'
+  'The port for Alluxio worker''s RPC service.'
 alluxio.worker.session.timeout:
   'Timeout between worker and client connection indicating a lost session connection.'
 alluxio.worker.storage.checker.enabled:

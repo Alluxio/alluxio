@@ -1618,7 +1618,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_RPC_PORT)
           .setAlias("alluxio.master.port")
           .setDefaultValue(19998)
-          .setDescription("The port that Alluxio master node runs on.")
+          .setDescription("The port for Alluxio master's RPC service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -2260,7 +2260,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_RPC_PORT)
           .setAlias("alluxio.worker.port")
           .setDefaultValue(29999)
-          .setDescription("The port Alluxio's worker node runs on.")
+          .setDescription("The port for Alluxio worker's RPC service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3451,7 +3451,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_RPC_PORT =
       new Builder(Name.JOB_MASTER_RPC_PORT)
-          .setDescription("The RPC port that the job master uses.")
+          .setDescription("The port for Alluxio job master's RPC service.")
           .setDefaultValue(20001)
           .build();
   public static final PropertyKey JOB_MASTER_WEB_BIND_HOST =
@@ -3487,7 +3487,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
       new Builder(Name.JOB_WORKER_RPC_PORT)
-          .setDescription("The port the job worker uses to send RPCs")
+          .setDescription("The port for Alluxio job worker's RPC service.")
           .setDefaultValue(30001)
           .build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
