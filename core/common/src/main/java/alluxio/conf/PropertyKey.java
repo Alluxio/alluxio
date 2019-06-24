@@ -2591,7 +2591,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey LOCALITY_TIER_NODE =
       new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
-          .setAlias("alluxio.user.hostname")
           .setDescription("Value to use for determining node locality")
           .build();
   // This property defined so that it is included in the documentation.
