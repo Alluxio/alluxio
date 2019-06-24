@@ -190,11 +190,11 @@ To check the value of a specific configuration property and the source of its va
 users can run the following command:
 
 ```bash
-./bin/alluxio getConf alluxio.worker.port
+./bin/alluxio getConf alluxio.worker.rpc.port
 ```
 ```
 29998
-./bin/alluxio getConf --source alluxio.worker.port
+./bin/alluxio getConf --source alluxio.worker.rpc.port
 DEFAULT
 ```
 

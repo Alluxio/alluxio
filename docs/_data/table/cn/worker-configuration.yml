@@ -61,7 +61,7 @@ alluxio.worker.network.netty.watermark.low:
   一旦写队列中的high watermark达到了，该队列在切换到可写状态之前必须刷新到该配置项指定的low watermark。
 alluxio.worker.network.netty.worker.threads:
   "处理请求的线程数目，0表示#cpuCores * 2"
-alluxio.worker.port:
+alluxio.worker.rpc.port:
   Alluxio worker节点运行端口。
 alluxio.worker.session.timeout:
   worker和client连接的超时时间，超时后表明该会话失效。

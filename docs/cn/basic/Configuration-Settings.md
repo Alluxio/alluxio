@@ -185,9 +185,9 @@ Alluxio属性可以在多个资源中配置。在这种情况下，它的最终�
 要检查特定配置属性的值及其值的来源，用户可以使用以下命令行:
 
 ```bash
-./bin/alluxio getConf alluxio.worker.port
+./bin/alluxio getConf alluxio.worker.rpc.port
 29998
-./bin/alluxio getConf --source alluxio.worker.port
+./bin/alluxio getConf --source alluxio.worker.rpc.port
 DEFAULT
 ```
 

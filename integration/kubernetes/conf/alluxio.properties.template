@@ -9,4 +9,4 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=alluxio-master -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=/journal -Dalluxio.master.mount.table.root.ufs=<under_storage_address> -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.memory.size=1GB -Dalluxio.master.port=19998 -Dalluxio.master.web.port=19999 -Dalluxio.worker.port=29999 -Dalluxio.worker.web.port=29996 -Daws.accessKeyId=<s3a_access_key> -Daws.secretKey=<s3a_secret_key>
+ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=alluxio-master -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=/journal -Dalluxio.master.mount.table.root.ufs=<under_storage_address> -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.memory.size=1GB -Dalluxio.master.rpc.port=19998 -Dalluxio.master.web.port=19999 -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=29996 -Daws.accessKeyId=<s3a_access_key> -Daws.secretKey=<s3a_secret_key>
