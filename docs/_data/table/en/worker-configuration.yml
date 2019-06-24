@@ -86,10 +86,10 @@ alluxio.worker.network.writer.buffer.size.messages:
   'When a client writes to a remote worker, the maximum number of data messages to buffer by the server for each request.'
 alluxio.worker.network.zerocopy.enabled:
   'Whether zero copy is enabled on worker when processing data streams.'
-alluxio.worker.port:
-  'The port Alluxio''s worker node runs on.'
 alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
+alluxio.worker.rpc.port:
+  'The port Alluxio''s worker node runs on.'
 alluxio.worker.session.timeout:
   'Timeout between worker and client connection indicating a lost session connection.'
 alluxio.worker.storage.checker.enabled:

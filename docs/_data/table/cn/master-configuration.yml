@@ -1,6 +1,6 @@
 alluxio.master.bind.host:
   Alluxio master绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
-alluxio.master.master.heartbeat.interval:
+alluxio.master.standby.heartbeat.interval:
   Alluxio master进程间的心跳间隔时间。
 alluxio.master.hostname:
   Alluxio master主机名。

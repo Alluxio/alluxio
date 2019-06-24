@@ -52,7 +52,7 @@ The following is a checklist to run through to address common problems when tuni
    Alluxio clients maintain a connection to the master to avoid using a new connection each time.
    Each client will occupy a server thread while an RPC request is pending.
    This may deplete the master's thread pool; its size can be increased by setting
-   `alluxio.master.rpc.executor.max.pool.siz`, which has a default value of 500.
+   `alluxio.master.rpc.executor.max.pool.size`, which has a default value of 500.
    The file descriptor limit may also need to be increased to allow the desired number of open connections.
    The default number of threads used by a client can be decreased by setting
    `alluxio.user.file.master.client.threads` and `alluxio.user.block.master.client.threads`,

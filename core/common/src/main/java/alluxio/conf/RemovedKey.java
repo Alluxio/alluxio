@@ -70,6 +70,8 @@ public final class RemovedKey {
       put("alluxio.master.lineage.checkpoint.interval", removedSince(V2_0_0));
       put("alluxio.master.lineage.recompute.interval", removedSince(V2_0_0));
       put("alluxio.master.lineage.recompute.log.path", removedSince(V2_0_0));
+      put("alluxio.master.master.heartbeat.interval", replacedSince(V2_0_0,
+          PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL.getName()));
       put("alluxio.master.startup.consistency.check.enabled", removedSince(V2_0_0));
       put("alluxio.master.thrift.shutdown.timeout", removedSince(V2_0_0));
       put("alluxio.master.retry", removedSince(V2_0_0));
@@ -118,7 +120,8 @@ public final class RemovedKey {
       put("alluxio.user.network.netty.channel.pool.size.min", removedSince(V2_0_0));
       put("alluxio.user.network.netty.reader.buffer.size.packets", removedSince(V2_0_0));
       put("alluxio.user.network.netty.reader.packet.size.bytes", removedSince(V2_0_0));
-      put("alluxio.user.network.netty.timeout", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.timeout", replacedSince(V2_0_0,
+          PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS.getName()));
       put("alluxio.user.network.netty.writer.buffer.size.packets", removedSince(V2_0_0));
       put("alluxio.user.network.netty.writer.close.timeout", removedSince(V2_0_0));
       put("alluxio.user.network.netty.writer.packet.size.bytes", removedSince(V2_0_0));

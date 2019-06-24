@@ -1282,10 +1282,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_MASTER_HEARTBEAT_INTERVAL =
-      new Builder(Name.MASTER_MASTER_HEARTBEAT_INTERVAL)
+  public static final PropertyKey MASTER_STANDBY_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_STANDBY_HEARTBEAT_INTERVAL)
           .setDefaultValue("2min")
-          .setDescription("The interval between Alluxio masters' heartbeats.")
+          .setDescription("The heartbeat interval between Alluxio primary master and standby "
+              + "masters.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1615,7 +1616,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey MASTER_RPC_PORT =
       new Builder(Name.MASTER_RPC_PORT)
-          .setAlias("alluxio.master.rpc.port")
+          .setAlias("alluxio.master.port")
           .setDefaultValue(19998)
           .setDescription("The port that Alluxio master node runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2257,7 +2258,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
-          .setAlias("alluxio.worker.rpc.port")
+          .setAlias("alluxio.worker.port")
           .setDefaultValue(29999)
           .setDescription("The port Alluxio's worker node runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2867,7 +2868,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false).build();
   public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
-          .setAlias("alluxio.user.block.write.location.policy.class")
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks.")
@@ -2895,6 +2895,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
+      .setDescription("The hostname to use for an Alluxio client.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+      .setScope(Scope.CLIENT)
+      .build();
   public static final PropertyKey USER_FILE_WRITE_TIER_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TIER_DEFAULT)
           .setDefaultValue(Constants.FIRST_TIER)
@@ -3785,8 +3790,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
-    public static final String MASTER_MASTER_HEARTBEAT_INTERVAL =
-        "alluxio.master.master.heartbeat.interval";
+    public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
+        "alluxio.master.standby.heartbeat.interval";
     public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
         "alluxio.master.worker.heartbeat.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =
@@ -3871,7 +3876,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_REPLICATION_CHECK_INTERVAL_MS =
         "alluxio.master.replication.check.interval";
-    public static final String MASTER_RPC_PORT = "alluxio.master.port";
+    public static final String MASTER_RPC_PORT = "alluxio.master.rpc.port";
     public static final String MASTER_RPC_EXECUTOR_PARALLELISM =
         "alluxio.master.rpc.executor.parallelism";
     public static final String MASTER_RPC_EXECUTOR_MIN_RUNNABLE =
@@ -4025,7 +4030,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
-    public static final String WORKER_RPC_PORT = "alluxio.worker.port";
+    public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =
         "alluxio.worker.storage.checker.enabled";
@@ -4095,14 +4100,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
-        "alluxio.user.block.write.location.policy";
+        "alluxio.user.block.write.location.policy.class";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
-        "alluxio.user.file.copyfromlocal.block.location.policy";
+        "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
@@ -4131,6 +4136,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
+    public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =

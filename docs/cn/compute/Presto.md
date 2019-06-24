@@ -184,6 +184,10 @@ alluxio.user.file.writetype.default=CACHE_THROUGH
 Presto 的 Hive 集成使用[`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html)配置来控制查询的并行度。
 对于 Alluxio 1.6 或更早版本，建议将此大小设置为不小于 Alluxio 的块大小，以避免同一块中的读取竞争。对于以后的 Alluxio 版本，由于 Alluxio Worker 上有了异步缓存，这不再是一个问题。
 
+### 避免 Presto 读取大文件超时
+
+ 建议将`alluxio.user.network.data.timeout`增加到较大的值（例如`10min`），以避免从远程的 worker 读取大文件时超时失败。
+
 ## 故障排除指南
 
 ### 查询出现错误信息“No FileSystem for scheme: alluxio”

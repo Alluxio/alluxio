@@ -212,6 +212,12 @@ For Alluxio 1.6 or earlier,
 it is recommended to set this size no less than Alluxio's block size to avoid the read contention within the same block. For later Alluxio versions, this is no more an issue due to
 async cache on Alluxio workers.
 
+### Avoid Presto timeout reading large files
+
+It is recommended to increase `alluxio.user.network.data.timeout` to a bigger value (e.g
+`10min`) to avoid the timeout
+ failure when reading large files from remote worker.
+
 ## Troubleshooting
 
 ### Error message "No FileSystem for scheme: alluxio" on queries

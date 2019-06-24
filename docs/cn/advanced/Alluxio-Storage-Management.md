@@ -60,8 +60,7 @@ alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9 # 216GB * 0.9 ~ 200GB
 alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160GB
 ```
 
-在写或读缓存高工作负载时，异步回收可以提高性能。
-
+与Alluxio2.0之前采用的同步回收相比，在写或读缓存高工作负载时异步回收可以提高性能。
 同步回收等待一个客户端请求比当前在worker上可用空间更多的空间，然后启动回收进程来释放足够的空间来满足这一要求。这导致了许多很小的回收尝试，使得效率较低但是使可用的Alluxio空间的利用最大化。
 
 ### 回收策略

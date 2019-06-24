@@ -216,10 +216,10 @@ alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
 alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75
 ```
 
-Asynchronous eviction is particularly useful for write or read-cache heavy workloads.
-
-Synchronous eviction waits for a client to request more space than is currently available on the
-worker and then kicks off the eviction process to free up enough space to serve that request. This
+Asynchronous eviction is particularly useful for write or read-cache heavy workloads compared to
+synchronous eviction used prior to Alluxio 2.0, which waits for a client to request more space than
+is currently available on the worker and then kicks off the eviction process to free up enough
+space to serve that request. This
 leads to many small eviction attempts, which is less efficient, but maximizes the utilization of
 available Alluxio space.
 
