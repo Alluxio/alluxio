@@ -76,7 +76,7 @@ alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostnam
 ### Optional configuration
 
 * `alluxio.master.embedded.journal.port`: The port masters use for embedded journal communication. Default: `19200`.
-* `alluxio.master.port`: The port masters use for RPCs. Default: `19998`.
+* `alluxio.master.rpc.port`: The port masters use for RPCs. Default: `19998`.
 * `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client should look for masters 
 when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses. 
 If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses` 
