@@ -75,7 +75,7 @@ public final class FileSystemShellUtils {
    * @param alluxioConf Alluxio configuration
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
-   *         alluxio.master.hostname and alluxio.master.port, respectively.
+   *         alluxio.master.hostname and alluxio.master.rpc.port, respectively.
    */
   public static String validatePath(String path, AlluxioConfiguration alluxioConf)
       throws IOException {

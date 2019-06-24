@@ -509,7 +509,7 @@ public class InstancedConfigurationTest {
     mConfiguration.merge(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "value1",
         PropertyKey.MASTER_RPC_PORT, "value2",
-        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"),
+        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.rpc.port}"),
         Source.SYSTEM_PROPERTY);
     String substitution = mConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     assertEquals("value1-value2", substitution);
@@ -563,7 +563,7 @@ public class InstancedConfigurationTest {
 
   @Test
   public void shortMasterHeartBeatTimeout() {
-    mConfiguration.set(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL, "5min");
+    mConfiguration.set(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5min");
     mConfiguration.set(PropertyKey.MASTER_HEARTBEAT_TIMEOUT, "4min");
     mThrown.expect(IllegalStateException.class);
     mConfiguration.validate();

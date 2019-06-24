@@ -24,110 +24,147 @@ import javax.annotation.Nullable;
  * This class contains old {@link PropertyKey}s which have been removed from use
  *
  * This class is used to track keys which were deprecated in previous versions and subsequently
- * removed in a future version. We still keep them here so that it is possible to provide users
- * with useful information if they are found to be using an outdated property key.
+ * removed in a future version. We still keep them here so that it is possible to provide users with
+ * useful information if they are found to be using an outdated property key.
  *
  * Being removed and still used by an application denotes an error.
  *
  * @see InstancedConfiguration#validate()
  * @see PropertyKey#fromString(String)
  */
-public class RemovedKey {
+public final class RemovedKey {
 
-  private static final String V2_0_0_REMOVED = "this parameter is removed since v2.0.0.";
+  private static final String V2_0_0 = "v2.0.0";
+
+  /**
+   * @param version the version since which a property has been removed
+   *
+   * @return a warning message indicating a property has been removed since a given version
+   */
+  private static String removedSince(String version) {
+    return String.format("this property has been removed since %s.", version);
+  }
+
+  /**
+   * @param version the version since which a property has been removed
+   * @param newProperty the new property to use instead
+   * @return a warning message indicating a property has been removed since a given version
+   */
+  private static String replacedSince(String version, String newProperty) {
+    return String.format("this property has been removed since %s, use %s instead.", version,
+        newProperty);
+  }
 
   private static final Map<String, String> REMOVED_KEYS = new HashMap<String, String>(20) {
     {
-      put(Name.WEB_TEMP_PATH, "The alluxio web UI overhaul in v2.0 removed this parameter.");
-      put(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, V2_0_0_REMOVED);
-      put(Name.SWIFT_USE_PUBLIC_URI_KEY, V2_0_0_REMOVED);
-      put(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL, V2_0_0_REMOVED);
-      put(Name.MASTER_CONNECTION_TIMEOUT, V2_0_0_REMOVED);
-      put(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER, V2_0_0_REMOVED);
-      put(Name.MASTER_HEARTBEAT_INTERVAL, V2_0_0_REMOVED + " Use "
-          + PropertyKey.Name.MASTER_WORKER_HEARTBEAT_INTERVAL + " instead.");
-      put(Name.MASTER_JOURNAL_FORMATTER_CLASS, "v2.0 removed the ability to specify the master "
-          + "journal formatter");
-      put(Name.SWIFT_API_KEY, V2_0_0_REMOVED + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " "
-          + "instead.");
-      put(Name.USER_FAILED_SPACE_REQUEST_LIMITS, V2_0_0_REMOVED);
-      put(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, V2_0_0_REMOVED);
-      put(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, V2_0_0_REMOVED);
-      put(Name.USER_HOSTNAME, V2_0_0_REMOVED + " Use "
-          + PropertyKey.Template.LOCALITY_TIER.format("node")
-          + " instead to set the client hostname.");
-      put(Name.USER_NETWORK_SOCKET_TIMEOUT, V2_0_0_REMOVED);
-      put("alluxio.security.authentication.socket.timeout", V2_0_0_REMOVED);
-      put("alluxio.security.authentication.socket.timeout.ms", V2_0_0_REMOVED);
-      put(Name.USER_RPC_RETRY_MAX_NUM_RETRY, V2_0_0_REMOVED);
-      put(Name.MASTER_RETRY, V2_0_0_REMOVED);
-      put(Name.USER_BLOCK_WORKER_CLIENT_THREADS, V2_0_0_REMOVED);
-      put(Name.USER_HEARTBEAT_INTERVAL, V2_0_0_REMOVED);
-      put(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, V2_0_0_REMOVED);
-      put(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, V2_0_0_REMOVED);
-      put(Name.WORKER_BLOCK_THREADS_MAX, V2_0_0_REMOVED);
-      put(Name.WORKER_BLOCK_THREADS_MIN, V2_0_0_REMOVED);
-      put(Name.WORKER_DATA_BIND_HOST, V2_0_0_REMOVED);
-      put(Name.WORKER_DATA_PORT, V2_0_0_REMOVED);
-      put(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
-          + ".watermark.{high/low}.ratio instead");
-      put(Name.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
-          + ".watermark.{high/low}.ratio instead");
-      put(Name.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
-          + ".watermark.{high/low}.ratio instead");
-      put(Name.WORKER_TIERED_STORE_RETRY, V2_0_0_REMOVED);
+      put("alluxio.keyvalue.enabled", removedSince(V2_0_0));
+      put("alluxio.keyvalue.partition.size.bytes.max", removedSince(V2_0_0));
+      put("alluxio.master.client.socket.cleanup.interval", removedSince(V2_0_0));
+      put("alluxio.master.connection.timeout", removedSince(V2_0_0));
+      put("alluxio.master.file.async.persist.handler", removedSince(V2_0_0));
+      put("alluxio.master.heartbeat.interval",
+          replacedSince(V2_0_0, PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL.getName()));
+      put("alluxio.master.journal.formatter.class",
+          "v2.0 removed the ability to specify the master journal formatter");
+      put("alluxio.master.lineage.checkpoint.class", removedSince(V2_0_0));
+      put("alluxio.master.lineage.checkpoint.interval", removedSince(V2_0_0));
+      put("alluxio.master.lineage.recompute.interval", removedSince(V2_0_0));
+      put("alluxio.master.lineage.recompute.log.path", removedSince(V2_0_0));
+      put("alluxio.master.master.heartbeat.interval", replacedSince(V2_0_0,
+          PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL.getName()));
+      put("alluxio.master.startup.consistency.check.enabled", removedSince(V2_0_0));
+      put("alluxio.master.thrift.shutdown.timeout", removedSince(V2_0_0));
+      put("alluxio.master.retry", removedSince(V2_0_0));
+      put("alluxio.master.worker.threads.max", removedSince(V2_0_0));
+      put("alluxio.master.worker.threads.min", removedSince(V2_0_0));
+      put("alluxio.network.netty.heartbeat.timeout", removedSince(V2_0_0));
+      put("alluxio.network.thrift.frame.size.bytes.max", removedSince(V2_0_0));
+      put("alluxio.underfs.object.store.read.retry.base.sleep", removedSince(V2_0_0));
+      put("alluxio.underfs.object.store.read.retry.max.num", removedSince(V2_0_0));
+      put("alluxio.underfs.object.store.read.retry.max.sleep", removedSince(V2_0_0));
+      put("alluxio.underfs.s3a.consistency.timeout", removedSince(V2_0_0));
+      put("alluxio.security.authentication.socket.timeout", removedSince(V2_0_0));
+      put("alluxio.security.authentication.socket.timeout.ms", removedSince(V2_0_0));
+      put("alluxio.user.block.master.client.pool.gc.interval", removedSince(V2_0_0));
+      put("alluxio.user.block.master.client.pool.gc.threshold", removedSince(V2_0_0));
+      put("alluxio.user.block.master.client.pool.size.max", removedSince(V2_0_0));
+      put("alluxio.user.block.master.client.pool.size.min", removedSince(V2_0_0));
+      put("alluxio.user.block.remote.reader.class", removedSince(V2_0_0));
+      put("alluxio.user.block.remote.writer.class", removedSince(V2_0_0));
+      put("alluxio.user.block.worker.client.pool.size.max", removedSince(V2_0_0));
+      put("alluxio.user.block.worker.client.threads", removedSince(V2_0_0));
+      put("alluxio.user.failed.space.request.limits", removedSince(V2_0_0));
+      put("alluxio.user.file.cache.partially.read.block", removedSince(V2_0_0));
+      put("alluxio.user.file.copyfromlocal.write.location.policy.class", replacedSince(V2_0_0,
+          PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
+      put("alluxio.user.file.master.client.pool.gc.interval", removedSince(V2_0_0));
+      put("alluxio.user.file.master.client.pool.gc.threshold", removedSince(V2_0_0));
+      put("alluxio.user.file.master.client.pool.size.max", removedSince(V2_0_0));
+      put("alluxio.user.file.master.client.pool.size.min", removedSince(V2_0_0));
+      put("alluxio.user.file.seek.buffer.size.bytes", removedSince(V2_0_0));
+      put("alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes",
+          replacedSince(V2_0_0,
+              PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES.getName()));
+      put("alluxio.user.file.write.location.policy.class",
+          replacedSince(V2_0_0, PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY.getName()));
+      put("alluxio.user.heartbeat.interval", removedSince(V2_0_0));
+      put("alluxio.user.hostname",
+          replacedSince(V2_0_0, PropertyKey.LOCALITY_TIER_NODE.getName()));
+      put("alluxio.user.lineage.enabled", removedSince(V2_0_0));
+      put("alluxio.user.lineage.master.client.threads", removedSince(V2_0_0));
+      put("alluxio.user.local.reader.packet.size.bytes", removedSince(V2_0_0));
+      put("alluxio.user.local.writer.packet.size.bytes", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.channel.pool.disabled", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.channel.pool.gc.threshold", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.channel.pool.size.max", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.channel.pool.size.min", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.reader.buffer.size.packets", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.reader.packet.size.bytes", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.timeout", replacedSince(V2_0_0,
+          PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS.getName()));
+      put("alluxio.user.network.netty.writer.buffer.size.packets", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.writer.close.timeout", removedSince(V2_0_0));
+      put("alluxio.user.network.netty.writer.packet.size.bytes", removedSince(V2_0_0));
+      put("alluxio.user.network.socket.timeout", removedSince(V2_0_0));
+      put("alluxio.user.rpc.retry.max.num.retry", removedSince(V2_0_0));
+      put("alluxio.user.ufs.delegation.read.buffer.size.bytes", removedSince(V2_0_0));
+      put("alluxio.user.ufs.delegation.write.buffer.size.bytes", removedSince(V2_0_0));
+      put("alluxio.user.ufs.file.reader.class", removedSince(V2_0_0));
+      put("alluxio.user.ufs.file.writer.class", removedSince(V2_0_0));
+      put("alluxio.web.temp.path", removedSince(V2_0_0));
+      put("alluxio.worker.block.threads.max", removedSince(V2_0_0));
+      put("alluxio.worker.block.threads.min", removedSince(V2_0_0));
+      put("alluxio.worker.data.bind.host", removedSince(V2_0_0));
+      put("alluxio.worker.data.hostname", removedSince(V2_0_0));
+      put("alluxio.worker.data.port", replacedSince(V2_0_0, PropertyKey.WORKER_RPC_PORT.getName()));
+      put("alluxio.worker.network.netty.async.cache.manager.threads.max", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.backlog", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.block.reader.threads.max", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.block.writer.threads.max", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.buffer.receive", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.buffer.send", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.file.transfer", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.file.writer.threads.max", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.reader.buffer.size.packets", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.rpc.threads.max", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.shutdown.timeout", removedSince(V2_0_0));
+      put("alluxio.worker.network.netty.writer.buffer.size.packets", removedSince(V2_0_0));
+      put("alluxio.worker.tieredstore.reserver.enabled", removedSince(V2_0_0));
+      put("alluxio.worker.tieredstore.retry", removedSince(V2_0_0));
+      put("fs.swift.apikey", replacedSince(V2_0_0, PropertyKey.Name.SWIFT_PASSWORD_KEY));
+      put("fs.swift.use.public.url", removedSince(V2_0_0));
+      put(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0),
+          replacedSince(V2_0_0, "alluxio.worker.tieredstore.level0.watermark.{high/low}.ratio"));
+      put(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(1),
+          replacedSince(V2_0_0, "alluxio.worker.tieredstore.level1.watermark.{high/low}.ratio"));
+      put(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(2),
+          replacedSince(V2_0_0, "alluxio.worker.tieredstore.level2.watermark.{high/low}.ratio"));
 
       put(Name.TEST_REMOVED_KEY, "This key is used only for testing. It is always removed");
     }
   };
 
   static final class Name {
-    public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
-        "alluxio.master.client.socket.cleanup.interval";
-    public static final String MASTER_CONNECTION_TIMEOUT =
-        "alluxio.master.connection.timeout";
-    public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
-        "alluxio.master.file.async.persist.handler";
-    public static final String MASTER_HEARTBEAT_INTERVAL =
-        "alluxio.master.heartbeat.interval";
-    public static final String MASTER_JOURNAL_FORMATTER_CLASS =
-        "alluxio.master.journal.formatter.class";
-    public static final String MASTER_RETRY = "alluxio.master.retry";
-    public static final String SWIFT_API_KEY = "fs.swift.apikey";
-    public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
-    public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
-        "alluxio.underfs.s3a.consistency.timeout";
-    public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
-        "alluxio.user.block.worker.client.threads";
-    public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
-        "alluxio.user.failed.space.request.limits";
-    public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
-        "alluxio.user.file.cache.partially.read.block";
-    public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
-        "alluxio.user.file.seek.buffer.size.bytes";
-    public static final String USER_NETWORK_SOCKET_TIMEOUT =
-        "alluxio.user.network.socket.timeout";
-    public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
-        "alluxio.user.rpc.retry.max.num.retry";
-    public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
-        "alluxio.user.ufs.delegation.read.buffer.size.bytes";
-    public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
-        "alluxio.user.ufs.delegation.write.buffer.size.bytes";
-    public static final String USER_HEARTBEAT_INTERVAL = "alluxio.user.heartbeat.interval";
-    public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String WEB_TEMP_PATH = "alluxio.web.temp.path";
-    public static final String WORKER_BLOCK_THREADS_MAX = "alluxio.worker.block.threads.max";
-    public static final String WORKER_BLOCK_THREADS_MIN = "alluxio.worker.block.threads.min";
-    public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
-    public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
-    public static final String WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
-        Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0);
-    public static final String WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
-        Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(1);
-    public static final String WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
-        Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(2);
-    public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
-
     public static final String TEST_REMOVED_KEY = "alluxio.test.removed.key";
   }
 
@@ -191,4 +228,6 @@ public class RemovedKey {
     }
     return null;
   }
+
+  private RemovedKey() {} // prevent instantiation of this class
 }

@@ -354,6 +354,9 @@ public final class NetworkAddressUtils {
    * @return the local hostname for the client
    */
   public static String getClientHostName(AlluxioConfiguration conf) {
+    if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
+      return conf.get(PropertyKey.USER_HOSTNAME);
+    }
     if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
       return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
@@ -379,8 +382,8 @@ public final class NetworkAddressUtils {
         }
         break;
       case CLIENT:
-        if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
-          return conf.get(PropertyKey.LOCALITY_TIER_NODE);
+        if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
+          return conf.get(PropertyKey.USER_HOSTNAME);
         }
         break;
       case MASTER:
@@ -395,6 +398,9 @@ public final class NetworkAddressUtils {
         break;
       default:
         break;
+    }
+    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
