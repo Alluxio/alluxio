@@ -38,6 +38,11 @@ public final class JobShell extends AbstractShell {
       .build();
 
   /**
+   * Shared context for loaded commands.
+   */
+  private FileSystemContext mContext;
+
+  /**
    * Main method, starts a new JobShell.
    *
    * @param argv array of arguments given by the user's input from the terminal
@@ -74,8 +79,15 @@ public final class JobShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
+    mContext = FileSystemContext.create(mConfiguration);
     return CommandUtils.loadCommands(JobShell.class.getPackage().getName(),
         new Class[] {FileSystemContext.class},
-        new Object[] {FileSystemContext.create(mConfiguration)});
+        new Object[] {mContext});
+  }
+
+  @Override
+  public void close() throws IOException {
+    super.close();
+    mContext.close();
   }
 }
