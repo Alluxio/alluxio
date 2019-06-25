@@ -18,6 +18,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.MasterUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
 import alluxio.master.block.BlockMasterFactory;
@@ -80,6 +81,7 @@ public class MasterTestUtils {
     SafeModeManager safeModeManager = new TestSafeModeManager();
     long startTimeMs = System.currentTimeMillis();
     int port = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
+    String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
     if (userState == null) {
       userState = ServerUserState.global();
@@ -88,8 +90,8 @@ public class MasterTestUtils {
         .setJournalSystem(journalSystem)
         .setSafeModeManager(safeModeManager)
         .setBackupManager(mock(BackupManager.class))
-        .setBlockStoreFactory(() -> new HeapBlockStore())
-        .setInodeStoreFactory(x -> new HeapInodeStore())
+        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
+        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
         .setStartTimeMs(startTimeMs)
         .setUserState(userState)
         .setPort(port)
