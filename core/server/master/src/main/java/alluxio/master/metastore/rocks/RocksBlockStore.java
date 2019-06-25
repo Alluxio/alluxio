@@ -14,6 +14,7 @@ package alluxio.master.metastore.rocks;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -31,6 +32,7 @@ import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -80,6 +82,14 @@ public class RocksBlockStore implements BlockStore {
         .setCreateMissingColumnFamilies(true);
     String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
+    // Create block store db path if it does not exist.
+    if (!FileUtils.exists(dbPath)) {
+      try {
+        FileUtils.createDir(dbPath);
+      } catch (IOException ioe) {
+        LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, ioe);
+      }
+    }
     mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
         Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
   }
