@@ -26,8 +26,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
-import alluxio.master.metastore.heap.HeapBlockStore;
-import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.user.ServerUserState;
 import alluxio.security.user.UserState;
