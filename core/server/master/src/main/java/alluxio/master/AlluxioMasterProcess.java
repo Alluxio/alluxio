@@ -156,10 +156,10 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void stop() throws Exception {
     stopRejectingServers();
     if (isServing()) {
-      closeMasters();
       stopServing();
-      mJournalSystem.stop();
     }
+    closeMasters();
+    mJournalSystem.stop();
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
