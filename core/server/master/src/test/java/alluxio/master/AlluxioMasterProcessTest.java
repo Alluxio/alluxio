@@ -24,6 +24,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -43,6 +44,9 @@ public final class AlluxioMasterProcessTest {
   @Rule
   public PortReservationRule mWebPortRule = new PortReservationRule();
 
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
   private int mRpcPort;
   private int mWebPort;
 
@@ -52,6 +56,7 @@ public final class AlluxioMasterProcessTest {
     mWebPort = mWebPortRule.getPort();
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
+    ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.getRoot().getAbsolutePath());
   }
 
   @Test
