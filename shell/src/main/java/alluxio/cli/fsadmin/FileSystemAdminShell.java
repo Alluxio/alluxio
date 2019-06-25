@@ -30,6 +30,7 @@ import alluxio.util.ConfigurationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -37,11 +38,6 @@ import java.util.Map;
  */
 public final class FileSystemAdminShell extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemAdminShell.class);
-
-  /**
-   * Context shared with fsadmin commands.
-   */
-  private Context mContext;
 
   /**
    * Construct a new instance of {@link FileSystemAdminShell}.
@@ -57,7 +53,8 @@ public final class FileSystemAdminShell extends AbstractShell {
    *
    * @param args array of arguments given by the user's input from the terminal
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
+    int ret;
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     if (!ConfigurationUtils.masterHostConfigured(conf) && args.length > 0) {
       System.out.println(ConfigurationUtils
@@ -66,8 +63,10 @@ public final class FileSystemAdminShell extends AbstractShell {
     }
     // Reduce the RPC retry max duration to fall earlier for CLIs
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
-    FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf);
-    System.exit(fsAdminShell.run(args));
+    try (FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf)) {
+      ret = fsAdminShell.run(args);
+    }
+    System.exit(ret);
   }
 
   @Override
@@ -79,7 +78,7 @@ public final class FileSystemAdminShell extends AbstractShell {
   protected Map<String, Command> loadCommands() {
     ClientContext ctx = ClientContext.create(mConfiguration);
     MasterClientContext masterConfig = MasterClientContext.newBuilder(ctx).build();
-    Context context = new Context(
+    Context adminContext = new Context(
         new RetryHandlingFileSystemMasterClient(masterConfig),
         new RetryHandlingBlockMasterClient(masterConfig),
         new RetryHandlingMetaMasterClient(masterConfig),
@@ -87,7 +86,7 @@ public final class FileSystemAdminShell extends AbstractShell {
         System.out
     );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
-        new Class[] {Context.class, AlluxioConfiguration.class}, new Object[] {context,
-            mConfiguration});
+        new Class[] {Context.class, AlluxioConfiguration.class},
+        new Object[] {mCloser.register(adminContext), mConfiguration});
   }
 }
