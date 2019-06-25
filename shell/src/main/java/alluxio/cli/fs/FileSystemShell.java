@@ -47,11 +47,6 @@ public final class FileSystemShell extends AbstractShell {
       .build();
 
   /**
-   * Shared context for loaded commands.
-   */
-  private FileSystemContext mContext;
-
-  /**
    * Main method, starts a new FileSystemShell.
    *
    * @param argv array of arguments given by the user's input from the terminal
@@ -89,13 +84,8 @@ public final class FileSystemShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    mContext = FileSystemContext.create(mConfiguration);
-    return FileSystemShellUtils.loadCommands(mContext);
-  }
-
-  @Override
-  public void close() throws IOException {
-    super.close();
-    mContext.close();
+    return FileSystemShellUtils
+        .loadCommands(
+          mCloser.register(FileSystemContext.create(mConfiguration)));
   }
 }

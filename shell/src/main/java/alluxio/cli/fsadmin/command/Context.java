@@ -18,12 +18,14 @@ import alluxio.client.meta.MetaMasterConfigClient;
 
 import com.google.common.base.Preconditions;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.PrintStream;
 
 /**
  * Context for running an fsadmin command.
  */
-public final class Context {
+public final class Context implements Closeable {
   private final FileSystemMasterClient mFsClient;
   private final BlockMasterClient mBlockClient;
   private final MetaMasterClient mMetaClient;
@@ -80,5 +82,13 @@ public final class Context {
    */
   public PrintStream getPrintStream() {
     return mPrintStream;
+  }
+
+  @Override
+  public void close() throws IOException {
+    getBlockClient().close();
+    getFsClient().close();
+    getMetaClient().close();
+    getMetaConfigClient().close();
   }
 }

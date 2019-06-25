@@ -40,11 +40,6 @@ public final class FileSystemAdminShell extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemAdminShell.class);
 
   /**
-   * Context shared with fsadmin commands.
-   */
-  private Context mContext;
-
-  /**
    * Construct a new instance of {@link FileSystemAdminShell}.
    *
    * @param alluxioConf Alluxio configuration
@@ -83,7 +78,7 @@ public final class FileSystemAdminShell extends AbstractShell {
   protected Map<String, Command> loadCommands() {
     ClientContext ctx = ClientContext.create(mConfiguration);
     MasterClientContext masterConfig = MasterClientContext.newBuilder(ctx).build();
-    mContext = new Context(
+    Context adminContext = new Context(
         new RetryHandlingFileSystemMasterClient(masterConfig),
         new RetryHandlingBlockMasterClient(masterConfig),
         new RetryHandlingMetaMasterClient(masterConfig),
@@ -91,16 +86,7 @@ public final class FileSystemAdminShell extends AbstractShell {
         System.out
     );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
-        new Class[] {Context.class, AlluxioConfiguration.class}, new Object[] {mContext,
-            mConfiguration});
-  }
-
-  @Override
-  public void close() throws IOException {
-    super.close();
-    mContext.getBlockClient().close();
-    mContext.getFsClient().close();
-    mContext.getMetaClient().close();
-    mContext.getMetaConfigClient().close();
+        new Class[] {Context.class, AlluxioConfiguration.class},
+        new Object[] {mCloser.register(adminContext), mConfiguration});
   }
 }
