@@ -86,8 +86,8 @@ public class RocksBlockStore implements BlockStore {
     if (!FileUtils.exists(dbPath)) {
       try {
         FileUtils.createDir(dbPath);
-      } catch (IOException ioe) {
-        LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, ioe);
+      } catch (IOException e) {
+        LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
       }
     }
     mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
