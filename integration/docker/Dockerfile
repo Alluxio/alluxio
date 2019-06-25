@@ -12,8 +12,12 @@
 FROM openjdk:8-jdk-alpine
 
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/1.8.1/alluxio-1.8.1-bin.tar.gz
+ARG ALLUXIO_USERNAME=alluxio
+ARG ALLUXIO_GROUP=alluxio
+ARG ALLUXIO_UID=1000
+ARG ALLUXIO_GID=1000
 
-RUN apk add --update bash libc6-compat && \
+RUN apk --no-cache --update add bash libc6-compat shadow && \
     rm -rf /var/cache/apk/*
 
 ADD ${ALLUXIO_TARBALL} /opt/
@@ -27,7 +31,12 @@ RUN cd /opt && \
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
 
-RUN adduser -u 1000 -S alluxio -G root
-USER 1000
+RUN addgroup -g ${ALLUXIO_GID} -S ${ALLUXIO_GROUP} && \
+    adduser -u ${ALLUXIO_UID} -S ${ALLUXIO_USERNAME} -G ${ALLUXIO_GROUP} && \
+    usermod -a -G root ${ALLUXIO_USERNAME} && \
+    chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /opt/alluxio* && \
+    chmod -R g=u /opt/alluxio*
+
+USER ${ALLUXIO_UID}
 
 ENTRYPOINT ["/entrypoint.sh"]

@@ -12,6 +12,10 @@
 FROM ubuntu:16.04
 
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/1.8.1/alluxio-1.8.1-bin.tar.gz
+ARG ALLUXIO_USERNAME=alluxio
+ARG ALLUXIO_GROUP=alluxio
+ARG ALLUXIO_UID=1000
+ARG ALLUXIO_GID=1000
 
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
@@ -34,7 +38,12 @@ RUN cd /opt && \
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
 
-RUN useradd -r -u 1000 -s /bin/false alluxio -G root
-USER 1000
+RUN groupadd -g ${ALLUXIO_GID} -r ${ALLUXIO_GROUP} && \
+    useradd -u ${ALLUXIO_UID} -r ${ALLUXIO_USERNAME} -g ${ALLUXIO_GROUP} && \
+    usermod -a -G root ${ALLUXIO_USERNAME} && \
+    chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /opt/alluxio* && \
+    chmod -R g=u /opt/alluxio*
+
+USER ${ALLUXIO_UID}
 
 ENTRYPOINT ["/entrypoint.sh"]
