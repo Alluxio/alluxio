@@ -157,9 +157,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     stopRejectingServers();
     if (isServing()) {
       stopServing();
+      mJournalSystem.stop();
     }
     closeMasters();
-    mJournalSystem.stop();
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
