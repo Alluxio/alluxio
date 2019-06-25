@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import alluxio.concurrent.ForkJoinPoolHelper;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -82,7 +83,7 @@ public final class AsyncJournalWriter {
      * @throws Throwable
      */
     public void waitCompleted() throws Throwable {
-      ForkJoinPool.managedBlock(this);
+      ForkJoinPoolHelper.safeManagedBlock(this);
       if (mError != null) {
         throw mError;
       }
