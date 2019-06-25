@@ -55,12 +55,12 @@ public abstract class AbstractShell implements Closeable {
    */
   public AbstractShell(Map<String, String[]> commandAlias,
       Set<String> unstableAlias, InstancedConfiguration conf) {
+    mCloser = Closer.create();
     mConfiguration = conf; // This needs to go first in case loadCommands() uses the reference to
     // the configuration
     mUnstableAlias = unstableAlias;
     mCommandAlias = commandAlias;
     mCommands = loadCommands();
-    mCloser = Closer.create();
   }
 
   /**
