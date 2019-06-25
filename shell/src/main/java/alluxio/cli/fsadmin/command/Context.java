@@ -17,18 +17,22 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.meta.MetaMasterConfigClient;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.PrintStream;
 
 /**
  * Context for running an fsadmin command.
  */
-public final class Context {
+public final class Context implements Closeable {
   private final FileSystemMasterClient mFsClient;
   private final BlockMasterClient mBlockClient;
   private final MetaMasterClient mMetaClient;
   private final MetaMasterConfigClient mMetaConfigClient;
   private final PrintStream mPrintStream;
+  private final Closer mCloser;
 
   /**
    * @param fsClient filesystem master client
@@ -40,11 +44,17 @@ public final class Context {
   public Context(FileSystemMasterClient fsClient, BlockMasterClient blockClient,
       MetaMasterClient metaClient, MetaMasterConfigClient metaConfigClient,
       PrintStream printStream) {
-    mFsClient = Preconditions.checkNotNull(fsClient, "fsClient");
-    mBlockClient = Preconditions.checkNotNull(blockClient, "blockClient");
-    mMetaClient = Preconditions.checkNotNull(metaClient, "metaClient");
-    mMetaConfigClient = Preconditions.checkNotNull(metaConfigClient, "metaConfigClient");
-    mPrintStream = Preconditions.checkNotNull(printStream, "printStream");
+    mCloser = Closer.create();
+    mCloser.register(
+        mFsClient = Preconditions.checkNotNull(fsClient, "fsClient"));
+    mCloser.register(
+        mBlockClient = Preconditions.checkNotNull(blockClient, "blockClient"));
+    mCloser.register(
+        mMetaClient = Preconditions.checkNotNull(metaClient, "metaClient"));
+    mCloser.register(
+        mMetaConfigClient = Preconditions.checkNotNull(metaConfigClient, "metaConfigClient"));
+    mCloser.register(
+        mPrintStream = Preconditions.checkNotNull(printStream, "printStream"));
   }
 
   /**
@@ -80,5 +90,10 @@ public final class Context {
    */
   public PrintStream getPrintStream() {
     return mPrintStream;
+  }
+
+  @Override
+  public void close() throws IOException {
+    mCloser.close();
   }
 }
