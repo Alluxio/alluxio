@@ -130,8 +130,8 @@ for more details about Alluxio `mount` operation.
 
 ### Move an Internal Table from HDFS to Alluxio
 
-We assume that the `hive.metastore.warehouse.dir` property is set to `/user/hive/warehouse` which
-is the default value, and the internal table is already created like this:
+We assume that the `hive.metastore.warehouse.dir` property (within your Hive installation `conf/hive-default.xml`)
+is set to `/user/hive/warehouse` which is the default value, and the internal table is already created like this:
 
 ```
 hive> CREATE TABLE u_user (
