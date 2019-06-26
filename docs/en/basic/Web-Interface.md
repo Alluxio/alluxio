@@ -81,10 +81,10 @@ The master UI shows all known Alluxio workers in the system in the "Workers" tab
 
 The workers page gives an overview of all Alluxio worker nodes divided into two sections:
 
-* **Live Nodes** A list of all the workers currently serving Alluxio requests.
+* **Live Workers** A list of all the workers currently serving Alluxio requests.
 Clicking on the worker name will redirect to the worker's web UI.
 
-* **Dead Nodes** A list of all workers proclaimed as dead by the master,
+* **Lost Workers** A list of all workers proclaimed as dead by the master,
 usually due to a long timeout waiting for the worker heartbeat.
 Possible causes include system restart or network failures.
 
@@ -96,7 +96,9 @@ To access master metrics section, click on the “Metrics” tab in the navigati
 
 This section shows all master metrics. It includes the following sections:
 
-* **Master Gauges** Overall measures of the master.
+* **% UFS Space Used** Overall measures of UFS capacity.
+
+* **% Alluxio Space Used** Overall measures of Alluxio capacity.
 
 * **Logical Operation** Number of operations performed.
 
