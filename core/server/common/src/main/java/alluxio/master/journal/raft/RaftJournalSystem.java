@@ -299,11 +299,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       return;
     }
     try {
+      mAsyncJournalWriter.get().close();
       mRaftJournalWriter.close();
     } catch (IOException e) {
       LOG.warn("Error closing journal writer: {}", e.toString());
     } finally {
-      mAsyncJournalWriter.get().close();
       mAsyncJournalWriter.set(null);
       mRaftJournalWriter = null;
     }
