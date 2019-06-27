@@ -73,27 +73,15 @@ public final class RpcUtils {
   public static <T> void call(Logger logger, RpcCallableThrowsIOException<T> callable,
       String methodName, boolean failureOk, String description, StreamObserver<T> responseObserver,
       Object... args) {
-    // Whether response is sent to caller.
-    boolean responseSent = false;
+    T response;
     try {
-      responseObserver
-          .onNext(callAndReturn(logger, callable, methodName, failureOk, description, args));
-      responseSent = true;
+      response = callAndReturn(logger, callable, methodName, failureOk, description, args);
     } catch (StatusException e) {
-      try {
-        responseObserver.onError(e);
-      } catch (Exception e1) {
-        logger.debug("onError failed due to:", e1);
-      }
+      responseObserver.onError(e);
+      return;
     }
-    // Close the call, if response is sent successfully.
-    if (responseSent) {
-      try {
-        responseObserver.onCompleted();
-      } catch (Exception e) {
-        logger.debug("onCompleted failed due to:", e);
-      }
-    }
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
   }
 
   /**
