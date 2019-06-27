@@ -232,6 +232,7 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(mState == State.PRIMARY, "unexpected state " + mState);
     Preconditions.checkState(mWriter != null, "writer thread must not be null in primary mode");
     Preconditions.checkState(mTailerThread == null, "tailer thread must be null in primary mode");
+    // Close async writer first to flush pending entries.
     mAsyncWriter.close();
     mAsyncWriter = null;
     mWriter.close();

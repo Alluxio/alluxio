@@ -299,6 +299,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       return;
     }
     try {
+      // Close async writer first to flush pending entries.
       mAsyncJournalWriter.get().close();
       mRaftJournalWriter.close();
     } catch (IOException e) {
