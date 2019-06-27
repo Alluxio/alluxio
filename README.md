@@ -89,13 +89,13 @@ implementing HDFS's file system API.
 <dependency>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-core-client-fs</artifactId>
-  <version>1.8.1</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 
 ### SBT
 ```
-libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.8.1"
+libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "2.0.0"
 ```
 
 ## Contributing
