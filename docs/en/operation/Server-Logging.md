@@ -136,7 +136,7 @@ The two environment variables `ALLUXIO_LOGSERVER_HOSTNAME` and `ALLUXIO_LOGSERVE
 the logging behavior of masters and workers in an Alluxio cluster.
 
 Suppose the hostname of the log server is `AlluxioLogServer`, and the port is `45010`.
-The following lines would need to be added to `conf/alluxio-env.sh` to enable the correct :
+The following lines would need to be added to `conf/alluxio-env.sh` to enable remote logging :
 
 ```bash
 ALLUXIO_LOGSERVER_HOSTNAME=AlluxioLogServer
