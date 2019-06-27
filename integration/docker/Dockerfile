@@ -11,7 +11,7 @@
 
 FROM openjdk:8-jdk-alpine
 
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-RC5-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz
 
 RUN apk add --update bash libc6-compat && \
     rm -rf /var/cache/apk/*
