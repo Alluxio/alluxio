@@ -491,7 +491,7 @@ Alluxio cluster summary:
     Rpc Port: 19998
     Started: 09-28-2018 12:52:09:486
     Uptime: 0 day(s), 0 hour(s), 0 minute(s), and 26 second(s)
-    Version: 1.8.0
+    Version: 2.0.0
     Safe Mode: true
     Zookeeper Enabled: false
     Live Workers: 1
