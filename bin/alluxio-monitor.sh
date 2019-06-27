@@ -191,10 +191,16 @@ run_monitors() {
   fi
 }
 
+# Used to run a command on multiple hosts concurrently.
+# By default it limits concurrent tasks to 100.
 batch_run_on_nodes() {
+  # String of nodes, seperated by a new line
   local nodes=$1
+  # Command to run on each node
   local command=$2
+  # Parameter for command
   local params=$3
+
   # How many nodes to run on concurrently
   local batchCount=100
 
