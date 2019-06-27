@@ -232,9 +232,11 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(mState == State.PRIMARY, "unexpected state " + mState);
     Preconditions.checkState(mWriter != null, "writer thread must not be null in primary mode");
     Preconditions.checkState(mTailerThread == null, "tailer thread must be null in primary mode");
+    // Close async writer first to flush pending entries.
+    mAsyncWriter.close();
+    mAsyncWriter = null;
     mWriter.close();
     mWriter = null;
-    mAsyncWriter = null;
     mMaster.resetState();
     mTailerThread = new UfsJournalCheckpointThread(mMaster, this, mJournalSinks);
     mTailerThread.start();
@@ -436,13 +438,13 @@ public class UfsJournal implements Journal {
 
   @Override
   public synchronized void close() throws IOException {
-    if (mWriter != null) {
-      mWriter.close();
-      mWriter = null;
-    }
     if (mAsyncWriter != null) {
       mAsyncWriter.close();
       mAsyncWriter = null;
+    }
+    if (mWriter != null) {
+      mWriter.close();
+      mWriter = null;
     }
     if (mTailerThread != null) {
       mTailerThread.awaitTermination(false);
