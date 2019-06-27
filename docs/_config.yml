@@ -13,10 +13,10 @@ ALLUXIO_MASTER_VERSION_SHORT: 2.0.0
 # For master branch, this should be "master"
 ALLUXIO_MAJOR_VERSION: 2.0
 # The version string must match the version string part of the client jar path
-ALLUXIO_VERSION_STRING: 2.0.0
+ALLUXIO_VERSION_STRING: 2.0.1-SNAPSHOT
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.0.0-client.jar
+ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.0.1-SNAPSHOT-client.jar
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
