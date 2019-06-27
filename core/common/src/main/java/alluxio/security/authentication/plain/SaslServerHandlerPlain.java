@@ -15,13 +15,14 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authentication.AuthenticationProvider;
-import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.SaslServerHandler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.Security;
 import java.util.HashMap;
-import java.util.UUID;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
@@ -31,6 +32,8 @@ import javax.security.sasl.SaslServer;
  * {@link SaslServerHandler} implementation for Plain/Custom schemes.
  */
 public class SaslServerHandlerPlain implements SaslServerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(SaslServerHandlerPlain.class);
+
   static {
     Security.addProvider(new PlainSaslServerProvider());
   }
@@ -54,19 +57,29 @@ public class SaslServerHandlerPlain implements SaslServerHandler {
   }
 
   @Override
-  public void authenticationCompleted(UUID channelId, AuthenticationServer authenticationServer) {
-    authenticationServer.registerChannel(channelId,
-        new AuthenticatedUserInfo(mSaslServer.getAuthorizationID()), mSaslServer);
-  }
-
-  @Override
   public void setAuthenticatedUserInfo(AuthenticatedUserInfo userinfo) {
     // Plain authentication only needs authorized user name which is available in completed
     // SaslServer instance.
   }
 
   @Override
+  public AuthenticatedUserInfo getAuthenticatedUserInfo() {
+    return new AuthenticatedUserInfo(mSaslServer.getAuthorizationID());
+  }
+
+  @Override
   public SaslServer getSaslServer() {
     return mSaslServer;
+  }
+
+  @Override
+  public void close() {
+    if (mSaslServer != null) {
+      try {
+        mSaslServer.dispose();
+      } catch (SaslException exc) {
+        LOG.debug("Failed to close SaslClient.", exc);
+      }
+    }
   }
 }

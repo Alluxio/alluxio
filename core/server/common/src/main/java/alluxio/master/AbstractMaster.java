@@ -140,4 +140,9 @@ public abstract class AbstractMaster implements Master {
       return mJournal.createJournalContext();
     }
   }
+
+  @Override
+  public void close() throws IOException {
+    stop();
+  }
 }

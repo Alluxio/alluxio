@@ -181,6 +181,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
@@ -496,7 +497,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public void resetState() {
-    mJournaledComponents.forEach(Journaled::resetState);
+    // we resetState in the reverse order that we replay the journal
+    Lists.reverse(mJournaledComponents).forEach(Journaled::resetState);
   }
 
   @Override
@@ -669,6 +671,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
+  public void close() throws IOException {
+    super.close();
+    mInodeTree.close();
+  }
+
+  @Override
   public void validateInodeBlocks(boolean repair) throws UnavailableException {
     mBlockMaster.validateBlocks((blockId) -> {
       long fileId = IdUtils.fileIdFromBlockId(blockId);
@@ -778,6 +786,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         throw new FileDoesNotExistException(e.getMessage(), e);
       }
     }
+    fileInfo.setXAttr(inode.getXAttr());
     MountTable.Resolution resolution;
     try {
       resolution = mMountTable.resolve(uri);
@@ -1103,6 +1112,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       completeFileInternal(rpcContext, inodePath, context);
+      // Schedule async persistence if requested.
+      if (context.getOptions().hasAsyncPersistOptions()) {
+        scheduleAsyncPersistenceInternal(inodePath, ScheduleAsyncPersistenceContext
+            .create(context.getOptions().getAsyncPersistOptionsBuilder()), rpcContext);
+      }
       auditContext.setSucceeded(true);
     }
   }
@@ -1542,7 +1556,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(inodePath.getUri());
       if (resolution != null) {
-        mSyncManager.stopSyncInternal(inodePath.getUri(), resolution);
+        mSyncManager.stopSyncInternal(inodePath.getUri(), resolution.getMountId());
       }
 
       // Delete Inodes
@@ -2453,6 +2467,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
     createFileContext.setPersisted(true);
+    createFileContext.setXAttr(context.getUfsStatus().getXAttr());
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = context.getUfsStatus().getLastModifiedTime();
@@ -2540,6 +2555,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     createDirectoryContext.getOptions().setMode(mode.toProto());
     createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup)
         .setUfsStatus(context.getUfsStatus());
+    createDirectoryContext.setXAttr(context.getUfsStatus().getXAttr());
     if (acl != null) {
       createDirectoryContext.setAcl(acl.getEntries());
     }
@@ -3094,21 +3110,26 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throws AlluxioException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE)) {
-      InodeFile inode = inodePath.getInodeFile();
-      if (!inode.isCompleted()) {
-        throw new InvalidPathException(
-            "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
-      }
-      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-          .setId(inode.getId())
-          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-          .build());
-      mPersistRequests.put(inode.getId(), new alluxio.time.ExponentialTimer(
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          context.getPersistenceWaitTime(),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+      scheduleAsyncPersistenceInternal(inodePath, context, rpcContext);
     }
+  }
+
+  private void scheduleAsyncPersistenceInternal(LockedInodePath inodePath,
+      ScheduleAsyncPersistenceContext context, RpcContext rpcContext)
+      throws InvalidPathException, FileDoesNotExistException {
+    InodeFile inode = inodePath.getInodeFile();
+    if (!inode.isCompleted()) {
+      throw new InvalidPathException(
+          "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
+    }
+    mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder().setId(inode.getId())
+        .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
+    mPersistRequests.put(inode.getId(),
+        new alluxio.time.ExponentialTimer(
+            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+            context.getPersistenceWaitTime(),
+            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
   }
 
   /**
@@ -3754,6 +3775,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
 
       try {
+        long mountId = resolution.getMountId();
         mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
       } catch (Throwable e) {
         // revert state;

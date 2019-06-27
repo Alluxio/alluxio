@@ -49,7 +49,7 @@ running. Specifically, put the client jar on the same local path (e.g. `{{site.A
 Add the Alluxio client jar to the classpath of Spark drivers and executors
 in order for Spark applications to use the client jar to read and write files in Alluxio.
 Specifically, add the following line to `spark/conf/spark-defaults.conf` on every node running
-Spark.
+Spark. Also, make sure the client jar is copied to every node running Spark.
 
 ```bash
 spark.driver.extraClassPath   {{site.ALLUXIO_CLIENT_JAR_PATH}}

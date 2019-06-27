@@ -22,9 +22,9 @@ latency especially when data is remote or network is slow or congested.
 
 ## Prerequisites
 
-* Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
+* Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
 * [Deploy Presto](https://prestosql.io/docs/current/installation/deployment.html).
-This guide is tested with `presto-0.208`.
+This guide is tested with `presto-315`.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
@@ -182,7 +182,7 @@ please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running
 #### Example: change default Alluxio write type
 
 For example, change
-`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
+`alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`.
 
 One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
 of each Hive node:
@@ -214,8 +214,8 @@ async cache on Alluxio workers.
 
 ### Avoid Presto timeout reading large files
 
-It is recommended to increase `alluxio.user.network.netty.timeout` to a bigger value (e.g.
-`10min`) to avoid the timeout
+It is recommended to increase `alluxio.user.network.data.timeout` to a bigger value (e.g
+`10min`) to avoid a timeout
  failure when reading large files from remote worker.
 
 ## Troubleshooting

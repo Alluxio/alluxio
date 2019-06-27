@@ -12,8 +12,6 @@ alluxio.worker.tieredstore.level{x}.watermark.high.ratio:
   值在0到1之间，设置了x存储层的高水位。如果使用空间达到高水位，空间预留器会移出数据块直到使用空间降到低水位。
 alluxio.worker.tieredstore.level{x}.watermark.low.ratio:
   值在0到1之间，设置了x存储层的低水位。如果使用空间达到高水位，空间预留器会移出数据块直到使用空间降到低水位。
-alluxio.worker.tieredstore.reserver.enabled:
-  开启空间预留器服务的标志。
 alluxio.worker.tieredstore.reserver.interval.ms:
   空间预留器检查所有存储层是否预留足够空间的时间间隔。
 alluxio.worker.allocator.class:

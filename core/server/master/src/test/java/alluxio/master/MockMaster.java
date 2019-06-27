@@ -61,6 +61,9 @@ public final class MockMaster implements Master {
   public void stop() {}
 
   @Override
+  public void close() {}
+
+  @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
     mEntries.add(entry);
     return true;

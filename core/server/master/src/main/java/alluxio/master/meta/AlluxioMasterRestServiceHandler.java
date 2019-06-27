@@ -246,7 +246,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setSecurityAuthorizationPermissionEnabled(
               ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setWorkerPort(ServerConfiguration.getInt(PropertyKey.WORKER_WEB_PORT))
-          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS))
+          .setRefreshInterval((int) ServerConfiguration.getMs(PropertyKey.WEB_REFRESH_INTERVAL))
           .setProxyDownloadFileApiUrl(proxyDowloadFileApiUrl);
 
       return response;
@@ -879,16 +879,20 @@ public final class AlluxioMasterRestServiceHandler {
           .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL)).getValue();
       Long bytesReadRemote = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO)).getValue();
+      Long bytesReadDomainSocket = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN)).getValue();
       Long bytesReadUfs = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL)).getValue();
       response.setTotalBytesReadLocal(FormatUtils.getSizeFromBytes(bytesReadLocal))
+          .setTotalBytesReadDomainSocket(FormatUtils.getSizeFromBytes(bytesReadDomainSocket))
           .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
           .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
       // cluster cache hit and miss
-      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
+      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs + bytesReadDomainSocket;
       double cacheHitLocalPercentage =
-          (bytesReadTotal > 0) ? (100D * bytesReadLocal / bytesReadTotal) : 0;
+          (bytesReadTotal > 0)
+              ? (100D * (bytesReadLocal + bytesReadDomainSocket) / bytesReadTotal) : 0;
       double cacheHitRemotePercentage =
           (bytesReadTotal > 0) ? (100D * bytesReadRemote / bytesReadTotal) : 0;
       double cacheMissPercentage =
@@ -901,14 +905,20 @@ public final class AlluxioMasterRestServiceHandler {
       // cluster write size
       Long bytesWrittenAlluxio = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO)).getValue();
+      Long bytesWrittenDomainSocket = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN)).getValue();
       Long bytesWrittenUfs = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL)).getValue();
       response.setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
+          .setTotalBytesWrittenDomainSocket(FormatUtils.getSizeFromBytes(bytesWrittenDomainSocket))
           .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
       // cluster read throughput
       Long bytesReadLocalThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT))
+          .getValue();
+      Long bytesReadDomainSocketThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT))
           .getValue();
       Long bytesReadRemoteThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT))
@@ -918,6 +928,8 @@ public final class AlluxioMasterRestServiceHandler {
           .getValue();
       response
           .setTotalBytesReadLocalThroughput(FormatUtils.getSizeFromBytes(bytesReadLocalThroughput))
+          .setTotalBytesReadDomainSocketThroughput(
+              FormatUtils.getSizeFromBytes(bytesReadDomainSocketThroughput))
           .setTotalBytesReadRemoteThroughput(
               FormatUtils.getSizeFromBytes(bytesReadRemoteThroughput))
           .setTotalBytesReadUfsThroughput(FormatUtils.getSizeFromBytes(bytesReadUfsThroughput));
@@ -926,11 +938,16 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT))
           .getValue();
+      Long bytesWrittenDomainSocketThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT))
+          .getValue();
       Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
           .getValue();
       response.setTotalBytesWrittenAlluxioThroughput(
           FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
+          .setTotalBytesWrittenDomainSocketThroughput(
+              FormatUtils.getSizeFromBytes(bytesWrittenDomainSocketThroughput))
           .setTotalBytesWrittenUfsThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput));
 
@@ -980,9 +997,11 @@ public final class AlluxioMasterRestServiceHandler {
         }
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
+          // Unescape the URI for display
+          String ufsUnescaped = MetricsSystem.unescape(ufs);
           Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-          perUfsMap.put(ufs, (long) metric.getValue());
-          ufsOpsMap.put(ufs, perUfsMap);
+          perUfsMap.put(ufsUnescaped, (long) metric.getValue());
+          ufsOpsMap.put(ufsUnescaped, perUfsMap);
         }
       }
       response.setUfsOps(ufsOpsMap);

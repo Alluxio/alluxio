@@ -353,6 +353,17 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
+  public void stop() throws IOException {
+    super.stop();
+  }
+
+  @Override
+  public void close() throws IOException {
+    super.close();
+    mBlockStore.close();
+  }
+
+  @Override
   public int getWorkerCount() {
     return mWorkers.size();
   }

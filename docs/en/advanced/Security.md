@@ -13,23 +13,23 @@ This document describes the following security related features in Alluxio.
 
 1. [User Authentication](#authentication): 
 Alluxio filesystem will differentiate users accessing the service
-when the authentication mode is `SIMPLE` (i.e., `alluxio.security.authentication.type=SIMPLE`).
+when the authentication mode is `SIMPLE`.
 Alluxio also supports `NOSASL` mode which ignores authentication.
-Having authentication mode to be `SIMPLE` is required for authorization.
+Authentication mode `SIMPLE` is required to enable authorization.
 1. [User Authorization](#authorization): 
 Alluxio filesystem will grant or deny user access based on the requesting user and
 the POSIX permissions model of the files or directories to access,
 when `alluxio.security.authorization.permission.enabled=true`.
 Note that, authentication cannot be `NOSASL` as authorization requires user information.
-1. [Access Control Lists](#Access-Control-Lists): In addition to the POSIX permission model, Alluxio
+1. [Access Control Lists](#access-control-lists): In addition to the POSIX permission model, Alluxio
 implements an Access Control List (ACL) model similar to those found in Linux and HDFS. The ACL model
 is more flexible and allows administrators to manage any user or group's permissions to any file
 system object.
 1. [Client-Side Hadoop Impersonation](#client-side-hadoop-impersonation): Alluxio supports
 client-side Hadoop impersonation so the Alluxio client can access Alluxio on the behalf of the
-Hadoop user. This can be useful if the Alluxio client is part of an exising Hadoop service.
-1. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system
-maintains an audit log for user accesses to file metadata.
+Hadoop user. This can be useful if the Alluxio client is part of an existing Hadoop service.
+1. [Auditing](#auditing): If enabled, the Alluxio filesystem
+writes an audit log for all user accesses.
 
 See [Security specific configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}#security-configuration)
 for different security properties.
@@ -44,8 +44,9 @@ with a default value of `SIMPLE`.
 Authentication is **enabled** when the authentication type is `SIMPLE`.
 
 A client must identify itself with a username to the Alluxio service.
-If the property `alluxio.security.login.username` is set on the client, its value will be used as
-the login user, otherwise, the login user is inferred from the operating system.
+If the property `alluxio.security.login.username` is set on the Alluxio client, its value will be
+used as the login user, otherwise, the login user is inferred from the operating system user
+executing the client process.
 The provided user information is attached to the corresponding metadata when the client creates
 directories or files.
 
@@ -53,7 +54,7 @@ directories or files.
 
 Authentication is **disabled** when the authentication type is `NOSASL`.
 
-Alluxio service will ignore the user of the client and no user information will be attached to the
+The Alluxio service will ignore the user of the client and no user information will be attached to the
 corresponding metadata when the client creates directories or files. 
 
 ### CUSTOM
@@ -62,24 +63,22 @@ Authentication is **enabled** when the authentication type is `CUSTOM`.
 
 Alluxio clients retrieves user information via the class provided by the
 `alluxio.security.authentication.custom.provider.class` property.
-The specified class must implement `alluxio.security.authentication.AuthenticationProvider`.
+The specified class must implement the interface `alluxio.security.authentication.AuthenticationProvider`.
 
 This mode is currently experimental and should only be used in tests.
 
 ## Authorization
 
-The Alluxio file system implements a permissions model similar to the POSIX permissions model.
+The Alluxio filesystem implements a permissions model similar to the POSIX permissions model.
 
 Each file and directory is associated with:
 
 - An owner, which is the user of the client process to create the file or directory.
-- A group, which is the group fetched from user-groups-mapping service. See [User group
-mapping](#user-group-mapping).
+- A group, which is the group fetched from user-groups-mapping service. See [User group mapping](#user-group-mapping).
 - Permissions, which consist of three parts:
   - Owner permission defines the access privileges of the file owner
   - Group permission defines the access privileges of the owning group
-  - Other permission defines the access privileges of all users that are not in any of above two
-classes
+  - Other permission defines the access privileges of all users that are not in any of above two classes
 
 Each permission has three actions:
 
@@ -100,8 +99,8 @@ The output of the `ls` shell command when authorization is enabled is:
 
 ```bash
 ./bin/alluxio fs ls /
-drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2017 13:24:15:649  DIR /default_tests_files
--rw-r--r-- jack           staff                       80   NOT_PERSISTED 11-20-2017 13:24:15:649 100% /default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE
+drwxr-xr-x jack           staff                       24       PERSISTED 06-14-2019 07:02:45:248  DIR /default_tests_files
+-rw-r--r-- jack           staff                       80   NOT_PERSISTED 06-14-2019 07:02:26:487 100% /default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE
 ```
 
 ### User group mapping
@@ -109,14 +108,21 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 For a given user, the list of groups is determined by a group mapping service, configured by
 the `alluxio.security.group.mapping.class` property, with a default implementation of
 `alluxio.security.group.provider.ShellBasedUnixGroupsMapping`.
-This implementation executes the `groups` shell command to fetch the group memberships of the given user.
-The user group mapping is cached, with an expiration period configured by the
+This implementation executes the `groups` shell command on the local machine
+to fetch the group memberships of a particular user.
+Running the `groups` command for every query may be expensive, so
+the user group mapping is cached, with an expiration period configured by the
 `alluxio.security.group.mapping.cache.timeout` property, with a default value of `60s`.
-If set to a value of `0`, caching is disabled.
+If set to a value of `0`, the caching is disabled.
+If the cache timeout is too low or disabled, the `groups` command will be run very frequently, but
+may increase latency for operations.
+If the cache timeout is too high, the `groups` command will not be run frequently, but the cached
+results may become stale.
 
 Alluxio has super user, a user with special privileges typically needed to administer and maintain the system.
+The super user is the operating system user executing the Alluxio master process. 
 The `alluxio.security.authorization.permission.supergroup` property defines a super group.
-Any users belong to this group are also super users.
+Any additional operating system users belong to this operating system group are also super users.
 
 ### Initialized directory and file permissions
 
@@ -137,14 +143,14 @@ The owner, group, and permissions can be changed by two ways:
 [chmod]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#chmod).
 
 The owner attribute can only be changed by a super user.
-The group and permission attributes can be changed by a super user or the owner.
+The group and permission attributes can be changed by a super user or the owner of the path.
 
 ## Access Control Lists
 
 The POSIX permissions model allows administrators to grant permissions to owners, owning groups and other users.
 The permission bits model is sufficient for most cases. 
 However, to help administrators express more complicated security policies, Alluxio also supports Access Control Lists (ACLs).
-ACLs allow administrators to grant permissions to any user or group. 
+ACLs allow administrators to grant permissions to any user or group.
 
 A file or directory's Access Control List consists of multiple entries.
 The two types of ACL entries are Access ACL entries and Default ACL entries. 
@@ -171,7 +177,11 @@ The following table shows the different types of ACL entries that can appear in 
 Notice that ACL entries describing owner's, owning group's and other's permissions already exist in
 the standard POSIX permission bits model.
 For example, a standard POSIX permission of `755` translates into an ACL list as follows:
-`user::rwx, group::r-x, other::r-x`.
+```text
+user::rwx
+group::r-x
+other::r-x
+```
 
 These three entries are always present in each file and directory.
 When there are entries in addition to these standard entries, the ACL is considered an extended ACL. 
@@ -236,13 +246,16 @@ to user `yarn`. With client-side Hadoop impersonation, the Alluxio client will d
 client user is `foo`, and then connect to Alluxio servers as user `yarn` impersonating as user
 `foo`. With this impersonation, the data interactions will be attributed to user ‘foo’.
 
-In order to configure Alluxio for client-side Hadoop impersonation, both client and master
-configurations are required.
+This feature is only applicable when using the hadoop compatible client to access Alluxio.
 
-### Master Configuration
+In order to configure Alluxio for client-side Hadoop impersonation, both client and server
+configurations (master and worker) are required.
 
-To enable a particular Alluxio client user to impersonate other users, set the
-`alluxio.master.security.impersonation.<USERNAME>.users` property, where `<USERNAME>` is the name
+### Server Configuration
+
+To enable a particular Alluxio client user to impersonate other users server (master and worker)
+configuration are required.
+Set the `alluxio.master.security.impersonation.<USERNAME>.users` property, where `<USERNAME>` is the name
 of the Alluxio client user.
 
 The property value is a comma-separated list of users that `<USERNAME>` is allowed to impersonate.
@@ -250,30 +263,29 @@ The wildcard value `*` can be used to indicate the user can impersonate any othe
 Some examples:
 
 - `alluxio.master.security.impersonation.alluxio_user.users=user1,user2`
-means the Alluxio client user `alluxio_user` is allowed to impersonate `user1` and `user2`.
+  - the Alluxio client user `alluxio_user` is allowed to impersonate `user1` and `user2`
 - `alluxio.master.security.impersonation.client.users=*`
-means the Alluxio client user `client` is allowed to impersonate any user.
+  - the Alluxio client user `client` is allowed to impersonate any user
 
 To enable a particular user to impersonate other groups, set the
 `alluxio.master.security.impersonation.<USERNAME>.groups` property, where again `<USERNAME>` is
 the name of the Alluxio client user.
-
-Similar to the above, the value is a comma-separated list of groups and the wildcard value `*`
+Similar to above, the value is a comma-separated list of groups and the wildcard value `*`
 can be used to indicate all groups.
 Some examples:
 
 - `alluxio.master.security.impersonation.alluxio_user.groups=group1,group2`
-means the Alluxio client user `alluxio_user` is allowed to impersonate any users from groups `group1` and `group2`.
+  - the Alluxio client user `alluxio_user` is allowed to impersonate any users from groups `group1` and `group2`
 - `alluxio.master.security.impersonation.client.groups=*`
-means the Alluxio client user `client` is allowed to impersonate users from any group.
+  - the Alluxio client user `client` is allowed to impersonate users from any group
 
-In summary, to enable an Alluxio client to impersonate other users, at least one of the two
+In summary, to enable an Alluxio client user to impersonate other users, at least one of the two
 impersonation properties must be set on servers; setting both are allowed for the same Alluxio
 client user.
 
 ### Client Configuration
 
-After enabling impersonation on the master for a given Alluxio client user,
+After enabling impersonation on the servers for a given Alluxio client user,
 the client must indicate which user it wants to impersonate.
 This is configured by the `alluxio.security.login.impersonation.username` property.
 
@@ -349,5 +361,6 @@ respective under file system, such as HDFS transparent encryption or Linux disk 
 
 ## Deployment
 
-It is recommended to start Alluxio master and workers under the same user.
-In the case where there is a user mismatch, file operations may fail because of permission checks.
+It is required to start Alluxio master and workers using the same operating system user.
+In the case where there is a user mismatch, secondary master healthcheck, the command `alluxio-start.sh all`
+and certain file operations may fail because of permission checks.

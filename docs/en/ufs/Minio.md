@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Minio
-nickname: Minio
+title: MinIO
+nickname: MinIO
 group: Under Stores
 priority: 10
 ---
@@ -9,9 +9,9 @@ priority: 10
 * Table of Contents
 {:toc}
 
-This guide describes how to configure Alluxio with [Minio](https://minio.io/) as the
-under storage system. Alluxio natively provides the `s3a://` scheme (recommended for better
-performance). You can use this scheme to connect Alluxio with Minio server.
+This guide describes how to configure Alluxio with [MinIO](https://min.io/) as the
+under storage system. Alluxio natively provides the `s3://` scheme (recommended for better
+performance). You can use this scheme to connect Alluxio with a MinIO server.
 
 ## Prerequisites
 
@@ -20,46 +20,46 @@ You can either
 [compile Alluxio from source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
 or [download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
-## Setup Minio
+## Setup MinIO
 
-Minio is an object storage server built for cloud applications and DevOps. Minio provides an open
+MinIO is an object storage server built for cloud applications and DevOps. MinIO provides an open
 source alternative to AWS S3.
 
-Launch a Minio server instance using the steps mentioned
-[here](http://docs.minio.io/docs/minio-quickstart-guide).
+Launch a MinIO server instance using the steps mentioned
+[here](http://docs.min.io/docs/minio-quickstart-guide).
 Then, either create a new bucket or use an existing one.
-Once the Minio server is launched, keep a note of the server endpoint, accessKey and secretKey.
+Once the MinIO server is launched, keep a note of the server endpoint, accessKey and secretKey.
 
 You should also note the directory you want to use in that bucket, either by creating
-a new directory in the bucket or using an existing one. For the purposes of this guide, the Minio
+a new directory in the bucket or using an existing one. For the purposes of this guide, the MinIO
 bucket name is called `MINIO_BUCKET`, and the directory in that bucket is called `MINIO_DIRECTORY`.
 
 ## Configuring Alluxio
 
-You need to configure Alluxio to use Minio as its under storage system by modifying
-`conf/alluxio-site.properties`. The first modification is to specify an **existing** Minio
+You need to configure Alluxio to use MinIO as its under storage system by modifying
+`conf/alluxio-site.properties`. The first modification is to specify an **existing** MinIO
 bucket and directory as the under storage system.
-Because Minio supports the `s3a` protocol, it is possible to configure Alluxio as if it were
+Because Minio supports the `s3` protocol, it is possible to configure Alluxio as if it were
 pointing to an AWS S3 endpoint.
 
 All the fields to be modified in `conf/alluxio-site.properties` file are listed here:
 
 ```properties
-alluxio.master.mount.table.root.ufs=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.master.mount.table.root.ufs=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
-alluxio.underfs.s3a.inherit_acl=false
+alluxio.underfs.s3.inherit.acl=false
 aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
 aws.secretKey=<MINIO_SECRET_KEY_ID>
 ```
 
-For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your Minio service,
+For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your MinIO service,
 e.g., `http://localhost:9000/`.
 If the port value is left unset, it defaults to port 80 for `http` and 443 for `https`.
 
-## Test the Minio Configuration
+## Test the MinIO Configuration
 
-Format and start alluxio with
+Format and start Alluxio with
 
 ```bash
 ./bin/alluxio format
@@ -75,7 +75,7 @@ Then, to run tests using some basic Alluxio operations execute the following com
 ./bin/alluxio runTests
 ```
 
-If there are no errors then Minio is configured properly!
+If there are no errors then MinIO is configured properly!
 
 ## Troubleshooting 
 
@@ -85,7 +85,7 @@ See below for a few common cases and their resolutions.
 ### The Specified Bucket Does Not Exist
 
 If a message like this is returned, then you'll need to double check the name of the bucket in the
-`alluxio-site.properties` file and make sure that it exists in Minio.
+`alluxio-site.properties` file and make sure that it exists in MinIO.
 The property for the bucket name is controlled by [`alluxio.master.mount.table.root.ufs`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.master.mount.table.root.ufs)
 
 ```
@@ -98,10 +98,10 @@ t; Request ID: 158681CA87E59BA0; S3 Extended Request ID: 2d47b54e-7dd4-4e32-bc6e
 
 ### DNS Resolution - Unable to execute HTTP request
 
-If an exception like this is encountered then it may be that the alluxio property
-[`alluxio.underfs.s3.disable.dns.bucket`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.underfs.s3.disable.dns.bucket)
+If an exception like this is encountered then it may be that the Alluxio property
+[`alluxio.underfs.s3.disable.dns.buckets`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.underfs.s3.disable.dns.buckets)
 is set to `false`.
-Setting this value to `true` for Minio will allow alluxio to resolve the proper bucket location.
+Setting this value to `true` for MinIO will allow Alluxio to resolve the proper bucket location.
 
 ```
 Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.SdkClientException: Unable to execute HTTP request: {{BUCKET_NAME}}) from the under file system
@@ -113,10 +113,10 @@ Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed 
 ### Connection Refused - Unable to execute HTTP request
 
 If an exception occurs where the client returns an error with information about a refused connection 
-then Alluxio most likely cannot contact the Minio server.
+then Alluxio most likely cannot contact the MinIO server.
 Make sure that the value of
 [`alluxio.underfs.s3.endpoint`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.underfs.s3.endpoint)
-is correct and that the node running the Alluxio master can reach the Minio endpoint over the
+is correct and that the node running the Alluxio master can reach the MinIO endpoint over the
 network.
 
 ```

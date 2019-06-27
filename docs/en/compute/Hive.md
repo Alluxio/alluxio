@@ -15,8 +15,10 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 ## Prerequisites
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
-* [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted).
-* Alluxio has been set up and is running.
+* [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted). If you are using Hive2.1+, 
+  make sure to [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
+  before starting Hive. `$HIVE_HOME/bin/schematool -dbType derby -initSchema`
+* Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/deploy/Running-Alluxio-Locally.html).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](http://www.alluxio.io/download).
@@ -31,7 +33,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 
 Distribute Alluxio client jar on all Hive nodes and include the Alluxio client jar to Hive
 classpath so Hive can query and access data on Alluxio.
-Set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
+Within Hive installation directory , set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
 ```bash
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
@@ -128,8 +130,8 @@ for more details about Alluxio `mount` operation.
 
 ### Move an Internal Table from HDFS to Alluxio
 
-We assume that the `hive.metastore.warehouse.dir` property is set to `/user/hive/warehouse` which
-is the default value, and the internal table is already created like this:
+We assume that the `hive.metastore.warehouse.dir` property (within your Hive installation `conf/hive-default.xml`)
+is set to `/user/hive/warehouse` which is the default value, and the internal table is already created like this:
 
 ```
 hive> CREATE TABLE u_user (
@@ -203,7 +205,7 @@ ensure that this file is on the classpath of Hive service on each node.
 - Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
 
 For example, change
-`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
+`alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`.
 
 One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
 of each Hive node:
@@ -337,7 +339,8 @@ You can run the following command in the Alluxio project directory:
 integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
 
-You can use `-h` to display helpful information about the command.
+You can use `-h` to display helpful information about the command, along with this detailed page on 
+[JDBC connection URLs](https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC) to specify the Hive URL.
 This command will report potential problems that might prevent you from running Hive on Alluxio.
 
 ### Logging Configuration

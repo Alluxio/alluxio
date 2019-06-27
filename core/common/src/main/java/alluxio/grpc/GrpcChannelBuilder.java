@@ -17,12 +17,12 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ChannelAuthenticator;
 
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.netty.channel.EventLoopGroup;
 
-import javax.security.auth.Subject;
 import java.util.concurrent.TimeUnit;
+
+import javax.security.auth.Subject;
 
 /**
  * A gRPC channel builder that authenticates with {@link GrpcServer} at the target during channel
@@ -200,32 +200,34 @@ public final class GrpcChannelBuilder {
   public GrpcChannel build() throws AlluxioStatusException {
     ManagedChannel underlyingChannel =
         GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(mChannelKey,
-            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS),
-            mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
+            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT),
+            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
     try {
-      Channel clientChannel = underlyingChannel;
-
-      if (mAuthenticateChannel) {
+      AuthType authType =
+          mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+      if (mAuthenticateChannel && authType != AuthType.NOSASL) {
         // Create channel authenticator based on provided content.
         ChannelAuthenticator channelAuthenticator;
         if (mUseSubject) {
           channelAuthenticator = new ChannelAuthenticator(mParentSubject, mConfiguration);
         } else {
-          channelAuthenticator =
-              new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
-                  mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
-                  mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT));
+          channelAuthenticator = new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
+              mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
+              mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT));
         }
-        // Get an authenticated wrapper channel over given managed channel.
-        clientChannel = channelAuthenticator.authenticate(mServerAddress, underlyingChannel);
+        // Return a wrapper over authenticated channel.
+        return new GrpcChannel(mChannelKey,
+            channelAuthenticator.authenticate(mServerAddress, underlyingChannel),
+            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
+      } else {
+        // Return a wrapper over original channel.
+        return new GrpcChannel(mChannelKey, underlyingChannel,
+            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
       }
-      // Create the channel after authentication with the target.
-      return new GrpcChannel(mChannelKey, clientChannel,
-          mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
     } catch (Exception exc) {
       // Release the managed channel to the pool before throwing.
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey,
-          mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
+          mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
       throw exc;
     }
   }

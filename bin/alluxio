@@ -58,7 +58,6 @@ function bootstrapConf {
   fi
   local master=${1}
 
-  ALLUXIO_CONF_DIR="${BIN}/../conf"
   local dst="${ALLUXIO_CONF_DIR}/alluxio-site.properties"
 
   if [[ -e ${dst} ]]; then
@@ -187,13 +186,6 @@ function main {
   COMMAND=$1
   shift
 
-  # bootstrap to create conf/alluxio-env.sh. This commands needs to be processed
-  # before sourcing libexec/alluxio-conf.sh which requires conf/alluxio-env.sh
-  if [[ "${COMMAND}" == "bootstrapConf" || "${COMMAND}" == "bootstrap-conf" ]]; then
-    bootstrapConf "$@"
-    exit 0
-  fi
-
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
@@ -201,6 +193,9 @@ function main {
   PARAMETER=""
 
   case ${COMMAND} in
+  "bootstrapConf")
+    bootstrapConf "$@"
+  ;;
   "extensions")
     CLASS="alluxio.cli.extensions.ExtensionsShell"
     CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
@@ -317,7 +312,6 @@ function main {
   "runUfsTests")
     CLASS="alluxio.cli.UnderFileSystemContractTest"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "readJournal")

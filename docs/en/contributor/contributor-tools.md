@@ -11,9 +11,12 @@ priority: 3
 
 ## IDE
 
+We recommend using either Eclipse or IntelliJ IDEA to contribute to Alluxio.
+Instructions for setting up both IDEs can be found below.
+
 ### Eclipse
 
-We recommend using either Eclipse or IntelliJ IDEA to contribute to Alluxio. You can generate an
+ You can generate an
 Eclipse configuration file by running:
 
 {% include Contributing-to-Alluxio/eclipse-configuration.md %}
@@ -25,10 +28,18 @@ You may also have to add the classpath variable `M2_REPO` by running:
 
 ### IntelliJ IDEA
 
-If you are using IntelliJ IDEA, you may need to change the Maven profile to 'developer' in order
-to avoid import errors. You can do this by going to
+To use IntelliJ IDEA to contribute to Alluxio simply open IntelliJ and select "Import existing project".
+Then select the "Maven" project type from the IntelliJ dialog.
+IntelliJ's default configuration works without any modifications. 
+
+After successfully importing your local Alluxio repo into IntelliJ, you may need to add the Maven profile 'developer'
+in order to avoid import errors.
+
+You can do this by going to
 
 > `View > Tool Windows > Maven Projects`
+
+And then checking the box next to "developer" in the window pane. 
 
 ## Maven Targets and Plugins
 
@@ -36,7 +47,7 @@ Before pushing changes or submitting pull requests we recommend running various 
 your local machine to make sure your changes do not break existing behavior.
 
 For these maven commands we'll assume that your command terminal is located in the root directory
-of your locally cloned copy of the Alluxio repository.
+of your local copy of the Alluxio repository.
 
 ```bash
 cd ${ALLUXIO_HOME}
@@ -133,7 +144,7 @@ This will use the local filesystem as the under storage.
 - Run a single unit test:
 
 ```bash
-mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
+mvn -Dtest=<AlluxioTestClass>#<testMethod> -DfailIfNoTests=false test
 ```
 
 - To run unit tests for a specific module, execute the `maven test` command targeting
@@ -165,13 +176,12 @@ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/all
 -Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
 ```
 
-- To quickly test the working of some APIs in an interactive manner, you may
-leverage the Scala shell, as discussed in this
+- To quickly test APIs in an interactive manner, you may leverage the Scala shell, as discussed in this 
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
 - The fuse tests are ignored if the `libfuse` library is missing.
-To run those tests, please install the correct libraries mentioned in
-[the Alluxio FUSE documentation]({{ '/en/api/FUSE-API.html' | relativize_url }}#requirements).
+To run those tests, please install the libraries referenced in
+[the Alluxio FUSE documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}#requirements).
 
 ## Modifying a gRPC definition
 
@@ -186,12 +196,15 @@ mvn clean install -Pgenerate
 
 ## Modifying a Protocol Buffer Message
 
-Alluxio uses [Protocol Buffers](https://developers.google.com/protocol-buffers/) 2.5.0 to read and write journal messages. The `.proto` files
-defined in `core/transport/src/proto/` are used to auto-generate Java definitions for
-the protocol buffer messages. To change one of these messages, first read about
+Alluxio uses [Protocol Buffers](https://developers.google.com/protocol-buffers/) 2.5.0 to read and write journal entries.
+The `.proto` files defined in `core/transport/src/proto/` are used to auto-generate Java definitions for the protocol
+buffer messages.
+
+To change one of these messages, first read about
 [updating a message type](https://developers.google.com/protocol-buffers/docs/proto#updating)
-to make sure your change will not break backwards compatibility. To regenerate Java code after changing 
-a definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
+to make sure your change will not break backwards compatibility.
+To regenerate Java code after changing  a definition, you must rebuild `alluxio-core-transport` module with
+the `'generate'` maven profile.
 
 ```bash
 mvn clean install -Pgenerate
@@ -214,8 +227,10 @@ the syntax of each command.
 </table>
 
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
-`formatWorker`, `journalCrashTest`, `readJournal`, `version`, `validateConf` and `validateEnv` commands is that you
-have already built Alluxio (see
-[Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) about how to build Alluxio manually).
-Further, the prerequisite for the `fs`, `logLevel`, `runTest` and `runTests` commands is that you
-have a running Alluxio system.
+`formatWorker`, `journalCrashTest`, `readJournal`, `runClass`, `version`, `validateConf` and `validateEnv` commands is
+that you have already built Alluxio (see
+[Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) about how to
+build Alluxio manually).
+Further, the prerequisite for the `fs`, `logLevel`, `runTest` and `runTests` commands is that
+the Alluxio service is up and running.
+

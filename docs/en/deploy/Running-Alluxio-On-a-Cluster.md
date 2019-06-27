@@ -14,8 +14,10 @@ priority: 2
 * To deploy a Alluxio cluster, first [download](https://alluxio.io/download) the pre-compiled Alluxio
   binary file, extract the tarball and copy the extracted directory to all nodes (including nodes
   running masters and workers).
-* Enable SSH login without password to all nodes. You can add a public SSH key for the host into
-`~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
+* Enable SSH login without password from master node to worker nodes. You can add a public SSH key for 
+  the host into `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
+* TCP traffic across all nodes is allowed. For basic functionality make sure RPC port (default :19998) is open
+  on all nodes.
 
 ## Basic Setup
 
@@ -39,7 +41,7 @@ workers. The configuration parameters which must be set are:
 - `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by the master node and all worker nodes.
-  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
 
 This is the minimal configuration to start Alluxio, but additional configuration may be added.
 

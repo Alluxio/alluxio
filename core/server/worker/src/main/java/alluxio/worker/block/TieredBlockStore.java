@@ -22,6 +22,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -125,14 +126,14 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
-    BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
+    BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
     mAllocator = Allocator.Factory.create(initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
-    initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
+    initManagerView = new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
     mEvictor = Evictor.Factory.create(initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
@@ -261,10 +262,11 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
+      throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
+      IOException {
     LOG.debug("commitBlock: sessionId={}, blockId={}", sessionId, blockId);
-    BlockStoreLocation loc = commitBlockInternal(sessionId, blockId);
+    BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onCommitBlock(sessionId, blockId, loc);
@@ -515,12 +517,13 @@ public class TieredBlockStore implements BlockStore {
    *
    * @param sessionId the id of session
    * @param blockId the id of block
+   * @param pinOnCreate is block pinned on create
    * @return destination location to move the block
    * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
    */
-  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId)
+  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
       IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
@@ -549,6 +552,12 @@ public class TieredBlockStore implements BlockStore {
           | WorkerOutOfSpaceException e) {
         throw Throwables.propagate(e); // we shall never reach here
       }
+
+      // Check if block is pinned on commit
+      if (pinOnCreate) {
+        addToPinnedInodes(BlockId.getFileId(blockId));
+      }
+
       return loc;
     } finally {
       mLockManager.unlockBlock(lockId);
@@ -577,8 +586,8 @@ public class TieredBlockStore implements BlockStore {
       if (newBlock) {
         checkTempBlockIdAvailable(blockId);
       }
-      StorageDirView dirView =
-          mAllocator.allocateBlockWithView(sessionId, initialBlockSize, location, getUpdatedView());
+      StorageDirView dirView = mAllocator.allocateBlockWithView(sessionId,
+          initialBlockSize, location, new BlockMetadataAllocatorView(mMetaManager));
       if (dirView == null) {
         // Allocator fails to find a proper place for this new block.
         return null;
@@ -723,12 +732,12 @@ public class TieredBlockStore implements BlockStore {
    * Gets the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.
    *
-   * @return {@link BlockMetadataManagerView}, an updated view with most recent information
+   * @return {@link BlockMetadataEvictorView}, an updated view with most recent information
    */
-  private BlockMetadataManagerView getUpdatedView() {
+  private BlockMetadataEvictorView getUpdatedView() {
     // TODO(calvin): Update the view object instead of creating new one every time.
     synchronized (mPinnedInodes) {
-      return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
+      return new BlockMetadataEvictorView(mMetaManager, mPinnedInodes,
           mLockManager.getLockedBlocks());
     }
   }
@@ -880,6 +889,18 @@ public class TieredBlockStore implements BlockStore {
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    }
+  }
+
+  /**
+   * Add a single inode to set of pinned ids.
+   *
+   * @param inode an inode that is pinned
+   */
+  private void addToPinnedInodes(Long inode) {
+    LOG.debug("addToPinnedInodes: inode={}", inode);
+    synchronized (mPinnedInodes) {
+      mPinnedInodes.add(Preconditions.checkNotNull(inode));
     }
   }
 

@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 /**
  * This class encapsulates the different master services that are configured to run.
  */
-final class MasterUtils {
+public final class MasterUtils {
   private MasterUtils() {}  // prevent instantiation
 
   /**

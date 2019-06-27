@@ -7,7 +7,7 @@ priority: 3
 ---
 
 Alluxio can be run on Kubernetes. This guide demonstrates how to run Alluxio
-on Kubernetes using the specification that comes in the Alluxio Github repository.
+on Kubernetes using the specification included in the Alluxio Docker image.
 
 * Table of Contents
 {:toc}
@@ -17,48 +17,23 @@ on Kubernetes using the specification that comes in the Alluxio Github repositor
 - A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
 Please ensure the feature is enabled.
-- An Alluxio Docker image. Refer to
-[this page]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }}) for instructions to
-build an image. The image must be
-available for a pull from all Kubernetes hosts running Alluxio processes. This can be achieved by
-pushing the image to an accessible Docker registry, or pushing the image individually to all hosts.
-If using a private Docker registry, refer to the Kubernetes
-[documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+- An Alluxio Docker image [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/). If using a
+private Docker registry, refer to the Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
 ## Basic Setup
 
 This tutorial walks through a basic Alluxio setup on Kubernetes.
 
-### Clone the Alluxio repo
+### Extract Kubernetes Specs
+
+Extract the Kubernetes specifications required to deploy Alluxio from the Docker image.
 
 ```bash
-git clone https://github.com/Alluxio/alluxio.git
-cd integration/kubernetes
-```
-
-The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
-
-### Enable short-circuit operations
-
-Short-circuit access enables clients to perform read and write operations directly against the
-worker memory instead of having to go through the worker process. Set up a domain socket on all hosts
-eligible to run the Alluxio worker process to enable this mode of operation.
-
-As part of the Alluxio worker pod creation, a directory is created on the host for the shared domain
-socket.
-
-This step can be skipped in case short-circuit accesss is not desired or cannot be set up. To disable
-this feature, set the property `alluxio.user.short.circuit.enabled=false` according to the instructions
-in the configuration section below.
-
-By default, short-circuit operations between the Alluxio client and worker are enabled if the client
-hostname matches the worker hostname. This may not be true if the client is running as part of a container
-with virtual networking. In such a scenario, set the following property to use filesystem inspection
-to enable short-circuit. Short-circuit writes are then enabled if the worker UUID is located on the client
-filesystem.
-```properties
-alluxio.worker.data.server.domain.socket.as.uuid=true
-alluxio.worker.data.server.domain.socket.address=/opt/domain
+id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
+docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
+docker rm -v $id 1>/dev/null
+tar -xvf kubernetes.tar
+cd kubernetes
 ```
 
 ### Provision a Persistent Volume
@@ -86,12 +61,17 @@ kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ### Configure Alluxio properties
-Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to
-[Docker configuration]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }}) for the
-corresponding environment variable name for Alluxio properties in `conf/alluxio-site.properties`.
 
-Define all environment variables in a single file. Copy the properties template at
+Define environment variables in `alluxio.properties`. Copy the properties template at
 `integration/kubernetes/conf`, and modify or add any configuration properties as required.
+The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
+
+```
+# Replace <under_storage_address> with the appropriate URI, for example s3://my-bucket
+# If using an under storage which requires credentials be sure to specify those as well
+ALLUXIO_JAVA_OPTS=-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
+```
+
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 ```bash
@@ -106,11 +86,13 @@ kubectl create configmap alluxio-config --from-env-file=conf/alluxio.properties
 ### Deploy
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
-location of the Docker image, and CPU and memory requirements for pods.
+location of the **Docker image**, and CPU and memory requirements for pods.
 ```bash
 cp alluxio-master.yaml.template alluxio-master.yaml
 cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
+Note: Please make sure that the version of the Kubernetes specification matches the version of the
+Alluxio Docker image being used.
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```bash
@@ -195,7 +177,75 @@ across multiple containers.
 
 ## Troubleshooting
 
-### FUSE
+### Enable Debug Logging
+
+To change the log level for Alluxio servers (master and workers), use the CLI command `logLevel` as
+follows:
+
+Access the Alluxio CLI from the master pod.
+```bash
+kubectl exec -ti alluxio-master-0 /bin/bash
+```
+
+From the master pod, execute the following:
+```bash
+cd /opt/alluxio
+./bin/alluxio logLevel --level DEBUG --logName alluxio
+```
+
+### Accessing Logs
+
+The Alluxio master and job master run as separate containers of the master pod. Similarly, the
+Alluxio worker and job worker run as separate containers of a worker pod. Logs can be accessed for
+the individual containers as follows.
+
+Master:
+```bash
+kubectl logs -f alluxio-master-0 -c alluxio-master
+```
+
+Worker:
+```bash
+kubectl logs -f alluxio-worker-<id> -c alluxio-worker
+```
+
+Job Master:
+```bash
+kubectl logs -f alluxio-master-0 -c alluxio-job-master
+```
+
+Job Worker:
+```bash
+kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
+```
+
+### Short-circuit Access
+
+Short-circuit access enables clients to perform read and write operations directly against the
+worker bypassing the networking interface. As part of the Alluxio worker pod creation, a directory
+is created on the host at `/tmp/domain` for the shared domain socket.
+
+To disable this feature, set the property `alluxio.user.short.circuit.enabled=false`. By default,
+short-circuit operations between the Alluxio client and worker are enabled if the client hostname
+matches the worker hostname. This may not be true if the client is running as part of a container
+with virtual networking. In such a scenario, set the following property to use filesystem inspection
+to enable short-circuit and make sure the client container mounts the directory specified as the
+domain socket address. Short-circuit writes are then enabled if the worker UUID is located on the
+client filesystem.
+
+```properties
+alluxio.worker.data.server.domain.socket.as.uuid=true
+alluxio.worker.data.server.domain.socket.address=/opt/domain
+```
+
+To verify short-circuit reads and writes monitor the metrics displayed under:
+1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
+1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
+`cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
+1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
+`Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
+
+### POSIX API
 
 In order for an application container to mount the `hostPath` volume, the node running the container
 must have the Alluxio FUSE daemon running. The default spec `alluxio-fuse.yaml` runs as a DaemonSet,

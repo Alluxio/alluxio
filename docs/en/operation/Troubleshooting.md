@@ -165,23 +165,10 @@ Please read [Configuration-Settings]({{ '/en/basic/Configuration-Settings.html' 
 
 A: This error indicates insufficient space left on Alluxio workers to complete your write request.
 
-- For Alluxio version 1.6.0 and above, `copyFromLocal` uses `RoundRobinPolicy` by default.
-You can change the location policy for this command by changing `alluxio.user.file.copyfromlocal.write.location.policy.class` property.
-
-Before version 1.6.0, if you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
-and stores data on the local worker (see [location policy]({{ '/en/api/FS-API.html' | relativize_url }}#location-policy)).
-In this case, you will see the above error once the local worker does not have enough space.
-To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
-
-```bash
-./bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
-```
-
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
 See [Command-Line-Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) for more details.
 - Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
 See [Configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}#common-configuration) for more description.
-
 
 ### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application
 
@@ -190,19 +177,6 @@ it is because Alluxio master failed to update journal files stored in a HDFS dir
 the property `alluxio.master.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
 some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
 HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
-
-### Q: I'm seeing that client connection was rejected by master
-
-A: When you see errors from applications like `"alluxio.exception.status.UnavailableException:
-Failed to connect to BlockMasterClient @ hostname:19998 after 13 attempts"`, a possibility is the
-Alluxio master server has run out threads in its thread pool to serve new incoming client requests.
-
-To solve this issue, you can try:
-- Increase the thread pool size on the master to serve client requests by increasing
-`alluxio.master.worker.threads.max`. You can set this property to a larger value in
-`conf/alluxio-site.properties`. Note that, this value should be no larger than the number of max
-open files allowed by the system allows. One can check the system limit using `"ulimit -n"` on Linux
-or [other approaches](https://stackoverflow.com/questions/880557/socket-accept-too-many-open-files)
 
 ### Q: I added some files in under file system. How can I reveal the files in Alluxio?
 
@@ -225,10 +199,11 @@ A: When writing files to Alluxio, one of the several write type can be used to t
 
 `THROUGH`: data will be only written to UFS
 
-By default the write type used by Alluxio client is `MUST_CACHE`, therefore a new file written to Alluxio is only stored in Alluxio
-worker storage, and can be evicted when Alluxio worker storage is full and some new data needs to be cached. To make sure
-data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type, or [pin]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#pin) the files
-you would like to preserve.
+`ASYNC_THROUGH`: data will be stored in Alluxio synchronously and then written to UFS asynchronously
+
+By default the write type used by Alluxio client is `ASYNC_THROUGH`, therefore a new file written to Alluxio is only stored in Alluxio
+worker storage, and can be lost if a worker crashes. To make sure data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type,
+or increase `alluxio.user.file.replication.durable` to an acceptable degree of redundancy.
 
 Another possible cause for this error is that the block exists in the file system, but no worker has connected to master. In that
 case the error will go away once at least one worker containing this block is connected.

@@ -187,7 +187,7 @@ shows the file as **PERSISTED**.
 ## [Bonus] Mounting in Alluxio
 
 Alluxio unifies access to storage systems with the unified namespace feature. Read the [Unified
-Namespace blog post](https://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
+Namespace blog post](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)
 and the [unified namespace documentation]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more detailed
 explanations of the feature.
 
@@ -204,8 +204,8 @@ Successfully created directory /mnt
 Mount an existing S3 bucket to Alluxio. This guide uses the `alluxio-quick-start` S3 bucket.
 
 ```bash
-./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
-Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
+./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3://alluxio-quick-start/data
+Mounted s3://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
 List the files mounted from S3 through the Alluxio namespace by using the `ls` command.

@@ -211,16 +211,16 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Creates a {@link BlockMetadataManagerView} with {@link #setupDefaultConf(String)}.
+   * Creates a {@link BlockMetadataEvictorView} with {@link #setupDefaultConf(String)}.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
-   * @return the created metadata manager view
+   * @return the created metadata evictor view
    */
-  public static BlockMetadataManagerView defaultMetadataManagerView(String baseDir)
+  public static BlockMetadataEvictorView defaultMetadataManagerView(String baseDir)
       throws Exception {
     BlockMetadataManager metaManager = TieredBlockStoreTestUtils.defaultMetadataManager(baseDir);
-    return new BlockMetadataManagerView(metaManager, Collections.<Long>emptySet(),
+    return new BlockMetadataEvictorView(metaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
   }
 
@@ -270,18 +270,18 @@ public final class TieredBlockStoreTestUtils {
    * @param bytes size of the block in bytes
    * @param blockStore block store that the block is written into
    * @param location the location where the block resides
+   * @param pinOnCreate whether to pin block on create
    */
   public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
-      BlockStoreLocation location) throws Exception {
+      BlockStoreLocation location, boolean pinOnCreate) throws Exception {
     TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, location, bytes);
     // write data
-    FileUtils.createFile(tempBlockMeta.getPath());
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
 
     // commit block
-    blockStore.commitBlock(sessionId, blockId);
+    blockStore.commitBlock(sessionId, blockId, pinOnCreate);
   }
 
   /**

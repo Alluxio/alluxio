@@ -56,7 +56,7 @@ Add the following properties to the `conf/alluxio-site.properties` file:
 - `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This sets the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by all master nodes and all worker nodes.
-  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
 - `alluxio.master.embedded.journal.addresses`
   - This sets the 
 Alluxio's internal leader election will determine the leader master. The default embedded journal port is `19200`.
@@ -71,7 +71,7 @@ all nodes inside the cluster
 Note that embedded journal feature relies on Copycat which has built-in leader election.
 The built-in leader election cannot work with Zookeeper since we cannot have two leaders which might not match.
 Enabling embedded journal enables Alluxio's internal leader election.
-See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#Embedded-Journal-Configuration)
+See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 for alternative ways to set up HA cluster with internal leader election.
 
 ### Option2: Using External Zookeeper

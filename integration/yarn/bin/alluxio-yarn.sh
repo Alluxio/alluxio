@@ -55,7 +55,6 @@ ALLUXIO_TARFILE="alluxio.tar.gz"
 rm -rf $ALLUXIO_TARFILE
 tar -C $ALLUXIO_HOME -zcf $ALLUXIO_TARFILE \
   assembly/alluxio-server-${VERSION}.jar \
-  assembly/webapp.war \
   integration/yarn/bin/alluxio-application-master.sh \
   integration/yarn/bin/alluxio-master-yarn.sh \
   integration/yarn/bin/alluxio-worker-yarn.sh \

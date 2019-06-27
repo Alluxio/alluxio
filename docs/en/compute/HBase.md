@@ -69,11 +69,14 @@ Alternative ways are described in the [Advanced Setup]({{ '/en/compute/HBase.htm
 
 ## Example
 
-Start HBase:
+Ensure alluxio scheme is recognized before starting HBase:
 
 ```bash
 ${HBASE_HOME}/bin/start-hbase.sh
 ```
+
+If not, follow the [Usage FAQs]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#usage-faq)
+ as needed.
 
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
@@ -139,7 +142,7 @@ for more details.
 ### Add additional Alluxio site properties to HBase
 
 If there are any Alluxio site properties you want to specify for HBase, add those to `hbase-site.xml`. For example,
-change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
+change `alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`:
 
 ```xml
 <property>

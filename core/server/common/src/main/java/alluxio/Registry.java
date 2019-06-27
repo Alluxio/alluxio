@@ -140,12 +140,22 @@ public class Registry<T extends Server<U>, U> {
   }
 
   /**
-   * Stops all {@link Server}s in reverse dependency order. If A depends on B, B is stopped
-   * before A.
+   * Stops all {@link Server}s in reverse dependency order. If A depends on B, A is stopped
+   * before B.
    */
   public void stop() throws IOException {
     for (T server : Lists.reverse(getServers())) {
       server.stop();
+    }
+  }
+
+  /**
+   * Closes all {@link Server}s in reverse dependency order. If A depends on B, A is closed
+   * before B.
+   */
+  public void close() throws IOException {
+    for (T server : Lists.reverse(getServers())) {
+      server.close();
     }
   }
 

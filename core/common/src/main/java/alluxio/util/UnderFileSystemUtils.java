@@ -17,6 +17,7 @@ import alluxio.underfs.options.DeleteOptions;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -143,6 +144,32 @@ public final class UnderFileSystemUtils {
    */
   public static String getBucketName(AlluxioURI uri) {
     return uri.getAuthority().toString();
+  }
+
+  /**
+   * Memoize implementation for java.util.function.supplier.
+   *
+   * @param original the original supplier
+   * @param <T> the object type
+   * @return the supplier with memorization
+   */
+  public static <T> Supplier<T> memoize(Supplier<T> original) {
+    return new Supplier<T>() {
+      Supplier<T> mDelegate = this::firstTime;
+      boolean mInitialized;
+      public T get() {
+        return mDelegate.get();
+      }
+
+      private synchronized T firstTime() {
+        if (!mInitialized) {
+          T value = original.get();
+          mDelegate = () -> value;
+          mInitialized = true;
+        }
+        return mDelegate.get();
+      }
+    };
   }
 
   /**

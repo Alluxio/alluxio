@@ -88,7 +88,7 @@ Visit `instance-hostname:19999` to view the Alluxio web UI. You should see one w
 To run tests, enter the worker container
 
 ```bash
-docker exec -it ${worker_container_id} /bin/bash
+docker exec -it alluxio-worker /bin/bash
 ```
 
 Run the tests
@@ -217,6 +217,24 @@ When relaunching Alluxio masters, use the `--no-format` flag to avoid re-formatt
 the journal. The journal should only be formatted the first time the image is run.
 Formatting the journal deletes all Alluxio metadata, and starts the cluster in
 a fresh state.
+
+### Enable POSIX API access
+
+Using the [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/), you can enable
+access to Alluxio using the POSIX API.
+
+Launch the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+capability. This runs the FUSE daemon on a client node that needs to access Alluxio using the POSIX
+API with a mount accessible at `/alluxio-fuse`.
+
+```bash
+docker run -e \
+           ...
+           --cap-add SYS_ADMIN
+           --device /dev/fuse
+           alluxio-fuse fuse
+```
+
 
 ## Troubleshooting
 

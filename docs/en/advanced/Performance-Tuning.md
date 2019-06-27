@@ -27,14 +27,17 @@ The following is a checklist to run through to address common problems when tuni
 
    If the compute application is running co-located with Alluxio workers, check that the
    application is performing short-circuit reads and writes with its local Alluxio worker.
-   Monitor the values for `cluster.BytesReadAlluxioThroughput` and `cluster.BytesReadLocalThroughput`
-   while the application is running.
+   Monitor the metrics values for `cluster.BytesReadAlluxioThroughput` and `cluster.BytesReadLocalThroughput`
+   while the application is running (Metrics can be viewed through `alluxio fsadmin report metrics`. ).
    If the local throughput is zero or significantly lower than the total throughput,
    the compute application is likely not interfacing with a local Alluxio worker.
    The Alluxio client uses hostname matching to discover a local Alluxio worker;
    check that the client and worker use the same hostname string.
    Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
+   
+   Note: In order to retrieve metrics for short circuit IO, the client metrics collection need to be enabled by setting
+   `alluxio.user.metrics.collection.enabled=true` in `alluxio-site.properties` or corresponding application configuration.
 
 1. Is data is well-distributed across Alluxio workers?
 
@@ -49,7 +52,7 @@ The following is a checklist to run through to address common problems when tuni
    Alluxio clients maintain a connection to the master to avoid using a new connection each time.
    Each client will occupy a server thread while an RPC request is pending.
    This may deplete the master's thread pool; its size can be increased by setting
-   `alluxio.master.worker.threads.max`, which has a default value of 512.
+   `alluxio.master.rpc.executor.max.pool.size`, which has a default value of 500.
    The file descriptor limit may also need to be increased to allow the desired number of open connections.
    The default number of threads used by a client can be decreased by setting
    `alluxio.user.file.master.client.threads` and `alluxio.user.block.master.client.threads`,
@@ -217,9 +220,11 @@ and immediately returns the requested data to the client.
 The worker will asynchronously continue to read the remainder of the block without blocking the client request.
 
 The number of asynchronous threads used to finish reading partial blocks is set by the
-`alluxio.worker.network.netty.async.cache.manager.threads.max` property, with a default value of `512`.
+`alluxio.worker.network.async.cache.manager.threads.max` property.
 When large amounts of data are expected to be asynchronously cached concurrently, it may be helpful
-to reduce this value to reduce resource contention.
+to increase this value to handle a higher workload.
+However, increase this number sparingly, as it will consume more CPU resources on the worker node
+as the number is increased.
 
 ## Client Tuning
 
@@ -286,3 +291,4 @@ With this configuration, the protocol translates to the following:
 
 Overall, a copy and delete operation in the object store is saved, and the slow portion of writing
 to the object store is moved off the critical path.
+

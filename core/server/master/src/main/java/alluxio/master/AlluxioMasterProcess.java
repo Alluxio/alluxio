@@ -156,10 +156,10 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void stop() throws Exception {
     stopRejectingServers();
     if (isServing()) {
-      stopMasters();
       stopServing();
       mJournalSystem.stop();
     }
+    closeMasters();
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -212,6 +212,17 @@ public class AlluxioMasterProcess extends MasterProcess {
   protected void stopMasters() {
     try {
       mRegistry.stop();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Closes all masters, including block master, fileSystem master and additional masters.
+   */
+  protected void closeMasters() {
+    try {
+      mRegistry.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -279,15 +290,15 @@ public class AlluxioMasterProcess extends MasterProcess {
               ServerConfiguration.global(), ServerUserState.global());
 
       mRPCExecutor = new ForkJoinPool(
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_PARALLELISM),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM),
           ForkJoinPool.defaultForkJoinWorkerThreadFactory,
           null,
           true,
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_CORE_SIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_MAX_SIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_MIN_RUNNABLE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MIN_RUNNABLE),
           null,
-          ServerConfiguration.getMs(PropertyKey.MASTER_EXECUTOR_POOL_KEEPALIVE_TIME_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE),
           TimeUnit.MILLISECONDS);
 
       serverBuilder.executor(mRPCExecutor);
@@ -320,7 +331,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       mRPCExecutor.shutdown();
       try {
         mRPCExecutor.awaitTermination(
-            ServerConfiguration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT),
+            ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
             TimeUnit.MILLISECONDS);
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();

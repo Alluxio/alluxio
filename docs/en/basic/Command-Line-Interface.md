@@ -26,6 +26,11 @@ Usage: alluxio [COMMAND]
 This section lists usages and examples of general Alluxio operations with the exception of file
 system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
+### extensions
+
+The `extensions` command is for managing UFS extensions to Alluxio. For additional information, refer
+to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
+
 ### format
 
 The `format` command formats the Alluxio master and all its workers.
@@ -77,6 +82,12 @@ Warning: `formatWorker` should only be called while the cluster is not running.
 ```bash
 ./bin/alluxio formatWorker
 ```
+
+### fsadmin
+
+The `fsadmin` command is meant for administrators of the Alluxio cluster. It provides added tools for
+diagnostics and troubleshooting. For more information see the
+[main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
 ### bootstrapConf
 
@@ -183,7 +194,7 @@ The usage of this command includes:
 ./bin/alluxio runUfsTests --path /local/underfs/path
 
 # Run tests against S3
-./bin/alluxio runUfsTests --path s3a://<s3_bucket_name> -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key>
+./bin/alluxio runUfsTests --path s3://<s3_bucket_name> -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key>
 -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
 

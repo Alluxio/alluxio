@@ -11,7 +11,7 @@ priority: 1
 
 该指南介绍如何配置Alluxio以使用Ceph作为底层文件系统。Alluxio使用[Rados Gateway](http://docs.ceph.com/docs/master/radosgw/)
 支持两种不同的客户端API连接[Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/)：
-- [S3A](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (推荐使用)
+- [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (推荐使用)
 - [Swift](http://docs.openstack.org/developer/swift/)
 
 ## 初始步骤
@@ -26,21 +26,21 @@ priority: 1
 cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-### 方法1: S3A接口
+### 方法1: S3接口
 
 向`conf/alluxio-env.sh`文件添加以下代码：
 
 ```
-alluxio.master.mount.table.root.ufs=s3a://<bucket>/<folder>
+alluxio.master.mount.table.root.ufs=s3://<bucket>/<folder>
 aws.accessKeyId=<access-key>
 aws.secretKey=<secret-key>
 alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
 alluxio.underfs.s3.disable.dns.buckets=true
-alluxio.underfs.s3a.inherit_acl=<inherit-acl>
+alluxio.underfs.s3.inherit.acl=<inherit-acl>
 ```
 
-如果使用Ceph的版本，比如hammer(或者更老的版本)，指定`alluxio.underfs.s3a.signer.algorithm=S3SignerType`来使用v2版本的S3签名。
-为了使用v1版本的GET Bucket(列出对象)，指定`alluxio.underfs.s3a.list.objects.v1=true`。
+如果使用Ceph的版本，比如hammer(或者更老的版本)，指定`alluxio.underfs.s3.signer.algorithm=S3SignerType`来使用v2版本的S3签名。
+为了使用v1版本的GET Bucket(列出对象)，指定`alluxio.underfs.s3.list.objects.v1=true`。
 
 ### 方法2: Swift接口
 
@@ -59,7 +59,6 @@ fs.swift.user=<swift-user>
 fs.swift.tenant=<swift-tenant>
 fs.swift.password=<swift-user-password>
 fs.swift.auth.url=<swift-auth-url>
-fs.swift.use.public.url=<swift-use-public>
 fs.swift.auth.method=<swift-auth-model>
 ```
 
@@ -85,7 +84,7 @@ fs.swift.auth.method=<swift-auth-model>
 
 运行成功后，访问你的bucket/container目录，确认其中包含了由Alluxio创建的文件和目录。
 
-如果使用S3A连接器，创建的文件名称应像下面这样：
+如果使用S3连接器，创建的文件名称应像下面这样：
 
 ```
 S3_BUCKET/S3_DIRECTORY/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
@@ -99,6 +98,6 @@ swift://<SWIFT CONTAINER>/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
 
 ## 访问控制
 
-如果Alluxio安全认证被启用，Alluxio将会遵循底层Ceph对象存储的访问权限控制，根据使用的接口，参考[S3A Access Control](Configuring-Alluxio-with-S3.html#s3-access-control)
+如果Alluxio安全认证被启用，Alluxio将会遵循底层Ceph对象存储的访问权限控制，根据使用的接口，参考[S3 Access Control](Configuring-Alluxio-with-S3.html#s3-access-control)
 或者[Swift Access Control](Configuring-Alluxio-with-Swift.html#swift-access-control)获得更多信息。
 

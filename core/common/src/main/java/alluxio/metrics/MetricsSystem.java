@@ -357,14 +357,27 @@ public final class MetricsSystem {
   }
 
   /**
-   * Escapes a URI, replacing "/" and "." with "_" so that when the URI is used in a metric name,
-   * the "/" and "." won't be interpreted as path separators.
+   * Escapes a URI, replacing "/" with "%2F".
+   * Replaces "." with "%2E" because dots are used as tag separators in metric names.
+   * Replaces "%" with "%25" because it now has special use.
+   * So when the URI is used in a metric name, the "." and "/" won't be interpreted as
+   * path separators unescaped and interfere with the internal logic of AlluxioURI.
    *
    * @param uri the URI to escape
    * @return the string representing the escaped URI
    */
   public static String escape(AlluxioURI uri) {
-    return uri.toString().replace("/", "_").replace(".", "_");
+    return uri.toString().replace("%", "%25").replace("/", "%2F").replace(".", "%2E");
+  }
+
+  /**
+   * Unescapes a URI, reverts it to before the escape, to display it correctly.
+   *
+   * @param uri the escaped URI to unescape
+   * @return the string representing the unescaped original URI
+   */
+  public static String unescape(String uri) {
+    return uri.replace("%2F", "/").replace("%2E", ".").replace("%25", "%");
   }
 
   // Some helper functions.
@@ -438,6 +451,9 @@ public final class MetricsSystem {
         // On restarts counters will be reset to 0, so whatever the value is the first time
         // this method is called represents the value which should be added to the master's
         // counter.
+        if (prev == null) {
+          LAST_REPORTED_METRICS.put(m.getFullMetricName(), m);
+        }
         double diff = prev != null ? m.getValue() - prev.getValue() : m.getValue();
         rpcMetrics.add(m.toProto().toBuilder().setValue(diff).build());
       } else {
