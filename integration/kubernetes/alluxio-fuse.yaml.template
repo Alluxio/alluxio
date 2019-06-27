@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: alluxio-fuse
-          image: alluxio/alluxio-fuse:2.0.0
+          image: alluxio/alluxio-fuse:2.0.1-SNAPSHOT
           resources:
             requests:
               cpu: "0.5"
