@@ -24,8 +24,7 @@ priority: 2
 The simplest way to deploy Alluxio on a cluster is to use one master. However, this single master becomes
 the single point of failure (SPOF) in an Alluxio cluster: if that machine or process became unavailable,
 the cluster as a whole would be unavailable. We highly recommend running Alluxio masters in
-[High Availability](#alluxio-ha-cluster) mode in production.
-
+[High Availability]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode in production.
 This section describes the basic setup to run Alluxio with a single master in a cluster.
 On the master node of the installation, create the `conf/alluxio-site.properties` configuration file from the template.
 
@@ -35,13 +34,18 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 This configuration file (`conf/alluxio-site.properties`) is read by all Alluxio masters and Alluxio
 workers. The configuration parameters which must be set are:
-- `alluxio.master.hostname=<MASTER_HOSTNAME>`
-  - This is set to the hostname of the master node.
-  - Examples: `alluxio.master.hostname=1.2.3.4`, `alluxio.master.hostname=node1.a.com`
-- `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
-  - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
-  shared storage system must be accessible by the master node and all worker nodes.
-  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
+
+```
+alluxio.master.hostname=<MASTER_HOSTNAME>
+alluxio.master.mount.table.root.ufs=<STORAGE_URI>
+```
+
+The first property `alluxio.master.hostname` sets the hostname of the single master node. Examples include
+`alluxio.master.hostname=1.2.3.4` or `alluxio.master.hostname=node1.a.com`. The second property
+`alluxio.master.mount.table.root.ufs` sets to the URI of the shared storage system to mount to
+the Alluxio root. This shared shared storage system must be accessible by the master node and all
+worker nodes. Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`,
+or `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`.
 
 This is the minimal configuration to start Alluxio, but additional configuration may be added.
 

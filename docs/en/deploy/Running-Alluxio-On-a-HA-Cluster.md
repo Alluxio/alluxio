@@ -16,6 +16,8 @@ priority: 2
   running masters and workers).
 * Enable SSH login without password to all nodes. You can add a public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
+* TCP traffic across all nodes is allowed. For basic functionality make sure RPC port (default :19998) is open
+  on all nodes.
 
 ## Basic Setup
 
