@@ -41,6 +41,8 @@ public final class MetricsSystemTest {
     metricsProps.setProperty("sink.console.unit", "minutes");
     metricsProps.setProperty("sink.jmx.class", "alluxio.metrics.sink.JmxSink");
     mMetricsConfig = new MetricsConfig(metricsProps);
+    // Clear the counter
+    sCounter.dec(sCounter.getCount());
   }
 
   /**
