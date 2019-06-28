@@ -96,7 +96,11 @@ umount_fuse() {
 }
 
 fuse_stat() {
-  local fuse_info=$("${JAVA_HOME}/bin/jps" | grep AlluxioFuse)
+  local jps="jps"
+  if [[ ! -z ${JAVA_HOME} ]]; then
+    jps="${JAVA_HOME}/bin/jps"
+  fi
+  local fuse_info=$("${jps}" | grep AlluxioFuse)
   if [[ -z ${fuse_info} ]]; then
     echo "AlluxioFuse: not running"
     return 1
