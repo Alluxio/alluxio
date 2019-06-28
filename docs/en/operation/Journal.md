@@ -103,7 +103,7 @@ Before starting Alluxio for the first time, the journal must be formatted.
 
 ```bash
 # This permanently deletes all Alluxio metadata, so be careful with this operation
-./bin/alluxio formatMaster
+./bin/alluxio formatMasters
 ```
 
 ## Backing up the journal
@@ -120,8 +120,8 @@ To generate a backup, use the `fsadmin backup` CLI command.
 ```
 
 By default, this will write a backup named
-`alluxio-journal-YYYY-MM-DD-timestamp.gz` to the "/alluxio_backups" directory of
-the root under storage system, e.g. hdfs://cluster/alluxio_backups. This default
+`alluxio-backup-YYYY-MM-DD-timestamp.gz` to the `/alluxio_backups` directory of
+the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
 backup directory can be configured by setting `alluxio.master.backup.directory`
 
 ```
@@ -162,7 +162,7 @@ journal, then restart the system, passing the URI of the backup with the `-i`
 
 ```bash
 ./bin/alluxio-stop.sh masters
-./bin/alluxio formatMaster
+./bin/alluxio formatMasters
 ./bin/alluxio-start.sh -i <backup_uri> masters
 ```
 
