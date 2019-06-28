@@ -73,7 +73,7 @@ The following is a checklist to run through to address common problems when tuni
    This can be identified by adding logging for GC events; append the following to `conf/allulxio-env.sh`:
 
 ```
-ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimestamps"
+ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps"
 ```
 
    Restart the Alluxio service and check the output in `logs/master.out` or `logs/worker.out`
