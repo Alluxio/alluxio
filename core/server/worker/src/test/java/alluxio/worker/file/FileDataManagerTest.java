@@ -80,7 +80,7 @@ public final class FileDataManagerTest {
     mManager = new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter(),
         mUfsManager, () -> mMockFileSystem, (r, w) -> mCopyCounter.incrementAndGet());
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
-    UfsClient ufsClient = new UfsClient(() -> mUfs, AlluxioURI.EMPTY_URI);
+    UfsClient ufsClient = new UfsClient(() -> mUfs, AlluxioURI.EMPTY_URI());
     when(mUfs.isDirectory(anyString())).thenReturn(true);
     when(mUfsManager.get(anyLong())).thenReturn(ufsClient);
   }

@@ -61,7 +61,19 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   public static final String CUR_DIR = ".";
   public static final String WILDCARD = "*";
 
-  public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
+  /**
+   * @return empty alluxio uri
+   */
+  public static AlluxioURI EMPTY_URI() {
+    return Handler.EMPTY_URI;
+  }
+
+  /**
+   * Inner static class for lazy load empty uri.
+   */
+  private static class Handler {
+    private static final AlluxioURI EMPTY_URI = new AlluxioURI("");
+  }
 
   /** A {@link URI} is used to hold the URI components. */
   private final URI mUri;

@@ -286,7 +286,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         mFsMaster.listStatus(ROOT_PATH, ListStatusContext.defaults()).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
-        ROOT_PATH2, AlluxioURI.EMPTY_URI);
+        ROOT_PATH2, AlluxioURI.EMPTY_URI());
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,

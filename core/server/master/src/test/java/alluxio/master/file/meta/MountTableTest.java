@@ -52,7 +52,7 @@ public final class MountTableTest {
   public void before() throws Exception {
     UfsManager ufsManager = mock(UfsManager.class);
     UfsClient ufsClient =
-        new UfsManager.UfsClient(() -> mTestUfs, AlluxioURI.EMPTY_URI);
+        new UfsManager.UfsClient(() -> mTestUfs, AlluxioURI.EMPTY_URI());
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager,
         new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),

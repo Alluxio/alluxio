@@ -47,7 +47,7 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
     mOutputStream = new FileOutputStream(mFile);
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    UfsClient ufsClient = new UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);
+    UfsClient ufsClient = new UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI());
     Mockito.when(ufsManager.get(TEST_MOUNT_ID)).thenReturn(ufsClient);
     Mockito.when(mockUfs.createNonexistingFile(Mockito.anyString(),
         Mockito.any(CreateOptions.class))).thenReturn(mOutputStream)
