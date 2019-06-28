@@ -201,9 +201,10 @@ Here are some other methods for loading files:
 * `alluxio.user.file.metadata.load.type`: This property can be set to either
 `ALWAYS`, `ONCE`, or `NEVER`. It acts similar to `alluxio.user.file.metadata.sync.interval`,
 but with two caveats:
-    1. It only discovers new files and does not reload modified or deleted files
-    1. It only applies to the `exists`, `list`, and `getStatus` RPCs
-`ALWAYS` will always check the UFS for new files, `ONCE` will use the default
+    1. It only discovers new files and does not reload modified or deleted files.
+    1. It only applies to the `exists`, `list`, and `getStatus` RPCs.
+    
+    `ALWAYS` will always check the UFS for new files, `ONCE` will use the default
 behavior of only scanning each directory once ever, and `NEVER` will prevent Alluxio
 from scanning for new files at all.
 

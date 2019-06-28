@@ -2001,7 +2001,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "storage layer runs out of space. Valid options include "
               + "`alluxio.worker.block.evictor.LRFUEvictor`, "
               + "`alluxio.worker.block.evictor.GreedyEvictor`, "
-              + "`alluxio.worker.block.evictor.LRUEvictor`.")
+              + "`alluxio.worker.block.evictor.LRUEvictor`, "
+              + "`alluxio.worker.block.evictor.PartialLRUEvictor`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
