@@ -98,7 +98,7 @@ public final class ImpersonationAuthenticator {
 
     if (allowedUsers == null && allowedGroups == null) {
       throw new AuthenticationException(String.format(
-          "Failed to authenticate client user=\"%s\" connecting to Alluxio master and "
+          "Failed to authenticate client user=\"%s\" connecting to Alluxio server and "
               + "impersonating as impersonationUser=\"%s\" to access Alluxio file system. "
               + "User \"%s\" is not configured to allow any impersonation. "
               + "Please read the guide to configure impersonation at %s",
@@ -130,17 +130,15 @@ public final class ImpersonationAuthenticator {
       } catch (IOException e) {
         throw new AuthenticationException(String.format(
             "Failed to authenticate client user=\"%s\" connecting to Alluxio master and "
-                + "impersonating as impersonationUser=\"%s\" to access Alluxio file system. "
-                + "Failed to get the allowed impersonation groups for impersonationUser=\"%s\"."
-                + "Please read the guide to configure impersonation at %s",
-            connectionUser, impersonationUser, impersonationUser,
-            RuntimeConstants.ALLUXIO_SECURITY_DOCS_URL), e);
+                + "impersonating as impersonationUser=\"%s\" to access Alluxio file system: "
+                + "Failed to get groups that impersonationUser=\"%s\" belongs to.",
+            connectionUser, impersonationUser, impersonationUser), e);
       }
     }
     throw new AuthenticationException(String.format(
         "Failed to authenticate client user=\"%s\" connecting to Alluxio master and "
             + "impersonating as impersonationUser=\"%s\" to access Alluxio file system. "
-            + "user=\"%s\" is not configured to allow as impersonationUser=\"%s\"."
+            + "user=\"%s\" is not configured to impersonate as impersonationUser=\"%s\"."
             + "Please read the guide to configure impersonation at %s",
         connectionUser, impersonationUser, connectionUser, impersonationUser,
         RuntimeConstants.ALLUXIO_SECURITY_DOCS_URL));
