@@ -49,18 +49,10 @@ service.
        This is a mandatory property.
     - Extra alluxio options. These are specified as a comma-separated list of key-values in the format `<key>=<value>`.
        For example, `alluxio.user.file.writetype.default=CACHE_THROUGH`
-<!-- ALLUXIO CS ADD -->
-    - Path to EE License as an S3 URI. This is a mandatory property.
-<!-- ALLUXIO CS END -->
-<!-- ALLUXIO CS REPLACE -->
-<!-- ```bash -->
-<!-- aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=[<download-url>,<root-ufs-uri>,<additional-properties>] --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name> -->
-<!-- ``` -->
-<!-- ALLUXIO CS WITH -->
+
 ```bash
-aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=[<download-url>,<root-ufs-uri>,<additional-properties>,<license-url>] --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name>
+aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=[<download-url>,<root-ufs-uri>,<additional-properties>] --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name>
 ```
-<!-- ALLUXIO CS END -->
 
 4. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to see the cluster
 going through the different stages of setup. Once the cluster is in the 'Waiting' stage, click on the cluster details
