@@ -71,6 +71,12 @@ Alluxio is installed in `/opt/alluxio/` by default. Hive and Presto are already 
 cluster also uses AWS Glue as the default metastore for both Presto and Hive. This will allow you to maintain table
 definitions between multiple runs of the Alluxio cluster.
 
+See the below sample command for reference.
+
+```bash
+aws emr create-cluster --release-label emr-5.23.0 --instance-count 3 --instance-type m4.xlarge --applications Name=Presto Name=Hive --name 'Test cluster' --bootstrap-actions Path=s3://alluxio-test/emr/bootstrap-actions/alluxio-emr.sh,Args=[http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz,s3a://alluxio-test/emr/mount/,alluxio.underfs.s3.owner.id.to.username.mapping=f1234123412341234123412341234123412341234123412341234123412341234hadoop] --configurations file:///Users/foo/emr/alluxio/alluxio-emr.json --ec2-attributes KeyName=admin-key
+```
+
 Notes: The default Alluxio Worker memory is set to 20GB. If the instance type has less than 20GB of memory, change
 the value in the `alluxio-emr.sh` script. Additionally, if a security group isn't specified via CLI, the default EMR
 security group will not allow inbound SSH. To SSH into the machine, a new rule will need to be added.
