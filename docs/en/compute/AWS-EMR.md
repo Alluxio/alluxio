@@ -35,7 +35,7 @@ the root UFS can be reconfigured to be HDFS.
 ## Basic Setup
 
 To begin with, download an Alluxio release and unzip it. In the `integration/emr/` directory, copy the `alluxio-emr.sh`
-an `alluxio-emr.json` files to the current directory. These files will serve as the main mechanisms to change the
+and `alluxio-emr.json` files to the current directory. These files will serve as the main mechanisms to change the
 Alluxio configuration in the future. Make sure that the AWS CLI is also set up and ready
 with the required AWS Access/Secret key.
 
