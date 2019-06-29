@@ -56,6 +56,7 @@ For example, the following command will mount the Alluxio path `/people` to the 
 in the local file system.
 
 ```bash
+bin/alluxio fs mkdir /people
 sudo mkdir -p /mnt/people
 sudo chown $(whoami) /mnt/people
 chmod 755 /mnt/people
@@ -64,8 +65,8 @@ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 
 When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that the
 `mount_point` must be an existing and empty path in your local file system hierarchy and that the
-user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write
-permissions on it. You can mount Alluxio to multiple mount points. All of these alluxio-fuse
+user that runs the `integration/fuse/bin/alluxio-fuse` script must own the mount point and have read and write
+permissions on it. You can mount Alluxio to multiple mount points. All of these `AlluxioFuse`
 processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`, which is useful for
 troubleshooting when errors happen on operations under the mounting point.
 

@@ -235,7 +235,6 @@ docker run -e \
            alluxio-fuse fuse
 ```
 
-
 ## Troubleshooting
 
 Alluxio server logs can be accessed by running `docker logs $container_id`.

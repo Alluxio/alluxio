@@ -60,7 +60,7 @@ just created:
 ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
-The above CLI spawns a background user-space java process (`alluxio-fuse`) that mounts the Alluxio path specified at `/training-data` 
+The above CLI spawns a background user-space java process (`AlluxioFuse`) that mounts the Alluxio path specified at `/training-data` 
 to the local file system on the specified mount point `/mnt/alluxio`. Please refer to [POSIX API documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}) 
 for details about how to mount Alluxio-FUSE and set up fuse related options. 
 
