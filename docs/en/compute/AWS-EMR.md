@@ -34,28 +34,46 @@ the root UFS can be reconfigured to be HDFS.
 
 ## Basic Setup
 
-To begin with, download the `alluxio-emr.sh` and `alluxio-emr.json` files from
-[Github](https://github.com/Alluxio/alluxio/tree/master/integration/emr/). These files will serve as the main
-mechanisms to change the Alluxio configuration in the future. Make sure that the AWS CLI is also set up and ready
+To begin with, download an Alluxio release and unzip it. In the `integration/emr/` directory, copy the `alluxio-emr.sh`
+an `alluxio-emr.json` files to the current directory. These files will serve as the main mechanisms to change the
+Alluxio configuration in the future. Make sure that the AWS CLI is also set up and ready
 with the required AWS Access/Secret key.
 
 1. Run `aws emr create-default-roles`. This will set up the required IAM roles for the account to be able to use the EMR
 service.
 2. Make sure that the `alluxio-emr.sh` script is uploaded to a location in S3 and `alluxio-presto.json` is saved somewhere on your local filesystem.
-3. Configure the below command with the required parameters. The root-ufs-uri should be an `s3://` or `hdfs://` URI designating the root mount of the Alluxio file system.
-
+3. The input arguments for the bootstrap script are in the order below:
+    - The URI from where to download the Alluxio Release .tar.gz file. This can be an `s3://` URI or an `http://` URI.
+       This is a mandatory property.
+    - The root-ufs-uri. This should be an `s3://` or `hdfs://` URI designating the root mount of the Alluxio file system.
+       This is a mandatory property.
+    - Extra alluxio options. These are specified as a comma-separated list of key-values in the format `<key>=<value>`.
+       For example, `alluxio.user.file.writetype.default=CACHE_THROUGH`
+<!-- ALLUXIO CS ADD -->
+    - Path to EE License as an S3 URI. This is a mandatory property.
+<!-- ALLUXIO CS END -->
+<!-- ALLUXIO CS REPLACE -->
+<!-- ```bash -->
+<!-- aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=[<download-url>,<root-ufs-uri>,<additional-properties>] --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name> -->
+<!-- ``` -->
+<!-- ALLUXIO CS WITH -->
 ```bash
-aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=<web-download-url>,<root-ufs-uri>,<additional-properties> --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name>
+aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=[<download-url>,<root-ufs-uri>,<additional-properties>,<license-url>] --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name>
 ```
+<!-- ALLUXIO CS END -->
 
-3. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to see the cluster
+4. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to see the cluster
 going through the different stages of setup. Once the cluster is in the 'Waiting' stage, click on the cluster details
 to get the 'Master public DNS'. SSH into this instance using the keypair provided in the previous command.
-4. Test that Alluxio is running as expected by running `sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests"`
+5. Test that Alluxio is running as expected by running `sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests"`
 
 Alluxio is installed in `/opt/alluxio/` by default. Hive and Presto are already configured to connect to Alluxio. The
 cluster also uses AWS Glue as the default metastore for both Presto and Hive. This will allow you to maintain table
 definitions between multiple runs of the Alluxio cluster.
+
+Notes: The default Alluxio Worker memory is set to 20GB. If the instance type has less than 20GB of memory, change
+the value in the `alluxio-emr.sh` script. Additionally, if a security group isn't specified via CLI, the default EMR
+security group will not allow inbound SSH. To SSH into the machine, a new rule will need to be added.
 
 ## Creating a Table
 
