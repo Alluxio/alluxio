@@ -93,7 +93,7 @@ public class BackupManager {
     Set<Future<?>> activeTasks = new HashSet<>();
 
     // Entry queue will be used as a buffer and synchronization between readers and writer.
-    // Use of {@link LinkedBlockingQueue} is preferred becaue of {@code #drainTo()} method,
+    // Use of {@link LinkedBlockingQueue} is preferred because of {@code #drainTo()} method,
     // using which all existing entries can be drained while allowing writes.
     // Processing/draining one-by-one using {@link ConcurrentLinkedQueue} proved to be
     // inefficient compared to draining with dedicated method.
