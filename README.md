@@ -16,7 +16,7 @@ numerous storage systems through a common interface. Read more about
 
 The Alluxio project originated from a research project called Tachyon at AMPLab, UC Berkeley,
 which was the data layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
-For more details, please refer to Haoyuan Li's PhD dissertation 
+For more details, please refer to Haoyuan Li's PhD dissertation
 [Alluxio: A Virtual Distributed File System](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html).
 
 ## Who Uses Alluxio
@@ -31,7 +31,7 @@ Please use the following to reach members of the community:
 * Slack: [alluxio-community channel](https://www.alluxio.io/slack)
 * Community Events: [upcoming online office hours, meetups and webinars](https://www.alluxio.io/events)
 * Mailing List: [alluxio-users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
-* Meetup Groups: [Bay Area Meetup](http://www.meetup.com/Alluxio), 
+* Meetup Groups: [Bay Area Meetup](http://www.meetup.com/Alluxio),
 [New York Meetup](https://www.meetup.com/Alluxio-Open-Source-New-York-Meetup),
 [Beijing Alluxio Meetup](https://www.meetup.com/meetup-group-iLMBZGhS/)
 * Twitter: [@alluxio](https://twitter.com/alluxio)
@@ -47,15 +47,20 @@ Prebuilt binaries are available to download at https://www.alluxio.io/download .
 Download and start an Alluxio master and a worker. More details can be found in [documentation](https://docs.alluxio.io/os/user/stable/en/deploy/Running-Alluxio-On-Docker.html).
 
 ```bash
-# launch a master
-$ docker run -d --net=host\
-    -v /mnt/data:/opt/alluxio/underFSStorage\
+# Launch the Alluxio master
+$ docker run -d \
+    -p 19999:19999 \
+    --net=alluxio_nw \
+    --name=alluxio-master \
+    -v ufs:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
-# launch a worker
-$ docker run -d --net=host --shm-size=1G\
-    -e ALLUXIO_WORKER_MEMORY_SIZE=1G\
-    -v /mnt/data:/opt/alluxio/underFSStorage\
-    -e ALLUXIO_MASTER_HOSTNAME=localhost\
+# Launch the Alluxio worker
+$ docker run -d \
+    --net=alluxio_nw \
+    --name=alluxio-worker \
+    --shm-size=1G \
+    -v ufs:/opt/alluxio/underFSStorage \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=alluxio-master" \
     alluxio/alluxio worker
 ```
 
