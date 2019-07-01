@@ -72,10 +72,10 @@ public class ControllableSchedulerTest {
     CountTask task = new CountTask();
     ControllableScheduler scheduler = new ControllableScheduler();
     ScheduledFuture<?> future = scheduler.schedule(task, 5, TimeUnit.HOURS);
-    Assert.assertTrue(scheduler.schedulerIsIdle());
+    assertTrue(scheduler.schedulerIsIdle());
     future.cancel(true);
     scheduler.jumpAndExecute(5, TimeUnit.HOURS);
-    Assert.assertEquals(0, task.runTimes());
+    assertEquals(0, task.runTimes());
   }
 
   /**
