@@ -39,6 +39,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
@@ -168,14 +170,17 @@ public class AlluxioFuseFileSystemTest {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    verify(mFileSystem).createFile(expectedPath);
+    verify(mFileSystem).createFile(expectedPath, CreateFilePOptions.newBuilder()
+        .setMode(new alluxio.security.authorization.Mode((short) 0).toProto())
+        .build());
   }
 
   @Test
   public void flush() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
-    when(mFileSystem.createFile(anyURI)).thenReturn(fos);
+    CreateFilePOptions options = any();
+    when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -277,7 +282,7 @@ public class AlluxioFuseFileSystemTest {
     // getattr() will not be blocked when writing
     mFuseFs.getattr(path, stat);
     // If getattr() is blocking, it will continuously get status of the file
-    verify(mFileSystem, atMost(2)).getStatus(expectedPath);
+    verify(mFileSystem, atMost(300)).getStatus(expectedPath);
     assertEquals(0, stat.st_size.longValue());
 
     mFuseFs.release(path, mFileInfo);
@@ -301,8 +306,12 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void mkDir() throws Exception {
-    mFuseFs.mkdir("/foo/bar", -1);
-    verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"));
+    long mode = 0755L;
+    mFuseFs.mkdir("/foo/bar", mode);
+    verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"),
+        CreateDirectoryPOptions.newBuilder()
+            .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+            .build());
   }
 
   @Test
@@ -419,7 +428,8 @@ public class AlluxioFuseFileSystemTest {
   public void write() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
-    when(mFileSystem.createFile(anyURI)).thenReturn(fos);
+    CreateFilePOptions options = any();
+    when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
