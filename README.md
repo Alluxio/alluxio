@@ -48,19 +48,17 @@ Download and start an Alluxio master and a worker. More details can be found in 
 
 ```bash
 # Launch the Alluxio master
-$ docker run -d \
+$ docker run -d --net=host \
     -p 19999:19999 \
-    --net=alluxio_nw \
     --name=alluxio-master \
     -v ufs:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
 # Launch the Alluxio worker
-$ docker run -d \
-    --net=alluxio_nw \
+$ export ALLUXIO_WORKER_MEMORY_SIZE=1G
+$ docker run -d --net=host --shm-size=${ALLUXIO_WORKER_MEMORY_SIZE} \
     --name=alluxio-worker \
-    --shm-size=1G \
     -v ufs:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=alluxio-master" \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=${ALLUXIO_WORKER_MEMORY_SIZE} -Dalluxio.master.hostname=alluxio-master" \
     alluxio/alluxio worker
 ```
 
