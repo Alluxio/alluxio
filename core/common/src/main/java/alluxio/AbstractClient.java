@@ -112,7 +112,13 @@ public abstract class AbstractClient implements Client {
   protected abstract ServiceType getRemoteServiceType();
 
   protected long getRemoteServiceVersion() throws AlluxioStatusException {
-     return retryRPC(() -> mVersionService.getServiceVersion(GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build()).getVersion());
+    return retryRPC(new RpcCallable<Long>() {
+      public Long call() {
+        return mVersionService.getServiceVersion(
+            GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+            .getVersion();
+      }
+    });
   }
 
   /**
