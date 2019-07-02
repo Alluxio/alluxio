@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.exception.status.UnavailableException;
+import alluxio.security.authentication.AuthType;
 import alluxio.uri.Authority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.CommonUtils;
@@ -23,7 +24,10 @@ import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.ZookeeperFactory;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.client.ZKClientConfig;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,15 +64,16 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
    * @param inquireRetryCount the number of times to retry connections
+   * @param authType Alluxio auth type
    * @return the client
    */
   public static synchronized ZkMasterInquireClient getClient(String zookeeperAddress,
-      String electionPath, String leaderPath, int inquireRetryCount) {
+      String electionPath, String leaderPath, int inquireRetryCount, AuthType authType) {
     ZkMasterConnectDetails connectDetails =
         new ZkMasterConnectDetails(zookeeperAddress, leaderPath);
     if (!sCreatedClients.containsKey(connectDetails)) {
-      sCreatedClients.put(connectDetails, new ZkMasterInquireClient(connectDetails, electionPath,
-          inquireRetryCount));
+      sCreatedClients.put(connectDetails,
+          new ZkMasterInquireClient(connectDetails, electionPath, inquireRetryCount, authType));
     }
     return sCreatedClients.get(connectDetails);
   }
@@ -78,16 +83,33 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    *
    * @param connectDetails connect details
    * @param electionPath the path of the master election
+   * @param inquireRetryCount the number of times to retry connections
+   * @param authType Alluxio auth type
    */
   private ZkMasterInquireClient(ZkMasterConnectDetails connectDetails, String electionPath,
-      int inquireRetryCount) {
+      int inquireRetryCount, AuthType authType) {
     mConnectDetails = connectDetails;
     mElectionPath = electionPath;
 
     LOG.info("Creating new zookeeper client for {}", connectDetails);
-    // Start the client lazily.
-    mClient = CuratorFrameworkFactory.newClient(connectDetails.getZkAddress(),
-        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    // Disable zookeeper authentication for when KERBEROS is not enabled.
+    if (authType.equals(AuthType.KERBEROS)) {
+      mClient = CuratorFrameworkFactory.newClient(connectDetails.getZkAddress(),
+          new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    } else {
+      // Explicitly disable zookeeper authentication.
+      mClient = CuratorFrameworkFactory.builder().connectString(connectDetails.getZkAddress())
+          .retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3))
+          .zookeeperFactory(new ZookeeperFactory() {
+            @Override
+            public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher,
+                boolean canBeReadOnly) throws Exception {
+              ZKClientConfig zkConfig = new ZKClientConfig();
+              zkConfig.setProperty(ZKClientConfig.ENABLE_CLIENT_SASL_KEY, "false");
+              return new ZooKeeper(connectString, sessionTimeout, watcher, zkConfig);
+            }
+          }).build();
+    }
 
     mInquireRetryCount = inquireRetryCount;
   }
