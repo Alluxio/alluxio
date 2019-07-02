@@ -502,7 +502,7 @@ public interface FileSystem extends Closeable {
    * Schedules the given path to be asynchronously persisted to the under file system.
    *
    * To persist synchronously please see
-   * {@link FileSystemUtils#persistAndWait(FileSystem, AlluxioURI)}.
+   * {@link FileSystemUtils#persistAndWait(FileSystem, AlluxioURI, long)}.
    *
    * @param path the uri of the file to persist
    * @param options the options to use when submitting persist the path
