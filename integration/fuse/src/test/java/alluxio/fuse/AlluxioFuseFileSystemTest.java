@@ -31,6 +31,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
@@ -112,14 +114,16 @@ public class AlluxioFuseFileSystemTest {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    verify(mFileSystem).createFile(expectedPath);
+    verify(mFileSystem).createFile(expectedPath, CreateFileOptions.defaults().setMode(new Mode(
+        (short) 0)));
   }
 
   @Test
   public void flush() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
-    when(mFileSystem.createFile(anyURI)).thenReturn(fos);
+    CreateFileOptions options = any();
+    when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -163,8 +167,10 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void mkDir() throws Exception {
+    long mode = 0755L;
     mFuseFs.mkdir("/foo/bar", -1);
-    verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"));
+    verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"),
+        CreateDirectoryOptions.defaults().setMode(new Mode((short) mode)));
   }
 
   @Test
@@ -277,7 +283,8 @@ public class AlluxioFuseFileSystemTest {
   public void write() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
-    when(mFileSystem.createFile(anyURI)).thenReturn(fos);
+    CreateFileOptions options = any();
+    when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());

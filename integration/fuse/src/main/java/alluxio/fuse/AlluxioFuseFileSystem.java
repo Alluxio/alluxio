@@ -16,6 +16,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -205,7 +207,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
           return -ErrorCodes.EMFILE();
         }
 
-        final OpenFileEntry ofe = new OpenFileEntry(null, mFileSystem.createFile(uri));
+        final OpenFileEntry ofe = new OpenFileEntry(null, mFileSystem.createFile(uri,
+            CreateFileOptions.defaults().setMode(new Mode((short) mode))));
         LOG.debug("Alluxio OutStream created for {}", path);
         mOpenFiles.put(mNextOpenFileId, ofe);
         fi.fh.set(mNextOpenFileId);
@@ -352,7 +355,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
     try {
-      mFileSystem.createDirectory(turi);
+      mFileSystem.createDirectory(turi, CreateDirectoryOptions.defaults().setMode(
+          new Mode((short) mode)));
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Cannot make dir. {} already exists", path, e);
       return -ErrorCodes.EEXIST();
