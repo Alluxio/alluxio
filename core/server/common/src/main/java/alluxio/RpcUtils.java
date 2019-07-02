@@ -29,7 +29,7 @@ import java.io.IOException;
 /**
  * Utilities for handling server RPC calls.
  *
- * There are three types of RPC calls: 1. RPCs that only throw IOException 2. Streaming RPCs
+ * There are two types of RPC calls: 1. RPCs that only throw IOException 2. Streaming RPCs
  * For each of these, if failureOk is set, non-fatal errors will only be logged at the DEBUG
  * level and failure metrics will not be recorded.
  */
