@@ -21,6 +21,8 @@ import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -246,8 +248,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
             MAX_OPEN_FILES);
         return -ErrorCodes.EMFILE();
       }
-
-      FileOutStream os = mFileSystem.createFile(uri);
+      FileOutStream os = mFileSystem.createFile(uri,
+          CreateFilePOptions.newBuilder()
+              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .build());
       synchronized (mOpenFiles) {
         mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, null, os));
         fi.fh.set(mNextOpenFileId);
@@ -391,7 +395,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
     try {
-      mFileSystem.createDirectory(turi);
+      mFileSystem.createDirectory(turi,
+          CreateDirectoryPOptions.newBuilder()
+              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .build());
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Failed to create directory {}, directory already exists", path);
       return -ErrorCodes.EEXIST();
