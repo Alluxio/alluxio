@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -28,7 +29,6 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.FormatUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.BlockMasterInfo;
 
@@ -663,17 +663,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       return 0;
     }
     ClientContext ctx = ClientContext.create(sConf);
-    // TODO(lu) Could consider get master side default block size
-
-    long blockSize;
-    try {
-      blockSize = FormatUtils.parseSpaceSize(sConf
-          .get(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
-    } catch (IllegalArgumentException e) {
-      LOG.error("The default block size {} is invalid",
-          sConf.get(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
-      return -ErrorCodes.EBADMSG();
-    }
 
     try (BlockMasterClient blockClient =
              BlockMasterClient.Factory.create(MasterClientContext.newBuilder(ctx).build())) {
@@ -682,6 +671,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
               BlockMasterInfo.BlockMasterInfoField.FREE_BYTES));
 
       BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
+
+      // Set block size to be 1MB for df command to show more accurate capacity information
+      long blockSize = Constants.MB;
 
       // total data blocks in file system
       stbuf.f_blocks.set((int) Math.ceil((double) blockMasterInfo.getCapacityBytes() / blockSize));
