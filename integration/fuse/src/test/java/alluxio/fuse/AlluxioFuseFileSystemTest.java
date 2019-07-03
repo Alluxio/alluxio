@@ -492,4 +492,9 @@ public class AlluxioFuseFileSystemTest {
     when(mFileSystem.getStatus(uri)).thenReturn(status);
     return fi;
   }
+
+  @Test
+  public void statfs() throws Exception {
+    // TODO(LuQQiu): implement this unit test.
+  }
 }
