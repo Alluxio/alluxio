@@ -134,6 +134,7 @@ insert
 install
 integrate
 introduce
+isolate
 journal
 keep
 kill
@@ -163,6 +164,7 @@ organize
 output
 overload
 override
+parallelize
 parse
 pass
 perform
