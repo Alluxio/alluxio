@@ -647,7 +647,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Gets the filesystem statistics.
+   * Gets the mounted filesystem statistics.
    *
    * @param path The FS path of the directory
    * @param stbuf Information about a mounted file system
@@ -655,6 +655,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int statfs(String path, Statvfs stbuf) {
+    // This function is used by linux df command
+    // Always show the overall Alluxio capacity information
     LOG.trace("statfs({})", path);
     if (!path.equals("/")) {
       LOG.info("Cannot get mounted file system information of path {}", path);
@@ -680,12 +682,21 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
               BlockMasterInfo.BlockMasterInfoField.FREE_BYTES));
 
       BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
+
       // total data blocks in file system
       stbuf.f_blocks.set((int) Math.ceil((double) blockMasterInfo.getCapacityBytes() / blockSize));
+
       // fs block size
+      stbuf.f_bsize.set(blockSize);
       stbuf.f_frsize.set(blockSize);
+
       // free blocks in fs
-      stbuf.f_bfree.set((int) Math.floor((double) blockMasterInfo.getFreeBytes() / blockSize));
+      int freeBlocks = (int) Math.floor((double) blockMasterInfo.getFreeBytes() / blockSize);
+      stbuf.f_bfree.set(freeBlocks);
+      stbuf.f_bavail.set(freeBlocks);
+
+      // max file name size
+      stbuf.f_namemax.set(255);
     } catch (IOException e) {
       LOG.error("Failed to get Alluxio total capacity information", e);
       return -ErrorCodes.EIO();
