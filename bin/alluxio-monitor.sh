@@ -175,7 +175,7 @@ run_monitors() {
     nodes=$(echo -e "${nodes}" | tail -n+2)
     if [[ $? -ne 0 ]]; then
       # if there is an error, print the log tail for the remaining master nodes.
-      batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" -L ${node_type}
+      batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" -L "${node_type}"
     else
       HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
       JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
@@ -183,11 +183,11 @@ run_monitors() {
         HA_ENABLED="true"
       fi
       if [[ ${HA_ENABLED} == "true" ]]; then
-        batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" ${mode} ${node_type}
+        batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
       fi
     fi
   else
-    batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" ${mode} ${node_type}
+    batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
   fi
 }
 
