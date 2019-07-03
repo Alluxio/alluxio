@@ -12,6 +12,8 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -19,11 +21,16 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.master.MasterClientContext;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -43,6 +50,7 @@ import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+import ru.serce.jnrfuse.struct.Statvfs;
 import ru.serce.jnrfuse.struct.Timespec;
 
 import java.io.IOException;
@@ -50,7 +58,10 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -65,6 +76,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
+
+  private static InstancedConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   /**
    * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
@@ -630,6 +644,53 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rmdir(String path) {
     LOG.trace("rmdir({})", path);
     return rmInternal(path);
+  }
+
+  /**
+   * Gets the filesystem statistics.
+   *
+   * @param path The FS path of the directory
+   * @param stbuf Information about a mounted file system
+   * @return 0 on success, a negative value on error
+   */
+  @Override
+  public int statfs(String path, Statvfs stbuf) {
+    LOG.trace("statfs({})", path);
+    if (!path.equals("/")) {
+      LOG.info("Cannot get mounted file system information of path {}", path);
+      return 0;
+    }
+    ClientContext ctx = ClientContext.create(sConf);
+    // TODO(lu) Could consider get master side default block size
+
+    long blockSize;
+    try {
+      blockSize = FormatUtils.parseSpaceSize(sConf
+          .get(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+    } catch (IllegalArgumentException e) {
+      LOG.error("The default block size {} is invalid",
+          sConf.get(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+      return -ErrorCodes.EBADMSG();
+    }
+
+    try (BlockMasterClient blockClient =
+             BlockMasterClient.Factory.create(MasterClientContext.newBuilder(ctx).build())) {
+      Set<BlockMasterInfo.BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
+          .asList(BlockMasterInfo.BlockMasterInfoField.CAPACITY_BYTES,
+              BlockMasterInfo.BlockMasterInfoField.FREE_BYTES));
+
+      BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
+      // total data blocks in file system
+      stbuf.f_blocks.set((int) Math.ceil((double) blockMasterInfo.getCapacityBytes() / blockSize));
+      // fs block size
+      stbuf.f_frsize.set(blockSize);
+      // free blocks in fs
+      stbuf.f_bfree.set((int) Math.floor((double) blockMasterInfo.getFreeBytes() / blockSize));
+    } catch (IOException e) {
+      LOG.error("Failed to get Alluxio total capacity information", e);
+      return -ErrorCodes.EIO();
+    }
+    return super.statfs(path, stbuf);
   }
 
   /**
