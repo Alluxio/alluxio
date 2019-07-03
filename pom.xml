@@ -235,7 +235,6 @@
         <version>0.5.1</version>
       </dependency>
       <dependency>
-        <!-- using older version to match dependency version from Hadoop -->
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
