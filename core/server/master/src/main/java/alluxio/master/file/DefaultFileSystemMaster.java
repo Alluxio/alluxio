@@ -561,7 +561,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         MountInfo mountInfo = mMountTable.getMountTable().get(key);
         UnderFileSystemConfiguration ufsConf =
             UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
-            .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap());
+                .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap())
+                .setReadOnly(mountInfo.getOptions().getReadOnly())
+                .setShared(mountInfo.getOptions().getShared());
         mUfsManager.addMount(mountInfo.getMountId(), mountInfo.getUfsUri(), ufsConf);
       }
       // Startup Checks and Periodic Threads.
