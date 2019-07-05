@@ -21,7 +21,7 @@ Alluxio 项目源自 UC Berkeley 的 [AMPLab](https://amplab.cs.berkeley.edu/sof
 并被部署应用在[世界各地的多家知名公司](https://www.alluxio.io/powered-by-alluxio)。
 Alluxio 是发展最快的开源大数据项目之一。在五年的时间里，已有超过 200 个组织机构的 [900 多名贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到 Alluxio 的开发中，包括
 [阿里巴巴](http://www.alibaba.com)、
-[Alluxio](http://www.alluxio.com/)、
+[Alluxio](https://www.alluxio.io)、
 [百度](https://www.baidu.com)、
 [CMU](https://www.cmu.edu/)、
 [Google](https://www.google.com)、
