@@ -302,7 +302,7 @@ The most common impersonation error applications may see is something like
 due to the fact that the Alluxio servers have not been configured to enable impersonation for that
 user. To fix this, the Alluxio servers must be configured to enable impersonation for the user in question (yarn in the example error message).
 
-Please read this [blog post](http://www.alluxio.com/blog/alluxio-developer-tip-why-am-i-seeing-the-error-user-yarn-is-not-configured-for-any-impersonation-impersonationuser-foo) for more tips.
+Please read this [blog post](https://www.alluxio.io/blog/alluxio-developer-tip-why-am-i-seeing-the-error-user-yarn-is-not-configured-for-any-impersonation-impersonationuser-foo/) for more tips.
 
 ## Auditing
 
