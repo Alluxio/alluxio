@@ -24,11 +24,12 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
+
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
