@@ -24,6 +24,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,8 +32,6 @@ import org.powermock.reflect.Whitebox;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import java.util.Map;
 
 /**
  * Integration test to check ufs configuration is persisted after a restart.
@@ -76,7 +75,8 @@ public class UfsConfigurationJournalTest {
     UfsManager ufsManager =
         Whitebox.getInternalState(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
             .getMasterProcess().getMaster(FileSystemMaster.class), "mUfsManager");
-    try (CloseableResource<UnderFileSystem> resource = ufsManager.get(mountId).acquireUfsResource()) {
+    try (CloseableResource<UnderFileSystem> resource =
+        ufsManager.get(mountId).acquireUfsResource()) {
       UnderFileSystemConfiguration ufsConf = Whitebox.getInternalState(resource.get(), "mConf");
       assertEquals(ufsConf.getMountSpecificConf().size(), options.size());
       for (Map.Entry<String, String> entry : options.entrySet()) {
