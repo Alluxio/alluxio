@@ -81,7 +81,7 @@ public class UfsConfigurationJournalTest {
       UnderFileSystemConfiguration ufsConf = Whitebox.getInternalState(resource.get(), "mConf");
       assertEquals(ufsConf.getMountSpecificConf().size(), options.size());
       for (Map.Entry<String, String> entry : options.entrySet()) {
-        assertEquals(entry.getValue(), options.get(entry.getKey()));
+        assertEquals(entry.getValue(), ufsConf.getMountSpecificConf().get(entry.getKey()));
       }
       assertTrue(ufsConf.isReadOnly());
       assertTrue(ufsConf.isShared());
