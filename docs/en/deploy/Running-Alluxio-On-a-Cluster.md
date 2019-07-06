@@ -47,7 +47,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 Examples include
 `alluxio.master.hostname=1.2.3.4` or `alluxio.master.hostname=node1.a.com`.
 - The second property
-`alluxio.master.mount.table.root.ufs` sets to the URI of the shared storage system to mount to
+`alluxio.master.mount.table.root.ufs` sets to the URI of the under store to mount to
 the Alluxio root. This shared shared storage system must be accessible by the master node and all
 worker nodes. Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`,
 or `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`.
@@ -59,7 +59,7 @@ add the IP addresses or hostnames of all the worker nodes to the `conf/workers` 
 ./bin/alluxio copyDir conf/
 ```
 
-- This command will copy the `conf/` directory to all the workers specified in the `conf/workers`
+This command will copy the `conf/` directory to all the workers specified in the `conf/workers`
 file. Once this command succeeds, all the Alluxio nodes will be correctly configured.
 
 This is the minimal configuration to start Alluxio, but additional configuration may be added.
@@ -90,7 +90,8 @@ On the master node, start the Alluxio cluster with the following command:
 ```
 
 This will start the master on the node you are running it on, and start all the workers on all the
-nodes specified in the `conf/workers` file.
+nodes specified in the `conf/workers` file.  Argument `SudoMount` indicates to mount the RamFS on each worker
+using `sudo` privilege, if it is not already mounted.
 
 ### Verify Alluxio Cluster
 
@@ -138,22 +139,22 @@ Starting Alluxio is similar. If `conf/workers` and `conf/masters` are both popul
 the cluster with:
 
 ```bash
-./bin/alluxio-start.sh all SudoMount
+./bin/alluxio-start.sh all
 ```
 
 You can start just the masters and just the workers with the following commands:
 
 ```bash
-./bin/alluxio-start.sh masters           # starts all masters in conf/masters
-./bin/alluxio-start.sh workers SudoMount # starts all workers in conf/workers
+./bin/alluxio-start.sh masters # starts all masters in conf/masters
+./bin/alluxio-start.sh workers # starts all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and start all the processes, you can run
 commands on each node individually to start each component. For any node, you can start a master or worker with:
 
 ```bash
-./bin/alluxio-start.sh master           # starts the local master
-./bin/alluxio-start.sh worker SudoMount # starts the local worker
+./bin/alluxio-start.sh master # starts the local master
+./bin/alluxio-start.sh worker # starts the local worker
 ```
 
 ### Format the Journal
@@ -188,14 +189,16 @@ Once the worker is stopped, and after
 a timeout on the master (configured by master parameter `alluxio.master.worker.timeout`), the master
 will consider the worker as "lost", and no longer consider it as part of the cluster.
 
-### Modify Configuration
+### Update Master-side Configuration
 
-In order to update the service configuration, you must first [stop the service](#stop-alluxio),
+In order to update the master-side configuration, you must first [stop the service](#stop-alluxio),
 update the `conf/alluxio-site.properties` file on master node,
 copy the file to all nodes (e.g., using `bin/alluxio copyDir conf/`),
 and then [restart the service](#restart-alluxio).
 
-However, if you only need to update some local configuration for a worker (e.g., change the mount
+### Update Worker-side Configuration
+
+If you only need to update some local configuration for a worker (e.g., change the mount
 of storage capacity allocated to this worker or update the storage directory), the master node does
 not need to be stopped and restarted. One can simply stop the local worker, update the configuration
 (e.g., `conf/alluxio-site.properties`) file on this worker, and then restart the worker.

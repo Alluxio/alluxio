@@ -28,7 +28,7 @@ after failover. In Alluxio 2.0, there are two different ways to achieve these tw
 
 - [Option1](#option1-raft-based-embedded-journal): Use an internal replicated state machine based on RAFT to
  both store the file system
-journal and select leading masters. This approach is introduced in Alluxio 2.0 and requires no
+journal and select a leading master. This approach is introduced in Alluxio 2.0 and requires no
 dependency on external services.
 - [Option2](#option2-zookeeper-and-shared-journal-storage):
 Leverage an external Zookeeper service for leader election on the leading master
@@ -65,10 +65,12 @@ alluxio.master.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
 
 Explanation:
 - The first property `alluxio.master.hostname=<MASTER_HOSTNAME>` is required on each master node
-to be its externally visible hostname. This parameter is ignored on workers.
+  to be its own externally visible hostname. This is required on each individual component of the
+  master quorum to have its own address set. On worker nodes, this parameter will be ignored.
   Examples include `alluxio.master.hostname=1.2.3.4`, `alluxio.master.hostname=node1.a.com`.
-- The second property `alluxio.master.mount.table.root.ufs=<STORAGE_URI>` sets the URI of the shared storage system to mount to the Alluxio root. This shared
-  shared storage system must be accessible by all master nodes and all worker nodes.
+- The second property `alluxio.master.mount.table.root.ufs=<STORAGE_URI>` sets the URI of the
+  shared under store to mount to the  Alluxio root. This shared
+  under store must be accessible by all master nodes and all worker nodes.
   Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
 - The third property `alluxio.master.embedded.journal.addresses` sets the sets of masters to
   participate Alluxio's internal leader election and determine the leading master. The default
@@ -160,7 +162,8 @@ On the master node, start the Alluxio cluster with the following command:
 ```
 
 This will start Alluxio masters on all the nodes specified in `conf/masters`, and start the workers on all the
-nodes specified in `conf/workers`.
+nodes specified in `conf/workers`. Argument `SudoMount` indicates to mount the RamFS on each worker
+using `sudo` privilege, if it is not already mounted.
 
 ### Verify Alluxio Cluster
 
@@ -185,24 +188,12 @@ When an application interacts with Alluxio in HA mode, the client must know abou
 the Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
 There are two ways to specify the HA Alluxio service address on the client side:
 
-### Pre-configured Applications with Configuration Parameters
+### Specify Alluxio Service in Configuration Parameters
 
-- When connecting to an Alluxio HA cluster using embedded journal,
-Alluxio clients need the `alluxio.master.rpc.addresses` information to decide the node addresses
-to query to find out the Alluxio leading master which is serving rpc requests.
-  - Examples: `alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,
- master_hostname_3:19998`
-
-- When connecting to an Alluxio HA cluster using Zookeeper,
-the following properties are needed to connect to Zookeeper to get the leading master information.
-  - `alluxio.zookeeper.enabled=true`
-  - `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>`
-    - The ZooKeeper address must be specified when `alluxio.zookeeper.enabled` is enabled.
-    - Multiple ZooKeeper addresses can be specified by delimiting with commas
-
-When the application is configured with these parameters, the Alluxio URI can be simplified to
-`alluxio:///path`, since the HA cluster information is already configured.
-
+Users can also pre-configure the service address of an Alluxio HA cluster in environment variables
+or site properties, and then connect to the service using Alluxio URI like to
+`alluxio:///path` where the required connection details to the HA cluster information is already
+configured with these parameters.
 For example, if using Hadoop, you can configure the properties in `core-site.xml`, and then use the
 Hadoop CLI with an Alluxio URI.
 
@@ -210,21 +201,45 @@ Hadoop CLI with an Alluxio URI.
 hadoop fs -ls alluxio:///directory
 ```
 
-### Setting Alluxio Service with URL Authority {#ha-authority}
+Depending on the different approach to achieve HA, different
+properties are required to set:
 
-Users can fully specify the HA cluster information in the URI to connect to an Alluxio HA cluster.
-Configuration derived from the HA authority takes precedence over all other forms of configuration, e.g. site properties or environment variables.
+- When connecting to an Alluxio HA cluster using embedded journal,
+  set property `alluxio.master.rpc.addresses` to decide the node addresses to query. For
+  examples,
+```
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,
+ master_hostname_3:19998`
+```
+
+- When connecting to an Alluxio HA cluster using Zookeeper,
+the following properties are needed to connect to Zookeeper to get the leading master information.
+Note that, the ZooKeeper address (`alluxio.zookeeper.address`) must be specified when
+`alluxio.zookeeper.enabled` is enabled and vise versa. Multiple ZooKeeper addresses can be specified
+by delimiting with commas
+```
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
+```
+
+### Specify Alluxio Service with URL Authority {#ha-authority}
+
+Users can also fully specify the HA cluster information in the URI to connect to an Alluxio HA cluster.
+Configuration derived from the HA authority takes precedence over all other forms of configuration,
+e.g. site properties or environment variables.
 
 - When using embedded journal, use `alluxio://master_hostname_1:19998,
-master_hostname_2:19998,master_hostname_3:19998`
-- When using Zookeeper leader election, use `alluxio://zk@<ZOOKEEPER_ADDRESS>`.
+master_hostname_2:19998,master_hostname_3:19998/path`
+- When using Zookeeper leader election, use `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`.
 
 For many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
-delimiter for multiple addresses in the URI, like `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
+delimiter for multiple addresses in the URI, like
+`alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
 and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
 
-For some other applications (e.g., Spark), you need to use semicolons as the delimiter for multiple
-addresses, like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`
+For some other applications (e.g., Spark) where comma is not accepted inside a URL authority, you
+need to use semicolons as the delimiter for multiple addresses,
+like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`
 and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
 
 ## Common Operations
@@ -262,22 +277,22 @@ Starting Alluxio is similar. If `conf/workers` and `conf/masters` are both popul
 the cluster with:
 
 ```bash
-./bin/alluxio-start.sh all SudoMount
+./bin/alluxio-start.sh all
 ```
 
 You can start just the masters and just the workers with the following commands:
 
 ```bash
-./bin/alluxio-start.sh masters           # starts all masters in conf/masters
-./bin/alluxio-start.sh workers SudoMount # starts all workers in conf/workers
+./bin/alluxio-start.sh masters # starts all masters in conf/masters
+./bin/alluxio-start.sh workers # starts all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and start all the processes, you can run
 commands on each node individually to start each component. For any node, you can start a master or worker with:
 
 ```bash
-./bin/alluxio-start.sh master           # starts the local master
-./bin/alluxio-start.sh worker SudoMount # starts the local worker
+./bin/alluxio-start.sh master # starts the local master
+./bin/alluxio-start.sh worker # starts the local worker
 ```
 
 ### Format the Journal
@@ -314,9 +329,8 @@ will consider the worker as "lost", and no longer consider it as part of the clu
 
 ### Add/Remove Masters
 
-In order to add a master, the Alluxio cluster must be in HA mode. If you are running the cluster as
-a single master cluster, you must configure it to be an HA cluster to be able to have more than 1
-master.
+In order to add a master, the Alluxio cluster must operate in HA mode. If you are running the cluster as
+a single master cluster, you must configure it to be an HA cluster before having more than one master.
 
 #### Alluxio HA cluster with embedded journal
 
@@ -330,6 +344,7 @@ master nodes requires:
 * Start the whole cluster
 
 Note that all previously stored data and metadata in Alluxio filesystem will be erased.
+If you are using embedded journal, you should not plan to add new masters.
 
 #### Alluxio HA cluster with Zookeeper and Shared Journal
 
@@ -346,14 +361,15 @@ unaffected. Keep in mind, Alluxio masters high availability depends on the avail
 masters. If there are not enough standby masters, the availability of the leading master will be affected.
 It is recommended to have at least 3 masters for an HA Alluxio cluster.
 
-### Modify Configuration
+### Update Master-side Configuration
 
-In order to update the service configuration, you must first [stop the service](#stop-alluxio),
+In order to update the master-side configuration, you must first [stop the service](#stop-alluxio),
 update the `conf/alluxio-site.properties` file on master node,
-copy the file to all nodes (e.g., using `bin/alluxio copyDir conf/`),
 and then [restart the service](#restart-alluxio).
 
-However, if you only need to update some local configuration for a worker (e.g., change the mount
+### Update Worker-side Configuration
+
+If you only need to update some local configuration for a worker (e.g., change the mount
 of storage capacity allocated to this worker or update the storage directory), the master node does
 not need to be stopped and restarted. One can simply stop the local worker, update the configuration
 (e.g., `conf/alluxio-site.properties`) file on this worker, and then restart the worker.
