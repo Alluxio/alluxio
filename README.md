@@ -47,15 +47,20 @@ Prebuilt binaries are available to download at https://www.alluxio.io/download .
 Download and start an Alluxio master and a worker. More details can be found in [documentation](https://docs.alluxio.io/os/user/stable/en/deploy/Running-Alluxio-On-Docker.html).
 
 ```bash
+# Create a network for connecting Alluxio containers
+$ docker network create alluxio_nw
+# Create a volume for storing ufs data
+$ docker volume create ufs
 # Launch the Alluxio master
-$ docker run -d --net=host \
+$ docker run -d --net=alluxio_nw \
     -p 19999:19999 \
     --name=alluxio-master \
     -v ufs:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
 # Launch the Alluxio worker
 $ export ALLUXIO_WORKER_MEMORY_SIZE=1G
-$ docker run -d --net=host --shm-size=${ALLUXIO_WORKER_MEMORY_SIZE} \
+$ docker run -d --net=alluxio_nw \
+    --shm-size=${ALLUXIO_WORKER_MEMORY_SIZE} \
     --name=alluxio-worker \
     -v ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=${ALLUXIO_WORKER_MEMORY_SIZE} -Dalluxio.master.hostname=alluxio-master" \
