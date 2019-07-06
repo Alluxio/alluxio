@@ -11,6 +11,9 @@
 
 package alluxio.server.ft.journal.ufs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.grpc.MountPOptions;
@@ -30,9 +33,6 @@ import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Integration test to check ufs configuration is persisted after a restart.
