@@ -175,9 +175,7 @@ run_monitors() {
     nodes=$(echo -e "${nodes}" | tail -n+2)
     if [[ $? -ne 0 ]]; then
       # if there is an error, print the log tail for the remaining master nodes.
-      for node in $(echo ${nodes}); do
-        run_on_node ${node} "${BIN}/alluxio-monitor.sh" -L "${node_type}"
-      done
+      batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" -L "${node_type}"
     else
       HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
       JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
@@ -185,17 +183,36 @@ run_monitors() {
         HA_ENABLED="true"
       fi
       if [[ ${HA_ENABLED} == "true" ]]; then
-        for node in $(echo ${nodes}); do
-          run_on_node ${node} "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
-        done
+        batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
       fi
     fi
   else
-    for node in $(echo "${nodes}"); do
-      run_on_node ${node} "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
-    done
+    batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
   fi
+}
 
+# Used to run a command on multiple hosts concurrently.
+# By default it limits concurrent tasks to 100.
+batch_run_on_nodes() {
+  # String of nodes, seperated by a new line
+  local nodes=$1
+  # Command to run on each node
+  local command=$2
+  # Parameter for command
+  local params=${@:3}
+
+  # How many nodes to run on concurrently
+  local batchCount=100
+
+  local taskCount=0
+  for node in $nodes; do
+      run_on_node ${node} ${command} ${params} &
+
+      # Wait for existing tasks, if batch is full
+      ((taskCount++))
+      if [ $(( $taskCount % $batchCount )) == 0 ]; then wait; fi;
+  done
+  wait
 }
 
 main() {
