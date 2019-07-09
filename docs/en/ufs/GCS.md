@@ -44,7 +44,9 @@ Configure Alluxio to use GCS as its root under storage system. The first modific
 specify an **existing** GCS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
-{% include Configuring-Alluxio-with-GCS/underfs-address.md %}
+```
+alluxio.master.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
+```
 
 The google credentials must also be specified for the root mount point. In
 `conf/alluxio-site.properties`, add:
@@ -83,14 +85,19 @@ Then, mount GCS:
 
 Start up Alluxio locally to see that everything works.
 
-{% include Common-Commands/start-alluxio.md %}
+```bash
+./bin/alluxio format
+./bin/alluxio-start.sh local SudoMount
+```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Run a simple example program:
 
-{% include Common-Commands/runTests.md %}
+```bash
+./bin/alluxio runTests
+```
 
 Visit your GCS directory `GCS_BUCKET/GCS_DIRECTORY` to verify the files
 and directories created by Alluxio exist. For this test, you should see files named like:
@@ -101,7 +108,9 @@ GCS_BUCKET/GCS_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
 
 To stop Alluxio, you can run:
 
-{% include Common-Commands/stop-alluxio.md %}
+```bash
+./bin/alluxio-stop.sh local
+```
 
 ## Advanced Setup
 
@@ -120,7 +129,20 @@ When building your application to use Alluxio, your application should include a
 [Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
 are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
 
-{% include Configuring-Alluxio-with-GCS/dependency.md %}
+```xml
+<!-- Alluxio file system interface -->
+<dependency>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-core-client-fs</artifactId>
+  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
+</dependency>
+<!-- HDFS file system interface -->
+<dependency>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-core-client-hdfs</artifactId>
+  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
+</dependency>
+```
 
 ## GCS Access Control
 
