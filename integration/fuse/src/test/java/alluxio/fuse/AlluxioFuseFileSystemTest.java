@@ -178,7 +178,6 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void createWithLengthLimit() throws Exception {
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
-    assertEquals(256, c256.length());
     mFileInfo.flags.set(O_WRONLY.intValue());
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
         mFuseFs.create("/foo/" + c256, 0, mFileInfo));
@@ -327,7 +326,6 @@ public class AlluxioFuseFileSystemTest {
   public void mkDirWithLengthLimit() throws Exception {
     long mode = 0755L;
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
-    assertEquals(256, c256.length());
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
         mFuseFs.mkdir("/foo/" + c256, mode));
   }
@@ -437,7 +435,6 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void renameWithLengthLimit() throws Exception {
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
-    assertEquals(256, c256.length());
     AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/" + c256);
     doNothing().when(mFileSystem).rename(oldPath, newPath);
