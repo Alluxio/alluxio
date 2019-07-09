@@ -461,14 +461,14 @@ $ ./bin/alluxio fs setReplication --min 3 --max 5 /file
 Set the `alluxio.user.file.replication.max` to unlimited.
 
 ```bash
-$ ./bin/alluxio fs setRepliation --max -1 /file
+$ ./bin/alluxio fs setReplication --max -1 /file
 ```
 
 Recursirvely set replication level of all files inside a directory `/dir` (including its
 sub-directories) using `-R`:
 
 ```bash
-$ ./bin/alluxio fs setRepliation --min 3 --max -5 -R /dir
+$ ./bin/alluxio fs setReplication --min 3 --max -5 -R /dir
 ```
 
 To check the target replication level of a file, run
