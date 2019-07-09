@@ -44,12 +44,12 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
+import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +117,7 @@ public final class MultiProcessCluster {
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
   private State mState;
-  private RestartableTestingServer mCuratorServer;
+  private TestingServer mCuratorServer;
   private FileSystemContext mFilesystemContext;
   /**
    * Tracks whether the test has succeeded. If mSuccess is never updated before {@link #destroy()},
@@ -193,7 +193,7 @@ public final class MultiProcessCluster {
         break;
       case ZOOKEEPER_HA:
         mCuratorServer = mCloser.register(
-            new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
+                new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
         mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
         mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, "true");
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
