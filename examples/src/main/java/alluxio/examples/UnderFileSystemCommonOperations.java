@@ -45,6 +45,8 @@ public final class UnderFileSystemCommonOperations {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemCommonOperations.class);
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
+  private static final String FILE_CONTENT_LENGTH_INCORRECT
+      = "The content length of the written file is %s but expected %s";
   private static final String FILE_CONTENT_INCORRECT
       = "The content of the written file is incorrect";
   private static final String FILE_EXISTS_CHECK_SHOULD_SUCCEED
@@ -174,14 +176,13 @@ public final class UnderFileSystemCommonOperations {
     createEmptyFile(testFile);
     byte[] buf = new byte[0];
     int bytesRead = mUfs.open(testFile).read(buf);
-    // TODO(adit): Consider making the return value uniform across UFSs
-    boolean bytesReadCorrect = false;
-    if ((UnderFileSystemUtils.isHdfs(mUfs) && bytesRead == -1)
-        || (!UnderFileSystemUtils.isHdfs(mUfs) && bytesRead == 0)) {
+    boolean bytesReadCorrect = bytesRead != 0;
+    if (UnderFileSystemUtils.isHdfs(mUfs) && bytesRead == -1) {
+      // TODO(adit): Consider making the return value uniform across UFSs
       bytesReadCorrect = true;
     }
     if (!bytesReadCorrect) {
-      throw new IOException(FILE_CONTENT_INCORRECT);
+      throw new IOException(String.format(FILE_CONTENT_LENGTH_INCORRECT, bytesRead, 0));
     }
   }
 
