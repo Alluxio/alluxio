@@ -32,26 +32,37 @@ Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS v
 `/mnt/gluster`, the following configuration parameters need to be added to
 `conf/alluxio-site.properties`:
 
-{% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}
+```
+alluxio.master.mount.table.root.ufs=/mnt/gluster
+```
 
 ## Running Alluxio Locally with GlusterFS
 
 Start up Alluxio locally to see that everything works.
 
-{% include Common-Commands/start-alluxio.md %}
+```bash
+./bin/alluxio format
+./bin/alluxio-start.sh local SudoMount
+```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Run a simple example program:
 
-{% include Common-Commands/runTests.md %}
+```bash
+./bin/alluxio runTests
+```
 
 Visit your GlusterFS volume to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
-{% include Configuring-Alluxio-with-GlusterFS/glusterfs-file.md %}
+```
+/mnt/gluster/default_tests_files/BASIC_CACHE_ASYNC_THROUGH
+```
 
 To stop Alluxio, you can run:
 
-{% include Common-Commands/stop-alluxio.md %}
+```bash
+./bin/alluxio-stop.sh local
+```
