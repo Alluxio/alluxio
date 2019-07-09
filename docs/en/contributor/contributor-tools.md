@@ -19,12 +19,17 @@ Instructions for setting up both IDEs can be found below.
  You can generate an
 Eclipse configuration file by running:
 
-{% include Contributing-to-Alluxio/eclipse-configuration.md %}
+```bash
+mvn clean -Pdeveloper install -DskipTests
+mvn clean -Pdeveloper -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+```
 
 Then import the folder into Eclipse.
 You may also have to add the classpath variable `M2_REPO` by running:
 
-{% include Contributing-to-Alluxio/M2_REPO.md %}
+```bash
+mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+```
 
 ### IntelliJ IDEA
 
@@ -58,7 +63,9 @@ cd ${ALLUXIO_HOME}
 To make sure your code follows our style conventions you may run. Note that this is run any time
 you run targets such as `compile`, `install`, or `test`.
 
-{% include Contributing-to-Alluxio/checkstyle.md %}
+```bash
+mvn checkstyle:checkstyle
+```
 
 ### FindBugs
 
@@ -66,7 +73,9 @@ Before submitting the pull-request, run the latest code against the
 [`findbugs`](http://findbugs.sourceforge.net/) Maven plugin to verify no new warnings are
 introduced.
 
-{% include Contributing-to-Alluxio/findbugs.md %}
+```bash
+mvn compile findbugs:findbugs
+```
 
 ### Compilation
 
