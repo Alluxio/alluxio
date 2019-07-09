@@ -58,6 +58,20 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   private final int mInquireRetryCount;
 
   /**
+   * Zookeeper factory for curator that explicitly disables authentication.
+   */
+  private class NoSaslZookeeperFactory implements ZookeeperFactory {
+
+    @Override
+    public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher,
+                                  boolean canBeReadOnly) throws Exception {
+      ZKClientConfig zkConfig = new ZKClientConfig();
+      zkConfig.setProperty(ZKClientConfig.ENABLE_CLIENT_SASL_KEY, "false");
+      return new ZooKeeper(connectString, sessionTimeout, watcher, zkConfig);
+    }
+  }
+
+  /**
    * Gets the client.
    *
    * @param zookeeperAddress the address for Zookeeper
@@ -92,24 +106,11 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     mElectionPath = electionPath;
 
     LOG.info("Creating new zookeeper client for {}", connectDetails);
-    // Disable zookeeper authentication for when KERBEROS is not enabled.
-    if (authType.equals(AuthType.KERBEROS)) {
-      mClient = CuratorFrameworkFactory.newClient(connectDetails.getZkAddress(),
-          new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
-    } else {
-      // Explicitly disable zookeeper authentication.
-      mClient = CuratorFrameworkFactory.builder().connectString(connectDetails.getZkAddress())
-          .retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3))
-          .zookeeperFactory(new ZookeeperFactory() {
-            @Override
-            public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher,
-                boolean canBeReadOnly) throws Exception {
-              ZKClientConfig zkConfig = new ZKClientConfig();
-              zkConfig.setProperty(ZKClientConfig.ENABLE_CLIENT_SASL_KEY, "false");
-              return new ZooKeeper(connectString, sessionTimeout, watcher, zkConfig);
-            }
-          }).build();
-    }
+    CuratorFrameworkFactory.Builder curatorBuilder = CuratorFrameworkFactory.builder();
+    curatorBuilder.connectString(connectDetails.getZkAddress());
+    curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    curatorBuilder.zookeeperFactory(new NoSaslZookeeperFactory());
+    mClient = curatorBuilder.build();
 
     mInquireRetryCount = inquireRetryCount;
   }
