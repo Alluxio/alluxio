@@ -495,6 +495,6 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void statfs() throws Exception {
-    // TODO(LuQQiu): implement this unit test.
+    // TODO(lu): implement this unit test.
   }
 }
