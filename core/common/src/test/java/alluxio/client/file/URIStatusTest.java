@@ -11,14 +11,15 @@
 
 package alluxio.client.file;
 
-import alluxio.wire.FileInfo;
-import alluxio.wire.FileInfoTest;
-
-import org.hamcrest.CoreMatchers;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
+
+import alluxio.wire.FileInfo;
+import alluxio.wire.FileInfoTest;
+
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 /**
