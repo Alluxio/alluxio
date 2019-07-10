@@ -13,6 +13,7 @@ package alluxio.security.authentication.plain;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.authentication.AbstractSaslServerHandler;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.AuthType;
@@ -26,20 +27,16 @@ import java.util.HashMap;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
-import javax.security.sasl.SaslServer;
 
 /**
  * {@link SaslServerHandler} implementation for Plain/Custom schemes.
  */
-public class SaslServerHandlerPlain implements SaslServerHandler {
+public class SaslServerHandlerPlain extends AbstractSaslServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(SaslServerHandlerPlain.class);
 
   static {
     Security.addProvider(new PlainSaslServerProvider());
   }
-
-  /** Underlying {@code SaslServer}. */
-  private final SaslServer mSaslServer;
 
   /**
    * Creates {@link SaslServerHandler} for Plain/Custom.
@@ -65,21 +62,5 @@ public class SaslServerHandlerPlain implements SaslServerHandler {
   @Override
   public AuthenticatedUserInfo getAuthenticatedUserInfo() {
     return new AuthenticatedUserInfo(mSaslServer.getAuthorizationID());
-  }
-
-  @Override
-  public SaslServer getSaslServer() {
-    return mSaslServer;
-  }
-
-  @Override
-  public void close() {
-    if (mSaslServer != null) {
-      try {
-        mSaslServer.dispose();
-      } catch (SaslException exc) {
-        LOG.debug("Failed to close SaslClient.", exc);
-      }
-    }
   }
 }
