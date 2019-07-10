@@ -335,12 +335,6 @@
         <artifactId>grpc-stub</artifactId>
         <version>${grpc.version}</version>
       </dependency>
-      <!-- Netty 4.0.50+ required for shading in client runtime jar to work -->
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-all</artifactId>
-        <version>4.1.30.Final</version>
-      </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
         <artifactId>simpleclient</artifactId>
@@ -400,37 +394,16 @@
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-client</artifactId>
         <version>${apache.curator.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-framework</artifactId>
         <version>${apache.curator.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-recipes</artifactId>
         <version>${apache.curator.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <!-- We do not use dependent management for hadoop-common, hadoop-hdfs, as it is unavailable in hadoop-1 -->
       <!-- We do not use dependent management for hadoop-core, as it is unavailable in hadoop-2.x -->
@@ -448,11 +421,6 @@
           <exclusion>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
           </exclusion>
           <!-- Excluded to avoid implementation conflict with javax.servlet:servlet-api -->
           <exclusion>
@@ -485,11 +453,6 @@
           <exclusion>
             <groupId>javax.servlet.jsp</groupId>
             <artifactId>jsp-api</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
           </exclusion>
           <!-- Excluded to avoid issues with the web UI -->
           <exclusion>
