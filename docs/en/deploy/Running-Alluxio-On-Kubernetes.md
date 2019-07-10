@@ -177,6 +177,26 @@ across multiple containers.
 
 ## Troubleshooting
 
+### Worker Host Unreachable
+
+Alluxio workers use host networking with the physical host IP as the hostname. Check the cluster
+firewall if an error such as the following is encountered:
+```bash
+Caused by: io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Host is unreachable: <host>/<IP>:29999
+```
+
+- Check that `<host>` matches the physical host address and is not a virtual container hostname.
+Ping from a remote client to check the address is resolvable.
+```bash
+ping <host>
+```
+- Verify that a client can connect to the workers on the ports specified in the worker
+deployment specification. The default ports are `[29998, 29999, 29996, 30001, 30002, 30003]`.
+Check access to the given port from a remote client using a network utility such as `ncat`:
+```bash
+nc -zv <IP> 29999
+```
+
 ### Enable Debug Logging
 
 To change the log level for Alluxio servers (master and workers), use the CLI command `logLevel` as
