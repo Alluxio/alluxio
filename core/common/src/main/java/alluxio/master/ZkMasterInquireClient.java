@@ -57,7 +57,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   private final int mInquireRetryCount;
 
   /**
-   * Zookeeper factory for curator that explicitly disables authentication.
+   * Zookeeper factory for curator that controls enabling/disabling client authentication.
    */
   private class AlluxioZookeeperFactory implements ZookeeperFactory {
     private boolean mAuthEnabled;
