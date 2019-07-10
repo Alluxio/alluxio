@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
 import alluxio.exception.status.UnavailableException;
-import alluxio.security.authentication.AuthType;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -34,7 +33,7 @@ public class ZkMasterInquireClientTest {
   private static final String LOOPBACK_IP = "127.0.0.1";
   private static final int TESTING_SERVER_PORT = 11111;
   private static final int INQUIRE_RETRY_COUNT = 2;
-  private static final AuthType INQUIRE_AUTH_TYPE = AuthType.SIMPLE;
+  private static final boolean ZOOKEEPER_AUTH_ENABLED = true;
 
   private TestingServer mZkServer;
 
@@ -55,7 +54,7 @@ public class ZkMasterInquireClientTest {
   public void testNoParticipant() throws Exception {
     // Create zk inquire client.
     MasterInquireClient zkInquirer = ZkMasterInquireClient.getClient(mZkServer.getConnectString(),
-        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT, INQUIRE_AUTH_TYPE);
+        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT, ZOOKEEPER_AUTH_ENABLED);
     // Create curator client for manipulating the leader path.
     CuratorFramework client = CuratorFrameworkFactory.newClient(mZkServer.getConnectString(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, INQUIRE_RETRY_COUNT));
@@ -78,7 +77,7 @@ public class ZkMasterInquireClientTest {
   public void testNoPath() throws Exception {
     // Create zk inquire client.
     MasterInquireClient zkInquirer = ZkMasterInquireClient.getClient(mZkServer.getConnectString(),
-        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT, INQUIRE_AUTH_TYPE);
+        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT, ZOOKEEPER_AUTH_ENABLED);
     // Query should fail with no leader path created.
     boolean queryFailed = false;
     try {
@@ -94,7 +93,7 @@ public class ZkMasterInquireClientTest {
   public void testSingleLeader() throws Exception {
     // Create zk inquire client.
     MasterInquireClient zkInquirer = ZkMasterInquireClient.getClient(mZkServer.getConnectString(),
-        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT, INQUIRE_AUTH_TYPE);
+        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT, ZOOKEEPER_AUTH_ENABLED);
     // Create curator client for manipulating the leader path.
     CuratorFramework client = CuratorFrameworkFactory.newClient(mZkServer.getConnectString(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, INQUIRE_RETRY_COUNT));
@@ -112,7 +111,7 @@ public class ZkMasterInquireClientTest {
   public void testMultipleLeaders() throws Exception {
     // Create zk inquire client.
     MasterInquireClient zkInquirer = ZkMasterInquireClient.getClient(mZkServer.getConnectString(),
-        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT, INQUIRE_AUTH_TYPE);
+        ELECTION_PATH, LEADER_PATH, INQUIRE_RETRY_COUNT, ZOOKEEPER_AUTH_ENABLED);
     // Create curator client for manipulating the leader path.
     CuratorFramework client = CuratorFrameworkFactory.newClient(mZkServer.getConnectString(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, INQUIRE_RETRY_COUNT));

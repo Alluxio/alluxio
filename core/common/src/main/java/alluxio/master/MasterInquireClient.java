@@ -16,7 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
-import alluxio.security.authentication.AuthType;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -83,7 +82,7 @@ public interface MasterInquireClient {
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
             conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
-            conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+            conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
@@ -100,7 +99,7 @@ public interface MasterInquireClient {
             conf.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH),
             conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
-            conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+            conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(conf);
         if (addresses.size() > 1) {

@@ -39,7 +39,6 @@ import alluxio.master.ZkMasterInquireClient;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
 import alluxio.network.PortUtils;
-import alluxio.security.authentication.AuthType;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -654,7 +653,7 @@ public final class MultiProcessCluster {
             ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             ServerConfiguration.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
             ServerConfiguration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
-            ServerConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+            ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
