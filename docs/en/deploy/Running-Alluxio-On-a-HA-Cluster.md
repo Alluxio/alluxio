@@ -363,9 +363,20 @@ It is recommended to have at least 3 masters for an HA Alluxio cluster.
 
 ### Update Master-side Configuration
 
-In order to update the master-side configuration, you must first [stop the service](#stop-alluxio),
+In order to update the master-side configuration, you can first [stop the service](#stop-alluxio),
 update the `conf/alluxio-site.properties` file on master node,
 and then [restart the service](#restart-alluxio).
+Note that, this approach introduces downtime of the Alluxio service.
+
+Alternatively, one benefit of running Alluxio in HA mode is to use rolling restarts
+to minimize downtime when updating configurations:
+
+1. Update the master configuration on all the master nodes without restarting any master.
+1. Restart the leading master (can be determined by running `bin/alluxio leader`). Note that,
+a new leading master will be elected to continue the service.
+1. Wait for the previous leading master to come up successfully but as a standby master.
+1. Update and restart all remaining standby masters.
+1. Verify the configuration update
 
 ### Update Worker-side Configuration
 
