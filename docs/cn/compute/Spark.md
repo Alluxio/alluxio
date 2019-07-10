@@ -160,7 +160,7 @@ spark-submit \
 > double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Output")
 ```
 
-> 请注意，你必须使用分号而不是逗号来分隔不同的 ZooKeeper 地址，以便在 Spark 中引用 HA 模式的 Alluxio 的 URI；否则，Spark 会认为该 URI 无效。请参阅[连接高可用 Alluxio 的 HDFS API]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority)。
+> 请注意，你必须使用分号而不是逗号来分隔不同的 ZooKeeper 地址，以便在 Spark 中引用 HA 模式的 Alluxio 的 URI；否则，Spark 会认为该 URI 无效。请参阅[连接高可用 Alluxio 的 HDFS API]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority)。
 
 ### 缓存 RDD 到 Alluxio 中
 
@@ -182,7 +182,7 @@ spark-submit \
 > rdd = sc.objectFile("alluxio://localhost:19998/rdd2")
 ```
 
-见博客文章[“通过 Alluxio 高效使用 Spark RDD”](https://www.alluxio.com/blog/effective-spark-rdds-with-alluxio)。
+见博客文章[“通过 Alluxio 高效使用 Spark RDD”](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)。
 
 ### 缓存 Dataframe 到 Alluxio 中
 
@@ -195,7 +195,7 @@ DataFrame 通常用`df.write.parquet()`作为 parquet 文件写入。
 > df = sqlContext.read.parquet("alluxio://localhost:19998/data.parquet")
 ```
 
-见博客文章“[通过 Alluxio 高效使用 Spark DataFrame](https://www.alluxio.com/blog/effective-spark-dataframes-with-alluxio)”.
+见博客文章“[通过 Alluxio 高效使用 Spark DataFrame](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)”.
 
 ## 故障排除指南
 

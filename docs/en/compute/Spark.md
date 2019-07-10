@@ -184,7 +184,7 @@ connect to Alluxio HA cluster using internal leader election:
 
 > Note that you must use semicolons rather than commas to separate different addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
-Please refer to the instructions in [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority).
+Please refer to the instructions in [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
 
 ### Cache RDD into Alluxio
 
@@ -208,7 +208,7 @@ The saved RDDs in Alluxio can be read again (from memory) by using `sc.textFile`
 ```
 
 See the blog article
-"[Effective Spark RDDs with Alluxio](https://www.alluxio.com/blog/effective-spark-rdds-with-alluxio)".
+"[Effective Spark RDDs with Alluxio](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)".
 
 ### Cache Dataframe into Alluxio
 
@@ -222,7 +222,7 @@ After the parquet is written to Alluxio, it can be read from memory by using `sq
 ```
 
 See the blog article
-"[Effective Spark DataFrames with Alluxio](https://www.alluxio.com/blog/effective-spark-dataframes-with-alluxio)".
+"[Effective Spark DataFrames with Alluxio](https://www.alluxio.io/resources/whitepapers/effective-spark-dataframes-with-alluxio/)".
 
 ## TroubleShooting
 

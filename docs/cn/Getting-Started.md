@@ -167,7 +167,7 @@ ls ./underFSStorage
 
 ## [加分项] Alluxio 中的挂载功能
 
-Alluxio 通过统一命名空间的特性统一了对存储系统的访问。你可以阅读[统一命名空间的博客](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)和[统一命名空间的文档]({{ '/en/advanced/Namespace-Management.html' | relativize_url }})获取更详细的解释。
+Alluxio 通过统一命名空间的特性统一了对存储系统的访问。你可以阅读[统一命名空间的博客](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)和[统一命名空间的文档]({{ '/en/advanced/Namespace-Management.html' | relativize_url }})获取更详细的解释。
 
 这个特性允许用户挂载不同的存储系统到 Alluxio 命名空间中并且通过 Alluxio 命名空间无缝地跨存储系统访问文件。
 

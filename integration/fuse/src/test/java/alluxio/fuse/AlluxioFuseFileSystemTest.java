@@ -176,6 +176,14 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
+  public void createWithLengthLimit() throws Exception {
+    String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
+    mFileInfo.flags.set(O_WRONLY.intValue());
+    assertEquals(-ErrorCodes.ENAMETOOLONG(),
+        mFuseFs.create("/foo/" + c256, 0, mFileInfo));
+  }
+
+  @Test
   public void flush() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
@@ -315,6 +323,14 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
+  public void mkDirWithLengthLimit() throws Exception {
+    long mode = 0755L;
+    String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
+    assertEquals(-ErrorCodes.ENAMETOOLONG(),
+        mFuseFs.mkdir("/foo/" + c256, mode));
+  }
+
+  @Test
   public void openWithoutDelay() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     setUpOpenMock(expectedPath);
@@ -414,6 +430,16 @@ public class AlluxioFuseFileSystemTest {
     doThrow(new FileAlreadyExistsException("File /new already exists"))
         .when(mFileSystem).rename(oldPath, newPath);
     assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new"));
+  }
+
+  @Test
+  public void renameWithLengthLimit() throws Exception {
+    String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
+    AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
+    AlluxioURI newPath = BASE_EXPECTED_URI.join("/" + c256);
+    doNothing().when(mFileSystem).rename(oldPath, newPath);
+    assertEquals(-ErrorCodes.ENAMETOOLONG(),
+        mFuseFs.rename("/old", "/" + c256));
   }
 
   @Test

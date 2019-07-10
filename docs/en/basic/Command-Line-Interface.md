@@ -277,7 +277,7 @@ server-side hadoop configuration directory when running validating tasks.
 
 ## File System Operations
 
-```bash
+```
 ./bin/alluxio fs
 Usage: alluxio fs [generic options]
        [cat <path>]
@@ -295,7 +295,9 @@ or a path without its header, such as `/<path>`, to use the default hostname and
 >Most of the commands which require path components allow wildcard arguments for ease of use. For
 >example:
 >
->{% include Command-Line-Interface/rm.md %}
+>```bash
+>./bin/alluxio fs rm '/data/2014*'
+>```
 >
 >The example command deletes anything in the `data` directory with a prefix of `2014`.
 >
@@ -303,12 +305,16 @@ or a path without its header, such as `/<path>`, to use the default hostname and
 >number 21 could be different and comes from the number of matching files in your local
 >filesystem):
 >
->{% include Command-Line-Interface/rm-error.md %}
+>```bash
+>rm takes 1 arguments,  not 21
+>```
 >
 >As a workaround, you can disable globbing (depending on the shell type; for example, `set -f`) or by
 >escaping wildcards, for example:
 >
->{% include Command-Line-Interface/escape.md %}
+>```bash
+>./bin/alluxio fs cat /\\*
+>```
 >
 >Note the double escape; this is because the shell script will eventually call a java program
 >which should have the final escaped parameters (`cat /\\*`).
@@ -320,7 +326,9 @@ If you wish to copy the file to your local file system, `copyToLocal` should be 
 
 For example, when testing a new computation job, `cat` can be used as a quick way to check the output:
 
-{% include Command-Line-Interface/cat.md %}
+```bash
+./bin/alluxio fs cat /output/part-00000
+```
 
 ### checkConsistency
 
@@ -343,7 +351,13 @@ to files or directories in the subtree cannot be completed until this command co
 
 For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
 
-{% include Command-Line-Interface/checkConsistency.md %}
+```bash
+# List each inconsistent file or directory
+./bin/alluxio fs checkConsistency /
+#
+# Repair the inconsistent files or directories
+./bin/alluxio fs checkConsistency -r /
+```
 
 ### checksum
 
@@ -351,7 +365,12 @@ The `checksum` command outputs the md5 value of a file in Alluxio.
 
 For example, `checksum` can be used to verify the contents of a file stored in Alluxio.
 
-{% include Command-Line-Interface/checksum.md %}
+```bash
+./bin/alluxio fs checksum /LICENSE
+md5sum: bf0513403ff54711966f39b058e059a3
+md5 LICENSE
+MD5 (LICENSE) = bf0513403ff54711966f39b058e059a3
+```
 
 ### chgrp
 
@@ -364,7 +383,9 @@ Adding `-R` option also changes the group of child file and child directory recu
 
 For example, `chgrp` can be used as a quick way to change the group of file:
 
-{% include Command-Line-Interface/chgrp.md %}
+```bash
+./bin/alluxio fs chgrp alluxio-group-new /input/file1
+```
 
 ### chmod
 
@@ -388,7 +409,9 @@ Adding `-R` option also changes the permission of child file and child directory
 
 For example, `chmod` can be used as a quick way to change the permission of file:
 
-{% include Command-Line-Interface/chmod.md %}
+```bash
+./bin/alluxio fs chmod 755 /input/file1
+```
 
 ### chown
 
@@ -397,7 +420,10 @@ For security reasons, the ownership of a file can only be altered by a super use
 
 For example, `chown` can be used as a quick way to change the owner of file:
 
-{% include Command-Line-Interface/chown.md %}
+```bash
+./bin/alluxio fs chown alluxio-user /input/file1
+./bin/alluxio fs chown alluxio-user:alluxio-group /input/file2
+```
 
 Adding `-R` option also changes the owner of child file and child directory recursively.
 
@@ -410,7 +436,9 @@ If a directory is specified, the directory and all its contents will be copied r
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for processing:
 
-{% include Command-Line-Interface/copyFromLocal.md %}
+```bash
+./bin/alluxio fs copyFromLocal /local/data /input
+```
 
 ### copyToLocal
 
@@ -420,7 +448,10 @@ If a directory is specified, the directory and all its contents will be copied r
 For example, `copyToLocal` can be used as a quick way to download output data
 for additional investigation or debugging.
 
-{% include Command-Line-Interface/copyToLocal.md %}
+```bash
+./bin/alluxio fs copyToLocal /output/part-00000 part-00000
+wc -l part-00000
+```
 
 ### count
 
@@ -432,7 +463,9 @@ size of the files.
 For example, if data files are stored by their date, `count` can be used to determine the number of
 data files and their total size for any date, month, or year.
 
-{% include Command-Line-Interface/count.md %}
+```bash
+./bin/alluxio fs count /data/2014
+```
 
 ### cp
 
@@ -447,7 +480,9 @@ If the `-R` option is used and the source designates a directory,
 
 For example, `cp` can be used to copy files between under storage systems.
 
-{% include Command-Line-Interface/cp.md %}
+```bash
+./bin/alluxio fs cp /hdfs/file1 /s3/
+```
 
 ### du
 
@@ -460,7 +495,35 @@ By default, `du` prints the size in bytes. If the `-h` option is used, it will p
 
 The `--memory` option will print the in memory size as well.
 
-{% include Command-Line-Interface/du.md %}
+```bash
+# Shows the size information of all the files in root directory
+./bin/alluxio fs du /
+File Size     In Alluxio       Path
+1337          0 (0%)           /alluxio-site.properties
+4352          4352 (100%)      /testFolder/NOTICE
+26847         0 (0%)           /testDir/LICENSE
+2970          2970 (100%)      /testDir/README.md
+
+# Shows the in memory size information
+./bin/alluxio fs du --memory /
+File Size     In Alluxio       In Memory        Path
+1337          0 (0%)           0 (0%)           /alluxio-site.properties
+4352          4352 (100%)      4352 (100%)      /testFolder/NOTICE
+26847         0 (0%)           0 (0%)           /testDir/LICENSE
+2970          2970 (100%)      2970 (100%)      /testDir/README.md
+
+# Shows the aggregate size information in human-readable format
+./bin/alluxio fs du -h -s /
+File Size     In Alluxio       In Memory        Path
+34.67KB       7.15KB (20%)     7.15KB (20%)     /
+
+# Can be used to detect which folders are taking up the most space
+./bin/alluxio fs du -h -s /\\*
+File Size     In Alluxio       Path
+1337B         0B (0%)          /alluxio-site.properties
+29.12KB       2970B (9%)       /testDir
+4352B         4352B (100%)     /testFolder
+```
 
 ### fileInfo
 
@@ -474,7 +537,9 @@ Generally viewing the file info in the UI is much easier to understand.
 For example, `fileInfo` can be used to debug the block locations of a file.
 This is useful when trying to achieve locality for compute workloads.
 
-{% include Command-Line-Interface/fileInfo.md %}
+```bash
+./bin/alluxio fs fileInfo /data/2015/logs-1.txt
+```
 
 ### free
 
@@ -491,7 +556,9 @@ Metadata is not affected by this operation; a freed file will still show up if a
 
 For example, `free` can be used to manually manage Alluxio's data caching.
 
-{% include Command-Line-Interface/free.md %}
+```bash
+./bin/alluxio fs free /unused/data
+```
 
 ### getCapacityBytes
 
@@ -499,7 +566,9 @@ The `getCapacityBytes` command returns the maximum number of bytes Alluxio is co
 
 For example, `getCapacityBytes` can be used to verify if your cluster is set up as expected.
 
-{% include Command-Line-Interface/getCapacityBytes.md %}
+```bash
+./bin/alluxio fs getCapacityBytes
+```
 
 ### getfacl
 
@@ -517,7 +586,9 @@ The `getUsedBytes` command returns the number of used bytes in Alluxio.
 
 For example, `getUsedBytes` can be used to monitor the health of the cluster.
 
-{% include Command-Line-Interface/getUsedBytes.md %}
+```bash
+./bin/alluxio fs getUsedBytes
+```
 
 ### head
 
@@ -548,7 +619,9 @@ Examples:
 
 The `leader` command prints the current Alluxio leading master hostname.
 
-{% include Command-Line-Interface/leader.md %}
+```bash
+./bin/alluxio fs leader
+```
 
 ### load
 
@@ -563,7 +636,9 @@ If `load` is run on a directory, files in the directory will be recursively load
 
 For example, `load` can be used to prefetch data for analytics jobs.
 
-{% include Command-Line-Interface/load.md %}
+```bash
+./bin/alluxio fs load /data/today
+```
 
 ### loadMetadata
 
@@ -577,7 +652,9 @@ Only the metadata, such as the file name and size, are loaded this way and no da
 For example, `loadMetadata` can be used when other systems output to the under storage directly
 and the application running on Alluxio needs to use the output of those systems.
 
-{% include Command-Line-Interface/loadMetadata.md %}
+```bash
+./bin/alluxio fs loadMetadata /hdfs/data/2015/logs-1.txt
+```
 
 ### location
 
@@ -586,7 +663,9 @@ belonging to the given file.
 
 For example, `location` can be used to debug data locality when running jobs using a compute framework.
 
-{% include Command-Line-Interface/location.md %}
+```bash
+./bin/alluxio fs location /data/2015/logs-1.txt
+```
 
 ### ls
 
@@ -613,7 +692,19 @@ By default, it loads metadata only at the first time at which a directory is lis
 
 For example, `ls` can be used to browse the file system.
 
-{% include Command-Line-Interface/ls.md %}
+```bash
+./bin/alluxio fs mount /s3/data s3://data-bucket/
+# Loads metadata for all immediate children of /s3/data and lists them.
+./bin/alluxio fs ls /s3/data/
+#
+# Forces loading metadata.
+aws s3 cp /tmp/somedata s3://data-bucket/somedata
+./bin/alluxio fs ls -f /s3/data 
+#
+# Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
+aws s3 rm s3://data-bucket/somedata
+./bin/alluxio fs ls -f /s3/data
+```
 
 ### masterInfo
 
@@ -625,7 +716,9 @@ and the configured Zookeeper address is printed.
 
 For example, `masterInfo` can be used to print information regarding master fault tolerance.
 
-{% include Command-Line-Interface/masterInfo.md %}
+```bash
+./bin/alluxio fs masterInfo
+```
 
 ### mkdir
 
@@ -637,7 +730,11 @@ Using `mkdir` on an invalid or existing path will fail.
 
 For example, `mkdir` can be used by an admin to set up the basic folder structures.
 
-{% include Command-Line-Interface/mkdir.md %}
+```bash
+./bin/alluxio fs mkdir /users
+./bin/alluxio fs mkdir /users/Alice
+./bin/alluxio fs mkdir /users/Bob
+```
 
 ### mount
 
@@ -658,7 +755,11 @@ If multiple Alluxio satellite clusters mount a remote storage cluster which serv
 
 For example, `mount` can be used to make data in another storage system available in Alluxio.
 
-{% include Command-Line-Interface/mount.md %}
+```bash
+./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
+./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey> /mnt/s3 s3://data-bucket/
+```
 
 ### mv
 
@@ -670,7 +771,9 @@ If it is a directory, the file or directory will be placed as a child of the dir
 
 For example, `mv` can be used to re-organize your files.
 
-{% include Command-Line-Interface/mv.md %}
+```bash
+./bin/alluxio fs mv /data/2014 /data/archives/2014
+```
 
 ### persist
 
@@ -685,7 +788,9 @@ parallelism factor of 10 will persist 10 files at a time until all 10,000 files 
 
 For example, `persist` can be used after filtering a series of temporary files for the ones containing useful data.
 
-{% include Command-Line-Interface/persist.md %}
+```bash
+./bin/alluxio fs persist /tmp/experimental-logs-2.txt
+```
 
 ### pin
 
@@ -698,7 +803,9 @@ preventing other files from being cached.
 For example, `pin` can be used to manually ensure performance
 if the administrator understands the workloads well.
 
-{% include Command-Line-Interface/pin.md %}
+```bash
+./bin/alluxio fs pin /data/today
+```
 
 ### rm
 
@@ -712,7 +819,12 @@ before attempting to delete persisted directories.
 * Adding `--alluxioOnly` option removes data and metadata from Alluxio space only.
 The under storage system will not be affected.
 
-{% include Command-Line-Interface/rm2.md %}
+```bash
+# Remove a file from Alluxio space and the under storage system
+./bin/alluxio fs rm /tmp/unused-file
+# Remove a file from Alluxio space only
+./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
+```
 
 ### setfacl
 
@@ -760,7 +872,12 @@ whereas the action `free` frees the file from Alluxio even if pinned.
 For example, `setTtl` with action `delete` cleans up files the administrator knows are unnecessary after a period of time,
 or with action `free` just remove the contents from Alluxio to make room for more space in Alluxio.
 
-{% include Command-Line-Interface/setTtl.md %}
+```bash
+# After 1 day, delete the file in Alluxio and UFS
+./bin/alluxio fs setTtl /data/good-for-one-day 86400000
+# After 1 day, free the file from Alluxio
+./bin/alluxio fs setTtl --action free /data/good-for-one-day 86400000
+```
 
 ### stat
 
@@ -780,7 +897,16 @@ One can specify `-f <arg>` to display info in given format:
 For example, `stat` can be used to debug the block locations of a file.
 This is useful when trying to achieve locality for compute workloads.
 
-{% include Command-Line-Interface/stat.md %}
+```bash
+# Displays file's stat
+./bin/alluxio fs stat /data/2015/logs-1.txt
+#
+# Displays directory's stat
+./bin/alluxio fs stat /data/2015
+#
+# Displays the size of file
+./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+```
 
 ### tail
 
@@ -790,7 +916,9 @@ Using the `-c [bytes]` option will print the last `n` bytes of data to the conso
 For example, `tail` can be used to verify the output of a job is in the expected format
 or contains expected values.
 
-{% include Command-Line-Interface/tail.md %}
+```bash
+./bin/alluxio fs tail /output/part-00000
+```
 
 ### test
 
@@ -819,7 +947,9 @@ Files created with `touch` cannot be overwritten and are mostly useful as flags.
 
 For example, `touch` can be used to create a file signifying the completion of analysis on a directory.
 
-{% include Command-Line-Interface/touch.md %}
+```bash
+./bin/alluxio fs touch /data/yesterday/_DONE_
+```
 
 ### unmount
 
@@ -831,7 +961,9 @@ See [Unified Namespace]({{ '/en/advanced/Namespace-Management.html' | relativize
 For example, `unmount` can be used to remove an under storage system when the users no longer need
 data from that system.
 
-{% include Command-Line-Interface/unmount.md %}
+```bash
+./bin/alluxio fs unmount /s3/data
+```
 
 ### unpin
 
@@ -842,7 +974,9 @@ from the various Alluxio workers containing the block.
 
 For example, `unpin` can be used when the administrator knows there is a change in the data access pattern.
 
-{% include Command-Line-Interface/unpin.md %}
+```bash
+./bin/alluxio fs unpin /data/yesterday/join-table
+```
 
 ### unsetTtl
 
@@ -852,4 +986,6 @@ The TTL of a file can later be reset with `setTtl`.
 
 For example, `unsetTtl` can be used if a regularly managed file requires manual management.
 
-{% include Command-Line-Interface/unsetTtl.md %}
+```bash
+./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
+```

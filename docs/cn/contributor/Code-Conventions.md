@@ -167,19 +167,26 @@ if (LOG.isDebugEnabled()) {
 在提交pull request之前，对最新的代码运行
 [FindBugs](http://findbugs.sourceforge.net/)确保不出现警告：
 
-{% include Contributing-to-Alluxio/findbugs.md %}
+```bash
+mvn compile findbugs:findbugs
+```
 
 ## IDE
 
 你可以通过运行以下命令生成Eclipse配置文件：
 
-{% include Contributing-to-Alluxio/eclipse-configuration.md %}
+```bash
+mvn clean -Pdeveloper install -DskipTests
+mvn clean -Pdeveloper -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+```
 
 然后将该文件夹导入到Eclipse中。
 
 也可以运行以下命令将M2_REPO添加到classpath变量中：
 
-{% include Contributing-to-Alluxio/M2_REPO.md %}
+```bash
+mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+```
 
 如果你使用的是IntelliJ IDEA，你可能需要修改Maven profile配置中的'developer'以防止导入错误，可以通过以下方式进行：
 

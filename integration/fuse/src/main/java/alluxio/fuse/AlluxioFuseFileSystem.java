@@ -263,6 +263,11 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     final int flags = fi.flags.get();
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
+    if (uri.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to create {}, file name is longer than {} characters",
+          path, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
     try {
       if (mOpenFiles.size() >= MAX_OPEN_FILES) {
         LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})", path,
@@ -414,7 +419,13 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int mkdir(String path, @mode_t long mode) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    final String name = turi.getName();
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
+    if (turi.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to create directory {}, directory name is longer than {} characters",
+          path, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
     try {
       mFileSystem.createDirectory(turi,
           CreateDirectoryPOptions.newBuilder()
@@ -624,8 +635,14 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rename(String oldPath, String newPath) {
     final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
     final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
+    final String name = newUri.getName();
     LOG.trace("rename({}, {}) [Alluxio: {}, {}]", oldPath, newPath, oldUri, newUri);
 
+    if (name.length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to rename {} to {}, name {} is longer than {} characters",
+          oldPath, newPath, name, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
     try {
       mFileSystem.rename(oldUri, newUri);
       synchronized (mOpenFiles) {
