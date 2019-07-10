@@ -176,7 +176,7 @@ public final class UnderFileSystemCommonOperations {
     createEmptyFile(testFile);
     byte[] buf = new byte[0];
     int bytesRead = mUfs.open(testFile).read(buf);
-    boolean bytesReadCorrect = bytesRead != 0;
+    boolean bytesReadCorrect = bytesRead == 0;
     if (UnderFileSystemUtils.isHdfs(mUfs) && bytesRead == -1) {
       // TODO(adit): Consider making the return value uniform across UFSs
       bytesReadCorrect = true;
