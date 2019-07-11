@@ -59,6 +59,10 @@
      <groupId>org.apache.httpcomponents</groupId>
      <artifactId>httpclient</artifactId>
    </dependency>
+   <dependency>
+      <groupId>jline</groupId>
+      <artifactId>jline</artifactId>
+   </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
