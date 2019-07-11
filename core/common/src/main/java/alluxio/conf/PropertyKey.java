@@ -529,6 +529,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.ZOOKEEPER_AUTH_ENABLED)
           .setDefaultValue(true)
           .setDescription("If true, enable client-side Zookeeper authentication.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
           .build();
   /**
    * UFS related properties.
