@@ -21,10 +21,10 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
+import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiMasterLocalAlluxioCluster.class);
 
-  private RestartableTestingServer mCuratorServer = null;
+  private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
 
   private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
@@ -65,7 +65,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
     try {
       mCuratorServer =
-          new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
+              new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
       LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);

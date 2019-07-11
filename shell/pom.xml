@@ -57,6 +57,10 @@
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
+   <dependency>
+      <groupId>jline</groupId>
+      <artifactId>jline</artifactId>
+   </dependency>
 
     <!-- Internal dependencies -->
     <dependency>

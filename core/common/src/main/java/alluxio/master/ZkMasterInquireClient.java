@@ -23,7 +23,10 @@ import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.ZookeeperFactory;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.client.ZKClientConfig;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,19 +57,41 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   private final int mMaxTry;
 
   /**
+   * Zookeeper factory for curator that controls enabling/disabling client authentication.
+   */
+  private class AlluxioZookeeperFactory implements ZookeeperFactory {
+    private boolean mAuthEnabled;
+
+    public AlluxioZookeeperFactory(boolean authEnabled) {
+      mAuthEnabled = authEnabled;
+    }
+
+    @Override
+    public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher,
+                                  boolean canBeReadOnly) throws Exception {
+      ZKClientConfig zkConfig = new ZKClientConfig();
+      zkConfig.setProperty(ZKClientConfig.ENABLE_CLIENT_SASL_KEY,
+          Boolean.toString(mAuthEnabled).toLowerCase());
+      return new ZooKeeper(connectString, sessionTimeout, watcher, zkConfig);
+    }
+  }
+
+  /**
    * Gets the client.
    *
    * @param zookeeperAddress the address for Zookeeper
    * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
+   * @param authEnabled if Alluxio client-side auth is enabled
    * @return the client
    */
   public static synchronized ZkMasterInquireClient getClient(String zookeeperAddress,
-      String electionPath, String leaderPath) {
+      String electionPath, String leaderPath, boolean authEnabled) {
     ZkMasterConnectDetails connectDetails =
         new ZkMasterConnectDetails(zookeeperAddress, leaderPath);
     if (!sCreatedClients.containsKey(connectDetails)) {
-      sCreatedClients.put(connectDetails, new ZkMasterInquireClient(connectDetails, electionPath));
+      sCreatedClients.put(connectDetails,
+          new ZkMasterInquireClient(connectDetails, electionPath, authEnabled));
     }
     return sCreatedClients.get(connectDetails);
   }
@@ -76,15 +101,19 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    *
    * @param connectDetails connect details
    * @param electionPath the path of the master election
+   * @param authEnabled if Alluxio client-side auth is enabled
    */
-  private ZkMasterInquireClient(ZkMasterConnectDetails connectDetails, String electionPath) {
+  private ZkMasterInquireClient(ZkMasterConnectDetails connectDetails, String electionPath,
+      boolean authEnabled) {
     mConnectDetails = connectDetails;
     mElectionPath = electionPath;
 
     LOG.info("Creating new zookeeper client for {}", connectDetails);
-    // Start the client lazily.
-    mClient = CuratorFrameworkFactory.newClient(connectDetails.getZkAddress(),
-        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    CuratorFrameworkFactory.Builder curatorBuilder = CuratorFrameworkFactory.builder();
+    curatorBuilder.connectString(connectDetails.getZkAddress());
+    curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    curatorBuilder.zookeeperFactory(new AlluxioZookeeperFactory(authEnabled));
+    mClient = curatorBuilder.build();
 
     mMaxTry = Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }

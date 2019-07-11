@@ -130,7 +130,7 @@
   </repositories>
 
   <properties>
-    <apache.curator.version>2.1.0-incubating</apache.curator.version>
+    <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
@@ -533,7 +533,7 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.4.6</version>
+        <version>3.5.5</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>

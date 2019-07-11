@@ -80,7 +80,8 @@ public interface MasterInquireClient {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+            conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
+            conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
         return new SingleMasterInquireClient(
             NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf));
