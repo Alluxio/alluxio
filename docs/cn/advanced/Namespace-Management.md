@@ -155,4 +155,4 @@ hello
 
 ## 资源
 
-[统一命名空间博客](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
+[统一命名空间博客](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)

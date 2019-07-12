@@ -29,7 +29,7 @@ It is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/
 Alluxio is one of the fastest growing open source projects that has attracted more than [1000 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
 from over 300 institutions including
 [Alibaba](http://www.alibaba.com),
-[Alluxio](http://www.alluxio.com/),
+[Alluxio](https://www.alluxio.io/),
 [Baidu](https://www.baidu.com),
 [CMU](https://www.cmu.edu/),
 [Google](https://www.google.com),
@@ -115,7 +115,7 @@ explains how to build the project from source code. Questions can be directed to
 (users who can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/))
 or our [Community Slack Channel](https://alluxio.io/slack).
 
-[Downloads](https://alluxio.org/download/)
+[Downloads](https://www.alluxio.io/download/)
 | [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
 | [Developer Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }})
 | [Meetup Group](https://www.meetup.com/Alluxio/)
@@ -124,5 +124,5 @@ or our [Community Slack Channel](https://alluxio.io/slack).
 | [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
 | [Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA)
 | [Github](https://github.com/alluxio/alluxio/)
-| [Releases](https://www.alluxio.org/download/releases)
+| [Releases](https://www.alluxio.io/download/releases/)
 

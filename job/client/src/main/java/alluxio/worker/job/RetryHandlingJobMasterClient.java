@@ -73,12 +73,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   public long registerWorker(final WorkerNetAddress address) throws IOException {
-    return retryRPC(new RpcCallable<Long>() {
-      public Long call() {
-        return mClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
-            .setWorkerNetAddress(GrpcUtils.toProto(address)).build()).getId();
-      }
-    });
+    return retryRPC(() -> mClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
+            .setWorkerNetAddress(GrpcUtils.toProto(address)).build()).getId());
   }
 
   @Override
