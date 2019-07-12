@@ -488,6 +488,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Session timeout to use when connecting to Zookeeper")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey ZOOKEEPER_AUTH_ENABLED =
+      new Builder(Name.ZOOKEEPER_AUTH_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If true, enable client-side Zookeeper authentication.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
 
   /**
    * UFS related properties.
@@ -3255,6 +3262,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
     public static final String ZOOKEEPER_SESSION_TIMEOUT = "alluxio.zookeeper.session.timeout";
+    public static final String ZOOKEEPER_AUTH_ENABLED = "alluxio.zookeeper.auth.enabled";
 
     //
     // UFS related properties
