@@ -604,7 +604,7 @@ public final class NetworkAddressUtils {
     if (strArr.length != 2) {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
-    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+    return InetSocketAddress.createUnresolved(strArr[0], Integer.parseInt(strArr[1]));
   }
 
   /**
