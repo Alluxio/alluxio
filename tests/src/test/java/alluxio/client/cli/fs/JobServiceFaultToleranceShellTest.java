@@ -51,8 +51,12 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
 
   @After
   public void after() throws Exception {
-    mLocalAlluxioJobCluster.stop();
-    mLocalAlluxioCluster.stop();
+    if (mLocalAlluxioJobCluster != null) {
+      mLocalAlluxioJobCluster.stop();
+    }
+    if (mLocalAlluxioCluster != null) {
+      mLocalAlluxioCluster.stop();
+    }
     System.setOut(System.out);
     ServerConfiguration.reset();
   }
