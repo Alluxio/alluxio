@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -681,9 +682,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
               BlockMasterInfo.BlockMasterInfoField.USED_BYTES));
       BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
 
-      // this is only an estimation,
-      // as user may set different block size for different files
-      long blockSize = sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+      // although user may set different block size for different files,
+      // small block size can result more accurate compute.
+      long blockSize = 4 * Constants.KB;
       // fs block size
       // The size in bytes of the minimum unit of allocation on this file system
       stbuf.f_bsize.set(blockSize);
