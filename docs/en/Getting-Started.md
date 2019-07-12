@@ -23,7 +23,9 @@ The guide will cover the following tasks:
 The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
-To try Alluxio in a distributed environment with more realistic workloads, request [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free.
+You can also try using Alluxio via:
+- Launching the [Alluxio-Presto sandbox](https://www.alluxio.io/blog/getting-started-with-the-alluxio-presto-sandbox/) as a local docker container
+- Requesting for [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free
 
 ## Prerequisites
 
