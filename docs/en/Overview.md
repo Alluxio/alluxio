@@ -105,6 +105,10 @@ To quickly get Alluxio up and running, take a look at our
 [Getting Started]({{ '/en/Getting-Started.html' | relativize_url }}) page,
 which explains how to deploy Alluxio and run examples in a local environment.
 
+Also try using Alluxio via:
+- Launching the [Alluxio-Presto sandbox](https://www.alluxio.io/blog/getting-started-with-the-alluxio-presto-sandbox/) as a local docker container
+- Requesting for [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free
+
 ## Downloads and Useful Resources
 
 Released versions of Alluxio are available from the [Project Downloads Page](https://alluxio.io/download).
