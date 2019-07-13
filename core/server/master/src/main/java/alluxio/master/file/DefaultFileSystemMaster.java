@@ -3024,12 +3024,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     }
     String commandName;
+    boolean checkWritableMountPoint = false;
     if (options.hasOwner()) {
       commandName = "chown";
+      checkWritableMountPoint = true;
     } else if (options.hasGroup()) {
       commandName = "chgrp";
+      checkWritableMountPoint = true;
     } else if (options.hasMode()) {
       commandName = "chmod";
+      checkWritableMountPoint = true;
     } else {
       commandName = "setAttribute";
     }
@@ -3040,7 +3044,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
          FileSystemMasterAuditContext auditContext =
              createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
-      mMountTable.checkUnderWritableMountPoint(path);
+      if (checkWritableMountPoint) {
+        mMountTable.checkUnderWritableMountPoint(path);
+      }
       // Force recursive sync metadata if it is a pinning and unpinning operation
       boolean recursiveSync = options.hasPinned() || options.getRecursive();
 
