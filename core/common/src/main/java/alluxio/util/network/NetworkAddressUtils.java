@@ -100,7 +100,7 @@ public final class NetworkAddressUtils {
     /**
      * Job worker RPC service (gRPC).
      */
-    JOB_WORKER_RPC("Alluxio Job Manager Worker RPC service", PropertyKey.WORKER_HOSTNAME,
+    JOB_WORKER_RPC("Alluxio Job Manager Worker RPC service", PropertyKey.JOB_WORKER_HOSTNAME,
         PropertyKey.JOB_WORKER_BIND_HOST, PropertyKey.JOB_WORKER_RPC_PORT),
 
     /**
