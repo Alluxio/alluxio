@@ -126,3 +126,87 @@ to the under store.
 
 Tags are additional pieces of metadata for the metric such as user name or under storage location.
 Tags can be used to further filter or aggregate on various characteristics.
+
+## Setting Grafana for Alluxio
+
+Grafana is a metics analytics and visualization software commonly used for visualizing time series
+data. You can use Grafana to better visualize the various metrics that Alluxio collects. The software
+allows users to more easily see what's going on behind the scenes in Alluxio.
+
+Although before setting up Grafana a monitoring tool must be set up that Grafana will pull metrics from
+such as `Prometheus` or `Graphite`.
+
+### Setting up Prometheus
+
+For installing Prometheus you can refer to the Docs [here](https://prometheus.io/docs/prometheus/latest/installation/).
+
+After installing Prometheus must be configured to get metrics from Alluxio. First open the
+prometheus.yml file that the Prometheus Docker calls when starting. Once inside the .yml file multiple
+jobs have to be created for the Alluxio master and worker shown below:
+
+```
+scrape_configs:
+- job_name: 'alluxio master'
+metrics_path: '/metrics/prometheus'
+static_configs:
+- targets: ['host.docker.internal:19999']
+
+- job_name: 'alluxio worker'
+metrics_path: '/metrics/prometheus'
+static_configs:
+- targets: ['host.docker.internal:30000']
+```
+
+>NOTE: `host.docker.internal` is used on local machines so the Docker container refers to external
+>ports
+
+Jobs are the various locations Prometheus scrapes for metrics. For Alluxio we tekk Prometheus to get data
+from the .json files that Alluxio stores metrics for the Master and Worker.
+
+### Setting up Graphite
+
+First install Graphite by refering to the docs [here](https://graphite.readthedocs.io/en/latest/install.html#id2).
+
+Once Graphite is installed it must now be simply configured with Alluxio.
+
+### Configuring Monitoring Tool with Alluxio
+
+Next the Alluxio configuration file must be set up. This sends the Alluxio metrics to the monitoring
+software. In `/Alluxio/conf` open `metrics.properties` or create the file if it doesn't exist. Once
+open if using Prometheus type :
+
+```
+metrics.sink.PrometheusMetricsServlet.path=/metrics/prometheus
+```
+
+Or if using Graphite:
+
+```
+*.sink.graphite.class=alluxio.metrics.sink.GraphiteSink
+*.sink.graphite.host=localhost
+*.sink.graphite.port=2003
+*.sink.graphite.period=10
+master.source.jvm.class=alluxio.metrics.source.JvmSource
+worker.source.jvm.class=alluxio.metrics.source.JvmSource
+```
+
+Now save the file and restart Alluxio, and metrics will be collected by your chosen monitoring software!
+
+### Grafana
+
+Now Grafana can be installed refering to the docs [here](https://grafana.com/docs/installation/docker/).
+
+Once Grafana is installed and running you can go to [localhost:3000](localhost:3000) to open the webapp.
+After the webapp is opened a datasource needs to be added. The datasource will be the monitoring software
+that was set up earlier.
+
+For a Prometheus datasource enter the URL as `localhost:9090` and set Server Access to Browse. Next set
+the scrape interval to 5 seconds. This is how long in between Grafana waits before collecting data again.
+
+For a Graphite datasource enter the URL as `localhost:0080` and set Server Access to Browse. Next set the
+Graphite version to the version of Graphite you downloaded.
+
+Now Grafana should be set up and connected to Alluxio. You can create queries to visualize any of the
+metrics that Alluxio collects. For a guide on using Grafana read the docs [here](https://grafana.com/docs/v4.3/guides/getting_starte).
+
+Grafana templates for either Prometheus or Graphite can be founf at `/alluxio/integration/grafana`.
