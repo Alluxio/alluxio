@@ -86,19 +86,18 @@ printf "%s\n" "${conf[@]}" | sudo tee -a /opt/alluxio/conf/alluxio-site.properti
 #No ssh
 if [[ ${IS_MASTER} = "true" ]]
 then
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh master"
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh job_master"
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh proxy"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a master"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a job_master"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a proxy"
 else
   /opt/alluxio/bin/alluxio-mount.sh SudoMount local
-  while [[ ${MASTER_STATUS} -ne "200" ]]
+  until /opt/alluxio/bin/alluxio fsadmin report
   do
-    MASTER_STATUS=`curl -s -o /dev/null -w "%{http_code}" ${MASTER}:19999`
     sleep 5
   done
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh worker"
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh job_worker"
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh proxy"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a worker"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a job_worker"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a proxy"
 fi
 
 #Compute configs
