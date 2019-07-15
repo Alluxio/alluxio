@@ -47,8 +47,8 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
-    cluster.start();
     try {
+      cluster.start();
       FileSystem fs = cluster.getFileSystemClient();
       MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(
           MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))

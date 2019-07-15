@@ -44,8 +44,8 @@ public class MultiProcessCheckpointTest {
         .setNumMasters(2)
         .setNumWorkers(0)
         .build();
-    cluster.start();
     try {
+      cluster.start();
       cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
       String journal = cluster.getJournalDir();
       FileSystem fs = cluster.getFileSystemClient();
