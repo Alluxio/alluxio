@@ -3146,12 +3146,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     String commandName;
+    boolean checkWritableMountPoint = false;
     if (options.getOwner() != null) {
       commandName = "chown";
+      checkWritableMountPoint = true;
     } else if (options.getGroup() != null) {
       commandName = "chgrp";
+      checkWritableMountPoint = true;
     } else if (options.getMode() != null) {
       commandName = "chmod";
+      checkWritableMountPoint = true;
     } else {
       commandName = "setAttribute";
     }
@@ -3168,7 +3172,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
-      mMountTable.checkUnderWritableMountPoint(path);
+      if (checkWritableMountPoint) {
+        mMountTable.checkUnderWritableMountPoint(path);
+      }
       // Force recursive sync metadata if it is a pinning and unpinning operation
       boolean recursiveSync = (options.getPinned() != null) || options.isRecursive();
       // Possible ufs sync.
