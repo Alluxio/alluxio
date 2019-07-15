@@ -183,7 +183,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     try {
       cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
       cluster.initConfiguration();
-      cluster.stop();
+      cluster.start();
+      cluster.stopLeader();
       factory = mountUnmount(cluster.getClient());
       // Kill the leader one by one.
       for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
