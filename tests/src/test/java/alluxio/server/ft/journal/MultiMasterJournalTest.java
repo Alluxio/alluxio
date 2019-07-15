@@ -28,6 +28,7 @@ import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +46,11 @@ public class MultiMasterJournalTest extends BaseIntegrationTest {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100);
     mCluster.start();
+  }
+
+  @After
+  public void after() throws Exception {
+    mCluster.stop();
   }
 
   @Test
