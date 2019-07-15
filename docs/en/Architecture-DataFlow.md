@@ -108,7 +108,7 @@ recovery. Different from standby masters, a secondary master can never upgrade t
 ### Job Masters
 
 The Alluxio Job Master is a standalone process which is responsible for scheduling a number of
-more heavyweight file system operations asynchronously within Alluxio.
+more heavy weight file system operations asynchronously within Alluxio.
 By separating the need for the leading Alluxio Master to execute these operations within the same
 process the Alluxio Master utilizes less resources and is able to serve more clients within a
 shorter period.
