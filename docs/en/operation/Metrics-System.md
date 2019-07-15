@@ -141,7 +141,7 @@ supports exporting metrics to `Prometheus` and `Graphite`, so set up for both wi
 Installing Prometheus using the instructions [here](https://prometheus.io/docs/prometheus/latest/installation/).
 
 After installing Prometheus, it must be configured to get metrics from Alluxio. First open the
-`prometheus.yml` file that Prometheus calls when starting. Put the following sections under the
+`prometheus.yml` file that Prometheus calls when starting. Next put the following sections under the
 `scrape_configs:` section of the Prometheus configuration.
 
 ```
@@ -158,8 +158,8 @@ scrape_configs:
 ```
 
 Jobs are the various locations Prometheus scrapes for metrics. For Alluxio we tell Prometheus to get data
-from `localhost:19999/metrics/json` and `localhost:30000/metrics/json` that Alluxio stores metrics
-for the Master and Worker.
+from `localhost:19999/metrics/json` and `localhost:30000/metrics/json` the locations that Alluxio stores
+metrics in for the Master and Worker.
 
 ### Setting up Graphite
 
@@ -171,7 +171,7 @@ Once Graphite is installed it now must be configured with Alluxio.
 
 Next the Alluxio configuration file must be set up. This sends the Alluxio metrics to the monitoring
 software. In `./${ALLUXIO_HOME}/conf/metrics.properties` open `metrics.properties` or create the file
-if it doesn't exist. Once open if using Prometheus type :
+if it doesn't exist. Once open if using Prometheus type:
 
 ```
 metrics.sink.PrometheusMetricsServlet.path=/metrics/prometheus
@@ -188,7 +188,7 @@ master.source.jvm.class=alluxio.metrics.source.JvmSource
 worker.source.jvm.class=alluxio.metrics.source.JvmSource
 ```
 
-Now save the file and restart Alluxio, and metrics will be collected by your chosen monitoring software!
+Save the file and restart Alluxio, and metrics will be collected by your chosen monitoring software.
 
 ### Grafana
 
