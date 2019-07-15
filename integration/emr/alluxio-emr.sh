@@ -11,8 +11,8 @@
 #
 
 # This script is meant for bootstrapping the Alluxio service to an EMR cluster. Arguments for the script are listed below.
-# Arg 1. Download URI (ex. http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz)
-# Arg 2. Root UFS URI (ex. s3a://my-bucket/alluxio-emr/mount)
+# Arg 1. Download URI (ex. http://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz)
+# Arg 2. Root UFS URI (ex. s3://my-bucket/alluxio-emr/mount)
 # Arg 3. Extra Alluxio Options. These will be appended to alluxio-site.properties. Multiple options can be specified using ';' as a delimiter
 #        (ex. alluxio.user.file.writetype.default=CACHE_THROUGH;alluxio.user.file.readtype.default=CACHE)
 
@@ -22,7 +22,7 @@ sudo useradd alluxio -u 600 -g 600
 
 #Download the release
 #TODO Add metadata header tag to the wget for filtering out in download metrics.
-if [ -z $1]
+if [[ -z $1 ]]
 then
   echo "No Download URL Provided. Please go to http://downloads.alluxio.io to see available release downloads."
 else
@@ -44,7 +44,7 @@ sudo tar -xvf /opt/$RELEASE -C /opt/
 sudo rm -R /opt/$RELEASE
 sudo mv /opt/$RELEASE_UNZIP /opt/alluxio
 sudo chown -R alluxio:alluxio /opt/alluxio
-rm $RELEASE
+rm ${RELEASE}
 sudo runuser -l alluxio -c "cp /opt/alluxio/conf/alluxio-site.properties.template /opt/alluxio/conf/alluxio-site.properties"
 
 #Get hostnames and load into masters/workers file
@@ -52,10 +52,10 @@ EMR_CLUSTER=`jq '.jobFlowId' /mnt/var/lib/info/job-flow.json | sed -e 's/^"//' -
 HOSTLIST=`aws emr list-instances --cluster-id $EMR_CLUSTER --region us-east-1 | jq '.Instances[].PrivateDnsName' | sed -e 's/^"//' -e 's/"$//'`
 MASTER=`jq '.masterHost' /mnt/var/lib/info/extraInstanceData.json | sed -e 's/^"//' -e 's/"$//' | nslookup | awk -v ip="$ip" '/name/{print substr($NF,1,length($NF)-1),ip}'`
 
-if [ -z "$MASTER"]
+if [[ -z "$MASTER" ]]
 then
   MASTER=`hostname`
-  MASTER=$MASTER".ec2.internal"
+  MASTER=${MASTER}".ec2.internal"
 fi
 
 WORKERS=`printf '%s\n' "${HOSTLIST//$MASTER/}"`
@@ -68,14 +68,15 @@ IS_MASTER=`jq '.isMaster' /mnt/var/lib/info/instance.json`
 
 #Set up alluxio-site.properties
 sudo runuser -l alluxio -c "echo 'alluxio.master.hostname=$MASTER' > /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.master.journal.type=UFS' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.master.mount.table.root.ufs=$2' >> /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.hive.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.presto.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.yarn.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.memory.size=20GB' >> /opt/alluxio/conf/alluxio-site.properties"
-sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.levels=1' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.level0.alias=MEM' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk' >> /opt/alluxio/conf/alluxio-site.properties"
-sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.hive.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
-sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.yarn.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
-sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.presto.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.levels=1' >> /opt/alluxio/conf/alluxio-site.properties"
 
 #Inject user defined properties (semicolon separated)
 IFS=';'
@@ -83,21 +84,20 @@ conf=($3)
 printf "%s\n" "${conf[@]}" | sudo tee -a /opt/alluxio/conf/alluxio-site.properties
 
 #No ssh
-if [ $IS_MASTER = "true" ]
+if [[ ${IS_MASTER} = "true" ]]
 then
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh master"
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh job_master"
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh proxy"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a master"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a job_master"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a proxy"
 else
   /opt/alluxio/bin/alluxio-mount.sh SudoMount local
-  while [ $MASTER_STATUS -ne "200" ]
+  until /opt/alluxio/bin/alluxio fsadmin report
   do
-    MASTER_STATUS=`curl -s -o /dev/null -w "%{http_code}" $MASTER:19999`
     sleep 5
   done
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh worker"
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh job_worker"
-  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh proxy"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a worker"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a job_worker"
+  sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio-start.sh -a proxy"
 fi
 
 #Compute configs
