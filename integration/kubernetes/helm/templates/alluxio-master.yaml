@@ -1,0 +1,103 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: alluxio-master
+  labels:
+    app: alluxio
+spec:
+  ports:
+  - port: 19998
+    name: rpc
+  - port: 19999
+    name: web
+  clusterIP: None
+  selector:
+    app: alluxio-master
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alluxio-pv-claim
+spec:
+  storageClassName: {{ .Values.persistence.journal.storageClass }}
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.persistence.journal.size | quote }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  selector:
+    matchLabels:
+      app: alluxio-master
+  serviceName: "alluxio-master"
+  replicas: {{ .Values.resources.master.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: alluxio-master
+    spec:
+      containers:
+        - name: alluxio-master
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.master.limits.cpu }}
+              memory: {{ .Values.resources.master.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.master.requests.cpu }}
+              memory: {{ .Values.resources.master.requests.memory }}
+          command: ["/entrypoint.sh"]
+          args: ["master-only", "--no-format"]
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: 19998
+            name: rpc
+          - containerPort: 19999
+            name: web
+          volumeMounts:
+            - name: alluxio-journal
+              mountPath: /journal
+        - name: alluxio-job-master
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.jobMaster.limits.cpu }}
+              memory: {{ .Values.resources.joMaster.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.jobMaster.requests.cpu }}
+              memory: {{ .Values.resources.jobMaster.requests.memory }}
+          command: ["/entrypoint.sh"]
+          args: ["job-master"]
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: 20001
+            name: job-rpc
+          - containerPort: 20002
+            name: job-web
+      restartPolicy: Always
+      volumes:
+        - name: alluxio-journal
+          persistentVolumeClaim:
+            claimName: alluxio-pv-claim
