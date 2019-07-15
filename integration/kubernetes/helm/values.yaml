@@ -62,7 +62,7 @@ master:
   mount:
     table:
       root:
-        ufs: "s3a://dcos-demo/folder"
+        ufs: ""
 
 worker:
   data:
@@ -70,6 +70,7 @@ worker:
       domain:
         socket:
           address: "/tmp/alluxio-domain"
+
 aws:
   accessKeyId: ""
   secretKey: ""
