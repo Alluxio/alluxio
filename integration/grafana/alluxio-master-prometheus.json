@@ -20,8 +20,9 @@
   "panels": [
     {
       "aliasColors": {
-        "Committed": "dark-blue",
-        "Used": "super-light-blue"
+        "Free": "dark-orange",
+        "Used": "super-light-orange",
+        "total": "rgb(186, 114, 27)"
       },
       "bars": false,
       "dashLength": 10,
@@ -33,7 +34,7 @@
         "x": 0,
         "y": 0
       },
-      "id": 29,
+      "id": 27,
       "legend": {
         "avg": false,
         "current": true,
@@ -58,26 +59,32 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "total_committed{job='alluxio master'}",
+          "expr": "Master_UfsCapacityFree{job=\"alluxio master\"}",
           "format": "time_series",
-          "hide": true,
           "intervalFactor": 1,
-          "legendFormat": "Committed",
+          "legendFormat": "Free",
           "refId": "A"
         },
         {
-          "expr": "total_used{job='alluxio master'}",
+          "expr": "Master_UfsCapacityTotal{job=\"alluxio master\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "total",
+          "refId": "B"
+        },
+        {
+          "expr": "Master_UfsCapacityUsed{job=\"alluxio master\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Used",
-          "refId": "B"
+          "refId": "C"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Total",
+      "title": "UFS Capacity",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -157,6 +164,7 @@
         {
           "expr": "Master_CapacityTotal{job=\"alluxio master\"}",
           "format": "time_series",
+          "hide": true,
           "intervalFactor": 1,
           "legendFormat": "Total Capacity",
           "refId": "A"
@@ -171,6 +179,7 @@
         {
           "expr": "Master_CapacityFree{job=\"alluxio master\"}",
           "format": "time_series",
+          "hide": true,
           "intervalFactor": 1,
           "legendFormat": "Free Capacity",
           "refId": "C"
@@ -180,7 +189,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Capacity",
+      "title": "Memory Capacity",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -298,7 +307,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -381,7 +390,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -463,7 +472,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -545,7 +554,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -627,7 +636,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -710,7 +719,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -792,7 +801,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -874,7 +883,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -957,7 +966,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -1040,7 +1049,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -1123,7 +1132,7 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "cacheTimeout": null,
@@ -1205,13 +1214,12 @@
           "value": "null"
         }
       ],
-      "valueName": "avg"
+      "valueName": "current"
     },
     {
       "aliasColors": {
-        "Free": "dark-orange",
-        "Used": "super-light-orange",
-        "total": "rgb(186, 114, 27)"
+        "Committed": "dark-blue",
+        "Used": "super-light-blue"
       },
       "bars": false,
       "dashLength": 10,
@@ -1223,7 +1231,7 @@
         "x": 0,
         "y": 16
       },
-      "id": 27,
+      "id": 29,
       "legend": {
         "avg": false,
         "current": true,
@@ -1248,32 +1256,26 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "Master_UfsCapacityFree{job=\"alluxio master\"}",
+          "expr": "total_committed{job='alluxio master'}",
           "format": "time_series",
+          "hide": true,
           "intervalFactor": 1,
-          "legendFormat": "Free",
+          "legendFormat": "Committed",
           "refId": "A"
         },
         {
-          "expr": "Master_UfsCapacityTotal{job=\"alluxio master\"}",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "total",
-          "refId": "B"
-        },
-        {
-          "expr": "Master_UfsCapacityUsed{job=\"alluxio master\"}",
+          "expr": "total_used{job='alluxio master'}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Used",
-          "refId": "C"
+          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "UFS Capacity",
+      "title": "Total Memory",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1370,7 +1372,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Heap",
+      "title": "Heap Memory",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1579,202 +1581,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Non-Heap",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "decbits",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {
-        "Committed": "rgb(232, 22, 25)",
-        "Used": "rgb(245, 132, 238)",
-        "pools_Metaspace_committed{instance=\"host.docker.internal:19999\",job=\"alluxio\"}": "dark-green",
-        "pools_Metaspace_used{instance=\"host.docker.internal:19999\",job=\"alluxio\"}": "super-light-green"
-      },
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 31
-      },
-      "id": 16,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {},
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "pools_Metaspace_committed{job=\"alluxio master\"}",
-          "format": "time_series",
-          "hide": true,
-          "instant": false,
-          "intervalFactor": 1,
-          "legendFormat": "Committed",
-          "refId": "A"
-        },
-        {
-          "expr": "pools_Metaspace_used{job=\"alluxio master\"}",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "Used",
-          "refId": "B"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Metaspace",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "decbits",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {
-        "Committed": "rgb(240, 125, 136)",
-        "Used": "light-orange"
-      },
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 31
-      },
-      "id": 14,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {},
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "pools_Compressed_Class_Space_committed{job=\"alluxio master\"}",
-          "format": "time_series",
-          "hide": true,
-          "intervalFactor": 1,
-          "legendFormat": "Committed",
-          "refId": "A"
-        },
-        {
-          "expr": "pools_Compressed_Class_Space_used{job=\"alluxio master\"}",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "Used",
-          "refId": "B"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Compressed Class Space",
+      "title": "Non-Heap Memory",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1820,8 +1627,8 @@
     "list": []
   },
   "time": {
-    "from": "2019-07-12T20:34:46.048Z",
-    "to": "2019-07-12T21:35:48.496Z"
+    "from": "now-6h",
+    "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
@@ -1851,5 +1658,5 @@
   "timezone": "",
   "title": "Alluxio Master(Prometheus)",
   "uid": "-pigkxIWz",
-  "version": 53
+  "version": 60
 }

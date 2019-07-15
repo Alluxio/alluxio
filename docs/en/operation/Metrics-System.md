@@ -130,19 +130,18 @@ Tags can be used to further filter or aggregate on various characteristics.
 ## Setting up Grafana for Alluxio
 
 Grafana is a metics analytics and visualization software used for visualizing time series
-data. You can use Grafana to better visualize the various metrics that Alluxio collects, and the software
+data. You can use Grafana to better visualize the various metrics that Alluxio collects. The software
 allows users to more easily see what's going on behind the scenes in Alluxio.
 
-Before setting up Grafana a monitoring tool must be set up that Grafana will pull metrics from. Alluxio
-supports exporting metrics to `Prometheus` and `Graphite`, so set up for both will be shown.
+Before configuring Grafana a monitoring tool must be set up that Grafana will pull metrics from. Alluxio
+supports exporting metrics to `Prometheus` and `Graphite`.
 
 ### Setting up Prometheus
 
-Installing Prometheus using the instructions [here](https://prometheus.io/docs/prometheus/latest/installation/).
+Install Prometheus using the instructions [here](https://prometheus.io/docs/prometheus/latest/installation/).
 
-After installing Prometheus, it must be configured to get metrics from Alluxio. First open the
-`prometheus.yml` file that Prometheus calls when starting. Next put the following sections under the
-`scrape_configs:` section of the Prometheus configuration.
+After installing Prometheus, it must be configured to get metrics from Alluxio. Next, put the following sections
+under the `scrape_configs:` section of the Prometheus configuration.
 
 ```
 scrape_configs:
@@ -159,7 +158,8 @@ scrape_configs:
 
 Jobs are the various locations Prometheus scrapes for metrics. For Alluxio we tell Prometheus to get data
 from `localhost:19999/metrics/json` and `localhost:30000/metrics/json` the locations that Alluxio stores
-metrics in for the Master and Worker.
+metrics in for the Master and Worker. A single job can have multiple targets. The targets need to be added
+under the `targets:` list.
 
 ### Setting up Graphite
 
@@ -169,9 +169,8 @@ Once Graphite is installed it now must be configured with Alluxio.
 
 ### Configure Monitoring Tools with Alluxio
 
-Next the Alluxio configuration file must be set up. This sends the Alluxio metrics to the monitoring
-software. In `./${ALLUXIO_HOME}/conf/metrics.properties` open `metrics.properties` or create the file
-if it doesn't exist. Once open if using Prometheus type:
+Next, the Alluxio configuration file must be set up. This sends the Alluxio metrics to the monitoring
+software. In `${ALLUXIO_HOME}/conf/metrics.properties` add the following if using Prometheus:
 
 ```
 metrics.sink.PrometheusMetricsServlet.path=/metrics/prometheus
@@ -181,27 +180,27 @@ Or if using Graphite:
 
 ```
 alluxio.sink.graphite.class=alluxio.metrics.sink.GraphiteSink
-*alluxio.sink.graphite.host=localhost
+alluxio.sink.graphite.host=localhost
 alluxio.sink.graphite.port=2003
 alluxio.sink.graphite.period=10
 master.source.jvm.class=alluxio.metrics.source.JvmSource
 worker.source.jvm.class=alluxio.metrics.source.JvmSource
 ```
 
-Save the file and restart Alluxio, and metrics will be collected by your chosen monitoring software.
+Save the file and restart Alluxio, and metrics will be collected by the chosen monitoring software.
 
 ### Grafana
 
 Install Grafana using the instructions [here](https://grafana.com/docs/installation/).
 
-Once Grafana is installed and running you can go to [localhost:3000](http://localhost:3000) to open the webapp.
+Once Grafana is installed and running you can go to [http://localhost:3000](http://localhost:3000) to open the webapp.
 After the webapp is opened a datasource needs to be added. The datasource will be the monitoring software
 that was set up earlier.
 
-For a Prometheus datasource enter the URL as `http://localhost:9090` and set `Server Access` to `Browse`. Next set
+For a Prometheus datasource enter the URL as `http://localhost:9090` and set `Server Access` to `Browse`. Next, set
 the scrape interval to 5 seconds. This is how long in between Grafana waits before collecting data again.
 
-For a Graphite datasource enter the URL as `http://localhost:0080` and set `Server Access` to `Browse`. Next set the
+For a Graphite datasource enter the URL as `http://localhost:0080` and set `Server Access` to `Browse`. Next, set the
 Graphite version to the version of Graphite you downloaded.
 
 Grafana should be set up and connected to Alluxio. You can create queries to visualize any of the
