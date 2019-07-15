@@ -293,6 +293,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
   @Test
   public void setAttribute() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
+    mFileSystem.getStatus(fileUri); // load metadata first
     mFileSystem.setAttribute(fileUri, SetAttributeOptions.defaults().setPinned(true).setTtl(10));
   }
 

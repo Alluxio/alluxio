@@ -3153,7 +3153,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } else if (options.getGroup() != null) {
       commandName = "chgrp";
       checkWritableMountPoint = true;
-    } else if (options.getMode() != null) {
+    } else if (options.getMode() != Constants.INVALID_MODE) {
       commandName = "chmod";
       checkWritableMountPoint = true;
     } else {
