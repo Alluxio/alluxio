@@ -11,7 +11,7 @@
 
 image: alluxio/alluxio
 imageTag: "2.1.0-SNAPSHOT"
-imagePullPolicy: Always
+imagePullPolicy: IfNotPresent
 
 resources:
   master:
@@ -62,12 +62,7 @@ volumes:
       size: 1Gi
 
 # These options must be passed in using the "helm -f" option
-# master:
-#   mount:
-#     table:
-#       root:
-#         ufs: ""
-
-# aws:
-#   accessKeyId: ""
-#   secretKey: ""
+# properties:
+#   alluxio.master.mount.table.root.ufs: ""
+#   aws.accessKeyId: ""
+#   aws.secretKey: ""
