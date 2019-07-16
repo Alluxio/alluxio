@@ -33,6 +33,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -484,6 +485,25 @@ public final class BaseFileSystemTest {
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
     mFileSystem.setAttribute(file, setAttributeOptions);
     verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
+  }
+
+  /**
+   * Tests for the {@link BaseFileSystem#setAttribute(AlluxioURI, SetAttributePOptions)} method.
+   */
+  @Test
+  public void setAttributeSyncMetadataInterval() throws Exception {
+    AlluxioURI file = new AlluxioURI("/file");
+    SetAttributePOptions opt =
+        SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder()
+                .setSyncIntervalMs(
+                    mFileContext.getPathConf(file)
+                        .getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
+                .build())
+            .build();
+    // Check that metadata sync interval from configuration is used when options are omitted
+    mFileSystem.setAttribute(file);
+    verify(mFileSystemMasterClient).setAttribute(file, opt);
   }
 
   /**

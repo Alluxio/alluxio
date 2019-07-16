@@ -41,6 +41,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
@@ -474,8 +475,16 @@ public class BaseFileSystem implements FileSystem {
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
+    // Specifically set and override *only* the metadata sync interval
+    // Setting other attributes by default will make the server think the user is intentionally
+    // setting the values. Most fields withinSetAttributePOptions are set by inclusion.
+    SetAttributePOptions mergedOptions = SetAttributePOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setSyncIntervalMs(mFsContext.getPathConf(path)
+                .getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL)).build())
+        .mergeFrom(options).build();
     rpc(client -> {
-      client.setAttribute(path, options);
+      client.setAttribute(path, mergedOptions);
       LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
       return null;
     });
