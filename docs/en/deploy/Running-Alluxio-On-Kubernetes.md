@@ -60,7 +60,44 @@ Create the persistent volume.
 kubectl create -f alluxio-journal-volume.yaml
 ```
 
-### Configure Alluxio properties
+### Deploy Alluxio
+
+Alluxio can be deployed using a [helm](https://helm.sh/docs/) chart or directly using `kubectl` if `helm`
+is not available or the deployment needs additional customization.
+
+#### Using `helm`
+
+***Pre-requisites:*** A helm repo with the Alluxio helm chart must be available. To prepare a local helm
+repository, follow instructions as follows:
+```bash
+helm init
+helm package helm/alluxio/
+cp alluxio-{{site.ALLUXIO_VERSION_STRING}}.tgz helm/charts/
+helm repo index helm/charts/
+helm serve --repo-path helm/charts
+helm repo add alluxio-local http://127.0.0.1:8879
+helm repo update alluxio-local
+```
+
+Once the helm repository is available, Alluxio prepare the Alluxio configuration:
+```bash
+cat << EOF > config.yaml
+properties:
+  alluxio.mount.table.root.ufs: "<under_storage_address>"
+EOF
+```
+Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
+For example, is using Amazon S3 as the under store, add properties as:
+```bash
+cat << EOF > config.yaml
+properties:
+  alluxio.mount.table.root.ufs: "s3a://<bucket>"
+  aws.accessKeyId: "<accessKey>"
+  aws.secretKey: "<secretKey>"
+EOF
+```
+
+#### Using `kubectl`
 
 Define environment variables in `alluxio.properties`. Copy the properties template at
 `integration/kubernetes/conf`, and modify or add any configuration properties as required.
@@ -75,15 +112,13 @@ ALLUXIO_JAVA_OPTS=-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 ```bash
-cp conf/alluxio.properties.template conf/alluxio.properties
+cp alluxio-configMap.yaml.template alluxio-configMap.yaml
 ```
 
 Create a ConfigMap.
 ```bash
-kubectl create configmap alluxio-config --from-env-file=conf/alluxio.properties
+kubectl create -f alluxio-configMap.yaml
 ```
-
-### Deploy
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the **Docker image**, and CPU and memory requirements for pods.
@@ -132,7 +167,13 @@ cd /opt/alluxio
 
 ### Uninstall
 
-Uninstall Alluxio:
+If using `helm`, uninstall Alluxio as follows:
+```bash
+helm list # Identify release name
+helm delete <release-name>
+```
+
+If using `kubectl`, uninstall Alluxio as follows:
 ```bash
 kubectl delete -f alluxio-worker.yaml
 kubectl delete -f alluxio-master.yaml
@@ -243,7 +284,7 @@ kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
 
 Short-circuit access enables clients to perform read and write operations directly against the
 worker bypassing the networking interface. As part of the Alluxio worker pod creation, a directory
-is created on the host at `/tmp/domain` for the shared domain socket.
+is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
 
 To disable this feature, set the property `alluxio.user.short.circuit.enabled=false`. By default,
 short-circuit operations between the Alluxio client and worker are enabled if the client hostname
