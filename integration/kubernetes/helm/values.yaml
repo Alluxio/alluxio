@@ -58,12 +58,6 @@ persistence:
   ramdisk:
     size: 1Gi
 
-master:
-  mount:
-    table:
-      root:
-        ufs: ""
-
 worker:
   data:
     server:
@@ -71,6 +65,13 @@ worker:
         socket:
           address: "/tmp/alluxio-domain"
 
-aws:
-  accessKeyId: ""
-  secretKey: ""
+# These options must be passed in using the "helm -f" option
+# master:
+#   mount:
+#     table:
+#       root:
+#         ufs: ""
+
+# aws:
+#   accessKeyId: ""
+#   secretKey: ""
