@@ -256,6 +256,19 @@ public class FileSystemOptions {
   }
 
   /**
+   * Sets the defaults for the SetAttribute RPC which should be used on the client side.
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static SetAttributePOptions setAttributeClientDefaults(AlluxioConfiguration conf) {
+    return SetAttributePOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
+            .build())
+        .build();
+  }
+
+  /**
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */

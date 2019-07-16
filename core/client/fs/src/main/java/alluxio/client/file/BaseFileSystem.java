@@ -478,11 +478,9 @@ public class BaseFileSystem implements FileSystem {
     // Specifically set and override *only* the metadata sync interval
     // Setting other attributes by default will make the server think the user is intentionally
     // setting the values. Most fields withinSetAttributePOptions are set by inclusion.
-    SetAttributePOptions mergedOptions = SetAttributePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-            .setSyncIntervalMs(mFsContext.getPathConf(path)
-                .getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL)).build())
-        .mergeFrom(options).build();
+    SetAttributePOptions mergedOptions =
+        FileSystemOptions.setAttributeClientDefaults(mFsContext.getPathConf(path))
+            .toBuilder().mergeFrom(options).build();
     rpc(client -> {
       client.setAttribute(path, mergedOptions);
       LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
