@@ -81,7 +81,8 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             <Label for="viewDataFileOffset" className="mr-sm-2">Display from byte offset</Label>
             <Input className="col-3" type="number" id="viewDataFileOffset" placeholder="Enter an offset"
                    value={offset} onChange={offsetInputHandler}
-                   onKeyUp={this.createInputEnterHandler(history, () => `${queryStringPrefix}?path=${path}${queryStringSuffix}`)}/>
+                   onKeyUp={this.createInputEnterHandler(history, () =>
+                   `${queryStringPrefix}?path=${path}${queryStringSuffix}`)}/>
           </FormGroup>
           <FormGroup className="col-5">
             <Label for="viewDataFileEnd" className="mr-sm-2">Relative to</Label>
@@ -124,7 +125,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
     if (allowDownload && proxyDownloadApiUrl && path) {
       return (
         <FormGroup className="col-4 mt-2">
-          <a href={`${proxyDownloadApiUrl.prefix}${encodeURIComponent(path)}${proxyDownloadApiUrl.suffix}`}>
+          <a href={`${proxyDownloadApiUrl.prefix}${path}${proxyDownloadApiUrl.suffix}`}>
             Download via Alluxio Proxy
           </a>
         </FormGroup>
