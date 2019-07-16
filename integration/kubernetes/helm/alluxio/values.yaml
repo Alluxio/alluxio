@@ -51,19 +51,15 @@ resources:
       data: 30002
       web: 30003
 
-persistence:
-  journal:
-    storageClass: "standard"
-    size: 1Gi
-  ramdisk:
-    size: 1Gi
-
-worker:
-  data:
-    server:
-      domain:
-        socket:
-          address: "/tmp/alluxio-domain"
+volumes:
+  master:
+    journal:
+      storageClass: "standard"
+      size: 1Gi
+  worker:
+    domainHostPath: "/tmp/alluxio-domain"
+    ramdisk:
+      size: 1Gi
 
 # These options must be passed in using the "helm -f" option
 # master:

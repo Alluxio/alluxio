@@ -30,12 +30,12 @@ kind: PersistentVolumeClaim
 metadata:
   name: alluxio-pv-claim
 spec:
-  storageClassName: {{ .Values.persistence.journal.storageClass }}
+  storageClassName: {{ .Values.volumes.master.journal.storageClass }}
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: {{ .Values.persistence.journal.size | quote }}
+      storage: {{ .Values.volumes.master.journal.size | quote }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet

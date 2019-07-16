@@ -97,8 +97,8 @@ spec:
         - name: alluxio-ramdisk
           emptyDir:
             medium: "Memory"
-            sizeLimit: {{ .Values.persistence.ramdisk.size | quote }}
+            sizeLimit: {{ .Values.volumes.worker.ramdisk.size | quote }}
         - name: alluxio-domain
           hostPath:
-            path: {{ .Values.worker.data.server.domain.socket.address }}
+            path: {{ .Values.volumes.worker.domainHostPath }}
             type: DirectoryOrCreate
