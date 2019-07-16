@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-name: Alluxio
+name: alluxio
 apiVersion: v1
 description: Open source data orchestration for analytics and machine learning in any cloud.
 version: 2.1.0-SNAPSHOT

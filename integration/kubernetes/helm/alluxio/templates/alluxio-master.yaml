@@ -82,7 +82,7 @@ spec:
           resources:
             limits:
               cpu: {{ .Values.resources.jobMaster.limits.cpu }}
-              memory: {{ .Values.resources.joMaster.limits.memory }}
+              memory: {{ .Values.resources.jobMaster.limits.memory }}
             requests:
               cpu: {{ .Values.resources.jobMaster.requests.cpu }}
               memory: {{ .Values.resources.jobMaster.requests.memory }}
