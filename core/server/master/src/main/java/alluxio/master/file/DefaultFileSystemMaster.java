@@ -3016,9 +3016,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // for chgrp, chmod
     boolean ownerRequired = (options.hasGroup()) || (options.hasMode());
     // for other attributes
-    boolean writeRequired = options.hasPersisted() || options.hasPinned()
-        || options.hasReplicationMax() || options.hasReplicationMin()
-        || options.getPinnedMediaCount() > 0;
+    boolean writeRequired = !rootRequired && !ownerRequired;
     if (options.hasOwner() && options.hasGroup()) {
       try {
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
