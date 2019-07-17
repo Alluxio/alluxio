@@ -1,5 +1,3 @@
----
-# Source: alluxio/templates/alluxio-worker.yaml
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
 # (the "License"). You may not use this work except in compliance with the License, which is
@@ -29,15 +27,15 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: alluxio-worker
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           resources:
             limits:
-              cpu: 1
-              memory: 2G
+              cpu: {{ .Values.resources.worker.limits.cpu }}
+              memory: {{ .Values.resources.worker.limits.memory }}
             requests:
-              cpu: 1
-              memory: 2G
+              cpu: {{ .Values.resources.worker.requests.cpu }}
+              memory: {{ .Values.resources.worker.requests.memory }}
           command: ["/entrypoint.sh"]
           args: ["worker-only", "--no-format"]
           env:
@@ -51,9 +49,9 @@ spec:
           - configMapRef:
               name: alluxio-config
           ports:
-          - containerPort: 29999
+          - containerPort: {{ .Values.resources.worker.ports.rpc }}
             name: rpc
-          - containerPort: 29996
+          - containerPort: {{ .Values.resources.worker.ports.web }}
             name: web
           volumeMounts:
             - name: alluxio-ramdisk
@@ -61,15 +59,15 @@ spec:
             - name: alluxio-domain
               mountPath: /opt/domain
         - name: alluxio-job-worker
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           resources:
             limits:
-              cpu: 1
-              memory: 1G
+              cpu: {{ .Values.resources.jobWorker.limits.cpu }}
+              memory: {{ .Values.resources.jobWorker.limits.memory }}
             requests:
-              cpu: 1
-              memory: 1G
+              cpu: {{ .Values.resources.jobWorker.requests.cpu }}
+              memory: {{ .Values.resources.jobWorker.requests.memory }}
           command: ["/entrypoint.sh"]
           args: ["job-worker"]
           env:
@@ -83,11 +81,11 @@ spec:
           - configMapRef:
               name: alluxio-config
           ports:
-          - containerPort: 30001
+          - containerPort: {{ .Values.resources.jobWorker.ports.rpc }}
             name: job-rpc
-          - containerPort: 30002
+          - containerPort: {{ .Values.resources.jobWorker.ports.data }}
             name: job-data
-          - containerPort: 30003
+          - containerPort: {{ .Values.resources.jobWorker.ports.web }}
             name: job-web
           volumeMounts:
             - name: alluxio-ramdisk
@@ -99,9 +97,8 @@ spec:
         - name: alluxio-ramdisk
           emptyDir:
             medium: "Memory"
-            sizeLimit: "1Gi"
+            sizeLimit: {{ .Values.volumes.worker.ramdisk.size | quote }}
         - name: alluxio-domain
           hostPath:
-            path: /tmp/alluxio-domain
+            path: {{ .Values.volumes.worker.domainHostPath }}
             type: DirectoryOrCreate
-
