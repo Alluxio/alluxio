@@ -208,7 +208,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
               onSubmit={disableFormSubmit}>
           <FormGroup className="mb-2 mr-sm-2">
             <Button tag={Link} to={`/browse?path=/${queryStringSuffix}`} color="secondary"
-                    outline={true} disabled={'/' === lastFetched.path}>Root</Button>
+                    outline={true}>Root</Button>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
             <Label for="browsePath" className="mr-sm-2">Path</Label>
@@ -217,8 +217,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
                    onKeyUp={this.createInputEnterHandler(history, () => `/browse?path=${path}${queryStringSuffix}`)}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="secondary"
-                    disabled={path === lastFetched.path}>Go</Button>
+            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="secondary">Go</Button>
           </FormGroup>
         </Form>
         <Table hover={true}>
