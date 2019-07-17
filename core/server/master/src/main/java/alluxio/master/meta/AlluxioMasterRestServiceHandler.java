@@ -96,6 +96,7 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -367,8 +368,8 @@ public final class AlluxioMasterRestServiceHandler {
           ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setInvalidPathError("");
       List<FileInfo> filesInfo;
-      String path = requestPath;
-      if (path == null || path.isEmpty()) {
+      String path = URLDecoder.decode(requestPath, "UTF-8");
+      if (path.isEmpty()) {
         path = AlluxioURI.SEPARATOR;
       }
       AlluxioURI currentPath = new AlluxioURI(path);
