@@ -40,9 +40,8 @@ To begin with, [download an Alluxio release](https://www.alluxio.io/download) an
 ```bash
 aws emr create-default-roles
 ```
-2. Upload `integration/emr/alluxio-emr.sh` script to your S3 bucket. (This script was not included in versions <= 2.0.
-For these versions, please download the script from
-[our github](https://github.com/Alluxio/alluxio/tree/master/integration/emr/))
+2. Download `alluxio-emr.sh` from [our github](https://github.com/Alluxio/alluxio/tree/master/integration/emr/) and
+upload the script to your S3 bucket.
 3. The input arguments for the bootstrap script are in the order below:
     - The URI from where to download the Alluxio Release `.tar.gz` file. This can be an `http://`
      URI, `s3://` URI or an `http://` URI.
