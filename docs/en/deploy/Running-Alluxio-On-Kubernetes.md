@@ -72,6 +72,7 @@ repository, follow instructions as follows:
 ```bash
 helm init
 helm package helm/alluxio/
+mkdir -p helm/charts/
 cp alluxio-{{site.ALLUXIO_VERSION_STRING}}.tgz helm/charts/
 helm repo index helm/charts/
 helm serve --repo-path helm/charts
