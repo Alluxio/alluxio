@@ -25,7 +25,9 @@ import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.raft.transport.CopycatGrpcTransport;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -33,7 +35,6 @@ import alluxio.util.io.FileUtils;
 import com.google.common.base.Preconditions;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.netty.NettyTransport;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.copycat.client.RecoveryStrategies;
 import io.atomix.copycat.server.CopycatServer;
@@ -215,7 +216,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withHeartbeatInterval(Duration.ofMillis(mConf.getHeartbeatIntervalMs()))
         .withSnapshotAllowed(mSnapshotAllowed)
         .withSerializer(createSerializer())
-        .withTransport(new NettyTransport())
+        .withTransport(new CopycatGrpcTransport(
+            ServerConfiguration.global(),
+            ServerConfiguration.global(),
+            ServerUserState.global(),
+            ServerUserState.global()))
         // Copycat wants a supplier that will generate *new* state machines. We can't handle
         // generating a new state machine here, so we will throw an exception if copycat tries to
         // call the supplier more than once.
@@ -245,6 +250,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withRecoveryStrategy(RecoveryStrategies.RECOVER)
         .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
             Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
+        .withTransport(new CopycatGrpcTransport(
+            ServerConfiguration.global(),
+            ServerConfiguration.global(),
+            ServerUserState.global(),
+            ServerUserState.global()))
+        .withSerializer(createSerializer())
         .build();
   }
 
