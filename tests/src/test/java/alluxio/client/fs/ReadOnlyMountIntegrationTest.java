@@ -23,6 +23,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -291,6 +292,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
   public void setAttribute() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
     mFileSystem.setAttribute(fileUri, SetAttributePOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
         .setPinned(true)
         .setReplicationMax(10)
         .setReplicationMin(1)

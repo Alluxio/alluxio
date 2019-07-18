@@ -256,6 +256,23 @@ public class FileSystemOptions {
   }
 
   /**
+   * Defaults for the SetAttribute RPC which should only be used on the client side.
+   *
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static SetAttributePOptions setAttributeClientDefaults(AlluxioConfiguration conf) {
+    // Specifically set and override *only* the metadata sync interval
+    // Setting other attributes by default will make the server think the user is intentionally
+    // setting the values. Most fields withinSetAttributePOptions are set by inclusion
+    return SetAttributePOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
+            .build())
+        .build();
+  }
+
+  /**
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
