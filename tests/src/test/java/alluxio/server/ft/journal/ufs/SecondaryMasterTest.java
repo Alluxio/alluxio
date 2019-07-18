@@ -13,8 +13,8 @@ package alluxio.server.ft.journal.ufs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
