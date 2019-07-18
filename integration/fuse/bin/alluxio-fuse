@@ -116,26 +116,6 @@ fi
 
 case $1 in
   mount)
-<<<<<<< HEAD
-    if [[ $# -eq 2 ]]; then
-      mount_fuse $2 /
-||||||| parent of 4af760027d...  Fix various minor issues in alluxio-fuse script (#8365)
-    shift
-    while getopts "o:" option; do
-      case "${option}" in
-        o)
-          mount_option=${OPTARG}
-          ;;
-        *)
-          echo -e "${USAGE}" >&2
-          exit 1
-          ;;
-      esac
-    done
-    shift $((${OPTIND} - 1))
-    if [[ $# -eq 1 ]]; then
-      mount_fuse $1 /
-=======
     shift
     while getopts "o:" option; do
       case "${option}" in
@@ -155,23 +135,16 @@ case $1 in
     fi
     if [[ $# -eq 1 ]]; then
       mount_fuse $1 /
->>>>>>> 4af760027d...  Fix various minor issues in alluxio-fuse script (#8365)
       exit $?
     fi
-    if [[ $# -eq 3 ]]; then
-      mount_fuse $2 $3
+    if [[ $# -eq 2 ]]; then
+      mount_fuse $1 $2
       exit $?
     fi
     echo -e "Usage\n\talluxio-fuse mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
     exit 1
     ;;
-<<<<<<< HEAD
-  umount)    
-||||||| parent of 4af760027d...  Fix various minor issues in alluxio-fuse script (#8365)
-  umount)
-=======
   umount|unmount)
->>>>>>> 4af760027d...  Fix various minor issues in alluxio-fuse script (#8365)
     if [[ $# -eq 2 ]]; then
       umount_fuse $2
       exit $?
