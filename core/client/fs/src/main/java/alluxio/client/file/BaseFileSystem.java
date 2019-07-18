@@ -474,8 +474,11 @@ public class BaseFileSystem implements FileSystem {
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
+    SetAttributePOptions mergedOptions =
+        FileSystemOptions.setAttributeClientDefaults(mFsContext.getPathConf(path))
+            .toBuilder().mergeFrom(options).build();
     rpc(client -> {
-      client.setAttribute(path, options);
+      client.setAttribute(path, mergedOptions);
       LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
       return null;
     });
