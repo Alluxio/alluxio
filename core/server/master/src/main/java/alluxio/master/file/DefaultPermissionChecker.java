@@ -124,7 +124,8 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
   @Override
   public void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
-      boolean ownerRequired) throws AccessControlException, InvalidPathException {
+      boolean ownerRequired, boolean writeRequired)
+      throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
     }
@@ -137,7 +138,10 @@ public class DefaultPermissionChecker implements PermissionChecker {
     if (ownerRequired) {
       checkOwner(inodePath);
     }
-    checkPermission(Mode.Bits.WRITE, inodePath);
+    // For other non-permission related attributes
+    if (writeRequired) {
+      checkPermission(Mode.Bits.WRITE, inodePath);
+    }
   }
 
   /**
