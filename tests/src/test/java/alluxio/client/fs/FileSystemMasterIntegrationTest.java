@@ -1173,6 +1173,55 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     fsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
   }
 
+  @Test
+  public void setModeOwnerNoWritePermission() throws Exception {
+    AlluxioURI root = new AlluxioURI("/");
+    mFsMaster.setAttribute(root, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    try (AutoCloseable closeable =
+             new AuthenticatedUserRule("foo", ServerConfiguration.global()).toResource()) {
+      AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+      FileInfo file = mFsMaster.createFile(alluxioFile, CreateFileContext.defaults());
+
+      long opTimeMs = TEST_TIME_MS;
+      mFsMaster.completeFile(alluxioFile, CompleteFileContext
+          .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0))
+          .setOperationTimeMs(opTimeMs));
+      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0407).toProto())));
+      Assert.assertEquals(0407, mFsMaster.getFileInfo(file.getFileId()).getMode());
+      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+      Assert.assertEquals(0777, mFsMaster.getFileInfo(file.getFileId()).getMode());
+    }
+  }
+
+  @Test
+  public void setModeNoOwner() throws Exception {
+    AlluxioURI root = new AlluxioURI("/");
+    mFsMaster.setAttribute(root, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+    try (AutoCloseable closeable =
+             new AuthenticatedUserRule("foo", ServerConfiguration.global()).toResource()) {
+      FileInfo file = mFsMaster.createFile(alluxioFile, CreateFileContext.defaults());
+
+      long opTimeMs = TEST_TIME_MS;
+      mFsMaster.completeFile(alluxioFile, CompleteFileContext
+          .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0))
+          .setOperationTimeMs(opTimeMs));
+      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+      Assert.assertEquals(0777, mFsMaster.getFileInfo(file.getFileId()).getMode());
+    }
+    mThrown.expect(AccessControlException.class);
+    try (AutoCloseable closeable =
+             new AuthenticatedUserRule("bar", ServerConfiguration.global()).toResource()) {
+      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0677).toProto())));
+    }
+  }
+
   /**
    * Tests creating a directory in a nested directory load the UFS status of Inodes on the path.
    */
