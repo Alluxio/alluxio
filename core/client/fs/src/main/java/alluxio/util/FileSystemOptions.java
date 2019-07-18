@@ -256,7 +256,8 @@ public class FileSystemOptions {
   }
 
   /**
-   * Sets the defaults for the SetAttribute RPC which should be used on the client side.
+   * Defaults for the SetAttribute RPC which should only be used on the client side.
+   *
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
