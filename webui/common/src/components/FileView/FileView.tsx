@@ -25,12 +25,6 @@ export interface IFileViewProps {
   end?: string
   endInputHandler: (event: React.MouseEvent<HTMLButtonElement>) => void;
   history: History<LocationState>;
-  lastFetched: {
-    end?: string;
-    limit?: string;
-    offset?: string;
-    path?: string;
-  };
   limit?: string;
   offset?: string;
   offsetInputHandler: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -58,7 +52,7 @@ export interface IFileViewProps {
 export class FileView extends React.PureComponent<IFileViewProps> {
   public render(): JSX.Element {
     const {
-      beginInputHandler, end, endInputHandler, lastFetched, offset, offsetInputHandler, path, queryStringPrefix,
+      beginInputHandler, end, endInputHandler, offset, offsetInputHandler, path, queryStringPrefix,
       queryStringSuffix, textAreaHeight, viewData, history
     } = this.props;
 
@@ -96,8 +90,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             </ButtonGroup>
           </FormGroup>
           <FormGroup className="col-2">
-            <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="secondary"
-                    disabled={offset !== '' && offset === lastFetched.offset && end === lastFetched.end}>Go</Button>
+            <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="secondary">Go</Button>
           </FormGroup>
           {this.renderDownloadLink()}
         </Form>
