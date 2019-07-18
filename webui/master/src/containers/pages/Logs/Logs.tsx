@@ -58,7 +58,8 @@ export class Logs extends React.Component<AllProps, ILogsState> {
   constructor(props: AllProps) {
     super(props);
 
-    const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    offset = offset || '0';
     this.state = {end, limit, offset, path};
   }
 
@@ -66,7 +67,8 @@ export class Logs extends React.Component<AllProps, ILogsState> {
     const {refresh, location: {search}} = this.props;
     const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
-      const {path, offset, limit, end} = parseQuerystring(search);
+      let {path, offset, limit, end} = parseQuerystring(search);
+      offset = offset || '0';
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
     }
@@ -137,7 +139,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
     const endInputHandler = this.createButtonHandler('end', value => '1').bind(this);
     return (
       <FileView beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
-                offset={offset || '0'} offsetInputHandler={offsetInputHandler} path={path}
+                offset={offset} offsetInputHandler={offsetInputHandler} path={path}
                 queryStringPrefix="/logs" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
                 viewData={logs} history={history}/>
     );
