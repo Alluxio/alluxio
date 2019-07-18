@@ -474,9 +474,6 @@ public class BaseFileSystem implements FileSystem {
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    // Specifically set and override *only* the metadata sync interval
-    // Setting other attributes by default will make the server think the user is intentionally
-    // setting the values. Most fields withinSetAttributePOptions are set by inclusion.
     SetAttributePOptions mergedOptions =
         FileSystemOptions.setAttributeClientDefaults(mFsContext.getPathConf(path))
             .toBuilder().mergeFrom(options).build();
