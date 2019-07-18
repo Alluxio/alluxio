@@ -11,23 +11,11 @@
 
 package alluxio.master;
 
-<<<<<<< HEAD
 import alluxio.Configuration;
-||||||| parent of 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
-import alluxio.conf.ServerConfiguration;
-=======
->>>>>>> 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
 import alluxio.Process;
 import alluxio.ProcessUtils;
-<<<<<<< HEAD
 import alluxio.PropertyKey;
-||||||| parent of 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
-import alluxio.conf.PropertyKey;
-=======
->>>>>>> 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
 import alluxio.RuntimeConstants;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.util.CommonUtils;
@@ -39,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -102,13 +89,10 @@ public final class AlluxioSecondaryMaster implements Process {
   @Override
   public boolean waitForReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor("Secondary master to start", () -> mRunning,
+      CommonUtils.waitFor("Secondary master to start", (input) -> mRunning,
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
+    } catch (Exception e) {
       return false;
     }
   }
