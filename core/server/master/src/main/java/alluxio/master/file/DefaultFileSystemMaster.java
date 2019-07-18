@@ -3137,6 +3137,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // for chgrp, chmod
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
+    boolean writeRequired = !rootRequired && !ownerRequired;
     if (options.getOwner() != null && options.getGroup() != null) {
       try {
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
@@ -3167,7 +3168,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
          FileSystemMasterAuditContext auditContext =
              createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
       try {
-        mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
+        mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired, writeRequired);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
