@@ -214,7 +214,8 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
             <Label for="browsePath" className="mr-sm-2">Path</Label>
             <Input type="text" id="browsePath" placeholder="Enter a Path" value={path || '/'}
                    onChange={pathInputHandler}
-                   onKeyUp={this.createInputEnterHandler(history, () => `/browse?path=${path}${queryStringSuffix}`)}/>
+                   onKeyUp={this.createInputEnterHandler(history, () =>
+                   `/browse?path=${path}${queryStringSuffix}`)}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
             <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="secondary">Go</Button>
@@ -255,7 +256,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
             <tr key={fileInfo.absolutePath}>
               <td><FontAwesomeIcon icon={fileInfo.isDirectory ? faFolder : faFile}/></td>
               <td>
-                {renderFileNameLink.call(this, fileInfo.absolutePath, `/browse?path=${fileInfo.absolutePath}`)}
+                {renderFileNameLink.call(this, fileInfo.absolutePath, `/browse?path=`)}
               </td>
               <td>{fileInfo.size}</td>
               <td>{fileInfo.blockSizeBytes}</td>
