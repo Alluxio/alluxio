@@ -18,6 +18,8 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,8 @@ public final class AlluxioSecondaryMaster implements Process {
   private final BackupManager mBackupManager;
   private final long mStartTimeMs;
   private final int mPort;
+
+  private volatile boolean mRunning = false;
 
   /**
    * Creates a {@link AlluxioSecondaryMaster}.
@@ -70,19 +74,27 @@ public final class AlluxioSecondaryMaster implements Process {
 
   @Override
   public void start() throws Exception {
-    mRegistry.start(false);
+    mJournalSystem.start();
+    mRunning = true;
     mLatch.await();
+    mJournalSystem.stop();
+    mRunning = false;
   }
 
   @Override
   public void stop() throws Exception {
-    mRegistry.stop();
     mLatch.countDown();
   }
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return true;
+    try {
+      CommonUtils.waitFor("Secondary master to start", (input) -> mRunning,
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   @Override
