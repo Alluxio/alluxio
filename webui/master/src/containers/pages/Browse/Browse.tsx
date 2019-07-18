@@ -56,12 +56,6 @@ interface IBrowseState {
   limit?: string;
   offset?: string;
   path?: string;
-  lastFetched: {
-    end?: string;
-    limit?: string;
-    offset?: string;
-    path?: string;
-  };
   textAreaHeight?: number;
 }
 
@@ -80,7 +74,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
 
     let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
     offset = offset || '0';
-    this.state = {end, limit, offset, path: path || '/', lastFetched: {}};
+    this.state = {end, limit, offset, path: path || '/'};
   }
 
   public componentDidUpdate(prevProps: AllProps) {
@@ -154,7 +148,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   private renderFileView(browseData: IBrowse, queryStringSuffix: string, initData: IInit) {
-    const {textAreaHeight, path, offset, end, lastFetched} = this.state;
+    const {textAreaHeight, path, offset, end} = this.state;
     const {history} = this.props;
     const offsetInputHandler = this.createInputChangeHandler('offset', value => value).bind(this);
     const beginInputHandler = this.createButtonHandler('end', value => undefined).bind(this);
@@ -162,7 +156,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     return (
       <React.Fragment>
         <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
-                  lastFetched={lastFetched} offset={offset || '0'} offsetInputHandler={offsetInputHandler} path={path}
+                  offset={offset || '0'} offsetInputHandler={offsetInputHandler} path={path}
                   queryStringPrefix="/browse" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
                   viewData={browseData} history={history} proxyDownloadApiUrl={initData.proxyDownloadFileApiUrl}/>
         <hr/>
@@ -198,7 +192,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   private renderDirectoryListing(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
-    const {path, lastFetched, offset, limit} = this.state;
+    const {path, offset, limit} = this.state;
     const {history} = this.props;
     const fileInfos = browseData.fileInfos;
     const pathInputHandler = this.createInputChangeHandler('path', value => value).bind(this);
@@ -218,7 +212,8 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
                    `/browse?path=${path}${queryStringSuffix}`)}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="secondary">Go</Button>
+            <Button tag={Link} to={`/browse?path=${encodeURIComponent(path || "/")}${queryStringSuffix}`}
+            color="secondary">Go</Button>
           </FormGroup>
         </Form>
         <Table hover={true}>
@@ -298,7 +293,6 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   private fetchData(path?: string, offset?: string, limit?: string, end?: string) {
-    this.setState({lastFetched: {path, offset, limit, end}});
     this.props.fetchRequest(path, offset, limit, end);
   }
 

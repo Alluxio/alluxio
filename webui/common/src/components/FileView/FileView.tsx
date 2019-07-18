@@ -25,12 +25,6 @@ export interface IFileViewProps {
   end?: string
   endInputHandler: (event: React.MouseEvent<HTMLButtonElement>) => void;
   history: History<LocationState>;
-  lastFetched: {
-    end?: string;
-    limit?: string;
-    offset?: string;
-    path?: string;
-  };
   limit?: string;
   offset?: string;
   offsetInputHandler: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -58,7 +52,7 @@ export interface IFileViewProps {
 export class FileView extends React.PureComponent<IFileViewProps> {
   public render(): JSX.Element {
     const {
-      beginInputHandler, end, endInputHandler, lastFetched, offset, offsetInputHandler, path, queryStringPrefix,
+      beginInputHandler, end, endInputHandler, offset, offsetInputHandler, path, queryStringPrefix,
       queryStringSuffix, textAreaHeight, viewData, history
     } = this.props;
 
