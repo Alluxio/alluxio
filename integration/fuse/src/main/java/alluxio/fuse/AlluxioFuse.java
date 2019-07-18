@@ -26,6 +26,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.serce.jnrfuse.FuseException;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -70,7 +71,8 @@ public final class AlluxioFuse {
     try {
       fs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
           fuseOpts.toArray(new String[0]));
-    } finally {
+    } catch (FuseException e) {
+      //only try to umount file system when exception occurred
       fs.umount();
     }
   }
