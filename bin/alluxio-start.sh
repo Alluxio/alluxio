@@ -242,6 +242,12 @@ start_master() {
   fi
 
   if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
+    local keyword="alluxio.master.AlluxioSecondaryMaster"
+    pids=($(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'))
+    if [ ${#pids[@]} -ge 1 ]; then
+        echo "secondary master is already running @ $(hostname -f)."
+        return
+    fi
     if [[ -z ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} ]]; then
       ALLUXIO_SECONDARY_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
     fi
@@ -257,6 +263,12 @@ start_master() {
      ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} \
      alluxio.master.AlluxioSecondaryMaster > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
   else
+    local keyword="alluxio.master.AlluxioMaster"
+    pids=($(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'))
+    if [ ${#pids[@]} -ge 1 ]; then
+        echo "master is already running @ $(hostname -f)."
+        return
+    fi
     if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
       ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
     fi
