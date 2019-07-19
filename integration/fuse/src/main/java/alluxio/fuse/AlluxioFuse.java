@@ -24,6 +24,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.serce.jnrfuse.FuseException;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -39,8 +40,7 @@ public final class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuse.class);
 
   // prevent instantiation
-  private AlluxioFuse() {
-  }
+  private AlluxioFuse() {}
 
   /**
    * Running this class will mount the file system according to
@@ -68,8 +68,18 @@ public final class AlluxioFuse {
     try {
       fs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
           fuseOpts.toArray(new String[0]));
-    } finally {
+    } catch (FuseException e) {
+      LOG.error("Failed to mount {}", opts.getMountPoint(), e);
+      // only try to umount file system when exception occurred.
+      // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
+      // will be executed when this process is exiting.
       fs.umount();
+    } finally {
+      try {
+        tfs.close();
+      } catch (Exception e) {
+        LOG.error("Failed to close Alluxio file system", e);
+      }
     }
   }
 
