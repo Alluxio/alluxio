@@ -74,12 +74,6 @@ public final class AlluxioFuse {
       // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
       // will be executed when this process is exiting.
       fs.umount();
-    } finally {
-      try {
-        tfs.close();
-      } catch (Exception e) {
-        LOG.error("Failed to close Alluxio file system", e);
-      }
     }
   }
 
