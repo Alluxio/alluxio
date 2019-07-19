@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.FuseException;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,9 +72,14 @@ public final class AlluxioFuse {
     try {
       fs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
           fuseOpts.toArray(new String[0]));
+      tfs.close();
     } catch (FuseException e) {
-      //only try to umount file system when exception occurred
+      //only try to umount file system when exception occurred.
+      //but jnr-fuse also registers shutdown hook to ensure fs.umount()
+      //can be executed when this process is exiting.
       fs.umount();
+    } catch (IOException e) {
+      //ignore this exception, since this process is exiting.
     }
   }
 
