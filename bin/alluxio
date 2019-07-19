@@ -97,7 +97,12 @@ function killAll {
     done
     count=$(expr ${count} + 1)
   done
-  echo "Killed ${count} processes on $(hostname)"
+  if [ $count -le 1 ]; then
+    process="process"
+  else
+    process="processes"
+  fi
+  echo "Killed ${count} ${process} on $(hostname)"
 }
 
 function copyDir {
