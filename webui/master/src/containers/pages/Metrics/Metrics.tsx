@@ -102,6 +102,8 @@ export class Metrics extends React.Component<AllProps> {
                 <tr>
                   <th>Short-circuit Read</th>
                   <td>{'N/A'}</td>
+                  <th></th>
+                  <td></td>
                 </tr>
                 </tbody>
               </Table>
@@ -131,6 +133,8 @@ export class Metrics extends React.Component<AllProps> {
                 <tr>
                   <th>Short-circuit Read</th>
                   <td>{'N/A'}</td>
+                  <th></th>
+                  <td></td>
                 </tr>
                 </tbody>
               </Table>
