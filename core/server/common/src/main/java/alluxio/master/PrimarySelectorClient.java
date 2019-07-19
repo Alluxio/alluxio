@@ -186,12 +186,15 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     // This is only required if the client is used to write data to zookeeper.
     curatorBuilder.dontUseContainerParents();
 
+    CuratorFramework client = curatorBuilder.build();
+    client.start();
+
     // Sometimes, if the master crashes and restarts too quickly (faster than the zookeeper
     // timeout), zookeeper thinks the new client is still an old one. In order to ensure a clean
     // state, explicitly close the "old" client and recreate a new one.
-    curatorBuilder.build().close();
+    client.close();
 
-    CuratorFramework client = curatorBuilder.build();
+    client = curatorBuilder.build();
     client.start();
     return client;
   }
