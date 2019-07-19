@@ -1,13 +1,7 @@
 import {Link} from 'react-router-dom';
 import React from 'react';
 
-export const renderFileNameLink = function (this: any, path: string, urlPrefix: string) {
-  const {lastFetched} = this.state;
-  if (path === lastFetched.path) {
-    return (
-      path
-    );
-  }
+export const renderFileNameLink = function (path: string, urlPrefix: string): JSX.Element {
   const encodedPath = encodeURIComponent(path) || "";
   const encodedUrl = urlPrefix + encodedPath;
 
