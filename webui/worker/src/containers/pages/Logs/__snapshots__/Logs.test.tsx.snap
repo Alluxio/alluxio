@@ -988,18 +988,10 @@ exports[`Logs Shallow component Matches snapshot 1`] = `
               "replace": [Function],
             }
           }
-          lastFetched={
-            Object {
-              "end": undefined,
-              "limit": undefined,
-              "offset": undefined,
-              "path": undefined,
-            }
-          }
           offset="0"
           offsetInputHandler={[Function]}
           queryStringPrefix="/logs"
-          queryStringSuffix=""
+          queryStringSuffix="&offset=0"
           textAreaHeight={384}
           viewData={
             Object {
