@@ -57,9 +57,15 @@ mount_fuse() {
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
   local alluxio_root=$2
+  local full_mount_option=""
+  if [[ ! -z "${mount_option}" ]]; then
+    full_mount_option="big_writes,${mount_option}"
+  else
+    full_mount_option="big_writes"
+  fi
   (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
-    -o big_writes \
+    -o ${full_mount_option} \
     -m ${mount_point} \
     -r ${alluxio_root} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
