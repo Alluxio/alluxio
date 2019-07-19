@@ -1135,49 +1135,36 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void setModeOwnerNoWritePermission() throws Exception {
     AlluxioURI root = new AlluxioURI("/");
-    mFsMaster.setAttribute(root, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    try (AutoCloseable closeable =
-             new AuthenticatedUserRule("foo", ServerConfiguration.global()).toResource()) {
+    mFsMaster.setAttribute(root, SetAttributeOptions.defaults().setMode((short) 0777));
+    try (AutoCloseable closeable = new AuthenticatedUserRule("foo").toResource()) {
       AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
-      FileInfo file = mFsMaster.createFile(alluxioFile, CreateFileContext.defaults());
-
+      long fileId = mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setOwner("foo"));
       long opTimeMs = TEST_TIME_MS;
-      mFsMaster.completeFile(alluxioFile, CompleteFileContext
-          .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0))
+      mFsMaster.completeFile(alluxioFile, CompleteFileOptions.defaults().setUfsLength(0)
           .setOperationTimeMs(opTimeMs));
-      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
-          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0407).toProto())));
-      Assert.assertEquals(0407, mFsMaster.getFileInfo(file.getFileId()).getMode());
-      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
-          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-      Assert.assertEquals(0777, mFsMaster.getFileInfo(file.getFileId()).getMode());
+      mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0407));
+      Assert.assertEquals(0407, mFsMaster.getFileInfo(fileId).getMode());
+      mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0777));
+      Assert.assertEquals(0777, mFsMaster.getFileInfo(fileId).getMode());
     }
   }
 
   @Test
   public void setModeNoOwner() throws Exception {
     AlluxioURI root = new AlluxioURI("/");
-    mFsMaster.setAttribute(root, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFsMaster.setAttribute(root, SetAttributeOptions.defaults().setMode((short) 0777));
     AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
-    try (AutoCloseable closeable =
-             new AuthenticatedUserRule("foo", ServerConfiguration.global()).toResource()) {
-      FileInfo file = mFsMaster.createFile(alluxioFile, CreateFileContext.defaults());
-
+    try (AutoCloseable closeable = new AuthenticatedUserRule("foo").toResource()) {
+      long fileId = mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setOwner("foo"));
       long opTimeMs = TEST_TIME_MS;
-      mFsMaster.completeFile(alluxioFile, CompleteFileContext
-          .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0))
+      mFsMaster.completeFile(alluxioFile, CompleteFileOptions.defaults().setUfsLength(0)
           .setOperationTimeMs(opTimeMs));
-      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
-          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-      Assert.assertEquals(0777, mFsMaster.getFileInfo(file.getFileId()).getMode());
+      mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0777));
+      Assert.assertEquals(0777, mFsMaster.getFileInfo(fileId).getMode());
     }
     mThrown.expect(AccessControlException.class);
-    try (AutoCloseable closeable =
-             new AuthenticatedUserRule("bar", ServerConfiguration.global()).toResource()) {
-      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
-          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0677).toProto())));
+    try (AutoCloseable closeable = new AuthenticatedUserRule("bar").toResource()) {
+      mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0677));
     }
   }
 

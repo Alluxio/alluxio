@@ -3168,7 +3168,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
          FileSystemMasterAuditContext auditContext =
              createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
       try {
-        mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired, writeRequired);
+        mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired,
+            writeRequired);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
@@ -3185,7 +3186,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
 
-      setAttributeAndJournal(rpcContext, inodePath, rootRequired, ownerRequired, options);
+      setAttributeAndJournal(rpcContext, inodePath, rootRequired, ownerRequired, writeRequired,
+          options);
       auditContext.setSucceeded(true);
     }
   }
@@ -3221,7 +3223,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws AccessControlException if permission checking fails
    */
   private void setAttributeAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
-      boolean rootRequired, boolean ownerRequired, SetAttributeOptions options)
+      boolean rootRequired, boolean ownerRequired, boolean writeRequired,
+      SetAttributeOptions options)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
     Inode<?> targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
@@ -3229,7 +3232,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try (LockedInodePathList descendants = mInodeTree.lockDescendants(inodePath,
           InodeTree.LockMode.WRITE)) {
         for (LockedInodePath childPath : descendants.getInodePathList()) {
-          mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
+          mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired,
+              writeRequired);
         }
         for (LockedInodePath childPath : descendants.getInodePathList()) {
           List<Inode<?>> persistedInodes =
