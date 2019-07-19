@@ -172,20 +172,26 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    * @return a new {@link CuratorFramework} client to use for leader selection
    */
   private CuratorFramework getNewCuratorClient() {
-    CuratorFramework client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT),
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT),
-        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
-    client.start();
+    LOG.info("Creating new zookeeper client for primary selector {}", mZookeeperAddress);
+    CuratorFrameworkFactory.Builder curatorBuilder = CuratorFrameworkFactory.builder();
+    curatorBuilder.connectString(mZookeeperAddress);
+    curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    curatorBuilder
+        .sessionTimeoutMs((int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT));
+    curatorBuilder
+        .connectionTimeoutMs((int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT));
+    // Force compatibility mode to support writing to 3.4.x servers.
+    curatorBuilder.zk34CompatibilityMode(true);
+    // Prevent using container parents as it breaks compatibility with 3.4.x servers.
+    // This is only required if the client is used to write data to zookeeper.
+    curatorBuilder.dontUseContainerParents();
 
     // Sometimes, if the master crashes and restarts too quickly (faster than the zookeeper
     // timeout), zookeeper thinks the new client is still an old one. In order to ensure a clean
     // state, explicitly close the "old" client and recreate a new one.
-    client.close();
-    client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT),
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT),
-        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    curatorBuilder.build().close();
+
+    CuratorFramework client = curatorBuilder.build();
     client.start();
     return client;
   }
