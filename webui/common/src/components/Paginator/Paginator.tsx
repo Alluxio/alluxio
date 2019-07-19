@@ -91,13 +91,13 @@ export class Paginator extends React.PureComponent<IPaginatorProps> {
                 {numLimit} Rows / Page
               </DropdownToggle>
               <DropdownMenu>
-                <DropdownItem tag={Link} className="text-success"
+                <DropdownItem tag={Link} className={numLimit === 20 ? "" : "text-success"}
                               to={`${baseUrl}?offset=${0}&limit=${20}${path ? `&path=${path}` : ''}`}
                               disabled={numLimit === 20}>20 Rows / Page</DropdownItem>
-                <DropdownItem tag={Link} className="text-success"
+                <DropdownItem tag={Link} className={numLimit === 100 ? "" : "text-success"}
                               to={`${baseUrl}?offset=${0}&limit=${100}${path ? `&path=${path}` : ''}`}
                               disabled={numLimit === 100}>100 Rows / Page</DropdownItem>
-                <DropdownItem tag={Link} className="text-success"
+                <DropdownItem tag={Link} className={numLimit === 500 ? "" : "text-success"}
                               to={`${baseUrl}?offset=${0}&limit=${500}${path ? `&path=${path}` : ''}`}
                               disabled={numLimit === 500}>500 Rows / Page</DropdownItem>
               </DropdownMenu>
