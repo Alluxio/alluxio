@@ -122,8 +122,9 @@ export class Logs extends React.Component<AllProps, ILogsState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              {data.fileData && this.renderFileView(data, queryStringSuffix)}
-              {!data.fileData && this.renderDirectoryListing(data.fileInfos, queryStringSuffix)}
+              {data.fileData !== null
+                  ? this.renderFileView(data, queryStringSuffix)
+                  : this.renderDirectoryListing(data.fileInfos, queryStringSuffix)}
             </div>
           </div>
         </div>
