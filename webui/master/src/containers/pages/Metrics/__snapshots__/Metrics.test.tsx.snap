@@ -1094,6 +1094,14 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
               </th>
               <td />
             </tr>
+            <tr>
+              <th>
+                Short-circuit Read
+              </th>
+              <td>
+                N/A
+              </td>
+            </tr>
           </tbody>
         </Table>
       </div>
@@ -1138,6 +1146,14 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
                 Under Filesystem Write
               </th>
               <td />
+            </tr>
+            <tr>
+              <th>
+                Short-circuit Read
+              </th>
+              <td>
+                N/A
+              </td>
             </tr>
           </tbody>
         </Table>

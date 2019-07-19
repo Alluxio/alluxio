@@ -99,6 +99,10 @@ export class Metrics extends React.Component<AllProps> {
                   <th>Under Filesystem Write</th>
                   <td>{data.totalBytesWrittenUfs}</td>
                 </tr>
+                <tr>
+                  <th>Short-circuit Read</th>
+                  <td>{'N/A'}</td>
+                </tr>
                 </tbody>
               </Table>
             </div>
@@ -123,6 +127,10 @@ export class Metrics extends React.Component<AllProps> {
                   <td>{data.totalBytesReadUfsThroughput}</td>
                   <th>Under Filesystem Write</th>
                   <td>{data.totalBytesWrittenUfsThroughput}</td>
+                </tr>
+                <tr>
+                  <th>Short-circuit Read</th>
+                  <td>{'N/A'}</td>
                 </tr>
                 </tbody>
               </Table>
