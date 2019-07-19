@@ -965,38 +965,47 @@ exports[`Logs Shallow component Matches snapshot 1`] = `
       <div
         className="col-12"
       >
-        <Table
-          hover={true}
-          responsiveTag="div"
-          tag="table"
-        >
-          <thead>
-            <tr>
-              <th>
-                File Name
-              </th>
-              <th>
-                Size
-              </th>
-              <th>
-                Block Size
-              </th>
-              <th>
-                In-Alluxio
-              </th>
-              <th>
-                Persistence State
-              </th>
-              <th>
-                Pin
-              </th>
-              <th>
-                Modification Time
-              </th>
-            </tr>
-          </thead>
-          <tbody />
-        </Table>
+        <FileView
+          beginInputHandler={[Function]}
+          endInputHandler={[Function]}
+          history={
+            Object {
+              "action": "PUSH",
+              "block": [Function],
+              "createHref": [Function],
+              "go": [Function],
+              "goBack": [Function],
+              "goForward": [Function],
+              "length": 2,
+              "listen": [Function],
+              "location": Object {
+                "hash": "",
+                "pathname": "/logs",
+                "search": "",
+                "state": undefined,
+              },
+              "push": [Function],
+              "replace": [Function],
+            }
+          }
+          offset="0"
+          offsetInputHandler={[Function]}
+          queryStringPrefix="/logs"
+          queryStringSuffix="&offset=0"
+          textAreaHeight={384}
+          viewData={
+            Object {
+              "currentPath": "",
+              "debug": false,
+              "fatalError": "",
+              "fileData": "",
+              "fileInfos": Array [],
+              "invalidPathError": "",
+              "ntotalFile": 0,
+              "viewingOffset": 0,
+            }
+          }
+        />
       </div>
     </div>
   </div>
