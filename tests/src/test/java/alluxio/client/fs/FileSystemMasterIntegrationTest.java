@@ -1132,6 +1132,42 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     fsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
   }
 
+  @Test
+  public void setModeOwnerNoWritePermission() throws Exception {
+    AlluxioURI root = new AlluxioURI("/");
+    mFsMaster.setAttribute(root, SetAttributeOptions.defaults().setMode((short) 0777));
+    try (AutoCloseable closeable = new AuthenticatedUserRule("foo").toResource()) {
+      AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+      long fileId = mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setOwner("foo"));
+      long opTimeMs = TEST_TIME_MS;
+      mFsMaster.completeFile(alluxioFile, CompleteFileOptions.defaults().setUfsLength(0)
+          .setOperationTimeMs(opTimeMs));
+      mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0407));
+      Assert.assertEquals(0407, mFsMaster.getFileInfo(fileId).getMode());
+      mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0777));
+      Assert.assertEquals(0777, mFsMaster.getFileInfo(fileId).getMode());
+    }
+  }
+
+  @Test
+  public void setModeNoOwner() throws Exception {
+    AlluxioURI root = new AlluxioURI("/");
+    mFsMaster.setAttribute(root, SetAttributeOptions.defaults().setMode((short) 0777));
+    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+    try (AutoCloseable closeable = new AuthenticatedUserRule("foo").toResource()) {
+      long fileId = mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setOwner("foo"));
+      long opTimeMs = TEST_TIME_MS;
+      mFsMaster.completeFile(alluxioFile, CompleteFileOptions.defaults().setUfsLength(0)
+          .setOperationTimeMs(opTimeMs));
+      mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0777));
+      Assert.assertEquals(0777, mFsMaster.getFileInfo(fileId).getMode());
+    }
+    mThrown.expect(AccessControlException.class);
+    try (AutoCloseable closeable = new AuthenticatedUserRule("bar").toResource()) {
+      mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0677));
+    }
+  }
+
   /**
    * Tests creating a directory in a nested directory load the UFS status of Inodes on the path.
    */
