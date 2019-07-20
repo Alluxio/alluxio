@@ -168,7 +168,7 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void mkDir() throws Exception {
     long mode = 0755L;
-    mFuseFs.mkdir("/foo/bar", -1);
+    mFuseFs.mkdir("/foo/bar", mode);
     verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"),
         CreateDirectoryOptions.defaults().setMode(new Mode((short) mode)));
   }
