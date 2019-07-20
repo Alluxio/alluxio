@@ -3624,7 +3624,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     TtlAction action = options.getTtlAction();
 
     if (ttl != null && inode.getTtl() != ttl) {
+      mTtlBuckets.remove(inode);
       inode.setTtl(ttl);
+      mTtlBuckets.insert(inode);
       modified = true;
     }
     if (action != null && inode.getTtlAction() != action) {
