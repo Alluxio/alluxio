@@ -42,6 +42,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import alluxio.wire.TtlAction;
+
 import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.Before;
@@ -333,7 +334,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   public void testTtlActionSetAttribute() throws Exception {
     AlluxioURI testFile = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 512);
-    mFileSystem.setAttribute(testFile, SetAttributeOptions.defaults().setTtl(0).setTtlAction(TtlAction.FREE));
+    mFileSystem.setAttribute(testFile, SetAttributeOptions.defaults()
+        .setTtl(0).setTtlAction(TtlAction.FREE));
     TtlAction expectedAction = TtlAction.FREE;
     TtlAction newTtlAction = TtlAction.DELETE;
     long newTtl = 123400000;
