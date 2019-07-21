@@ -46,7 +46,7 @@ Prebuilt binaries are available to download at https://www.alluxio.io/download .
 
 Download and start an Alluxio master and a worker. More details can be found in [documentation](https://docs.alluxio.io/os/user/stable/en/deploy/Running-Alluxio-On-Docker.html).
 
-```bash
+```console
 # Create a network for connecting Alluxio containers
 $ docker network create alluxio_nw
 # Create a volume for storing ufs data
@@ -69,7 +69,7 @@ $ docker run -d --net=alluxio_nw \
 
 ### MacOS Homebrew
 
-```bash
+```console
 $ brew install alluxio
 ```
 

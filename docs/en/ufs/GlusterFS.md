@@ -24,8 +24,8 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS volume is mounted at
@@ -40,9 +40,9 @@ alluxio.master.mount.table.root.ufs=/mnt/gluster
 
 Start up Alluxio locally to see that everything works.
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local SudoMount
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -50,8 +50,8 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 Visit your GlusterFS volume to verify the files and directories created
@@ -63,6 +63,6 @@ by Alluxio exist. For this test, you should see files named like:
 
 To stop Alluxio, you can run:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```

@@ -21,15 +21,15 @@ priority: 3
 
 注意，当从源码编译Alluxio时，默认预编译的Alluxio服务器二进制包适用于HDFS `2.2.0`。若使用其他版本的Hadoop，需要指定正确的Hadoop配置文件，然后在你的Alluxio目录下运行一下命令：
 
-```bash
-mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
+```console
+$ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
 ```
 
 Alluxio为不同的Hadoop版本提供了预先定义好的配置文件，包括`hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ...`hadoop-2.8`。如果你想将Alluxio和一个具体的Hadoop发行版本一起编译，你可以在命令中指定版本`<YOUR_HADOOP_VERSION>`
 比如：
 
-```bash
-mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
+```console
+$ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 ```
 
 这会将为Apache Hadoop 2.7.1编译Alluxio。
@@ -43,8 +43,8 @@ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 
 首先利用模板创建你的配置文件。
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 接着修改`conf/alluxio-site.properties`文件，将底层存储系统的地址设置为HDFS namenode的地址以及你想挂载到Alluxio的HDFS目录。例如，若你的HDFS namenode是在本地默认端口运行，并且将HDFS根目录映射到Alluxio，则该地址为`hdfs://localhost:9000`，或者，若仅仅映射HDFS的`/alluxio/data`目录到Alluxio，则地址为`hdfs://localhost:9000/alluxio/data`。
@@ -63,8 +63,8 @@ alluxio.master.mount.table.root.ufs=hdfs://NAMENODE:PORT
 
 * 如果你使用的是Hadoop，你可以将这两项配置添加到`${HADOOP_CONF_DIR}/hadoop-env.sh`文件的`HADOOP_OPTS`配置项。
 
-```bash
-export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
+```console
+$ export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
 * 如果你使用的是Spark，你可以将这两项配置添加到`${SPARK_CONF_DIR}/spark-env.sh`文件的`SPARK_JAVA_OPTS`配置项。
@@ -102,17 +102,17 @@ javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: 
 
 配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 为了这个测试能成功运行，你需要保证Alluxio cli登入的用户对挂载到Alluxio的HDFS目录有读/写的访问权限。默认情况下，登入的用户是当前主机OS的用户。要改变默认配置，可以设置`./conf/alluxio-site.properties`文件中的`alluxio.security.login.username`的值为想要的用户名。HDFS目录在`alluxio.master.mount.table.root.ufs`属性里声明。
@@ -121,7 +121,7 @@ javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: 
 
 运行以下命令停止Alluxio：
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 

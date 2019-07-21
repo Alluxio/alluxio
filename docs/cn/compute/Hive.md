@@ -25,8 +25,8 @@ priority: 2
 
 在shell或`conf/hive-env.sh`中设置`HIVE_AUX_JARS_PATH`：
 
-```bash
-export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
+```console
+$ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
 
@@ -43,9 +43,9 @@ Hive可以使用存储在Alluxio中的文件来创建新表。设置非常直接
 
 这里有一个示例展示了在Alluxio上创建Hive的内部表。你可以从[http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)下载数据文件（如：`ml-100k.zip`）。然后接下该文件，并且将文件`u.user`上传到Alluxio的`ml-100k/`下：
 
-```bash
-./bin/alluxio fs mkdir /ml-100k
-./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port//ml-100k
+```console
+$ ./bin/alluxio fs mkdir /ml-100k
+$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port//ml-100k
 ```
 然后创建新的内部表：
 
@@ -197,11 +197,11 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 在Alluxio中为Hive创建相应目录：
 
-```bash
-./bin/alluxio fs mkdir /tmp
-./bin/alluxio fs mkdir /user/hive/warehouse
-./bin/alluxio fs chmod 775 /tmp
-./bin/alluxio fs chmod 775 /user/hive/warehouse
+```console
+$ ./bin/alluxio fs mkdir /tmp
+$ ./bin/alluxio fs mkdir /user/hive/warehouse
+$ ./bin/alluxio fs chmod 775 /tmp
+$ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 ```
 
 接着你可以根据[Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted)来使用Hive了。
@@ -246,8 +246,8 @@ hive> select * from u_user;
 
 您可以在Alluxio项目目录中运行以下命令：
 
-```bash
-integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+```console
+$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
 
 您可以使用`-h`来显示有关该命令的有用信息。

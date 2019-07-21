@@ -33,38 +33,39 @@ image should be made available on all Kubernetes nodes.
 
 [Download](https://spark.apache.org/downloads.html) the desired Spark version. We use the pre-built
 binary for the `spark-submit` command as well as building the Docker image using the included Dockerfile.
-```bash
-tar -xf spark-2.4.0-bin-hadoop2.7.tgz
-cd spark-2.4.0-bin-hadoop2.7
+```console
+$ tar -xf spark-2.4.0-bin-hadoop2.7.tgz
+$ cd spark-2.4.0-bin-hadoop2.7
 ```
 
 If running the `count` example, download the Alluxio examples jar.
-```bash
-wget https://alluxio-documentation.s3.amazonaws.com/examples/spark/alluxio-examples_2.12-1.0.jar
-cp <path_to_alluxio_examples>/alluxio-examples_2.12-1.0.jar jars/
+```console
+$ wget https://alluxio-documentation.s3.amazonaws.com/examples/spark/alluxio-examples_2.12-1.0.jar
+$ cp <path_to_alluxio_examples>/alluxio-examples_2.12-1.0.jar jars/
 ```
 Note: Any jar copied to the `jars` directory is included in the Spark Docker image when built.
 
 ### Build the Spark Docker Image
 
 Extract the Alluxio client jar from the Alluxio Docker image:
-```bash
-id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
-docker cp $id:/opt/alluxio/client/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar - > alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar
-docker rm -v $id 1>/dev/null
+```console
+$ id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
+$ docker cp $id:/opt/alluxio/client/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar \
+  - > alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar
+$ docker rm -v $id 1>/dev/null
 ```
 
 Add the required Alluxio client jar and build a Docker image used for the Spark driver and executor
 pods. Run the following from the Spark distribution directory.
 
 Add the Alluxio client jar
-```bash
-cp <path_to_alluxio_client>/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar jars/
+```console
+$ cp <path_to_alluxio_client>/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar jars/
 ```
 
 Build the Spark Docker image
-```bash
-docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
+```console
+$ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
 
 ## Example(s)
@@ -103,14 +104,16 @@ The output and time taken can be seen in the logs for Spark driver pod. Refer to
 [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
 
 Create the service account (if required)
-```bash
-kubectl create serviceaccount spark
-kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default
+```console
+$ kubectl create serviceaccount spark
+$ kubectl create clusterrolebinding spark-role --clusterrole=edit \
+  --serviceaccount=default:spark --namespace=default
 ```
 
 Run the job from the Spark distribution directory
-```bash
-./bin/spark-submit --master k8s://https://<master>:8443 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
+```console
+$ ./bin/spark-submit --master k8s://https://<master>:8443 \
+--deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
 --class alluxio.examples.Count --driver-memory 500m --executor-memory 1g \
 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
 --conf spark.kubernetes.container.image=spark-alluxio \
@@ -118,7 +121,8 @@ Run the job from the Spark distribution directory
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.readOnly=true \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/domain \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory \
-local:///opt/spark/jars/alluxio-examples_2.12-1.0.jar alluxio://alluxio-master.default.svc.cluster.local:19998/LICENSE
+local:///opt/spark/jars/alluxio-examples_2.12-1.0.jar \
+alluxio://alluxio-master.default.svc.cluster.local:19998/LICENSE
 ```
 
 ## Troubleshooting

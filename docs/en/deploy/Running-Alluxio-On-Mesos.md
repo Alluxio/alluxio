@@ -28,8 +28,8 @@ For Mesos to run Alluxio, you must either make these ports available to the Meso
 
 When you launch the Mesos slave, you can specify the port resources for it to manage.
 
-```bash
-/usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
+```console
+$ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
 ```
 
 ### Changing Alluxio ports
@@ -62,8 +62,8 @@ documentation for instructions on how to set configuration properties.
 3. Set the configuration property `alluxio.home` to the path where Alluxio is installed on the Mesos nodes
 4. Launch the Alluxio Mesos framework
 
-```bash
-./integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
+```console
+$ /integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
 ```
 
 ### Deploy with Alluxio tarball URL
@@ -73,8 +73,8 @@ From anywhere with Alluxio installed:
 1. Set the configuration property `alluxio.integration.mesos.alluxio.jar.url` to point to an Alluxio tarball
 2. Launch the Alluxio Mesos framework
 
-```bash
-./integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
+```console
+$ ./integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
 ```
 
 - Note that the tarball should be compiled with `-Pmesos`. Released Alluxio tarballs from version 1.3.0 onwards are compiled this way.

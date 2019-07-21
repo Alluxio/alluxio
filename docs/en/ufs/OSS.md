@@ -59,9 +59,9 @@ values like `oss-us-west-1.aliyuncs.com` and `oss-cn-shanghai.aliyuncs.com`. Ava
 
 Start the Alluxio servers:
 
-```bash
-bin/alluxio format
-bin/alluxio-start.sh local
+```console
+$ bin/alluxio format
+$ bin/alluxio-start.sh local
 ```
 
 This will start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -69,8 +69,8 @@ This will start an Alluxio master and an Alluxio worker. You can see the master 
 
 Run a simple example program:
 
-```bash
-bin/alluxio runTests
+```console
+$ bin/alluxio runTests
 ```
 
 Visit your OSS directory `oss://<OSS_BUCKET>/<OSS_DIRECTORY>` to verify the files
@@ -79,8 +79,8 @@ and directories created by Alluxio exist. For this test, you should see files na
 
 Stop Alluxio by running:
 
-```bash
-bin/alluxio-stop.sh local
+```console
+$ bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
@@ -93,8 +93,8 @@ access to multiple under storage systems. Alluxio's
 For example, the following command mounts a directory inside an OSS bucket into Alluxio directory
 `/oss`:
 
-```bash
-./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
+```console
+$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
   /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/

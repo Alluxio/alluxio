@@ -63,31 +63,31 @@ alluxio.master.mount.table.root.ufs=maprfs:///<path in MapR-FS>/
 
 也可以将MapR-FS中的某个目录挂载到Alluxio命名空间中：
 
-```bash
-${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR-FS>/
+```console
+$ bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR-FS>/
 ```
 
 ## 使用MapR-FS在本地运行Alluxio
 
 完成所有相应配置后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 这应当会在本地启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，可以运行一个简单的示例程序：
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 成功启动后，你可以访问MapR-FS的web UI以确认通过Alluxio创建的文件和目录确实存在。对于该测试，你应该可以看到类似`/default_tests_files/Basic_CACHE_CACHE_THROUGH`的文件。
 
 运行以下命令停止Alluxio：
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```

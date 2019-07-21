@@ -50,7 +50,7 @@ service.
     - Extra alluxio options. These are specified as a comma-separated list of key-values in the format `<key>=<value>`.
        For example, `alluxio.user.file.writetype.default=CACHE_THROUGH`
 
-```bash
+```console
 aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive Name=Spark --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=[<download-url>,<root-ufs-uri>,<additional-properties>] --configurations file:///path/to/file/alluxio-emr.json --ec2-attributes KeyName=<ec2-keypair-name>
 ```
 
@@ -67,7 +67,7 @@ definitions between multiple runs of the Alluxio cluster.
 
 See the below sample command for reference.
 
-```bash
+```console
 aws emr create-cluster --release-label emr-5.23.0 --instance-count 3 --instance-type m4.xlarge --applications Name=Presto Name=Hive --name 'Test cluster' --bootstrap-actions Path=s3://alluxio-test/emr/bootstrap-actions/alluxio-emr.sh,Args=[http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz,s3a://alluxio-test/emr/mount/,alluxio.underfs.s3.owner.id.to.username.mapping=f1234123412341234123412341234123412341234123412341234123412341234=hadoop] --configurations file:///Users/foo/emr/alluxio/alluxio-emr.json --ec2-attributes KeyName=admin-key
 ```
 
@@ -80,15 +80,15 @@ The simplest step to using EMR with Alluxio is to create a table on Alluxio and 
 
 1. SSH into the 'hadoop' user in the master node. Then switch to the 'alluxio' user.
 2. Create a directory in Alluxio to be the external location of your table.
-```bash
+```console
 /opt/alluxio/bin/alluxio fs mkdir /testTable
 ```
 3. Set the 'hadoop' user to be the owner of the directory
-```bash
+```console
 /opt/alluxio/bin/alluxio fs chown hadoop:hadoop /testTable
 ```
 4. Exit to switch back into the 'hadoop' user and start the hive CLI.
-```bash
+```console
 hive
 ```
 5. Create a new database to see if AWS Glue is working as expected. Check the [console](https://console.aws.amazon.com/glue/home)
@@ -109,11 +109,11 @@ FIELDS TERMINATED BY '|'
 LOCATION 'alluxio:///testTable';
 ```
 7. Create the Presto /tmp directory
-```bash
+```console
 #Create Presto temp directory
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
-presto-cli --catalog hive
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
+$ presto-cli --catalog hive
 ```
 8. Insert values into the table
 ```sql

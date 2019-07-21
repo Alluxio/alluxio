@@ -30,8 +30,8 @@ Alluxio的日志行为可以完全由`conf`文件夹下的`log4j.properties`文�
 
 然后使用以下命令启动服务器:
 
-```bash
-java -cp <PATH_TO_LOG4J_JAR> org.apache.log4j.net.SimpleSocketServer <PORT> <PATH_TO_LOG4J_PROPERTIES>
+```console
+$ java -cp <PATH_TO_LOG4J_JAR> org.apache.log4j.net.SimpleSocketServer <PORT> <PATH_TO_LOG4J_PROPERTIES>
 ```
 
 服务器端现在可以记录任何到来的SocketAppender流量，可以通过查看日志目录中的日志文件来验证这一点，在日志文件中的前两行记录着服务器已成功启动的信息。
@@ -83,13 +83,13 @@ Alluxio shell附带了一个`logLevel`命令，可以在特定实例上获取或
 
 例如，以下命令将`alluxio.heartbeat.HeartbeatContext`类的日志级别在master和`192.168.100.100：30000`的worker上设置为调试级别。
 
-```bash
-alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = master，192.168.100.100：30000 --level = DEBUG
+```console
+$ alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = master，192.168.100 .100：30000 --level = DEBUG
 ```
 
 以下命令获取`alluxio.heartbeat.HeartbeatContext`类的所有worker的日志级别
-```bash
-alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = workers
+```console
+$ alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = workers
 ```
 
 ## 客户端日志记录配置
