@@ -70,38 +70,6 @@ public final class GreedyAllocator implements Allocator {
       return null;
     }
 
-<<<<<<< HEAD
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    String mediumType = location.mediumType();
-    if (!mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-        && location.equals(BlockStoreLocation.anyDirInTierWithMedium(mediumType))) {
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
-          if (dirView.getMediumType().equals(mediumType)
-              && dirView.getAvailableBytes() >= blockSize) {
-            return dirView;
-          }
-        }
-      }
-      return null;
-    }
-
-=======
-    String mediumType = location.mediumType();
-    if (!mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-        && location.equals(BlockStoreLocation.anyDirInTierWithMedium(mediumType))) {
-      for (StorageTierView tierView : mMetadataView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
-          if (dirView.getMediumType().equals(mediumType)
-              && dirView.getAvailableBytes() >= blockSize) {
-            return dirView;
-          }
-        }
-      }
-      return null;
-    }
-
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     String tierAlias = location.tierAlias();
     StorageTierView tierView = mMetadataView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {

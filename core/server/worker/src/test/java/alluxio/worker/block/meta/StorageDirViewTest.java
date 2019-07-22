@@ -105,14 +105,6 @@ public class StorageDirViewTest {
   }
 
   /**
-   * Tests the {@link StorageDirView#getMediumType()} method.
-   */
-  @Test
-  public void getMediumType() {
-    Assert.assertEquals(mTestDir.getDirMedium(), mTestDirView.getMediumType());
-  }
-
-  /**
    * Tests the {@link StorageDirView#toBlockStoreLocation()} method.
    */
   @Test

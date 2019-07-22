@@ -11,17 +11,7 @@
 
 package alluxio.worker.block.allocator;
 
-<<<<<<< HEAD
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-
-=======
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-
 import alluxio.worker.block.BlockMetadataEvictorView;
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;

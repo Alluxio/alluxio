@@ -114,16 +114,8 @@ public final class EvictorContractTest extends EvictorTestBase {
     // the eviction plan should be empty.
     for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-<<<<<<< HEAD
         Assert.assertTrue(mEvictor.freeSpaceWithView(dir.getCapacityBytes(),
-            dir.toBlockStoreLocation(), mManagerView).isEmpty());
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-        assertTrue(mEvictor.freeSpaceWithView(dir.getCapacityBytes(),
-            dir.toBlockStoreLocation(), mManagerView).isEmpty());
-=======
-        assertTrue(mEvictor.freeSpaceWithView(dir.getCapacityBytes(),
             dir.toBlockStoreLocation(), mMetadataView).isEmpty());
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
       }
     }
   }
@@ -139,16 +131,8 @@ public final class EvictorContractTest extends EvictorTestBase {
     long capacity = dir.getCapacityBytes();
     long cachedBytes = capacity / 2 + 1;
     TieredBlockStoreTestUtils.cache(SESSION_ID, BLOCK_ID, cachedBytes, dir, mMetaManager, mEvictor);
-<<<<<<< HEAD
     Assert.assertTrue(mEvictor.freeSpaceWithView(capacity - cachedBytes,
-        dir.toBlockStoreLocation(), mManagerView).isEmpty());
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    assertTrue(mEvictor.freeSpaceWithView(capacity - cachedBytes,
-        dir.toBlockStoreLocation(), mManagerView).isEmpty());
-=======
-    assertTrue(mEvictor.freeSpaceWithView(capacity - cachedBytes,
         dir.toBlockStoreLocation(), mMetadataView).isEmpty());
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
   }
 
   /**
@@ -171,16 +155,8 @@ public final class EvictorContractTest extends EvictorTestBase {
       }
     }
 
-<<<<<<< HEAD
     Assert.assertTrue(mEvictor.freeSpaceWithView(dirLeft.getCapacityBytes(),
-        BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias()), mManagerView)
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    assertTrue(mEvictor.freeSpaceWithView(dirLeft.getCapacityBytes(),
-        BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias()), mManagerView)
-=======
-    assertTrue(mEvictor.freeSpaceWithView(dirLeft.getCapacityBytes(),
         BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias()), mMetadataView)
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
         .isEmpty());
   }
 
@@ -266,24 +242,10 @@ public final class EvictorContractTest extends EvictorTestBase {
     TieredBlockStoreTestUtils.cache(SESSION_ID, BLOCK_ID, dirCapacity, dir, mMetaManager, mEvictor);
 
     // request space larger than total capacity, no eviction plan should be available
-<<<<<<< HEAD
     Assert.assertNull(mEvictor.freeSpaceWithView(totalCapacity + 1, BlockStoreLocation.anyTier(),
-        mManagerView));
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    assertNull(mEvictor.freeSpaceWithView(totalCapacity + 1, BlockStoreLocation.anyTier(),
-        mManagerView));
-=======
-    assertNull(mEvictor.freeSpaceWithView(totalCapacity + 1, BlockStoreLocation.anyTier(),
         mMetadataView));
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     // request space larger than capacity for the random directory, no eviction plan should be
     // available
-<<<<<<< HEAD
-    Assert.assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mManagerView));
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mManagerView));
-=======
-    assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mMetadataView));
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+    Assert.assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mMetadataView));
   }
 }

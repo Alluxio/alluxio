@@ -43,16 +43,8 @@ public interface Allocator {
     public static Allocator create(BlockMetadataView view) {
       BlockMetadataView metadataView = Preconditions.checkNotNull(view, "view");
       return CommonUtils.createNewClassInstance(
-<<<<<<< HEAD
-          Configuration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
-          new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-          ServerConfiguration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
-          new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
-=======
-          ServerConfiguration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
+          Configuration.getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
           new Class[] {BlockMetadataView.class}, new Object[] {metadataView});
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     }
   }
 

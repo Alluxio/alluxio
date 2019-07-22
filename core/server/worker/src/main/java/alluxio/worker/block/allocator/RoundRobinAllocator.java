@@ -71,21 +71,9 @@ public final class RoundRobinAllocator implements Allocator {
     Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       int tierIndex = 0; // always starting from the first tier
-<<<<<<< HEAD
-      for (int i = 0; i < mManagerView.getTierViews().size(); i++) {
-        StorageTierView tierView = mManagerView.getTierViews().get(tierIndex);
-        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-      for (int i = 0; i < mManagerView.getTierViews().size(); i++) {
-        StorageTierView tierView = mManagerView.getTierViews().get(tierIndex);
-        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize,
-            BlockStoreLocation.ANY_MEDIUM);
-=======
       for (int i = 0; i < mMetadataView.getTierViews().size(); i++) {
         StorageTierView tierView = mMetadataView.getTierViews().get(tierIndex);
-        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize,
-            BlockStoreLocation.ANY_MEDIUM);
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
         if (dirViewIndex >= 0) {
           mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
           return tierView.getDirView(dirViewIndex);
@@ -94,50 +82,12 @@ public final class RoundRobinAllocator implements Allocator {
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-<<<<<<< HEAD
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
-=======
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
-      int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+      int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
       if (dirViewIndex >= 0) {
         mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
         return tierView.getDirView(dirViewIndex);
       }
-<<<<<<< HEAD
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
-      String medium = location.mediumType();
-      int tierIndex = 0; // always starting from the first tier
-      for (int i = 0; i < mManagerView.getTierViews().size(); i++) {
-        StorageTierView tierView = mManagerView.getTierViews().get(tierIndex);
-        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, medium);
-        if (dirViewIndex >= 0) {
-          mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
-          return tierView.getDirView(dirViewIndex);
-        } else { // we didn't find one in this tier, go to next tier
-          tierIndex++;
-        }
-      }
-=======
-    } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
-      String medium = location.mediumType();
-      int tierIndex = 0; // always starting from the first tier
-      for (int i = 0; i < mMetadataView.getTierViews().size(); i++) {
-        StorageTierView tierView = mMetadataView.getTierViews().get(tierIndex);
-        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, medium);
-        if (dirViewIndex >= 0) {
-          mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
-          return tierView.getDirView(dirViewIndex);
-        } else { // we didn't find one in this tier, go to next tier
-          tierIndex++;
-        }
-      }
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     } else {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       StorageDirView dirView = tierView.getDirView(location.dir());
@@ -156,34 +106,12 @@ public final class RoundRobinAllocator implements Allocator {
    * @param blockSize the requested block size
    * @return the index of the dir if non-negative; -1 if fail to find a dir
    */
-<<<<<<< HEAD
   private int getNextAvailDirInTier(StorageTierView tierView, long blockSize) {
-    int dirViewIndex = mTierAliasToLastDirMap.get(tierView.getTierViewAlias());
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize, String mediumType) {
-    int dirViewIndex = mTierAliasToLastDirMap.get(tierView.getTierViewAlias());
-=======
-  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize, String mediumType) {
     int dirIndex = mTierAliasToLastDirMap.get(tierView.getTierViewAlias());
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     for (int i = 0; i < tierView.getDirViews().size(); i++) { // try this many times
-<<<<<<< HEAD
-      dirViewIndex = (dirViewIndex + 1) % tierView.getDirViews().size();
-      if (tierView.getDirView(dirViewIndex).getAvailableBytes() >= blockSize) {
-        return dirViewIndex;
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-      dirViewIndex = (dirViewIndex + 1) % tierView.getDirViews().size();
-      if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-          || tierView.getDirView(dirViewIndex).getMediumType().equals(mediumType))
-          && tierView.getDirView(dirViewIndex).getAvailableBytes() >= blockSize) {
-        return dirViewIndex;
-=======
       dirIndex = (dirIndex + 1) % tierView.getDirViews().size();
-      if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-          || tierView.getDirView(dirIndex).getMediumType().equals(mediumType))
-          && tierView.getDirView(dirIndex).getAvailableBytes() >= blockSize) {
+      if (tierView.getDirView(dirIndex).getAvailableBytes() >= blockSize) {
         return dirIndex;
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
       }
     }
     return -1;

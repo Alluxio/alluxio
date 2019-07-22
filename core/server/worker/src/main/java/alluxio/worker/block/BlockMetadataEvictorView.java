@@ -42,25 +42,7 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
   /** The {@link BlockMetadataManager} this view is derived from. */
   private final BlockMetadataManager mMetadataManager;
 
-<<<<<<< HEAD:core/server/worker/src/main/java/alluxio/worker/block/BlockMetadataManagerView.java
-  /**
-   * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
-   * {@link BlockMetadataManager}.
-   */
-  private final List<StorageTierView> mTierViews = new ArrayList<>();
-
-  /** A list of pinned inodes. */
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-  /**
-   * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
-   * {@link BlockMetadataManager}.
-   */
-  private final List<StorageTierView> mTierViews = new ArrayList<>();
-
   /** A list of pinned inodes, including inodes which are scheduled for async persist. */
-=======
-  /** A list of pinned inodes, including inodes which are scheduled for async persist. */
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta:core/server/worker/src/main/java/alluxio/worker/block/BlockMetadataEvictorView.java
   private final Set<Long> mPinnedInodes = new HashSet<>();
 
   /** Indices of locks that are being used. */

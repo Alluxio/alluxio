@@ -65,22 +65,10 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[bottomTierLevel]);
     // free the StorageDir with max free space
     EvictionPlan plan =
-<<<<<<< HEAD
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInBottomTier, mManagerView);
+        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInBottomTier, mMetadataView);
     Assert.assertNotNull(plan);
     Assert.assertTrue(plan.toMove().isEmpty());
     Assert.assertEquals(1, plan.toEvict().size());
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInBottomTier, mManagerView);
-    assertNotNull(plan);
-    assertTrue(plan.toMove().isEmpty());
-    assertEquals(1, plan.toEvict().size());
-=======
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInBottomTier, mMetadataView);
-    assertNotNull(plan);
-    assertTrue(plan.toMove().isEmpty());
-    assertEquals(1, plan.toEvict().size());
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     long toEvictBlockId = plan.toEvict().get(0).getFirst();
     Assert.assertEquals(BLOCK_ID + nDir - 1, toEvictBlockId);
   }
@@ -105,22 +93,10 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
     BlockStoreLocation anyDirInFirstTier =
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[firstTierOrdinal]);
     EvictionPlan plan =
-<<<<<<< HEAD
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
+        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
     Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
     Assert.assertEquals(0, plan.toEvict().size());
     Assert.assertEquals(1, plan.toMove().size());
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
-    assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
-    assertEquals(0, plan.toEvict().size());
-    assertEquals(1, plan.toMove().size());
-=======
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
-    assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
-    assertEquals(0, plan.toEvict().size());
-    assertEquals(1, plan.toMove().size());
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     long blockId = plan.toMove().get(0).getBlockId();
     Assert.assertEquals(BLOCK_ID + nDir - 1, blockId);
   }
@@ -152,16 +128,8 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
     }
 
     EvictionPlan plan =
-<<<<<<< HEAD
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
-    Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-        mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
-    assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
-=======
         mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mMetadataView);
-    assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
+    Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
     // block in StorageDir with max free space in the first tier needs to be moved to the second
     // tier
     Assert.assertEquals(1, plan.toMove().size());

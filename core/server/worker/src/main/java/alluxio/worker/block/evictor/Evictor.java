@@ -51,16 +51,8 @@ public interface Evictor {
      */
     public static Evictor create(BlockMetadataEvictorView view, Allocator allocator) {
       return CommonUtils.createNewClassInstance(
-<<<<<<< HEAD
           Configuration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
-          new Class[] {BlockMetadataManagerView.class, Allocator.class},
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-          ServerConfiguration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
-          new Class[] {BlockMetadataManagerView.class, Allocator.class},
-=======
-          ServerConfiguration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
           new Class[] {BlockMetadataEvictorView.class, Allocator.class},
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
           new Object[] {view, allocator});
     }
   }

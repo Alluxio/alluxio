@@ -11,17 +11,9 @@
 
 package alluxio.worker.block.evictor;
 
-<<<<<<< HEAD
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
-=======
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataEvictorView;
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
@@ -82,21 +74,9 @@ public class EvictorTestBase {
     mMetadataView =
         new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-<<<<<<< HEAD
     Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(mManagerView);
-    mEvictor = Evictor.Factory.create(mManagerView, mAllocator);
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(mManagerView);
-    mEvictor = Evictor.Factory.create(mManagerView, mAllocator);
-=======
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.create(mMetadataView);
     mEvictor = Evictor.Factory.create(mMetadataView, mAllocator);
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
   }
 }

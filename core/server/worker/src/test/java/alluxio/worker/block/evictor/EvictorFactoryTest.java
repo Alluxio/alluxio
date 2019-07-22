@@ -11,18 +11,10 @@
 
 package alluxio.worker.block.evictor;
 
-<<<<<<< HEAD
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
-=======
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataEvictorView;
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
@@ -78,22 +70,10 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createGreedyEvictor() {
-<<<<<<< HEAD
     Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
-=======
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataView, allocator);
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     Assert.assertTrue(evictor instanceof GreedyEvictor);
   }
 
@@ -104,22 +84,10 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createLRUEvictor() {
-<<<<<<< HEAD
     Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
-=======
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataView, allocator);
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 
@@ -130,19 +98,9 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createDefaultEvictor() {
-<<<<<<< HEAD
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
-||||||| parent of ec9f9ceb90... Reduce the information allocator need in createBlockMeta
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
-=======
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataView, allocator);
->>>>>>> ec9f9ceb90... Reduce the information allocator need in createBlockMeta
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 }
