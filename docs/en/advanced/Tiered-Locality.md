@@ -130,8 +130,6 @@ from highest to lowest priority:
 `alluxio.user.hostname` on a client in their respective `alluxio-site.properties`
 1. If none of the above are configured, node locality is determined by hostname lookup
 
-
-
 ### When exactly is tiered locality used?
 
 1. When clients choose which worker to read through during UFS reads
