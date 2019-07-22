@@ -11,6 +11,7 @@
 
 package alluxio.server.ft.journal.raft;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -21,6 +22,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.NetAddress;
+import alluxio.grpc.QuorumServerInfo;
+import alluxio.grpc.QuorumServerState;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
@@ -33,6 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -76,6 +81,70 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
     mCluster.waitForAndKillPrimaryMaster(RESTART_TIMEOUT_MS);
+    assertTrue(fs.exists(testDir));
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void resizeCluster() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+        .setClusterName("EmbeddedJournalResizing").setNumMasters(5).setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        // To make the test run faster.
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
+    mCluster.start();
+
+    assertEquals(5,
+        mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
+
+    AlluxioURI testDir = new AlluxioURI("/dir");
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    assertTrue(fs.exists(testDir));
+
+    // Stop 2 masters. Now cluster can't tolerate any loss.
+    mCluster.stopMaster(0);
+    mCluster.stopMaster(1);
+    // Verify cluster is still serving requests.
+    assertTrue(fs.exists(testDir));
+
+    CommonUtils.waitFor("Quorum noticing master unavailability", () -> {
+      try {
+        int unavailableCount = 0;
+        for (QuorumServerInfo serverState : mCluster.getJournalMasterClientForMaster()
+            .getQuorumInfo().getServerInfoList()) {
+          if (serverState.getServerState().equals(QuorumServerState.UNAVAILABLE)) {
+            unavailableCount++;
+          }
+        }
+        return unavailableCount >= 2;
+      } catch (Exception exc) {
+        throw new RuntimeException(exc);
+      }
+    });
+
+    // Get and verify list of unavailable masters.
+    List<NetAddress> unavailableMasters = new LinkedList<>();
+    for (QuorumServerInfo serverState : mCluster.getJournalMasterClientForMaster().getQuorumInfo()
+        .getServerInfoList()) {
+      if (serverState.getServerState().equals(QuorumServerState.UNAVAILABLE)) {
+        unavailableMasters.add(serverState.getServerAddress());
+      }
+    }
+    assertEquals(2, unavailableMasters.size());
+
+    // Remove unavailable masters from quorum.
+    for (NetAddress unavailableMasterAddress : unavailableMasters) {
+      mCluster.getJournalMasterClientForMaster().removeQuorumServer(unavailableMasterAddress);
+    }
+    // Verify quorum is down to 3 masters.
+    assertEquals(3,
+        mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
+
+    // Validate that cluster can tolerate one more master failure after resizing.
+    mCluster.stopMaster(2);
     assertTrue(fs.exists(testDir));
     mCluster.notifySuccess();
   }

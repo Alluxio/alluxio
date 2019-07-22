@@ -18,7 +18,10 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.JournalDomain;
 import alluxio.master.job.JobMaster;
+import alluxio.master.journal.DefaultJournalMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -202,6 +205,10 @@ public class AlluxioJobMasterProcess extends MasterProcess {
           mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global(),
           ServerUserState.global());
       registerServices(serverBuilder, mJobMaster.getServices());
+
+      // Add journal master service.
+      serverBuilder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
+          new GrpcService(new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem)));
 
       mGrpcServer = serverBuilder.build().start();
       LOG.info("Started gRPC server on address {}", mRpcConnectAddress);
