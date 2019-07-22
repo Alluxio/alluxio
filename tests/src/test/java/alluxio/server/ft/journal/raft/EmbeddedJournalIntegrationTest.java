@@ -87,7 +87,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void resizeCluster() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_RESIZE)
         .setClusterName("EmbeddedJournalResizing").setNumMasters(5).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")

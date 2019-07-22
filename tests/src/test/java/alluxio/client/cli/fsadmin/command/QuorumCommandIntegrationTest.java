@@ -73,8 +73,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void quorumInfo() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
-        .setClusterName("EmbeddedJournalResizing").setNumMasters(3).setNumWorkers(0)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_INFO)
+        .setClusterName("QuorumShellInfo").setNumMasters(3).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
@@ -118,8 +118,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void quorumRemove() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
-        .setClusterName("EmbeddedJournalResizing").setNumMasters(5).setNumWorkers(0)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
+        .setClusterName("QuorumShellRemove").setNumMasters(5).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
@@ -182,8 +182,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void quorumCommand() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
-        .setClusterName("EmbeddedJournalResizing").setNumMasters(3).setNumWorkers(0)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL)
+        .setClusterName("QuorumShell").setNumMasters(3).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.

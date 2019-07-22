@@ -36,6 +36,7 @@ public class PortCoordination {
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_RESIZE = allocate(5, 0);
 
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 
@@ -68,7 +69,9 @@ public class PortCoordination {
   public static final List<ReservedPort> MULTI_MASTER_URI = allocate(3, 1);
   public static final List<ReservedPort> ZOOKEEPER_URI = allocate(3, 2);
 
-  public static final List<ReservedPort> JOURNAL_TOOL = allocate(2, 1);
+  public static final List<ReservedPort> QUORUM_SHELL = allocate(3, 0);
+  public static final List<ReservedPort> QUORUM_SHELL_INFO = allocate(3, 0);
+  public static final List<ReservedPort> QUORUM_SHELL_REMOVE = allocate(5, 0);
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER
