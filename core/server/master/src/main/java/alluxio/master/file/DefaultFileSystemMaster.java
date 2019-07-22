@@ -3618,18 +3618,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mInodeTree.setPinned(inodePath, options.getPinned(), opTimeMs);
       inode.setLastModificationTimeMs(opTimeMs);
     }
-    if (options.getTtl() != null) {
-      long ttl = options.getTtl();
-      if (inode.getTtl() != ttl || inode.getTtlAction() != options.getTtlAction()) {
-        if (inode.getTtl() != ttl) {
-          mTtlBuckets.remove(inode);
-          inode.setTtl(ttl);
-          mTtlBuckets.insert(inode);
-        }
-        inode.setLastModificationTimeMs(opTimeMs);
-        inode.setTtlAction(options.getTtlAction());
-      }
+
+    boolean modified = false;
+    Long ttl = options.getTtl();
+    TtlAction action = options.getTtlAction();
+
+    if (ttl != null && inode.getTtl() != ttl) {
+      mTtlBuckets.remove(inode);
+      inode.setTtl(ttl);
+      mTtlBuckets.insert(inode);
+      modified = true;
     }
+    if (action != null && inode.getTtlAction() != action) {
+      inode.setTtlAction(action);
+      modified = true;
+    }
+
+    if (modified) {
+      inode.setLastModificationTimeMs(opTimeMs);
+    }
+
     if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
       Preconditions.checkArgument(((InodeFile) inode).isCompleted(),
