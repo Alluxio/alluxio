@@ -23,12 +23,15 @@ public final class BlockWriteRequest extends WriteRequest {
   /** Which tier this block writes to. */
   private final int mTier;
 
+  private final boolean mPinOnCreate;
+
   /**
    * @param request block request in proto
    */
   BlockWriteRequest(Protocol.WriteRequest request) {
     super(request);
     mTier = request.getTier();
+    mPinOnCreate = request.getPinOnCreate();
   }
 
   /**
@@ -37,4 +40,9 @@ public final class BlockWriteRequest extends WriteRequest {
   public int getTier() {
     return mTier;
   }
+
+  /**
+   * @return whether to pin on create
+   */
+  public boolean getPinOnCreate() { return mPinOnCreate; }
 }

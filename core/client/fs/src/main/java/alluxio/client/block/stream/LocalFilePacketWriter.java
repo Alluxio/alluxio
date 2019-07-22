@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.network.netty.NettyRPC;
@@ -158,7 +159,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
       @Override
       public void close() throws IOException {
         Protocol.LocalBlockCompleteRequest request =
-            Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).build();
+            Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId)
+                .setPinOnCreate(mOptions.getWriteType() == WriteType.ASYNC_THROUGH).build();
         NettyRPC.call(mNettyRPCContext, new ProtoMessage(request));
       }
     });

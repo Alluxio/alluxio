@@ -124,11 +124,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     @Override
     protected void completeRequest(BlockWriteRequestContext context, Channel channel)
         throws Exception {
-      WriteRequest request = context.getRequest();
+      BlockWriteRequest request = context.getRequest();
       if (context.getBlockWriter() != null) {
         context.getBlockWriter().close();
       }
-      mWorker.commitBlock(request.getSessionId(), request.getId());
+      mWorker.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
     }
 
     @Override

@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.status.AlluxioStatusException;
@@ -148,7 +149,8 @@ public final class NettyPacketWriter implements PacketWriter {
     mAddress = address;
     mLength = length;
     Protocol.WriteRequest.Builder builder =
-        Protocol.WriteRequest.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type);
+        Protocol.WriteRequest.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type)
+        .setPinOnCreate(options.getWriteType() == WriteType.ASYNC_THROUGH);
     if (type == Protocol.RequestType.UFS_FILE) {
       Protocol.CreateUfsFileOptions ufsFileOptions =
           Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())

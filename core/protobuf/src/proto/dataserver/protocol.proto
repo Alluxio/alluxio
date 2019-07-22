@@ -57,7 +57,7 @@ message OpenUfsBlockOptions {
 }
 
 // The write request.
-// next available id: 8
+// next available id: 9
 message WriteRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -72,6 +72,7 @@ message WriteRequest {
 
   // This is only applicable for ufs writes.
   optional CreateUfsFileOptions create_ufs_file_options = 7;
+  optional bool pin_on_create = 8;
 }
 
 // Options to create a UFS file.
@@ -139,8 +140,9 @@ message LocalBlockCreateResponse {
   optional string path = 1;
 }
 
-// next available id: 3
+// next available id: 4
 message LocalBlockCompleteRequest {
   optional int64 block_id = 1;
   optional bool cancel = 2;
+  optional bool pin_on_create = 3;
 }
