@@ -103,4 +103,3 @@ spec:
         - name: alluxio-journal
           persistentVolumeClaim:
             claimName: alluxio-pv-claim
-
