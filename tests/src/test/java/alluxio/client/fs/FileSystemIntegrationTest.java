@@ -339,7 +339,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     TtlAction expectedAction = TtlAction.FREE;
     TtlAction newTtlAction = TtlAction.DELETE;
     long newTtl = 123400000;
-    mFileSystem.setAttribute(testFile, SetAttributeOptions.defaults().setTtl(newTtl));
+    mFileSystem.setAttribute(testFile, SetAttributeOptions.defaults()
+        .setTtl(newTtl).setTtlAction(TtlAction.FREE));
     URIStatus stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL should be same", newTtl, stat.getTtl());
     assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
