@@ -44,5 +44,7 @@ public final class BlockWriteRequest extends WriteRequest {
   /**
    * @return whether to pin on create
    */
-  public boolean getPinOnCreate() { return mPinOnCreate; }
+  public boolean getPinOnCreate() {
+    return mPinOnCreate;
+  }
 }
