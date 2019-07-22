@@ -23,6 +23,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.client.journal.JournalMasterClient;
+import alluxio.client.journal.RetryHandlingJournalMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.PropertyKey;
@@ -360,6 +362,18 @@ public final class MultiProcessCluster {
         .newBuilder(ClientContext.create(ServerConfiguration.global()))
         .setMasterInquireClient(getMasterInquireClient())
         .build());
+  }
+
+  /**
+   * @return a meta master client
+   */
+  public synchronized JournalMasterClient getJournalMasterClientForMaster() {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to create a journal master client, but state was %s", mState);
+
+    return new RetryHandlingJournalMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+            .setMasterInquireClient(getMasterInquireClient()).build());
   }
 
   /**
