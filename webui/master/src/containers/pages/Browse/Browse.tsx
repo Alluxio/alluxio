@@ -81,7 +81,8 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     const {refresh, location: {search}} = this.props;
     const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
-      const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+      let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+      offset = offset || '0';
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
     } else if (refresh !== prevRefresh) {
@@ -156,7 +157,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     return (
       <React.Fragment>
         <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
-                  offset={offset || '0'} offsetInputHandler={offsetInputHandler} path={path}
+                  offset={offset} offsetInputHandler={offsetInputHandler} path={path}
                   queryStringPrefix="/browse" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
                   viewData={browseData} history={history} proxyDownloadApiUrl={initData.proxyDownloadFileApiUrl}/>
         <hr/>
