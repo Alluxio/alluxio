@@ -291,6 +291,21 @@ public class InodeTreePersistentState implements Journaled {
     }
   }
 
+  /**
+   * Updates last access time for Inode without journaling. The caller should apply the journal
+   * entry separately.
+   *
+   * @param inodeId the id of the target inode
+   * @param accessTime the new value for last access time
+   * @return the journal entry that represents the update
+   */
+  public UpdateInodeEntry applyInodeAccessTime(long inodeId, long accessTime) {
+    UpdateInodeEntry entry = UpdateInodeEntry.newBuilder().setId(inodeId)
+        .setLastAccessTimeMs(accessTime).build();
+    applyUpdateInode(entry);
+    return entry;
+  }
+
   ////
   /// Apply Implementations. These methods are used for journal replay, so they are not allowed to
   /// fail. They are also used when making metadata changes during regular operation.
@@ -322,7 +337,7 @@ public class InodeTreePersistentState implements Journaled {
       mInodeCounter.decrementAndGet();
     }
 
-    updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
+    updateTimestampsAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
     mToBePersistedIds.remove(id);
@@ -530,7 +545,7 @@ public class InodeTreePersistentState implements Journaled {
     mInodeCounter.incrementAndGet();
     mInodeStore.addChild(inode.getParentId(), inode);
     // Only update size, last modified time is updated separately.
-    updateLastModifiedAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
+    updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
     if (inode.isFile()) {
       MutableInodeFile file = inode.asFile();
       if (file.getReplicationMin() > 0) {
@@ -566,30 +581,34 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore.writeInode(inode);
 
     if (oldParent == newParent) {
-      updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), 0);
+      updateTimestampsAndChildCount(oldParent, entry.getOpTimeMs(), 0);
     } else {
-      updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), -1);
-      updateLastModifiedAndChildCount(newParent, entry.getOpTimeMs(), 1);
+      updateTimestampsAndChildCount(oldParent, entry.getOpTimeMs(), -1);
+      updateTimestampsAndChildCount(newParent, entry.getOpTimeMs(), 1);
     }
   }
 
   /**
-   * Updates the last modified time (LMT) for the indicated inode directory, and updates its child
+   * Updates the timestamps for the indicated inode directory, and updates its child
    * count.
    *
-   * If the inode's LMT is already greater than the specified time, the inode's LMT will not be
-   * changed.
+   * If the inode's timestamps are already greater than the specified time, the inode's timestamps
+   * will not be changed.
    *
    * @param id the inode to update
    * @param opTimeMs the time of the operation that modified the inode
    * @param deltaChildCount the change in inode directory child count
    */
-  private void updateLastModifiedAndChildCount(long id, long opTimeMs, long deltaChildCount) {
+  private void updateTimestampsAndChildCount(long id, long opTimeMs, long deltaChildCount) {
     try (LockResource lr = mInodeLockManager.lockUpdate(id)) {
       MutableInodeDirectory inode = mInodeStore.getMutable(id).get().asDirectory();
       boolean madeUpdate = false;
       if (inode.getLastModificationTimeMs() < opTimeMs) {
         inode.setLastModificationTimeMs(opTimeMs);
+        madeUpdate = true;
+      }
+      if (inode.getLastAccessTimeMs() < opTimeMs) {
+        inode.setLastAccessTimeMs(opTimeMs);
         madeUpdate = true;
       }
       if (deltaChildCount != 0) {

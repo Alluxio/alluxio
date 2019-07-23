@@ -62,6 +62,11 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   long getLastModificationTimeMs();
 
   /**
+   * @return the last access time, in milliseconds
+   */
+  long getLastAccessTimeMs();
+
+  /**
    * @return the name of the inode
    */
   String getName();

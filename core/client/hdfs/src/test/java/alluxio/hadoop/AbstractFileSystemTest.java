@@ -709,6 +709,7 @@ public class AbstractFileSystemTest {
     assertEquals(info.getGroup(), status.getGroup());
     assertEquals(info.getMode(), status.getPermission().toShort());
     assertEquals(info.getLastModificationTimeMs(), status.getModificationTime());
+    assertEquals(info.getLastAccessTimeMs(), status.getAccessTime());
     assertEquals(info.isFolder(), status.isDir());
   }
 }

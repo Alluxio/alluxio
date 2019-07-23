@@ -133,6 +133,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setCacheable(false);
     ret.setPersisted(isPersisted());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
+    ret.setLastAccessTimeMs(getLastAccessTimeMs());
     ret.setTtl(mTtl);
     ret.setTtlAction(mTtlAction);
     ret.setOwner(getOwner());
@@ -186,6 +187,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
+        .setLastAccessTimeMs(entry.getLastAccessTimeMs(), true)
         .setMountPoint(entry.getMountPoint())
         .setTtl(entry.getTtl())
         .setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()))
@@ -287,6 +289,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     MutableInodeDirectory d = new MutableInodeDirectory(inode.getId())
         .setCreationTimeMs(inode.getCreationTimeMs())
         .setLastModificationTimeMs(inode.getLastModifiedMs(), true)
+        .setLastAccessTimeMs(inode.getLastAccessedMs(), true)
         .setTtl(inode.getTtl())
         .setTtlAction(inode.getTtlAction())
         .setName(inode.getName())

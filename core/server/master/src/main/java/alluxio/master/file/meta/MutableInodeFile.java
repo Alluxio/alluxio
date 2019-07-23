@@ -100,6 +100,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     ret.setPersisted(isPersisted());
     ret.setBlockIds(getBlockIds());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
+    ret.setLastAccessTimeMs(getLastAccessTimeMs());
     ret.setTtl(mTtl);
     ret.setTtlAction(mTtlAction);
     ret.setOwner(getOwner());
@@ -384,6 +385,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setCompleted(entry.getCompleted())
         .setCreationTimeMs(entry.getCreationTimeMs())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
+        .setLastAccessTimeMs(entry.getLastAccessTimeMs(), true)
         .setLength(entry.getLength())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
@@ -445,6 +447,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction(options.getCommonOptions().getTtlAction())
         .setParentId(parentId)
         .setLastModificationTimeMs(context.getOperationTimeMs(), true)
+        .setLastAccessTimeMs(context.getOperationTimeMs(), true)
         .setOwner(context.getOwner())
         .setGroup(context.getGroup())
         .setMode(context.getMode().toShort())
@@ -518,6 +521,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     MutableInodeFile f = new MutableInodeFile(BlockId.getContainerId(inode.getId()))
         .setCreationTimeMs(inode.getCreationTimeMs())
         .setLastModificationTimeMs(inode.getLastModifiedMs(), true)
+        .setLastAccessTimeMs(inode.getLastAccessedMs(), true)
         .setTtl(inode.getTtl())
         .setTtlAction(inode.getTtlAction())
         .setName(inode.getName())

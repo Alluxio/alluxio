@@ -545,6 +545,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0)).setOperationTimeMs(opTimeMs));
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
+    Assert.assertEquals(opTimeMs, fileInfo.getLastAccessTimeMs());
   }
 
   @Test
@@ -555,6 +556,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), context);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
+    Assert.assertEquals(opTimeMs, folderInfo.getLastAccessTimeMs());
   }
 
   /**
@@ -566,11 +568,14 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
     long folderId = mFsMaster.getFileId(new AlluxioURI("/testFolder"));
     long modificationTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
+    long accessTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastAccessTimeMs();
     CommonUtils.sleepMs(2);
     mFsMaster.delete(new AlluxioURI("/testFolder/testFile"),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
     long modificationTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
+    long accessTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastAccessTimeMs();
     Assert.assertTrue(modificationTimeBeforeDelete < modificationTimeAfterDelete);
+    Assert.assertTrue(accessTimeBeforeDelete < accessTimeAfterDelete);
   }
 
   @Test
@@ -582,6 +587,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.rename(srcPath, dstPath, RenameContext.defaults().setOperationTimeMs(TEST_TIME_MS));
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(TEST_TIME_MS, folderInfo.getLastModificationTimeMs());
+    Assert.assertEquals(TEST_TIME_MS, folderInfo.getLastAccessTimeMs());
   }
 
   @Test
