@@ -130,11 +130,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * is reset during failover, this object must be re-initialized with the new server.
    */
   private final RaftPrimarySelector mPrimarySelector;
-  /**
-   * Client used for submitting empty journal entries during snapshot. This client is created once
-   * and used for the lifetime of the journal system.
-   */
-  private final CompletableFuture<CopycatClient> mSnapshotClient;
 
   /// Lifecycle: constant from when the journal system is started.
 
@@ -178,7 +173,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     mJournalStateLock = new ReentrantReadWriteLock(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
-    mSnapshotClient = createClient().connect();
   }
 
   /**
