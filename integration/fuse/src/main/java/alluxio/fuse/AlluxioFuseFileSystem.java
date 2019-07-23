@@ -81,11 +81,13 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   /**
    * df command will treat -1 as an unknown value.
    */
-  private static final int UNKNOWN_INODES = -1;
+  @VisibleForTesting
+  public static final int UNKNOWN_INODES = -1;
   /**
    * Most FileSystems on linux limit the length of file name beyond 255 characters.
    */
-  private static final int MAX_NAME_LENGTH = 255;
+  @VisibleForTesting
+  public static final int MAX_NAME_LENGTH = 255;
 
   private static InstancedConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());

@@ -31,6 +31,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.ConfigurationTestUtils;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
@@ -43,6 +44,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
+import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
@@ -53,10 +55,15 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+import ru.serce.jnrfuse.struct.Statvfs;
 
 import java.util.Collections;
 import java.util.List;
@@ -64,6 +71,8 @@ import java.util.List;
 /**
  * Isolation tests for {@link AlluxioFuseFileSystem}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({BlockMasterClient.Factory.class})
 public class AlluxioFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
@@ -521,6 +530,34 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void statfs() throws Exception {
-    // TODO(lu): implement this unit test.
+    Runtime runtime = Runtime.getSystemRuntime();
+    Pointer pointer = runtime.getMemoryManager().allocateTemporary(4 * Constants.KB, true);
+    Statvfs stbuf = Statvfs.of(pointer);
+
+    int blockSize = 4 * Constants.KB;
+    int totalBlocks = 4;
+    int freeBlocks = 3;
+
+    BlockMasterClient blockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    PowerMockito.mockStatic(BlockMasterClient.Factory.class);
+    when(BlockMasterClient.Factory.create(any())).thenReturn(blockMasterClient);
+
+    BlockMasterInfo blockMasterInfo = new BlockMasterInfo();
+    blockMasterInfo.setCapacityBytes(totalBlocks * blockSize);
+    blockMasterInfo.setFreeBytes(freeBlocks * blockSize);
+    when(blockMasterClient.getBlockMasterInfo(any())).thenReturn(blockMasterInfo);
+
+    assertEquals(0, mFuseFs.statfs("/", stbuf));
+
+    assertEquals(blockSize, stbuf.f_bsize.intValue());
+    assertEquals(blockSize, stbuf.f_frsize.intValue());
+    assertEquals(totalBlocks, stbuf.f_blocks.longValue());
+    assertEquals(freeBlocks, stbuf.f_bfree.longValue());
+    assertEquals(freeBlocks, stbuf.f_bavail.longValue());
+
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_files.intValue());
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_ffree.intValue());
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_favail.intValue());
+    assertEquals(AlluxioFuseFileSystem.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
   }
 }
