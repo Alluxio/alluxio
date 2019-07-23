@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.Server;
-import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -76,7 +75,7 @@ public class NoopMaster implements Master {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
+    // Do nothing.
   }
 
   @Override
