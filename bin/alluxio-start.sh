@@ -245,7 +245,7 @@ start_master() {
     local keyword="alluxio.master.AlluxioSecondaryMaster"
     pids=($(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'))
     if [ ${#pids[@]} -ge 1 ]; then
-        echo "secondary master @(hostname -f) is already running."
+        echo "Secondary master @(hostname -f) is already running."
         return
     fi
     if [[ -z ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} ]]; then
@@ -266,7 +266,7 @@ start_master() {
     local keyword="alluxio.master.AlluxioMaster"
     pids=($(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'))
     if [ ${#pids[@]} -ge 1 ]; then
-        echo "master @(hostname -f) is already running."
+        echo "Master @(hostname -f) is already running."
         return
     fi
     if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
