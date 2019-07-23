@@ -44,7 +44,7 @@ download_file() {
     aws s3 cp ${uri} ./
   else
     # TODO Add metadata header tag to the wget for filtering out in download metrics.
-    wget "${uri}"
+    wget -nv "${uri}"
   fi
 }
 
@@ -69,9 +69,9 @@ append_alluxio_property() {
   local property=$1
   local value=$2
 
-  # Ok to fail in this section
+  # OK to fail in this section
   set +o errexit
-  # /opt/alluxio/conf must exist
+  # /opt/alluxio/conf must exist for this to work
   grep -q ${property} ${ALLUXIO_SITE_PROPERTIES} 2> /dev/null
   local rv=$?
   set -o errexit # errors not ok anymore
@@ -82,6 +82,24 @@ append_alluxio_property() {
   fi
 }
 
+# Calculates the default memory size as 1/3 of the total system memory
+#
+# Echo's the result to stdout. To store the return value in a variable use
+# val=$(get_defaultmem_size)
+get_default_mem_size() {
+  local mem_div=3
+  local phy_total=$(free -m | grep -oP '\d+' | head -n1)
+  local mem_size=$(( ${phy_total} / ${mem_div} ))
+  echo "${mem_size}MB"
+}
+
+# Gets the region of the current EC2 instance
+get_aws_region() {
+  local ec2_avail_zone=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+  local ec2_region="$(echo "${ec2_avail_zone}" | sed 's/[a-z]$//')"
+  echo "${ec2_region}"
+}
+
 main() {
   local alluxio_tarball
   local root_ufs_uri
@@ -90,9 +108,9 @@ main() {
   local delimited_properties
   alluxio_tarball=${1}
   root_ufs_uri=${2}
-  site_properties_uri=${3}
-  property_delimeter=${4}
-  delimited_properties=${5}
+  site_properties_uri=${3:-""}
+  property_delimeter=${4:-";"}
+  delimited_properties=${5:-""}
 
   # Create user
   sudo groupadd alluxio -g 600 || true
@@ -120,11 +138,16 @@ main() {
   rm ${release}
   doas alluxio "cp ${ALLUXIO_SITE_PROPERTIES}.template ${ALLUXIO_SITE_PROPERTIES}"
 
-  #Get hostnames and load into masters/workers file
-  local emr_cluster=`jq '.jobFlowId' /mnt/var/lib/info/job-flow.json | sed -e 's/^"//' -e 's/"$//'`
-  local hostlist=`aws emr list-instances --cluster-id ${emr_cluster} --region us-east-1 | jq '.Instances[].PrivateDnsName' | sed -e 's/^"//' -e 's/"$//'`
-  local master=`jq '.masterHost' /mnt/var/lib/info/extraInstanceData.json | sed -e 's/^"//' -e 's/"$//' | nslookup | awk -v ip="${ip}" '/name/{print substr($NF,1,length($NF)-1),ip}'`
+  local aws_region=$(get_aws_region)
 
+  #Get hostnames and load into masters/workers file
+  local emr_cluster=$(jq '.jobFlowId' /mnt/var/lib/info/job-flow.json | sed -e 's/^"//' -e 's/"$//')
+  local hostlist=$(aws emr list-instances --cluster-id ${emr_cluster} --region ${aws_region} | jq '.Instances[].PrivateDnsName' | sed -e 's/^"//' -e 's/"$//')
+
+  # Should succeed only on workers. Otherwise, var is left empty
+  local master=$(jq '.masterHost' /mnt/var/lib/info/extraInstanceData.json | sed -e 's/^"//' -e 's/"$//' | nslookup | awk '/name/{print substr($NF,1,length($NF)-1)}')
+
+  # Logic to get master hostname if on the master
   if [[ -z "${master}" ]]
   then
     master=`hostname`
@@ -142,34 +165,41 @@ main() {
   # Download user-specified site properties file to
   # ${ALLUXIO_HOME/conf/alluxio-site.properties}. Must be named
   # "alluxio-site.properties"
-  if [! -z "" ]; then
+  if [ ! -z "${site_properties_uri}" ]; then
     download_file ${site_properties_uri}
-    cp ./alluxio-site.properties ${ALLUXIO_SITE_PROPERTIES}
+    mv ./alluxio-site.properties /tmp/alluxio-site.properties
+    sudo chown alluxio:alluxio /tmp/alluxio-site.properties
+    doas alluxio "cp /tmp/alluxio-site.properties ${ALLUXIO_SITE_PROPERTIES}"
+    # Add newline in case file doens't end in newline
+    doas alluxio "echo >> ${ALLUXIO_SITE_PROPERTIES}"
+    sudo rm /tmp/alluxio-site.properties
   fi
 
   # Inject user defined properties from args
-  IFS=${property_delimeter}
+  IFS="${property_delimeter}"
   conf=(${delimited_properties})
   for property in ${conf}; do
-    IFS=${property_delimeter} && read key value < ${property}
-    append_alluxio_property key value
+    IFS="=" read key value <<< ${property}
+    append_alluxio_property ${key} ${value}
   done
+
+  local mem_size=$(get_default_mem_size)
 
   # Append default configs to site properties if the user hasn't set them
   # already
-  append_alluxio_property alluxio.master.hostname ${master}
-  append_alluxio_property alluxio.master.journal.type UFS
-  append_alluxio_property alluxio.master.mount.table.root.ufs ${root_ufs_uri}
+  append_alluxio_property alluxio.master.hostname "${master}"
+  append_alluxio_property alluxio.master.journal.type "UFS"
+  append_alluxio_property alluxio.master.mount.table.root.ufs "${root_ufs_uri}"
   append_alluxio_property alluxio.master.security.impersonation.hive.users "*"
   append_alluxio_property alluxio.master.security.impersonation.presto.users "*"
   append_alluxio_property alluxio.master.security.impersonation.yarn.users "*"
-  append_alluxio_property alluxio.worker.memory.size "20GB"
-  append_alluxio_property alluxio.worker.tieredstore.level0.alias MEM
-  append_alluxio_property alluxio.worker.tieredstore.level0.dirs.path /mnt/ramdisk
-  append_alluxio_property alluxio.worker.tieredstore.levels 1
+  append_alluxio_property alluxio.worker.memory.size "${mem_size}"
+  append_alluxio_property alluxio.worker.tieredstore.level0.alias "MEM"
+  append_alluxio_property alluxio.worker.tieredstore.level0.dirs.path "/mnt/ramdisk"
+  append_alluxio_property alluxio.worker.tieredstore.levels "1"
 
   # Alluxio can't rely on SSH to start services (i.e. no alluxio-start.sh all)
-  if [[ ${IS_MASTER} = "true" ]]
+  if [[ ${is_master} = "true" ]]
   then
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a master"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
@@ -193,4 +223,4 @@ main() {
   sudo ln -s ${ALLUXIO_HOME}/client/alluxio-client.jar /usr/lib/presto/plugin/hive-hadoop2/alluxio-client.jar
 }
 
-"$@"
+main "$@"
