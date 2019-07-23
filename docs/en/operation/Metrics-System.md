@@ -131,16 +131,16 @@ Tags can be used to further filter or aggregate on various characteristics.
 
 Grafana is a metics analytics and visualization software used for visualizing time series
 data. You can use Grafana to better visualize the various metrics that Alluxio collects. The software
-allows users to more easily see what's going on behind the scenes in Alluxio.
+allows users to more easily see changes memory, storage, and completed operations in Alluxio.
 
-Before configuring Grafana a monitoring tool must be set up that Grafana will pull metrics from. Alluxio
-supports exporting metrics to `Prometheus` and `Graphite`.
+Since Grafana does not collect metrics a monitoring tool must be set up for Grafana to pull metrics from.
+Alluxio supports exporting metrics to `Prometheus` and `Graphite`, and Grafana supports both too.
 
 ### Setting up Prometheus
 
 Install Prometheus using the instructions [here](https://prometheus.io/docs/prometheus/latest/installation/).
 
-After installing Prometheus, it must be configured to get metrics from Alluxio. Next, put the following sections
+After installing Prometheus, it must be configured to pull metrics from Alluxio. Next, put the following sections
 under the `scrape_configs:` section of the Prometheus configuration.
 
 ```
@@ -150,14 +150,14 @@ scrape_configs:
     static_configs:
     - targets: ['<alluxio_master_hostname>:19999']
 
-  - job_name: 'alluxio worker'
+  - job_name: 'alluxio workers'
     metrics_path: '/metrics/prometheus'
     static_configs:
-    - targets: ['<alluxio_worker_hostname>:30000']
+    - targets: ['<alluxio_worker_hostname>:<port>', '<alluxio_worker_hostname2>:<port>, ...]
 ```
 
 Jobs are the various locations Prometheus scrapes for metrics. For Alluxio we tell Prometheus to get data
-from `localhost:19999/metrics/json` and `localhost:30000/metrics/json` the locations that Alluxio stores
+from `http://localhost:19999/metrics/json` and `http://localhost:30000/metrics/json` the locations that Alluxio stores
 metrics in for the Master and Worker. A single job can have multiple targets. The targets need to be added
 under the `targets:` list.
 
@@ -200,7 +200,7 @@ that was set up earlier.
 For a Prometheus datasource enter the URL as `http://localhost:9090` and set `Server Access` to `Browse`. Next, set
 the scrape interval to 5 seconds. This is how long in between Grafana waits before collecting data again.
 
-For a Graphite datasource enter the URL as `http://localhost:0080` and set `Server Access` to `Browse`. Next, set the
+For a Graphite datasource enter the URL as `http://localhost:` and set `Server Access` to `Browse`. Next, set the
 Graphite version to the version of Graphite you downloaded.
 
 Grafana should be set up and connected to Alluxio. You can create queries to visualize any of the
