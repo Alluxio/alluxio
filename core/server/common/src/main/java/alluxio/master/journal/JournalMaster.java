@@ -11,11 +11,10 @@
 
 package alluxio.master.journal;
 
+import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
-import alluxio.grpc.QuorumServerInfo;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Interface for journal master implementations.
@@ -25,9 +24,9 @@ public interface JournalMaster {
    * Quorum information for participating servers in journal. This method is supported only for
    * {@link alluxio.master.journal.JournalType#EMBEDDED} journal.
    *
-   * @return list of server states in quorum
+   * @return the quorum info
    */
-  List<QuorumServerInfo> getQuorumInfo();
+  GetQuorumInfoPResponse getQuorumInfo();
 
   /**
    * Removes a server from journal quorum. This method is supported only for

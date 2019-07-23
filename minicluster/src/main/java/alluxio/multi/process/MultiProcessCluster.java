@@ -365,7 +365,7 @@ public final class MultiProcessCluster {
   }
 
   /**
-   * @return a meta master client
+   * @return a journal master client for alluxio master
    */
   public synchronized JournalMasterClient getJournalMasterClientForMaster() {
     Preconditions.checkState(mState == State.STARTED,

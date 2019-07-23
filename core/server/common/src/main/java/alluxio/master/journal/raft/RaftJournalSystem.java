@@ -517,11 +517,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   /**
-   * Used to export information of internal RAFT quorum.
+   * Used to get information of internal RAFT quorum.
    *
    * @return list of information for participating servers in RAFT quorum
    */
-  public synchronized List<QuorumServerInfo> getQuorumInfo() {
+  public synchronized List<QuorumServerInfo> getQuorumServerInfoList() {
     List<QuorumServerInfo> quorumMemberStateList = new LinkedList<>();
     for (Member member : mServer.cluster().members()) {
       NetAddress memberAddress = NetAddress.newBuilder().setHost(member.address().host())

@@ -16,7 +16,6 @@ import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * Interface for a journal master client.
@@ -33,7 +32,7 @@ public interface JournalMasterClient extends Closeable {
    * Removes a server from journal quorum.
    *
    * @param serverAddress server address to remove from quorum
-   * @throws IOException
+   * @throws AlluxioStatusException
    */
   void removeQuorumServer(NetAddress serverAddress) throws AlluxioStatusException;
 }

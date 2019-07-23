@@ -55,19 +55,16 @@ public class QuorumRemoveCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    // Validate domain option is correct.
+    JournalMasterClient jmClient = mMasterJournalMasterClient;
     String domainVal = cl.getOptionValue(DOMAIN_OPTION_NAME);
     try {
-      JournalDomain.valueOf(domainVal);
-    } catch (Exception e) {
+      JournalDomain domain = JournalDomain.valueOf(domainVal);
+      if (domain == JournalDomain.JOB_MASTER) {
+        jmClient = mJobMasterJournalMasterClient;
+      }
+    } catch (IllegalArgumentException e) {
       throw new InvalidArgumentException(ExceptionMessage.INVALID_OPTION_VALUE
-          .getMessage(DOMAIN_OPTION_NAME, Arrays.toString(JournalDomain.values())));
-    }
-
-    JournalMasterClient jmClient = mMasterJournalMasterClient;
-    JournalDomain domain = JournalDomain.valueOf(domainVal);
-    if (domain == JournalDomain.JOB_MASTER) {
-      jmClient = mJobMasterJournalMasterClient;
+              .getMessage(DOMAIN_OPTION_NAME, Arrays.toString(JournalDomain.values())));
     }
 
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
@@ -82,7 +79,7 @@ public class QuorumRemoveCommand extends AbstractFsAdminCommand {
     }
 
     jmClient.removeQuorumServer(NetAddress.newBuilder().setHost(hostName).setRpcPort(port).build());
-    mPrintStream.println(String.format(OUTPUT_RESULT, serverAddress, domain.name()));
+    mPrintStream.println(String.format(OUTPUT_RESULT, serverAddress, domainVal));
 
     return 0;
   }

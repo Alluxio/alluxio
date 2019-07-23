@@ -56,22 +56,16 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    // Validate domain option is correct.
+    JournalMasterClient jmClient = mMasterJournalMasterClient;
     String domainVal = cl.getOptionValue(DOMAIN_OPTION_NAME);
     try {
-      JournalDomain.valueOf(domainVal);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_OPTION_VALUE
-          .getMessage(DOMAIN_OPTION_NAME, Arrays.toString(JournalDomain.values())));
-    }
-
-    JournalMasterClient jmClient = mMasterJournalMasterClient;
-
-    if (cl.hasOption(DOMAIN_OPTION_NAME)) {
       JournalDomain domain = JournalDomain.valueOf(domainVal);
       if (domain == JournalDomain.JOB_MASTER) {
         jmClient = mJobMasterJournalMasterClient;
       }
+    } catch (IllegalArgumentException e) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_OPTION_VALUE
+          .getMessage(DOMAIN_OPTION_NAME, Arrays.toString(JournalDomain.values())));
     }
 
     GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
