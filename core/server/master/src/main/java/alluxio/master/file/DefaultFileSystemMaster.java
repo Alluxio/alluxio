@@ -768,8 +768,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
-      mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(),
-          inodePath.getInode(), opTimeMs);
+      Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
+      if (context.getOptions().hasAccessMode()
+           && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
+        mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(),
+            inodePath.getInode(), opTimeMs);
+      }
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return fileInfo;
     }
