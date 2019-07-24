@@ -187,7 +187,9 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
-        .setLastAccessTimeMs(entry.getLastAccessTimeMs(), true)
+        // for backward compatibility, set access time to modification time if it is not in journal
+        .setLastAccessTimeMs(entry.hasLastAccessTimeMs()
+            ? entry.getLastAccessTimeMs() : entry.getLastModificationTimeMs(), true)
         .setMountPoint(entry.getMountPoint())
         .setTtl(entry.getTtl())
         .setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()))

@@ -385,7 +385,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setCompleted(entry.getCompleted())
         .setCreationTimeMs(entry.getCreationTimeMs())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
-        .setLastAccessTimeMs(entry.getLastAccessTimeMs(), true)
+        // for backward compatibility, set access time to modification time if it is not in journal
+        .setLastAccessTimeMs(entry.hasLastAccessTimeMs()
+            ? entry.getLastAccessTimeMs() : entry.getLastModificationTimeMs(), true)
         .setLength(entry.getLength())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
