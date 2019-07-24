@@ -21,6 +21,8 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
@@ -43,7 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class represents the executor for periodic inode ttl check.
  */
 @NotThreadSafe
-final class AccessTimeUpdater {
+final class AccessTimeUpdater implements JournalSink {
   private static final Logger LOG = LoggerFactory.getLogger(AccessTimeUpdater.class);
 
   private final long mFlushInterval;
@@ -61,8 +63,9 @@ final class AccessTimeUpdater {
   /**
    * Constructs a new {@link AccessTimeUpdater}.
    */
-  public AccessTimeUpdater(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
-    this(fileSystemMaster, inodeTree,
+  public AccessTimeUpdater(FileSystemMaster fileSystemMaster, InodeTree inodeTree,
+      JournalSystem journalSystem) {
+    this(fileSystemMaster, inodeTree, journalSystem,
         ServerConfiguration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL),
         ServerConfiguration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION),
         ServerConfiguration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT));
@@ -73,13 +76,14 @@ final class AccessTimeUpdater {
    */
   @VisibleForTesting
   public AccessTimeUpdater(FileSystemMaster fileSystemMaster, InodeTree inodeTree,
-      long flushInterval, long updatePrecision, long shutdownTimeout) {
+      JournalSystem journalSystem, long flushInterval, long updatePrecision, long shutdownTimeout) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
     mAccessTimeUpdates = new ConcurrentHashSet<>();
     mFlushInterval = flushInterval;
     mUpdatePrecision = updatePrecision;
     mShutdownTimeout = shutdownTimeout;
+    journalSystem.addJournalSink(mFileSystemMaster, this);
   }
 
   public void start() {
@@ -92,9 +96,15 @@ final class AccessTimeUpdater {
     mExecutorService = executorService;
   }
 
-  public void stop() {
+  @Override
+  public void beforeShutdown() {
     if (mExecutorService != null) {
       flushUpdates();
+    }
+  }
+
+  public void stop() {
+    if (mExecutorService != null) {
       ThreadUtils.shutdownAndAwaitTermination(mExecutorService, mShutdownTimeout);
     }
   }
@@ -122,7 +132,7 @@ final class AccessTimeUpdater {
   private void scheduleJournalUpdate(UpdateInodeEntry entry) {
     mAccessTimeUpdates.add(entry.getId());
     if (mUpdateScheduled.compareAndSet(false, true)) {
-      mExecutorService.schedule(this::flushUpdates, mFlushInterval, TimeUnit.MILLISECONDS);
+      mExecutorService.schedule(this::flushScheduledUpdates, mFlushInterval, TimeUnit.MILLISECONDS);
     }
   }
 
@@ -131,9 +141,13 @@ final class AccessTimeUpdater {
         .build());
   }
 
+  private void flushScheduledUpdates() {
+    mUpdateScheduled.set(false);
+    flushUpdates();
+  }
+
   private void flushUpdates() {
     long filesRemoved = 0;
-    mUpdateScheduled.set(false);
     try (JournalContext context = mFileSystemMaster.createJournalContext()) {
       for (Iterator<Long> iterator = mAccessTimeUpdates.iterator();
            iterator.hasNext();) {

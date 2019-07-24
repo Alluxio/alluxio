@@ -73,6 +73,7 @@ public final class AccessTimeUpdaterTest {
   private AccessTimeUpdater mAccessTimeUpdater;
   private BlockMaster mBlockMaster;
   private InodeStore mInodeStore;
+  private CoreMasterContext mContext;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -81,17 +82,18 @@ public final class AccessTimeUpdaterTest {
   @Before
   public final void before() throws Exception {
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    when(mFileSystemMaster.getName()).thenReturn(Constants.FILE_SYSTEM_MASTER_NAME);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    CoreMasterContext context = MasterTestUtils.testMasterContext(journalSystem);
-    new MetricsMasterFactory().create(registry, context);
-    mBlockMaster = new BlockMasterFactory().create(registry, context);
+    mContext = MasterTestUtils.testMasterContext(journalSystem);
+    new MetricsMasterFactory().create(registry, mContext);
+    mBlockMaster = new BlockMasterFactory().create(registry, mContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
-    mInodeStore = context.getInodeStoreFactory().apply(lockManager);
+    mInodeStore = mContext.getInodeStoreFactory().apply(lockManager);
     mInodeTree =
         new InodeTree(mInodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager);
 
@@ -118,7 +120,8 @@ public final class AccessTimeUpdaterTest {
 
   @Test
   public void updateAccessTimeImmediately() throws Exception {
-    mAccessTimeUpdater = new AccessTimeUpdater(mFileSystemMaster, mInodeTree, 0, 0, 0);
+    mAccessTimeUpdater = new AccessTimeUpdater(mFileSystemMaster, mInodeTree,
+        mContext.getJournalSystem(), 0, 0, 0);
     mAccessTimeUpdater.start();
     String path = "/foo";
     JournalContext journalContext = mock(JournalContext.class);
@@ -146,7 +149,7 @@ public final class AccessTimeUpdaterTest {
   @Test
   public void updateAccessTimeAsync() throws Exception {
     mAccessTimeUpdater = new AccessTimeUpdater(mFileSystemMaster, mInodeTree,
-        10 * Constants.SECOND_MS, 0, 0);
+        mContext.getJournalSystem(), 10 * Constants.SECOND_MS, 0, 0);
     mAccessTimeUpdater.start(mScheduler);
     String path = "/foo";
     createInode(path, CreateFileContext.defaults());
@@ -183,7 +186,7 @@ public final class AccessTimeUpdaterTest {
   @Test
   public void updateAccessTimePrecision() throws Exception {
     mAccessTimeUpdater = new AccessTimeUpdater(mFileSystemMaster, mInodeTree,
-        0, 1 * Constants.HOUR_MS, 0);
+        mContext.getJournalSystem(), 0, Constants.HOUR_MS, 0);
     mAccessTimeUpdater.start();
     String path = "/foo";
     createInode(path, CreateFileContext.defaults());
@@ -226,7 +229,7 @@ public final class AccessTimeUpdaterTest {
   @Test
   public void updateAccessTimePrecisionAsync() throws Exception {
     mAccessTimeUpdater = new AccessTimeUpdater(mFileSystemMaster, mInodeTree,
-        Constants.MINUTE_MS, Constants.HOUR_MS, 0);
+        mContext.getJournalSystem(), Constants.MINUTE_MS, Constants.HOUR_MS, 0);
     mAccessTimeUpdater.start(mScheduler);
     String path = "/foo";
     createInode(path, CreateFileContext.defaults());
@@ -274,5 +277,42 @@ public final class AccessTimeUpdaterTest {
     assertTrue(captor.getValue().hasUpdateInode());
     assertEquals(inodeId, captor.getValue().getUpdateInode().getId());
     assertEquals(newAccessTime, captor.getValue().getUpdateInode().getLastAccessTimeMs());
+  }
+
+  @Test
+  public void updateAccessTimeAsyncOnShutdown() throws Exception {
+    mAccessTimeUpdater = new AccessTimeUpdater(mFileSystemMaster, mInodeTree,
+        mContext.getJournalSystem(), 10 * Constants.SECOND_MS, 0, 0);
+    mAccessTimeUpdater.start(mScheduler);
+    String path = "/foo";
+    createInode(path, CreateFileContext.defaults());
+    JournalContext journalContext = mock(JournalContext.class);
+    when(mFileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    long accessTime = CommonUtils.getCurrentMs() + 100L;
+    long inodeId;
+    try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
+        InodeTree.LockPattern.READ)) {
+      mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
+      inodeId = lockedInodes.getInode().getId();
+    }
+
+    // verify inode attribute is updated
+    assertEquals(accessTime, mInodeStore.get(inodeId).get().getLastAccessTimeMs());
+
+    mScheduler.jumpAndExecute(1, TimeUnit.SECONDS);
+
+    // verify journal entry is NOT logged yet
+    verify(journalContext, never()).append(any(Journal.JournalEntry.class));
+
+    // wait for the flush to complete
+    mContext.getJournalSystem().stop();
+
+    /// verify journal entry is logged after the flush interval
+    ArgumentCaptor<Journal.JournalEntry> captor =
+        ArgumentCaptor.forClass(Journal.JournalEntry.class);
+    verify(journalContext).append(captor.capture());
+    assertTrue(captor.getValue().hasUpdateInode());
+    assertEquals(inodeId, captor.getValue().getUpdateInode().getId());
+    assertEquals(accessTime, captor.getValue().getUpdateInode().getLastAccessTimeMs());
   }
 }
