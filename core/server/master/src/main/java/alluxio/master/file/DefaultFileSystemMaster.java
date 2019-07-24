@@ -2859,11 +2859,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
         FileSystemMasterAuditContext auditContext =
             createAuditContext("setAcl", path, null, inodePath.getInodeOrNull())) {
-      mPermissionChecker.checkSetAttributePermission(inodePath, false, true);
+      mPermissionChecker.checkSetAttributePermission(inodePath, false, true, false);
       if (context.getOptions().getRecursive()) {
         try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
           for (LockedInodePath child : descendants) {
-            mPermissionChecker.checkSetAttributePermission(child, false, true);
+            mPermissionChecker.checkSetAttributePermission(child, false, true, false);
           }
         } catch (AccessControlException e) {
           auditContext.setAllowed(false);
@@ -3015,6 +3015,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     boolean rootRequired = options.hasOwner();
     // for chgrp, chmod
     boolean ownerRequired = (options.hasGroup()) || (options.hasMode());
+    // for other attributes
+    boolean writeRequired = !rootRequired && !ownerRequired;
     if (options.hasOwner() && options.hasGroup()) {
       try {
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
@@ -3057,12 +3059,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
       try {
-        mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
+        mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired,
+            writeRequired);
         if (context.getOptions().getRecursive()) {
           try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
             for (LockedInodePath childPath : descendants) {
               mPermissionChecker.checkSetAttributePermission(childPath, rootRequired,
-                  ownerRequired);
+                  ownerRequired, writeRequired);
             }
           }
         }
