@@ -1066,21 +1066,35 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <tbody>
             <tr>
               <th>
-                Remote Alluxio Read
+                Local Alluxio (Domain Socket) Read
               </th>
               <td />
               <th>
-                Remote Alluxio Write
+                Local Alluxio (Domain Socket) Write
               </th>
               <td />
             </tr>
             <tr>
               <th>
-                Domain Socket Alluxio Read
+                Local Alluxio (Short-circuit) Read
+              </th>
+              <td>
+                N/A
+              </td>
+              <th>
+                Local Alluxio (Short-circuit) Write
+              </th>
+              <td>
+                N/A
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Remote Alluxio Read
               </th>
               <td />
               <th>
-                Domain Socket Alluxio Write
+                Remote Alluxio Write
               </th>
               <td />
             </tr>
@@ -1111,21 +1125,35 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <tbody>
             <tr>
               <th>
-                Remote Alluxio Read
+                Local Alluxio (Domain Socket) Read
               </th>
               <td />
               <th>
-                Remote Alluxio Write
+                Local Alluxio (Domain Socket) Write
               </th>
               <td />
             </tr>
             <tr>
               <th>
-                Domain Socket Alluxio Read
+                Local Alluxio (Short-circuit) Read
+              </th>
+              <td>
+                N/A
+              </td>
+              <th>
+                Local Alluxio (Short-circuit) Write
+              </th>
+              <td>
+                N/A
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Remote Alluxio Read
               </th>
               <td />
               <th>
-                Domain Socket Alluxio Write
+                Remote Alluxio Write
               </th>
               <td />
             </tr>
