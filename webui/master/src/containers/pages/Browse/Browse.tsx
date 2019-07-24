@@ -73,6 +73,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     super(props);
 
     let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    path = decodeURIComponent(path || '');
     offset = offset || '0';
     this.state = {end, limit, offset, path: path || '/'};
   }
@@ -82,6 +83,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+      path = decodeURIComponent(path || '');
       offset = offset || '0';
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
