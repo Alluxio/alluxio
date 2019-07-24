@@ -293,7 +293,9 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   /**
-   * @return
+   * @param inodeId id of inode to be updated
+   * @param accessTime the new access time
+   * @return the applied inode entry
    */
   public UpdateInodeEntry updateInodeAccessTime(long inodeId, long accessTime) {
     return mState.applyInodeAccessTime(inodeId, accessTime);
@@ -904,6 +906,7 @@ public class InodeTree implements DelegatingJournaled {
     }
     return true;
   }
+
   /**
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.

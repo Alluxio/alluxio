@@ -123,7 +123,7 @@ public final class AccessTimeUpdaterTest {
     String path = "/foo";
     JournalContext journalContext = mock(JournalContext.class);
     createInode(path, CreateFileContext.defaults());
-    long accessTime = CommonUtils.getCurrentMs() + 100l;
+    long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
         InodeTree.LockPattern.READ)) {
