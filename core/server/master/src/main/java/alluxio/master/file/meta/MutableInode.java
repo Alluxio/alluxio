@@ -571,10 +571,6 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setLastAccessTimeMs(entry.getLastAccessTimeMs(),
           entry.getOverwriteAccessTime());
     }
-    if (entry.hasLastAccessTimeMs()) {
-      setLastAccessTimeMs(entry.getLastAccessTimeMs(),
-          entry.getOverwriteAccessTime());
-    }
     if (entry.hasMode()) {
       setMode((short) entry.getMode());
     }
@@ -666,6 +662,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setTtl(getTtl())
         .setTtlAction(getTtlAction())
         .setLastModifiedMs(getLastModificationTimeMs())
+        .setLastAccessedMs(getLastAccessTimeMs())
         .setName(getName())
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())

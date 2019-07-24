@@ -252,6 +252,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setLastAccessTimeMs(getLastAccessTimeMs())
         .setMountPoint(isMountPoint())
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))

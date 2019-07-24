@@ -471,6 +471,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setCreationTimeMs(getCreationTimeMs())
         .setId(getId())
         .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setLastAccessTimeMs(getLastAccessTimeMs())
         .setLength(getLength())
         .setName(getName())
         .setParentId(getParentId())
