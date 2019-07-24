@@ -28,7 +28,6 @@ import alluxio.util.FileSystemOptions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang.WordUtils;
 
 import java.io.IOException;
 import java.util.Collection;
