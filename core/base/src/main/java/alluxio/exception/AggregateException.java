@@ -17,7 +17,7 @@ import java.util.Collection;
 /**
  * Represents a collection of exceptions.
  */
-public class AggregateException extends IOException {
+public class AggregateException extends Exception {
   private final Collection<Exception> mExceptions;
 
   /**

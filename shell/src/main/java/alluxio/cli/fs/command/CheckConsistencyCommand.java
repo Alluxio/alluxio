@@ -214,7 +214,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
     }
 
     if (exceptions.size() > 0) {
-      throw new AggregateException(exceptions);
+      AggregateException e = new AggregateException(exceptions);
+      throw new IOException("Failed to successfully repair all paths", e);
     }
   }
 
