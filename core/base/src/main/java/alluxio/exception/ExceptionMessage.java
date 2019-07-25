@@ -190,6 +190,10 @@ public enum ExceptionMessage {
   INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
   INVALID_ARGS_SORT_FIELD("Invalid sort option `{0}` for --sort"),
   INVALID_ARG_TYPE("Arg {0} is not type {1}"),
+  INVALID_OPTION("Invalid option provided. Supported options: {0}"),
+  INVALID_OPTION_COUNT("Invalid option count. Expected: {0}, Found: {1}"),
+  INVALID_OPTION_VALUE("Invalid value provided for option: {0}. Supported values: {1}"),
+  INVALID_ADDRESS_VALUE("Invalid address provided."),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),

@@ -45,8 +45,8 @@ public class TriggeredCheckpointTest {
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
-    cluster.start();
     try {
+      cluster.start();
       cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
 
       // Get enough journal entries

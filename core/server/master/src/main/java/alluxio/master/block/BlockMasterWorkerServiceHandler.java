@@ -21,12 +21,12 @@ import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
-import alluxio.grpc.GrpcUtils;
 import alluxio.proto.meta.Block;
 
 import com.google.common.base.Preconditions;
@@ -34,6 +34,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,8 +42,8 @@ import java.util.stream.Collectors;
 /**
  * This class is a gRPC handler for block master RPCs invoked by an Alluxio worker.
  */
-public final class BlockMasterWorkerServiceHandler
-    extends BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
+public final class BlockMasterWorkerServiceHandler extends
+    BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
 
   private final BlockMaster mBlockMaster;
@@ -69,15 +70,19 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
-        request.getAddedBlocksList().stream()
-            .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
-                    .setTier(e.getKey().getTierAlias())
-                    .setMediumType(e.getKey().getMediumType()).build(),
-                e -> e.getValue().getBlockIdList(),
-                (e1, e2) -> {
-                  e1.addAll(e2);
-                  return e1;
-                }));
+        request
+            .getAddedBlocksList()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
+                        .setMediumType(e.getKey().getMediumType()).build(),
+                    e -> e.getValue().getBlockIdList(),
+                    (e1, e2) -> {
+                      List<Long> e3 = new ArrayList<>(e1);
+                      e3.addAll(e2);
+                      return e3;
+                    }));
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
@@ -138,15 +143,19 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-        request.getCurrentBlocksList().stream()
-            .collect(Collectors.toMap(e -> Block.BlockLocation.newBuilder()
-                    .setTier(e.getKey().getTierAlias())
-                    .setMediumType(e.getKey().getMediumType()).build(),
-                e -> e.getValue().getBlockIdList(),
-                (e1, e2) -> {
-                e1.addAll(e2);
-                return e1;
-                }));
+        request
+            .getCurrentBlocksList()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
+                        .setMediumType(e.getKey().getMediumType()).build(),
+                    e -> e.getValue().getBlockIdList(),
+                    (e1, e2) -> {
+                      List<Long> e3 = new ArrayList<>(e1);
+                      e3.addAll(e2);
+                      return e3;
+                    }));
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,

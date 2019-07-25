@@ -60,9 +60,11 @@ public interface PermissionChecker {
    * @param inodePath the path to check permission on
    * @param superuserRequired indicates whether it requires to be the superuser
    * @param ownerRequired indicates whether it requires to be the owner of this path
+   * @param writeRequired indicates whether it requires to have write permissions
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
   void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
-      boolean ownerRequired) throws AccessControlException, InvalidPathException;
+      boolean ownerRequired, boolean writeRequired)
+      throws AccessControlException, InvalidPathException;
 }

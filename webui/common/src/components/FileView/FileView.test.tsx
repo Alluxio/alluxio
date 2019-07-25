@@ -32,7 +32,6 @@ describe('FileView', () => {
       endInputHandler: sinon.spy(() => {
       }),
       history: history,
-      lastFetched: {},
       offsetInputHandler: sinon.spy(() => {
       }),
       queryStringPrefix: '',

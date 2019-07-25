@@ -67,7 +67,7 @@ alluxio.user.local.reader.chunk.size.bytes:
 alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logs.dir:
-  'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.user.logs.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.user.logs.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and heartbeat them to master'
 alluxio.user.metrics.heartbeat.interval:

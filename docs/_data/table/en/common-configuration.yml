@@ -1,5 +1,5 @@
 alluxio.conf.dir:
-  'The directory containing files used to configure Alluxio. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.conf.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'The directory containing files used to configure Alluxio. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.conf.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
@@ -77,13 +77,13 @@ alluxio.locality.script:
 alluxio.logger.type:
   'The type of logger.'
 alluxio.logs.dir:
-  'The path under Alluxio home directory to store log files. It has a corresponding environment variable $ALLUXIO_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logs.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'The path under Alluxio home directory to store log files. It has a corresponding environment variable $ALLUXIO_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logs.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.hostname:
-  'The hostname of Alluxio logserver. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.hostname"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'The hostname of Alluxio logserver. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.hostname"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.logs.dir:
-  'Default location for remote log files. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.logs.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'Default location for remote log files. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.logs.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.port:
-  'Default port of logserver to receive logs from alluxio servers. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.port"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'Default port of logserver to receive logs from alluxio servers. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.port"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.threads.max:
   'The maximum number of threads used by logserver to service logging requests.'
 alluxio.logserver.threads.min:
@@ -117,7 +117,7 @@ alluxio.proxy.web.port:
 alluxio.secondary.master.metastore.dir:
   'The secondary master metastore work directory. Only some metastores need disk.'
 alluxio.site.conf.dir:
-  'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.site.conf.dir"=<NEW_VALUE>" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.site.conf.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.test.deprecated.key:
   'N/A'
 alluxio.tmp.dirs:
@@ -232,6 +232,8 @@ alluxio.work.dir:
   'The directory to use for Alluxio''s working directory. By default, the journal, logs, and under file storage data (if using local filesystem) are written here.'
 alluxio.zookeeper.address:
   'Address of ZooKeeper.'
+alluxio.zookeeper.auth.enabled:
+  'If true, enable client-side Zookeeper authentication.'
 alluxio.zookeeper.connection.timeout:
   'Connection timeout to use when connecting to Zookeeper'
 alluxio.zookeeper.election.path:

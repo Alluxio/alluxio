@@ -42,12 +42,6 @@ interface ILogsState {
   limit?: string;
   offset?: string;
   path?: string;
-  lastFetched: {
-    end?: string;
-    limit?: string;
-    offset?: string;
-    path?: string;
-  };
   textAreaHeight?: number;
 }
 
@@ -64,15 +58,17 @@ export class Logs extends React.Component<AllProps, ILogsState> {
   constructor(props: AllProps) {
     super(props);
 
-    const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
-    this.state = {end, limit, offset, path, lastFetched: {}};
+    let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    offset = offset || '0';
+    this.state = {end, limit, offset, path};
   }
 
   public componentDidUpdate(prevProps: AllProps) {
     const {refresh, location: {search}} = this.props;
     const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
-      const {path, offset, limit, end} = parseQuerystring(search);
+      let {path, offset, limit, end} = parseQuerystring(search);
+      offset = offset || '0';
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
     }
@@ -126,8 +122,9 @@ export class Logs extends React.Component<AllProps, ILogsState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              {data.fileData && this.renderFileView(data, queryStringSuffix)}
-              {!data.fileData && this.renderDirectoryListing(data.fileInfos, queryStringSuffix)}
+              {data.fileData !== null
+                  ? this.renderFileView(data, queryStringSuffix)
+                  : this.renderDirectoryListing(data.fileInfos, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -136,14 +133,14 @@ export class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   private renderFileView(logs: ILogs, queryStringSuffix: string) {
-    const {textAreaHeight, path, offset, end, lastFetched} = this.state;
+    const {textAreaHeight, path, offset, end} = this.state;
     const {history} = this.props;
     const offsetInputHandler = this.createInputChangeHandler('offset', value => value).bind(this);
     const beginInputHandler = this.createButtonHandler('end', value => undefined).bind(this);
     const endInputHandler = this.createButtonHandler('end', value => '1').bind(this);
     return (
       <FileView beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
-                lastFetched={lastFetched} offset={offset || '0'} offsetInputHandler={offsetInputHandler} path={path}
+                offset={offset} offsetInputHandler={offsetInputHandler} path={path}
                 queryStringPrefix="/logs" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
                 viewData={logs} history={history}/>
     );
@@ -167,7 +164,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
         {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
           <tr key={fileInfo.absolutePath}>
             <td>
-              {renderFileNameLink.call(this, fileInfo.absolutePath, `/logs?path=${fileInfo.absolutePath}`)}
+              {renderFileNameLink.call(this, fileInfo.absolutePath, `/logs?path=`)}
             </td>
             <td>{fileInfo.size}</td>
             <td>{fileInfo.blockSizeBytes}</td>
@@ -183,7 +180,6 @@ export class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   private fetchData(path?: string, offset?: string, limit?: string, end?: string) {
-    this.setState({lastFetched: {path, offset, limit, end}});
     this.props.fetchRequest(path, offset, limit, end);
   }
 

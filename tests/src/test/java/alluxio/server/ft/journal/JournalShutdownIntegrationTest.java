@@ -178,15 +178,25 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void multiMasterMountUnmountJournal() throws Exception {
-    MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
-    UnderFileSystemFactory factory = mountUnmount(cluster.getClient());
-    // Kill the leader one by one.
-    for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      cluster.waitForNewMaster(120 * Constants.SECOND_MS);
-      assertTrue(cluster.stopLeader());
+    MultiMasterLocalAlluxioCluster cluster = null;
+    UnderFileSystemFactory factory = null;
+    try {
+      cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
+      cluster.initConfiguration();
+      cluster.start();
+      cluster.stopLeader();
+      factory = mountUnmount(cluster.getClient());
+      // Kill the leader one by one.
+      for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
+        cluster.waitForNewMaster(120 * Constants.SECOND_MS);
+        assertTrue(cluster.stopLeader());
+      }
+    } finally {
+      // Shutdown the cluster
+      if (cluster != null) {
+        cluster.stopFS();
+      }
     }
-    // Shutdown the cluster
-    cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     // Fail the creation of UFS
@@ -227,17 +237,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-  }
-
-  /**
-   * Sets up and starts a multi-master cluster.
-   */
-  private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
-    // Setup and start the alluxio-ft cluster.
-    MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
-    cluster.initConfiguration();
-    cluster.start();
-    return cluster;
   }
 
   /**

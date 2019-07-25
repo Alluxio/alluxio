@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin;
 
 import alluxio.ClientContext;
+import alluxio.client.journal.RetryHandlingJournalMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -26,6 +27,7 @@ import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.conf.Source;
 import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
+import alluxio.worker.job.JobMasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,11 +80,14 @@ public final class FileSystemAdminShell extends AbstractShell {
   protected Map<String, Command> loadCommands() {
     ClientContext ctx = ClientContext.create(mConfiguration);
     MasterClientContext masterConfig = MasterClientContext.newBuilder(ctx).build();
+    JobMasterClientContext jobMasterConfig = JobMasterClientContext.newBuilder(ctx).build();
     Context adminContext = new Context(
         new RetryHandlingFileSystemMasterClient(masterConfig),
         new RetryHandlingBlockMasterClient(masterConfig),
         new RetryHandlingMetaMasterClient(masterConfig),
         new RetryHandlingMetaMasterConfigClient(masterConfig),
+        new RetryHandlingJournalMasterClient(masterConfig),
+        new RetryHandlingJournalMasterClient(jobMasterConfig),
         System.out
     );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),

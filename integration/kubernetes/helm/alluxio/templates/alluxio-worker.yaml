@@ -1,0 +1,104 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alluxio-worker
+spec:
+  selector:
+    matchLabels:
+      name: alluxio-worker
+  template:
+    metadata:
+      labels:
+        name: alluxio-worker
+        app: alluxio
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: alluxio-worker
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.worker.limits.cpu }}
+              memory: {{ .Values.resources.worker.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.worker.requests.cpu }}
+              memory: {{ .Values.resources.worker.requests.memory }}
+          command: ["/entrypoint.sh"]
+          args: ["worker-only", "--no-format"]
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: ALLUXIO_WORKER_JAVA_OPTS
+            value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: {{ .Values.resources.worker.ports.rpc }}
+            name: rpc
+          - containerPort: {{ .Values.resources.worker.ports.web }}
+            name: web
+          volumeMounts:
+            - name: alluxio-ramdisk
+              mountPath: /dev/shm
+            - name: alluxio-domain
+              mountPath: /opt/domain
+        - name: alluxio-job-worker
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.jobWorker.limits.cpu }}
+              memory: {{ .Values.resources.jobWorker.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.jobWorker.requests.cpu }}
+              memory: {{ .Values.resources.jobWorker.requests.memory }}
+          command: ["/entrypoint.sh"]
+          args: ["job-worker"]
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: ALLUXIO_JOB_WORKER_JAVA_OPTS
+            value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: {{ .Values.resources.jobWorker.ports.rpc }}
+            name: job-rpc
+          - containerPort: {{ .Values.resources.jobWorker.ports.data }}
+            name: job-data
+          - containerPort: {{ .Values.resources.jobWorker.ports.web }}
+            name: job-web
+          volumeMounts:
+            - name: alluxio-ramdisk
+              mountPath: /dev/shm
+            - name: alluxio-domain
+              mountPath: /opt/domain
+      restartPolicy: Always
+      volumes:
+        - name: alluxio-ramdisk
+          emptyDir:
+            medium: "Memory"
+            sizeLimit: {{ .Values.volumes.worker.ramdisk.size | quote }}
+        - name: alluxio-domain
+          hostPath:
+            path: {{ .Values.volumes.worker.domainHostPath }}
+            type: DirectoryOrCreate

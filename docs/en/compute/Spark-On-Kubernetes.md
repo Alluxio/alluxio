@@ -83,13 +83,13 @@ If domain sockets were not setup when deploying Alluxio as per instructions on
 you can skip mounting the `hostPath` volumes to the Spark executors.
 
 If a domain socket location was setup on hosts running the Alluxio worker process at location
-`/tmp/domain` with the Alluxio configuration as `alluxio.worker.data.server.domain.socket.address=/opt/domain`,
-use the following Spark configuration to mount `/tmp/domain` to `/opt/domain` in the Spark executor
+`/tmp/alluxio-domain` with the Alluxio configuration as `alluxio.worker.data.server.domain.socket.address=/opt/domain`,
+use the following Spark configuration to mount `/tmp/alluxio-domain` to `/opt/domain` in the Spark executor
 pod. The `spark-submit` command in the following section includes these properties.
 ```properties
 spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.path=/opt/domain
 spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.readOnly=true
-spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/domain
+spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/alluxio-domain
 spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory
 ```
 
@@ -119,7 +119,7 @@ $ ./bin/spark-submit --master k8s://https://<master>:8443 \
 --conf spark.kubernetes.container.image=spark-alluxio \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.path=/opt/domain \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.readOnly=true \
---conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/domain \
+--conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/alluxio-domain \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory \
 local:///opt/spark/jars/alluxio-examples_2.12-1.0.jar \
 alluxio://alluxio-master.default.svc.cluster.local:19998/LICENSE

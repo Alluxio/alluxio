@@ -481,9 +481,23 @@ public final class BaseFileSystemTest {
   @Test
   public void setAttribute() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
+    SetAttributePOptions setAttributeOptions =
+        FileSystemOptions.setAttributeClientDefaults(mFileContext.getPathConf(file));
     mFileSystem.setAttribute(file, setAttributeOptions);
     verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
+  }
+
+  /**
+   * Tests that the metadata sync interval is included on setAttributePOptions by default.
+   */
+  @Test
+  public void setAttributeSyncMetadataInterval() throws Exception {
+    AlluxioURI file = new AlluxioURI("/file");
+    SetAttributePOptions opt =
+        FileSystemOptions.setAttributeClientDefaults(mFileContext.getPathConf(file));
+    // Check that metadata sync interval from configuration is used when options are omitted
+    mFileSystem.setAttribute(file);
+    verify(mFileSystemMasterClient).setAttribute(file, opt);
   }
 
   /**
@@ -492,7 +506,8 @@ public final class BaseFileSystemTest {
   @Test
   public void setStateException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
+    SetAttributePOptions setAttributeOptions =
+        FileSystemOptions.setAttributeClientDefaults(mFileContext.getPathConf(file));
     doThrow(EXCEPTION).when(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
     try {
       mFileSystem.setAttribute(file, setAttributeOptions);

@@ -1,0 +1,68 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+image: alluxio/alluxio
+imageTag: "2.1.0-SNAPSHOT"
+imagePullPolicy: IfNotPresent
+
+resources:
+  master:
+    replicaCount: 1
+    limits:
+      cpu: 1
+      memory: "1G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  worker:
+    limits:
+      cpu: 1
+      memory: "2G"
+    requests:
+      cpu: "1"
+      memory: "2G"
+    ports:
+      rpc: 29999
+      web: 29996
+  jobMaster:
+    limits:
+      cpu: 1
+      memory: "1024M"
+    requests:
+      cpu: "1"
+      memory: "1024M"
+  jobWorker:
+    limits:
+      cpu: 1
+      memory: "1G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+    ports:
+      rpc: 30001
+      data: 30002
+      web: 30003
+
+volumes:
+  master:
+    journal:
+      storageClass: "standard"
+      size: 1Gi
+  worker:
+    domainHostPath: "/tmp/alluxio-domain"
+    ramdisk:
+      size: 1Gi
+
+# These options must be passed in using the "helm -f" option
+# properties:
+#   alluxio.master.mount.table.root.ufs: ""
+#   aws.accessKeyId: ""
+#   aws.secretKey: ""

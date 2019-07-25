@@ -23,11 +23,14 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
@@ -283,5 +286,55 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     inStream = mFileSystem.openFile(fileUri);
     Assert.assertNotNull(inStream);
     inStream.close();
+  }
+
+  @Test
+  public void setAttribute() throws IOException, AlluxioException {
+    AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
+    mFileSystem.setAttribute(fileUri, SetAttributePOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
+        .setPinned(true)
+        .setReplicationMax(10)
+        .setReplicationMin(1)
+        .build());
+  }
+
+  @Test
+  public void chmod() throws IOException, AlluxioException {
+    AlluxioURI uri = new AlluxioURI(FILE_PATH + "_chmod");
+    try {
+      mFileSystem.setAttribute(uri,
+          SetAttributePOptions.newBuilder().setMode(new Mode((short) 0555).toProto()).build());
+      Assert.fail("chomd should not succeed under a readonly mount.");
+    } catch (AccessControlException e) {
+      Assert.assertThat(e.getMessage(),
+          containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
+    }
+  }
+
+  @Test
+  public void chgrp() throws IOException, AlluxioException {
+    AlluxioURI uri = new AlluxioURI(FILE_PATH + "_chgrp");
+    try {
+      mFileSystem.setAttribute(uri,
+          SetAttributePOptions.newBuilder().setGroup("foo").build());
+      Assert.fail("chgrp should not succeed under a readonly mount.");
+    } catch (AccessControlException e) {
+      Assert.assertThat(e.getMessage(),
+          containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
+    }
+  }
+
+  @Test
+  public void chown() throws IOException, AlluxioException {
+    AlluxioURI uri = new AlluxioURI(FILE_PATH + "_chown");
+    try {
+      mFileSystem.setAttribute(uri,
+          SetAttributePOptions.newBuilder().setOwner("foo").build());
+      Assert.fail("chown should not succeed under a readonly mount.");
+    } catch (AccessControlException e) {
+      Assert.assertThat(e.getMessage(),
+          containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
+    }
   }
 }
