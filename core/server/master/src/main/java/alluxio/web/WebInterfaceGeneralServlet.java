@@ -232,7 +232,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     FileSystemMaster fsMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     MountPointInfo mountInfo;
     try {
-      mountInfo = fsMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
+      mountInfo = fsMaster.getDisplayMountPointInfo(new AlluxioURI(MountTable.ROOT));
     } catch (Throwable e) {
       LOG.error("Unable to get mount point information of Alluxio root", e);
       request.setAttribute("diskCapacity", "UNKNOWN");

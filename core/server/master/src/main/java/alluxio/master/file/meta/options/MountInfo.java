@@ -12,17 +12,11 @@
 package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
-<<<<<<< HEAD
-import alluxio.master.file.options.MountOptions;
-||||||| parent of ccd8032ea0... Hide credentials in mount command
-import alluxio.grpc.MountPOptions;
-=======
+import alluxio.ConfigurationValueOptions;
 import alluxio.conf.AlluxioProperties;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.grpc.MountPOptions;
+import alluxio.master.file.options.MountOptions;
 import alluxio.underfs.UnderFileSystemConfiguration;
->>>>>>> ccd8032ea0... Hide credentials in mount command
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
@@ -104,8 +98,7 @@ public final class MountInfo {
   public MountPointInfo toDisplayMountPointInfo() {
     MountPointInfo info = toMountPointInfo();
     UnderFileSystemConfiguration conf =
-        UnderFileSystemConfiguration.defaults(new InstancedConfiguration(
-            new AlluxioProperties())).createMountSpecificConf(info.getProperties());
+        UnderFileSystemConfiguration.defaults().setUserSpecifiedConf(info.getProperties());
     Map<String, String> displayConf = conf.toUserPropertyMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true));
     info.setProperties(displayConf);

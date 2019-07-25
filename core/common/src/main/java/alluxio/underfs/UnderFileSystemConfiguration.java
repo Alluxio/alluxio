@@ -11,25 +11,12 @@
 
 package alluxio.underfs;
 
-<<<<<<< HEAD
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
-||||||| parent of ccd8032ea0... Hide credentials in mount command
-import alluxio.annotation.PublicApi;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
-import alluxio.util.ConfigurationUtils;
-=======
-import alluxio.annotation.PublicApi;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.ConfigurationValueOptions;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.Source;
-import alluxio.util.ConfigurationUtils;
->>>>>>> ccd8032ea0... Hide credentials in mount command
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -155,8 +142,12 @@ public final class UnderFileSystemConfiguration {
    */
   public Map<String, String> toUserPropertyMap(ConfigurationValueOptions options) {
     Map<String, String> map = new HashMap<>();
+    InstancedConfiguration conf = new InstancedConfiguration(
+        new AlluxioProperties());
+    conf.merge(mUfsConf, Source.RUNTIME);
     // Cannot use Collectors.toMap because we support null keys.
-    userKeySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, options)));
+    conf.getProperties().userKeySet()
+        .forEach(key -> map.put(key.getName(), conf.getOrDefault(key, "", options)));
     return map;
   }
 }

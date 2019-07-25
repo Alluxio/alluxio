@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -273,7 +274,7 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void mountWithCredentials() throws Exception {
-    MountPOptions options3 = MountPOptions.newBuilder().putAllProperties(UFS_CONF3).build();
+    MountOptions options3 = MountOptions.defaults().setProperties(UFS_CONF3);
     mFileSystem.mount(mMountPoint3, new AlluxioURI(mUfsUri3), options3);
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
