@@ -11,9 +11,18 @@
 
 package alluxio.fuse;
 
+import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.CAPACITY_BYTES;
+import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS;
+import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.FREE_BYTES;
+import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.USED_BYTES;
+import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.USED_BYTES_ON_TIERS;
+
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -24,10 +33,13 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.BlockMasterInfo;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -45,14 +57,18 @@ import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+import ru.serce.jnrfuse.struct.Statvfs;
 import ru.serce.jnrfuse.struct.Timespec;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -67,6 +83,16 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
+  /**
+   * df command will treat -1 as an unknown value.
+   */
+  @VisibleForTesting
+  public static final int UNKNOWN_INODES = -1;
+  /**
+   * Most FileSystems on linux limit the length of file name beyond 255 characters.
+   */
+  @VisibleForTesting
+  public static final int MAX_NAME_LENGTH = 255;
 
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
@@ -652,6 +678,57 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rmdir(String path) {
     LOG.trace("rmdir({})", path);
     return rmInternal(path, false);
+  }
+
+  /**
+   * Gets the filesystem statistics.
+   *
+   * @param path The FS path of the directory
+   * @param stbuf Statistics of a filesystem
+   * @return 0 on success, a negative value on error
+   */
+  @Override
+  public int statfs(String path, Statvfs stbuf) {
+    LOG.trace("statfs({})", path);
+
+    try {
+      BlockMasterClient blockClient =
+          new RetryHandlingBlockMasterClient(MasterClientConfig.defaults());
+      Set<BlockMasterInfo.BlockMasterInfoField> blockMasterInfoFilter =
+          new HashSet<>(Arrays.asList(
+              CAPACITY_BYTES,
+              FREE_BYTES,
+              USED_BYTES,
+              CAPACITY_BYTES_ON_TIERS,
+              USED_BYTES_ON_TIERS));
+      BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
+
+      // although user may set different block size for different files,
+      // small block size can result more accurate compute.
+      long blockSize = 4 * Constants.KB;
+      // fs block size
+      // The size in bytes of the minimum unit of allocation on this file system
+      stbuf.f_bsize.set(blockSize);
+      // The preferred length of I/O requests for files on this file system.
+      stbuf.f_frsize.set(blockSize);
+      // total data blocks in fs
+      stbuf.f_blocks.set(blockMasterInfo.getCapacityBytes() / blockSize);
+      // free blocks in fs
+      long freeBlocks = blockMasterInfo.getFreeBytes() / blockSize;
+      stbuf.f_bfree.set(freeBlocks);
+      stbuf.f_bavail.set(freeBlocks);
+      // inode info in fs
+      // TODO(liuhongtong): support inode info
+      stbuf.f_files.set(UNKNOWN_INODES);
+      stbuf.f_ffree.set(UNKNOWN_INODES);
+      stbuf.f_favail.set(UNKNOWN_INODES);
+      // max file name length
+      stbuf.f_namemax.set(MAX_NAME_LENGTH);
+    } catch (IOException e) {
+      LOG.error("statfs({}) failed:", path, e);
+      return -ErrorCodes.EIO();
+    }
+    return 0;
   }
 
   /**
