@@ -73,9 +73,9 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     super(props);
 
     let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
-    path = decodeURIComponent(path || '');
+    path = decodeURIComponent(path || '/');
     offset = offset || '0';
-    this.state = {end, limit, offset, path: path || '/'};
+    this.state = {end, limit, offset, path};
   }
 
   public componentDidUpdate(prevProps: AllProps) {
@@ -83,7 +83,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
-      path = decodeURIComponent(path || '');
+      path = decodeURIComponent(path || '/');
       offset = offset || '0';
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
@@ -215,7 +215,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
                    `/browse?path=${path}${queryStringSuffix}`)}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=${encodeURIComponent(path || "/")}${queryStringSuffix}`}
+            <Button tag={Link} to={`/browse?path=${encodeURIComponent(path || '/')}${queryStringSuffix}`}
             color="secondary">Go</Button>
           </FormGroup>
         </Form>
