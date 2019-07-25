@@ -25,8 +25,9 @@ set -o errexit  # exit when a command fails - append "|| true" to allow a
                 # command to fail
 set -o nounset  # exit when attempting to use undeclared variables
 
-
-set -x # debugging
+# Show commands being run - useful to keep by default so that failures
+# are easy to debug through AWS
+set -x
 
 # script constants
 ALLUXIO_HOME=/opt/alluxio
@@ -72,7 +73,7 @@ append_alluxio_property() {
   # OK to fail in this section
   set +o errexit
   # /opt/alluxio/conf must exist for this to work
-  grep -q ${property} ${ALLUXIO_SITE_PROPERTIES} 2> /dev/null
+  grep -qe "^\s*${property}=" ${ALLUXIO_SITE_PROPERTIES} 2> /dev/null
   local rv=$?
   set -o errexit # errors not ok anymore
   echo $rv
@@ -113,8 +114,8 @@ main() {
   delimited_properties=${5:-""}
 
   # Create user
-  sudo groupadd alluxio -g 600 || true
-  sudo useradd alluxio -u 600 -g 600 || true
+  sudo groupadd alluxio -g 600
+  sudo useradd alluxio -u 600 -g 600
 
   # Download the release
   if [[ -z ${alluxio_tarball} ]]

@@ -82,7 +82,7 @@ SSH.
 To SSH into the machine, a new rule will need to be added.
 5. Test that Alluxio is running as expected
 ```console
-$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests"
 ```
 
 Alluxio is installed in `/opt/alluxio/` by default.
@@ -111,7 +111,7 @@ alluxio.underfs.s3.owner.id.to.username.mapping=f1234123412341234123412341234123
 ```
 
 > Note: The default Alluxio Worker memory is set to 1/3 of the physical memory on the instance.
-If specific value is desired, set `alluxio.worker.memory.size` in the provided
+If a specific value is desired, set `alluxio.worker.memory.size` in the provided
 `alluxio-site.properties` or in the additional options argument.
 
 ## Creating a Table
