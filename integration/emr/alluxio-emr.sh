@@ -17,9 +17,9 @@
 # Arg 3. (Optional) HTTP(S) or S3 URIs pointing to alluxio-site.properties file
 #        that will be used on cluster startup. The resource must be named "alluxio-site.properties"
 # Arg 4. (Optional) Extra Alluxio Options. These will be appended to
-#        alluxio-site.properties. Multiple options can be specified using Arg 4
+#        alluxio-site.properties. Multiple options can be specified using Arg 5
 #        as a delimiter (ex. alluxio.user.file.writetype.default=CACHE_THROUGH;alluxio.user.file.readtype.default=CACHE)
-# Arg 5. (Optional) Delimeter for additional properties
+# Arg 5. (Optional) Delimeter for additional properties. Defaults to ;
 
 set -o errexit  # exit when a command fails - append "|| true" to allow a
                 # command to fail
