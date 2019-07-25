@@ -1,2 +1,0 @@
-    alluxio.master.mount.table.root.option.alluxio.test.property=true
-    alluxio.test.property=false
