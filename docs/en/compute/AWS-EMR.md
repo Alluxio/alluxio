@@ -107,15 +107,15 @@ The simplest step to using EMR with Alluxio is to create a table on Alluxio and 
 1. SSH into the 'hadoop' user in the master node. Then switch to the 'alluxio' user.
 2. Create a directory in Alluxio to be the external location of your table.
 ```console
-/opt/alluxio/bin/alluxio fs mkdir /testTable
+$ /opt/alluxio/bin/alluxio fs mkdir /testTable
 ```
 3. Set the 'hadoop' user to be the owner of the directory
 ```console
-/opt/alluxio/bin/alluxio fs chown hadoop:hadoop /testTable
+$ /opt/alluxio/bin/alluxio fs chown hadoop:hadoop /testTable
 ```
 4. Exit to switch back into the 'hadoop' user and start the hive CLI.
 ```console
-hive
+$ hive
 ```
 5. Create a new database to see if AWS Glue is working as expected. Check the [console](https://console.aws.amazon.com/glue/home)
 to see if the database is created.

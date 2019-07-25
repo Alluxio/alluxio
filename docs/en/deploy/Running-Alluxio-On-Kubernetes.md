@@ -69,28 +69,28 @@ is not available or the deployment needs additional customization.
 
 ***Pre-requisites:*** A helm repo with the Alluxio helm chart must be available. To prepare a local helm
 repository, follow instructions as follows:
-```bash
-helm init
-helm package helm/alluxio/
-mkdir -p helm/charts/
-cp alluxio-{{site.ALLUXIO_VERSION_STRING}}.tgz helm/charts/
-helm repo index helm/charts/
-helm serve --repo-path helm/charts
-helm repo add alluxio-local http://127.0.0.1:8879
-helm repo update alluxio-local
+```console
+$ helm init
+$ helm package helm/alluxio/
+$ mkdir -p helm/charts/
+$ cp alluxio-{{site.ALLUXIO_VERSION_STRING}}.tgz helm/charts/
+$ helm repo index helm/charts/
+$ helm serve --repo-path helm/charts
+$ helm repo add alluxio-local http://127.0.0.1:8879
+$ helm repo update alluxio-local
 ```
 
 Once the helm repository is available, Alluxio prepare the Alluxio configuration:
-```bash
-cat << EOF > config.yaml
+```console
+$ cat << EOF > config.yaml
 properties:
   alluxio.mount.table.root.ufs: "<under_storage_address>"
 EOF
 ```
 Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
 For example, is using Amazon S3 as the under store, add properties as:
-```bash
-cat << EOF > config.yaml
+```console
+$ cat << EOF > config.yaml
 properties:
   alluxio.mount.table.root.ufs: "s3a://<bucket>"
   aws.accessKeyId: "<accessKey>"
@@ -117,7 +117,6 @@ $ cp alluxio-configMap.yaml.template alluxio-configMap.yaml
 ```
 
 Create a ConfigMap.
-
 ```console
 $ kubectl create -f alluxio-configMap.yaml
 ```
