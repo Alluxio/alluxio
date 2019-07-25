@@ -1435,7 +1435,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public Map<String, MountPointInfo> getMountTable() {
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue()));
+      mountPoints.put(mountPoint.getKey(), getMountPointInfoInternal(mountPoint.getValue(), true));
     }
     return mountPoints;
   }
@@ -1446,17 +1446,28 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
     }
-    return getDisplayMountPointInfo(mMountTable.getMountTable().get(path.toString()));
+    return getMountPointInfoInternal(mMountTable.getMountTable().get(path.toString()), true);
+  }
+
+  @Override
+  public MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException {
+    if (!mMountTable.isMountPoint(path)) {
+      throw new InvalidPathException(
+          ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
+    }
+    return getMountPointInfoInternal(mMountTable.getMountTable().get(path.toString()), false);
   }
 
   /**
    * Gets the mount point information for display from a mount information.
    *
    * @param mountInfo the mount information to transform
+   * @param useDisplayValues return display values instead of raw values
    * @return the mount point information
    */
-  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo) {
-    MountPointInfo info = mountInfo.toDisplayMountPointInfo();
+  private MountPointInfo getMountPointInfoInternal(MountInfo mountInfo, boolean useDisplayValues) {
+    MountPointInfo info = useDisplayValues
+        ? mountInfo.toDisplayMountPointInfo() : mountInfo.toMountPointInfo();
     try (CloseableResource<UnderFileSystem> ufsResource =
              mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
