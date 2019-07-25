@@ -18,6 +18,8 @@ import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.DeleteOptions;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.exception.AggregateException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -26,9 +28,13 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Command for checking the consistency of a file or folder between Alluxio and the under storage.
@@ -42,6 +48,18 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           .desc("repair inconsistent files")
           .build();
 
+  private static final Option THREADS_OPTION =
+      Option.builder("t")
+          .longOpt("threads")
+          .required(false)
+          .hasArg(true)
+          .desc("Number of threads used when repairing consistency. Defaults to <number of cores>"
+              + " * 2. This option has no effect if -r is not specified")
+          .build();
+
+  private static final String PARSE_THREADS_FAILURE_FMT = "The threads option must be a positive "
+      + "integer but was \"%s\"";
+
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -52,7 +70,18 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    checkConsistency(plainPath, cl.hasOption("r"));
+    int threads;
+    try {
+      threads = cl.hasOption(THREADS_OPTION.getOpt())
+          ? Integer.parseInt(cl.getOptionValue(THREADS_OPTION.getOpt())) :
+          Runtime.getRuntime().availableProcessors() * 2;
+      if (threads < 1) {
+        throw new IOException(String.format(PARSE_THREADS_FAILURE_FMT, THREADS_OPTION.getOpt()));
+      }
+    } catch (NumberFormatException e) {
+      throw new IOException(String.format(PARSE_THREADS_FAILURE_FMT, THREADS_OPTION.getOpt()));
+    }
+    checkConsistency(plainPath, cl.hasOption("r"), threads);
   }
 
   @Override
@@ -62,7 +91,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPAIR_OPTION);
+    return new Options().addOption(REPAIR_OPTION).addOption(THREADS_OPTION);
   }
 
   @Override
@@ -88,8 +117,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    * @throws AlluxioException
    * @throws IOException
    */
-  private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
-      AlluxioException, IOException {
+  private void checkConsistency(AlluxioURI path, boolean repairConsistency, int repairThreads)
+      throws AlluxioException, IOException {
     CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
     List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(path, options);
     if (inconsistentUris.isEmpty()) {
@@ -104,44 +133,86 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
       }
     } else {
       Collections.sort(inconsistentUris);
-      System.out.println(path + " has: " + inconsistentUris.size() + " inconsistent files.");
-      List<AlluxioURI> inconsistentDirs = new ArrayList<AlluxioURI>();
-      for (int i = 0; i < inconsistentUris.size(); i++) {
-        AlluxioURI inconsistentUri = inconsistentUris.get(i);
-        URIStatus status = mFileSystem.getStatus(inconsistentUri);
-        if (status.isFolder()) {
-          inconsistentDirs.add(inconsistentUri);
-          continue;
-        }
-        System.out.println("repairing path: " + inconsistentUri);
-        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
-        mFileSystem.delete(inconsistentUri, deleteOptions);
-        mFileSystem.exists(inconsistentUri);
-        System.out.println(inconsistentUri + " repaired");
-        System.out.println();
+      System.out.println(String.format("%s has: %d inconsistent files. Repairing with %d threads.",
+          path, inconsistentUris.size(), repairThreads));
+      ConcurrentHashSet<AlluxioURI> inconsistentDirs = new ConcurrentHashSet<>();
+
+      ExecutorService svc = Executors.newFixedThreadPool(repairThreads);
+      CompletionService<Boolean> completionService = new ExecutorCompletionService<>(svc);
+      ConcurrentHashSet<Exception> exceptions = new ConcurrentHashSet<>();
+
+      int totalUris = inconsistentUris.size();
+      for (AlluxioURI inconsistentUri : inconsistentUris) {
+        completionService.submit(() -> {
+          try {
+            URIStatus status = mFileSystem.getStatus(inconsistentUri);
+            if (status.isFolder()) {
+              inconsistentDirs.add(inconsistentUri);
+              return;
+            }
+            System.out.println("repairing path: " + inconsistentUri);
+            DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
+            mFileSystem.delete(inconsistentUri, deleteOptions);
+            mFileSystem.exists(inconsistentUri);
+            System.out.println(inconsistentUri + " repaired");
+            System.out.println();
+          } catch (AlluxioException | IOException e) {
+            exceptions.add(e);
+          }
+        }, true);
       }
+
+      waitForTasks(completionService, totalUris, exceptions);
+
+      int totalDirs = inconsistentDirs.size();
       for (AlluxioURI uri : inconsistentDirs) {
-        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true)
-            .setRecursive(true);
-        System.out.println("repairing path: " + uri);
-        mFileSystem.delete(uri, deleteOptions);
-        mFileSystem.exists(uri);
-        System.out.println(uri + "repaired");
-        System.out.println();
+        completionService.submit(() -> {
+          try {
+            DeleteOptions deleteOptions =
+                DeleteOptions.defaults().setAlluxioOnly(true).setRecursive(true);
+            System.out.println("repairing path: " + uri);
+            mFileSystem.delete(uri, deleteOptions);
+            mFileSystem.exists(uri);
+            System.out.println(uri + "repaired");
+            System.out.println();
+          } catch (AlluxioException | IOException e) {
+            exceptions.add(e);
+          }
+        }, true);
       }
+      waitForTasks(completionService, totalDirs, exceptions);
+      svc.shutdown();
+    }
+  }
+
+  private void waitForTasks(CompletionService svc, int nTasks, Collection<Exception> exceptions)
+      throws IOException {
+    for (int i = 0; i < nTasks; i++) {
+      try {
+        svc.take();
+      } catch (InterruptedException e) {
+        throw new IOException("Failed to wait for all URIs to complete");
+      }
+    }
+
+    if (exceptions.size() > 0) {
+      AggregateException e = new AggregateException(exceptions);
+      throw new IOException("Failed to successfully repair all paths", e);
     }
   }
 
   @Override
   public String getUsage() {
-    return "checkConsistency [-r] <Alluxio path>";
+    return "checkConsistency [-r] [-t|--threads <threads>] <Alluxio path>";
   }
 
   @Override
   public String getDescription() {
     return "Checks the consistency of a persisted file or directory in Alluxio. Any files or "
         + "directories which only exist in Alluxio or do not match the metadata of files in the "
-        + "under storage will be returned. An administrator should then reconcile the differences."
-        + "Specify -r to repair the inconsistent files.";
+        + "under storage will be returned. An administrator should then reconcile the  "
+        + "differences. Specify -r to repair the inconsistent files. Use -t or --threads to "
+        + "specify the number of threads that should be used when repairing. Defaults to "
+        + "2*<number of CPU cores>";
   }
 }
