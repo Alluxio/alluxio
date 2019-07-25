@@ -153,7 +153,8 @@ scrape_configs:
   - job_name: 'alluxio workers'
     metrics_path: '/metrics/prometheus'
     static_configs:
-    - targets: ['<alluxio_worker_hostname>:<port>', '<alluxio_worker_hostname2>:<port>, ...]
+    - targets: ['<alluxio_worker_hostname>:<port>']
+    - targets: ['<alluxio_worker_hostname2>:<port>]
 ```
 
 Jobs are the various locations Prometheus scrapes for metrics. For Alluxio we tell Prometheus to get data
@@ -179,12 +180,10 @@ metrics.sink.PrometheusMetricsServlet.path=/metrics/prometheus
 Or if using Graphite:
 
 ```
-alluxio.sink.graphite.class=alluxio.metrics.sink.GraphiteSink
-alluxio.sink.graphite.host=localhost
-alluxio.sink.graphite.port=2003
-alluxio.sink.graphite.period=10
-master.source.jvm.class=alluxio.metrics.source.JvmSource
-worker.source.jvm.class=alluxio.metrics.source.JvmSource
+alluxio.metrics.sink.graphite.class=alluxio.metrics.sink.GraphiteSink
+alluxio.metrics.sink.graphite.host=localhost
+alluxio.metrics.sink.graphite.port=2003
+alluxio.metrics.sink.graphite.period=10
 ```
 
 Save the file and restart Alluxio, and metrics will be collected by the chosen monitoring software.
