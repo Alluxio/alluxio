@@ -52,13 +52,15 @@ upload the script to your S3 bucket.
     - (Optional) A path path to a remote `alluxio-site.properties` that is used during the bootstrap process.
       Properties in this file will be set on all master+worker nodes.
       Can be set to empty string (`""`) to ignore.
-    - (Optional) A delimiter value for additional properties.
-      Empty string (`""`) defaults to `;`.
     - (Optional) Extra alluxio options.
       These are specified as a delimited list of key-values in the
       format `<key>=<value>`.
-      The value from the previous argument is used as the delimiter.
+      The value for the delimiter is `;` by default.
+      It can be changed by setting the 5th argument.
       For example, `alluxio.user.file.writetype.default=CACHE_THROUGH`
+    - (Optional) A delimiter value for additional properties.
+      Empty string (`""`) defaults to `;`.
+      This property can be left out.
 ```console
 $ aws emr create-cluster \
 --release-label emr-5.23.0 \
@@ -68,7 +70,7 @@ $ aws emr create-cluster \
 --name '<cluster-name>' \
 --bootstrap-actions \
 Path=s3://bucket/path/to/alluxio-emr.sh,\
-Args=[<download-url>,<root-ufs-uri>,<path<property-delimiter>,<additional-properties>] \
+Args=[<download-url>,<root-ufs-uri>,<path>,<path-to-site-properties>,<additional-delimited-properties>,<property-delimiter>] \
 --configurations file://${ALLUXIO_HOME}/integration/emr/alluxio-emr.json \
 --ec2-attributes KeyName=<ec2-keypair-name>
 ```
@@ -104,7 +106,6 @@ Path=s3://alluxio-test/emr/bootstrap-actions/alluxio-emr.sh,\
 Args=[http://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz,\
 s3://alluxio-test/emr/mount/,\
 s3://alluxio-test/alluxio/conf/alluxio-site.properties,\
-"|",\
 alluxio.underfs.s3.owner.id.to.username.mapping=f1234123412341234123412341234123412341234123412341234123412341234=hadoop] \
 --configurations file://${ALLUXIO_HOME}/integration/emr/alluxio-emr.json \
 --ec2-attributes KeyName=admin-key

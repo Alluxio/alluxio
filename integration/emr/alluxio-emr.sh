@@ -16,10 +16,10 @@
 # Arg 2. Root UFS URI (ex. s3://my-bucket/alluxio-emr/mount)
 # Arg 3. (Optional) HTTP(S) or S3 URIs pointing to alluxio-site.properties file
 #        that will be used on cluster startup. The resource must be named "alluxio-site.properties"
-# Arg 4. (Optional) Delimeter for additional properties
-# Arg 5. (Optional) Extra Alluxio Options. These will be appended to
+# Arg 4. (Optional) Extra Alluxio Options. These will be appended to
 #        alluxio-site.properties. Multiple options can be specified using Arg 4
 #        as a delimiter (ex. alluxio.user.file.writetype.default=CACHE_THROUGH;alluxio.user.file.readtype.default=CACHE)
+# Arg 5. (Optional) Delimeter for additional properties
 
 set -o errexit  # exit when a command fails - append "|| true" to allow a
                 # command to fail
@@ -110,8 +110,8 @@ main() {
   alluxio_tarball=${1}
   root_ufs_uri=${2}
   site_properties_uri=${3:-""}
-  property_delimeter=${4:-";"}
-  delimited_properties=${5:-""}
+  delimited_properties=${4:-""}
+  property_delimeter=${5:-";"}
 
   # Create user
   sudo groupadd alluxio -g 600
