@@ -11,7 +11,6 @@
 
 package alluxio.exception;
 
-import java.io.IOException;
 import java.util.Collection;
 
 /**
