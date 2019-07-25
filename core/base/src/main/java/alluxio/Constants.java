@@ -91,6 +91,7 @@ public final class Constants {
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long JOURNAL_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
@@ -113,6 +114,7 @@ public final class Constants {
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
+  public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMaster";
   public static final String UFS_INPUT_STREAM_CACHE_EXPIRATION = "UfsInputStreamCacheExpiration";
 
   public static final int DEFAULT_REGISTRY_GET_TIMEOUT_MS = 60 * SECOND_MS;
