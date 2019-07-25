@@ -13,8 +13,6 @@ package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationValueOptions;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.master.file.options.MountOptions;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.MountPointInfo;
