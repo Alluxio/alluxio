@@ -179,6 +179,13 @@ public class AlluxioProperties {
   }
 
   /**
+   * @return the key set of all user defined Alluxio property
+   */
+  public Set<PropertyKey> userKeySet() {
+    return mUserProps.keySet();
+  }
+
+  /**
    * Iterates over all the key value pairs and performs the given action.
    *
    * @param action the operation to perform on each key value pair
