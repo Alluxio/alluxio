@@ -17,6 +17,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.grpc.NetAddress;
+import alluxio.grpc.QuorumServerInfo;
+import alluxio.grpc.QuorumServerState;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
@@ -35,6 +38,8 @@ import io.atomix.copycat.client.CopycatClient;
 import io.atomix.copycat.client.RecoveryStrategies;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.StateMachine;
+import io.atomix.copycat.server.cluster.Member;
+import io.atomix.copycat.server.state.ServerMember;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
 import org.slf4j.Logger;
@@ -43,7 +48,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -501,6 +508,50 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       LOG.info("Timed out shutting down raft server");
     }
     LOG.info("Journal shutdown complete");
+  }
+
+  /**
+   * Used to get information of internal RAFT quorum.
+   *
+   * @return list of information for participating servers in RAFT quorum
+   */
+  public synchronized List<QuorumServerInfo> getQuorumServerInfoList() {
+    List<QuorumServerInfo> quorumMemberStateList = new LinkedList<>();
+    for (Member member : mServer.cluster().members()) {
+      NetAddress memberAddress = NetAddress.newBuilder().setHost(member.address().host())
+          .setRpcPort(member.address().port()).build();
+
+      quorumMemberStateList.add(QuorumServerInfo.newBuilder().setServerAddress(memberAddress)
+          .setServerState(QuorumServerState.valueOf(member.status().name())).build());
+    }
+    return quorumMemberStateList;
+  }
+
+  /**
+   * Removes from RAFT quorum, a server with given address.
+   * For server to be removed, it should be in unavailable state in quorum.
+   *
+   * @param serverNetAddress address of the server to remove from the quorum
+   * @throws IOException
+   */
+  public synchronized void removeQuorumServer(NetAddress serverNetAddress) throws IOException {
+    Address serverAddress = new Address(serverNetAddress.getHost(), serverNetAddress.getRpcPort());
+    try {
+      mServer.cluster()
+          .remove(new ServerMember(Member.Type.ACTIVE, serverAddress, serverAddress, Instant.MIN))
+          .get();
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(
+          "Interrupted while waiting for removal of server from raft quorum.");
+    } catch (ExecutionException ee) {
+      Throwable cause = ee.getCause();
+      if (cause instanceof IOException) {
+        throw (IOException) cause;
+      } else {
+        throw new IOException(ee.getMessage(), cause);
+      }
+    }
   }
 
   @Override
