@@ -2,14 +2,6 @@
    Author's custom styles
    ========================================================================== */
 
-/* Very specific selector which should disallow highlighting of $ in console blocks */
-.language-console.highlighter-rouge > div.highlight > pre.highlight > code span.gp {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
 a.dropdown-item.active {
     color: white;
 }
