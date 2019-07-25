@@ -59,8 +59,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
               + " * 2. This option has no effect if -r is not specified")
           .build();
 
-  private static final String PARSE_THREADS_FAILURE_MSG = "The threads option must be a positive "
-      + "integer";
+  private static final String PARSE_THREADS_FAILURE_FMT = "The threads option must be a positive "
+      + "integer but was \"%s\"";
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -78,10 +78,10 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           ? Integer.parseInt(cl.getOptionValue(THREADS_OPTION.getOpt())) :
           Runtime.getRuntime().availableProcessors() * 2;
       if (threads < 1) {
-        throw new IOException(PARSE_THREADS_FAILURE_MSG);
+        throw new IOException(String.format(PARSE_THREADS_FAILURE_FMT, THREADS_OPTION.getOpt()));
       }
     } catch (NumberFormatException e) {
-      throw new IOException(PARSE_THREADS_FAILURE_MSG, e);
+      throw new IOException(String.format(PARSE_THREADS_FAILURE_FMT, THREADS_OPTION.getOpt()));
     }
     runConsistencyCheck(plainPath, cl.hasOption("r"), threads);
   }
