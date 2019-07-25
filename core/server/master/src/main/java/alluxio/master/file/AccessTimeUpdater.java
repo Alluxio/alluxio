@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class represents the executor for periodic inode ttl check.
+ * This class handles the update of inode last access time.
  */
 @NotThreadSafe
 final class AccessTimeUpdater implements JournalSink {
@@ -110,7 +110,7 @@ final class AccessTimeUpdater implements JournalSink {
   }
 
   /**
-   * Update inode last access time.
+   * Update inode last access time. Requires at least read lock acquired for the inode.
    *
    * @param context the journal context
    * @param inode the target inode

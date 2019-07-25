@@ -908,7 +908,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * the descendantType. The result is returned via a list specified by statusList, in postorder
    * traversal order.
    *
-   * @param rpcContext  the context for the RPC call
+   * @param rpcContext the context for the RPC call
    * @param currInodePath the inode path to find the status
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant

@@ -33,6 +33,5 @@ public interface JournalSink {
   /**
    * Signals the sink that the journal is about to shutdown.
    */
-  default void beforeShutdown() {
-  }
+  default void beforeShutdown() {}
 }
