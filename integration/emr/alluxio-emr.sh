@@ -72,13 +72,11 @@ append_alluxio_property() {
 
   # OK to fail in this section
   set +o errexit
-  # /opt/alluxio/conf must exist for this to work
+  # ${ALLUXIO_SITE_PROPERTIES} must exist for this to work
   grep -qe "^\s*${property}=" ${ALLUXIO_SITE_PROPERTIES} 2> /dev/null
   local rv=$?
   set -o errexit # errors not ok anymore
-  echo $rv
-  if [ $rv -ne 0 ]; then
-    echo "append prop"
+  if [[ $rv -ne 0 ]]; then
     doas alluxio "echo '${property}=${value}' >> ${ALLUXIO_SITE_PROPERTIES}"
   fi
 }
@@ -105,13 +103,13 @@ main() {
   local alluxio_tarball
   local root_ufs_uri
   local site_properties_uri
-  local property_delimeter
+  local property_delimiter
   local delimited_properties
   alluxio_tarball=${1}
   root_ufs_uri=${2}
   site_properties_uri=${3:-""}
   delimited_properties=${4:-""}
-  property_delimeter=${5:-";"}
+  property_delimiter=${5:-";"}
 
   # Create user
   sudo groupadd alluxio -g 600
@@ -177,11 +175,11 @@ main() {
   fi
 
   # Inject user defined properties from args
-  IFS="${property_delimeter}"
-  conf=(${delimited_properties})
-  for property in ${conf}; do
-    IFS="=" read key value <<< ${property}
-    append_alluxio_property ${key} ${value}
+  IFS="${property_delimiter}" read -ra conf <<< "${delimited_properties}"
+  for property in "${conf[@]}"; do
+    local key=${property%%"="*}
+    local value=${property#*"="}
+    append_alluxio_property "${key}" "${value}"
   done
 
   local mem_size=$(get_default_mem_size)
