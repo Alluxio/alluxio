@@ -32,7 +32,7 @@ public final class SetAttributeOptionsTest {
 
     Assert.assertNull(options.getPinned());
     Assert.assertNull(options.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
+    Assert.assertNull(options.getTtlAction());
     Assert.assertNull(options.getPersisted());
   }
 

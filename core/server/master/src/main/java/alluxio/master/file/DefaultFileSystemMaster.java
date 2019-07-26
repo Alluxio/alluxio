@@ -3275,9 +3275,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (options.getTtl() != null) {
       builder.setTtl(options.getTtl());
+    }
+    if (options.getTtlAction() != null) {
       builder.setTtlAction(ProtobufUtils.toProtobuf(options.getTtlAction()));
     }
-
     if (options.getPersisted() != null) {
       builder.setPersisted(options.getPersisted());
     }
@@ -3749,6 +3750,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (entry.hasTtl()) {
       options.setTtl(entry.getTtl());
+    }
+    if (entry.hasTtlAction()) {
       options.setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()));
     }
     if (entry.hasPersisted()) {
