@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Logs App with connected component Matches snapshot 1`] = `
+exports[`MasterLogs App with connected component Matches snapshot 1`] = `
 <Provider
   store={
     Object {
@@ -59,11 +59,14 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
       init={
         Object {
           "debug": false,
-          "masterHostname": "",
-          "masterPort": 19999,
+          "proxyDownloadFileApiUrl": Object {
+            "prefix": "http://192.168.1.6:39999/api/v1/paths/",
+            "suffix": "/download-file/",
+          },
           "refreshInterval": 15000,
           "securityAuthorizationPermissionEnabled": false,
           "webFileInfoEnabled": false,
+          "workerPort": 30000,
         }
       }
       loading={true}
@@ -177,12 +180,6 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                 >
                   <Header
                     autoRefreshCallback={[Function]}
-                    callbackParameters={
-                      Object {
-                        "masterHostname": "",
-                        "masterPort": 19999,
-                      }
-                    }
                     data={
                       Array [
                         Object {
@@ -190,20 +187,28 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                           "url": "/overview",
                         },
                         Object {
-                          "innerText": "BlockInfo",
-                          "url": "/blockInfo",
+                          "innerText": "Browse",
+                          "url": "/browse",
+                        },
+                        Object {
+                          "innerText": "In-Alluxio Data",
+                          "url": "/data",
                         },
                         Object {
                           "innerText": "Logs",
                           "url": "/logs",
                         },
                         Object {
-                          "innerText": "Metrics",
-                          "url": "/metrics",
+                          "innerText": "Configuration",
+                          "url": "/config",
                         },
                         Object {
-                          "innerText": "Return to Master",
-                          "url": [Function],
+                          "innerText": "Workers",
+                          "url": "/workers",
+                        },
+                        Object {
+                          "innerText": "Metrics",
+                          "url": "/metrics",
                         },
                       ]
                     }
@@ -375,7 +380,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       </li>
                                     </NavItem>
                                     <NavItem
-                                      key="/blockInfo"
+                                      key="/browse"
                                       tag="li"
                                     >
                                       <li
@@ -384,24 +389,57 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                         <NavLink
                                           active={false}
                                           className="text-white"
-                                          href="/blockInfo"
+                                          href="/browse"
                                           onClick={[Function]}
                                           tag={[Function]}
-                                          to="/blockInfo"
+                                          to="/browse"
                                         >
                                           <Link
                                             className="text-white nav-link"
-                                            href="/blockInfo"
+                                            href="/browse"
                                             onClick={[Function]}
                                             replace={false}
-                                            to="/blockInfo"
+                                            to="/browse"
                                           >
                                             <a
                                               className="text-white nav-link"
-                                              href="/blockInfo"
+                                              href="/browse"
                                               onClick={[Function]}
                                             >
-                                              BlockInfo
+                                              Browse
+                                            </a>
+                                          </Link>
+                                        </NavLink>
+                                      </li>
+                                    </NavItem>
+                                    <NavItem
+                                      key="/data"
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <NavLink
+                                          active={false}
+                                          className="text-white"
+                                          href="/data"
+                                          onClick={[Function]}
+                                          tag={[Function]}
+                                          to="/data"
+                                        >
+                                          <Link
+                                            className="text-white nav-link"
+                                            href="/data"
+                                            onClick={[Function]}
+                                            replace={false}
+                                            to="/data"
+                                          >
+                                            <a
+                                              className="text-white nav-link"
+                                              href="/data"
+                                              onClick={[Function]}
+                                            >
+                                              In-Alluxio Data
                                             </a>
                                           </Link>
                                         </NavLink>
@@ -441,6 +479,72 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       </li>
                                     </NavItem>
                                     <NavItem
+                                      key="/config"
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <NavLink
+                                          active={false}
+                                          className="text-white"
+                                          href="/config"
+                                          onClick={[Function]}
+                                          tag={[Function]}
+                                          to="/config"
+                                        >
+                                          <Link
+                                            className="text-white nav-link"
+                                            href="/config"
+                                            onClick={[Function]}
+                                            replace={false}
+                                            to="/config"
+                                          >
+                                            <a
+                                              className="text-white nav-link"
+                                              href="/config"
+                                              onClick={[Function]}
+                                            >
+                                              Configuration
+                                            </a>
+                                          </Link>
+                                        </NavLink>
+                                      </li>
+                                    </NavItem>
+                                    <NavItem
+                                      key="/workers"
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <NavLink
+                                          active={false}
+                                          className="text-white"
+                                          href="/workers"
+                                          onClick={[Function]}
+                                          tag={[Function]}
+                                          to="/workers"
+                                        >
+                                          <Link
+                                            className="text-white nav-link"
+                                            href="/workers"
+                                            onClick={[Function]}
+                                            replace={false}
+                                            to="/workers"
+                                          >
+                                            <a
+                                              className="text-white nav-link"
+                                              href="/workers"
+                                              onClick={[Function]}
+                                            >
+                                              Workers
+                                            </a>
+                                          </Link>
+                                        </NavLink>
+                                      </li>
+                                    </NavItem>
+                                    <NavItem
                                       key="/metrics"
                                       tag="li"
                                     >
@@ -470,40 +574,6 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                               Metrics
                                             </a>
                                           </Link>
-                                        </NavLink>
-                                      </li>
-                                    </NavItem>
-                                    <NavItem
-                                      key="http://:19999"
-                                      tag="li"
-                                    >
-                                      <li
-                                        className="nav-item"
-                                      >
-                                        <NavLink
-                                          active={false}
-                                          className="text-white"
-                                          href="http://:19999"
-                                          onClick={[Function]}
-                                          tag={[Function]}
-                                          to="http://:19999"
-                                        >
-                                          <NavLink
-                                            className="text-white nav-link"
-                                            href="http://:19999"
-                                            onClick={[Function]}
-                                            tag="a"
-                                            to="http://:19999"
-                                          >
-                                            <a
-                                              className="text-white nav-link nav-link"
-                                              href="http://:19999"
-                                              onClick={[Function]}
-                                              to="http://:19999"
-                                            >
-                                              Return to Master
-                                            </a>
-                                          </NavLink>
                                         </NavLink>
                                       </li>
                                     </NavItem>
@@ -676,7 +746,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                       path="/logs"
                       render={[Function]}
                     >
-                      <Connect(Logs)
+                      <Connect(MasterLogs)
                         history={
                           Object {
                             "action": "PUSH",
@@ -714,7 +784,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                           }
                         }
                       >
-                        <Logs
+                        <MasterLogs
                           data={
                             Object {
                               "currentPath": "",
@@ -767,32 +837,86 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                           }
                           refresh={false}
                         >
-                          <div
-                            className="logs-page"
+                          <Logs
+                            data={
+                              Object {
+                                "currentPath": "",
+                                "debug": false,
+                                "fatalError": "",
+                                "fileData": "",
+                                "fileInfos": Array [],
+                                "invalidPathError": "",
+                                "ntotalFile": 0,
+                                "viewingOffset": 0,
+                              }
+                            }
+                            fetchRequest={[Function]}
+                            history={
+                              Object {
+                                "action": "PUSH",
+                                "block": [Function],
+                                "createHref": [Function],
+                                "go": [Function],
+                                "goBack": [Function],
+                                "goForward": [Function],
+                                "length": 2,
+                                "listen": [Function],
+                                "location": Object {
+                                  "hash": "",
+                                  "pathname": "/logs",
+                                  "search": "",
+                                  "state": undefined,
+                                },
+                                "push": [Function],
+                                "replace": [Function],
+                              }
+                            }
+                            loading={true}
+                            location={
+                              Object {
+                                "hash": "",
+                                "pathname": "/logs",
+                                "search": "",
+                                "state": undefined,
+                              }
+                            }
+                            match={
+                              Object {
+                                "isExact": true,
+                                "params": Object {},
+                                "path": "/logs",
+                                "url": "/logs",
+                              }
+                            }
+                            refresh={false}
                           >
-                            <LoadingMessage>
-                              <div
-                                className="loadingMessageWrapper"
-                              >
+                            <div
+                              className="logs-page"
+                            >
+                              <LoadingMessage>
                                 <div
-                                  className="loadingMessage text-center"
+                                  className="loadingMessageWrapper"
                                 >
-                                  <img
-                                    className="loadingMessageSpin"
-                                    src="alluxio-mark-tight-sm.svg"
-                                  />
-                                  <br />
-                                  <h5
-                                    className=""
+                                  <div
+                                    className="loadingMessage text-center"
                                   >
-                                    Please wait...
-                                  </h5>
+                                    <img
+                                      className="loadingMessageSpin"
+                                      src="alluxio-mark-tight-sm.svg"
+                                    />
+                                    <br />
+                                    <h5
+                                      className=""
+                                    >
+                                      Please wait...
+                                    </h5>
+                                  </div>
                                 </div>
-                              </div>
-                            </LoadingMessage>
-                          </div>
-                        </Logs>
-                      </Connect(Logs)>
+                              </LoadingMessage>
+                            </div>
+                          </Logs>
+                        </MasterLogs>
+                      </Connect(MasterLogs)>
                     </Route>
                   </Switch>
                 </div>
@@ -800,12 +924,6 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                   className="w-100 footer-wrapper"
                 >
                   <Footer
-                    callbackParameters={
-                      Object {
-                        "masterHostname": "",
-                        "masterPort": 19999,
-                      }
-                    }
                     data={
                       Array [
                         Object {
@@ -824,7 +942,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                         },
                         Object {
                           "innerText": "Workers",
-                          "url": [Function],
+                          "url": "/workers",
                         },
                         Object {
                           "attributes": Object {
@@ -894,19 +1012,19 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                             </li>
                           </NavItem>
                           <NavItem
-                            key="http://:19999/workers"
+                            key="/workers"
                             tag="li"
                           >
                             <li
                               className="nav-item"
                             >
                               <NavLink
-                                href="http://:19999/workers"
+                                href="/workers"
                                 tag="a"
                               >
                                 <a
                                   className="nav-link"
-                                  href="http://:19999/workers"
+                                  href="/workers"
                                   onClick={[Function]}
                                 >
                                   Workers
@@ -952,62 +1070,47 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
 </Provider>
 `;
 
-exports[`Logs Shallow component Matches snapshot 1`] = `
-<div
-  className="logs-page"
->
-  <div
-    className="container-fluid"
-  >
-    <div
-      className="row"
-    >
-      <div
-        className="col-12"
-      >
-        <FileView
-          beginInputHandler={[Function]}
-          endInputHandler={[Function]}
-          history={
-            Object {
-              "action": "PUSH",
-              "block": [Function],
-              "createHref": [Function],
-              "go": [Function],
-              "goBack": [Function],
-              "goForward": [Function],
-              "length": 2,
-              "listen": [Function],
-              "location": Object {
-                "hash": "",
-                "pathname": "/logs",
-                "search": "",
-                "state": undefined,
-              },
-              "push": [Function],
-              "replace": [Function],
-            }
-          }
-          offset="0"
-          offsetInputHandler={[Function]}
-          queryStringPrefix="/logs"
-          queryStringSuffix="&offset=0"
-          textAreaHeight={384}
-          viewData={
-            Object {
-              "currentPath": "",
-              "debug": false,
-              "fatalError": "",
-              "fileData": "",
-              "fileInfos": Array [],
-              "invalidPathError": "",
-              "ntotalFile": 0,
-              "viewingOffset": 0,
-            }
-          }
-        />
-      </div>
-    </div>
-  </div>
-</div>
+exports[`MasterLogs Shallow component Matches snapshot 1`] = `
+<Logs
+  data={
+    Object {
+      "currentPath": "",
+      "debug": false,
+      "fatalError": "",
+      "fileData": "",
+      "fileInfos": Array [],
+      "invalidPathError": "",
+      "ntotalFile": 0,
+      "viewingOffset": 0,
+    }
+  }
+  fetchRequest={[Function]}
+  history={
+    Object {
+      "action": "PUSH",
+      "block": [Function],
+      "createHref": [Function],
+      "go": [Function],
+      "goBack": [Function],
+      "goForward": [Function],
+      "length": 2,
+      "listen": [Function],
+      "location": Object {
+        "hash": "",
+        "pathname": "/logs",
+        "search": "",
+        "state": undefined,
+      },
+      "push": [Function],
+      "replace": [Function],
+    }
+  }
+  loading={false}
+  location={
+    Object {
+      "search": "",
+    }
+  }
+  refresh={false}
+/>
 `;

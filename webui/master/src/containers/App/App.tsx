@@ -22,7 +22,7 @@ import {Dispatch} from 'redux';
 import {Footer, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {
-  Browse, Configuration, Data, Logs, Metrics, Overview, Workers
+  Browse, Configuration, Data, MasterLogs, Metrics, Overview, Workers
 } from '..';
 import {footerNavigationData, headerNavigationData} from '../../constants';
 import {IApplicationState} from '../../store';
@@ -100,7 +100,7 @@ export class App extends React.Component<AllProps> {
               <Route path="/browse" exact={true} render={this.renderView(Browse, {history})}/>
               <Route path="/config" exact={true} component={Configuration}/>
               <Route path="/data" exact={true} component={Data}/>
-              <Route path="/logs" exact={true} render={this.renderView(Logs, {history})}/>
+              <Route path="/logs" exact={true} render={this.renderView(MasterLogs, {history})}/>
               <Route path="/metrics" exact={true} component={Metrics}/>
               <Route path="/workers" exact={true} component={Workers}/>
               <Route render={this.redirectToOverview}/>

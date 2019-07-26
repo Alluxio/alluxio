@@ -55,7 +55,8 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   constructor(props: AllProps) {
     super(props);
 
-    const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    path = decodeURIComponent(path || '/');
     this.state = {end, limit, offset, path: path || '/', lastFetched: {}};
   }
 
@@ -63,11 +64,13 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
     const {refresh, location: {search}} = this.props;
     const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
-      const {path, offset, limit, end} = parseQuerystring(search);
+      let {path, offset, limit, end} = parseQuerystring(search);
+      path = decodeURIComponent(path || '/');
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
     } else if (refresh !== prevRefresh) {
-      const {path, offset, limit, end} = this.state;
+      let {path, offset, limit, end} = this.state;
+      path = decodeURIComponent(path || '/');
       this.fetchData(path, offset, limit, end);
     }
   }

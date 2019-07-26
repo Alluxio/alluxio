@@ -21,7 +21,7 @@ import {Dispatch} from 'redux';
 
 import {Footer, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
-import {BlockInfo, Logs, Metrics, Overview} from '..';
+import {BlockInfo, WorkerLogs, Metrics, Overview} from '..';
 import {footerNavigationData, headerNavigationData} from '../../constants';
 import {IApplicationState} from '../../store';
 import {fetchRequest} from '../../store/init/actions';
@@ -98,7 +98,7 @@ export class App extends React.Component<AllProps> {
               <Route exact={true} path="/" render={this.redirectToOverview}/>
               <Route path="/overview" exact={true} component={Overview}/>
               <Route path="/blockInfo" exact={true} component={BlockInfo}/>
-              <Route path="/logs" exact={true} render={this.renderView(Logs, {history})}/>
+              <Route path="/logs" exact={true} render={this.renderView(WorkerLogs, {history})}/>
               <Route path="/metrics" exact={true} component={Metrics}/>
               <Route render={this.redirectToOverview}/>
             </Switch>

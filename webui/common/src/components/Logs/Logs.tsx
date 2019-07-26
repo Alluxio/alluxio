@@ -12,16 +12,12 @@
 import {AxiosResponse} from 'axios';
 import {History, LocationState} from 'history';
 import React from 'react';
-import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
-import {Dispatch} from 'redux';
-
-import {FileView, LoadingMessage} from '@alluxio/common-ui/src/components';
-import {IFileInfo} from '@alluxio/common-ui/src/constants';
-import {getDebouncedFunction, parseQuerystring, renderFileNameLink} from '@alluxio/common-ui/src/utilities';
-import {IApplicationState} from '../../../store';
-import {fetchRequest} from '../../../store/logs/actions';
-import {ILogs} from '../../../store/logs/types';
+import {FileView, LoadingMessage} from '..';
+import {IFileInfo} from '../../constants';
+import {getDebouncedFunction, parseQuerystring, renderFileNameLink} from '../../utilities';
+import {fetchRequest} from '../../store/logs/actions';
+import {ILogs} from '../../store/logs/types';
 
 interface IPropsFromState {
   data: ILogs;
@@ -124,7 +120,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
             <div className="col-12">
               {data.fileData !== null
                   ? this.renderFileView(data, queryStringSuffix)
-                  : this.renderDirectoryListing(data.fileInfos, queryStringSuffix)}
+                  : this.renderDirectoryListing(data.fileInfos)}
             </div>
           </div>
         </div>
@@ -146,7 +142,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
     );
   }
 
-  private renderDirectoryListing(fileInfos: IFileInfo[], queryStringSuffix: string) {
+  private renderDirectoryListing(fileInfos: IFileInfo[]) {
     return (
       <Table hover={true}>
         <thead>
@@ -200,19 +196,3 @@ export class Logs extends React.Component<AllProps, ILogsState> {
     this.setState({textAreaHeight: window.innerHeight / 2});
   }
 }
-
-const mapStateToProps = ({logs, refresh}: IApplicationState) => ({
-  data: logs.data,
-  errors: logs.errors,
-  loading: logs.loading,
-  refresh: refresh.data
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  fetchRequest: (path?: string, offset?: string, limit?: string, end?: string) => dispatch(fetchRequest(path, offset, limit, end))
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Logs);

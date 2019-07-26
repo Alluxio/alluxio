@@ -11,7 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 
-import {IFileInfo} from '@alluxio/common-ui/src/constants';
+import {IFileInfo} from '../../constants';
 
 export interface ILogs {
   'currentPath': string;

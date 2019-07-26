@@ -15,16 +15,17 @@ import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
 import {Provider} from 'react-redux';
 import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import sinon from 'sinon';
 
+import {AllProps} from '@alluxio/common-ui/src/components';
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
-import {AllProps, Logs} from './Logs';
+import {MasterLogs} from './MasterLogs';
 
 configure({adapter: new Adapter()});
 
-describe('Logs', () => {
+describe('MasterLogs', () => {
   let history: History<LocationState>;
   let store: Store<IApplicationState>;
   let props: AllProps;
@@ -51,7 +52,7 @@ describe('Logs', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Logs {...props}/>);
+      shallowWrapper = shallow(<MasterLogs {...props}/>);
     });
 
     it('Renders without crashing', () => {
@@ -76,10 +77,6 @@ describe('Logs', () => {
 
     it('Contains the component', () => {
       expect(reactWrapper.find('.logs-page').length).toEqual(1);
-    });
-
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
     });
 
     it('Matches snapshot', () => {

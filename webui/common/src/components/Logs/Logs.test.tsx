@@ -13,26 +13,22 @@ import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
+import {StaticRouter} from "react-router";
 import sinon, {SinonSpy} from 'sinon';
 
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
-import ConnectedApp from '../../App/App';
 import {AllProps, Logs} from './Logs';
+import {initialState} from "../../../../master/src/store";
+
 
 configure({adapter: new Adapter()});
 
 describe('Logs', () => {
   let history: History<LocationState>;
-  let store: Store<IApplicationState>;
   let props: AllProps;
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
     history.push('/logs');
-    store = configureStore(history, initialState);
     props = {
       location: {search: ''},
       history: history,
@@ -65,9 +61,14 @@ describe('Logs', () => {
 
   describe('App with connected component', () => {
     let reactWrapper: ReactWrapper;
+    let context = {};
 
     beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp history={history}/></Provider>);
+      reactWrapper = mount(
+          <StaticRouter location="someLocation" context={context}>
+            <Logs {...props}/>
+          </StaticRouter>
+      );
     });
 
     it('Renders without crashing', () => {
