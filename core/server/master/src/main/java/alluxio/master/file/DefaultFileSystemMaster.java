@@ -3721,7 +3721,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       long mountId = resolution.getMountId();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         if (!ufsResource.get().supportsActiveSync()) {
-          throw new UnsupportedOperationException("Active Syncing is not supported on this UFS type"
+          throw new UnsupportedOperationException(
+              "Active Syncing is not supported on this UFS type: "
               + ufsResource.get().getUnderFSType());
         }
       }
