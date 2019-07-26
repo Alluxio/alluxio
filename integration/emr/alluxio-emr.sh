@@ -119,6 +119,7 @@ main() {
   if [[ -z ${alluxio_tarball} ]]
   then
     echo "No Download URL Provided. Please go to http://downloads.alluxio.io to see available release downloads."
+    exit 1
   else
     download_file ${alluxio_tarball}
   fi

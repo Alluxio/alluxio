@@ -70,7 +70,7 @@ $ aws emr create-cluster \
 --name '<cluster-name>' \
 --bootstrap-actions \
 Path=s3://bucket/path/to/alluxio-emr.sh,\
-Args=[<download-url>,<root-ufs-uri>,<path>,<path-to-site-properties>,<additional-delimited-properties>,<property-delimiter>] \
+Args=[<download-url>,<root-ufs-uri>,<optional-path-to-site-properties>,<optional-additional-delimited-properties>,<optional-property-delimiter>] \
 --configurations file://${ALLUXIO_HOME}/integration/emr/alluxio-emr.json \
 --ec2-attributes KeyName=<ec2-keypair-name>
 ```
