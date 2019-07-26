@@ -57,7 +57,7 @@ public final class SetAttributeOptions {
       }
       mPinned = options.isSetPinned() ? options.isPinned() : null;
       mTtl = options.isSetTtl() ? options.getTtl() : null;
-      mTtlAction = TtlAction.fromThrift(options.getTtlAction());
+      mTtlAction = options.isSetTtlAction() ? TtlAction.fromThrift(options.getTtlAction()) : null;
       mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
       mOwner = options.isSetOwner() ? options.getOwner() : null;
       mGroup = options.isSetGroup() ? options.getGroup() : null;
@@ -72,7 +72,7 @@ public final class SetAttributeOptions {
     mCommonOptions = CommonOptions.defaults();
     mPinned = null;
     mTtl = null;
-    mTtlAction = TtlAction.DELETE;
+    mTtlAction = null;
     mPersisted = null;
     mOwner = null;
     mGroup = null;
