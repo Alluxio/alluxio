@@ -735,7 +735,7 @@ public final class PermissionCheckTest {
       FileInfo fileInfo =
           mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
       return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
-          .setPersisted(fileInfo.isPersisted());
+          .setTtlAction(fileInfo.getTtlAction()).setPersisted(fileInfo.isPersisted());
     }
   }
 
