@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -226,7 +227,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         }
 
         mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
-            null, mFileSystem.createFile(uri)));
+            null, mFileSystem.createFile(uri,
+            CreateFileOptions.defaults().setMode(new Mode((short) mode)))));
         LOG.debug("Alluxio OutStream created for {}", path);
         fi.fh.set(mNextOpenFileId);
 

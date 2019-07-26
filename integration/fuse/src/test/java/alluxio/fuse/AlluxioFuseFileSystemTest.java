@@ -214,8 +214,10 @@ public class AlluxioFuseFileSystemTest {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join(path);
 
     FileOutStream fos = mock(FileOutStream.class);
-    when(mFileSystem.createFile(expectedPath)).thenReturn(fos);
+    when(mFileSystem.createFile(any(AlluxioURI.class),
+        any(CreateFileOptions.class))).thenReturn(fos);
 
+    mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create(path, 0, mFileInfo);
 
     // Prepare file status
