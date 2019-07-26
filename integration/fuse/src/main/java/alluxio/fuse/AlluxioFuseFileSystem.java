@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -53,11 +52,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-<<<<<<< HEAD
 import java.util.Map;
-=======
-import java.util.concurrent.TimeoutException;
->>>>>>> e35f6cdb1b... [ALLUXIO-3391] only blocking fuse getAttr() in async release() (#8213)
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -75,27 +70,24 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
-<<<<<<< HEAD
-=======
 
   // Open file managements
-  private static final IndexDefinition<OpenFileEntry, Long> ID_INDEX =
-      new IndexDefinition<OpenFileEntry, Long>(true) {
+  private static final IndexDefinition<OpenFileEntry> ID_INDEX =
+      new IndexDefinition<OpenFileEntry>(true) {
         @Override
-        public Long getFieldValue(OpenFileEntry o) {
+        public Object getFieldValue(OpenFileEntry o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<OpenFileEntry, String> PATH_INDEX =
-      new IndexDefinition<OpenFileEntry, String>(true) {
+  private static final IndexDefinition<OpenFileEntry> PATH_INDEX =
+      new IndexDefinition<OpenFileEntry>(true) {
         @Override
-        public String getFieldValue(OpenFileEntry o) {
+        public Object getFieldValue(OpenFileEntry o) {
           return o.getPath();
         }
       };
 
->>>>>>> e35f6cdb1b... [ALLUXIO-3391] only blocking fuse getAttr() in async release() (#8213)
   private final boolean mIsUserGroupTranslation;
 
   private final FileSystem mFileSystem;
@@ -108,12 +100,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
 
   // Table of open files with corresponding InputStreams and OutputStreams
-<<<<<<< HEAD
-  private final Map<Long, OpenFileEntry> mOpenFiles;
-=======
   private final IndexedSet<OpenFileEntry> mOpenFiles;
 
->>>>>>> e35f6cdb1b... [ALLUXIO-3391] only blocking fuse getAttr() in async release() (#8213)
   private long mNextOpenFileId;
 
   /**
@@ -238,13 +226,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
           return -ErrorCodes.EMFILE();
         }
 
-<<<<<<< HEAD
-        final OpenFileEntry ofe = new OpenFileEntry(null, mFileSystem.createFile(uri,
-            CreateFileOptions.defaults().setMode(new Mode((short) mode))));
-=======
         mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
             null, mFileSystem.createFile(uri)));
->>>>>>> e35f6cdb1b... [ALLUXIO-3391] only blocking fuse getAttr() in async release() (#8213)
         LOG.debug("Alluxio OutStream created for {}", path);
         fi.fh.set(mNextOpenFileId);
 

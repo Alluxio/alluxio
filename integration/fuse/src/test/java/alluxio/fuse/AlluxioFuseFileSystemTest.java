@@ -18,11 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.atLeast;
-<<<<<<< HEAD
-=======
 import static org.mockito.Mockito.atMost;
-import static org.mockito.Mockito.doNothing;
->>>>>>> e35f6cdb1b... [ALLUXIO-3391] only blocking fuse getAttr() in async release() (#8213)
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
