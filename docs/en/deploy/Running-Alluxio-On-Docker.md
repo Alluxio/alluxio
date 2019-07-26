@@ -229,10 +229,10 @@ API with a mount accessible at `/alluxio-fuse`.
 
 ```console
 $ docker run -e \
-  ...
-  --cap-add SYS_ADMIN
-  --device /dev/fuse
-  alluxio-fuse fuse
+  ... \
+  --cap-add SYS_ADMIN \
+  --device /dev/fuse \
+  alluxio-fuse fuse \
 ```
 
 ## Troubleshooting

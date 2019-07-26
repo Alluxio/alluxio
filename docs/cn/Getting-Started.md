@@ -188,7 +188,7 @@ Mounted s3://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 我们可以通过 Alluxio 命名空间列出 S3 中的文件。使用熟悉的`ls`命令列出 S3 挂载目录下的文件。
 
 ```console
-./bin/alluxio fs ls /mnt/s3
+$ ./bin/alluxio fs ls /mnt/s3
 -r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
 -r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
 -r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv

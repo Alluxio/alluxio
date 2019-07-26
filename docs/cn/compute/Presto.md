@@ -101,8 +101,8 @@ $ ${PRESTO_HOME}/bin/launcher run
 运行简单的查询（使用你实际的 Presto 服务器主机名和端口替换`localhost:8080`）：
 
 ```console
-$./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" \
---catalog hive --debug
+$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" \
+  --catalog hive --debug
 ```
 
 你可以从控制台看到查询结果：

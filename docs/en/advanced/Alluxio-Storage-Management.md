@@ -73,7 +73,7 @@ information.
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the
 ramdisk size to be 16GB on each worker:
 
-```
+```properties
 alluxio.worker.memory.size=16GB
 ```
 
@@ -82,7 +82,7 @@ to update `alluxio.worker.tieredstore.level0.dirs.path` to take specify each sto
 to use as a storage directory. For example, to use the ramdisk (mounted at `/mnt/ramdisk`) and two
 SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
 
-```
+```properties
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
 alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 ```
@@ -101,7 +101,7 @@ the client user who is among the same group of the user that starts the Alluxio 
 After updating the storage media, we need to indicate how much storage is allocated for each storage
 directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on each SSD:
 
-```
+```properties
 alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 ```
 
@@ -156,7 +156,7 @@ Tiered storage can be enabled in Alluxio using
 [configuration parameters]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}).
 To specify additional tiers for Alluxio, use the following configuration parameters:
 
-```
+```properties
 alluxio.worker.tieredstore.levels
 alluxio.worker.tieredstore.level{x}.alias
 alluxio.worker.tieredstore.level{x}.dirs.quota
@@ -168,7 +168,7 @@ alluxio.worker.tieredstore.level{x}.watermark.low.ratio
 For example, if you wanted to configure Alluxio to have two tiers, memory and hard disk drive,
 you could use a configuration similar to:
 
-```
+```properties
 # configure 2 tiers in Alluxio
 alluxio.worker.tieredstore.levels=2
 # the first (top) tier to be a memory tier
@@ -345,7 +345,7 @@ next check interval an hour later.
 
 To set the interval to 10 minutes, add the following to `alluxio-site.properties`:
 
-```
+```properties
 alluxio.master.ttl.checker.interval=10m
 ```
 
@@ -403,7 +403,7 @@ access patterns.
 For example, to delete the files created by the `runTests` after 3 minutes:
 
 ```console
-$ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m\
+$ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m \
   -Dalluxio.user.file.create.ttl.action=DELETE
 ```
 
