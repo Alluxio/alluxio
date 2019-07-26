@@ -216,11 +216,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withHeartbeatInterval(Duration.ofMillis(mConf.getHeartbeatIntervalMs()))
         .withSnapshotAllowed(mSnapshotAllowed)
         .withSerializer(createSerializer())
-        .withTransport(new CopycatGrpcTransport(
-            ServerConfiguration.global(),
-            ServerConfiguration.global(),
-            ServerUserState.global(),
-            ServerUserState.global()))
+        .withTransport(
+            new CopycatGrpcTransport(ServerConfiguration.global(), ServerUserState.global()))
         // Copycat wants a supplier that will generate *new* state machines. We can't handle
         // generating a new state machine here, so we will throw an exception if copycat tries to
         // call the supplier more than once.
@@ -250,11 +247,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withRecoveryStrategy(RecoveryStrategies.RECOVER)
         .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
             Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
-        .withTransport(new CopycatGrpcTransport(
-            ServerConfiguration.global(),
-            ServerConfiguration.global(),
-            ServerUserState.global(),
-            ServerUserState.global()))
+        .withTransport(
+            new CopycatGrpcTransport(ServerConfiguration.global(), ServerUserState.global()))
         .withSerializer(createSerializer())
         .build();
   }

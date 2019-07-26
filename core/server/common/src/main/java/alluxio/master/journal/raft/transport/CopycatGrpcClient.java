@@ -26,7 +26,10 @@ import io.atomix.catalyst.transport.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,6 +47,12 @@ public class CopycatGrpcClient implements Client {
   /** Created channels. */
   private Map<Address, GrpcChannel> mChannels;
 
+  /** Created connections. */
+  private final List<Connection> mConnections;
+
+  /** Whether this client is closed. */
+  private boolean mClosed = false;
+
   /**
    * Creates copycat transport client that can be used to connect to remote copycat servers.
    *
@@ -55,6 +64,7 @@ public class CopycatGrpcClient implements Client {
     mUserState = userState;
 
     mChannels = new HashMap<>();
+    mConnections = new LinkedList<>();
   }
 
   @Override
@@ -83,6 +93,7 @@ public class CopycatGrpcClient implements Client {
       LOG.debug("Created copycat connection for target: {}", address);
       // Complete the future.
       resultFuture.complete(clientConnection);
+      mConnections.add(clientConnection);
     } catch (Throwable e) {
       // Fail the future.
       resultFuture.completeExceptionally(e);
@@ -93,12 +104,30 @@ public class CopycatGrpcClient implements Client {
 
   @Override
   public synchronized CompletableFuture<Void> close() {
-    LOG.debug("Closing copycat transport client with {} gRPC channels.", mChannels.size());
-    // Shut down underlying gRPC channels.
-    for (GrpcChannel channel : mChannels.values()) {
-      channel.shutdown();
+    if (!mClosed) {
+      LOG.debug("Closing copycat transport client with {} gRPC channels.", mChannels.size());
+      // Shut down underlying gRPC channels.
+      for (GrpcChannel channel : mChannels.values()) {
+        try {
+          channel.shutdown();
+        } catch (Exception e) {
+          LOG.debug("Failed to close underlying gRPC channel: {}", channel, e);
+        }
+      }
+      mChannels.clear();
+
+      // Close created connections.
+      List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
+      for (Connection connection : mConnections) {
+        connectionCloseFutures.add(connection.close());
+      }
+      mConnections.clear();
+      try {
+        CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0])).get();
+      } catch (Exception e) {
+        LOG.warn("Failed to close copycat transport client connections", e);
+      }
     }
-    mChannels.clear();
     return CompletableFuture.completedFuture(null);
   }
 }

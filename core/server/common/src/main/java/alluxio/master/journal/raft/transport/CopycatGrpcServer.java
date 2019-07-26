@@ -26,6 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -45,6 +48,12 @@ public class CopycatGrpcServer implements Server {
   /** Bind address for underlying server. */
   private Address mActiveAddress;
 
+  /** List of all connections created by this server. */
+  private final List<Connection> mConnections;
+
+  /** Whether this server is closed. */
+  private boolean mClosed = false;
+
   /**
    * Creates copycat transport server that can be used to accept connections from remote copycat
    * clients.
@@ -55,6 +64,7 @@ public class CopycatGrpcServer implements Server {
   public CopycatGrpcServer(AlluxioConfiguration conf, UserState userState) {
     mConf = conf;
     mUserState = userState;
+    mConnections = new LinkedList<>();
   }
 
   @Override
@@ -63,10 +73,16 @@ public class CopycatGrpcServer implements Server {
     LOG.debug("Copycat transport server binding to: {}", address);
     CompletableFuture<Void> resultFuture = new CompletableFuture<Void>();
 
+    // Listener that notifies both this server instance and given listener.
+    Consumer<Connection> forkListener = (connection) -> {
+      addNewConnection(connection);
+      listener.accept(connection);
+    };
+
     // Create gRPC server.
     mGrpcServer =
         GrpcServerBuilder.forAddress(address.host(), address.socketAddress(), mConf, mUserState)
-            .addService(new GrpcService(new CopycatMessageServiceClientHandler(listener,
+            .addService(new GrpcService(new CopycatMessageServiceClientHandler(forkListener,
                 ThreadContext.currentContextOrThrow(),
                 mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
             .build();
@@ -78,7 +94,7 @@ public class CopycatGrpcServer implements Server {
       LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
     } catch (IOException e) {
       mGrpcServer = null;
-      LOG.debug("Failed to create gRPC server for copycat transport at: {}. Error: {}", address, e);
+      LOG.debug("Failed to create gRPC server for copycat transport at: {}.", address, e);
       resultFuture.completeExceptionally(e);
     }
 
@@ -87,8 +103,31 @@ public class CopycatGrpcServer implements Server {
 
   @Override
   public synchronized CompletableFuture<Void> close() {
-    LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
-    mGrpcServer.shutdown();
+    if (!mClosed) {
+      LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
+      mGrpcServer.shutdown();
+
+      // Close created connections.
+      List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
+      for (Connection connection : mConnections) {
+        connectionCloseFutures.add(connection.close());
+      }
+      mConnections.clear();
+      try {
+        CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0])).get();
+      } catch (Exception e) {
+        LOG.warn("Failed to close copycat transport server connections.", e);
+      }
+    }
     return CompletableFuture.completedFuture(null);
+  }
+
+  /**
+   * Used to keep track of all connections created by this server instance.
+   *
+   * @param serverConnection new client connection
+   */
+  private synchronized void addNewConnection(Connection serverConnection) {
+    mConnections.add(serverConnection);
   }
 }

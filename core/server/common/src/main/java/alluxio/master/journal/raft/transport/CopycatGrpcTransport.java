@@ -17,31 +17,46 @@ import alluxio.security.user.UserState;
 import io.atomix.catalyst.transport.Client;
 import io.atomix.catalyst.transport.Server;
 import io.atomix.catalyst.transport.Transport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Copycat {@link Transport} implementation that uses Alluxio gRPC.
  */
 public class CopycatGrpcTransport implements Transport {
+  private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcTransport.class);
 
   /** Alluxio configuration for clients. */
-  private AlluxioConfiguration mClientConf;
+  private final AlluxioConfiguration mClientConf;
   /** Alluxio configuration for servers. */
-  private AlluxioConfiguration mServerConf;
+  private final AlluxioConfiguration mServerConf;
   /** User for clients. */
-  private UserState mClientUser;
+  private final UserState mClientUser;
   /** User for servers. */
-  private UserState mServerUser;
+  private final UserState mServerUser;
 
   /** List of created clients. */
-  private List<CopycatGrpcClient> mClients = new LinkedList<>();
+  private final List<CopycatGrpcClient> mClients;
   /** List of created servers. */
-  private List<CopycatGrpcServer> mServers = new LinkedList<>();
+  private final List<CopycatGrpcServer> mServers;
 
   /** Whether the transport is closed. */
   private boolean mClosed;
+
+  /**
+   * Creates {@link Transport} for CopyCat that uses Alluxio gRPC.
+   *
+   * @param conf Alluxio configuration
+   * @param user Alluxio user
+   */
+  public CopycatGrpcTransport(AlluxioConfiguration conf, UserState user) {
+    this(conf, conf, user, user);
+  }
 
   /**
    * Creates {@link Transport} for CopyCat that uses Alluxio gRPC.
@@ -57,6 +72,9 @@ public class CopycatGrpcTransport implements Transport {
     mServerConf = serverConf;
     mClientUser = clientUser;
     mServerUser = serverUser;
+
+    mClients = new LinkedList<>();
+    mServers = new LinkedList<>();
   }
 
   @Override
@@ -85,16 +103,28 @@ public class CopycatGrpcTransport implements Transport {
       mClosed = true;
 
       // Close created clients.
+      List<CompletableFuture<Void>> clientCloseFutures = new ArrayList<>(mClients.size());
       for (CopycatGrpcClient client : mClients) {
-        client.close();
+        clientCloseFutures.add(client.close());
       }
       mClients.clear();
+      try {
+        CompletableFuture.allOf(clientCloseFutures.toArray(new CompletableFuture[0])).get();
+      } catch (Exception e) {
+        LOG.warn("Failed to close copycat transport clients.", e);
+      }
 
       // Close created servers.
+      List<CompletableFuture<Void>> serverCloseFutures = new ArrayList<>(mServers.size());
       for (CopycatGrpcServer server : mServers) {
-        server.close();
+        serverCloseFutures.add(server.close());
       }
       mServers.clear();
+      try {
+        CompletableFuture.allOf(serverCloseFutures.toArray(new CompletableFuture[0])).get();
+      } catch (Exception e) {
+        LOG.warn("Failed to close copycat transport servers.", e);
+      }
     }
   }
 }
