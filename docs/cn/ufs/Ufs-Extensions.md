@@ -33,7 +33,7 @@ Alluxio集群的扩展JAR包的分布。在CLI不可用的环境下（参考下�
 命令行实用程序是用来提供帮助扩展管理。
 
 ```console
-$ bin/alluxio extensions
+$ ./bin/alluxio extensions
 Usage: alluxio extensions [generic options]
 	 [install <URI>]
 	 [ls]
@@ -62,7 +62,7 @@ Usage: alluxio extensions [generic options]
 $ mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=<extension-group> \
  -DartifactId=<extension-artifact> -Dversion=<version> -Dtransitive=false -Ddest=<extension>.jar
 
-$ bin/alluxio extensions install <extension.jar>
+$ ./bin/alluxio extensions install <extension.jar>
 ```
 
 # 验证
@@ -70,12 +70,12 @@ $ bin/alluxio extensions install <extension.jar>
 一旦扩展JAR部署之后，你应该可以通过如下Alluxio CLI命令挂载你的底层存储。
 
 ```console
-$ bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
+$ ./bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
 ```
 其中，`<key>=<value>`可以被底层存储的任何必需配置替代。
 
 执行完整的测试：
 
 ```console
-$ bin/alluxio runTests --directory /my-storage
+$ ./bin/alluxio runTests --directory /my-storage
 ```

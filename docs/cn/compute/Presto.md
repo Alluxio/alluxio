@@ -56,8 +56,8 @@ $ ${PRESTO_HOME}/bin/launcher restart
 解压文件，并将文件`u.user`上传到 Alluxio 的`/ml-100k/`目录：
 
 ```console
-$ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+$ ./bin/alluxio fs mkdir /ml-100k
+$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 从 Alluxio 的已有文件创建一个 Hive 外部表：

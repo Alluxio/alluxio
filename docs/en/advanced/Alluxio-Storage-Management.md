@@ -475,7 +475,7 @@ $ ./bin/alluxio fs setReplication --min 3 --max -5 -R /dir
 To check the target replication level of a file, run
 
 ```console
-$ bin/alluxio fs stat /foo
+$ ./bin/alluxio fs stat /foo
 ```
 and look for the `replicationMin` and `replicationMax` fields in the output.
 

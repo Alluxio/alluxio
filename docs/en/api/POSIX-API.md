@@ -56,7 +56,7 @@ For example, the following command will mount the Alluxio path `/people` to the 
 in the local file system.
 
 ```console
-$ bin/alluxio fs mkdir /people
+$ ./bin/alluxio fs mkdir /people
 $ sudo mkdir -p /mnt/people
 $ sudo chown $(whoami) /mnt/people
 $ chmod 755 /mnt/people

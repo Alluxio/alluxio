@@ -63,7 +63,7 @@ documentation for instructions on how to set configuration properties.
 4. Launch the Alluxio Mesos framework
 
 ```console
-$ /integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
+$ ${ALLUXIO_HOME}/integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050
 ```
 
 ### Deploy with Alluxio tarball URL
@@ -74,7 +74,7 @@ From anywhere with Alluxio installed:
 2. Launch the Alluxio Mesos framework
 
 ```console
-$ ./integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
+$ ${ALLUXIO_HOME}/integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050
 ```
 
 - Note that the tarball should be compiled with `-Pmesos`. Released Alluxio tarballs from version 1.3.0 onwards are compiled this way.

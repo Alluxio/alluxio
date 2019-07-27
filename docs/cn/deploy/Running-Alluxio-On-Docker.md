@@ -128,7 +128,7 @@ $ docker exec -it ${ALLUXIO_WORKER_CONTAINER_ID} /bin/sh
 
 ```console
 $ cd opt/alluxio
-$ bin/alluxio runTests
+$ ./bin/alluxio runTests
 ```
 # 通过具体的Alluxio分布式环境搭建Docker镜像
 

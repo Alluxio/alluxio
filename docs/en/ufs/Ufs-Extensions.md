@@ -40,7 +40,7 @@ running in containers, build a custom image with extension binaries in the appro
 A command line utility is provided to aid extension manangement.
 
 ```console
-$ bin/alluxio extensions
+$ ./bin/alluxio extensions
 Usage: alluxio extensions [generic options]
 	 [install <URI>]
 	 [ls]

@@ -158,13 +158,13 @@ For example, the following command sets the logger level of the class `alluxio.h
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
 
 ```console
-$ alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
+$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
   --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
 And the following command returns the log level of the class `alluxio.heartbeat.HeartbeatContext` among all the workers:
 ```console
-$ alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
+$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
   --target=workers
 ```
 

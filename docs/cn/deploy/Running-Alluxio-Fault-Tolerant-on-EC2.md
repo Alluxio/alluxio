@@ -171,13 +171,13 @@ $ kill -9 <leader pid found via the above command>
 [zookeeper](http://zookeeper.apache.org/)，然后运行zookeeper client：
 
 ```console
-$ /zookeeper/bin/zkCli.sh
+$ ${ZOOKEEPER_HOME}/bin/zkCli.sh
 ```
 
 在zookeeper client终端中，运行以下命令查看当前leader：
 
-```console
-$ ls /leader
+```
+ls /alluxio/leader
 ```
 
 

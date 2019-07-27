@@ -84,12 +84,13 @@ Alluxio shell附带了一个`logLevel`命令，可以在特定实例上获取或
 例如，以下命令将`alluxio.heartbeat.HeartbeatContext`类的日志级别在master和`192.168.100.100：30000`的worker上设置为调试级别。
 
 ```console
-$ alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = master，192.168.100 .100：30000 --level = DEBUG
+$ ./bin/alluxio logLevel --loggerName=alluxio.heartbeat.HeartbeatContext \
+  --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
 以下命令获取`alluxio.heartbeat.HeartbeatContext`类的所有worker的日志级别
 ```console
-$ alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = workers
+$ ./bin/alluxio logLevel --loggerName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
 
 ## 客户端日志记录配置

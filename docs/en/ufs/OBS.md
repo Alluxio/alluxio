@@ -32,7 +32,7 @@ The built jar can be found under the `<alluxio_extensions_home>/underfs/obs/targ
 Execute the following command on master to install the extension to all masters and workers defined in `conf/masters` and `conf/workers`:
 
 ```console
-$ bin/alluxio extensions install /PATH/TO/OBS/jar
+$ ./bin/alluxio extensions install /PATH/TO/OBS/jar
 ```
 
 See [here]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
@@ -81,8 +81,8 @@ under the Object Storage Service category.
 Start the Alluxio servers:
 
 ```console
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -91,7 +91,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```console
-$ bin/alluxio runTests
+$ ./bin/alluxio runTests
 ```
 
 Visit your OBS folder `obs://<OBS_BUCKET>/<OBS_DIRECTORY>` to verify the files
@@ -100,7 +100,7 @@ and directories created by Alluxio exist.
 To stop Alluxio, you can run:
 
 ```console
-$ bin/alluxio-stop.sh local
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup

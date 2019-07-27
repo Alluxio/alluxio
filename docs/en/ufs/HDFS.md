@@ -85,7 +85,7 @@ $ ./bin/alluxio-start.sh local
 If your ramdisk is not mounted, the format command can fail. This is likely because this is the first time you are running Alluxio, you may need to start Alluxio with the `SudoMount` option.
 
 ```console
-$ bin/alluxio-start.sh local SudoMount
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at

@@ -53,7 +53,7 @@ spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 假设你在 Alluxio 项目目录中，将`LICENSE`文件放入 Alluxio，运行：
 
 ```console
-$ bin/alluxio fs copyFromLocal LICENSE /Input
+$ ./bin/alluxio fs copyFromLocal LICENSE /Input
 ```
 
 假设 Alluxio Master 运行在`localhost`上，在`spark-shell`中运行如下命令：

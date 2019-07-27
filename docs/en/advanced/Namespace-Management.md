@@ -176,7 +176,7 @@ If the UFS updates at a scheduled interval, you can manually trigger the sync co
 Set the sync interval to `0` by running the command:
 
 ```console
-$ alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0
+$ ./bin/alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0
 ```
 
 Then reset the sync interval back to the default value of `-1`,
@@ -293,8 +293,8 @@ The feature, called active sync, listens for HDFS events and periodically synchr
 To enable active sync on a directory, issue the following Alluxio command.
 
 ```console
-$ bin/alluxio fs mkdir /syncdir
-$ bin/alluxio fs startSync /syncdir
+$ ./bin/alluxio fs mkdir /syncdir
+$ ./bin/alluxio fs startSync /syncdir
 ```
 
 You can control the active sync interval by changing the `alluxio.master.ufs.active.sync.interval` option, the default is 30 seconds.
@@ -302,13 +302,13 @@ You can control the active sync interval by changing the `alluxio.master.ufs.act
 To disable active sync on a directory, issue the following Alluxio command.
 
 ```console
-$ bin/alluxio fs stopSync /syncdir
+$ ./bin/alluxio fs stopSync /syncdir
 ```
 
 You can also examine which directories are currently under active sync.
 
 ```console
-$ bin/alluxio fs getSyncPathList
+$ ./bin/alluxio fs getSyncPathList
 ```
 
 #### Quiet period for Active Sync

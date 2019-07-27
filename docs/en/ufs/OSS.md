@@ -60,8 +60,8 @@ values like `oss-us-west-1.aliyuncs.com` and `oss-cn-shanghai.aliyuncs.com`. Ava
 Start the Alluxio servers:
 
 ```console
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This will start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -70,7 +70,7 @@ This will start an Alluxio master and an Alluxio worker. You can see the master 
 Run a simple example program:
 
 ```console
-$ bin/alluxio runTests
+$ ./bin/alluxio runTests
 ```
 
 Visit your OSS directory `oss://<OSS_BUCKET>/<OSS_DIRECTORY>` to verify the files
@@ -80,7 +80,7 @@ and directories created by Alluxio exist. For this test, you should see files na
 Stop Alluxio by running:
 
 ```console
-$ bin/alluxio-stop.sh local
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
