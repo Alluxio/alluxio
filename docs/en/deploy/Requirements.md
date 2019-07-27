@@ -34,10 +34,10 @@ will increase these requirements.
 * Minimum 4 GB memory
 * Minimum 4 CPU cores
 * Allow the following ports and protocols:
-  * Inbound TCP 19200 - Used as the Alluxio master's for internal leader election port
-  * Inbound TCP 19998 - Used as the Alluxio master's as the RPC port
-  * Inbound TCP 19999 - Used by the Alluxio master's web UI port. Accessible at `http://<master-hostname>:19999`
-  * Inbound TCP 20003 - Used by Alluxio for embedded journal
+  * Inbound TCP 19200 - The Alluxio master's default port for internal leader election
+  * Inbound TCP 19998 - The Alluxio master's default RPC port
+  * Inbound TCP 19999 - The Alluxio master's default web UI port. Accessible at `http://<master-hostname>:19999`
+  * Inbound TCP 20003 - The Alluxio job master's default port for internal leader election
 
 ## Worker Requirements
 
@@ -47,12 +47,11 @@ There are Alluxio-specific requirements for cluster nodes running the worker pro
 * minimum 1 GB memory
 * minimum 2 CPU cores
 * Allow the following ports and protocols:
-  * Inbound TCP 29998 - Used as the Alluxio worker's RPC port
-  * Inbound TCP 29999 - Used as the Alluxio worker's data transfer port
-  * Inbound TCP 30000 - Used as the Alluxio worker's web UI port. Accessible at `http://<worker-hostname>:30000` in your browser
-  * Inbound TCP 30001 - Used as the Alluxio job worker's RPC port
-  * Inbound TCP 30002 - Used as the Alluxio job worker's data transfer port
-  * Inbound TCP 30003 - Used as the Alluxio job worker's UI port
+  * Inbound TCP 29999 - The Alluxio worker's default RPC and data transfer port
+  * Inbound TCP 30000 - The Alluxio worker's default web UI port. Accessible at `http://<worker-hostname>:30000` in your browser
+  * Inbound TCP 30001 - The Alluxio job worker's default RPC port
+  * Inbound TCP 30002 - The Alluxio job worker's default data transfer port
+  * Inbound TCP 30003 - The Alluxio job worker's default web UI port.  Accessible at `http://<worker-hostname>:30003` in your browser
 
 ### RAMFS
 
