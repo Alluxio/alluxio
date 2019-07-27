@@ -693,7 +693,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
     try {
       BlockMasterClient blockClient =
-          new RetryHandlingBlockMasterClient(MasterClientConfig.defaults());
+          BlockMasterClient.Factory.create(MasterClientConfig.defaults());
       Set<BlockMasterInfo.BlockMasterInfoField> blockMasterInfoFilter =
           new HashSet<>(Arrays.asList(
               CAPACITY_BYTES,

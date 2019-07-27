@@ -28,7 +28,9 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -40,6 +42,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
+import alluxio.wire.MasterInfo;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import jnr.ffi.Pointer;
@@ -49,6 +52,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -59,8 +63,11 @@ import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Isolation tests for {@link AlluxioFuseFileSystem}.
@@ -399,17 +406,32 @@ public class AlluxioFuseFileSystemTest {
     Statvfs stbuf = Statvfs.of(pointer);
 
     int blockSize = 4 * Constants.KB;
-    int totalBlocks = 4;
-    int freeBlocks = 3;
+    int totalBlocks = 1341353 / blockSize;
+    int freeBlocks = 1278919 / blockSize;
 
-    BlockMasterClient blockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    // Prepare mock block master client
+    BlockMasterClient mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     PowerMockito.mockStatic(BlockMasterClient.Factory.class);
-    when(BlockMasterClient.Factory.create(any())).thenReturn(blockMasterClient);
+    when(BlockMasterClient.Factory.create(any())).thenReturn(mBlockMasterClient);
 
-    BlockMasterInfo blockMasterInfo = new BlockMasterInfo();
-    blockMasterInfo.setCapacityBytes(totalBlocks * blockSize);
-    blockMasterInfo.setFreeBytes(freeBlocks * blockSize);
-    when(blockMasterClient.getBlockMasterInfo(any())).thenReturn(blockMasterInfo);
+    Map<String, Long> capacityBytesOnTiers = new HashMap<>();
+    Map<String, Long> usedBytesOnTiers = new HashMap<>();
+    capacityBytesOnTiers.put("MEM", 1341353L);
+    capacityBytesOnTiers.put("RAM", 23112L);
+    capacityBytesOnTiers.put("DOM", 236501L);
+    usedBytesOnTiers.put("MEM", 62434L);
+    usedBytesOnTiers.put("RAM", 6243L);
+    usedBytesOnTiers.put("DOM", 74235L);
+    BlockMasterInfo blockMasterInfo = new BlockMasterInfo()
+        .setLiveWorkerNum(12)
+        .setLostWorkerNum(4)
+        .setCapacityBytes(1341353L)
+        .setCapacityBytesOnTiers(capacityBytesOnTiers)
+        .setUsedBytes(62434L)
+        .setUsedBytesOnTiers(usedBytesOnTiers)
+        .setFreeBytes(1278919L);
+    Mockito.when(mBlockMasterClient.getBlockMasterInfo(Mockito.any()))
+        .thenReturn(blockMasterInfo);
 
     assertEquals(0, mFuseFs.statfs("/", stbuf));
 
