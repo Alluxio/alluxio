@@ -198,6 +198,7 @@ public final class UIFileInfo {
 
     Long sizeOnTier = mSizeOnTier.get(tierAlias);
     mSizeOnTier.put(tierAlias, (sizeOnTier == null ? 0L : sizeOnTier) + blockSize);
+    mBlockIds.add(blockId);
   }
 
   /**
