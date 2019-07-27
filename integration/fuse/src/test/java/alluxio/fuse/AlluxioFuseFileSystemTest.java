@@ -28,9 +28,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -42,7 +40,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
-import alluxio.wire.MasterInfo;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import jnr.ffi.Pointer;
@@ -63,7 +60,6 @@ import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
