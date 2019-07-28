@@ -323,7 +323,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
         LOG.debug("Received response of type: {} request: {}.",
             responseObjectType(responseObjectRef.get()),
             response.getResponseHeader().getRequestId());
-
+        // Complete request future on originating context as per interface contract.
         future.getContext().executor().execute(() -> future.complete(responseObjectRef.get()));
       }
     } catch (SerializationException e) {

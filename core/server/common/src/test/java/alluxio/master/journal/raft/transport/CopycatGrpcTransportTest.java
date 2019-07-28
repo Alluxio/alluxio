@@ -13,7 +13,6 @@ package alluxio.master.journal.raft.transport;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.master.journal.raft.transport.CopycatGrpcTransport;
 import alluxio.security.user.ServerUserState;
 
 import io.atomix.catalyst.buffer.BufferInput;
@@ -43,6 +42,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+/**
+ * Units tests for {@link CopycatGrpcTransport}.
+ */
 public class CopycatGrpcTransportTest {
 
   private Transport mTransport;
