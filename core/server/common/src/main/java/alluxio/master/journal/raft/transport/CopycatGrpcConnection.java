@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
@@ -125,18 +126,31 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public CompletableFuture<Void> send(Object request) {
-    return sendAndReceive(request);
+    return sendAndReceiveInternal(request, true);
   }
 
   @Override
   public <T, U> CompletableFuture<U> sendAndReceive(T request) {
+    return sendAndReceiveInternal(request, false);
+  }
+
+  /**
+   * Send the request to target. If "fireAndForget" then returned future will be complete.
+   *
+   * @param request request to send
+   * @param fireAndForget whether to not wait for response
+   * @param <T> Request type
+   * @param <U> Response type
+   * @return future for result
+   */
+  private <T, U> CompletableFuture<U> sendAndReceiveInternal(T request, boolean fireAndForget) {
     try (LockResource lock = new LockResource(mStateLock.readLock())) {
       Assert.notNull(request, "request");
 
       // Create a contextual future for the request.
       CopycatGrpcConnection.ContextualFuture<U> future =
-          new CopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
-              ThreadContext.currentContextOrThrow());
+              new CopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
+                      ThreadContext.currentContextOrThrow());
 
       // Don't allow request if connection is closed.
       if (mClosed) {
@@ -146,22 +160,29 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
       // Get a new request Id.
       long requestId = mRequestCounter.incrementAndGet();
+      // Register request future.
+      mResponseFutures.put(requestId, future);
 
       // Serialize the request and send it over to target.
       try {
         mTargetObserver.onNext(CopycatMessage.newBuilder()
-            .setRequestHeader(CopycatRequestHeader.newBuilder().setRequestId(requestId))
-            .setMessage(UnsafeByteOperations
-                .unsafeWrap(future.getContext().serializer().writeObject(request).array()))
-            .build());
+                .setRequestHeader(CopycatRequestHeader.newBuilder().setRequestId(requestId))
+                .setMessage(UnsafeByteOperations
+                        .unsafeWrap(future.getContext().serializer().writeObject(request).array()))
+                .build());
       } catch (Exception e) {
         future.completeExceptionally(e);
         return future;
       }
 
-      // Request is sent over. Store it for later when handling responses.
-      mResponseFutures.put(requestId, future);
-      LOG.debug("Submitted request: {} for type: {}", requestId, request.getClass().getName());
+      // Complete the future if response is not requested.
+      if (fireAndForget) {
+        future.complete(null);
+      }
+
+      // Request is sent over.
+      LOG.debug("Submitted request: {} for type: {}. FireAndForget: {}", requestId,
+          request.getClass().getName(), fireAndForget);
 
       return future;
     }
@@ -261,14 +282,19 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
    * @param responseObject response object  to send
    */
   private void sendResponse(long requestId, ThreadContext context, Object responseObject) {
-    LOG.debug("Sending response of type: {} for request: {}", responseObject.getClass().getName(),
+    LOG.debug("Sending response of type: {} for request: {}", responseObjectType(responseObject),
         requestId);
-    mTargetObserver.onNext(CopycatMessage.newBuilder()
-        .setResponseHeader(CopycatResponseHeader.newBuilder().setRequestId(requestId)
-            .setFailed(responseObject instanceof Throwable))
-        .setMessage(UnsafeByteOperations
-            .unsafeWrap(context.serializer().writeObject(responseObject).array()))
-        .build());
+    // Create response message.
+    CopycatMessage.Builder messageBuilder =
+        CopycatMessage.newBuilder().setResponseHeader(CopycatResponseHeader.newBuilder()
+            .setRequestId(requestId).setFailed(responseObject instanceof Throwable));
+    // Serialize and embed response object if provided.
+    if (responseObject != null) {
+      messageBuilder.setMessage(UnsafeByteOperations
+          .unsafeWrap(context.serializer().writeObject(responseObject).array()));
+    }
+    // Send response.
+    mTargetObserver.onNext(messageBuilder.build());
   }
 
   protected void handleResponseMessage(CopycatMessage response) {
@@ -290,15 +316,23 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
             response.getResponseHeader().getRequestId(), error);
         future.getContext().executor().execute(() -> future.completeExceptionally(error));
       } else {
-        Object responseObject = mContext.serializer().readObject(response.getMessage().newInput());
-        LOG.debug("Received response of type: {} request: {}.", responseObject.getClass().getName(),
+        AtomicReference<Object> responseObjectRef = new AtomicReference<>(null);
+        if (response.hasMessage()) {
+          responseObjectRef.set(mContext.serializer().readObject(response.getMessage().newInput()));
+        }
+        LOG.debug("Received response of type: {} request: {}.",
+            responseObjectType(responseObjectRef.get()),
             response.getResponseHeader().getRequestId());
-        future.getContext().executor().execute(() -> future
-            .complete(responseObject));
+
+        future.getContext().executor().execute(() -> future.complete(responseObjectRef.get()));
       }
     } catch (SerializationException e) {
       future.getContext().executor().execute(() -> future.completeExceptionally(e));
     }
+  }
+
+  private String responseObjectType(Object responseObject) {
+    return (responseObject != null) ? responseObject.getClass().getName() : "<NULL>";
   }
 
   @Override
