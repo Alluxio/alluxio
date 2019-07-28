@@ -356,7 +356,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
   @Override
   public CompletableFuture<Void> close() {
     if (!mClosed) {
-      LOG.debug("Closing connection. Owner: {}", mConnectionOwner);
+      LOG.info("Closing connection. Owner: {}", mConnectionOwner);
 
       // Connection can't be used after this.
       // Lock and set the state.
@@ -371,7 +371,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
       try {
         mTargetObserver.onCompleted();
       } catch (Exception e) {
-        LOG.debug("Completing underlying gRPC stream failed.", e);
+        LOG.info("Completing underlying gRPC stream failed.", e);
       }
 
       // Close pending requests.
@@ -406,7 +406,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public void onError(Throwable t) {
-    LOG.debug("Connection failed. Owner: {}.", mConnectionOwner, t);
+    LOG.info("Connection failed. Owner: {}.", mConnectionOwner, t);
 
     // Connection can't be used after this.
     // Lock and set the state.
@@ -433,7 +433,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public void onCompleted() {
-    LOG.debug("Connection completed. Owner: {}", mConnectionOwner);
+    LOG.info("Connection completed. Owner: {}", mConnectionOwner);
     // Server owns client's stream.
     if (mConnectionOwner == ConnectionOwner.SERVER) {
       // Complete the stream on client side.
@@ -479,7 +479,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
       Map.Entry<Long, CopycatGrpcConnection.ContextualFuture> responseEntry =
           responseFutureIterator.next();
 
-      LOG.debug("Closing request:{} with error: {}", responseEntry.getKey(),
+      LOG.info("Closing request:{} with error: {}", responseEntry.getKey(),
           error.getClass().getName());
 
       CopycatGrpcConnection.ContextualFuture<?> responseFuture = responseEntry.getValue();
