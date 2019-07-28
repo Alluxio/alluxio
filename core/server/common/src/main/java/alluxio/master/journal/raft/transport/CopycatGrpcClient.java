@@ -106,15 +106,6 @@ public class CopycatGrpcClient implements Client {
   public synchronized CompletableFuture<Void> close() {
     if (!mClosed) {
       LOG.debug("Closing copycat transport client with {} gRPC channels.", mChannels.size());
-      // Shut down underlying gRPC channels.
-      for (GrpcChannel channel : mChannels.values()) {
-        try {
-          channel.shutdown();
-        } catch (Exception e) {
-          LOG.debug("Failed to close underlying gRPC channel: {}", channel, e);
-        }
-      }
-      mChannels.clear();
 
       // Close created connections.
       List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
@@ -127,6 +118,16 @@ public class CopycatGrpcClient implements Client {
       } catch (Exception e) {
         LOG.warn("Failed to close copycat transport client connections", e);
       }
+
+      // Shut down underlying gRPC channels.
+      for (GrpcChannel channel : mChannels.values()) {
+        try {
+          channel.shutdown();
+        } catch (Exception e) {
+          LOG.debug("Failed to close underlying gRPC channel: {}", channel, e);
+        }
+      }
+      mChannels.clear();
     }
     return CompletableFuture.completedFuture(null);
   }

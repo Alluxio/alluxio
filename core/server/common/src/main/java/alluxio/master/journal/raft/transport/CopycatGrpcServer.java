@@ -103,10 +103,7 @@ public class CopycatGrpcServer implements Server {
 
   @Override
   public synchronized CompletableFuture<Void> close() {
-    if (!mClosed) {
-      LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
-      mGrpcServer.shutdown();
-
+    if (!mClosed && mGrpcServer != null) {
       // Close created connections.
       List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
       for (Connection connection : mConnections) {
@@ -118,6 +115,10 @@ public class CopycatGrpcServer implements Server {
       } catch (Exception e) {
         LOG.warn("Failed to close copycat transport server connections.", e);
       }
+
+      LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
+      mGrpcServer.shutdown();
+      mGrpcServer = null;
     }
     return CompletableFuture.completedFuture(null);
   }
