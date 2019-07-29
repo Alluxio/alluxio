@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Copycat transport {@link Client} implementation that uses Alluxio gRPC.
@@ -115,8 +116,12 @@ public class CopycatGrpcClient implements Client {
       mConnections.clear();
       try {
         CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0])).get();
-      } catch (Exception e) {
-        LOG.warn("Failed to close copycat transport client connections", e);
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(
+            "Interrupted while waiting for closing existing client connections.");
+      } catch (ExecutionException ee) {
+        LOG.warn("Failed to close copycat transport client connections", ee.getCause());
       }
 
       // Shut down underlying gRPC channels.

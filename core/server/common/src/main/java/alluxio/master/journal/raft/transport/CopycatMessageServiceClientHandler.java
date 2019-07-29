@@ -18,6 +18,7 @@ import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.transport.Connection;
 import io.grpc.stub.StreamObserver;
 
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 /**
@@ -63,8 +64,12 @@ public class CopycatMessageServiceClientHandler
       mContext.execute(() -> {
         mListener.accept(clientConnection);
       }).get();
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to register new connection with copycat");
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(
+          "Interrupted while waiting for copycat to register new connection.");
+    } catch (ExecutionException ee) {
+      throw new RuntimeException("Failed to register new connection with copycat", ee.getCause());
     }
 
     return clientConnection;

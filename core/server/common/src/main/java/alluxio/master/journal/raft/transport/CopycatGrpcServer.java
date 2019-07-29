@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 /**
@@ -112,8 +113,12 @@ public class CopycatGrpcServer implements Server {
       mConnections.clear();
       try {
         CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0])).get();
-      } catch (Exception e) {
-        LOG.warn("Failed to close copycat transport server connections.", e);
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(
+            "Interrupted while waiting for closing existing server connections.");
+      } catch (ExecutionException ee) {
+        LOG.warn("Failed to close copycat transport server connections.", ee.getCause());
       }
 
       LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
