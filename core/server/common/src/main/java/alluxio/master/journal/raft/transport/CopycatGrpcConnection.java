@@ -57,6 +57,9 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
   /** Whether this connection is closed already. */
   private boolean mClosed;
 
+  /** Whether underlying gRPC stream is completed. */
+  private boolean mStreamCompleted;
+
   /** Failure on the connection. */
   private Throwable mLastFailure;
 
@@ -103,6 +106,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
     mStateLock = new ReentrantReadWriteLock();
     mClosed = false;
+    mStreamCompleted = false;
     mRequestCounter = new AtomicLong(0);
     // Initialize timeout scheduler.
     mTimeoutScheduler = context.schedule(Duration.ofMillis(mRequestTimeoutMs),
@@ -368,10 +372,12 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
       mTimeoutScheduler.cancel();
 
       // Complete underlying gRPC stream.
-      try {
-        mTargetObserver.onCompleted();
-      } catch (Exception e) {
-        LOG.debug("Completing underlying gRPC stream failed.", e);
+      if (!mStreamCompleted) {
+        try {
+          mTargetObserver.onCompleted();
+        } catch (Exception e) {
+          LOG.info("Completing underlying gRPC stream failed.", e);
+        }
       }
 
       // Close pending requests.
@@ -433,7 +439,8 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public void onCompleted() {
-    LOG.debug("Connection completed. Owner: {}", mConnectionOwner);
+    LOG.info("Connection completed. Owner: {}", mConnectionOwner);
+    mStreamCompleted = true;
     // Server owns client's stream.
     if (mConnectionOwner == ConnectionOwner.SERVER) {
       // Complete the stream on client side.
