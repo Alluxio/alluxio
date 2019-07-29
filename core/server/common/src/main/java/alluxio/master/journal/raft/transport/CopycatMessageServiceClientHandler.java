@@ -59,9 +59,13 @@ public class CopycatMessageServiceClientHandler
     clientConnection.setTargetObserver(responseObserver);
 
     // Update copycat with new connection.
-    mContext.executor().execute(() -> {
-      mListener.accept(clientConnection);
-    });
+    try {
+      mContext.execute(() -> {
+        mListener.accept(clientConnection);
+      }).get();
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to register new connection with copycat");
+    }
 
     return clientConnection;
   }
