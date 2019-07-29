@@ -40,12 +40,12 @@ public class CopycatGrpcClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcClient.class);
 
   /** Alluxio configuration. */
-  private AlluxioConfiguration mConf;
+  private final AlluxioConfiguration mConf;
   /** Authentication user. */
-  private UserState mUserState;
+  private final UserState mUserState;
 
   /** Created channels. */
-  private Map<Address, GrpcChannel> mChannels;
+  private final Map<Address, GrpcChannel> mChannels;
 
   /** Created connections. */
   private final List<Connection> mConnections;

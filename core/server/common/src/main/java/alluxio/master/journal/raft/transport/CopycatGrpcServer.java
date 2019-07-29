@@ -39,9 +39,9 @@ public class CopycatGrpcServer implements Server {
   private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcServer.class);
 
   /** Alluxio configuration. */
-  private AlluxioConfiguration mConf;
+  private final AlluxioConfiguration mConf;
   /** Authentication user. */
-  private UserState mUserState;
+  private final UserState mUserState;
 
   /** Underlying gRPC server. */
   private GrpcServer mGrpcServer;

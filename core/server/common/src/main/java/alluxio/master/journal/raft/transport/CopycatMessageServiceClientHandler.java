@@ -28,11 +28,11 @@ public class CopycatMessageServiceClientHandler
     extends CopycatMessageServerGrpc.CopycatMessageServerImplBase {
 
   /** Copycat provided listener for storing incoming connections. */
-  private Consumer<Connection> mListener;
+  private final Consumer<Connection> mListener;
   /** {@link CopycatGrpcServer}'s copycat thread context. */
-  private ThreadContext mContext;
+  private final ThreadContext mContext;
   /** Request timeout value for new connections. */
-  private long mRequestTimeoutMs;
+  private final long mRequestTimeoutMs;
 
   /**
    * @param listener listener for incoming connections
