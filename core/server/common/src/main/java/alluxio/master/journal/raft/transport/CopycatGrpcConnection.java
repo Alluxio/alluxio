@@ -185,8 +185,8 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
       }
 
       // Request is sent over.
-      LOG.debug("Submitted request: {} for type: {}. FireAndForget: {}", requestId,
-          request.getClass().getName(), fireAndForget);
+      LOG.debug("Submitted '{}' request: {} for type: {}. FireAndForget: {}", mConnectionOwner,
+          requestId, request.getClass().getName(), fireAndForget);
 
       return future;
     }
@@ -225,7 +225,8 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
     try {
       // Deserialize request object.
       Object request = mContext.serializer().readObject(requestMessage.getMessage().newInput());
-      LOG.debug("Handling request: {} of type: {}", requestId, request.getClass().getName());
+      LOG.debug("Handling request: {} of type: {} at '{}'", requestId, request.getClass().getName(),
+          mConnectionOwner);
       // Find handler for the request.
       CopycatGrpcConnection.HandlerHolder handler = mHandlers.get(request.getClass());
       if (handler != null) {
@@ -286,8 +287,8 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
    * @param responseObject response object  to send
    */
   private void sendResponse(long requestId, ThreadContext context, Object responseObject) {
-    LOG.debug("Sending response of type: {} for request: {}", responseObjectType(responseObject),
-        requestId);
+    LOG.debug("Sending response of type: {} for request: {} from: '{}'",
+        responseObjectType(responseObject), requestId, mConnectionOwner);
     // Create response message.
     CopycatMessage.Builder messageBuilder =
         CopycatMessage.newBuilder().setResponseHeader(CopycatResponseHeader.newBuilder()
@@ -360,7 +361,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
   @Override
   public CompletableFuture<Void> close() {
     if (!mClosed) {
-      LOG.debug("Closing connection. Owner: {}", mConnectionOwner);
+      LOG.debug("Closing '{}' connection.", mConnectionOwner);
 
       // Connection can't be used after this.
       // Lock and set the state.
@@ -398,8 +399,8 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public void onNext(CopycatMessage message) {
-    LOG.debug("Received message with requestHeader: {}, responseHeader: {}",
-        message.getRequestHeader(), message.getResponseHeader());
+    LOG.debug("Received message at '{}' with requestHeader: {}, responseHeader: {}",
+        mConnectionOwner, message.getRequestHeader(), message.getResponseHeader());
     // A message can be a request or a response.
     if (message.hasRequestHeader()) {
       handleRequestMessage(message);
@@ -412,7 +413,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public void onError(Throwable t) {
-    LOG.debug("Connection failed. Owner: {}.", mConnectionOwner, t);
+    LOG.debug("'{}' connection failed.", mConnectionOwner, t);
 
     // Connection can't be used after this.
     // Lock and set the state.
@@ -439,7 +440,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public void onCompleted() {
-    LOG.info("Connection completed. Owner: {}", mConnectionOwner);
+    LOG.info("'{}' connection completed.", mConnectionOwner);
     mStreamCompleted = true;
     // Server owns client's stream.
     if (mConnectionOwner == ConnectionOwner.SERVER) {
