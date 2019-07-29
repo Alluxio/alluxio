@@ -284,21 +284,52 @@ kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
 ### Short-circuit Access
 
 Short-circuit access enables clients to perform read and write operations directly against the
-worker bypassing the networking interface. As part of the Alluxio worker pod creation, a directory
-is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
+worker bypassing the networking interface.
+For performance-critical applications it is recommended to enable short-circuit operations
+against Alluxio because it can increase a client's read and write throughput when co-located with
+an Alluxio worker.
 
-To disable this feature, set the property `alluxio.user.short.circuit.enabled=false`. By default,
-short-circuit operations between the Alluxio client and worker are enabled if the client hostname
-matches the worker hostname. This may not be true if the client is running as part of a container
-with virtual networking. In such a scenario, set the following property to use filesystem inspection
-to enable short-circuit and make sure the client container mounts the directory specified as the
-domain socket address. Short-circuit writes are then enabled if the worker UUID is located on the
+#### Properties to Enable Short-Circuit Operations
+
+This feature is enabled by default, however requires extra configuration to work properly in
+Kubernetes environments.
+To disable short-circuit operations, set the property `alluxio.user.short.circuit.enabled=false`.
+
+##### Hostname Introspection
+
+Short-circuit operations between the Alluxio client and enabled by default worker are enabled if the client
+hostname matches the worker hostname.
+This may not be true if the client is running as part of a container with virtual networking.
+In such a scenario, set the following property to use filesystem inspection to enable short-circuit
+and **make sure the client container mounts the directory specified as the domain socket path**.
+Short-circuit writes are then enabled if the worker UUID is located on the
 client filesystem.
+
+> Note: This property should be set on all workers
 
 ```properties
 alluxio.worker.data.server.domain.socket.as.uuid=true
-alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
+
+##### Domain Socket Path
+
+The domain socket is a volume which should be mounted on:
+
+- All Alluxio workers
+- All application containers which intend to read/write through Alluxio
+
+The exact path of the domain socket is defined in the helm chart at
+`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/values.yml`.
+By default this value is `/tmp/alluxio-domain`.
+
+As part of the Alluxio worker pod creation, a directory
+is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
+
+```properties
+alluxio.worker.data.server.domain.socket.address=/tmp/alluxio-domain
+```
+
+#### Verify
 
 To verify short-circuit reads and writes monitor the metrics displayed under:
 1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
