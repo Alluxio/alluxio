@@ -92,7 +92,11 @@ final class AccessTimeUpdater implements JournalSink {
   }
 
   @VisibleForTesting
-  public void start(ScheduledExecutorService executorService) {
+  public synchronized void start(ScheduledExecutorService executorService) {
+    if (mExecutorService != null && mExecutorService != executorService
+        && !mExecutorService.isShutdown()) {
+      stop();
+    }
     mExecutorService = executorService;
   }
 
@@ -103,7 +107,7 @@ final class AccessTimeUpdater implements JournalSink {
     }
   }
 
-  public void stop() {
+  public synchronized void stop() {
     if (mExecutorService != null) {
       ThreadUtils.shutdownAndAwaitTermination(mExecutorService, mShutdownTimeout);
     }

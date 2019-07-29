@@ -1129,6 +1129,7 @@ public class InodeTree implements DelegatingJournaled {
       Long lastModificationTime = status.getLastModifiedTime();
       if (lastModificationTime != null) {
         dir.setLastModificationTimeMs(lastModificationTime, true);
+        // TODO(feng): update last access time from UFS
         dir.setLastAccessTimeMs(lastModificationTime, true);
       }
     });

@@ -148,6 +148,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
               String.valueOf(TTL_CHECKER_INTERVAL_MS))
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, 1000)
+          .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
   @Rule
@@ -1351,6 +1352,68 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(parentInfo.isPersisted());
     Assert.assertEquals(actualTime, alluxioTime);
     Assert.assertTrue(FileUtils.exists(parentUfsPath));
+  }
+
+  /**
+   * Tests journal is updated with access time asynchronously before master is stopped.
+   */
+  @Test
+  public void updateAccessTimeAsyncFlush() throws Exception {
+    String parentName = "d1";
+    AlluxioURI parentPath = new AlluxioURI("/" + parentName);
+    long parentId = mFsMaster.createDirectory(parentPath,
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+            .setMode(new Mode((short) 0700).toProto())));
+    long oldAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
+    Thread.sleep(100);
+    mFsMaster.listStatus(parentPath, ListStatusContext.defaults());
+    long newAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is changed in master
+    Assert.assertNotEquals(newAccessTime, oldAccessTime);
+    MasterRegistry registry = createFileSystemMasterFromJournal();
+    FileSystemMaster fsm = registry.get(FileSystemMaster.class);
+    long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is not flushed to journal
+    Assert.assertEquals(journaledAccessTime, oldAccessTime);
+    // Stop Alluxio.
+    mLocalAlluxioClusterResource.get().stopFS();
+    // Create the master using the existing journal.
+    registry = createFileSystemMasterFromJournal();
+    fsm = registry.get(FileSystemMaster.class);
+    long journaledAccessTimeAfterStop = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is now flushed to journal
+    Assert.assertEquals(journaledAccessTimeAfterStop, newAccessTime);
+  }
+
+  /**
+   * Tests journal is not updated with access time asynchronously after delete.
+   */
+  @Test
+  public void updateAccessTimeAsyncFlushAfterDelete() throws Exception {
+    String parentName = "d1";
+    AlluxioURI parentPath = new AlluxioURI("/" + parentName);
+    long parentId = mFsMaster.createDirectory(parentPath,
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+            .setMode(new Mode((short) 0700).toProto())));
+    long oldAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
+    Thread.sleep(100);
+    mFsMaster.listStatus(parentPath, ListStatusContext.defaults());
+    long newAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is changed in master
+    Assert.assertNotEquals(newAccessTime, oldAccessTime);
+    MasterRegistry registry = createFileSystemMasterFromJournal();
+    FileSystemMaster fsm = registry.get(FileSystemMaster.class);
+    long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is not flushed to journal
+    Assert.assertEquals(journaledAccessTime, oldAccessTime);
+    // delete the directory
+    mFsMaster.delete(parentPath, DeleteContext.defaults());
+    // Stop Alluxio.
+    mLocalAlluxioClusterResource.get().stopFS();
+    // Create the master using the existing journal.
+    registry = createFileSystemMasterFromJournal();
+    fsm = registry.get(FileSystemMaster.class);
+    Assert.assertEquals(fsm.getFileId(parentPath), -1);
   }
 
   /**

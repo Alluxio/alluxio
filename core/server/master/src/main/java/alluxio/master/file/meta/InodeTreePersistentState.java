@@ -387,6 +387,10 @@ public class InodeTreePersistentState implements Journaled {
   private void applyUpdateInode(UpdateInodeEntry entry) {
     Optional<MutableInode<?>> inodeOpt = mInodeStore.getMutable(entry.getId());
     if (!inodeOpt.isPresent()) {
+      if (isJournalUpdateAsync(entry)) {
+        // do not throw if the entry is journaled asynchronously
+        return;
+      }
       throw new IllegalStateException("Inode " + entry.getId() + " not found");
     }
     MutableInode<?> inode = inodeOpt.get();
@@ -432,6 +436,10 @@ public class InodeTreePersistentState implements Journaled {
     }
     mInodeStore.writeInode(inode);
     updateToBePersistedIds(inode);
+  }
+
+  private boolean isJournalUpdateAsync(UpdateInodeEntry entry) {
+    return entry.getAllFields().size() == 2 && entry.hasId() && entry.hasLastAccessTimeMs();
   }
 
   private void applyUpdateInodeDirectory(UpdateInodeDirectoryEntry entry) {
