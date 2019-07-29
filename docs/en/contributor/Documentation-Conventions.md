@@ -65,8 +65,11 @@ There are many technical terms used throughout; it can potentially cause confusi
     * File paths
     * Property keys and values
     * Bash commands or flags
-* Code blocks should be annotated with the associated file or usage type
-    * Ex. ` ```properties ` or ` ```bash `
+* Code blocks should be annotated with the associated file or usage type, e.g.:
+    * ` ```java` for Java source code
+    * ` ```properties` for a Java property file
+    * ` ```console` for an interactive session in shell
+    * ` ```bash` for a shell script
 * Alluxio prefixed terms, such as namespace, cache, or storage, should be preceded by "the"
 to differentiate from the commonly used term, but remain in lowercase if not a proper noun
     * Ex. The data will be copied into **the Alluxio storage**.
