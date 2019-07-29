@@ -377,7 +377,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
         try {
           mTargetObserver.onCompleted();
         } catch (Exception e) {
-          LOG.info("Completing underlying gRPC stream failed.", e);
+          LOG.debug("Completing underlying gRPC stream failed.", e);
         }
       }
 
@@ -440,7 +440,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public void onCompleted() {
-    LOG.info("'{}' connection completed.", mConnectionOwner);
+    LOG.debug("'{}' connection completed.", mConnectionOwner);
     mStreamCompleted = true;
     // Server owns client's stream.
     if (mConnectionOwner == ConnectionOwner.SERVER) {
