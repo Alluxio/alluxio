@@ -33,7 +33,15 @@ public final class LeaderCommandIntegrationTest extends AbstractFileSystemShellT
   public void leaderAddressNotAvailable() throws Exception {
     mLocalAlluxioCluster.stopMasters();
     mFsShell.run("leader");
-    String expected = "The leader is not currently serving requests.\n";
-    Assert.assertEquals(expected, mErrOutput.toString());
+    String expected = "The leader is not currently serving requests.";
+    Assert.assertEquals(expected, lastLine(mErrOutput.toString()));
+  }
+
+  private String lastLine(String output) {
+    String[] lines = output.split("\n");
+    if (lines.length > 0) {
+      return lines[lines.length - 1];
+    }
+    return "";
   }
 }
