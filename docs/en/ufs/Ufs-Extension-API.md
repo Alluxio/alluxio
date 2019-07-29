@@ -134,16 +134,16 @@ In addition, to avoid collisions, specify scope for the dependency `alluxio-core
 
 Build the tarball:
 
-```bash
-mvn package
+```console
+$ mvn package
 ```
 
 ### Install to Alluxio
 
 Install the tarball to Alluxio:
 
-```bash
-./bin/alluxio extensions install <path>/<to>/<probject>/target/alluxio-underfs-<ufsName>-<version>.jar
+```console
+$ ./bin/alluxio extensions install <path>/<to>/<probject>/target/alluxio-underfs-<ufsName>-<version>.jar
 ```
 
 ### Test the Under Storage Extension
@@ -151,8 +151,8 @@ Install the tarball to Alluxio:
 To ensure the new under storage module fulfills the minimum requirements to work with Alluxio, 
 one can run contract tests to test different workflows with various combinations of operations against the under storage.
 
-```bash
-./bin/alluxio runUfsTests --path <scheme>://<path>/ -D<key>=<value>
+```console
+$ ./bin/alluxio runUfsTests --path <scheme>://<path>/ -D<key>=<value>
 ```
 
 In addition, one can also mount the under storage and run other kinds of tests on it. Please refer to 

@@ -101,9 +101,9 @@ from `alluxio.master.embedded.journal.addresses` and the job master rpc port.
 Formatting the journal deletes all of its content and restores it to a fresh state.
 Before starting Alluxio for the first time, the journal must be formatted.
 
-```bash
+```console
 # This permanently deletes all Alluxio metadata, so be careful with this operation
-./bin/alluxio formatMasters
+$ ./bin/alluxio formatMasters
 ```
 
 ## Backing up the journal
@@ -115,8 +115,8 @@ to a previous point in time. Generating a backup causes temporary service
 unavailability while the backup is written.
 
 To generate a backup, use the `fsadmin backup` CLI command.
-```bash
-./bin/alluxio fsadmin backup
+```console
+$ ./bin/alluxio fsadmin backup
 ```
 
 By default, this will write a backup named
@@ -160,10 +160,10 @@ To restore the Alluxio system from a journal backup, stop the system, format the
 journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
-```bash
-./bin/alluxio-stop.sh masters
-./bin/alluxio formatMasters
-./bin/alluxio-start.sh -i <backup_uri> masters
+```console
+$ ./bin/alluxio-stop.sh masters
+$ ./bin/alluxio formatMasters
+$ ./bin/alluxio-start.sh -i <backup_uri> masters
 ```
 
 The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
@@ -214,8 +214,8 @@ masters have similar memory requirements since they both need to hold all Alluxi
 metadata in memory. To start a dedicated standby master for writing periodic checkpoints,
 run
 
-```bash
-./bin/alluxio-start.sh secondary_master
+```console
+$ ./bin/alluxio-start.sh secondary_master
 ```
 
 #### Checkpointing on primary master
@@ -229,8 +229,8 @@ can help avoiding primary master journal logs from growing unbounded when Alluxi
 
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
-```bash
-./bin/alluxio fsadmin checkpoint
+```console
+$ ./bin/alluxio fsadmin checkpoint
 ```
 
 Similar to the `backup` command, `checkpoint` command should 
@@ -250,8 +250,8 @@ load. Then if something happens to the journal, you can recover from one of the 
 Alluxio journal is serialized and not human-readable. The following command 
 is given to read the Alluxio journal and write it to a directory in a human-readable format.
 
-```bash
-./bin/alluxio readJournal 
+```console
+$ ./bin/alluxio readJournal 
 ```
 
 Run `./bin/alluxio readJournal -help` for more detailed usage.

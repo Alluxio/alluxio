@@ -12,8 +12,8 @@ priority: 0
 Alluxio's admin command line interface provides admins with operations to manage the Alluxio filesystem.
 You can invoke the following command line utility to get all the subcommands:
 
-```bash
-./bin/alluxio fsadmin
+```console
+$ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
        [backup]
        [checkpoint]
@@ -63,11 +63,11 @@ interfering with other users of the system.
 The `doctor` command gives recommendations and warnings. It can diagnose inconsistent configurations
 across different Alluxio nodes as well as alert the operator when worker storage volumes are missing.
 
-```bash
+```console
 # shows server-side configuration errors and warnings
-./bin/alluxio fsadmin doctor configuration
+$ ./bin/alluxio fsadmin doctor configuration
 # shows worker storage health errors and warnings
-./bin/alluixo fsadmin doctor storage
+$ ./bin/alluixo fsadmin doctor storage
 ```
 
 ### getBlockInfo
@@ -75,8 +75,8 @@ across different Alluxio nodes as well as alert the operator when worker storage
 The `getBlockInfo` command provides the block information and file path of a block id.
 It is primarily intended to assist power users in debugging their system.
 
-```bash
-./bin/alluxio fsadmin getBlockInfo <block_id>
+```console
+$ ./bin/alluxio fsadmin getBlockInfo <block_id>
 BlockInfo{id=16793993216, length=6, locations=[BlockLocation{workerId=8265394007253444396, address=WorkerNetAddress{host=local-mbp, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity(node=local-mbp, rack=null)}, tierAlias=MEM, mediumType=MEM}]}
 This block belongs to file {id=16810770431, path=/test2}
 ```
@@ -87,8 +87,8 @@ The `report` command provides Alluxio running cluster information.
 
 If no argument is passed in, `report` will report the leading master, worker number, and capacity information.
 
-```bash
-./bin/alluxio fsadmin report
+```console
+$ ./bin/alluxio fsadmin report
 Alluxio cluster summary:
     Master Address: localhost:19998
     Zookeeper Enabled: false
@@ -104,25 +104,25 @@ Alluxio cluster summary:
 * `-lost` Lost workers
 * `-workers <worker_names>` Specified workers, host names or ip addresses separated by `,`.
 
-```bash
+```console
 # Capacity information of all workers
-./bin/alluxio fsadmin report capacity
+$ ./bin/alluxio fsadmin report capacity
 # Capacity information of live workers
-./bin/alluxio fsadmin report capacity -live
+$ ./bin/alluxio fsadmin report capacity -live
 # Capacity information of specified workers
-./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
+$ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
 ```
 
 `report metrics` will report the metrics information of Alluxio cluster.
 
-```bash
-./bin/alluxio fsadmin report metrics
+```console
+$ ./bin/alluxio fsadmin report metrics
 ```
 
 `report ufs` will report all the mounted under storage system information of Alluxio cluster.
 
-```bash
-./bin/alluxio fsadmin report ufs
+```console
+$ ./bin/alluxio fsadmin report ufs
 Alluxio under storage system information:
 hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not shared, properties={})
 ```
@@ -135,8 +135,8 @@ to put an under storage in maintenance mode. Certain operations can be restricte
 For example, an under storage can enter `readOnly` mode to disallow write operations. Alluxio will not attempt any
 write operations on the under storage.
 
-```bash
-./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
+```console
+$ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
 ```
 
 The `fsadmin ufs` subcommand takes a UFS URI as an argument. The argument should be a root
@@ -150,8 +150,8 @@ The `pathConf` command manages [path defaults]({{ '/en/basic/Configuration-Setti
 
 `pathConf list` lists paths configured with path defaults.
 
-```bash
-./bin/alluxio fsadmin pathConf list
+```console
+$ ./bin/alluxio fsadmin pathConf list
 
 /a
 /b
@@ -170,15 +170,15 @@ For example, suppose path defaults `property1=value1` is set for `/a`,
 and `property2=value2` is set for `/a/b`.
 
 Then without `--all`, only properties for `/a/b` are shown:
-```bash
-./bin/alluxio fsadmin pathConf show /a/b
+```console
+$ ./bin/alluxio fsadmin pathConf show /a/b
 
 property2=value2
 ```
 
 With `--all`, since `/a` is a prefix of `/a/b`, properties for both `/a` and `/a/b` are shown:
-```bash
-./bin/alluxio fsadmin pathConf show --all /a/b
+```console
+$ ./bin/alluxio fsadmin pathConf show --all /a/b
 
 property1=value1
 property2=value2
@@ -189,14 +189,14 @@ property2=value2
 `pathConf add` adds or updates path defaults, only properties with scope equal to or broader than the
 client scope can be set as path defaults.
 
-```bash
-./bin/alluxio fsadmin pathConf add --property property1=value1 --property property2=value2 /tmp
+```console
+$ ./bin/alluxio fsadmin pathConf add --property property1=value1 --property property2=value2 /tmp
 ```
 
 The above command adds two properties as path defaults for paths with prefix `/tmp`.
 
-```bash
-./bin/alluxio fsadmin pathConf add --property property1=value2 /tmp
+```console
+$ ./bin/alluxio fsadmin pathConf add --property property1=value2 /tmp
 ```
 The above command updates the value of `property1` from `value1` to `value2` for path defaults of `/tmp`.
 
@@ -204,8 +204,8 @@ The above command updates the value of `property1` from `value1` to `value2` for
 
 `pathConf remove` removes properties from path defaults for a path.
 
-```bash
-./bin/alluxio fsadmin pathConf remove --keys property1,property2 /tmp
+```console
+$ ./bin/alluxio fsadmin pathConf remove --keys property1,property2 /tmp
 ```
 
 The above command removes properties with key `property1` and `property2` from path

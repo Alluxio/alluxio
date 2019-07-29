@@ -11,8 +11,8 @@ priority: 0
 Alluxio's command line interface provides users with basic file system operations. You can invoke
 the following command line utility to get all the subcommands:
 
-```bash
-./bin/alluxio
+```console
+$ ./bin/alluxio
 Usage: alluxio [COMMAND]
        [format [-s]]
        [getConf [key]]
@@ -44,9 +44,9 @@ Data in under storage will not be changed.
 Warning: `format` is required when you run Alluxio for the first time.
 `format` should only be called while the cluster is not running.
 
-```bash
-./bin/alluxio format
-./bin/alluxio format -s
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio format -s
 ```
 
 ### formatMaster
@@ -64,8 +64,8 @@ All this information is deleted if `formatMaster` is run.,
 Warning: `formatMaster` should only be called while the cluster is not running.
 
 
-```bash
-./bin/alluxio formatMaster
+```console
+$ ./bin/alluxio formatMaster
 ```
 
 ### formatWorker
@@ -79,8 +79,8 @@ Data in under storage will not be changed.
 
 Warning: `formatWorker` should only be called while the cluster is not running.
 
-```bash
-./bin/alluxio formatWorker
+```console
+$ ./bin/alluxio formatWorker
 ```
 
 ### fsadmin
@@ -100,8 +100,8 @@ in accordance to the state of the machine:
 * type: Mac or Linux
 * total memory size
 
-```bash
-./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
+```console
+$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
 
 ### getConf
@@ -121,22 +121,22 @@ and with `--unit S`, a configuration value of `5000ms` returns as `5`.
 Possible unit options include B, KB, MB, GB, TP, PB as units of byte size and
 MS, S, M, H, D as units of time.
 
-```bash
+```console
 # Displays all the current node configuration
-./bin/alluxio getConf
+$ ./bin/alluxio getConf
 
 # Displays the value of a property key
-./bin/alluxio getConf alluxio.master.hostname
+$ ./bin/alluxio getConf alluxio.master.hostname
 
 # Displays the configuration of the current running Alluxio leading master
-./bin/alluxio getConf --master
+$ ./bin/alluxio getConf --master
 
 # Also display the source of the configuration
-./bin/alluxio getConf --source
+$ ./bin/alluxio getConf --source
 
 # Displays the values in a given unit
-./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
-./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
+$ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
+$ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
 ```
 
 ### logLevel
@@ -157,21 +157,23 @@ otherwise it returns the current logger level.
 For example, the following command sets the logger level of the class `alluxio.heartbeat.HeartbeatContext` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
 
-```bash
-alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=master,192.168.100.100:30000 --level=DEBUG
+```console
+$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
+  --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
 And the following command returns the log level of the class `alluxio.heartbeat.HeartbeatContext` among all the workers:
-```bash
-alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
+```console
+$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
+  --target=workers
 ```
 
 ### runTests
 
 The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 ### runUfsTests
@@ -189,13 +191,14 @@ The usage of this command includes:
 * Validate the contract between Alluxio and the given UFS. This is primarily intended for Alluxio developers. 
   Developers are required to add test coverage for changes to an Alluxio UFS module and run those tests to validate.
 
-```bash
+```console
 # Run tests against local UFS
-./bin/alluxio runUfsTests --path /local/underfs/path
+$ ./bin/alluxio runUfsTests --path /local/underfs/path
 
 # Run tests against S3
-./bin/alluxio runUfsTests --path s3://<s3_bucket_name> -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key>
--Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
+$ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
+  -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key> \
+  -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
 
 ### upgradeJournal
@@ -206,32 +209,32 @@ to an Alluxio journal version 1 (Alluxio version >= 1.5.0).
 `-journalDirectoryV0 <arg>` will provide the v0 journal persisted location.\
 It is assumed to be the same as the v1 journal directory if not set.
 
-```bash
-./bin/alluxio upgradeJournal
+```console
+$ ./bin/alluxio upgradeJournal
 ```
 
 ### copyDir
 
 The `copyDir` command copies the directory at `PATH` to all worker nodes listed in `conf/workers`.
 
-```bash
-./bin/alluxio copyDir conf/alluxio-site.properties
+```console
+$ ./bin/alluxio copyDir conf/alluxio-site.properties
 ```
 
 ### version
 
 The `version` command prints Alluxio version.
 
-```bash
-./bin/alluxio version
+```console
+$ ./bin/alluxio version
 ```
 
 ### validateConf
 
 The `validateConf` command validates the local Alluxio configuration files, checking for common misconfigurations.
 
-```bash
-./bin/alluxio validateConf
+```console
+$ ./bin/alluxio validateConf
 ```
 
 ### validateEnv
@@ -250,25 +253,25 @@ where `COMMAND` can be one of the following values:
 * `workers`: run worker validation tasks on all worker nodes
 * `list`: list all validation tasks
 
-```bash
+```console
 # Runs all validation tasks on the local machine
-./bin/alluxio validateEnv local
+$ ./bin/alluxio validateEnv local
 
 # Runs corresponding validation tasks on all master and worker nodes
-./bin/alluxio validateEnv all
+$ ./bin/alluxio validateEnv all
 
 # Lists all validation tasks
-./bin/alluxio validateEnv list
+$ ./bin/alluxio validateEnv list
 ```
 
 For all commands except `list`, `NAME` specifies the leading prefix of any number of tasks.
 If `NAME` is not given, all tasks for the given `COMMAND` will run.
 
-```bash
+```console
 # Only run validation tasks that check your local system resource limits
-./bin/alluxio validateEnv ulimit
+$ ./bin/alluxio validateEnv ulimit
 # Only run the tasks start with "ma", like "master.rpc.port.available" and "master.web.port.available"
-./bin/alluxio validateEnv local ma
+$ ./bin/alluxio validateEnv local ma
 ```
 
 `OPTIONS` can be a list of command line options. Each option has the format
@@ -295,8 +298,8 @@ or a path without its header, such as `/<path>`, to use the default hostname and
 >Most of the commands which require path components allow wildcard arguments for ease of use. For
 >example:
 >
->```bash
->./bin/alluxio fs rm '/data/2014*'
+>```console
+>$ ./bin/alluxio fs rm '/data/2014*'
 >```
 >
 >The example command deletes anything in the `data` directory with a prefix of `2014`.
@@ -305,15 +308,15 @@ or a path without its header, such as `/<path>`, to use the default hostname and
 >number 21 could be different and comes from the number of matching files in your local
 >filesystem):
 >
->```bash
+>```
 >rm takes 1 arguments,  not 21
 >```
 >
 >As a workaround, you can disable globbing (depending on the shell type; for example, `set -f`) or by
 >escaping wildcards, for example:
 >
->```bash
->./bin/alluxio fs cat /\\*
+>```console
+>$ ./bin/alluxio fs cat /\\*
 >```
 >
 >Note the double escape; this is because the shell script will eventually call a java program
@@ -326,8 +329,8 @@ If you wish to copy the file to your local file system, `copyToLocal` should be 
 
 For example, when testing a new computation job, `cat` can be used as a quick way to check the output:
 
-```bash
-./bin/alluxio fs cat /output/part-00000
+```console
+$ ./bin/alluxio fs cat /output/part-00000
 ```
 
 ### checkConsistency
@@ -351,12 +354,12 @@ to files or directories in the subtree cannot be completed until this command co
 
 For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
 
-```bash
+```console
 # List each inconsistent file or directory
-./bin/alluxio fs checkConsistency /
-#
+$ ./bin/alluxio fs checkConsistency /
+
 # Repair the inconsistent files or directories
-./bin/alluxio fs checkConsistency -r /
+$ ./bin/alluxio fs checkConsistency -r /
 ```
 
 ### checksum
@@ -365,8 +368,8 @@ The `checksum` command outputs the md5 value of a file in Alluxio.
 
 For example, `checksum` can be used to verify the contents of a file stored in Alluxio.
 
-```bash
-./bin/alluxio fs checksum /LICENSE
+```console
+$ ./bin/alluxio fs checksum /LICENSE
 md5sum: bf0513403ff54711966f39b058e059a3
 md5 LICENSE
 MD5 (LICENSE) = bf0513403ff54711966f39b058e059a3
@@ -383,8 +386,8 @@ Adding `-R` option also changes the group of child file and child directory recu
 
 For example, `chgrp` can be used as a quick way to change the group of file:
 
-```bash
-./bin/alluxio fs chgrp alluxio-group-new /input/file1
+```console
+$ ./bin/alluxio fs chgrp alluxio-group-new /input/file1
 ```
 
 ### chmod
@@ -409,8 +412,8 @@ Adding `-R` option also changes the permission of child file and child directory
 
 For example, `chmod` can be used as a quick way to change the permission of file:
 
-```bash
-./bin/alluxio fs chmod 755 /input/file1
+```console
+$ ./bin/alluxio fs chmod 755 /input/file1
 ```
 
 ### chown
@@ -420,9 +423,9 @@ For security reasons, the ownership of a file can only be altered by a super use
 
 For example, `chown` can be used as a quick way to change the owner of file:
 
-```bash
-./bin/alluxio fs chown alluxio-user /input/file1
-./bin/alluxio fs chown alluxio-user:alluxio-group /input/file2
+```console
+$ ./bin/alluxio fs chown alluxio-user /input/file1
+$ ./bin/alluxio fs chown alluxio-user:alluxio-group /input/file2
 ```
 
 Adding `-R` option also changes the owner of child file and child directory recursively.
@@ -436,8 +439,8 @@ If a directory is specified, the directory and all its contents will be copied r
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for processing:
 
-```bash
-./bin/alluxio fs copyFromLocal /local/data /input
+```console
+$ ./bin/alluxio fs copyFromLocal /local/data /input
 ```
 
 ### copyToLocal
@@ -448,9 +451,9 @@ If a directory is specified, the directory and all its contents will be copied r
 For example, `copyToLocal` can be used as a quick way to download output data
 for additional investigation or debugging.
 
-```bash
-./bin/alluxio fs copyToLocal /output/part-00000 part-00000
-wc -l part-00000
+```console
+$ ./bin/alluxio fs copyToLocal /output/part-00000 part-00000
+$ wc -l part-00000
 ```
 
 ### count
@@ -463,8 +466,8 @@ size of the files.
 For example, if data files are stored by their date, `count` can be used to determine the number of
 data files and their total size for any date, month, or year.
 
-```bash
-./bin/alluxio fs count /data/2014
+```console
+$ ./bin/alluxio fs count /data/2014
 ```
 
 ### cp
@@ -480,8 +483,8 @@ If the `-R` option is used and the source designates a directory,
 
 For example, `cp` can be used to copy files between under storage systems.
 
-```bash
-./bin/alluxio fs cp /hdfs/file1 /s3/
+```console
+$ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ```
 
 ### du
@@ -495,9 +498,9 @@ By default, `du` prints the size in bytes. If the `-h` option is used, it will p
 
 The `--memory` option will print the in memory size as well.
 
-```bash
+```console
 # Shows the size information of all the files in root directory
-./bin/alluxio fs du /
+$ ./bin/alluxio fs du /
 File Size     In Alluxio       Path
 1337          0 (0%)           /alluxio-site.properties
 4352          4352 (100%)      /testFolder/NOTICE
@@ -505,7 +508,7 @@ File Size     In Alluxio       Path
 2970          2970 (100%)      /testDir/README.md
 
 # Shows the in memory size information
-./bin/alluxio fs du --memory /
+$ ./bin/alluxio fs du --memory /
 File Size     In Alluxio       In Memory        Path
 1337          0 (0%)           0 (0%)           /alluxio-site.properties
 4352          4352 (100%)      4352 (100%)      /testFolder/NOTICE
@@ -537,8 +540,8 @@ Generally viewing the file info in the UI is much easier to understand.
 For example, `fileInfo` can be used to debug the block locations of a file.
 This is useful when trying to achieve locality for compute workloads.
 
-```bash
-./bin/alluxio fs fileInfo /data/2015/logs-1.txt
+```console
+$ ./bin/alluxio fs fileInfo /data/2015/logs-1.txt
 ```
 
 ### free
@@ -556,8 +559,8 @@ Metadata is not affected by this operation; a freed file will still show up if a
 
 For example, `free` can be used to manually manage Alluxio's data caching.
 
-```bash
-./bin/alluxio fs free /unused/data
+```console
+$ ./bin/alluxio fs free /unused/data
 ```
 
 ### getCapacityBytes
@@ -566,8 +569,8 @@ The `getCapacityBytes` command returns the maximum number of bytes Alluxio is co
 
 For example, `getCapacityBytes` can be used to verify if your cluster is set up as expected.
 
-```bash
-./bin/alluxio fs getCapacityBytes
+```console
+$ ./bin/alluxio fs getCapacityBytes
 ```
 
 ### getfacl
@@ -576,8 +579,8 @@ The `getfacl` command returns the ACL entries for a specified file or directory.
 
 For example, `getfacl` can be used to verify that an ACL is changed successfully after a call to `setfacl`.
 
-```bash
-./bin/alluxio fs getfacl /testdir/testfile
+```console
+$ ./bin/alluxio fs getfacl /testdir/testfile
 ```
 
 ### getUsedBytes
@@ -586,8 +589,8 @@ The `getUsedBytes` command returns the number of used bytes in Alluxio.
 
 For example, `getUsedBytes` can be used to monitor the health of the cluster.
 
-```bash
-./bin/alluxio fs getUsedBytes
+```console
+$ ./bin/alluxio fs getUsedBytes
 ```
 
 ### head
@@ -596,8 +599,8 @@ The `head` command prints the first 1 KB of data in a file to the console.
 
 Using the `-c [bytes]` option will print the first `n` bytes of data to the console.
 
-```bash
-./bin/alluxio fs head -c 2048 /output/part-00000
+```console
+$ ./bin/alluxio fs head -c 2048 /output/part-00000
 ```
 
 ### help
@@ -607,20 +610,20 @@ If the given command does not exist, it prints help messages for all supported s
 
 Examples:
 
-```bash
+```console
 # Print all subcommands
-./bin/alluxio fs help
-#
+$ ./bin/alluxio fs help
+
 # Print help message for ls
-./bin/alluxio fs help ls
+$ ./bin/alluxio fs help ls
 ```
 
 ### leader
 
 The `leader` command prints the current Alluxio leading master hostname.
 
-```bash
-./bin/alluxio fs leader
+```console
+$ ./bin/alluxio fs leader
 ```
 
 ### load
@@ -636,8 +639,8 @@ If `load` is run on a directory, files in the directory will be recursively load
 
 For example, `load` can be used to prefetch data for analytics jobs.
 
-```bash
-./bin/alluxio fs load /data/today
+```console
+$ ./bin/alluxio fs load /data/today
 ```
 
 ### loadMetadata
@@ -652,8 +655,8 @@ Only the metadata, such as the file name and size, are loaded this way and no da
 For example, `loadMetadata` can be used when other systems output to the under storage directly
 and the application running on Alluxio needs to use the output of those systems.
 
-```bash
-./bin/alluxio fs loadMetadata /hdfs/data/2015/logs-1.txt
+```console
+$ ./bin/alluxio fs loadMetadata /hdfs/data/2015/logs-1.txt
 ```
 
 ### location
@@ -663,8 +666,8 @@ belonging to the given file.
 
 For example, `location` can be used to debug data locality when running jobs using a compute framework.
 
-```bash
-./bin/alluxio fs location /data/2015/logs-1.txt
+```console
+$ ./bin/alluxio fs location /data/2015/logs-1.txt
 ```
 
 ### ls
@@ -692,18 +695,18 @@ By default, it loads metadata only at the first time at which a directory is lis
 
 For example, `ls` can be used to browse the file system.
 
-```bash
-./bin/alluxio fs mount /s3/data s3://data-bucket/
+```console
+$ ./bin/alluxio fs mount /s3/data s3://data-bucket/
 # Loads metadata for all immediate children of /s3/data and lists them.
-./bin/alluxio fs ls /s3/data/
-#
+$ ./bin/alluxio fs ls /s3/data/
+
 # Forces loading metadata.
-aws s3 cp /tmp/somedata s3://data-bucket/somedata
-./bin/alluxio fs ls -f /s3/data 
-#
+$ aws s3 cp /tmp/somedata s3://data-bucket/somedata
+$ ./bin/alluxio fs ls -f /s3/data 
+
 # Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
-aws s3 rm s3://data-bucket/somedata
-./bin/alluxio fs ls -f /s3/data
+$ aws s3 rm s3://data-bucket/somedata
+$ ./bin/alluxio fs ls -f /s3/data
 ```
 
 ### masterInfo
@@ -716,8 +719,8 @@ and the configured Zookeeper address is printed.
 
 For example, `masterInfo` can be used to print information regarding master fault tolerance.
 
-```bash
-./bin/alluxio fs masterInfo
+```console
+$ ./bin/alluxio fs masterInfo
 ```
 
 ### mkdir
@@ -730,10 +733,10 @@ Using `mkdir` on an invalid or existing path will fail.
 
 For example, `mkdir` can be used by an admin to set up the basic folder structures.
 
-```bash
-./bin/alluxio fs mkdir /users
-./bin/alluxio fs mkdir /users/Alice
-./bin/alluxio fs mkdir /users/Bob
+```console
+$ ./bin/alluxio fs mkdir /users
+$ ./bin/alluxio fs mkdir /users/Alice
+$ ./bin/alluxio fs mkdir /users/Bob
 ```
 
 ### mount
@@ -755,10 +758,13 @@ If multiple Alluxio satellite clusters mount a remote storage cluster which serv
 
 For example, `mount` can be used to make data in another storage system available in Alluxio.
 
-```bash
-./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
-./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
-./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey> /mnt/s3 s3://data-bucket/
+```console
+$ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
+$ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
+$ ./bin/alluxio fs mount \
+  --option aws.accessKeyId=<accessKeyId> \
+  --option aws.secretKey=<secretKey> \
+  /mnt/s3 s3://data-bucket/
 ```
 
 ### mv
@@ -771,8 +777,8 @@ If it is a directory, the file or directory will be placed as a child of the dir
 
 For example, `mv` can be used to re-organize your files.
 
-```bash
-./bin/alluxio fs mv /data/2014 /data/archives/2014
+```console
+$ ./bin/alluxio fs mv /data/2014 /data/archives/2014
 ```
 
 ### persist
@@ -788,8 +794,8 @@ parallelism factor of 10 will persist 10 files at a time until all 10,000 files 
 
 For example, `persist` can be used after filtering a series of temporary files for the ones containing useful data.
 
-```bash
-./bin/alluxio fs persist /tmp/experimental-logs-2.txt
+```console
+$ ./bin/alluxio fs persist /tmp/experimental-logs-2.txt
 ```
 
 ### pin
@@ -803,8 +809,8 @@ preventing other files from being cached.
 For example, `pin` can be used to manually ensure performance
 if the administrator understands the workloads well.
 
-```bash
-./bin/alluxio fs pin /data/today
+```console
+$ ./bin/alluxio fs pin /data/today
 ```
 
 ### rm
@@ -819,11 +825,11 @@ before attempting to delete persisted directories.
 * Adding `--alluxioOnly` option removes data and metadata from Alluxio space only.
 The under storage system will not be affected.
 
-```bash
+```console
 # Remove a file from Alluxio space and the under storage system
-./bin/alluxio fs rm /tmp/unused-file
+$ ./bin/alluxio fs rm /tmp/unused-file
 # Remove a file from Alluxio space only
-./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
+$ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
 ```
 
 ### setfacl
@@ -838,8 +844,8 @@ The `-k` option removes all the default ACL entries.
 
 For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
 
-```bash
-./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
+```console
+$ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
 ```
 
 ### setReplication
@@ -855,7 +861,7 @@ directory and `-R` is specified, it will recursively set all files in this direc
 For example, `setReplication` can be used to ensure the replication level of a file has at least
 one copy and at most three copies in Alluxio:
 
-```bash
+```console
 $ ./bin/alluxio fs setReplication --max 3 --min 1 /foo
 ```
 
@@ -872,11 +878,11 @@ whereas the action `free` frees the file from Alluxio even if pinned.
 For example, `setTtl` with action `delete` cleans up files the administrator knows are unnecessary after a period of time,
 or with action `free` just remove the contents from Alluxio to make room for more space in Alluxio.
 
-```bash
+```console
 # After 1 day, delete the file in Alluxio and UFS
-./bin/alluxio fs setTtl /data/good-for-one-day 86400000
+$ ./bin/alluxio fs setTtl /data/good-for-one-day 86400000
 # After 1 day, free the file from Alluxio
-./bin/alluxio fs setTtl --action free /data/good-for-one-day 86400000
+$ ./bin/alluxio fs setTtl --action free /data/good-for-one-day 86400000
 ```
 
 ### stat
@@ -897,15 +903,15 @@ One can specify `-f <arg>` to display info in given format:
 For example, `stat` can be used to debug the block locations of a file.
 This is useful when trying to achieve locality for compute workloads.
 
-```bash
+```console
 # Displays file's stat
-./bin/alluxio fs stat /data/2015/logs-1.txt
-#
+$ ./bin/alluxio fs stat /data/2015/logs-1.txt
+
 # Displays directory's stat
-./bin/alluxio fs stat /data/2015
-#
+$ ./bin/alluxio fs stat /data/2015
+
 # Displays the size of file
-./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+$ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
 ```
 
 ### tail
@@ -916,8 +922,8 @@ Using the `-c [bytes]` option will print the last `n` bytes of data to the conso
 For example, `tail` can be used to verify the output of a job is in the expected format
 or contains expected values.
 
-```bash
-./bin/alluxio fs tail /output/part-00000
+```console
+$ ./bin/alluxio fs tail /output/part-00000
 ```
 
 ### test
@@ -935,9 +941,9 @@ Options:
 
 Examples:
 
-```bash
-./bin/alluxio fs test -d /someDir
-echo $?
+```console
+$ ./bin/alluxio fs test -d /someDir
+$ echo $?
 ```
 
 ### touch
@@ -947,8 +953,8 @@ Files created with `touch` cannot be overwritten and are mostly useful as flags.
 
 For example, `touch` can be used to create a file signifying the completion of analysis on a directory.
 
-```bash
-./bin/alluxio fs touch /data/yesterday/_DONE_
+```console
+$ ./bin/alluxio fs touch /data/yesterday/_DONE_
 ```
 
 ### unmount
@@ -961,8 +967,8 @@ See [Unified Namespace]({{ '/en/advanced/Namespace-Management.html' | relativize
 For example, `unmount` can be used to remove an under storage system when the users no longer need
 data from that system.
 
-```bash
-./bin/alluxio fs unmount /s3/data
+```console
+$ ./bin/alluxio fs unmount /s3/data
 ```
 
 ### unpin
@@ -974,8 +980,8 @@ from the various Alluxio workers containing the block.
 
 For example, `unpin` can be used when the administrator knows there is a change in the data access pattern.
 
-```bash
-./bin/alluxio fs unpin /data/yesterday/join-table
+```console
+$ ./bin/alluxio fs unpin /data/yesterday/join-table
 ```
 
 ### unsetTtl
@@ -986,6 +992,6 @@ The TTL of a file can later be reset with `setTtl`.
 
 For example, `unsetTtl` can be used if a regularly managed file requires manual management.
 
-```bash
-./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
+```console
+$ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```

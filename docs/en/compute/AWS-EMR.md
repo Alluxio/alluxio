@@ -150,11 +150,11 @@ FIELDS TERMINATED BY '|'
 LOCATION 'alluxio:///testTable';
 ```
 7. Create the Presto /tmp directory
-```bash
+```console
 #Create Presto temp directory
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
-presto-cli --catalog hive
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
+$ presto-cli --catalog hive
 ```
 8. Insert values into the table
 ```sql

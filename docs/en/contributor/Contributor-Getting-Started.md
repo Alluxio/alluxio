@@ -54,9 +54,9 @@ Alluxio repository.
 After you fork the Alluxio repository, you should create a local clone of your fork. This will
 copy the files of your fork onto your computer. You can clone your fork with this command:
 
-```bash
-git clone https://github.com/YOUR-USERNAME/alluxio.git
-cd alluxio
+```console
+$ git clone https://github.com/YOUR-USERNAME/alluxio.git
+$ cd alluxio
 ```
 
 This will create the clone under the `alluxio/` directory.
@@ -65,15 +65,15 @@ In order to pull changes from the open source Alluxio code base into your clone,
 new remote repository that points to the Alluxio repository.
 In order to add a new remote repository, in the directory of your newly created clone, run:
 
-```bash
-git remote add upstream https://github.com/Alluxio/alluxio.git
+```console
+$ git remote add upstream https://github.com/Alluxio/alluxio.git
 ```
 
 This will create a remote repository called `upstream` pointing to the Alluxio repository.
 You can view the urls for remote repositories with the following command.
 
-```bash
-git remote -v
+```console
+$ git remote -v
 ```
 
 This will show you the urls for the remote repositories,
@@ -85,8 +85,8 @@ Now that you have a local clone of Alluxio, you can build Alluxio!
 
 In your local clone directory, you can build Alluxio with:
 
-```bash
-mvn clean install
+```console
+$ mvn clean install
 ```
 
 This will build all of Alluxio, as well as run all the tests. Depending on your hardware this
@@ -95,8 +95,9 @@ may take anywhere form several minutes to half an hour to finish.
 If at any point in time you would like to only recompile and not run all the checks and testing, you
 can run:
 
-```bash
-mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
+```console
+$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
+  -Dcheckstyle.skip -Dlicense.skip
 ```
 
 This should take less than 1 minute.
@@ -149,15 +150,15 @@ issue, in its own branch. Therefore, the following will show you how to create a
 First, make sure you are on the `master` branch in your clone. You switch to your `master` branch
 with:
 
-```bash
-git checkout master
+```console
+$ git checkout master
 ```
 
 Then, you should make sure your `master` branch is in sync with the latest changes from the evolving
 Alluxio code base. You pull in all the new changes in the project with the following command:
 
-```bash
-git pull upstream master
+```console
+$ git pull upstream master
 ```
 
 This will pull in all the changes from the `master` branch of the `upstream` repository into your local `master`
@@ -166,8 +167,8 @@ branch. In this example, the `upstream` repository is the Alluxio open source pr
 Now, you can create a new branch in order to work on the **New Contributor** task you took earlier.
 To create a branch name **awesome_feature**, run:
 
-```bash
-git checkout -b awesome_feature
+```console
+$ git checkout -b awesome_feature
 ```
 
 This will create the branch, and switch to it. Now, you can modify the necessary code to address the
@@ -178,15 +179,15 @@ issue.
 As you are addressing the ticket, you can create local commits of your code. This can be useful for
 when you have finished a well-defined portion of the change. You can stage a file for commit with:
 
-```bash
-git add <file to stage>
+```console
+$ git add <file to stage>
 ```
 
 Once all the appropriate files are staged, you can create a local commit of those modifications
 with:
 
-```bash
-git commit -m "<concise but descriptive commit message>"
+```console
+$ git commit -m "<concise but descriptive commit message>"
 ```
 
 Please read the [Alluxio coding conventions]({{ '/en/contributor/Code-Conventions.html' | relativize_url }})
@@ -205,8 +206,8 @@ but the following is a common way to do it.
 After you have created all necessary local commits, you can push all your commits to your repository
 in GitHub. For your **awesome_feature** branch, you can push to GitHub with:
 
-```bash
-git push origin awesome_feature
+```console
+$ git push origin awesome_feature
 ```
 
 This will push all of your new commits in your local branch **awesome_feature**, to the
@@ -277,10 +278,10 @@ In the process, some may ask to modify parts of your pull request. In order to d
 have to make the change in the branch you were using for that pull request, create a new local
 commit, push to your remote branch, and the pull request will be automatically updated. In detail:
 
-```bash
-git add <modified files>
-git commit -m "<another commit message>"
-git push origin awesome_feature
+```console
+$ git add <modified files>
+$ git commit -m "<another commit message>"
+$ git push origin awesome_feature
 ```
 
 After all the comments and questions have been addressed in the pull request, reviewers will give

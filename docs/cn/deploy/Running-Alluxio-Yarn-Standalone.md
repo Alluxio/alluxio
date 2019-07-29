@@ -35,7 +35,7 @@ yarn.nodemanager.resource.cpu-vcores = Total cores - Other services vcores - All
 
 更新YARN配置后，重启YARN以保证更改生效：
 
-```bash
-${HADOOP_HOME}/sbin/stop-yarn.sh
-${HADOOP_HOME}/sbin/start-yarn.sh
+```console
+$ ${HADOOP_HOME}/sbin/stop-yarn.sh
+$ ${HADOOP_HOME}/sbin/start-yarn.sh
 ```

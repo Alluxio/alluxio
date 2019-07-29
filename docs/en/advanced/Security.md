@@ -97,8 +97,8 @@ For directories:
 
 The output of the `ls` shell command when authorization is enabled is:
 
-```bash
-./bin/alluxio fs ls /
+```console
+$ ./bin/alluxio fs ls /
 drwxr-xr-x jack           staff                       24       PERSISTED 06-14-2019 07:02:45:248  DIR /default_tests_files
 -rw-r--r-- jack           staff                       80   NOT_PERSISTED 06-14-2019 07:02:26:487 100% /default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE
 ```
