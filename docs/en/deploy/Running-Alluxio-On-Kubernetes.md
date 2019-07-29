@@ -276,27 +276,13 @@ The domain socket is a volume which should be mounted on:
 - All Alluxio workers
 - All application containers which intend to read/write through Alluxio
 
-<<<<<<< HEAD
-The exact path of the domain socket is defined in the Kubernetes templates at
-`${ALLUXIO_HOME}/integration/kubernetes/alluxio-worker.yaml.template` and
-`${ALLUXIO_HOME}/integration/kubernetes/alluxio-fuse.yaml.template`.
-By default this value is `/opt/domain`.
+The exact path of the domain socket on the host and container is defined in the kubernetes template
+at `${ALLUXIO_HOME}/integration/kubernetes/allluxio-worker.yaml.template`.
 
 As part of the Alluxio worker pod creation, a directory
 is created on the host at `/tmp/domain` for the shared domain socket.
-Alluxio containers **and compute application** containers should mount this volume to the
-**same path**.
-=======
-The exact path of the domain socket on the host is defined in the helm chart at
-`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/values.yml`.
-On the worker the path where the domain socket is mounted can be found within
-`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/alluxio-worker.yml`
-
-As part of the Alluxio worker pod creation, a directory
-is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
-The workers then mount `/tmp/alluxio-domain` to `/opt/domain` within the
+The workers then mount `/tmp/domain` to `/opt/domain` within the
 container.
->>>>>>> a68f311c18... Fix typos
 
 ```properties
 alluxio.worker.data.server.domain.socket.address=/opt/domain
