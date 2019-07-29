@@ -11,15 +11,11 @@
 
 package alluxio.master.file;
 
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.sink.JournalSink;
@@ -34,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +54,7 @@ final class AccessTimeUpdater implements JournalSink {
   private final InodeTree mInodeTree;
 
   /** Keep track of all inodes that need access time update. */
-  private ConcurrentHashSet<Long> mAccessTimeUpdates;
+  private ConcurrentHashMap<Long, Long> mAccessTimeUpdates;
   private ScheduledExecutorService mExecutorService = null;
   private AtomicBoolean mUpdateScheduled = new AtomicBoolean();
 
@@ -79,7 +77,7 @@ final class AccessTimeUpdater implements JournalSink {
       JournalSystem journalSystem, long flushInterval, long updatePrecision, long shutdownTimeout) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
-    mAccessTimeUpdates = new ConcurrentHashSet<>();
+    mAccessTimeUpdates = new ConcurrentHashMap<>();
     mFlushInterval = flushInterval;
     mUpdatePrecision = updatePrecision;
     mShutdownTimeout = shutdownTimeout;
@@ -134,7 +132,7 @@ final class AccessTimeUpdater implements JournalSink {
   }
 
   private void scheduleJournalUpdate(UpdateInodeEntry entry) {
-    mAccessTimeUpdates.add(entry.getId());
+    mAccessTimeUpdates.put(entry.getId(), entry.getLastAccessTimeMs());
     if (mUpdateScheduled.compareAndSet(false, true)) {
       mExecutorService.schedule(this::flushScheduledUpdates, mFlushInterval, TimeUnit.MILLISECONDS);
     }
@@ -151,30 +149,18 @@ final class AccessTimeUpdater implements JournalSink {
   }
 
   private void flushUpdates() {
-    long filesRemoved = 0;
     try (JournalContext context = mFileSystemMaster.createJournalContext()) {
-      for (Iterator<Long> iterator = mAccessTimeUpdates.iterator();
+      for (Iterator<Map.Entry<Long, Long>> iterator = mAccessTimeUpdates.entrySet().iterator();
            iterator.hasNext();) {
-        long inodeId = iterator.next();
+        Map.Entry<Long, Long> inodeEntry = iterator.next();
         iterator.remove();
-        try (LockedInodePath path = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ);
-             LockResource lr = mInodeTree.getInodeLockManager().lockUpdate(inodeId)) {
-          journalAccessTime(context, UpdateInodeEntry.newBuilder()
-              .setId(inodeId)
-              .setLastAccessTimeMs(path.getInode().getLastAccessTimeMs())
-              .build());
-        } catch (FileDoesNotExistException e) {
-          // Some inodes cannot be updated because they are removed from the file system.
-          filesRemoved++;
-        }
+        journalAccessTime(context, UpdateInodeEntry.newBuilder()
+            .setId(inodeEntry.getKey())
+            .setLastAccessTimeMs(inodeEntry.getValue())
+            .build());
       }
     } catch (UnavailableException e) {
       LOG.debug("Failed to flush access time updates.", e);
-    }
-    if (filesRemoved > 0) {
-      LOG.debug(
-          "Access time for {} files cannot be updated because they are removed from file system",
-          filesRemoved);
     }
   }
 }
