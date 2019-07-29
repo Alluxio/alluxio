@@ -61,8 +61,8 @@ access to multiple under storage systems. Alluxio's
 [mount command]({{ 'en/basic/Command-Line-Interface.html' | relativize_url}}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an Kodo bucket into Alluxio directory
 
-```bash 
-./bin/alluxio fs mount --option fs.kodo.accessKey=<KODO_ACCESS_KEY> \
+```console 
+$ ./bin/alluxio fs mount --option fs.kodo.accessKey=<KODO_ACCESS_KEY> \
   --option fs.kodo.secretkey=<KODO_SECRET_KET> \
   --option alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST> \
   --option alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT> \
@@ -72,23 +72,23 @@ For example, the following command mounts a directory inside an Kodo bucket into
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 After this succeeds, you can visit your Kodo directory `kodo://<KODO_BUCKET>/<KODO_DIRECTORY>` to verify the files
 and directories mounted by Alluxio exist. For this test, you should see files named like
 `KODO_BUCKET/KODO_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`.
 
 To stop Alluxio, you can run:
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```

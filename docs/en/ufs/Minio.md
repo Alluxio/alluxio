@@ -61,9 +61,9 @@ If the port value is left unset, it defaults to port 80 for `http` and 443 for `
 
 Format and start Alluxio with
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 Verify Alluxio is running by navigating to [http://localhost:19999](http://localhost:19999) or by
@@ -71,8 +71,8 @@ examining the logs to ensure the process is running.
 
 Then, to run tests using some basic Alluxio operations execute the following command:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 If there are no errors then MinIO is configured properly!

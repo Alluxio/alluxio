@@ -54,8 +54,8 @@ Apache HBase可以通过通用文件系统包装类（可用于Hadoop文件系�
 - 将`{{site.ALLUXIO_CLIENT_JAR_PATH}}`文件复制到HBase的`lib`目录下。
 - 在`$HBASE_CLASSPATH`环境变量中指定该jar文件的路径（要保证该路径对集群中的所有节点都有效）。例如：
 
-```bash
-export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
+```console
+$ export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
 ### 添加Alluxio site中额外属性到HBase
@@ -74,8 +74,8 @@ export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 
 启动HBase
 
-```bash
-${HBASE_HOME}/bin/start-hbase.sh
+```console
+$ ${HBASE_HOME}/bin/start-hbase.sh
 ```
 
 访问HBase网址`http://<HBASE_MASTER_HOSTNAME>:16010`的Web用户界面以确认HBase在Alluxio上运行
@@ -103,8 +103,8 @@ get 'test', 'row1'
 
 从HBase最顶层项目目录运行以下命令：
 
-```bash
-bin/hbase shell simple_test.txt
+```console
+$ bin/hbase shell simple_test.txt
 ```
 
 将会看到一些类似这样的输出：
@@ -113,8 +113,8 @@ bin/hbase shell simple_test.txt
 
 如果已经安装了Hadoop,可以在HBase shell中运行一个Hadoop功能程序以统计新创建的表的行数：
 
-```bash
-bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
+```console
+$ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 ```
 
 在这个mapreduce作业结束后，会看到如下结果：

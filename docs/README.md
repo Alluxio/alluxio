@@ -32,14 +32,14 @@ way to do this is via a Ruby Gem
 
 Before running `jekyll`, please run mvn to generate Java doc under alluxio root directory.
 
-```bash
+```console
 $ mvn javadoc:javadoc
 $ mvn javadoc:aggregate
 ```
 
 Then go to `docs` directory and use jekyll to build the HTML documentation.
 
-```bash
+```console
 $ cd docs
 $ jekyll build
 ```

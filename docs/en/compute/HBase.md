@@ -61,8 +61,8 @@ We need to make the Alluxio client jar file available to HBase, because it conta
 Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 
-```bash
-export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
+```console
+$ export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
 Alternative ways are described in the [Advanced Setup]({{ '/en/compute/HBase.html' | relativize_url }}#advanced-setup)
@@ -71,8 +71,8 @@ Alternative ways are described in the [Advanced Setup]({{ '/en/compute/HBase.htm
 
 Ensure alluxio scheme is recognized before starting HBase:
 
-```bash
-${HBASE_HOME}/bin/start-hbase.sh
+```console
+$ ${HBASE_HOME}/bin/start-hbase.sh
 ```
 
 If not, follow the [Usage FAQs]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#usage-faq)
@@ -102,8 +102,8 @@ get 'test', 'row1'
 
 Run the following command from the top level HBase project directory:
 
-```bash
-bin/hbase shell simple_test.txt
+```console
+$ bin/hbase shell simple_test.txt
 ```
 
 You should see some output like this:
@@ -113,8 +113,8 @@ You should see some output like this:
 If you have Hadoop installed, you can run a Hadoop-utility program in HBase shell to
 count the rows of the newly created table:
 
-```bash
-bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
+```console
+$ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 ```
 
 After this mapreduce job finishes, you can see a result like this:

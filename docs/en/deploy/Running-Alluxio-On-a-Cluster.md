@@ -32,8 +32,8 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
 
 On the master node, create the `conf/alluxio-site.properties` configuration file from the template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Set the following properties in this configuration file (`conf/alluxio-site.properties`):
@@ -55,8 +55,8 @@ or `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`.
 Next, copy configuration files to all the other Alluxio nodes. To use the provided scripts,
 add the IP addresses or hostnames of all the worker nodes to the `conf/workers` file. Then run:
 
-```bash
-./bin/alluxio copyDir conf/
+```console
+$ ./bin/alluxio copyDir conf/
 ```
 
 This command will copy the `conf/` directory to all the workers specified in the `conf/workers`
@@ -74,8 +74,8 @@ Before Alluxio can be started for the first time, the journal must be formatted.
 
 On the master node, format Alluxio with the following command:
 
-```bash
-./bin/alluxio format
+```console
+$ ./bin/alluxio format
 ```
 
 ### Launch Alluxio
@@ -85,8 +85,8 @@ with all the hostnames of the workers.
 
 On the master node, start the Alluxio cluster with the following command:
 
-```bash
-./bin/alluxio-start.sh all SudoMount
+```console
+$ ./bin/alluxio-start.sh all SudoMount
 ```
 
 This will start the master on the node you are running it on, and start all the workers on all the
@@ -100,8 +100,8 @@ page of the Alluxio master.
 
 Alluxio comes with a simple program that writes and reads sample files in Alluxio. Run the sample program with:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 ## Common Operations
@@ -112,25 +112,25 @@ Below are common operations to perform on an Alluxio cluster.
 
 To stop an Alluxio service, run:
 
-```bash
-./bin/alluxio-stop.sh all
+```console
+$ ./bin/alluxio-stop.sh all
 ```
 
 This will stop all the processes on all nodes listed in `conf/workers` and `conf/masters`.
 
 You can stop just the masters and just the workers with the following commands:
 
-```bash
-./bin/alluxio-stop.sh masters # stops all masters in conf/masters
-./bin/alluxio-stop.sh workers # stops all workers in conf/workers
+```console
+$ ./bin/alluxio-stop.sh masters # stops all masters in conf/masters
+$ ./bin/alluxio-stop.sh workers # stops all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and stop all the processes, you can run
 commands on each node individually to stop each component. For any node, you can stop a master or worker with:
 
-```bash
-./bin/alluxio-stop.sh master # stops the local master
-./bin/alluxio-stop.sh worker # stops the local worker
+```console
+$ ./bin/alluxio-stop.sh master # stops the local master
+$ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
 
 ### Restart Alluxio
@@ -138,31 +138,31 @@ commands on each node individually to stop each component. For any node, you can
 Starting Alluxio is similar. If `conf/workers` and `conf/masters` are both populated, you can start
 the cluster with:
 
-```bash
-./bin/alluxio-start.sh all
+```console
+$ ./bin/alluxio-start.sh all
 ```
 
 You can start just the masters and just the workers with the following commands:
 
-```bash
-./bin/alluxio-start.sh masters # starts all masters in conf/masters
-./bin/alluxio-start.sh workers # starts all workers in conf/workers
+```console
+$ ./bin/alluxio-start.sh masters # starts all masters in conf/masters
+$ ./bin/alluxio-start.sh workers # starts all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and start all the processes, you can run
 commands on each node individually to start each component. For any node, you can start a master or worker with:
 
-```bash
-./bin/alluxio-start.sh master # starts the local master
-./bin/alluxio-start.sh worker # starts the local worker
+```console
+$ ./bin/alluxio-start.sh master # starts the local master
+$ ./bin/alluxio-start.sh worker # starts the local worker
 ```
 
 ### Format the Journal
 
 On any master node, format the Alluxio journal with the following command:
 
-```bash
-./bin/alluxio format
+```console
+$ ./bin/alluxio format
 ```
 
 > Formatting the journal will delete all metadata from Alluxio. However, the data in under storage will be untouched.
@@ -173,16 +173,16 @@ Adding a worker to an Alluxio cluster dynamically is as simple as starting a new
 process, with the appropriate configuration. In most cases, the new worker's configuration should be the same as all
 the other workers' configuration. Run the following command on the new worker to add
 
-```bash
-./bin/alluxio-start.sh worker SudoMount # starts the local worker
+```console
+$ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
 ```
 
 Once the worker is started, it will register itself with the Alluxio master, and become part of the Alluxio cluster.
 
 Removing a worker is as simple as stopping the worker process.
 
-```bash
-./bin/alluxio-stop.sh worker # stops the local worker
+```console
+$ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
 
 Once the worker is stopped, and after

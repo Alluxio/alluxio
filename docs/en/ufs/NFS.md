@@ -27,8 +27,8 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 The following configuration assumes that all NFS clients are co-located with Alluxio nodes.
@@ -44,9 +44,9 @@ alluxio.master.mount.table.root.ufs=/mnt/nfs
 
 Run the following command to start Alluxio filesystem.
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 To verify that Alluxio is running, you can visit
@@ -54,8 +54,8 @@ To verify that Alluxio is running, you can visit
 
 Run a simple example program:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 Visit your NFS volume at `/mnt/nfs` to verify the files and directories created by Alluxio exist.
@@ -67,6 +67,6 @@ For this test, you should see files named:
 
 Stop Alluxio by running:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```

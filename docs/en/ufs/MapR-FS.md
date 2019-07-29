@@ -75,17 +75,17 @@ alluxio.master.mount.table.root.ufs=maprfs:///<path in MapR-FS>/
 
 You can also mount a directory in MapR-FS to a directory in the Alluxio namespace.
 
-```bash
-${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR-FS>/
+```console
+$ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR-FS>/
 ```
 
 ## Running Alluxio Locally with MapR-FS
 
 Start up Alluxio locally to see that everything works.
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
@@ -93,8 +93,8 @@ This should start one Alluxio master and one Alluxio worker locally. You can see
 
 Run a simple example program:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 Visit MapR-FS web UI to verify the files and directories created by
@@ -103,6 +103,6 @@ Alluxio exist. For this test, you should see files named like:
 
 Stop Alluxio by running:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
