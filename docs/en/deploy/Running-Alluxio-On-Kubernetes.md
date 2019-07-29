@@ -299,13 +299,13 @@ To disable short-circuit operations, set the property `alluxio.user.short.circui
 
 ##### Hostname Introspection
 
-Short-circuit operations between the Alluxio client and enabled by default worker are enabled if the client
-hostname matches the worker hostname.
+Short-circuit operations between the Alluxio client and worker are enabled if the client hostname
+matches the worker hostname.
 This may not be true if the client is running as part of a container with virtual networking.
 In such a scenario, set the following property to use filesystem inspection to enable short-circuit
-and **make sure the client container mounts the directory specified as the domain socket path**.
-Short-circuit writes are then enabled if the worker UUID is located on the
-client filesystem.
+operations and **make sure the client container mounts the directory specified as the domain socket
+path**.
+Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
 
 > Note: This property should be set on all workers
 
@@ -320,16 +320,22 @@ The domain socket is a volume which should be mounted on:
 - All Alluxio workers
 - All application containers which intend to read/write through Alluxio
 
-The exact path of the domain socket is defined in the helm chart at
+The exact path of the domain socket on the host is defined in the helm chart at
 `${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/values.yml`.
-By default this value is `/tmp/alluxio-domain`.
+On the worker the path where the domain socket is mounted can be found within
+`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/alluxio-worker.yml`
 
 As part of the Alluxio worker pod creation, a directory
 is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
+The workers then mount `/tmp/alluxio-domain` to `/opt/domain` within the
+container.
 
 ```properties
-alluxio.worker.data.server.domain.socket.address=/tmp/alluxio-domain
+alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
+
+Compute application containers **must** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
 
 #### Verify
 
