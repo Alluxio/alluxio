@@ -340,9 +340,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void checkpoint() throws IOException {
     try {
+      long start = System.currentTimeMillis();
       mSnapshotAllowed.set(true);
       CopycatClient client = createAndConnectClient();
-      long start = System.currentTimeMillis();
       LOG.info("Submitting empty journal entry to trigger snapshot");
       // New snapshot requires new segments (segment size is controlled by
       // {@link PropertyKey#MASTER_JOURNAL_LOG_SIZE_BYTES_MAX}).
