@@ -20,9 +20,9 @@ priority: 4
 
 安装AWS Vagrant插件：
 
-```bash
-vagrant plugin install vagrant-aws
-vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```console
+$ vagrant plugin install vagrant-aws
+$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
 ```
 
 **安装Alluxio**
@@ -35,14 +35,14 @@ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.
 
 进入`deploy/vagrant`目录下，运行：
 
-```bash
-sudo bash bin/install.sh
+```console
+$ sudo bash bin/install.sh
 ```
 
 另外，你可以选择手动安装[pip](https://pip.pypa.io/en/latest/installing/)，之后进入`deploy/vagrant`目录，运行：
 
-```bash
-sudo pip install -r pip-req.txt
+```console
+$ sudo pip install -r pip-req.txt
 ```
 
 
@@ -53,24 +53,24 @@ sudo pip install -r pip-req.txt
 接着创建[access keys](https://aws.amazon.com/developers/access-keys/)并且设置`AWS_ACCESS_KEY_ID`和
 `AWS_SECRET_ACCESS_KEY`环境变量:
 
-```bash
-export AWS_ACCESS_KEY_ID=<your access key>
-export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```console
+$ export AWS_ACCESS_KEY_ID=<your access key>
+$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
 接着生成EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)。确保将私钥文件的
 权限设置成只对你可读。
 
-```bash
-chmod 400 <your key pair>.pem
+```console
+$ chmod 400 <your key pair>.pem
 ```
 
 
 复制`deploy/vagrant/conf/ec2.yml.template`到`deploy/vagrant/conf/ec2.yml`：
 
-```bash
-cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+```console
+$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
 ```
 
 
@@ -86,8 +86,8 @@ Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1b**
 
 现在你可以以Hadoop2.4.1为底层文件系统，在us-east-1b下启动Alluxio集群了，在`deploy/vagrant`目录下运行：
 
-```bash
-./create <number of machines> aws
+```console
+$ ./create <number of machines> aws
 ```
 
 
@@ -102,7 +102,7 @@ Vagrant脚本默认会在[该区域(**us-east-1**)和可用区域(**us-east-1b**
 
 命令`./create <number of machines> aws`运行成功后，在shell中会输出类似下面的三条语句：
 
-```bash
+```
 >>> Master public IP for Alluxio is xxx, visit xxx:19999 for Alluxio web UI<<<
 >>> Master public IP for other softwares is xxx <<<
 >>> visit default port of the web UI of what you deployed <<<
@@ -133,22 +133,22 @@ worker进程。
 
 通过ssh登陆一个节点，运行：
 
-```bash
-vagrant ssh <node name>
+```console
+$ vagrant ssh <node name>
 ```
 
 例如，通过以下命令可以登陆`AlluxioMaster`节点：
 
-```bash
-vagrant ssh AlluxioMaster
+```console
+$ vagrant ssh AlluxioMaster
 ```
 
 所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`，Hadoop安装在`/hadoop`，Zookeeper安装在`/zookeeper`。
 
 在leader节点上，可以对Alluxio运行测试检测其健康状态：
 
-```bash
-/alluxio/bin/alluxio runTests
+```console
+$ /alluxio/bin/alluxio runTests
 ```
 
 
@@ -157,27 +157,27 @@ vagrant ssh AlluxioMaster
 
 通过ssh可以登陆到当前Alluxio master leader，并查找AlluxioMaster进程的进程ID：
 
-```bash
-jps | grep AlluxioMaster
+```console
+$ jps | grep AlluxioMaster
 ```
 
 然后将该leader进程终止掉：
 
-```bash
-kill -9 <leader pid found via the above command>
+```console
+$ kill -9 <leader pid found via the above command>
 ```
 
 接着，为了找到新的leader，通过ssh登陆到`AlluxioMaster`节点，该节点上运行着
 [zookeeper](http://zookeeper.apache.org/)，然后运行zookeeper client：
 
-```bash
-/zookeeper/bin/zkCli.sh
+```console
+$ ${ZOOKEEPER_HOME}/bin/zkCli.sh
 ```
 
 在zookeeper client终端中，运行以下命令查看当前leader：
 
-```bash
-ls /leader
+```
+ls /alluxio/leader
 ```
 
 
@@ -190,16 +190,16 @@ ls /leader
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
-```bash
-ssh AlluxioWorker1
+```console
+$ ssh AlluxioWorker1
 ```
 
 ## 撤销集群
 
 在`deploy/vagrant`目录下运行：
 
-```bash
-./destroy
+```console
+$ ./destroy
 ```
 
 

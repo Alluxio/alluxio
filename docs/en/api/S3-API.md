@@ -48,8 +48,8 @@ The Alluxio proxy is listening at port 39999 by default.
 
 #### Create a bucket
 
-```bash
-# curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:23:18 GMT
@@ -59,8 +59,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 #### Get the bucket (listing objects)
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:23:56 GMT
@@ -74,8 +74,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 #### Put an object
 Assuming there is an existing file on local file system called `LICENSE`:
 
-```bash
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/testobject
+```console
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/testobject
 
 HTTP/1.1 100 Continue
 
@@ -88,8 +88,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 #### Get the object:
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:24:57 GMT
@@ -103,8 +103,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 #### Listing a bucket with one object
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:25:27 GMT
@@ -118,8 +118,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 #### Listing a bucket with multiple objects
 You can upload more files and use the `max-keys` and `continuation-token` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html). For example:
 
-```bash
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
+```console
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
 
 HTTP/1.1 100 Continue
 
@@ -172,8 +172,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 You can also verify those objects are represented as Alluxio files, under `/testbucket` directory.
 
-```bash
-./bin/alluxio fs ls -R /testbucket
+```console
+$ ./bin/alluxio fs ls -R /testbucket
 
 -rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:26:05:694 100% /testbucket/key1
 -rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:26:28:153 100% /testbucket/key2
@@ -183,16 +183,16 @@ You can also verify those objects are represented as Alluxio files, under `/test
 
 #### Delete objects
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
 
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:31:27 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
 
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:31:44 GMT
@@ -213,8 +213,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 #### Initiate a multipart upload
 
-```bash
-# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
+```console
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:32:36 GMT
@@ -229,8 +229,8 @@ Note that the commands below related to multipart upload need the upload ID show
 
 #### Upload part
 
-```bash
-# curl -i -X PUT 'http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=3'
+```console
+$ curl -i -X PUT 'http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=3'
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:33:36 GMT
@@ -241,8 +241,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 #### List parts
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:35:10 GMT
@@ -255,8 +255,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 #### Complete a multipart upload
 
-```bash
-# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
+```console
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:35:47 GMT
@@ -271,8 +271,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 A non-completed upload can be aborted:
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
 
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:37:27 GMT
@@ -281,8 +281,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 #### Delete an empty bucket
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
 
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:38:38 GMT
@@ -336,8 +336,8 @@ assert smallObjectContent == key.get_contents_as_string()
 #### Upload a large object
 Create a 8MB file on local file system.
 
-```bash
-# dd if=/dev/zero of=8mb.data bs=1048576 count=8
+```console
+$ dd if=/dev/zero of=8mb.data bs=1048576 count=8
 ```
 
 Then use python S3 client to upload this as an object

@@ -33,22 +33,22 @@ priority: 2
 
 进入`deploy/vagrant`目录下，运行：
 
-```bash
-sudo bash bin/install.sh
+```console
+$ sudo bash bin/install.sh
 ```
 
 另外，你可以选择手动安装[pip](https://pip.pypa.io/en/latest/installing/)，之后进入`deploy/vagrant`目录，运行：
 
-```bash
-sudo pip install -r pip-req.txt
+```console
+$ sudo pip install -r pip-req.txt
 ```
 
 ## 启动集群
 
 现在你可以以Hadoop2.4.1为底层文件系统启动Alluxio集群了，在`deploy/vagrant`目录下运行：
 
-```bash
-./create <number of machines> vb
+```console
+$ ./create <number of machines> vb
 ```
 
 集群中的每个节点运行一个Alluxio worker，`AlluxioMaster`节点上运行Alluxio master.
@@ -59,7 +59,7 @@ sudo pip install -r pip-req.txt
 
 命令`./create <number of machines> vb`运行成功后，在shell中会输出类似下面的两条语句。
 
-```bash
+```
 >>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
 >>> visit default port of the web UI of what you deployed <<<
 ```
@@ -76,22 +76,22 @@ Hadoop Web UI的默认端口为**50070**。
 
 通过ssh登陆一个节点，运行：
 
-```bash
-vagrant ssh <node name>
+```console
+$ vagrant ssh <node name>
 ```
 
 例如，通过以下命令可以登陆`AlluxioMaster`节点：
 
-```bash
-vagrant ssh AlluxioMaster
+```console
+$ vagrant ssh AlluxioMaster
 ```
 
 所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`，Hadoop安装在`/hadoop`。
 
 在`AlluxioMaster`节点上，可以对Alluxio运行测试检测其健康状态：
 
-```bash
-/alluxio/bin/alluxio runTests
+```console
+$ /alluxio/bin/alluxio runTests
 ```
 
 在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点
@@ -99,16 +99,16 @@ vagrant ssh AlluxioMaster
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
-```bash
-ssh AlluxioWorker1
+```console
+$ ssh AlluxioWorker1
 ```
 
 ## 撤销集群
 
 在`deploy/vagrant`目录下运行：
 
-```bash
-./destroy
+```console
+$ ./destroy
 ```
 
 从而撤销之前创建的集群。一次只能创建一个集群。当该命令成功执行后，虚拟机将终止运行。
