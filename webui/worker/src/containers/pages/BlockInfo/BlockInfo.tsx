@@ -173,7 +173,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           <tbody>
           {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
             <tr key={fileInfo.absolutePath}>
-              <td>{renderFileNameLink.call(this, fileInfo.absolutePath, `/blockInfo?path=`)}</td>
+              <td>{renderFileNameLink(fileInfo.absolutePath, `/blockInfo?path=`)}</td>
               {tierAliases.map((tierAlias: string) => (
                 <td key={tierAlias}>{`${fileInfo.inAlluxioPercentage}%`}</td>
               ))}

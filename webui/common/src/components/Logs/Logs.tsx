@@ -160,7 +160,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
         {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
           <tr key={fileInfo.absolutePath}>
             <td>
-              {renderFileNameLink.call(this, fileInfo.absolutePath, `/logs?path=`)}
+              {renderFileNameLink(fileInfo.absolutePath, `/logs?path=`)}
             </td>
             <td>{fileInfo.size}</td>
             <td>{fileInfo.blockSizeBytes}</td>
