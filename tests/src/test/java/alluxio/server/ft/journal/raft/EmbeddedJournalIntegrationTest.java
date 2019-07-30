@@ -172,7 +172,6 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     assertTrue(fs.exists(testDir));
     restartMasters();
     assertTrue(fs.exists(testDir));
-    mCluster.saveWorkdir();
     mCluster.notifySuccess();
   }
 
