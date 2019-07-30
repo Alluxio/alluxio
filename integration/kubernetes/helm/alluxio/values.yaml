@@ -66,3 +66,12 @@ volumes:
 #   alluxio.master.mount.table.root.ufs: ""
 #   aws.accessKeyId: ""
 #   aws.secretKey: ""
+#
+# Secrets Example: (<name>:<file name in /secrets/>):
+# secrets:
+#   master:
+#     alluxio-master-secret1: master_secret1.ext
+#     alluxio-master-secret2: master_secret2.ext
+#   worker:
+#     alluxio-worker-secret1: worker_secret1.ext
+#     alluxio-worker-secret2: worker_secret2.ext
