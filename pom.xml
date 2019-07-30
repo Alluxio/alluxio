@@ -131,6 +131,10 @@
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
   </repositories>
 
   <properties>
@@ -232,6 +236,11 @@
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
         <version>0.5.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.apache</groupId>
+        <artifactId>incubator-iceberg</artifactId>
+        <version>master-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>

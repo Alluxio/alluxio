@@ -35,6 +35,10 @@
       <artifactId>kryo</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.github.apache</groupId>
+      <artifactId>incubator-iceberg</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -139,6 +143,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>org.apache.hive</groupId>
+          <artifactId>hive-metastore</artifactId>
+          <version>2.3.2</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 
   <build>
