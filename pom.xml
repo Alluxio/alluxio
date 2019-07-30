@@ -544,12 +544,6 @@
         <version>${copycat.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.atomix.catalyst</groupId>
-        <artifactId>catalyst-netty</artifactId>
-        <!-- catalyst-netty is versioned independently of other Atomix services -->
-        <version>1.2.1</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.mesos</groupId>
         <artifactId>mesos</artifactId>
         <version>0.23.0</version>
