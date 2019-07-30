@@ -36,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.ServerSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -72,11 +73,9 @@ public class CopycatGrpcTransportTest {
     // Catalyst thread context for managing client/server.
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
-    // Address for binding transport server.
-    Address address = new Address("localhost", 10001);
-
     // Create and bind transport server.
-    bindServer(connectionContext, mTransport.server(), address, connectionListener);
+    Address address = bindServer(connectionContext, mTransport.server(), connectionListener);
+
     // Open a client connection to server.
     connectClient(connectionContext, mTransport.client(), address);
 
@@ -90,11 +89,9 @@ public class CopycatGrpcTransportTest {
     // Catalyst thread context for managing client/server.
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
-    // Address for binding transport server.
-    Address address = new Address("localhost", 10002);
-
-    // Create transport server.
-    bindServer(connectionContext, mTransport.server(), address, new CopycatTransportTestListener());
+    // Create and bind transport server.
+    Address address =
+        bindServer(connectionContext, mTransport.server(), new CopycatTransportTestListener());
 
     Client transportClient = mTransport.client();
     // Open 2 client connections to server.
@@ -114,11 +111,9 @@ public class CopycatGrpcTransportTest {
     // Catalyst thread context for managing client/server.
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
-    // Address for binding transport server.
-    Address address = new Address("localhost", 10003);
-
-    // Create transport server.
-    bindServer(connectionContext, mTransport.server(), address, new CopycatTransportTestListener());
+    // Create and bind transport server.
+    Address address =
+        bindServer(connectionContext, mTransport.server(), new CopycatTransportTestListener());
 
     // Open a client connection to server.
     Connection clientConnection = connectClient(connectionContext, mTransport.client(), address);
@@ -143,13 +138,10 @@ public class CopycatGrpcTransportTest {
     // Catalyst thread context for managing client/server.
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
-    // Address for binding transport server.
-    Address address = new Address("localhost", 10004);
-
     // Create transport server.
     Server server = mTransport.server();
-    // Bind server.
-    bindServer(connectionContext, server, address, new CopycatTransportTestListener());
+    // Bind transport server.
+    Address address = bindServer(connectionContext, server, new CopycatTransportTestListener());
 
     // Open a client connection to server.
     Connection clientConnection = connectClient(connectionContext, mTransport.client(), address);
@@ -172,12 +164,17 @@ public class CopycatGrpcTransportTest {
    * Creates and binds transport server.
    *
    * @param context catalyst context
-   * @param serverAddress bind address
    * @param listener listener for new connections
+   * @return address to which the server is bound
    * @throws Exception
    */
-  private void bindServer(ThreadContext context, Server server, Address serverAddress,
-      Consumer<Connection> listener) throws Exception {
+  private Address bindServer(ThreadContext context, Server server, Consumer<Connection> listener)
+      throws Exception {
+
+    ServerSocket autoBindSocket = new ServerSocket(0);
+    Address serverAddress = new Address("localhost", autoBindSocket.getLocalPort());
+    autoBindSocket.close();
+
     context.execute(() -> {
       try {
         // Bind server.
@@ -186,6 +183,8 @@ public class CopycatGrpcTransportTest {
         throw new RuntimeException(e);
       }
     }).get();
+
+    return serverAddress;
   }
 
   /**
