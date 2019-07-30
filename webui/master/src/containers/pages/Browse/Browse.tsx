@@ -142,7 +142,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
           <div className="row">
             <div className="col-12">
               {!browseData.currentDirectory.isDirectory && this.renderFileView(browseData, queryStringSuffix, initData)}
-              {browseData.currentDirectory.isDirectory && this.renderDirectoryListing(initData, browseData, queryStringSuffix)}
+              {browseData.currentDirectory.isDirectory && this.renderDirectoryListing(initData, browseData)}
             </div>
           </div>
         </div>
@@ -194,7 +194,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     );
   }
 
-  private renderDirectoryListing(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
+  private renderDirectoryListing(initData: IInit, browseData: IBrowse) {
     const {path, offset, limit} = this.state;
     const {history} = this.props;
     const fileInfos = browseData.fileInfos;
@@ -204,7 +204,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
         <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}
               onSubmit={disableFormSubmit}>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=/${queryStringSuffix}`} color="secondary"
+            <Button tag={Link} to={`/browse?path=/`} color="secondary"
                     outline={true}>Root</Button>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
@@ -212,10 +212,10 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
             <Input type="text" id="browsePath" placeholder="Enter a Path" value={path || '/'}
                    onChange={pathInputHandler}
                    onKeyUp={this.createInputEnterHandler(history, () =>
-                   `/browse?path=${path}${queryStringSuffix}`)}/>
+                   `/browse?path=${path}`)}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=${encodeURIComponent(path || '/')}${queryStringSuffix}`}
+            <Button tag={Link} to={`/browse?path=${encodeURIComponent(path || '/')}`}
             color="secondary">Go</Button>
           </FormGroup>
         </Form>
