@@ -88,13 +88,35 @@ properties:
 EOF
 ```
 Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
-For example, is using Amazon S3 as the under store, add properties as:
+For example:
+- If using Amazon S3 as the under store, add these properties:
 ```bash
 cat << EOF > config.yaml
 properties:
   alluxio.mount.table.root.ufs: "s3a://<bucket>"
   aws.accessKeyId: "<accessKey>"
   aws.secretKey: "<secretKey>"
+EOF
+```
+- If using HDFS as the under store, first create secrets for any configuration required by an HDFS
+client. These are mounted under `/secrets`
+```console
+$ kubectl create secret generic alluxio-core-site --from-file=./core-site.xml
+$ kubectl create secret generic alluxio-hdfs-site --from-file=./hdfs-site.xml
+```
+Then mount these secrets to the Alluxio master and worker containers as follows:
+```console
+$ cat << EOF > config.yaml
+properties:
+  alluxio.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.underfs.hdfs.configuration: "/secrets/core-site/core-site.xml:/secrets/hdfs-site/hdfs-site.xml"
+secrets:
+  master:
+    alluxio-core-site: core-site
+    alluxio-hdfs-site: hdfs-site
+  worker:
+    alluxio-core-site: core-site
+    alluxio-hdfs-site: hdfs-site
 EOF
 ```
 
