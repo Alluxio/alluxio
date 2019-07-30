@@ -7,6 +7,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
+
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -18,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * This catalog master manages catalogs metadata information.
+ */
 public class DefaultCatalogMaster implements CatalogMaster {
   @Override
   public List<String> getAllDatabases() {
@@ -36,12 +40,10 @@ public class DefaultCatalogMaster implements CatalogMaster {
 
   @Override
   public void createDatabase(Database database) {
-
   }
 
   @Override
   public void createTable(Table table) {
-
   }
 
   @Override
@@ -74,17 +76,14 @@ public class DefaultCatalogMaster implements CatalogMaster {
 
   @Override
   public void start(Boolean options) throws IOException {
-
   }
 
   @Override
   public void stop() throws IOException {
-
   }
 
   @Override
   public void close() throws IOException {
-
   }
 
   @Override
@@ -94,7 +93,6 @@ public class DefaultCatalogMaster implements CatalogMaster {
 
   @Override
   public void resetState() {
-
   }
 
   @Override

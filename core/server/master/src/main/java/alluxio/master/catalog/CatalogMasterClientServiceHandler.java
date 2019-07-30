@@ -11,20 +11,24 @@
 
 package alluxio.master.catalog;
 
-
 import alluxio.RpcUtils;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllDatabasesPResponse;
+
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class is a gRPC handler for catalog master RPCs.
+ */
 public class CatalogMasterClientServiceHandler
     extends CatalogMasterClientServiceGrpc.CatalogMasterClientServiceImplBase {
-  private static final Logger LOG = LoggerFactory.getLogger(CatalogMasterClientServiceHandler.class);
+  private static final Logger LOG
+      = LoggerFactory.getLogger(CatalogMasterClientServiceHandler.class);
 
   private final CatalogMaster mCatalogMaster;
 

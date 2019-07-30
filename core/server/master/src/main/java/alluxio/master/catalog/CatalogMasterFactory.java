@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
-import alluxio.master.metrics.MetricsMaster;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
