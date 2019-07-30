@@ -438,6 +438,10 @@ public class InodeTreePersistentState implements Journaled {
     updateToBePersistedIds(inode);
   }
 
+  /**
+   * @param entry the update inode journal entry to be checked
+   * @return whether the journal entry might be applied asynchronously out of order
+   */
   private boolean isJournalUpdateAsync(UpdateInodeEntry entry) {
     return entry.getAllFields().size() == 2 && entry.hasId() && entry.hasLastAccessTimeMs();
   }

@@ -125,6 +125,7 @@ public final class AccessTimeUpdaterTest {
     mAccessTimeUpdater.start();
     String path = "/foo";
     JournalContext journalContext = mock(JournalContext.class);
+    when(journalContext.get()).thenReturn(journalContext);
     createInode(path, CreateFileContext.defaults());
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
@@ -154,6 +155,7 @@ public final class AccessTimeUpdaterTest {
     String path = "/foo";
     createInode(path, CreateFileContext.defaults());
     JournalContext journalContext = mock(JournalContext.class);
+    when(journalContext.get()).thenReturn(journalContext);
     when(mFileSystemMaster.createJournalContext()).thenReturn(journalContext);
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
@@ -191,6 +193,7 @@ public final class AccessTimeUpdaterTest {
     String path = "/foo";
     createInode(path, CreateFileContext.defaults());
     JournalContext journalContext = mock(JournalContext.class);
+    when(journalContext.get()).thenReturn(journalContext);
     when(mFileSystemMaster.createJournalContext()).thenReturn(journalContext);
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
@@ -234,6 +237,7 @@ public final class AccessTimeUpdaterTest {
     String path = "/foo";
     createInode(path, CreateFileContext.defaults());
     JournalContext journalContext = mock(JournalContext.class);
+    when(journalContext.get()).thenReturn(journalContext);
     when(mFileSystemMaster.createJournalContext()).thenReturn(journalContext);
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
@@ -287,6 +291,7 @@ public final class AccessTimeUpdaterTest {
     String path = "/foo";
     createInode(path, CreateFileContext.defaults());
     JournalContext journalContext = mock(JournalContext.class);
+    when(journalContext.get()).thenReturn(journalContext);
     when(mFileSystemMaster.createJournalContext()).thenReturn(journalContext);
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;

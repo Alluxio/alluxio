@@ -297,7 +297,7 @@ public class InodeTree implements DelegatingJournaled {
    * @param accessTime the new access time
    * @return the applied inode entry
    */
-  public UpdateInodeEntry updateInodeAccessTime(long inodeId, long accessTime) {
+  public UpdateInodeEntry updateInodeAccessTimeNoJournal(long inodeId, long accessTime) {
     return mState.applyInodeAccessTime(inodeId, accessTime);
   }
 
