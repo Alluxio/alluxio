@@ -73,7 +73,7 @@ public class CopycatGrpcTransportTest {
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Address for binding transport server.
-    Address address = new Address("localhost", 10000);
+    Address address = new Address("localhost", 10001);
 
     // Create and bind transport server.
     bindServer(connectionContext, mTransport.server(), address, connectionListener);
@@ -91,7 +91,7 @@ public class CopycatGrpcTransportTest {
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Address for binding transport server.
-    Address address = new Address("localhost", 10000);
+    Address address = new Address("localhost", 10002);
 
     // Create transport server.
     bindServer(connectionContext, mTransport.server(), address, new CopycatTransportTestListener());
@@ -115,7 +115,7 @@ public class CopycatGrpcTransportTest {
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Address for binding transport server.
-    Address address = new Address("localhost", 10000);
+    Address address = new Address("localhost", 10003);
 
     // Create transport server.
     bindServer(connectionContext, mTransport.server(), address, new CopycatTransportTestListener());
@@ -144,7 +144,7 @@ public class CopycatGrpcTransportTest {
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Address for binding transport server.
-    Address address = new Address("localhost", 10000);
+    Address address = new Address("localhost", 10004);
 
     // Create transport server.
     Server server = mTransport.server();
@@ -180,9 +180,8 @@ public class CopycatGrpcTransportTest {
       Consumer<Connection> listener) throws Exception {
     context.execute(() -> {
       try {
-        Address localAddress = new Address("localhost", 10000);
         // Bind server.
-        server.listen(localAddress, listener).get();
+        server.listen(serverAddress, listener).get();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
