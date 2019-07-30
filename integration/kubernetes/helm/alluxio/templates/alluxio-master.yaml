@@ -76,14 +76,14 @@ spec:
           volumeMounts:
             - name: alluxio-journal
               mountPath: /journal
-            {{ if .Values.secrets }}
-            {{ if .Values.secrets.master }}
+            {{- if .Values.secrets }}
+            {{- if .Values.secrets.master }}
             {{- range $key, $val := .Values.secrets.master }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
             {{- end }}
-            {{ end }}
-            {{ end }}
+            {{- end }}
+            {{- end }}
         - name: alluxio-job-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -104,26 +104,26 @@ spec:
             name: job-rpc
           - containerPort: 20002
             name: job-web
-          {{ if .Values.secrets }}
-          {{ if .Values.secrets.master }}
+          {{- if .Values.secrets }}
+          {{- if .Values.secrets.master }}
           volumeMounts:
             {{- range $key, $val := .Values.secrets.master }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
             {{- end }}
-          {{ end }}
-          {{ end }}
+          {{- end }}
+          {{- end }}
       restartPolicy: Always
       volumes:
         - name: alluxio-journal
           persistentVolumeClaim:
             claimName: alluxio-pv-claim
-        {{ if .Values.secrets }}
-        {{ if .Values.secrets.master }}
+        {{- if .Values.secrets }}
+        {{- if .Values.secrets.master }}
         {{- range $key, $val := .Values.secrets.master }}
         - name: secret-{{ $key }}-volume
           secret:
             secretName: {{ $key }}
         {{- end }}
-        {{ end }}
-        {{ end }}
+        {{- end }}
+        {{- end }}
