@@ -67,11 +67,11 @@ volumes:
 #   aws.accessKeyId: ""
 #   aws.secretKey: ""
 #
-# Secrets Example: (<name>:<file name in /secrets/>):
+# Secrets Example: (<name>:<mount path under /secrets/>):
 # secrets:
 #   master:
-#     alluxio-master-secret1: master_secret1.ext
-#     alluxio-master-secret2: master_secret2.ext
+#     alluxio-core-site: hdfs-core-site
+#     alluxio-hdfs-site: hdfs-hdfs-site
 #   worker:
-#     alluxio-worker-secret1: worker_secret1.ext
-#     alluxio-worker-secret2: worker_secret2.ext
+#     alluxio-core-site: hdfs-core-site
+#     alluxio-hdfs-site: hdfs-hdfs-site
