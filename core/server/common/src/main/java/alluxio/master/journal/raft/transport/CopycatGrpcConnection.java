@@ -280,7 +280,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
   /**
    * Sends the response to target.
    *
-   * Note: It sends an error response if given object it {@link Throwable}.
+   * Note: It sends an error response if given object is a {@link Throwable}.
    *
    * @param requestId originating request Id
    * @param context copycat thread context
