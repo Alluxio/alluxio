@@ -70,8 +70,6 @@ volumes:
 # Secrets Example: (<name>:<mount path under /secrets/>):
 # secrets:
 #   master:
-#     alluxio-core-site: hdfs-core-site
-#     alluxio-hdfs-site: hdfs-hdfs-site
+#     alluxio-hdfs-config: hdfsConfig
 #   worker:
-#     alluxio-core-site: hdfs-core-site
-#     alluxio-hdfs-site: hdfs-hdfs-site
+#     alluxio-hdfs-config: hdfsConfig
