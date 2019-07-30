@@ -76,7 +76,7 @@ If Alluxio is deployed in a cluster, this file needs to be distributed to all th
 Then, start Alluxio, CSV files containing metrics will be found in the `sink.csv.directory`. The
 file name will correspond with the metric name.
 
-Refer to `metrics.properties.template` for all possible sink specific configurations. 
+Refer to `metrics.properties.template` for all possible sink specific configurations.
 
 ## Supported Metrics
 
@@ -131,53 +131,18 @@ Tags can be used to further filter or aggregate on various characteristics.
 
 Grafana is a metics analytics and visualization software used for visualizing time series
 data. You can use Grafana to better visualize the various metrics that Alluxio collects. The software
-allows users to more easily see changes memory, storage, and completed operations in Alluxio.
+allows users to more easily see changes in memory, storage, and completed operations in Alluxio.
 
 Since Grafana does not collect metrics a monitoring tool must be set up for Grafana to pull metrics from.
-Alluxio supports exporting metrics to `Prometheus` and `Graphite`, and Grafana supports both too.
-
-### Setting up Prometheus
-
-Install Prometheus using the instructions [here](https://prometheus.io/docs/prometheus/latest/installation/).
-
-After installing Prometheus, it must be configured to pull metrics from Alluxio. Next, put the following sections
-under the `scrape_configs:` section of the Prometheus configuration.
-
-```
-scrape_configs:
-  - job_name: 'alluxio master'
-    metrics_path: '/metrics/prometheus'
-    static_configs:
-    - targets: ['<alluxio_master_hostname>:19999']
-
-  - job_name: 'alluxio workers'
-    metrics_path: '/metrics/prometheus'
-    static_configs:
-    - targets: ['<alluxio_worker_hostname>:<port>']
-    - targets: ['<alluxio_worker_hostname2>:<port>]
-```
-
-Jobs are the various locations Prometheus scrapes for metrics. For Alluxio we tell Prometheus to get data
-from `http://localhost:19999/metrics/json` and `http://localhost:30000/metrics/json` the locations that Alluxio stores
-metrics in for the Master and Worker. A single job can have multiple targets. The targets need to be added
-under the `targets:` list.
+Alluxio and Grafana both support exporting and pulling metrics respectively from `Graphite`.
 
 ### Setting up Graphite
 
 Install Graphite using the instructions [here](https://graphite.readthedocs.io/en/latest/install.html).
 
-Once Graphite is installed it now must be configured with Alluxio.
-
-### Configure Monitoring Tools with Alluxio
-
-Next, the Alluxio configuration file must be set up. This sends the Alluxio metrics to the monitoring
-software. In `${ALLUXIO_HOME}/conf/metrics.properties` add the following if using Prometheus:
-
-```
-metrics.sink.PrometheusMetricsServlet.path=/metrics/prometheus
-```
-
-Or if using Graphite:
+Graphite has a fairly simple configuration with Alluxio. In this setup, Alluxio pushes all metrics in the
+master and worker `/metrics/json` endpoints to Graphite. Graphite has to be setup as a sink in
+`${ALLUXIO_HOME}/conf/metrics.properties` add the following:
 
 ```
 alluxio.metrics.sink.graphite.class=alluxio.metrics.sink.GraphiteSink
@@ -186,23 +151,33 @@ alluxio.metrics.sink.graphite.port=2003
 alluxio.metrics.sink.graphite.period=10
 ```
 
-Save the file and restart Alluxio, and metrics will be collected by the chosen monitoring software.
+Save the file and restart Alluxio, and metrics will be visible in Graphite.
 
 ### Grafana
 
 Install Grafana using the instructions [here](https://grafana.com/docs/installation/).
 
-Once Grafana is installed and running you can go to [http://localhost:3000](http://localhost:3000) to open the webapp.
-After the webapp is opened a datasource needs to be added. The datasource will be the monitoring software
+Once Grafana is installed and running you can go to [http://localhost:3000](http://localhost:3000) to open Grafana's webaUI.
+After the webUI is opened a datasource needs to be added. The datasource will be the monitoring software
 that was set up earlier.
 
-For a Prometheus datasource enter the URL as `http://localhost:9090` and set `Server Access` to `Browse`. Next, set
-the scrape interval to 5 seconds. This is how long in between Grafana waits before collecting data again.
-
-For a Graphite datasource enter the URL as `http://localhost:` and set `Server Access` to `Browse`. Next, set the
-Graphite version to the version of Graphite you downloaded.
+Adding Graphite as a datasource in Grafana is simple and requires a few steps since Graphite is a supported datasource
+in Grafana. First enter the HTTP url as the URL used to access Graphite's webUI. By default this will be `http://localhost`.
+Next set the `HTTP Access` to `Browser`. Finally set `Version` under `Graphite Details` to your version of Graphite. This
+controls what functions are available when making queries through Graphite.
 
 Grafana should be set up and connected to Alluxio. You can create queries to visualize any of the
 metrics that Alluxio collects. For a guide on using Grafana read the docs [here](https://grafana.com/docs/v4.3/guides/getting_started).
 
-Grafana templates for either Prometheus or Graphite can be founf at `/alluxio/integration/grafana`.
+### Querying
+
+With Graphite configured with Alluxio and also linked to Grafana, queries can be created in a Grafana dashboard to
+display Alluxio's metrics. Querying Graphite is very similar to navigating a file path, and is user friendly.
+For help on creating graphite queries check [here](https://grafana.com/docs/features/datasources/graphite/).
+
+Graphite queries also have a wildcard label (annotated with the `*` icon). When used the wildcard label will display all
+possible metrics on the Grafana panel. There are also functions which allow metrics to be combined, calculated,
+filtered, and sorted. when combined with the wildcard label, metrics can be manipulated in various ways.
+
+An example Grafana template for Alluxio's metrics can be found at `/alluxio/integration/grafana`. This template displays
+the majority of Alluxio's metrics, and only scratches the surface of Graphite's capabilities.
