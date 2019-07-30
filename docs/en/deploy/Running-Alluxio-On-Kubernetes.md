@@ -102,7 +102,7 @@ properties:
 EOF
 ```
 - If using HDFS as the under store, first create secrets for any configuration required by an HDFS
-client. These are mounted under `/secrets`
+client. These are mounted under `/secrets`.
 ```console
 $ kubectl create secret generic alluxio-core-site --from-file=./core-site.xml
 $ kubectl create secret generic alluxio-hdfs-site --from-file=./hdfs-site.xml
