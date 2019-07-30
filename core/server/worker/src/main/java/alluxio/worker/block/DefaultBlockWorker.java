@@ -260,7 +260,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     // 2. Shutdown the executors.
     // 3. Shutdown the clients. This needs to happen after the executors is shutdown because
     //    runnables running in the executors might be using the clients.
-    mSessionCleaner.stop();
+    if (mSessionCleaner != null) {
+      mSessionCleaner.stop();
+    }
     // The executor shutdown needs to be done in a loop with retry because the interrupt
     // signal can sometimes be ignored.
     try {
