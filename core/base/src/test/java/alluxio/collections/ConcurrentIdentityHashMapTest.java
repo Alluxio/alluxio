@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +26,6 @@ import java.util.Set;
 
 public class ConcurrentIdentityHashMapTest {
 
-
   private ConcurrentIdentityHashMap<String, String> mMap;
 
   @Before
@@ -35,26 +35,31 @@ public class ConcurrentIdentityHashMapTest {
 
   @Test
   public void testIdentitySemantics() {
-    ConcurrentIdentityHashMap<String, Boolean> m = new ConcurrentIdentityHashMap<>();
     String k = new String("test");
     String k2 = new String("test");
-    m.put(k, true);
-    m.put(k2, false);
-    assertFalse(m.isEmpty());
-    assertEquals(2, m.size());
-    assertTrue(m.containsKey(k));
-    assertTrue(m.containsKey(k2));
-    assertEquals(2, m.entrySet().size());
-    for(Map.Entry e : m.entrySet()) {
-      assertTrue(e.getKey() == k || e.getKey() == k2);
+    mMap.put(k, "true");
+    mMap.put(k2, "false");
+    assertFalse(mMap.isEmpty());
+    assertEquals(2, mMap.size());
+    assertTrue(mMap.containsKey(k));
+    assertTrue(mMap.containsKey(k2));
+    assertEquals(2, mMap.entrySet().size());
+    for (Map.Entry e : mMap.entrySet()) {
+      if (e.getKey() == k) {
+        assertEquals("true", e.getValue());
+      } else if (e.getKey() == k2) {
+        assertEquals("false", e.getValue());
+      } else {
+        fail("Should not have reached this condition");
+      }
     }
-    m.remove("test"); // Should not remove, because it doesn't have the correct obj ref
-    assertEquals(2, m.size());
-    m.remove(k); // remove with correct identity ref
-    assertEquals(1, m.size());
-    m.remove(k); // Remove twice should not work
-    m.remove(k2);
-    assertEquals(0, m.size()); // remove with correct identity ref
+    mMap.remove("test"); // Should not remove, because it doesn't have the correct obj ref
+    assertEquals(2, mMap.size());
+    assertEquals("true", mMap.remove(k)); // remove with correct identity ref
+    assertEquals(1, mMap.size());
+    assertNull(mMap.remove(k)); // Remove twice should not work
+    assertEquals("false", mMap.remove(k2));
+    assertEquals(0, mMap.size()); // remove with correct identity ref
   }
 
   @Test
@@ -100,14 +105,14 @@ public class ConcurrentIdentityHashMapTest {
   public void remove() {
     String x = new String("x");
     String x2 = new String("x");
-    mMap.put(x, "y");
+    assertNull(mMap.put(x, "y"));
     assertEquals(1, mMap.size());
     assertNull(mMap.remove(x2));
     assertEquals(1, mMap.size());
     assertEquals("y", mMap.remove(x));
     assertEquals(0, mMap.size());
 
-    mMap.put(x2, "z");
+    assertNull(mMap.put(x2, "z"));
     assertEquals(1, mMap.size());
     assertFalse(mMap.remove(x2, "a"));
     assertTrue(mMap.remove(x2, "z"));
@@ -118,12 +123,12 @@ public class ConcurrentIdentityHashMapTest {
   public void values() {
     String x1 = new String("x");
     String x2 = new String("x");
-    mMap.put(x1, "z");
-    mMap.put(x2, "z");
+    assertNull(mMap.put(x1, "z"));
+    assertNull(mMap.put(x2, "z"));
     Collection<String> v = mMap.values();
     assertEquals(2, v.size());
     v.forEach(val -> assertEquals("z", val));
-    mMap.remove(x1);
+    assertEquals("z", mMap.remove(x1));
     assertEquals(1, v.size());
   }
 
@@ -131,8 +136,8 @@ public class ConcurrentIdentityHashMapTest {
   public void clear() {
     String x1 = new String("x");
     String x2 = new String("x");
-    mMap.put(x1, "z");
-    mMap.put(x2, "z");
+    assertNull(mMap.put(x1, "z"));
+    assertNull(mMap.put(x2, "z"));
     assertEquals(2, mMap.size());
     mMap.clear();
     assertEquals(0, mMap.size());

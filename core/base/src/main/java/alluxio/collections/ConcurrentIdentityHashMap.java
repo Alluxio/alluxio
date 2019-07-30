@@ -20,6 +20,43 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
+/**
+ * An implementation {@link ConcurrentHashMap} that utilizes identity semantics
+ * as keys.
+ *
+ * Having identity semantics means that it is possible to have two objects with which are
+ * equal based on the object's {@code equals()} implementation, but not be overridden in the hash
+ * map if you try to put both. For example:
+ *
+ * <code>
+ *   ConcurrentIdentityHashMap&lt;String, Boolean&gt; map = new ConcurrentIdentityHashMap&lt;&gt;();
+ *   String s1 = new String("test");
+ *   String s2 = new String("test");
+ *   map.put(s1, true);
+ *   map.put(s2, false);
+ *   map.size(); // Prints "2".
+ *   map.get(s1); // true
+ *   map.get(s2); // false
+ * </code>
+ *
+ * Keys in this mapped are hashed based on the identity, that is, the location in memory of the
+ * objects rather than the equality which java typically uses for comparison.
+ *
+ * This implementation of {@link ConcurrentMap} has a few limitations which the corresponding
+ * {@link ConcurrentHashMap} does not have.
+ *
+ * - This map's {@link #entrySet()} returns a copy of the entries at the time of calling the method.
+ * The returned set does will not receive updates from the underlying map. This is a departure
+ * from the behavior of {@link ConcurrentHashMap}
+ *
+ * - This map's {@link #keySet()} does return the map-backed keySet and provides the same
+ * behavior as in {@link ConcurrentHashMap}, however the difference is that {@link Set#toArray()}
+ * and {@link Set#toArray(Object[])} methods are left unimplemented and will throw an error if
+ * the user attempts to convert the set into an array.
+ *
+ * @param <K> the type of keys maintained by this map
+ * @param <V> the type of mapped values
+ */
 public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
 
   private final ConcurrentHashMap<IdentityObject<K>, V> mInternalMap;
@@ -32,29 +69,27 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
   }
 
   /**
-   * Creates a new, empty map with an initial table size
-   * accommodating the specified number of elements without the need
-   * to dynamically resize.
+   * Creates a new, empty map with an initial table size accommodating the specified number of
+   * elements without having to dynamically resize.
    *
-   * @param initialCapacity The implementation performs internal
-   * sizing to accommodate this many elements.
+   * @param initialCapacity The implementation performs internal sizing to accommodate this many
+   *        elements.
    * @throws IllegalArgumentException if the initial capacity of
-   * elements is negative
+   *         elements is negative
    */
   public ConcurrentIdentityHashMap(int initialCapacity) {
     mInternalMap = new ConcurrentHashMap<>(initialCapacity);
   }
 
   /**
-   * Creates a new, empty map with an initial table size based on
-   * the given number of elements ({@code initialCapacity}) and
-   * initial table density ({@code loadFactor}).
+   * Creates a new, empty map with an initial table size based on the given number of elements
+   * ({@code initialCapacity}) and initial load factor ({@code loadFactor}) with a
+   * {@code concurrencyLevel} of 1.
    *
-   * @param initialCapacity the initial capacity. The implementation
-   * performs internal sizing to accommodate this many elements,
-   * given the specified load factor.
+   * @param initialCapacity the initial capacity. The implementation performs internal sizing to
+   *        accommodate this many elements, given the specified load factor.
    * @param loadFactor the load factor (table density) for
-   * establishing the initial table size
+   *        establishing the initial table size
    * @throws IllegalArgumentException if the initial capacity of
    * elements is negative or the load factor is nonpositive
    */
@@ -63,22 +98,18 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
   }
 
   /**
-   * Creates a new, empty map with an initial table size based on
-   * the given number of elements ({@code initialCapacity}), table
-   * density ({@code loadFactor}), and number of concurrently
-   * updating threads ({@code concurrencyLevel}).
+   * Creates a new, empty map with an initial table size based on the given number of elements
+   * ({@code initialCapacity}), load factor ({@code loadFactor}), and number of
+   * expected concurrently updating threads ({@code concurrencyLevel}).
    *
-   * @param initialCapacity the initial capacity. The implementation
-   * performs internal sizing to accommodate this many elements,
-   * given the specified load factor.
+   * @param initialCapacity the initial capacity. The implementation performs internal sizing to
+   *        accommodate this many elements, given the specified load factor.
    * @param loadFactor the load factor (table density) for
-   * establishing the initial table size
-   * @param concurrencyLevel the estimated number of concurrently
-   * updating threads. The implementation may use this value as
-   * a sizing hint.
-   * @throws IllegalArgumentException if the initial capacity is
-   * negative or the load factor or concurrencyLevel are
-   * nonpositive
+   *        establishing the initial table size
+   * @param concurrencyLevel the estimated number of concurrently updating threads. The
+   *        implementation may use this value as a sizing hint.
+   * @throws IllegalArgumentException if the initial capacity is negative or the load factor or
+   *         concurrencyLevel are nonpositive
    */
   public ConcurrentIdentityHashMap(int initialCapacity,
       float loadFactor, int concurrencyLevel) {
@@ -136,13 +167,13 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
   }
 
   /**
-   * Return a set representing the entries of this map at the time of calling.
+   * Returns a set representing the entries of this map at the time of calling.
    *
    * Note, this method will create a copy of the map's entry set at creation time. Standard
    * behavior in the {@link ConcurrentHashMap} says that the entry set backed by the map is
-   * updated when the underlying map is updated. This is not the case for this class.
+   * updated when the underlying map is updated. That is not the case for this class.
    *
-   * @return The set of entries in the map at time of calling.
+   * @return The set of entries in the map at time of calling
    */
   @Override
   public Set<Map.Entry<K, V>> entrySet() {
@@ -171,13 +202,13 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
   }
 
   /**
-   * Retrieves a set representing all keys contained within the map at time of calling.
+   * Returns a set representing all keys contained within the map.
    *
    * Note this method departs slightly from the standard {@link ConcurrentHashMap} implementation
    * by providing its own implementation of a Set for {@link IdentityObject}. Not all methods
    * have been implemented. Namely the {@code toArray} and {@code add*}.
    *
-   * @return The set of keys in the map.
+   * @return The set of keys in the map
    */
   @Override
   public Set<K> keySet() {
@@ -250,28 +281,33 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
     };
   }
 
-
   private class IdentityObject<T> {
     private T mObj;
 
     public IdentityObject(T o) {
-      this.mObj = o;
+      mObj = o;
     }
 
     public T get() {
       return mObj;
     }
 
+    /*
+     * This method hashes on top of the {@link System#identityHashCode(Object)} because the
+     * {@link ConcurrentHashMap} implementation uses a bucketing strategy where hash collisions
+     * occur for when values do not differ in upper or lower bits. Using the extra hash here
+     * helps ensure more even spread among the buckets of the internal map
+     */
     @Override
     public int hashCode() {
       // Robert Jenkins 32-bit integer hash
       int a = System.identityHashCode(mObj);
-      a = (a+0x7ed55d16) + (a<<12);
-      a = (a^0xc761c23c) ^ (a>>19);
-      a = (a+0x165667b1) + (a<<5);
-      a = (a+0xd3a2646c) ^ (a<<9);
-      a = (a+0xfd7046c5) + (a<<3);
-      a = (a^0xb55a4f09) ^ (a>>16);
+      a = (a + 0x7ed55d16) + (a << 12);
+      a = (a ^ 0xc761c23c) ^ (a >> 19);
+      a = (a + 0x165667b1) + (a << 5);
+      a = (a + 0xd3a2646c) ^ (a << 9);
+      a = (a + 0xfd7046c5) + (a << 3);
+      a = (a ^ 0xb55a4f09) ^ (a >> 16);
       return a;
     }
 
@@ -298,6 +334,7 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
   private class IdentityEntry<T, P> implements Map.Entry<T, P> {
     private final IdentityObject<T> mKey;
     private P mValue;
+
     IdentityEntry(Map.Entry<IdentityObject<T>, P> e) {
       mKey = e.getKey();
       mValue = e.getValue();
@@ -343,5 +380,4 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
       }
     }
   }
-
 }
