@@ -63,6 +63,7 @@ spec:
             {{- range $key, $val := .Values.secrets.worker }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
+              readOnly: true
             {{- end }}
             {{- end }}
             {{- end }}
@@ -105,6 +106,7 @@ spec:
             {{- range $key, $val := .Values.secrets.worker }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
+              readOnly: true
             {{- end }}
             {{- end }}
             {{- end }}
