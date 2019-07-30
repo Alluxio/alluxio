@@ -37,8 +37,8 @@ public class ConcurrentIdentityHashMapTest {
   public void testIdentitySemantics() {
     String k = new String("test");
     String k2 = new String("test");
-    mMap.put(k, "true");
-    mMap.put(k2, "false");
+    assertNull(mMap.put(k, "true"));
+    assertNull(mMap.put(k2, "false"));
     assertFalse(mMap.isEmpty());
     assertEquals(2, mMap.size());
     assertTrue(mMap.containsKey(k));
@@ -53,7 +53,7 @@ public class ConcurrentIdentityHashMapTest {
         fail("Should not have reached this condition");
       }
     }
-    mMap.remove("test"); // Should not remove, because it doesn't have the correct obj ref
+    assertNull(mMap.remove("test")); // Don't remove, because it doesn't have the correct obj ref
     assertEquals(2, mMap.size());
     assertEquals("true", mMap.remove(k)); // remove with correct identity ref
     assertEquals(1, mMap.size());
@@ -65,24 +65,26 @@ public class ConcurrentIdentityHashMapTest {
   @Test
   public void putIfAbsent() {
     String t = new String("test");
-    mMap.putIfAbsent(t, "v1");
+    assertNull(mMap.putIfAbsent(t, "v1"));
     assertEquals(1, mMap.size());
     assertEquals("v1", mMap.get(t));
     assertFalse(mMap.containsKey("test"));
+    assertEquals("v1", mMap.putIfAbsent(t, "v2"));
+    assertEquals("v1", mMap.get(t));
   }
 
   @Test
   public void keySet() {
     String x = new String("x");
     String xx = new String("x");
-    mMap.put(x, "x");
-    mMap.put(xx, "x2");
+    assertNull(mMap.put(x, "x"));
+    assertNull(mMap.put(xx, "x2"));
     assertEquals(2, mMap.size());
     Set<String> km = mMap.keySet();
     assertEquals(2, km.size());
     assertTrue(km.contains(x));
     assertTrue(km.contains(xx));
-    mMap.remove(x);
+    assertEquals("x", mMap.remove(x));
     assertEquals(1, km.size());
     assertTrue(km.remove(xx));
     assertEquals(0, km.size());
@@ -93,11 +95,11 @@ public class ConcurrentIdentityHashMapTest {
   public void replace() {
     String x = new String("x");
     String x2 = new String("x");
-    mMap.put(x, "x");
-    mMap.replace(x2, "x");
+    assertNull(mMap.put(x, "x"));
+    assertNull(mMap.replace(x2, "x"));
     assertEquals(1, mMap.size());
     assertEquals("x", mMap.replace(x, "y"));
-    mMap.replace(x, "noreplace", "z"); // shouldn't replace
+    assertFalse(mMap.replace(x, "noreplace", "z")); // shouldn't replace
     assertEquals("y", mMap.get(x));
   }
 
@@ -111,7 +113,6 @@ public class ConcurrentIdentityHashMapTest {
     assertEquals(1, mMap.size());
     assertEquals("y", mMap.remove(x));
     assertEquals(0, mMap.size());
-
     assertNull(mMap.put(x2, "z"));
     assertEquals(1, mMap.size());
     assertFalse(mMap.remove(x2, "a"));

@@ -20,15 +20,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * An implementation {@link ConcurrentHashMap} that utilizes identity semantics
- * as keys.
+ * with its keys
  *
  * Having identity semantics means that it is possible to have two objects with which are
  * equal based on the object's {@code equals()} implementation, but not be overridden in the hash
  * map if you try to put both. For example:
  *
- * <code>
+ * <pre>
  *   ConcurrentIdentityHashMap&lt;String, Boolean&gt; map = new ConcurrentIdentityHashMap&lt;&gt;();
  *   String s1 = new String("test");
  *   String s2 = new String("test");
@@ -37,7 +39,7 @@ import java.util.stream.Collectors;
  *   map.size(); // Prints "2".
  *   map.get(s1); // true
  *   map.get(s2); // false
- * </code>
+ * </pre>
  *
  * Keys in this mapped are hashed based on the identity, that is, the location in memory of the
  * objects rather than the equality which java typically uses for comparison.
@@ -57,7 +59,10 @@ import java.util.stream.Collectors;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
+@ThreadSafe
 public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
+  private static final String UNSUPPORTED_OP_FMT = "%s is not supported in this set returned from "
+          + ConcurrentIdentityHashMap.class.getCanonicalName();
 
   private final ConcurrentHashMap<IdentityObject<K>, V> mInternalMap;
 
@@ -206,7 +211,8 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
    *
    * Note this method departs slightly from the standard {@link ConcurrentHashMap} implementation
    * by providing its own implementation of a Set for {@link IdentityObject}. Not all methods
-   * have been implemented. Namely the {@code toArray} and {@code add*}.
+   * have been implemented. Namely the {@code toArray}, {@code add*}, and
+   * {@code *all(Collection<?> c)} methods.
    *
    * @return The set of keys in the map
    */
@@ -214,6 +220,7 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
   public Set<K> keySet() {
     Set<IdentityObject<K>> set = mInternalMap.keySet();
     return new Set<K>() {
+
       @Override
       public int size() {
         return set.size();
@@ -236,17 +243,17 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
 
       @Override
       public Object[] toArray() {
-        throw new UnsupportedOperationException("toArray not supported in identity keySet");
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_OP_FMT, "toArray"));
       }
 
       @Override
       public <T> T[] toArray(T[] a) {
-        throw new UnsupportedOperationException("toArray not supported in identity keySet");
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_OP_FMT, "toArray"));
       }
 
       @Override
       public boolean add(K k) {
-        throw new UnsupportedOperationException("add not supported in keySet");
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_OP_FMT, "add"));
       }
 
       @Override
@@ -254,24 +261,36 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
         return set.remove(new IdentityObject<>(o));
       }
 
+      /*
+       * This method is possible to implement if inputs from the input collection are auto-boxed
+       * into an IdentityObject<T> but the implementation has been left absent for now.
+       */
       @Override
       public boolean containsAll(Collection<?> c) {
-        return set.containsAll(c);
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_OP_FMT, "containsAll"));
       }
 
       @Override
       public boolean addAll(Collection<? extends K> c) {
-        throw new UnsupportedOperationException("addAll not supported in keySet");
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_OP_FMT, "addAll"));
       }
 
+      /*
+       * This method is possible to implement if inputs from the input collection are auto-boxed
+       * into an IdentityObject<T> but the implementation has been left absent for now.
+       */
       @Override
       public boolean retainAll(Collection<?> c) {
-        return set.retainAll(c);
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_OP_FMT, "retainAll"));
       }
 
+      /*
+       * This method is possible to implement if inputs from the input collection are auto-boxed
+       * into an IdentityObject<T> but the implementation has been left absent for now.
+       */
       @Override
       public boolean removeAll(Collection<?> c) {
-        return set.retainAll(c);
+        throw new UnsupportedOperationException(String.format(UNSUPPORTED_OP_FMT, "removeAll"));
       }
 
       @Override
@@ -317,9 +336,7 @@ public class ConcurrentIdentityHashMap<K, V> implements ConcurrentMap<K, V> {
         return true;
       }
       if (!(o instanceof IdentityObject)) {
-        // If it isn't an instance of an identity object, compare our internal pointer with the arg
-        // A form of "auto unboxing" when performing comparisons
-        return mObj == o;
+        return false;
       }
 
       try {
