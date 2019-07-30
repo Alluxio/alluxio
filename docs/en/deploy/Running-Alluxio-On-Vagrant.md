@@ -24,15 +24,15 @@ There are several prerequisites for all three deployment scenarios that are supp
 * Download and Install [Python>=2.7](https://www.python.org/), not Python3.
 * Install Python library dependencies, under `integration/vagrant` directory in your Alluxio home directory, run:
 
-```bash
-sudo bash bin/install.sh
+```console
+$ sudo bash bin/install.sh
 ```
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `integration/vagrant` run:
 
-```bash
-sudo pip install -r pip-req.txt
+```console
+$ sudo pip install -r pip-req.txt
 ```
 
 ## Deploy locally on Virtual Box
@@ -51,8 +51,8 @@ when launching cluster.
 
 Now you can launch the Alluxio cluster with Hadoop as under storage by running the script under integration/vagrant:
 
-```bash
-./create <number of machines> vb
+```console
+$ ./create <number of machines> vb
 ```
 
 Each node of the cluster runs an Alluxio worker, and the AlluxioMaster runs an Alluxio master.
@@ -64,7 +64,7 @@ Each node of the cluster runs an Alluxio worker, and the AlluxioMaster runs an A
 After the command `./create <number of machines> vb` succeeds, you can see two green lines like
 below shown at the end of the shell output:
 
-```bash
+```
 >>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
 >>> visit default port of the web UI of what you deployed <<<
 ```
@@ -81,14 +81,14 @@ The nodes set up are named as `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2
 
 To SSH into a node, run:
 
-```bash
-vagrant ssh <node name>
+```console
+$ vagrant ssh <node name>
 ```
 
 For example, you can SSH into `AlluxioMaster` with:
 
-```bash
-vagrant ssh AlluxioMaster
+```console
+$ vagrant ssh AlluxioMaster
 ```
 
 All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`,
@@ -96,24 +96,24 @@ and Hadoop is installed in `/hadoop`.
 
 On the `AlluxioMaster` node, you can run tests against Alluxio to check its health:
 
-```bash
-/alluxio/bin/alluxio runTests
+```console
+$ /alluxio/bin/alluxio runTests
 ```
 
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click `Browse File System` in the navigation bar, and you should see the files written to Alluxio by the above tests.
 
 From a node in the cluster, you can SSH to other nodes in the cluster without password with:
 
-```bash
-ssh AlluxioWorker1
+```console
+$ ssh AlluxioWorker1
 ```
 
 ### Destroy the cluster
 
 Under `integration/vagrant` directory, you can run:
 
-```bash
-./destroy
+```console
+$ ./destroy
 ```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
@@ -125,9 +125,9 @@ command succeeds, the virtual machines are terminated.
 
 * Install AWS Vagrant plugin:
 
-```bash
-vagrant plugin install vagrant-aws
-vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```console
+$ vagrant plugin install vagrant-aws
+$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
 ```
 
 ### Launch Cluster
@@ -141,23 +141,23 @@ tutorial](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html
 Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
 variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 
-```bash
-export AWS_ACCESS_KEY_ID=<your access key>
-export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```console
+$ export AWS_ACCESS_KEY_ID=<your access key>
+$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
 Generate your EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
 the permissions of your private key file that only you can read it:
 
-```bash
-chmod 400 <your key pair>.pem
+```console
+$ chmod 400 <your key pair>.pem
 ```
 
 Copy `integration/vagrant/conf/ec2.yml.template` to `integration/vagrant/conf/ec2.yml` by:
 
-```bash
-cp integration/vagrant/conf/ec2.yml.template integration/vagrant/conf/ec2.yml
+```console
+$ cp integration/vagrant/conf/ec2.yml.template integration/vagrant/conf/ec2.yml
 ```
 
 In the configuration file `integration/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
@@ -182,8 +182,8 @@ the corresponding configurations in `conf/ufs.yml`.
 Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
 the script under `integration/vagrant`:
 
-```bash
-./create <number of machines> aws
+```console
+$ ./create <number of machines> aws
 ```
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
@@ -193,9 +193,9 @@ Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs th
 After the command `./create <number of machines> aws` succeeds, you can see two green lines like
 below shown at the end of the shell output:
 
-```bash
-    >>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
-    >>> visit default port of the web UI of what you deployed <<<
+```
+>>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
+>>> visit default port of the web UI of what you deployed <<<
 ```
 
 Default port for Alluxio Web UI is **19999**.
@@ -218,22 +218,22 @@ The nodes set up are named to `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2
 
 To SSH into a node, run:
 
-```bash
-vagrant ssh <node name>
+```console
+$ vagrant ssh <node name>
 ```
 
 For example, you can SSH into `AlluxioMaster` with:
 
-```bash
-vagrant ssh AlluxioMaster
+```console
+$ vagrant ssh AlluxioMaster
 ```
 
 All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`.
 
 On the `AlluxioMaster` node, you can run tests against Alluxio to check its health:
 
-```bash
-/alluxio/bin/alluxio runTests
+```console
+$ /alluxio/bin/alluxio runTests
 ```
 
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click `Browse
@@ -245,16 +245,16 @@ console, and find some files written into your S3 bucket by the above tests.
 
 From a node in the cluster, you can SSH to other nodes in the cluster without password with:
 
-```bash
-ssh AlluxioWorker1
+```console
+$ ssh AlluxioWorker1
 ```
 
 ### Destroy the cluster
 
 Under `integration/vagrant` directory, you can run:
 
-```bash
-./destroy
+```console
+$ ./destroy
 ```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
@@ -280,9 +280,9 @@ In order to enable spot instances, you have to modify the file: `integration/vag
 
 * Download and Install the Google Vagrant plugin:
 
-```bash
-vagrant plugin install vagrant-google
-vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/google.box
+```console
+$ vagrant plugin install vagrant-google
+$ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/google.box
 ```
 
 ### Launch a Cluster
@@ -313,17 +313,17 @@ Make sure the service account you are using has permissions as the
 
 Using the [gcloud sdk](https://console.cloud.google.com) configure keys for SSH:
 
-```bash
-curl https://sdk.cloud.google.com | bash
-exec -l $SHELL
-gcloud init
-gcloud compute config-ssh
+```console
+$ curl https://sdk.cloud.google.com | bash
+$ exec -l $SHELL
+$ gcloud init
+$ gcloud compute config-ssh
 ```
 
 Create the Vagrant GCE config file by copying the provided template:
 
-```bash
-cp integration/vagrant/conf/gce.yml.template integration/vagrant/conf/gce.yml
+```console
+$ cp integration/vagrant/conf/gce.yml.template integration/vagrant/conf/gce.yml
 ```
 
 In the configuration file `integration/vagrant/conf/gce.yml`, set the project id, service account,
@@ -340,15 +340,15 @@ To access GCS, you need to create [developer keys](https://cloud.google.com/stor
 in the [Interoperability tab](https://console.cloud.google.com/storage/settings) of the GCS console,
 and set shell environment variables `GCS_ACCESS_KEY_ID` and `GCS_SECRET_ACCESS_KEY` by:
 
-```bash
-export GCS_ACCESS_KEY_ID=<your access key>
-export GCS_SECRET_ACCESS_KEY=<your secret access key>
+```console
+$ export GCS_ACCESS_KEY_ID=<your access key>
+$ export GCS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
 Now you can launch the Alluxio cluster by running the script under `integration/vagrant`:
 
-```bash
-./create <number of machines> google
+```console
+$ ./create <number of machines> google
 ```
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` node runs the Alluxio master.
@@ -360,7 +360,7 @@ Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` node ru
 After the command `./create <number of machines> google` succeeds, you will see two green lines like
 below shown at the end of the shell output:
 
-```bash
+```
 >>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI
 >>> visit default port of the web UI of what you deployed
 ```
@@ -371,8 +371,8 @@ Before you can access the Web UI, a network firewall rule needs to be made to al
 port 19999. This can be done through the [Console](https://console.cloud.google.com) UI or using a
 gcloud command like the following, which assumes a network named 'default'.
 
-```bash
-gcloud compute firewall-rules create alluxio-ui --allow tcp:19999
+```console
+$ gcloud compute firewall-rules create alluxio-ui --allow tcp:19999
 ```
 
 Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Alluxio Web UI.
@@ -390,22 +390,22 @@ The nodes set up are named to `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2
 
 To SSH into a node, run:
 
-```bash
-vagrant ssh <node name>
+```console
+$ vagrant ssh <node name>
 ```
 
 For example, you can SSH into `AlluxioMaster` with:
 
-```bash
-vagrant ssh AlluxioMaster
+```console
+$ vagrant ssh AlluxioMaster
 ```
 
 Alluxio is installed in `/alluxio`.
 
 On the `AlluxioMaster` node, you can run sample tests on Alluxio to check its health:
 
-```bash
-/alluxio/bin/alluxio runTests
+```console
+$ /alluxio/bin/alluxio runTests
 ```
 
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click `Browse
@@ -413,16 +413,16 @@ File System` in the navigation bar, and you should see the files written to Allu
 
 From a node in the cluster, you can SSH to other nodes in the cluster with:
 
-```bash
-ssh AlluxioWorker1
+```console
+$ ssh AlluxioWorker1
 ```
 
 ### Destroy the cluster
 
 In the `integration/vagrant` directory, you can run:
 
-```bash
-./destroy
+```console
+$ ./destroy
 ```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the

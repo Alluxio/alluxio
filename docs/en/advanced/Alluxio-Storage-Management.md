@@ -73,7 +73,7 @@ information.
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the
 ramdisk size to be 16GB on each worker:
 
-```
+```properties
 alluxio.worker.memory.size=16GB
 ```
 
@@ -82,7 +82,7 @@ to update `alluxio.worker.tieredstore.level0.dirs.path` to take specify each sto
 to use as a storage directory. For example, to use the ramdisk (mounted at `/mnt/ramdisk`) and two
 SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
 
-```
+```properties
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
 alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 ```
@@ -101,7 +101,7 @@ the client user who is among the same group of the user that starts the Alluxio 
 After updating the storage media, we need to indicate how much storage is allocated for each storage
 directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on each SSD:
 
-```
+```properties
 alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 ```
 
@@ -156,7 +156,7 @@ Tiered storage can be enabled in Alluxio using
 [configuration parameters]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}).
 To specify additional tiers for Alluxio, use the following configuration parameters:
 
-```
+```properties
 alluxio.worker.tieredstore.levels
 alluxio.worker.tieredstore.level{x}.alias
 alluxio.worker.tieredstore.level{x}.dirs.quota
@@ -168,7 +168,7 @@ alluxio.worker.tieredstore.level{x}.watermark.low.ratio
 For example, if you wanted to configure Alluxio to have two tiers, memory and hard disk drive,
 you could use a configuration similar to:
 
-```
+```properties
 # configure 2 tiers in Alluxio
 alluxio.worker.tieredstore.levels=2
 # the first (top) tier to be a memory tier
@@ -285,8 +285,8 @@ TTL to remove the corresponding data stored in a UFS.
 In order to manually free data in Alluxio, you can use the `./bin/alluxio` file system command
 line interface.
 
-```bash
-./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
+```console
+$ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
 ```
 
 This will remove the data at the given path from Alluxio storage. The data is still accessible if
@@ -301,8 +301,8 @@ configured [eviction policy](#eviction-policies) will take care of removing unus
 If the data is already in a UFS, use
 [`alluxio fs load`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#load)
 
-```bash
-./bin/alluxio fs load ${PATH_TO_FILE}
+```console
+$ ./bin/alluxio fs load ${PATH_TO_FILE}
 ```
 
 To load data from the local file system, use the command
@@ -319,8 +319,8 @@ The command [`alluxio fs persist`]({{ '/en/basic/Command-Line-Interface.html' | 
 }}#persist)
 allows a user to push data from the Alluxio cache to a UFS.
 
-```bash
-./bin/alluxio fs persist ${PATH_TO_FILE}
+```console
+$ ./bin/alluxio fs persist ${PATH_TO_FILE}
 ```
 
 This command is useful if you have data which you loaded into Alluxio which did not originate from
@@ -345,7 +345,7 @@ next check interval an hour later.
 
 To set the interval to 10 minutes, add the following to `alluxio-site.properties`:
 
-```
+```properties
 alluxio.master.ttl.checker.interval=10m
 ```
 
@@ -402,9 +402,9 @@ access patterns.
 
 For example, to delete the files created by the `runTests` after 3 minutes:
 
-```bash
-./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m -Dalluxio.user.file.create.ttl
-.action=DELETE
+```console
+$ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m \
+  -Dalluxio.user.file.create.ttl.action=DELETE
 ```
 
 For this example, ensure the `alluxio.master.ttl.checker.interval` is set to a short
@@ -446,35 +446,36 @@ must be no less than `alluxio.user.file.replication.min`.
 
 For example, users can copy a local file `/path/to/file` to Alluxio with at least two replicas initially:
 
-```bash
-$ ./bin/alluxio fs -Dalluxio.user.file.replication.min=2 copyFromLocal /path/to/file /file
+```console
+$ ./bin/alluxio fs -Dalluxio.user.file.replication.min=2 \
+copyFromLocal /path/to/file /file
 ```
 
 Next, set the replication level range of `/file` between 3 and 5. Note that, this command will
 return right after setting the new replication level range in a background process and achieving
 the target asynchronously.
 
-```bash
+```console
 $ ./bin/alluxio fs setReplication --min 3 --max 5 /file
 ```
 
 Set the `alluxio.user.file.replication.max` to unlimited.
 
-```bash
+```console
 $ ./bin/alluxio fs setReplication --max -1 /file
 ```
 
 Recursirvely set replication level of all files inside a directory `/dir` (including its
 sub-directories) using `-R`:
 
-```bash
+```console
 $ ./bin/alluxio fs setReplication --min 3 --max -5 -R /dir
 ```
 
 To check the target replication level of a file, run
 
-```bash
-$ bin/alluxio fs stat /foo
+```console
+$ ./bin/alluxio fs stat /foo
 ```
 and look for the `replicationMin` and `replicationMax` fields in the output.
 
@@ -483,8 +484,8 @@ and look for the `replicationMin` and `replicationMax` fields in the output.
 The Alluxio shell command `fsadmin report` provides a short summary of space availability,
 along with other useful information. A sample output is shown below:
 
-```bash
-./bin/alluxio fsadmin report
+```console
+$ ./bin/alluxio fsadmin report
 Alluxio cluster summary:
     Master Address: localhost/127.0.0.1:19998
     Web Port: 19999
@@ -508,14 +509,14 @@ the Alluxio cache.
 
 To get the total used bytes in the Alluxio cache:
 
-```bash
-./bin/alluxio fs getUsedBytes
+```console
+$ ./bin/alluxio fs getUsedBytes
 ```
 
 To get the total capacity of the Alluxio cache in bytes:
 
-```bash
-./bin/alluxio fs getCapacityBytes
+```console
+$ ./bin/alluxio fs getCapacityBytes
 ```
 
 The Alluxio master web interface gives the user a visual overview of the cluster and how much

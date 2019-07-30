@@ -31,8 +31,8 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 #### Option 1: S3 Interface (preferred)
@@ -73,27 +73,30 @@ An Ceph location can be mounted at a nested directory in the Alluxio namespace t
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
 
 Issue the following command to use the S3 interface:
-```bash
-$ ./bin/alluxio fs mount --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> --option aws.secretKey=<CEPH_SECRET_ACCESS_KEY>\
+```console
+$ ./bin/alluxio fs mount \
+  --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> --option aws .secretKey=<CEPH_SECRET_ACCESS_KEY>\
   --option alluxio.underfs.s3.endpoint=<HTTP_ENDPOINT> --option alluxio.underfs.s3.disable.dns.buckets=true \
   --option alluxio.underfs.s3.inherit_acl=false /mnt/ceph s3://<BUCKET>/<FOLDER>
 ```
 
 Similarly, to use the Swift interface:
-```bash
-$ ./bin/alluxio fs mount --option fs.swift.user=<SWIFT_USER> --option fs.swift.tenant=<SWIFT_TENANT> \
---option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
---option fs.swift.auth.method=<AUTH_METHOD> \
-/mnt/ceph swift://<BUCKET>/<FOLDER>
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.swift.user=<SWIFT_USER> \
+  --option fs.swift.tenant=<SWIFT_TENANT> \
+  --option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
+  --option fs.swift.auth.method=<AUTH_METHOD> \
+  /mnt/ceph swift://<BUCKET>/<FOLDER>
 ```
 
 ## Running Alluxio Locally with Ceph
 
 Start up Alluxio locally to see that everything works.
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -101,8 +104,8 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 Visit your bucket to verify the files and directories created by Alluxio exist.
@@ -114,8 +117,8 @@ You should see files named like:
 
 To stop Alluxio, run:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
