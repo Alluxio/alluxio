@@ -88,9 +88,6 @@ properties:
 EOF
 ```
 Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
-For example, is using Amazon S3 as the under store, add properties as:
-```console
-$ cat << EOF > config.yaml
 For example:
 - If using Amazon S3 as the under store, add these properties:
 ```console
