@@ -58,14 +58,14 @@ spec:
               mountPath: /dev/shm
             - name: alluxio-domain
               mountPath: /opt/domain
-            {{ if .Values.secrets }}
-            {{ if .Values.secrets.worker }}
+            {{- if .Values.secrets }}
+            {{- if .Values.secrets.worker }}
             {{- range $key, $val := .Values.secrets.worker }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
             {{- end }}
-            {{ end }}
-            {{ end }}
+            {{- end }}
+            {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -100,14 +100,14 @@ spec:
               mountPath: /dev/shm
             - name: alluxio-domain
               mountPath: /opt/domain
-            {{ if .Values.secrets }}
-            {{ if .Values.secrets.worker }}
+            {{- if .Values.secrets }}
+            {{- if .Values.secrets.worker }}
             {{- range $key, $val := .Values.secrets.worker }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
             {{- end }}
-            {{ end }}
-            {{ end }}
+            {{- end }}
+            {{- end }}
       restartPolicy: Always
       volumes:
         - name: alluxio-ramdisk
@@ -118,12 +118,12 @@ spec:
           hostPath:
             path: {{ .Values.volumes.worker.domainHostPath }}
             type: DirectoryOrCreate
-        {{ if .Values.secrets }}
-        {{ if .Values.secrets.worker }}
+        {{- if .Values.secrets }}
+        {{- if .Values.secrets.worker }}
         {{- range $key, $val := .Values.secrets.worker }}
         - name: secret-{{ $key }}-volume
           secret:
             secretName: {{ $key }}
         {{- end }}
-        {{ end }}
-        {{ end }}
+        {{- end }}
+        {{- end }}
