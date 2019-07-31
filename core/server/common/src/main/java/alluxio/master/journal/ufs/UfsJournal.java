@@ -189,7 +189,11 @@ public class UfsJournal implements Journal {
       // We throw UnavailableException here so that clients will retry with the next primary master.
       throw new UnavailableException("Failed to write to journal: journal is in state " + mState);
     }
-    return new MasterJournalContext(mAsyncWriter);
+    AsyncJournalWriter writer = mAsyncWriter;
+    if (writer == null) {
+      throw new UnavailableException("Failed to write to journal: journal is shutdown.");
+    }
+    return new MasterJournalContext(writer);
   }
 
   private synchronized UfsJournalLogWriter writer() {
