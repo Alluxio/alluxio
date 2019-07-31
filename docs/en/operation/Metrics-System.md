@@ -133,20 +133,20 @@ Grafana is a metics analytics and visualization software used for visualizing ti
 data. You can use Grafana to better visualize the various metrics that Alluxio collects. The software
 allows users to more easily see changes in memory, storage, and completed operations in Alluxio.
 
-Since Grafana does not collect metrics a monitoring tool must be set up for Grafana to pull metrics from.
-Alluxio and Grafana both support exporting and pulling metrics respectively from `Graphite`.
+Grafana itself does not collect metrics, so a monitoring tool must be set up for Grafana to pull metrics from.
+Alluxio and Grafana both support exporting and pulling metrics from `Graphite`.
 
 ### Setting up Graphite
 
 Install Graphite using the instructions [here](https://graphite.readthedocs.io/en/latest/install.html).
 
-Graphite has a fairly simple configuration with Alluxio. In this setup, Alluxio pushes all metrics in the
+Graphite has a simple configuration with Alluxio. In this setup, Alluxio pushes all metrics in the
 master and worker `/metrics/json` endpoints to Graphite. Graphite has to be setup as a sink in
 `${ALLUXIO_HOME}/conf/metrics.properties` add the following:
 
 ```
 alluxio.metrics.sink.graphite.class=alluxio.metrics.sink.GraphiteSink
-alluxio.metrics.sink.graphite.host=localhost
+alluxio.metrics.sink.graphite.host=graphite
 alluxio.metrics.sink.graphite.port=2003
 alluxio.metrics.sink.graphite.period=10
 ```
