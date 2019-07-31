@@ -335,6 +335,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
         "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed,
         "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName);
   }
+
   /**
    * Tests ls command with sort by size option.
    */
