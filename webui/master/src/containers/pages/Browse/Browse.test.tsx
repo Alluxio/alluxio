@@ -21,6 +21,7 @@ import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App'
 import {AllProps, Browse} from './Browse';
+import {routePaths} from "../../../constants";
 
 configure({adapter: new Adapter()});
 
@@ -31,7 +32,7 @@ describe('Browse', () => {
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
-    history.push('/browse');
+    history.push(routePaths.browse);
     store = configureStore(history, initialState);
     props = {
       location: {search: ''},

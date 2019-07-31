@@ -36,6 +36,7 @@ import {IBrowse, IBrowseStateToProps} from '../../../store/browse/types';
 import {IInit} from '../../../store/init/types';
 
 import './Browse.css';
+import {routePaths} from "../../../constants";
 
 interface IPropsFromState {
   browseData: IBrowse;
@@ -67,7 +68,7 @@ class Browse extends React.Component<AllProps> {
       <div className="col-12">
         <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
                   offset={offset} offsetInputHandler={offsetInputHandler} path={path}
-                  queryStringPrefix="/browse" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
+                  queryStringPrefix={routePaths.browse} queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
                   viewData={browseData} history={history} proxyDownloadApiUrl={initData.proxyDownloadFileApiUrl}/>
         <hr/>
         <h6>Detailed blocks information (block capacity is {browseData.blockSizeBytes} Bytes):</h6>
@@ -197,7 +198,7 @@ class Browse extends React.Component<AllProps> {
           ))}
           </tbody>
         </Table>
-        <Paginator baseUrl={'/browse'} path={path} total={browseData.ntotalFile} offset={offset} limit={limit}/>
+        <Paginator baseUrl={routePaths.browse} path={path} total={browseData.ntotalFile} offset={offset} limit={limit}/>
       </React.Fragment>
     )
   }

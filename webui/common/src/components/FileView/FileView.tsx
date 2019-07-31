@@ -54,7 +54,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
         </h5>
         <Form className="mb-3 viewData-file-form" id="viewDataFileForm" inline={true} onSubmit={disableFormSubmit}>
           <FormGroup className="mb-2 mr-sm-2 w-100">
-            <Input className="w-100" type="textarea" value={viewData.fileData} style={{height: textAreaHeight}}
+            <Input className="w-100" type="textarea" value={viewData.fileData || ''} style={{height: textAreaHeight}}
                    readOnly={true}/>
           </FormGroup>
         </Form>

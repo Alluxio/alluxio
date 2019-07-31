@@ -26,6 +26,7 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/data/actions';
 import {IData, IDataStateToProps} from '../../../store/data/types';
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import {routePaths} from "../../../constants";
 
 interface IPropsFromState {
   data: IData;
@@ -44,7 +45,7 @@ export class Data extends React.Component<AllProps> {
     return (
         <div className="col-12">
           {this.renderFileListing(data.fileInfos)}
-          <Paginator baseUrl={'/data'} total={data.inAlluxioFileNum} offset={offset} limit={limit}/>
+          <Paginator baseUrl={routePaths.data} total={data.inAlluxioFileNum} offset={offset} limit={limit}/>
         </div>
     );
   }

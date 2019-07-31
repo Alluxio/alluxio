@@ -24,7 +24,7 @@ import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {
   Browse, Configuration, Data, MasterLogs, Metrics, Overview, Workers
 } from '..';
-import {footerNavigationData, headerNavigationData} from '../../constants';
+import {footerNavigationData, headerNavigationData, routePaths} from '../../constants';
 import {IApplicationState} from '../../store';
 import {fetchRequest} from '../../store/init/actions';
 import {IAppStateToProps, IInit} from '../../store/init/types';
@@ -68,14 +68,14 @@ export class App extends React.Component<AllProps> {
           </div>
           <div className="w-100 pt-5 mt-3 pb-4 mb-2">
             <Switch>
-              <Route exact={true} path="/" render={this.redirectToOverview}/>
-              <Route path="/overview" exact={true} render={this.renderView(Overview, undefined)}/>
-              <Route path="/browse" exact={true} render={this.renderView(Browse, {history})}/>
-              <Route path="/config" exact={true} render={this.renderView(Configuration, undefined)}/>
-              <Route path="/data" exact={true} render={this.renderView(Data, undefined)}/>
-              <Route path="/logs" exact={true} render={this.renderView(MasterLogs, {history})}/>
-              <Route path="/metrics" exact={true} render={this.renderView(Metrics, undefined)}/>
-              <Route path="/workers" exact={true} render={this.renderView(Workers, undefined)}/>
+              <Route path={routePaths.root} exact={true} render={this.redirectToOverview}/>
+              <Route path={routePaths.overview} exact={true} render={this.renderView(Overview, undefined)}/>
+              <Route path={routePaths.browse} exact={true} render={this.renderView(Browse, {history})}/>
+              <Route path={routePaths.config} exact={true} render={this.renderView(Configuration, undefined)}/>
+              <Route path={routePaths.data} exact={true} render={this.renderView(Data, undefined)}/>
+              <Route path={routePaths.logs} exact={true} render={this.renderView(MasterLogs, {history})}/>
+              <Route path={routePaths.metrics} exact={true} render={this.renderView(Metrics, undefined)}/>
+              <Route path={routePaths.workers} exact={true} render={this.renderView(Workers, undefined)}/>
               <Route render={this.redirectToOverview}/>
             </Switch>
           </div>
@@ -97,7 +97,7 @@ export class App extends React.Component<AllProps> {
 
   private redirectToOverview(routerProps: RouteComponentProps<any, StaticContext, any>) {
     return (
-      <Redirect to="/overview"/>
+      <Redirect to={routePaths.overview}/>
     );
   }
 }

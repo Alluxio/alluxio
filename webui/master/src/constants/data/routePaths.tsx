@@ -9,11 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './data/headerNavigation';
-export * from './data/footerNavigation';
-export * from './data/routePaths';
-
-export * from './types/IConfigTriple';
-export * from './types/INodeInfo';
-export * from './types/IScopedPropertyInfo';
-export * from './types/IStorageTierInfo';
+export const routePaths = {
+    root: '/',
+    overview: '/overview',
+    browse: '/browse',
+    config: '/config',
+    data: '/data',
+    logs: '/logs',
+    metrics: '/metrics',
+    workers: '/workers'
+};

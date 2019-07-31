@@ -21,6 +21,7 @@ import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
 import {AllProps, Configuration} from './Configuration';
+import {routePaths} from "../../../constants";
 
 configure({adapter: new Adapter()});
 
@@ -31,7 +32,7 @@ describe('Configuration', () => {
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
-    history.push('/config');
+    history.push(routePaths.config);
     store = configureStore(history, initialState);
     props = {
       fetchRequest: sinon.spy(() => {}),

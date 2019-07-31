@@ -22,6 +22,7 @@ import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
 import {MasterLogs} from './MasterLogs';
+import {routePaths} from "../../../constants";
 
 configure({adapter: new Adapter()});
 
@@ -32,7 +33,7 @@ describe('MasterLogs', () => {
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
-    history.push('/logs');
+    history.push(routePaths.logs);
     store = configureStore(history, initialState);
     props = {
       location: {search: ''},

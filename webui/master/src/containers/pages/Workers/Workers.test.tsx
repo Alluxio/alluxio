@@ -22,6 +22,7 @@ import {initialState, IApplicationState} from '../../../store';
 import {initialInitState} from '../../../store/init/reducer';
 import ConnectedApp from '../../App/App';
 import {AllProps, Workers} from './Workers';
+import {routePaths} from "../../../constants";
 
 configure({adapter: new Adapter()});
 
@@ -32,7 +33,7 @@ describe('Workers', () => {
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
-    history.push('/workers');
+    history.push(routePaths.workers);
     store = configureStore(history, initialState);
     props = {
       initData: initialInitState.data,
