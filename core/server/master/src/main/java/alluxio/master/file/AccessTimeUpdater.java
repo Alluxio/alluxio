@@ -143,11 +143,6 @@ final class AccessTimeUpdater implements JournalSink {
     }
   }
 
-  private void journalAccessTime(JournalContext context, UpdateInodeEntry entry) {
-    context.append(Journal.JournalEntry.newBuilder().setUpdateInode(entry)
-        .build());
-  }
-
   private void flushScheduledUpdates() {
     mUpdateScheduled.set(false);
     flushUpdates();
@@ -159,9 +154,11 @@ final class AccessTimeUpdater implements JournalSink {
            iterator.hasNext();) {
         Map.Entry<Long, Long> inodeEntry = iterator.next();
         iterator.remove();
-        journalAccessTime(context, UpdateInodeEntry.newBuilder()
+        UpdateInodeEntry entry = UpdateInodeEntry.newBuilder()
             .setId(inodeEntry.getKey())
             .setLastAccessTimeMs(inodeEntry.getValue())
+            .build();
+        context.append(Journal.JournalEntry.newBuilder().setUpdateInode(entry)
             .build());
       }
     } catch (UnavailableException e) {

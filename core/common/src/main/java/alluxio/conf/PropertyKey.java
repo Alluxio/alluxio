@@ -1282,8 +1282,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
           .setDefaultValue("1h")
           .setDescription("The minimum interval between files access time update journal entries "
-              + "get flushed. Setting it to a non-positive value will make the the journal update "
-              + "synchronous.")
+              + "get flushed asynchronously. Setting it to a non-positive value will make the the "
+              + "journal update synchronous. Asynchronous update reduces the performance impact of "
+              + "tracking access time but can lose some access time update when master stops "
+              + "unexpectedly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1291,7 +1293,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION)
           .setDefaultValue("1d")
           .setDescription("The file last access time is precise up to this value. Setting it to"
-              + "a non-positive value will update last access time on every file access operation.")
+              + "a non-positive value will update last access time on every file access operation."
+              + "Longer precision will help reduce the performance impact of tracking access time "
+              + "by reduce the amount of metadata writes occur while reading the same group of "
+              + "files repetitively.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();

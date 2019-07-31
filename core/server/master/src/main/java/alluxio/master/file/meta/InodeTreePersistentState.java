@@ -601,8 +601,8 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   /**
-   * Updates the timestamps for the indicated inode directory, and updates its child
-   * count.
+   * Updates the last modification time and last access time for the indicated inode directory,
+   * and updates its child count.
    *
    * If the inode's timestamps are already greater than the specified time, the inode's timestamps
    * will not be changed.
