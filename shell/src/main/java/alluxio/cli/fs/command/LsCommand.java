@@ -53,17 +53,17 @@ public final class LsCommand extends AbstractFileSystemCommand {
   // Permission: drwxrwxrwx+
   public static final String LS_FORMAT_PERMISSION = "%-12s";
   public static final String LS_FORMAT_FILE_SIZE = "%15s";
-  public static final String LS_FORMAT_LAST_MODIFIED_TIME = "%24s";
+  public static final String LS_FORMAT_TIMESTAMP = "%24s";
   public static final String LS_FORMAT_ALLUXIO_STATE = "%5s";
   public static final String LS_FORMAT_PERSISTENCE_STATE = "%16s";
   public static final String LS_FORMAT_USER_NAME = "%-15s";
   public static final String LS_FORMAT_GROUP_NAME = "%-15s";
   public static final String LS_FORMAT_FILE_PATH = "%-5s";
   public static final String LS_FORMAT_NO_ACL = LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
-      + LS_FORMAT_LAST_MODIFIED_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
+      + LS_FORMAT_TIMESTAMP + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
   public static final String LS_FORMAT = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
       + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
-      + LS_FORMAT_LAST_MODIFIED_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
+      + LS_FORMAT_TIMESTAMP + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -116,6 +116,20 @@ public final class LsCommand extends AbstractFileSystemCommand {
               .desc("reverse order while sorting")
               .build();
 
+  private static final Option USE_ACCESS_TIME_OPTION =
+      Option.builder("u")
+          .required(false)
+          .hasArg(false)
+          .desc("display access time instead of last modification time")
+          .build();
+
+  private static final Option USE_CREATION_TIME_OPTION =
+      Option.builder("U")
+          .required(false)
+          .hasArg(false)
+          .desc("display creation time instead of last modification time")
+          .build();
+
   private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
 
   static {
@@ -123,6 +137,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
         Comparator.comparingLong(URIStatus::getCreationTimeMs));
     SORT_FIELD_COMPARATORS.put("inMemoryPercentage",
         Comparator.comparingLong(URIStatus::getInMemoryPercentage));
+    SORT_FIELD_COMPARATORS.put("lastAccessTime",
+        Comparator.comparingLong(URIStatus::getLastAccessTimeMs));
     SORT_FIELD_COMPARATORS.put("lastModificationTime",
         Comparator.comparingLong(URIStatus::getLastModificationTimeMs));
     SORT_FIELD_COMPARATORS.put("name",
@@ -141,7 +157,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * @param userName user name
    * @param groupName group name
    * @param size size of the file in bytes
-   * @param lastModifiedTime the epoch time in ms when the path is last modified
+   * @param timestamp the epoch time in ms
    * @param inAlluxioPercentage whether the file is in Alluxio
    * @param persistenceState the persistence state of the file
    * @param path path of the file or folder
@@ -150,7 +166,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
-      String userName, String groupName, long size, long lastModifiedTime, int inAlluxioPercentage,
+      String userName, String groupName, long size, long timestamp, int inAlluxioPercentage,
       String persistenceState, String path, String dateFormatPattern) {
     String inAlluxioState;
     String sizeStr;
@@ -164,26 +180,32 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
     if (acl) {
       return String.format(LS_FORMAT, permission, userName, groupName,
-          sizeStr, persistenceState, CommonUtils.convertMsToDate(lastModifiedTime,
+          sizeStr, persistenceState, CommonUtils.convertMsToDate(timestamp,
               dateFormatPattern), inAlluxioState, path);
     } else {
       return String.format(LS_FORMAT_NO_ACL, sizeStr,
-          persistenceState, CommonUtils.convertMsToDate(lastModifiedTime, dateFormatPattern),
+          persistenceState, CommonUtils.convertMsToDate(timestamp, dateFormatPattern),
           inAlluxioState, path);
     }
   }
 
-  private void printLsString(URIStatus status, boolean hSize) throws UnavailableException {
+  private void printLsString(URIStatus status, boolean hSize, Option timestampOption)
+      throws UnavailableException {
     // detect the extended acls
     boolean hasExtended = status.getAcl().hasExtended()
         || !status.getDefaultAcl().isEmpty();
-
+    long timestamp = status.getLastModificationTimeMs();
+    if (timestampOption == USE_ACCESS_TIME_OPTION) {
+      timestamp = status.getLastAccessTimeMs();
+    } else if (timestampOption == USE_CREATION_TIME_OPTION) {
+      timestamp = status.getCreationTimeMs();
+    }
     System.out.print(formatLsString(hSize,
         SecurityUtils.isSecurityEnabled(mFsContext.getClusterConf()),
         status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
-        status.getLastModificationTimeMs(), status.getInAlluxioPercentage(),
+        timestamp, status.getInAlluxioPercentage(),
         status.getPersistenceState(), status.getPath(),
         mFsContext.getPathConf(new AlluxioURI(status.getPath())).get(
             PropertyKey.USER_DATE_FORMAT_PATTERN)));
@@ -211,6 +233,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
         .addOption(LIST_DIR_AS_FILE_OPTION)
         .addOption(LIST_HUMAN_READABLE_OPTION)
         .addOption(LIST_PINNED_FILES_OPTION)
+        .addOption(USE_ACCESS_TIME_OPTION)
+        .addOption(USE_CREATION_TIME_OPTION)
         .addOption(RECURSIVE_OPTION)
         .addOption(REVERSE_SORT_OPTION)
         .addOption(SORT_OPTION);
@@ -226,14 +250,15 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * @param sortField sort the result by this field
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-                  boolean hSize, boolean pinnedOnly, String sortField, boolean reverse)
+                  boolean hSize, boolean pinnedOnly, String sortField, boolean reverse,
+                  Option timestampOption)
       throws AlluxioException, IOException {
     URIStatus pathStatus = mFileSystem.getStatus(path);
     if (dirAsFile) {
       if (pinnedOnly && !pathStatus.isPinned()) {
         return;
       }
-      printLsString(pathStatus, hSize);
+      printLsString(pathStatus, hSize, timestampOption);
       return;
     }
 
@@ -260,7 +285,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
-        printLsString(status, hSize);
+        printLsString(status, hSize, timestampOption);
       }
     }
   }
@@ -287,7 +312,9 @@ public final class LsCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"), cl.getOptionValue("sort", "path"), cl.hasOption("r"));
+        cl.hasOption("p"), cl.getOptionValue("sort", "path"), cl.hasOption("r"),
+        cl.hasOption("u") ? USE_ACCESS_TIME_OPTION
+            : (cl.hasOption("U") ? USE_CREATION_TIME_OPTION : null));
   }
 
   @Override

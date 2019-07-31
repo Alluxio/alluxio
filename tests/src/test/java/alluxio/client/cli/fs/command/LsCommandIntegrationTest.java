@@ -291,6 +291,51 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
+   * Tests ls command with sort by access time option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+  public void lsWithSortByAccessTime() throws IOException, AlluxioException {
+    String oldFileRecentlyAccessed = "/testRoot/testFileRecent";
+    String oldFileName = "/testRoot/testFile";
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
+
+    FileSystemTestUtils.loadFile(mFileSystem, oldFileRecentlyAccessed);
+    mFsShell.run("ls", "--sort", "lastAccessTime", "/testRoot");
+    checkOutput(
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName,
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed);
+  }
+
+  /**
+   * Tests ls command with sort by access time option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+  public void lsWithSortByCreationTime() throws IOException, AlluxioException {
+    String oldFileRecentlyAccessed = "/testRoot/testFileRecent";
+    String oldFileName = "/testRoot/testFile";
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
+
+    FileSystemTestUtils.loadFile(mFileSystem, oldFileRecentlyAccessed);
+    mFsShell.run("ls", "--sort", "creationTime", "/testRoot");
+    checkOutput(
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed,
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName);
+  }
+  /**
    * Tests ls command with sort by size option.
    */
   @Test
