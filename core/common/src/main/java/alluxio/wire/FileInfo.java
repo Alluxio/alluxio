@@ -55,6 +55,7 @@ public final class FileInfo implements Serializable {
   private ArrayList<Long> mBlockIds = new ArrayList<>();
   private int mInMemoryPercentage;
   private long mLastModificationTimeMs;
+  private long mLastAccessTimeMs;
   private long mTtl;
   private TtlAction mTtlAction;
   private String mOwner = "";
@@ -188,6 +189,13 @@ public final class FileInfo implements Serializable {
    */
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
+  }
+
+  /**
+   * @return the file last access time (in milliseconds)
+   */
+  public long getLastAccessTimeMs() {
+    return mLastAccessTimeMs;
   }
 
   /**
@@ -468,6 +476,15 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param lastAccessTimeMs the last access time (in milliseconds) to use
+   * @return the file information
+   */
+  public FileInfo setLastAccessTimeMs(long lastAccessTimeMs) {
+    mLastAccessTimeMs = lastAccessTimeMs;
+    return this;
+  }
+
+  /**
    * @param ttl the file time-to-live (in seconds) to use
    * @return the file information
    */
@@ -630,6 +647,7 @@ public final class FileInfo implements Serializable {
         && mCacheable == that.mCacheable && mPersisted == that.mPersisted
         && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
         && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
+        && mLastAccessTimeMs == that.mLastAccessTimeMs
         && mOwner.equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
         && mReplicationMax == that.mReplicationMax && mReplicationMin == that.mReplicationMin
@@ -645,9 +663,9 @@ public final class FileInfo implements Serializable {
   public int hashCode() {
     return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
-        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode, mReplicationMax,
-        mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction,
-        mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
+        mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
+        mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfos,
+        mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
   }
 
   @Override
@@ -662,6 +680,7 @@ public final class FileInfo implements Serializable {
         .add("cacheable", mCacheable).add("persisted", mPersisted)
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
+        .add("lastAccessTimesMs", mLastAccessTimeMs)
         .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("replicationMax", mReplicationMax).add("replicationMin", mReplicationMin)

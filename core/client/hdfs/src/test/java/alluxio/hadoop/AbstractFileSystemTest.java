@@ -381,12 +381,14 @@ public class AbstractFileSystemTest {
   public void listStatus() throws Exception {
     FileInfo fileInfo1 = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
         .setMode(00755);
     FileInfo fileInfo2 = new FileInfo()
         .setLastModificationTimeMs(222L)
+        .setLastAccessTimeMs(234L)
         .setFolder(true)
         .setOwner("user2")
         .setGroup("group2")
@@ -438,6 +440,7 @@ public class AbstractFileSystemTest {
   public void getStatus() throws Exception {
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
@@ -639,6 +642,7 @@ public class AbstractFileSystemTest {
             toList()))).setUfsLocations(ufsLocations);
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
@@ -709,6 +713,7 @@ public class AbstractFileSystemTest {
     assertEquals(info.getGroup(), status.getGroup());
     assertEquals(info.getMode(), status.getPermission().toShort());
     assertEquals(info.getLastModificationTimeMs(), status.getModificationTime());
+    assertEquals(info.getLastAccessTimeMs(), status.getAccessTime());
     assertEquals(info.isFolder(), status.isDir());
   }
 }

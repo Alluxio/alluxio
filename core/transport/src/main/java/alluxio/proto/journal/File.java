@@ -8039,6 +8039,24 @@ public final class File {
 
     com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key);
+
+    /**
+     * <code>optional int64 last_access_time_ms = 18;</code>
+     */
+    boolean hasLastAccessTimeMs();
+    /**
+     * <code>optional int64 last_access_time_ms = 18;</code>
+     */
+    long getLastAccessTimeMs();
+
+    /**
+     * <code>optional bool overwrite_access_time = 19;</code>
+     */
+    boolean hasOverwriteAccessTime();
+    /**
+     * <code>optional bool overwrite_access_time = 19;</code>
+     */
+    boolean getOverwriteAccessTime();
   }
   /**
    * <pre>
@@ -8072,6 +8090,8 @@ public final class File {
       ttlAction_ = 0;
       ufsFingerprint_ = "";
       mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      lastAccessTimeMs_ = 0L;
+      overwriteAccessTime_ = false;
     }
 
     @java.lang.Override
@@ -8219,6 +8239,16 @@ public final class File {
                   XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttr_.getMutableMap().put(
                   xAttr__.getKey(), xAttr__.getValue());
+              break;
+            }
+            case 144: {
+              bitField0_ |= 0x00008000;
+              lastAccessTimeMs_ = input.readInt64();
+              break;
+            }
+            case 152: {
+              bitField0_ |= 0x00010000;
+              overwriteAccessTime_ = input.readBool();
               break;
             }
           }
@@ -8732,6 +8762,36 @@ public final class File {
       return map.get(key);
     }
 
+    public static final int LAST_ACCESS_TIME_MS_FIELD_NUMBER = 18;
+    private long lastAccessTimeMs_;
+    /**
+     * <code>optional int64 last_access_time_ms = 18;</code>
+     */
+    public boolean hasLastAccessTimeMs() {
+      return ((bitField0_ & 0x00008000) == 0x00008000);
+    }
+    /**
+     * <code>optional int64 last_access_time_ms = 18;</code>
+     */
+    public long getLastAccessTimeMs() {
+      return lastAccessTimeMs_;
+    }
+
+    public static final int OVERWRITE_ACCESS_TIME_FIELD_NUMBER = 19;
+    private boolean overwriteAccessTime_;
+    /**
+     * <code>optional bool overwrite_access_time = 19;</code>
+     */
+    public boolean hasOverwriteAccessTime() {
+      return ((bitField0_ & 0x00010000) == 0x00010000);
+    }
+    /**
+     * <code>optional bool overwrite_access_time = 19;</code>
+     */
+    public boolean getOverwriteAccessTime() {
+      return overwriteAccessTime_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -8798,6 +8858,12 @@ public final class File {
           internalGetXAttr(),
           XAttrDefaultEntryHolder.defaultEntry,
           17);
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+        output.writeInt64(18, lastAccessTimeMs_);
+      }
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+        output.writeBool(19, overwriteAccessTime_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -8878,6 +8944,14 @@ public final class File {
             .build();
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(17, xAttr__);
+      }
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(18, lastAccessTimeMs_);
+      }
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(19, overwriteAccessTime_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -8973,6 +9047,16 @@ public final class File {
           .equals(other.getMediumTypeList());
       result = result && internalGetXAttr().equals(
           other.internalGetXAttr());
+      result = result && (hasLastAccessTimeMs() == other.hasLastAccessTimeMs());
+      if (hasLastAccessTimeMs()) {
+        result = result && (getLastAccessTimeMs()
+            == other.getLastAccessTimeMs());
+      }
+      result = result && (hasOverwriteAccessTime() == other.hasOverwriteAccessTime());
+      if (hasOverwriteAccessTime()) {
+        result = result && (getOverwriteAccessTime()
+            == other.getOverwriteAccessTime());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -9058,6 +9142,16 @@ public final class File {
       if (!internalGetXAttr().getMap().isEmpty()) {
         hash = (37 * hash) + XATTR_FIELD_NUMBER;
         hash = (53 * hash) + internalGetXAttr().hashCode();
+      }
+      if (hasLastAccessTimeMs()) {
+        hash = (37 * hash) + LAST_ACCESS_TIME_MS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getLastAccessTimeMs());
+      }
+      if (hasOverwriteAccessTime()) {
+        hash = (37 * hash) + OVERWRITE_ACCESS_TIME_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getOverwriteAccessTime());
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -9252,6 +9346,10 @@ public final class File {
         mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00008000);
         internalGetMutableXAttr().clear();
+        lastAccessTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00020000);
+        overwriteAccessTime_ = false;
+        bitField0_ = (bitField0_ & ~0x00040000);
         return this;
       }
 
@@ -9347,6 +9445,14 @@ public final class File {
         result.mediumType_ = mediumType_;
         result.xAttr_ = internalGetXAttr();
         result.xAttr_.makeImmutable();
+        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+          to_bitField0_ |= 0x00008000;
+        }
+        result.lastAccessTimeMs_ = lastAccessTimeMs_;
+        if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
+          to_bitField0_ |= 0x00010000;
+        }
+        result.overwriteAccessTime_ = overwriteAccessTime_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -9456,6 +9562,12 @@ public final class File {
         }
         internalGetMutableXAttr().mergeFrom(
             other.internalGetXAttr());
+        if (other.hasLastAccessTimeMs()) {
+          setLastAccessTimeMs(other.getLastAccessTimeMs());
+        }
+        if (other.hasOverwriteAccessTime()) {
+          setOverwriteAccessTime(other.getOverwriteAccessTime());
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -10487,6 +10599,70 @@ public final class File {
           java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
         internalGetMutableXAttr().getMutableMap()
             .putAll(values);
+        return this;
+      }
+
+      private long lastAccessTimeMs_ ;
+      /**
+       * <code>optional int64 last_access_time_ms = 18;</code>
+       */
+      public boolean hasLastAccessTimeMs() {
+        return ((bitField0_ & 0x00020000) == 0x00020000);
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 18;</code>
+       */
+      public long getLastAccessTimeMs() {
+        return lastAccessTimeMs_;
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 18;</code>
+       */
+      public Builder setLastAccessTimeMs(long value) {
+        bitField0_ |= 0x00020000;
+        lastAccessTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 18;</code>
+       */
+      public Builder clearLastAccessTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00020000);
+        lastAccessTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean overwriteAccessTime_ ;
+      /**
+       * <code>optional bool overwrite_access_time = 19;</code>
+       */
+      public boolean hasOverwriteAccessTime() {
+        return ((bitField0_ & 0x00040000) == 0x00040000);
+      }
+      /**
+       * <code>optional bool overwrite_access_time = 19;</code>
+       */
+      public boolean getOverwriteAccessTime() {
+        return overwriteAccessTime_;
+      }
+      /**
+       * <code>optional bool overwrite_access_time = 19;</code>
+       */
+      public Builder setOverwriteAccessTime(boolean value) {
+        bitField0_ |= 0x00040000;
+        overwriteAccessTime_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool overwrite_access_time = 19;</code>
+       */
+      public Builder clearOverwriteAccessTime() {
+        bitField0_ = (bitField0_ & ~0x00040000);
+        overwriteAccessTime_ = false;
+        onChanged();
         return this;
       }
       public final Builder setUnknownFields(
@@ -13290,10 +13466,19 @@ public final class File {
 
     com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key);
+
+    /**
+     * <code>optional int64 last_access_time_ms = 20;</code>
+     */
+    boolean hasLastAccessTimeMs();
+    /**
+     * <code>optional int64 last_access_time_ms = 20;</code>
+     */
+    long getLastAccessTimeMs();
   }
   /**
    * <pre>
-   * next available id: 20
+   * next available id: 21
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
@@ -13324,6 +13509,7 @@ public final class File {
       ttlAction_ = 0;
       path_ = "";
       mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      lastAccessTimeMs_ = 0L;
     }
 
     @java.lang.Override
@@ -13489,6 +13675,11 @@ public final class File {
                   XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttr_.getMutableMap().put(
                   xAttr__.getKey(), xAttr__.getValue());
+              break;
+            }
+            case 160: {
+              bitField0_ |= 0x00020000;
+              lastAccessTimeMs_ = input.readInt64();
               break;
             }
           }
@@ -14038,6 +14229,21 @@ public final class File {
       return map.get(key);
     }
 
+    public static final int LAST_ACCESS_TIME_MS_FIELD_NUMBER = 20;
+    private long lastAccessTimeMs_;
+    /**
+     * <code>optional int64 last_access_time_ms = 20;</code>
+     */
+    public boolean hasLastAccessTimeMs() {
+      return ((bitField0_ & 0x00020000) == 0x00020000);
+    }
+    /**
+     * <code>optional int64 last_access_time_ms = 20;</code>
+     */
+    public long getLastAccessTimeMs() {
+      return lastAccessTimeMs_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -14110,6 +14316,9 @@ public final class File {
           internalGetXAttr(),
           XAttrDefaultEntryHolder.defaultEntry,
           19);
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+        output.writeInt64(20, lastAccessTimeMs_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -14198,6 +14407,10 @@ public final class File {
             .build();
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(19, xAttr__);
+      }
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(20, lastAccessTimeMs_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -14303,6 +14516,11 @@ public final class File {
           .equals(other.getMediumTypeList());
       result = result && internalGetXAttr().equals(
           other.internalGetXAttr());
+      result = result && (hasLastAccessTimeMs() == other.hasLastAccessTimeMs());
+      if (hasLastAccessTimeMs()) {
+        result = result && (getLastAccessTimeMs()
+            == other.getLastAccessTimeMs());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -14397,6 +14615,11 @@ public final class File {
       if (!internalGetXAttr().getMap().isEmpty()) {
         hash = (37 * hash) + XATTR_FIELD_NUMBER;
         hash = (53 * hash) + internalGetXAttr().hashCode();
+      }
+      if (hasLastAccessTimeMs()) {
+        hash = (37 * hash) + LAST_ACCESS_TIME_MS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getLastAccessTimeMs());
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -14493,7 +14716,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 20
+     * next available id: 21
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
@@ -14600,6 +14823,8 @@ public final class File {
         mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00020000);
         internalGetMutableXAttr().clear();
+        lastAccessTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00080000);
         return this;
       }
 
@@ -14707,6 +14932,10 @@ public final class File {
         result.mediumType_ = mediumType_;
         result.xAttr_ = internalGetXAttr();
         result.xAttr_.makeImmutable();
+        if (((from_bitField0_ & 0x00080000) == 0x00080000)) {
+          to_bitField0_ |= 0x00020000;
+        }
+        result.lastAccessTimeMs_ = lastAccessTimeMs_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -14822,6 +15051,9 @@ public final class File {
         }
         internalGetMutableXAttr().mergeFrom(
             other.internalGetXAttr());
+        if (other.hasLastAccessTimeMs()) {
+          setLastAccessTimeMs(other.getLastAccessTimeMs());
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -16005,6 +16237,38 @@ public final class File {
             .putAll(values);
         return this;
       }
+
+      private long lastAccessTimeMs_ ;
+      /**
+       * <code>optional int64 last_access_time_ms = 20;</code>
+       */
+      public boolean hasLastAccessTimeMs() {
+        return ((bitField0_ & 0x00080000) == 0x00080000);
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 20;</code>
+       */
+      public long getLastAccessTimeMs() {
+        return lastAccessTimeMs_;
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 20;</code>
+       */
+      public Builder setLastAccessTimeMs(long value) {
+        bitField0_ |= 0x00080000;
+        lastAccessTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 20;</code>
+       */
+      public Builder clearLastAccessTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00080000);
+        lastAccessTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -16964,10 +17228,19 @@ public final class File {
 
     com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key);
+
+    /**
+     * <code>optional int64 last_access_time_ms = 29;</code>
+     */
+    boolean hasLastAccessTimeMs();
+    /**
+     * <code>optional int64 last_access_time_ms = 29;</code>
+     */
+    long getLastAccessTimeMs();
   }
   /**
    * <pre>
-   * next available id: 29
+   * next available id: 30
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
@@ -17008,6 +17281,7 @@ public final class File {
       path_ = "";
       mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       shouldPersistTime_ = 0L;
+      lastAccessTimeMs_ = 0L;
     }
 
     @java.lang.Override
@@ -17228,6 +17502,11 @@ public final class File {
                   XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttr_.getMutableMap().put(
                   xAttr__.getKey(), xAttr__.getValue());
+              break;
+            }
+            case 232: {
+              bitField0_ |= 0x02000000;
+              lastAccessTimeMs_ = input.readInt64();
               break;
             }
           }
@@ -17970,6 +18249,21 @@ public final class File {
       return map.get(key);
     }
 
+    public static final int LAST_ACCESS_TIME_MS_FIELD_NUMBER = 29;
+    private long lastAccessTimeMs_;
+    /**
+     * <code>optional int64 last_access_time_ms = 29;</code>
+     */
+    public boolean hasLastAccessTimeMs() {
+      return ((bitField0_ & 0x02000000) == 0x02000000);
+    }
+    /**
+     * <code>optional int64 last_access_time_ms = 29;</code>
+     */
+    public long getLastAccessTimeMs() {
+      return lastAccessTimeMs_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -18069,6 +18363,9 @@ public final class File {
           internalGetXAttr(),
           XAttrDefaultEntryHolder.defaultEntry,
           28);
+      if (((bitField0_ & 0x02000000) == 0x02000000)) {
+        output.writeInt64(29, lastAccessTimeMs_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -18196,6 +18493,10 @@ public final class File {
             .build();
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(28, xAttr__);
+      }
+      if (((bitField0_ & 0x02000000) == 0x02000000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(29, lastAccessTimeMs_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -18343,6 +18644,11 @@ public final class File {
       }
       result = result && internalGetXAttr().equals(
           other.internalGetXAttr());
+      result = result && (hasLastAccessTimeMs() == other.hasLastAccessTimeMs());
+      if (hasLastAccessTimeMs()) {
+        result = result && (getLastAccessTimeMs()
+            == other.getLastAccessTimeMs());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -18478,6 +18784,11 @@ public final class File {
         hash = (37 * hash) + XATTR_FIELD_NUMBER;
         hash = (53 * hash) + internalGetXAttr().hashCode();
       }
+      if (hasLastAccessTimeMs()) {
+        hash = (37 * hash) + LAST_ACCESS_TIME_MS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getLastAccessTimeMs());
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -18573,7 +18884,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 29
+     * next available id: 30
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
@@ -18693,6 +19004,8 @@ public final class File {
         shouldPersistTime_ = 0L;
         bitField0_ = (bitField0_ & ~0x04000000);
         internalGetMutableXAttr().clear();
+        lastAccessTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x10000000);
         return this;
       }
 
@@ -18833,6 +19146,10 @@ public final class File {
         result.shouldPersistTime_ = shouldPersistTime_;
         result.xAttr_ = internalGetXAttr();
         result.xAttr_.makeImmutable();
+        if (((from_bitField0_ & 0x10000000) == 0x10000000)) {
+          to_bitField0_ |= 0x02000000;
+        }
+        result.lastAccessTimeMs_ = lastAccessTimeMs_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -18986,6 +19303,9 @@ public final class File {
         }
         internalGetMutableXAttr().mergeFrom(
             other.internalGetXAttr());
+        if (other.hasLastAccessTimeMs()) {
+          setLastAccessTimeMs(other.getLastAccessTimeMs());
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -20491,6 +20811,38 @@ public final class File {
           java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
         internalGetMutableXAttr().getMutableMap()
             .putAll(values);
+        return this;
+      }
+
+      private long lastAccessTimeMs_ ;
+      /**
+       * <code>optional int64 last_access_time_ms = 29;</code>
+       */
+      public boolean hasLastAccessTimeMs() {
+        return ((bitField0_ & 0x10000000) == 0x10000000);
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 29;</code>
+       */
+      public long getLastAccessTimeMs() {
+        return lastAccessTimeMs_;
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 29;</code>
+       */
+      public Builder setLastAccessTimeMs(long value) {
+        bitField0_ |= 0x10000000;
+        lastAccessTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 last_access_time_ms = 29;</code>
+       */
+      public Builder clearLastAccessTimeMs() {
+        bitField0_ = (bitField0_ & ~0x10000000);
+        lastAccessTimeMs_ = 0L;
+        onChanged();
         return this;
       }
       public final Builder setUnknownFields(
@@ -27544,7 +27896,7 @@ public final class File {
       "id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_m" +
       "s\030\003 \001(\003\022\023\n\013alluxioOnly\030\004 \001(\010\022\014\n\004path\030\005 \001" +
       "(\t\"-\n\025DeleteMountPointEntry\022\024\n\014alluxio_p" +
-      "ath\030\001 \001(\t\"\033\n\rNewBlockEntry\022\n\n\002id\030\001 \001(\003\"\230" +
+      "ath\030\001 \001(\t\"\033\n\rNewBlockEntry\022\n\n\002id\030\001 \001(\003\"\324" +
       "\004\n\020UpdateInodeEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparen" +
       "t_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_" +
       "state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_" +
@@ -27557,82 +27909,85 @@ public final class File {
       ".AccessControlList\022\027\n\017ufs_fingerprint\030\017 " +
       "\001(\t\022\023\n\013medium_type\030\020 \003(\t\022A\n\005xAttr\030\021 \003(\0132" +
       "2.alluxio.proto.journal.UpdateInodeEntry" +
-      ".XAttrEntry\032,\n\nXAttrEntry\022\013\n\003key\030\001 \001(\t\022\r" +
-      "\n\005value\030\002 \001(\014:\0028\001\"\231\001\n\031UpdateInodeDirecto" +
-      "ryEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013mount_point\030\002 \001(\010" +
-      "\022\036\n\026direct_children_loaded\030\003 \001(\010\022;\n\ndefa" +
-      "ultAcl\030\004 \001(\0132\'.alluxio.proto.shared.Acce" +
-      "ssControlList\"\365\001\n\024UpdateInodeFileEntry\022\n" +
-      "\n\002id\030\001 \001(\003\022\030\n\020block_size_bytes\030\002 \001(\003\022\016\n\006" +
-      "length\030\003 \001(\003\022\021\n\tcompleted\030\004 \001(\010\022\021\n\tcache" +
-      "able\030\005 \001(\010\022\022\n\nset_blocks\030\007 \003(\003\022\027\n\017replic" +
-      "ation_max\030\010 \001(\005\022\027\n\017replication_min\030\t \001(\005" +
-      "\022\026\n\016persist_job_id\030\n \001(\003\022\025\n\rtemp_ufs_pat" +
-      "h\030\013 \001(\t\022\014\n\004path\030\014 \001(\t\"\340\004\n\023InodeDirectory" +
-      "Entry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004" +
-      "name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n" +
-      "\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022" +
-      "!\n\031last_modification_time_ms\030\007 \001(\003\022\r\n\005ow" +
-      "ner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023" +
-      "\n\013mount_point\030\013 \001(\010\022\036\n\026direct_children_l" +
-      "oaded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 " +
-      "\001(\0162!.alluxio.proto.journal.PTtlAction:\006" +
-      "DELETE\0224\n\003acl\030\017 \001(\0132\'.alluxio.proto.shar" +
-      "ed.AccessControlList\022;\n\ndefaultAcl\030\020 \001(\013" +
-      "2\'.alluxio.proto.shared.AccessControlLis" +
-      "t\022\014\n\004path\030\021 \001(\t\022\023\n\013medium_type\030\022 \003(\t\022D\n\005" +
-      "xAttr\030\023 \003(\01325.alluxio.proto.journal.Inod" +
-      "eDirectoryEntry.XAttrEntry\032,\n\nXAttrEntry" +
-      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\"O\n\036Inod" +
-      "eDirectoryIdGeneratorEntry\022\024\n\014container_" +
-      "id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\370\005\n\016In" +
-      "odeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 " +
-      "\001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004" +
-      " \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms" +
-      "\030\006 \001(\003\022!\n\031last_modification_time_ms\030\007 \001(" +
-      "\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006length\030\t " +
-      "\001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(" +
-      "\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030" +
-      "\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\ttt" +
-      "lAction\030\021 \001(\0162!.alluxio.proto.journal.PT" +
-      "tlAction:\006DELETE\022\027\n\017ufs_fingerprint\030\022 \001(" +
-      "\t\0224\n\003acl\030\023 \001(\0132\'.alluxio.proto.shared.Ac" +
-      "cessControlList\022\027\n\017replication_max\030\024 \001(\005" +
-      "\022\027\n\017replication_min\030\025 \001(\005\022\026\n\016persist_job" +
-      "_id\030\026 \001(\003\022\025\n\rtemp_ufs_path\030\027 \001(\t\022\033\n\023repl" +
-      "ication_durable\030\030 \001(\005\022\014\n\004path\030\031 \001(\t\022\023\n\013m" +
-      "edium_type\030\032 \003(\t\022\033\n\023should_persist_time\030" +
-      "\033 \001(\003\022?\n\005xAttr\030\034 \003(\01320.alluxio.proto.jou" +
-      "rnal.InodeFileEntry.XAttrEntry\032,\n\nXAttrE" +
-      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\"O\n\036" +
-      "InodeLastModificationTimeEntry\022\n\n\002id\030\001 \001" +
-      "(\003\022!\n\031last_modification_time_ms\030\002 \001(\003\"#\n" +
-      "\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020Pe" +
-      "rsistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001" +
-      "(\003\022\022\n\nop_time_ms\030\003 \001(\003\"\210\001\n\013RenameEntry\022\n" +
-      "\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_" +
-      "ms\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 \001(\003\022\020\n\010new_n" +
-      "ame\030\005 \001(\t\022\014\n\004path\030\006 \001(\t\022\020\n\010new_path\030\007 \001(" +
-      "\t\"\247\001\n\013SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time" +
-      "_ms\030\002 \001(\003\0224\n\006action\030\003 \001(\0162$.alluxio.prot" +
-      "o.journal.PSetAclAction\022/\n\007entries\030\004 \003(\013" +
-      "2\036.alluxio.proto.shared.AclEntry\022\021\n\trecu" +
-      "rsive\030\005 \001(\010\"\311\002\n\021SetAttributeEntry\022\n\n\002id\030" +
-      "\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(" +
-      "\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005own" +
-      "er\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 " +
-      "\001(\005\022<\n\tttlAction\030\t \001(\0162!.alluxio.proto.j" +
+      ".XAttrEntry\022\033\n\023last_access_time_ms\030\022 \001(\003" +
+      "\022\035\n\025overwrite_access_time\030\023 \001(\010\032,\n\nXAttr" +
+      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\"\231\001" +
+      "\n\031UpdateInodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022" +
+      "\023\n\013mount_point\030\002 \001(\010\022\036\n\026direct_children_" +
+      "loaded\030\003 \001(\010\022;\n\ndefaultAcl\030\004 \001(\0132\'.allux" +
+      "io.proto.shared.AccessControlList\"\365\001\n\024Up" +
+      "dateInodeFileEntry\022\n\n\002id\030\001 \001(\003\022\030\n\020block_" +
+      "size_bytes\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\021\n\tcomp" +
+      "leted\030\004 \001(\010\022\021\n\tcacheable\030\005 \001(\010\022\022\n\nset_bl" +
+      "ocks\030\007 \003(\003\022\027\n\017replication_max\030\010 \001(\005\022\027\n\017r" +
+      "eplication_min\030\t \001(\005\022\026\n\016persist_job_id\030\n" +
+      " \001(\003\022\025\n\rtemp_ufs_path\030\013 \001(\t\022\014\n\004path\030\014 \001(" +
+      "\t\"\375\004\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n" +
+      "\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persis" +
+      "tence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020cre" +
+      "ation_time_ms\030\006 \001(\003\022!\n\031last_modification" +
+      "_time_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t" +
+      " \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022" +
+      "\036\n\026direct_children_loaded\030\014 \001(\010\022\013\n\003ttl\030\r" +
+      " \001(\003\022<\n\tttlAction\030\016 \001(\0162!.alluxio.proto." +
+      "journal.PTtlAction:\006DELETE\0224\n\003acl\030\017 \001(\0132" +
+      "\'.alluxio.proto.shared.AccessControlList" +
+      "\022;\n\ndefaultAcl\030\020 \001(\0132\'.alluxio.proto.sha" +
+      "red.AccessControlList\022\014\n\004path\030\021 \001(\t\022\023\n\013m" +
+      "edium_type\030\022 \003(\t\022D\n\005xAttr\030\023 \003(\01325.alluxi" +
+      "o.proto.journal.InodeDirectoryEntry.XAtt" +
+      "rEntry\022\033\n\023last_access_time_ms\030\024 \001(\003\032,\n\nX" +
+      "AttrEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028" +
+      "\001\"O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014c" +
+      "ontainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001" +
+      "(\003\"\225\006\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tpar" +
+      "ent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistenc" +
+      "e_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creatio" +
+      "n_time_ms\030\006 \001(\003\022!\n\031last_modification_tim" +
+      "e_ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006" +
+      "length\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcache" +
+      "able\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022" +
+      "\r\n\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 " +
+      "\001(\005\022<\n\tttlAction\030\021 \001(\0162!.alluxio.proto.j" +
       "ournal.PTtlAction:\006DELETE\022\027\n\017ufs_fingerp" +
-      "rint\030\n \001(\t\022\024\n\014persistJobId\030\013 \001(\003\022\023\n\013temp" +
-      "UfsPath\030\014 \001(\t\022\027\n\017replication_max\030\r \001(\005\022\027" +
-      "\n\017replication_min\030\016 \001(\005\"b\n\022UpdateUfsMode" +
-      "Entry\022\017\n\007ufsPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001(\0162" +
-      "\036.alluxio.proto.journal.UfsMode:\nREAD_WR" +
-      "ITE*\"\n\nPTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001*" +
-      "X\n\rPSetAclAction\022\013\n\007REPLACE\020\000\022\n\n\006MODIFY\020" +
-      "\001\022\n\n\006REMOVE\020\002\022\016\n\nREMOVE_ALL\020\003\022\022\n\016REMOVE_" +
-      "DEFAULT\020\004*7\n\007UfsMode\022\r\n\tNO_ACCESS\020\000\022\r\n\tR" +
-      "EAD_ONLY\020\001\022\016\n\nREAD_WRITE\020\002"
+      "rint\030\022 \001(\t\0224\n\003acl\030\023 \001(\0132\'.alluxio.proto." +
+      "shared.AccessControlList\022\027\n\017replication_" +
+      "max\030\024 \001(\005\022\027\n\017replication_min\030\025 \001(\005\022\026\n\016pe" +
+      "rsist_job_id\030\026 \001(\003\022\025\n\rtemp_ufs_path\030\027 \001(" +
+      "\t\022\033\n\023replication_durable\030\030 \001(\005\022\014\n\004path\030\031" +
+      " \001(\t\022\023\n\013medium_type\030\032 \003(\t\022\033\n\023should_pers" +
+      "ist_time\030\033 \001(\003\022?\n\005xAttr\030\034 \003(\01320.alluxio." +
+      "proto.journal.InodeFileEntry.XAttrEntry\022" +
+      "\033\n\023last_access_time_ms\030\035 \001(\003\032,\n\nXAttrEnt" +
+      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\"O\n\036In" +
+      "odeLastModificationTimeEntry\022\n\n\002id\030\001 \001(\003" +
+      "\022!\n\031last_modification_time_ms\030\002 \001(\003\"#\n\025P" +
+      "ersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020Pers" +
+      "istFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003" +
+      "\022\022\n\nop_time_ms\030\003 \001(\003\"\210\001\n\013RenameEntry\022\n\n\002" +
+      "id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_ms" +
+      "\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 \001(\003\022\020\n\010new_nam" +
+      "e\030\005 \001(\t\022\014\n\004path\030\006 \001(\t\022\020\n\010new_path\030\007 \001(\t\"" +
+      "\247\001\n\013SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_m" +
+      "s\030\002 \001(\003\0224\n\006action\030\003 \001(\0162$.alluxio.proto." +
+      "journal.PSetAclAction\022/\n\007entries\030\004 \003(\0132\036" +
+      ".alluxio.proto.shared.AclEntry\022\021\n\trecurs" +
+      "ive\030\005 \001(\010\"\311\002\n\021SetAttributeEntry\022\n\n\002id\030\001 " +
+      "\001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022" +
+      "\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owner" +
+      "\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 \001(" +
+      "\005\022<\n\tttlAction\030\t \001(\0162!.alluxio.proto.jou" +
+      "rnal.PTtlAction:\006DELETE\022\027\n\017ufs_fingerpri" +
+      "nt\030\n \001(\t\022\024\n\014persistJobId\030\013 \001(\003\022\023\n\013tempUf" +
+      "sPath\030\014 \001(\t\022\027\n\017replication_max\030\r \001(\005\022\027\n\017" +
+      "replication_min\030\016 \001(\005\"b\n\022UpdateUfsModeEn" +
+      "try\022\017\n\007ufsPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001(\0162\036." +
+      "alluxio.proto.journal.UfsMode:\nREAD_WRIT" +
+      "E*\"\n\nPTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001*X\n" +
+      "\rPSetAclAction\022\013\n\007REPLACE\020\000\022\n\n\006MODIFY\020\001\022" +
+      "\n\n\006REMOVE\020\002\022\016\n\nREMOVE_ALL\020\003\022\022\n\016REMOVE_DE" +
+      "FAULT\020\004*7\n\007UfsMode\022\r\n\tNO_ACCESS\020\000\022\r\n\tREA" +
+      "D_ONLY\020\001\022\016\n\nREAD_WRITE\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -27713,7 +28068,7 @@ public final class File {
     internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "OverwriteModificationTime", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", "MediumType", "XAttr", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "OverwriteModificationTime", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", "MediumType", "XAttr", "LastAccessTimeMs", "OverwriteAccessTime", });
     internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_descriptor =
       internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_fieldAccessorTable = new
@@ -27737,7 +28092,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", "Acl", "DefaultAcl", "Path", "MediumType", "XAttr", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", "Acl", "DefaultAcl", "Path", "MediumType", "XAttr", "LastAccessTimeMs", });
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_descriptor =
       internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_fieldAccessorTable = new
@@ -27755,7 +28110,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsFingerprint", "Acl", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", "ReplicationDurable", "Path", "MediumType", "ShouldPersistTime", "XAttr", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsFingerprint", "Acl", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", "ReplicationDurable", "Path", "MediumType", "ShouldPersistTime", "XAttr", "LastAccessTimeMs", });
     internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_descriptor =
       internal_static_alluxio_proto_journal_InodeFileEntry_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_fieldAccessorTable = new
