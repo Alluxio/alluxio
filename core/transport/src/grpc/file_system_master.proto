@@ -144,6 +144,7 @@ message GetStatusPResponse {
 message GetStatusPOptions {
   optional LoadMetadataPType loadMetadataType = 1;
   optional FileSystemMasterCommonPOptions commonOptions = 2;
+  optional Bits accessMode = 3;
 }
 message GetStatusPRequest {
   /** the path of the file or directory */
@@ -269,6 +270,7 @@ message FileInfo {
   optional PAcl defaultAcl = 28;
   optional int32 replicationMax = 29;
   optional int32 replicationMin = 30;
+  optional int64 lastAccessTimeMs = 31;
 }
 
 message GetFilePathPResponse {

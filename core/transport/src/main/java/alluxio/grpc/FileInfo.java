@@ -44,6 +44,7 @@ private static final long serialVersionUID = 0L;
     ufsFingerprint_ = "";
     replicationMax_ = 0;
     replicationMin_ = 0;
+    lastAccessTimeMs_ = 0L;
   }
 
   @java.lang.Override
@@ -274,6 +275,11 @@ private static final long serialVersionUID = 0L;
           case 240: {
             bitField0_ |= 0x08000000;
             replicationMin_ = input.readInt32();
+            break;
+          }
+          case 248: {
+            bitField0_ |= 0x10000000;
+            lastAccessTimeMs_ = input.readInt64();
             break;
           }
         }
@@ -986,6 +992,21 @@ private static final long serialVersionUID = 0L;
     return replicationMin_;
   }
 
+  public static final int LASTACCESSTIMEMS_FIELD_NUMBER = 31;
+  private long lastAccessTimeMs_;
+  /**
+   * <code>optional int64 lastAccessTimeMs = 31;</code>
+   */
+  public boolean hasLastAccessTimeMs() {
+    return ((bitField0_ & 0x10000000) == 0x10000000);
+  }
+  /**
+   * <code>optional int64 lastAccessTimeMs = 31;</code>
+   */
+  public long getLastAccessTimeMs() {
+    return lastAccessTimeMs_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -1087,6 +1108,9 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x08000000) == 0x08000000)) {
       output.writeInt32(30, replicationMin_);
+    }
+    if (((bitField0_ & 0x10000000) == 0x10000000)) {
+      output.writeInt64(31, lastAccessTimeMs_);
     }
     unknownFields.writeTo(output);
   }
@@ -1213,6 +1237,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x08000000) == 0x08000000)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(30, replicationMin_);
+    }
+    if (((bitField0_ & 0x10000000) == 0x10000000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(31, lastAccessTimeMs_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -1373,6 +1401,11 @@ private static final long serialVersionUID = 0L;
       result = result && (getReplicationMin()
           == other.getReplicationMin());
     }
+    result = result && (hasLastAccessTimeMs() == other.hasLastAccessTimeMs());
+    if (hasLastAccessTimeMs()) {
+      result = result && (getLastAccessTimeMs()
+          == other.getLastAccessTimeMs());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -1516,6 +1549,11 @@ private static final long serialVersionUID = 0L;
     if (hasReplicationMin()) {
       hash = (37 * hash) + REPLICATIONMIN_FIELD_NUMBER;
       hash = (53 * hash) + getReplicationMin();
+    }
+    if (hasLastAccessTimeMs()) {
+      hash = (37 * hash) + LASTACCESSTIMEMS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getLastAccessTimeMs());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -1721,6 +1759,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x10000000);
       replicationMin_ = 0;
       bitField0_ = (bitField0_ & ~0x20000000);
+      lastAccessTimeMs_ = 0L;
+      bitField0_ = (bitField0_ & ~0x40000000);
       return this;
     }
 
@@ -1879,6 +1919,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x08000000;
       }
       result.replicationMin_ = replicationMin_;
+      if (((from_bitField0_ & 0x40000000) == 0x40000000)) {
+        to_bitField0_ |= 0x10000000;
+      }
+      result.lastAccessTimeMs_ = lastAccessTimeMs_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -2054,6 +2098,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasReplicationMin()) {
         setReplicationMin(other.getReplicationMin());
+      }
+      if (other.hasLastAccessTimeMs()) {
+        setLastAccessTimeMs(other.getLastAccessTimeMs());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -3765,6 +3812,38 @@ private static final long serialVersionUID = 0L;
     public Builder clearReplicationMin() {
       bitField0_ = (bitField0_ & ~0x20000000);
       replicationMin_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private long lastAccessTimeMs_ ;
+    /**
+     * <code>optional int64 lastAccessTimeMs = 31;</code>
+     */
+    public boolean hasLastAccessTimeMs() {
+      return ((bitField0_ & 0x40000000) == 0x40000000);
+    }
+    /**
+     * <code>optional int64 lastAccessTimeMs = 31;</code>
+     */
+    public long getLastAccessTimeMs() {
+      return lastAccessTimeMs_;
+    }
+    /**
+     * <code>optional int64 lastAccessTimeMs = 31;</code>
+     */
+    public Builder setLastAccessTimeMs(long value) {
+      bitField0_ |= 0x40000000;
+      lastAccessTimeMs_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 lastAccessTimeMs = 31;</code>
+     */
+    public Builder clearLastAccessTimeMs() {
+      bitField0_ = (bitField0_ & ~0x40000000);
+      lastAccessTimeMs_ = 0L;
       onChanged();
       return this;
     }

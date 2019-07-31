@@ -117,6 +117,13 @@ public class URIStatus {
   }
 
   /**
+   * @return the epoch time the entity referenced by this uri was last accessed, mutable
+   */
+  public long getLastAccessTimeMs() {
+    return mInfo.getLastAccessTimeMs();
+  }
+
+  /**
    * @return the length in bytes of the file, 0 for directories, mutable
    */
   public long getLength() {

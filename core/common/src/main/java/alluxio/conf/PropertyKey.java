@@ -1278,6 +1278,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "used when Zookeeper is enabled, since Zookeeper already stores the master "
               + "addresses.")
           .build();
+  public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
+      new Builder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
+          .setDefaultValue("1h")
+          .setDescription("The minimum interval between files access time update journal entries "
+              + "get flushed asynchronously. Setting it to a non-positive value will make the the "
+              + "journal update synchronous. Asynchronous update reduces the performance impact of "
+              + "tracking access time but can lose some access time update when master stops "
+              + "unexpectedly.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
+      new Builder(Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION)
+          .setDefaultValue("1d")
+          .setDescription("The file last access time is precise up to this value. Setting it to"
+              + "a non-positive value will update last access time on every file access operation."
+              + "Longer precision will help reduce the performance impact of tracking access time "
+              + "by reduce the amount of metadata writes occur while reading the same group of "
+              + "files repetitively.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT =
+      new Builder(Name.MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("1sec")
+          .setDescription("Maximum time to wait for access updater to stop on shutdown.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
       new Builder(Name.MASTER_FORMAT_FILE_PREFIX)
           .setAlias("alluxio.master.format.file_prefix")
@@ -3795,6 +3824,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.daily.backup.files.retained";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
+    public static final String MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
+        "alluxio.master.file.access.time.journal.flush.interval";
+    public static final String MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
+        "alluxio.master.file.access.time.update.precision";
+    public static final String MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT =
+        "alluxio.master.file.access.time.updater.shutdown.timeout";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
