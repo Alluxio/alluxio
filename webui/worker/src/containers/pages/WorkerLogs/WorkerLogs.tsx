@@ -11,26 +11,20 @@
 
 import React from 'react';
 import {connect} from 'react-redux';
-
-import {AllProps, Logs} from '@alluxio/common-ui/src/components';
+import {
+  AllProps,
+  getLogPropsFromState,
+  mapDispatchToLogProps
+} from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
-import {Dispatch} from "redux";
-import {fetchRequest} from "@alluxio/common-ui/src/store/logs/actions";
+import Logs from "@alluxio/common-ui/src/components/Logs/Logs";
+import {ILogsStateToProps} from "@alluxio/common-ui/src/store/logs/types";
 
-export const WorkerLogs = (props: AllProps) => <Logs {...props} />;
+const WorkerLogs = (props: AllProps) => <Logs {...props} />;
 
-const mapStateToProps = ({logs, refresh}: IApplicationState) => ({
-  data: logs.data,
-  errors: logs.errors,
-  loading: logs.loading,
-  refresh: refresh.data
-});
-
-export const mapDispatchToProps = (dispatch: Dispatch) => ({
-  fetchRequest: (path?: string, offset?: string, limit?: string, end?: string) => dispatch(fetchRequest(path, offset, limit, end))
-});
+const mapStateToProps = ({logs, refresh}: IApplicationState): ILogsStateToProps => getLogPropsFromState(logs, refresh);
 
 export default connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToLogProps
 )(WorkerLogs);

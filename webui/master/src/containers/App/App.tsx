@@ -17,9 +17,9 @@ import {connect} from 'react-redux';
 import {StaticContext} from 'react-router';
 import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
 import {Alert} from 'reactstrap';
-import {Dispatch} from 'redux';
+import {compose, Dispatch} from 'redux';
 
-import {Footer, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {Footer, hasErrors, hasLoader, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {
   Browse, Configuration, Data, MasterLogs, Metrics, Overview, Workers
@@ -27,82 +27,55 @@ import {
 import {footerNavigationData, headerNavigationData} from '../../constants';
 import {IApplicationState} from '../../store';
 import {fetchRequest} from '../../store/init/actions';
-import {IInit} from '../../store/init/types';
+import {IAppStateToProps, IInit} from '../../store/init/types';
 
 import './App.css';
+import {AutoRefresh, createAlertErrors, IAutoRefresh} from "@alluxio/common-ui/src/utilities";
+import {hasFetchData} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
+import {IStateToProps} from "@alluxio/common-ui/src/constants";
 
 interface IPropsFromState {
   init: IInit;
-  errors?: AxiosResponse;
-  loading: boolean;
-  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
-  fetchRequest: typeof fetchRequest;
   triggerRefresh: typeof triggerRefresh;
 }
 
-interface IAppProps {
+export interface IAppProps {
   history: History<LocationState>;
 }
 
 export type AllProps = IPropsFromState & IPropsFromDispatch & IAppProps;
 
 export class App extends React.Component<AllProps> {
-  private intervalHandle: any;
+  private autoRefresh: IAutoRefresh;
 
   constructor(props: AllProps) {
     super(props);
 
-    this.setAutoRefresh = this.setAutoRefresh.bind(this);
-  }
-
-  public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refresh !== prevProps.refresh) {
-      this.props.fetchRequest();
-    }
-  }
-
-  public componentWillMount() {
-    this.props.fetchRequest && this.props.fetchRequest();
+    this.autoRefresh = new AutoRefresh(props.triggerRefresh, props.init.refreshInterval);
   }
 
   public render() {
-    const {errors, init, loading, history} = this.props;
-
-    if (errors) {
-      return (
-        <Alert color="danger">
-          Unable to reach the api endpoint for this page.
-        </Alert>
-      );
-    }
-
-    if (!init && loading) {
-      return (
-        <div className="App">
-          <LoadingMessage/>
-        </div>
-      );
-    }
+    const {history} = this.props;
 
     return (
       <ConnectedRouter history={history}>
         <div className="App h-100">
           <div className="w-100 sticky-top header-wrapper">
-            <Header history={history} data={headerNavigationData} autoRefreshCallback={this.setAutoRefresh}/>
+            <Header history={history} data={headerNavigationData} autoRefreshCallback={this.autoRefresh.setAutoRefresh}/>
           </div>
           <div className="w-100 pt-5 mt-3 pb-4 mb-2">
             <Switch>
               <Route exact={true} path="/" render={this.redirectToOverview}/>
-              <Route path="/overview" exact={true} component={Overview}/>
+              <Route path="/overview" exact={true} render={this.renderView(Overview, undefined)}/>
               <Route path="/browse" exact={true} render={this.renderView(Browse, {history})}/>
-              <Route path="/config" exact={true} component={Configuration}/>
-              <Route path="/data" exact={true} component={Data}/>
+              <Route path="/config" exact={true} render={this.renderView(Configuration, undefined)}/>
+              <Route path="/data" exact={true} render={this.renderView(Data, undefined)}/>
               <Route path="/logs" exact={true} render={this.renderView(MasterLogs, {history})}/>
-              <Route path="/metrics" exact={true} component={Metrics}/>
-              <Route path="/workers" exact={true} component={Workers}/>
+              <Route path="/metrics" exact={true} render={this.renderView(Metrics, undefined)}/>
+              <Route path="/workers" exact={true} render={this.renderView(Workers, undefined)}/>
               <Route render={this.redirectToOverview}/>
             </Switch>
           </div>
@@ -114,7 +87,7 @@ export class App extends React.Component<AllProps> {
     );
   }
 
-  private renderView(Container: typeof React.Component, props: any) {
+  private renderView(Container: any, props: any) {
     return (routerProps: RouteComponentProps<any, StaticContext, any>) => {
       return (
         <Container {...routerProps} {...props}/>
@@ -127,25 +100,14 @@ export class App extends React.Component<AllProps> {
       <Redirect to="/overview"/>
     );
   }
-
-  private setAutoRefresh(shouldAutoRefresh: boolean) {
-    const {init} = this.props;
-    if (shouldAutoRefresh && !this.intervalHandle) {
-      this.intervalHandle = setInterval(this.props.triggerRefresh, init.refreshInterval);
-    } else {
-      if (this.intervalHandle) {
-        clearInterval(this.intervalHandle);
-        this.intervalHandle = null;
-      }
-    }
-  }
 }
 
-const mapStateToProps = ({init, refresh}: IApplicationState) => ({
+const mapStateToProps = ({init, refresh}: IApplicationState): IAppStateToProps => ({
   init: init.data,
-  errors: init.errors,
-  loading: init.loading,
-  refresh: refresh.data
+  errors: createAlertErrors(init.errors !== undefined),
+  loading: !init.data && init.loading,
+  refresh: refresh.data,
+  class: 'App'
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -153,7 +115,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   triggerRefresh: () => dispatch(triggerRefresh())
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    hasFetchData,
+    hasErrors,
+    hasLoader
 )(App);

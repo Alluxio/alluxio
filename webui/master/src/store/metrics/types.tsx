@@ -12,7 +12,7 @@
 import {LineSerieData} from '@nivo/line';
 import {AxiosResponse} from 'axios';
 
-import {ICounter} from '@alluxio/common-ui/src/constants';
+import {ICounter, IStateToProps} from '@alluxio/common-ui/src/constants';
 
 export interface IMetrics {
   cacheHitLocal: string;
@@ -67,4 +67,8 @@ export interface IMetricsState {
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;
+}
+
+export interface IMetricsStateToProps extends IStateToProps {
+  data: IMetrics
 }

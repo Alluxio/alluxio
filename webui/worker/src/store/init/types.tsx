@@ -11,7 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 
-import {IFileInfo} from '@alluxio/common-ui/src/constants';
+import {IFileInfo, IStateToProps} from '@alluxio/common-ui/src/constants';
 
 export interface IInit {
   'debug': boolean;
@@ -33,4 +33,8 @@ export interface IInitState {
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;
+}
+
+export interface IInitStateToProps extends IStateToProps {
+  init: IInit
 }

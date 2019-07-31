@@ -11,153 +11,60 @@
 
 import {faFile, faFolder} from '@fortawesome/free-regular-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {AxiosResponse} from 'axios';
 import {History, LocationState} from 'history';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {Alert, Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
-import {Dispatch} from 'redux';
+import {Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
+import {compose, Dispatch} from 'redux';
 
-import {FileView, LoadingMessage, Paginator} from '@alluxio/common-ui/src/components';
-import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {
+  FileView, hasErrors, hasFetchDataWithPath, hasFluidContainer, hasLoader,
+  hasTextAreaResize, IFetchDataPathType,
+  ITextAreaResizeState,
+  Paginator
+} from '@alluxio/common-ui/src/components';
+import {IAlertErrors, IFileBlockInfo, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
+import {
+  createAlertErrors,
   disableFormSubmit,
-  getDebouncedFunction,
-  parseQuerystring,
   renderFileNameLink
 } from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/browse/actions';
-import {IBrowse} from '../../../store/browse/types';
+import {IBrowse, IBrowseStateToProps} from '../../../store/browse/types';
 import {IInit} from '../../../store/init/types';
 
 import './Browse.css';
 
 interface IPropsFromState {
   browseData: IBrowse;
-  browseErrors?: AxiosResponse;
-  browseLoading: boolean;
   initData: IInit;
-  initErrors?: AxiosResponse;
-  initLoading: boolean;
-  location: {
-    search: string;
-  };
-  refresh: boolean;
-}
-
-interface IPropsFromDispatch {
-  fetchRequest: typeof fetchRequest;
-}
-
-interface IBrowseState {
-  end?: string;
-  limit?: string;
-  offset?: string;
-  path?: string;
-  textAreaHeight?: number;
+  class: string;
 }
 
 interface IBrowseProps {
   history: History<LocationState>;
 }
 
-export type AllProps = IPropsFromState & IPropsFromDispatch & IBrowseProps;
+export type AllProps = IPropsFromState & IBrowseProps & ITextAreaResizeState & IFetchDataPathType;
 
-export class Browse extends React.Component<AllProps, IBrowseState> {
-  private readonly textAreaResizeMs = 100;
-  private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
-
-  constructor(props: AllProps) {
-    super(props);
-
-    let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
-    path = decodeURIComponent(path || '/');
-    offset = offset || '0';
-    this.state = {end, limit, offset, path};
-  }
-
-  public componentDidUpdate(prevProps: AllProps) {
-    const {refresh, location: {search}} = this.props;
-    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
-    if (search !== prevSearch) {
-      let {path, offset, limit, end} = parseQuerystring(search);
-      path = decodeURIComponent(path || '/');
-      offset = offset || '0';
-      this.setState({path, offset, limit, end});
-      this.fetchData(path, offset, limit, end);
-    } else if (refresh !== prevRefresh) {
-      const {path, offset, limit, end} = this.state;
-      this.fetchData(path, offset, limit, end);
-    }
-  }
-
-  public componentWillMount() {
-    const {path, offset, limit, end} = this.state;
-    this.fetchData(path, offset, limit, end);
-    this.updateTextAreaHeight();
-  }
-
-  public componentDidMount() {
-    window.addEventListener('resize', this.debouncedUpdateTextAreaHeight);
-  }
-
-  public componentWillUnmount() {
-    window.removeEventListener('resize', this.debouncedUpdateTextAreaHeight);
-  }
-
+class Browse extends React.Component<AllProps> {
   public render() {
-    const {browseErrors, browseData, browseLoading, initData, initLoading, initErrors} = this.props;
-    let queryStringSuffix = Object.entries(this.state)
-      .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
-      .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
-    queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
+    const {browseData, initData, queryStringSuffix} = this.props;
 
-    if (initErrors || browseErrors || browseData && (browseData.accessControlException || browseData.fatalError ||
-      browseData.fileDoesNotExistException || browseData.invalidPathError || browseData.invalidPathException)) {
-      return (
-        <Alert color="danger">
-          {browseErrors && <div>Unable to reach the api endpoint for this page.</div>}
-          {browseData.accessControlException && <div>{browseData.accessControlException}</div>}
-          {browseData.fatalError && <div>{browseData.fatalError}</div>}
-          {browseData.fileDoesNotExistException && <div>{browseData.fileDoesNotExistException}</div>}
-          {browseData.invalidPathError && <div>{browseData.invalidPathError}</div>}
-          {browseData.invalidPathException && <div>{browseData.invalidPathException}</div>}
-        </Alert>
-      );
-    }
-
-    if (initLoading || browseLoading) {
-      return (
-        <div className="browse-page">
-          <LoadingMessage/>
-        </div>
-      );
-    }
-
-    return (
-      <div className="browse-page">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-12">
-              {!browseData.currentDirectory.isDirectory && this.renderFileView(browseData, queryStringSuffix, initData)}
-              {browseData.currentDirectory.isDirectory && this.renderDirectoryListing(initData, browseData, queryStringSuffix)}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return !browseData.currentDirectory.isDirectory
+      ? this.renderFileView(browseData, queryStringSuffix, initData)
+      : this.renderDirectoryListing(initData, browseData, queryStringSuffix);
   }
 
   private renderFileView(browseData: IBrowse, queryStringSuffix: string, initData: IInit) {
-    const {textAreaHeight, path, offset, end} = this.state;
-    const {history} = this.props;
-    const offsetInputHandler = this.createInputChangeHandler('offset', value => value).bind(this);
-    const beginInputHandler = this.createButtonHandler('end', value => undefined).bind(this);
-    const endInputHandler = this.createButtonHandler('end', value => '1').bind(this);
+    const {path, offset, end, history, textAreaHeight, createInputChangeHandler, createButtonHandler} = this.props;
+    const offsetInputHandler = createInputChangeHandler('offset', value => value); //.bind(this);
+    const beginInputHandler = createButtonHandler('end', value => undefined);//.bind(this);
+    const endInputHandler = createButtonHandler('end', value => '1');//.bind(this);
     return (
-      <React.Fragment>
+      <div className="col-12">
         <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
                   offset={offset} offsetInputHandler={offsetInputHandler} path={path}
                   queryStringPrefix="/browse" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
@@ -190,15 +97,15 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
           ))}
           </tbody>
         </Table>
-      </React.Fragment>
+      </div>
     );
   }
 
   private renderDirectoryListing(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
-    const {path, offset, limit} = this.state;
-    const {history} = this.props;
+    const {path, offset, limit} = this.props;
+    const {history, createInputChangeHandler} = this.props;
     const fileInfos = browseData.fileInfos;
-    const pathInputHandler = this.createInputChangeHandler('path', value => value).bind(this);
+    const pathInputHandler = createInputChangeHandler('path', value => value);//.bind(this);
     return (
       <React.Fragment>
         <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}
@@ -295,17 +202,6 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     )
   }
 
-  private fetchData(path?: string, offset?: string, limit?: string, end?: string) {
-    this.props.fetchRequest(path, offset, limit, end);
-  }
-
-  private createInputChangeHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
-    return (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      this.setState({...this.state, [stateKey]: stateValueCallback(value)});
-    };
-  }
-
   private createInputEnterHandler(history: History<LocationState>, stateValueCallback: (value: string) => string | undefined) {
     return (event: React.KeyboardEvent<HTMLInputElement>) => {
       const value = event.key;
@@ -319,33 +215,39 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
       }
     };
   }
-
-  private createButtonHandler(stateKey: string, stateValueCallback: (value?: string) => string | undefined) {
-    return (event: React.MouseEvent<HTMLButtonElement>) => {
-      this.setState({...this.state, [stateKey]: stateValueCallback()});
-    };
-  }
-
-  private updateTextAreaHeight() {
-    this.setState({textAreaHeight: window.innerHeight / 2});
-  }
 }
 
-const mapStateToProps = ({browse, init, refresh}: IApplicationState) => ({
-  browseData: browse.data,
-  browseErrors: browse.errors,
-  browseLoading: browse.loading,
-  initData: init.data,
-  initErrors: init.errors,
-  initLoading: init.loading,
-  refresh: refresh.data
-});
+const mapStateToProps = ({browse, init, refresh}: IApplicationState): IBrowseStateToProps => {
+  const errors: IAlertErrors = createAlertErrors(
+      init.errors !== undefined || browse.errors !== undefined,
+      [
+        browse.data.accessControlException,
+        browse.data.fatalError,
+        browse.data.fileDoesNotExistException,
+        browse.data.invalidPathError,
+        browse.data.invalidPathException
+      ]
+  );
+
+  return {
+    browseData: browse.data,
+    initData: init.data,
+    refresh: refresh.data,
+    loading: browse.loading || init.loading,
+    class: 'browse-page',
+    errors: errors
+  };
+};
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  fetchRequest: (path?: string, offset?: string, limit?: string, end?: string) => dispatch(fetchRequest(path, offset, limit, end))
+  fetchRequest: (request: IRequest) => dispatch(fetchRequest(request))
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Browse);
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  hasFetchDataWithPath,
+  hasErrors,
+  hasLoader,
+  hasTextAreaResize,
+  hasFluidContainer,
+)(Browse) as React.Component;

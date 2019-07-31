@@ -13,60 +13,27 @@ import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
-import {Dispatch} from 'redux';
+import {compose, Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
+import {hasErrors, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {INodeInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/workers/actions';
-import {IWorkers} from '../../../store/workers/types';
+import {IWorkers, IWorkersStateToProp} from '../../../store/workers/types';
 import {IInit} from '../../../store/init/types';
+import {hasFetchData} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 interface IPropsFromState {
   initData: IInit;
-  initErrors?: AxiosResponse;
-  initLoading?: boolean;
-  refresh: boolean;
   workersData: IWorkers;
-  workersErrors?: AxiosResponse;
-  workersLoading: boolean;
 }
 
-interface IPropsFromDispatch {
-  fetchRequest: typeof fetchRequest;
-}
-
-export type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState;
 
 export class Workers extends React.Component<AllProps> {
-  public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refresh !== prevProps.refresh) {
-      this.props.fetchRequest();
-    }
-  }
-
-  public componentWillMount() {
-    this.props.fetchRequest();
-  }
-
   public render() {
-    const {initData, initErrors, initLoading, workersErrors, workersLoading, workersData} = this.props;
-
-    if (initErrors || workersErrors) {
-      return (
-        <Alert color="danger">
-          Unable to reach the api endpoint for this page.
-        </Alert>
-      );
-    }
-
-    if (initLoading || workersLoading) {
-      return (
-        <div className="workers-page">
-          <LoadingMessage/>
-        </div>
-      );
-    }
+    const {initData, workersData} = this.props;
 
     return (
       <div className="workers-page">
@@ -160,21 +127,22 @@ export class Workers extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({init, refresh, workers}: IApplicationState) => ({
+const mapStateToProps = ({init, refresh, workers}: IApplicationState): IWorkersStateToProp => ({
   initData: init.data,
-  initErrors: init.errors,
-  initLoading: init.loading,
+  errors: createAlertErrors(init.errors !== undefined || workers.errors !== undefined),
+  loading: init.loading || workers.loading,
   refresh: refresh.data,
   workersData: workers.data,
-  workersErrors: workers.errors,
-  workersLoading: workers.loading
+  class: 'workers-page'
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   fetchRequest: () => dispatch(fetchRequest())
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Workers);
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  hasFetchData,
+  hasErrors,
+  hasLoader
+)(Workers) as React.Component;

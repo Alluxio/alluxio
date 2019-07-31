@@ -13,12 +13,14 @@ import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
-import {Dispatch} from 'redux';
+import {compose, Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
+import {hasErrors, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
-import {IMetrics} from '../../../store/metrics/types';
+import {IMetrics, IMetricsStateToProps} from '../../../store/metrics/types';
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import {hasFetchData} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
 
 interface IPropsFromState {
   data: IMetrics;
@@ -27,41 +29,11 @@ interface IPropsFromState {
   refresh: boolean;
 }
 
-interface IPropsFromDispatch {
-  fetchRequest: typeof fetchRequest;
-}
-
-export type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState;
 
 export class Metrics extends React.Component<AllProps> {
-  public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refresh !== prevProps.refresh) {
-      this.props.fetchRequest();
-    }
-  }
-
-  public componentWillMount() {
-    this.props.fetchRequest();
-  }
-
   public render() {
-    const {errors, data, loading} = this.props;
-
-    if (errors) {
-      return (
-        <Alert color="danger">
-          Unable to reach the api endpoint for this page.
-        </Alert>
-      );
-    }
-
-    if (loading) {
-      return (
-        <div className="metrics-page">
-          <LoadingMessage/>
-        </div>
-      );
-    }
+    const {data} = this.props;
 
     return (
       <div className="metrics-page">
@@ -125,18 +97,21 @@ export class Metrics extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({metrics, refresh}: IApplicationState) => ({
+const mapStateToProps = ({metrics, refresh}: IApplicationState): IMetricsStateToProps => ({
   data: metrics.data,
-  errors: metrics.errors,
+  errors: createAlertErrors(metrics.errors !== undefined),
   loading: metrics.loading,
-  refresh: refresh.data
+  refresh: refresh.data,
+  class: 'metrics-page'
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   fetchRequest: () => dispatch(fetchRequest())
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  hasFetchData,
+  hasErrors,
+  hasLoader
 )(Metrics);

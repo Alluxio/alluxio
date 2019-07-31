@@ -13,57 +13,25 @@ import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
-import {Dispatch} from 'redux';
+import {compose, Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
+import {hasErrors, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IScopedPropertyInfo, IStorageTierInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/overview/actions';
-import {IOverview} from '../../../store/overview/types';
+import {IOverview, IOverviewStateToProps} from '../../../store/overview/types';
+import {hasFetchData} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 interface IPropsFromState {
   data: IOverview;
-  errors?: AxiosResponse;
-  loading: boolean;
-  refresh: boolean;
 }
 
-interface IPropsFromDispatch {
-  fetchRequest: typeof fetchRequest;
-}
-
-export type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState;
 
 export class Overview extends React.Component<AllProps> {
-  public componentWillUpdate(prevProps: AllProps) {
-    if (this.props.refresh !== prevProps.refresh) {
-      this.props.fetchRequest();
-    }
-  }
-
-  public componentWillMount() {
-    this.props.fetchRequest();
-  }
-
   public render() {
-    const {errors, data, loading} = this.props;
-
-    if (errors) {
-      return (
-        <Alert color="danger">
-          Unable to reach the api endpoint for this page.
-        </Alert>
-      );
-    }
-
-    if (loading) {
-      return (
-        <div className="overview-page">
-          <LoadingMessage/>
-        </div>
-      );
-    }
-
+    const {data} = this.props;
     return (
       <div className="overview-page">
         <div className="container-fluid">
@@ -193,18 +161,21 @@ export class Overview extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({overview, refresh}: IApplicationState) => ({
+const mapStateToProps = ({overview, refresh}: IApplicationState): IOverviewStateToProps => ({
   data: overview.data,
-  errors: overview.errors,
+  errors: createAlertErrors(overview.errors !== undefined),
   loading: overview.loading,
-  refresh: refresh.data
+  refresh: refresh.data,
+  class: 'overview-page'
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   fetchRequest: () => dispatch(fetchRequest())
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Overview);
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps) ,
+  hasFetchData,
+  hasErrors,
+  hasLoader
+)(Overview) as React.Component;

@@ -13,8 +13,9 @@ import {AxiosResponse} from 'axios';
 import {action} from 'typesafe-actions';
 
 import {LogsActionTypes} from './types';
+import {IRequest} from "../../constants";
 
-export const fetchRequest = (path?: string, offset?: string, limit?: string, end?: string) => action(LogsActionTypes.FETCH_REQUEST,
+export const fetchRequest = ({path, offset, limit, end}: IRequest) => action(LogsActionTypes.FETCH_REQUEST,
   {queryString: {end, limit, offset, path}}
 );
 export const fetchSuccess = (response: AxiosResponse) => action(LogsActionTypes.FETCH_SUCCESS, response);

@@ -16,7 +16,7 @@ const performRequest = (axiosMethod: Function, endpoint: string, payload: any) =
   .then((response: any) => ({response}))
   .catch((error: any) => ({error}));
 
-export const getSagaRequest = (AxiosFunction: Function, endpoint: string, successFunction: ActionType<any>, errorFunction: ActionType<any>) => function* (params: any) {
+export const getSagaRequest = (AxiosFunction: Function, endpoint: string, successFunction: ActionType, errorFunction: ActionType) => function* (params: any) {
   let apiEndpoint = endpoint;
 
   if (params && params.payload) {

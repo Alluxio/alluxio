@@ -16,7 +16,7 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 import {Button, ButtonGroup, Form, FormGroup, Input, Label} from 'reactstrap';
 
-import {IFileInfo} from '../../constants';
+import {IFileViewData} from '../../constants';
 import {disableFormSubmit} from '../../utilities';
 
 export interface IFileViewProps {
@@ -32,17 +32,7 @@ export interface IFileViewProps {
   queryStringPrefix: string;
   queryStringSuffix: string;
   textAreaHeight?: number;
-  viewData: {
-    currentDirectory?: IFileInfo;
-    'currentPath': string;
-    'debug': boolean;
-    'fatalError': string;
-    'fileData': string;
-    'fileInfos': IFileInfo[];
-    'invalidPathError': string;
-    'ntotalFile': number;
-    'viewingOffset': number;
-  },
+  viewData: IFileViewData,
   proxyDownloadApiUrl?: {
     'prefix': string,
     'suffix': string

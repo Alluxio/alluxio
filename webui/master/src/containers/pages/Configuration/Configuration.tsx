@@ -13,56 +13,26 @@ import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
-import {Dispatch} from 'redux';
+import {compose, Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
+import {hasErrors, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IConfigTriple} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/config/actions';
-import {IConfig} from '../../../store/config/types';
+import {IConfig, IConfigStateToProps} from '../../../store/config/types';
+import {hasFetchData, IFetchDataProps} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
+import {IAlertErrors} from "@alluxio/common-ui/src/constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 interface IPropsFromState {
   data: IConfig;
-  errors?: AxiosResponse;
-  loading: boolean;
-  refresh: boolean;
 }
 
-interface IPropsFromDispatch {
-  fetchRequest: typeof fetchRequest;
-}
-
-export type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState;
 
 export class Configuration extends React.Component<AllProps> {
-  public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refresh !== prevProps.refresh) {
-      this.props.fetchRequest();
-    }
-  }
-
-  public componentWillMount() {
-    this.props.fetchRequest();
-  }
-
   public render() {
-    const {errors, data, loading} = this.props;
-
-    if (errors) {
-      return (
-        <Alert color="danger">
-          Unable to reach the api endpoint for this page.
-        </Alert>
-      );
-    }
-
-    if (loading) {
-      return (
-        <div className="configuration-page">
-          <LoadingMessage/>
-        </div>
-      );
-    }
+    const {data} = this.props;
 
     return (
       <div className="configuration-page">
@@ -110,19 +80,25 @@ export class Configuration extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({config, refresh}: IApplicationState) => ({
-  data: config.data,
-  errors: config.errors,
-  loading: config.loading,
-  refresh: refresh.data
+const mapStateToProps = ({config, refresh}: IApplicationState): IConfigStateToProps => {
+  const errors: IAlertErrors = createAlertErrors(config.errors !== undefined, []);
+  return {
+    data: config.data,
+    errors: errors,
+    loading: config.loading,
+    refresh: refresh.data,
+    class: 'configuration-page'
+  }
 
-});
+};
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   fetchRequest: () => dispatch(fetchRequest())
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Configuration);
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    hasFetchData,
+    hasErrors,
+    hasLoader
+)(Configuration) as React.Component;

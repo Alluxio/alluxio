@@ -11,6 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 import {IStorageTierInfo} from '../../constants';
+import {IStateToProps} from "@alluxio/common-ui/src/constants";
 
 export interface IOverview {
   'capacityBytes': string;
@@ -36,4 +37,8 @@ export interface IOverviewState {
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;
+}
+
+export interface IOverviewStateToProps extends IStateToProps {
+  data: IOverview
 }

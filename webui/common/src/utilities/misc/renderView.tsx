@@ -9,14 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
-import {action} from 'typesafe-actions';
+import {RouteComponentProps, StaticContext} from "react-router";
+import React from "react";
 
-import {DataActionTypes} from './types';
-import {IRequest} from "@alluxio/common-ui/src/constants";
-
-export const fetchRequest = ({offset, limit}: IRequest) => action(DataActionTypes.FETCH_REQUEST,
-  {queryString: {limit, offset}}
-);
-export const fetchSuccess = (response: AxiosResponse) => action(DataActionTypes.FETCH_SUCCESS, response);
-export const fetchError = (message: string) => action(DataActionTypes.FETCH_ERROR, message);
+export function renderView(Container: any, props: any) {
+    return (routerProps: RouteComponentProps<any, StaticContext, any>) => {
+        return (
+            <Container {...routerProps} {...props}/>
+        );
+    }
+}

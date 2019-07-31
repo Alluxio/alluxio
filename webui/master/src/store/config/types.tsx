@@ -12,6 +12,7 @@
 import {AxiosResponse} from 'axios';
 
 import {IConfigTriple} from '../../constants';
+import {IStateToProps} from "@alluxio/common-ui/src/constants";
 
 export interface IConfig {
   configuration: IConfigTriple[];
@@ -29,4 +30,8 @@ export interface IConfigState {
   readonly loading: boolean;
   readonly errors?: AxiosResponse;
   readonly response?: AxiosResponse;
+}
+
+export interface IConfigStateToProps extends IStateToProps {
+  data: IConfig
 }

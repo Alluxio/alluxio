@@ -9,14 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
-import {action} from 'typesafe-actions';
+import React from 'react';
+import {LoadingMessage} from "..";
 
-import {DataActionTypes} from './types';
-import {IRequest} from "@alluxio/common-ui/src/constants";
+interface IProps {
+    loading: boolean;
+    class: string;
+}
 
-export const fetchRequest = ({offset, limit}: IRequest) => action(DataActionTypes.FETCH_REQUEST,
-  {queryString: {limit, offset}}
-);
-export const fetchSuccess = (response: AxiosResponse) => action(DataActionTypes.FETCH_SUCCESS, response);
-export const fetchError = (message: string) => action(DataActionTypes.FETCH_ERROR, message);
+export function hasLoader<T extends IProps>(WrappedComponent: React.ComponentType<T>) {
+    return (props: T) => {
+        return props.loading
+            ? (
+                <div className={props.class}>
+                    <LoadingMessage />
+                </div>
+            )
+            : <WrappedComponent {...props} />;
+    }
+}
