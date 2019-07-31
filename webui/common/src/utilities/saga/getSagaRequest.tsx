@@ -11,12 +11,13 @@
 
 import {call, put} from 'redux-saga/effects';
 import {ActionType} from 'typesafe-actions';
+import {AxiosResponse} from 'axios';
 
 const performRequest = (axiosMethod: Function, endpoint: string, payload: any) => axiosMethod(endpoint, payload)
   .then((response: any) => ({response}))
   .catch((error: any) => ({error}));
 
-export const getSagaRequest = (AxiosFunction: Function, endpoint: string, successFunction: ActionType, errorFunction: ActionType) => function* (params: any) {
+export const getSagaRequest = (AxiosFunction: Function, endpoint: string, successFunction: ActionType<any>, errorFunction: ActionType<any>) => function* (params: any) {
   let apiEndpoint = endpoint;
 
   if (params && params.payload) {

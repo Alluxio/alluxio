@@ -22,7 +22,7 @@ export function hasFluidContainer<T extends IProps>(WrappedComponent: React.Comp
             <div className={props.class}>
                 <div className="container-fluid">
                     <div className="row">
-                        <WrappedComponent {...props}/>
+                        <WrappedComponent {...props} />
                     </div>
                 </div>
             </div>

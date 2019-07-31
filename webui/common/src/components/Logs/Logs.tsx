@@ -33,7 +33,6 @@ interface IPropsFromState {
   location: {
     search: string;
   };
-  refresh: boolean;
 }
 
 interface ILogsProps {
@@ -42,28 +41,29 @@ interface ILogsProps {
 
 export type AllProps = IPropsFromState & ILogsProps & ITextAreaResizeState & IFetchDataPathType;
 
-class Logs extends React.Component<AllProps> {
+export class LogsPresenter extends React.Component<AllProps> {
   public render() {
     const {data, queryStringSuffix} = this.props;
 
-    return data.fileData !== null
-      ? this.renderFileView(data, queryStringSuffix)
-      : this.renderDirectoryListing(data.fileInfos);
-
+    return (
+      <div className="col-12">
+        {data.fileData !== null
+          ? this.renderFileView(data, queryStringSuffix)
+          : this.renderDirectoryListing(data.fileInfos || [])}
+      </div>
+    );
   }
 
   private renderFileView(logs: ILogs, queryStringSuffix: string) {
     const {textAreaHeight, path, offset, end, history, createInputChangeHandler, createButtonHandler} = this.props;
-    const offsetInputHandler = createInputChangeHandler('offset', value => value);//.bind(this);
-    const beginInputHandler = createButtonHandler('end', value => undefined);//.bind(this);
-    const endInputHandler = createButtonHandler('end', value => '1');//.bind(this);
+    const offsetInputHandler = createInputChangeHandler('offset', value => value);
+    const beginInputHandler = createButtonHandler('end', value => undefined);
+    const endInputHandler = createButtonHandler('end', value => '1');
     return (
-      <div className="col-12">
         <FileView beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
                   offset={offset} offsetInputHandler={offsetInputHandler} path={path}
                   queryStringPrefix="/logs" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
                   viewData={logs} history={history}/>
-      </div>
     );
   }
 
@@ -125,4 +125,4 @@ export default compose(
   hasLoader,
   hasTextAreaResize,
   hasFluidContainer
-)(Logs) as React.ComponentType<AllProps>;
+)(LogsPresenter) as React.ComponentType<AllProps>;

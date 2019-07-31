@@ -17,8 +17,8 @@ export interface ILogs {
   'currentPath': string;
   'debug': boolean;
   'fatalError': string;
-  'fileData': string;
-  'fileInfos': IFileInfo[];
+  'fileData': string | null;
+  'fileInfos': IFileInfo[] | null;
   'invalidPathError': string;
   'ntotalFile': number;
   'viewingOffset': number;

@@ -25,7 +25,7 @@ export function hasErrors<T extends IErrorProps>(WrappedComponent: React.Compone
             ? (
                 <Alert color="danger">
                     {errors.general && <div>Unable to reach the api endpoint for this page.</div>}
-                    {errors.specific.map(err => <div>{err}</div>)}
+                    {errors.specific.map((err, i) => <div key={i}>{err}</div>)}
                 </Alert>
             )
             : <WrappedComponent {...props} />
