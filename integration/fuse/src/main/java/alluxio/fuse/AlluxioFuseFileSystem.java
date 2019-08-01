@@ -218,7 +218,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     FuseContext fc = libFuse.fuse_get_context();
     long uid = fc.uid.get();
     long gid = fc.gid.get();
-    LOG.info("create " + path + " uid:" + uid + " gid:" + gid);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     final int flags = fi.flags.get();
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
@@ -227,13 +226,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       String groupName = AlluxioFuseUtils.getGroupName(gid);
       if (groupName.isEmpty()) {
         // This should never be reached since input gid is always valid
-        // If user chown without group name, the primary group gid of the user name will be provided
         LOG.error("Failed to get group name from gid {}.", gid);
         return -ErrorCodes.EFAULT();
       }
       String userName = AlluxioFuseUtils.getUserName(uid);
       if (userName.isEmpty()) {
-        // This should never be reached
+        // This should never be reached since input uid is always valid
         LOG.error("Failed to get user name from uid {}", uid);
         return -ErrorCodes.EFAULT();
       }
@@ -419,13 +417,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       String groupName = AlluxioFuseUtils.getGroupName(gid);
       if (groupName.isEmpty()) {
         // This should never be reached since input gid is always valid
-        // If user chown without group name, the primary group gid of the user name will be provided
         LOG.error("Failed to get group name from gid {}.", gid);
         return -ErrorCodes.EFAULT();
       }
       String userName = AlluxioFuseUtils.getUserName(uid);
       if (userName.isEmpty()) {
-        // This should never be reached
+        // This should never be reached since input uid is always valid
         LOG.error("Failed to get user name from uid {}", uid);
         return -ErrorCodes.EFAULT();
       }
