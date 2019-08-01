@@ -38,7 +38,7 @@ interface IHandlers {
 export type IFetchDataPathType = IFetchDataPathState & IFetchDataPathProps & IHandlers & {queryStringSuffix: string};
 
 export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataPathProps>(WrappedComponent: React.ComponentType<TWrappedComponentProps>) {
-    const fetchDataHocWithPath = class extends React.Component<TWrappedComponentProps, IFetchDataPathState> {
+    class fetchDataFromPathHoc extends React.Component<TWrappedComponentProps, IFetchDataPathState> {
         constructor(props: TWrappedComponentProps) {
             super(props);
 
@@ -101,6 +101,6 @@ export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataP
             };
         }
     };
-    (fetchDataHocWithPath as React.ComponentType<any>).displayName = `withFetchDataFromPath(${getDisplayName(WrappedComponent)})`;
-    return fetchDataHocWithPath;
+    (fetchDataFromPathHoc as React.ComponentType<any>).displayName = `withFetchDataFromPath(${getDisplayName(WrappedComponent)})`;
+    return fetchDataFromPathHoc;
 }

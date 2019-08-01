@@ -11,8 +11,8 @@
 
 import React from 'react';
 import {Alert} from "reactstrap";
-import {IAlertErrors} from "../../constants";
-import {getDisplayName} from "../../utilities/misc/getDisplayName";
+import {IAlertErrors} from "../../../constants";
+import {getDisplayName} from "../../../utilities/misc/getDisplayName";
 
 interface IErrorProps {
     errors: IAlertErrors;

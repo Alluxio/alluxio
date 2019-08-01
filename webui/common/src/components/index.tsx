@@ -10,7 +10,7 @@
  */
 
 export * from './HOCs/withLoadingMessage';
-export * from './HOCs/withErrors';
+export * from './HOCs/withErrors/withErrors';
 export * from './HOCs/withTextAreaResize';
 export * from './HOCs/withFetchDataFromPath';
 export * from './HOCs/withFluidContainer';

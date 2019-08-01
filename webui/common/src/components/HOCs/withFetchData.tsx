@@ -18,7 +18,7 @@ export interface IFetchDataProps {
 }
 
 export function withFetchData<TWrappedComponentProps extends IFetchDataProps>(WrappedComponent: React.ComponentType<TWrappedComponentProps>) {
-    const fetchDataHoc = class extends React.Component<TWrappedComponentProps> {
+    class fetchDataHoc extends React.Component<TWrappedComponentProps> {
         public componentDidUpdate(prevProps: TWrappedComponentProps) {
             if (this.props.refresh !== prevProps.refresh) {
                 this.props.fetchRequest();
