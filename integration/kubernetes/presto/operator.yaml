@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: presto-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: presto-operator
+  template:
+    metadata:
+      labels:
+        name: presto-operator
+    spec:
+      serviceAccountName: presto-operator
+      containers:
+        - name: presto-operator
+          # Replace this with the built image name
+          image: starburstdata/presto-operator:k8s-0.7
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "presto-operator"
