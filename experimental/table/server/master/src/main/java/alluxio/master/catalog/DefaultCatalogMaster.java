@@ -11,19 +11,26 @@
 
 package alluxio.master.catalog;
 
+import alluxio.Constants;
 import alluxio.Server;
+import alluxio.clock.SystemClock;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.master.CoreMaster;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Table;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +40,12 @@ import java.util.Set;
 /**
  * This catalog master manages catalogs metadata information.
  */
-public class DefaultCatalogMaster implements CatalogMaster {
+public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
+  public DefaultCatalogMaster(CoreMasterContext context) {
+    super (context, new SystemClock(),
+        ExecutorServiceFactories.cachedThreadPool(Constants.CATALOG_MASTER_NAME));
+  }
+
   @Override
   public List<String> getAllDatabases() {
     return null;

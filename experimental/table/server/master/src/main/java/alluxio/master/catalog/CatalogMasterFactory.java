@@ -46,7 +46,7 @@ public final class CatalogMasterFactory implements MasterFactory<CoreMasterConte
   @Override
   public CatalogMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", CatalogMaster.class.getName());
-    CatalogMaster master = new DefaultCatalogMaster();
+    CatalogMaster master = new DefaultCatalogMaster(context);
     registry.add(CatalogMaster.class, master);
     return master;
   }
