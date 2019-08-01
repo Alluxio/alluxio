@@ -83,8 +83,8 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mTtlAction = TtlAction.DELETE;
     mMode.applyFileUMask();
     mCacheable = false;
-    setOwner(null);
-    setGroup(null);
+    setOwner("");
+    setGroup("");
   }
 
   /**

@@ -82,8 +82,8 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mTtlAction = TtlAction.DELETE;
     mMode.applyDirectoryUMask();
     mUfsStatus = null;
-    mOwner = null;
-    mGroup = null;
+    mOwner = "";
+    mGroup = "";
   }
 
   /**
