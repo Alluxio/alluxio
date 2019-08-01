@@ -15,7 +15,6 @@ import static alluxio.job.wire.Status.COMPLETED;
 import static alluxio.job.wire.Status.FAILED;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemMasterClient;
@@ -38,10 +37,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.Closeable;
 
 /**
  * Integration tests for {@link PersistDefinition}.
