@@ -75,18 +75,8 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public JournalContext createJournalContext() throws UnavailableException {
-    return null;
-  }
-
-  @Override
-  public Set<Class<? extends Server>> getDependencies() {
-    return null;
-  }
-
-  @Override
   public String getName() {
-    return null;
+    return Constants.CATALOG_MASTER_NAME;
   }
 
   @Override
@@ -98,15 +88,18 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public void start(Boolean options) throws IOException {
+  public void start(Boolean isLeader) throws IOException {
+    super.start(isLeader);
   }
 
   @Override
   public void stop() throws IOException {
+    super.stop();
   }
 
   @Override
   public void close() throws IOException {
+    super.close();
   }
 
   @Override
