@@ -41,7 +41,6 @@ import {routePaths} from "../../../constants";
 interface IPropsFromState {
   browseData: IBrowse;
   initData: IInit;
-  class: string;
 }
 
 interface IBrowseProps {
@@ -50,13 +49,17 @@ interface IBrowseProps {
 
 export type AllProps = IPropsFromState & IBrowseProps & ITextAreaResizeState & IFetchDataPathType;
 
-class Browse extends React.Component<AllProps> {
+export class BrowsePresenter extends React.Component<AllProps> {
   public render() {
     const {browseData, initData, queryStringSuffix} = this.props;
 
-    return !browseData.currentDirectory.isDirectory
-      ? this.renderFileView(browseData, queryStringSuffix, initData)
-      : this.renderDirectoryListing(initData, browseData, queryStringSuffix);
+    return (
+      <div className="col-12">
+        {!browseData.currentDirectory.isDirectory
+            ? this.renderFileView(browseData, queryStringSuffix, initData)
+            : this.renderDirectoryListing(initData, browseData, queryStringSuffix)}
+      </div>
+    );
   }
 
   private renderFileView(browseData: IBrowse, queryStringSuffix: string, initData: IInit) {
@@ -65,40 +68,40 @@ class Browse extends React.Component<AllProps> {
     const beginInputHandler = createButtonHandler('end', value => undefined);//.bind(this);
     const endInputHandler = createButtonHandler('end', value => '1');//.bind(this);
     return (
-      <div className="col-12">
-        <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
-                  offset={offset} offsetInputHandler={offsetInputHandler} path={path}
-                  queryStringPrefix={routePaths.browse} queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
-                  viewData={browseData} history={history} proxyDownloadApiUrl={initData.proxyDownloadFileApiUrl}/>
-        <hr/>
-        <h6>Detailed blocks information (block capacity is {browseData.blockSizeBytes} Bytes):</h6>
-        <Table hover={true}>
-          <thead>
-          <tr>
-            <th>ID</th>
-            <th>Size (Byte)</th>
-            <th>In {browseData.highestTierAlias}</th>
-            <th>Locations</th>
-          </tr>
-          </thead>
-          <tbody>
-          {browseData.fileBlocks.map((fileBlock: IFileBlockInfo) => (
-            <tr key={fileBlock.id}>
-              <td>{fileBlock.id}</td>
-              <td>{fileBlock.blockLength}</td>
-              <td>
-                {fileBlock.isInHighestTier ? 'YES' : 'NO'}
-              </td>
-              <td>
-                {fileBlock.locations.map((location: string) => (
-                  <div key={location}>{location}</div>
-                ))}
-              </td>
+        <React.Fragment>
+          <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
+                    offset={offset} offsetInputHandler={offsetInputHandler} path={path}
+                    queryStringPrefix={routePaths.browse} queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
+                    viewData={browseData} history={history} proxyDownloadApiUrl={initData.proxyDownloadFileApiUrl}/>
+          <hr/>
+          <h6>Detailed blocks information (block capacity is {browseData.blockSizeBytes} Bytes):</h6>
+          <Table hover={true}>
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>Size (Byte)</th>
+              <th>In {browseData.highestTierAlias}</th>
+              <th>Locations</th>
             </tr>
-          ))}
-          </tbody>
-        </Table>
-      </div>
+            </thead>
+            <tbody>
+            {browseData.fileBlocks.map((fileBlock: IFileBlockInfo) => (
+              <tr key={fileBlock.id}>
+                <td>{fileBlock.id}</td>
+                <td>{fileBlock.blockLength}</td>
+                <td>
+                  {fileBlock.isInHighestTier ? 'YES' : 'NO'}
+                </td>
+                <td>
+                  {fileBlock.locations.map((location: string) => (
+                    <div key={location}>{location}</div>
+                  ))}
+                </td>
+              </tr>
+            ))}
+            </tbody>
+          </Table>
+        </React.Fragment>
     );
   }
 
@@ -251,4 +254,4 @@ export default compose(
   hasLoader,
   hasTextAreaResize,
   hasFluidContainer,
-)(Browse) as React.Component;
+)(BrowsePresenter) as React.Component;

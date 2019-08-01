@@ -30,15 +30,11 @@ import {routePaths} from "../../../constants";
 
 interface IPropsFromState {
   data: IData;
-  location: {
-    search: string;
-  };
-  refresh: boolean;
 }
 
 export type AllProps = IPropsFromState & IFetchDataPathType;
 
-export class Data extends React.Component<AllProps> {
+export class DataPresenter extends React.Component<AllProps> {
   public render() {
     const {offset, limit, data} = this.props;
 
@@ -113,4 +109,4 @@ export default compose(
     hasErrors,
     hasLoader,
     hasFluidContainer
-)(Data) as React.Component;
+)(DataPresenter) as React.Component;

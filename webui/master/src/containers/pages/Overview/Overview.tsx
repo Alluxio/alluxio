@@ -15,7 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {hasErrors, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {hasErrors, hasFluidContainer, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IScopedPropertyInfo, IStorageTierInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/overview/actions';
@@ -29,105 +29,101 @@ interface IPropsFromState {
 
 export type AllProps = IPropsFromState;
 
-export class Overview extends React.Component<AllProps> {
+export class OverviewPresenter extends React.Component<AllProps> {
   public render() {
     const {data} = this.props;
     return (
-      <div className="overview-page">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6">
-              <h5>Alluxio Summary</h5>
-              <Table hover={true}>
-                <tbody>
-                <tr>
-                  <th scope="row">Master Address</th>
-                  <td>{data.masterNodeAddress}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Started</th>
-                  <td>{data.startTime}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Uptime</th>
-                  <td>{data.uptime}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Version</th>
-                  <td>{data.version}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Running Workers</th>
-                  <td>{data.liveWorkerNodes}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Server Configuration Check</th>
-                  <td className={data.configCheckStatus === 'FAILED' ? 'text-danger' : ''}>
-                    {data.configCheckStatus}
-                  </td>
-                </tr>
-                {this.renderConfigurationIssues(data.configCheckErrors, 'text-error')}
-                {this.renderConfigurationIssues(data.configCheckWarns, 'text-warning')}
-                </tbody>
-              </Table>
-            </div>
-            <div className="col-md-6">
-              <h5>Cluster Usage Summary</h5>
-              <Table hover={true}>
-                <tbody>
-                <tr>
-                  <th scope="row">Workers Capacity</th>
-                  <td>{data.capacity}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Workers Free / Used</th>
-                  <td>{data.freeCapacity} / {data.usedCapacity}</td>
-                </tr>
-                <tr>
-                  <th scope="row">UnderFS Capacity</th>
-                  <td>{data.diskCapacity}</td>
-                </tr>
-                <tr>
-                  <th scope="row">UnderFS Free / Used</th>
-                  <td>{data.diskFreeCapacity} / {data.diskUsedCapacity}</td>
-                </tr>
-                </tbody>
-              </Table>
-            </div>
-            <div className="col-md-12">
-              <h5>Storage Usage Summary</h5>
-              <Table hover={true}>
-                <thead>
-                <tr>
-                  <th>Storage Alias</th>
-                  <th>Space Capacity</th>
-                  <th>Space Used</th>
-                  <th>Space Usage</th>
-                </tr>
-                </thead>
-                <tbody>
-                {data.storageTierInfos.map((info: IStorageTierInfo) => (
-                  <tr key={info.storageTierAlias}>
-                    <td>{info.storageTierAlias}</td>
-                    <td>{info.capacity}</td>
-                    <td>{info.usedCapacity}</td>
-                    <td>
-                      <Progress className="h-50 mt-1" multi={true}>
-                        <Progress bar={true} color="dark" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
-                          Free</Progress>
-                        <Progress bar={true} color="secondary"
-                                  value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
-                          Used</Progress>
-                      </Progress>
-                    </td>
-                  </tr>
-                ))}
-                </tbody>
-              </Table>
-            </div>
-          </div>
+      <React.Fragment>
+        <div className="col-md-6">
+          <h5>Alluxio Summary</h5>
+          <Table hover={true}>
+            <tbody>
+            <tr>
+              <th scope="row">Master Address</th>
+              <td>{data.masterNodeAddress}</td>
+            </tr>
+            <tr>
+              <th scope="row">Started</th>
+              <td>{data.startTime}</td>
+            </tr>
+            <tr>
+              <th scope="row">Uptime</th>
+              <td>{data.uptime}</td>
+            </tr>
+            <tr>
+              <th scope="row">Version</th>
+              <td>{data.version}</td>
+            </tr>
+            <tr>
+              <th scope="row">Running Workers</th>
+              <td>{data.liveWorkerNodes}</td>
+            </tr>
+            <tr>
+              <th scope="row">Server Configuration Check</th>
+              <td className={data.configCheckStatus === 'FAILED' ? 'text-danger' : ''}>
+                {data.configCheckStatus}
+              </td>
+            </tr>
+            {this.renderConfigurationIssues(data.configCheckErrors, 'text-error')}
+            {this.renderConfigurationIssues(data.configCheckWarns, 'text-warning')}
+            </tbody>
+          </Table>
         </div>
-      </div>
+        <div className="col-md-6">
+          <h5>Cluster Usage Summary</h5>
+          <Table hover={true}>
+            <tbody>
+            <tr>
+              <th scope="row">Workers Capacity</th>
+              <td>{data.capacity}</td>
+            </tr>
+            <tr>
+              <th scope="row">Workers Free / Used</th>
+              <td>{data.freeCapacity} / {data.usedCapacity}</td>
+            </tr>
+            <tr>
+              <th scope="row">UnderFS Capacity</th>
+              <td>{data.diskCapacity}</td>
+            </tr>
+            <tr>
+              <th scope="row">UnderFS Free / Used</th>
+              <td>{data.diskFreeCapacity} / {data.diskUsedCapacity}</td>
+            </tr>
+            </tbody>
+          </Table>
+        </div>
+        <div className="col-md-12">
+          <h5>Storage Usage Summary</h5>
+          <Table hover={true}>
+            <thead>
+            <tr>
+              <th>Storage Alias</th>
+              <th>Space Capacity</th>
+              <th>Space Used</th>
+              <th>Space Usage</th>
+            </tr>
+            </thead>
+            <tbody>
+            {data.storageTierInfos.map((info: IStorageTierInfo) => (
+              <tr key={info.storageTierAlias}>
+                <td>{info.storageTierAlias}</td>
+                <td>{info.capacity}</td>
+                <td>{info.usedCapacity}</td>
+                <td>
+                  <Progress className="h-50 mt-1" multi={true}>
+                    <Progress bar={true} color="dark" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
+                      Free</Progress>
+                    <Progress bar={true} color="secondary"
+                              value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
+                      Used</Progress>
+                  </Progress>
+                </td>
+              </tr>
+            ))}
+            </tbody>
+          </Table>
+        </div>
+      </React.Fragment>
     );
   }
 
@@ -177,5 +173,6 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps) ,
   hasFetchData,
   hasErrors,
-  hasLoader
-)(Overview) as React.Component;
+  hasLoader,
+  hasFluidContainer
+)(OverviewPresenter) as React.Component;

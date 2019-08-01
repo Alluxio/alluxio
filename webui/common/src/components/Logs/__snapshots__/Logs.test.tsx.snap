@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Logs Shallow component Matches snapshot with file 1`] = `
+exports[`Logs Shallow component Renders Directory Listing Matches snapshot with Table listing 1`] = `
 <div
   className="col-12"
 >
@@ -47,7 +47,7 @@ exports[`Logs Shallow component Matches snapshot with file 1`] = `
 </div>
 `;
 
-exports[`Logs Shallow component Matches snapshot with table 1`] = `
+exports[`Logs Shallow component Renders FileView Matches snapshot with File 1`] = `
 <div
   className="col-12"
 >

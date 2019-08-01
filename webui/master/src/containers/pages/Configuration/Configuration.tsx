@@ -30,7 +30,7 @@ interface IPropsFromState {
 
 export type AllProps = IPropsFromState;
 
-export class Configuration extends React.Component<AllProps> {
+export class ConfigurationPresenter extends React.Component<AllProps> {
   public render() {
     const {data} = this.props;
 
@@ -101,4 +101,4 @@ export default compose(
     hasFetchData,
     hasErrors,
     hasLoader
-)(Configuration) as React.Component;
+)(ConfigurationPresenter) as React.Component;

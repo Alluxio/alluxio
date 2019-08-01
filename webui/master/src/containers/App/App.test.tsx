@@ -78,8 +78,6 @@ describe('App', () => {
         .toHaveLength(1);
     });
 
-    // it('Should render ')
-
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
     });

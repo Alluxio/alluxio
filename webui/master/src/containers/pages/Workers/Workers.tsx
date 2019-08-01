@@ -31,7 +31,7 @@ interface IPropsFromState {
 
 export type AllProps = IPropsFromState;
 
-export class Workers extends React.Component<AllProps> {
+export class WorkersPresenter extends React.Component<AllProps> {
   public render() {
     const {initData, workersData} = this.props;
 
@@ -145,4 +145,4 @@ export default compose(
   hasFetchData,
   hasErrors,
   hasLoader
-)(Workers) as React.Component;
+)(WorkersPresenter) as React.Component;

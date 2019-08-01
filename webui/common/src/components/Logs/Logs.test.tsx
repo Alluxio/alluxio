@@ -61,15 +61,26 @@ describe('Logs', () => {
       expect(shallowWrapper.length).toEqual(1);
     });
 
-    it('Matches snapshot with file', () => {
-      expect(shallowWrapper).toMatchSnapshot();
+    it('Contains a div with class col-12', () => {
+      expect(shallowWrapper.find('.col-12').length).toEqual(1);
     });
 
-    it('Matches snapshot with table', () => {
-      const data = {...initialState.logs.data};
-      data.fileData = null;
-      shallowWrapper.setProps({data: data});
-      expect(shallowWrapper).toMatchSnapshot();
+    describe('Renders Directory Listing', () => {
+      it('Matches snapshot with Table listing', () => {
+        expect(shallowWrapper).toMatchSnapshot();
+      });
+    });
+
+    describe('Renders FileView', () => {
+      beforeAll(() => {
+        const data = {...initialState.logs.data};
+        data.fileData = null;
+        shallowWrapper.setProps({data: data});
+      });
+
+      it('Matches snapshot with File', () => {
+        expect(shallowWrapper).toMatchSnapshot();
+      });
     });
   });
 
