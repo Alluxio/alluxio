@@ -121,9 +121,9 @@ public class AlluxioFuseFileSystemTest {
     long uid = fc.uid.get();
     long gid = fc.gid.get();
     String groupName = AlluxioFuseUtils.getGroupName(gid);
-    assert(!groupName.isEmpty());
+    assert (!groupName.isEmpty());
     String userName = AlluxioFuseUtils.getUserName(uid);
-    assert(!userName.isEmpty());
+    assert (!userName.isEmpty());
     verify(mFileSystem).createFile(expectedPath, CreateFileOptions.defaults()
         .setMode(new Mode((short) 0))
         .setOwner(userName)
@@ -273,9 +273,9 @@ public class AlluxioFuseFileSystemTest {
     long uid = fc.uid.get();
     long gid = fc.gid.get();
     String groupName = AlluxioFuseUtils.getGroupName(gid);
-    assert(!groupName.isEmpty());
+    assert (!groupName.isEmpty());
     String userName = AlluxioFuseUtils.getUserName(uid);
-    assert(!userName.isEmpty());
+    assert (!userName.isEmpty());
     mFuseFs.mkdir("/foo/bar", mode);
     verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"),
         CreateDirectoryOptions.defaults()
