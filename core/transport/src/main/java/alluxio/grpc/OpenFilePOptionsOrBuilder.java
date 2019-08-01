@@ -37,4 +37,13 @@ public interface OpenFilePOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
+
+  /**
+   * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+   */
+  boolean hasUpdateLastAccessTime();
+  /**
+   * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+   */
+  boolean getUpdateLastAccessTime();
 }

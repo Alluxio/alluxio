@@ -37,4 +37,13 @@ public interface GetStatusPOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.Bits accessMode = 3;</code>
    */
   alluxio.grpc.Bits getAccessMode();
+
+  /**
+   * <code>optional bool updateTimestamps = 4 [default = true];</code>
+   */
+  boolean hasUpdateTimestamps();
+  /**
+   * <code>optional bool updateTimestamps = 4 [default = true];</code>
+   */
+  boolean getUpdateTimestamps();
 }

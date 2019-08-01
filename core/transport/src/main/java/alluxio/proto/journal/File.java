@@ -8060,7 +8060,7 @@ public final class File {
   }
   /**
    * <pre>
-   * next available id: 18
+   * next available id: 20
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
@@ -9248,7 +9248,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 18
+     * next available id: 20
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
