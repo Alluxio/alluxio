@@ -627,7 +627,8 @@ public final class BaseFileSystemTest {
 
   private GetStatusPOptions getOpenOptions(GetStatusPOptions getStatusOptions) {
     return FileSystemOptions.getStatusDefaults(mConf)
-        .toBuilder().setAccessMode(Bits.READ).mergeFrom(getStatusOptions).build();
+        .toBuilder().setAccessMode(Bits.READ).setUpdateTimestamps(true)
+        .mergeFrom(getStatusOptions).build();
   }
 
   private void assertBadAuthority(String authority, String failureMessage) throws Exception {

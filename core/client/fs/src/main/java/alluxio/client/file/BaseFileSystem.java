@@ -412,8 +412,11 @@ public class BaseFileSystem implements FileSystem {
     checkUri(path);
     return rpc(client -> {
       AlluxioConfiguration conf = mFsContext.getPathConf(path);
-      URIStatus status = client.getStatus(path, FileSystemOptions.getStatusDefaults(conf)
-          .toBuilder().setAccessMode(Bits.READ).build());
+      URIStatus status = client.getStatus(path,
+          FileSystemOptions.getStatusDefaults(conf).toBuilder()
+              .setAccessMode(Bits.READ)
+              .setUpdateTimestamps(options.getUpdateLastAccessTime())
+              .build());
       if (status.isFolder()) {
         throw new FileDoesNotExistException(
             ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
