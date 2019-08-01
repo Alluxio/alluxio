@@ -20,7 +20,7 @@ import {compose, Dispatch} from 'redux';
 import {Footer, hasErrors, hasLoader, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {BlockInfo, WorkerLogs, Metrics, Overview} from '..';
-import {footerNavigationData, headerNavigationData} from '../../constants';
+import {footerNavigationData, headerNavigationData, routePaths} from '../../constants';
 import {IApplicationState} from '../../store';
 import {fetchRequest} from '../../store/init/actions';
 import {IInit, IInitStateToProps} from '../../store/init/types';
@@ -30,11 +30,9 @@ import {AutoRefresh, createAlertErrors, IAutoRefresh} from "@alluxio/common-ui/s
 
 interface IPropsFromState {
   init: IInit;
-  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
-  fetchRequest: typeof fetchRequest;
   triggerRefresh: typeof triggerRefresh;
 }
 
@@ -66,11 +64,11 @@ export class App extends React.Component<AllProps> {
           </div>
           <div className="w-100 pt-5 mt-3 pb-4 mb-2">
             <Switch>
-              <Route exact={true} path="/" render={this.redirectToOverview}/>
-              <Route path="/overview" exact={true} render={this.renderView(Overview, undefined)}/>
-              <Route path="/blockInfo" exact={true} render={this.renderView(BlockInfo, undefined)}/>
-              <Route path="/logs" exact={true} render={this.renderView(WorkerLogs, {history})}/>
-              <Route path="/metrics" exact={true} render={this.renderView(Metrics, undefined)}/>
+              <Route path={routePaths.root} exact={true} render={this.redirectToOverview}/>
+              <Route path={routePaths.overview} exact={true} render={this.renderView(Overview, undefined)}/>
+              <Route path={routePaths.blockInfo} exact={true} render={this.renderView(BlockInfo, undefined)}/>
+              <Route path={routePaths.logs} exact={true} render={this.renderView(WorkerLogs, {history})}/>
+              <Route path={routePaths.metrics} exact={true} render={this.renderView(Metrics, undefined)}/>
               <Route render={this.redirectToOverview}/>
             </Switch>
           </div>
@@ -93,7 +91,7 @@ export class App extends React.Component<AllProps> {
 
   private redirectToOverview(routerProps: RouteComponentProps<any, StaticContext, any>) {
     return (
-      <Redirect to="/overview"/>
+      <Redirect to={routePaths.overview}/>
     );
   }
 }

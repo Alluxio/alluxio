@@ -9,8 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './data/headerNavigation';
-export * from './data/footerNavigation';
-export * from './data/routePaths';
-
-export * from './types/IStorageTierInfo';
+export const routePaths = {
+    root: '/',
+    overview: '/overview',
+    blockInfo: '/blockInfo',
+    logs: '/logs',
+    metrics: '/metrics'
+};

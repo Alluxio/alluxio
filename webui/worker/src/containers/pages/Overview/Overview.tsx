@@ -15,7 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {hasErrors, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {hasErrors, hasFluidContainer, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {bytesToString, createAlertErrors} from '@alluxio/common-ui/src/utilities';
 import {IStorageTierInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
@@ -29,93 +29,89 @@ interface IPropsFromState {
 
 export type AllProps = IPropsFromState;
 
-export class Overview extends React.Component<AllProps> {
+export class OverviewPresenter extends React.Component<AllProps> {
   public render() {
     const {data} = this.props;
 
     return (
-      <div className="overview-page">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6">
-              <h5>Alluxio Summary</h5>
-              <Table hover={true}>
-                <tbody>
-                <tr>
-                  <th scope="row">Worker Address</th>
-                  <td>{data.workerInfo.workerAddress}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Started</th>
-                  <td>{data.workerInfo.startTime}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Uptime</th>
-                  <td>{data.workerInfo.uptime}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Version</th>
-                  <td>{data.version}</td>
-                </tr>
-                </tbody>
-              </Table>
-            </div>
-            <div className="col-md-6">
-              <h5>Cluster Usage Summary</h5>
-              <Table hover={true}>
-                <tbody>
-                <tr>
-                  <th scope="row">Total Capacity / Used</th>
-                  <td>{data.capacityBytes} / {data.usedBytes}</td>
-                </tr>
-                {data.usageOnTiers.map((info: IStorageTierInfo) => (
-                  <tr key={info.tierAlias}>
-                    <th scope="row">{info.tierAlias} Capacity / Used</th>
-                    <td>{bytesToString(info.capacityBytes)} / {bytesToString(info.usedBytes)}</td>
-                  </tr>
-                ))}
-                </tbody>
-              </Table>
-            </div>
-            <div className="col-md-12">
-              <h5>Storage Usage Summary</h5>
-              <Table hover={true}>
-                <thead>
-                <tr>
-                  <th>Alias</th>
-                  <th>Path</th>
-                  <th>Capacity</th>
-                  <th>Space Used</th>
-                  <th>Space Usage</th>
-                </tr>
-                </thead>
-                <tbody>
-                {data.storageDirs.map((info: IStorageTierInfo) => {
-                  const used = Math.round(info.usedBytes / info.capacityBytes * 10000) / 100;
-                  const free = 100 - used;
-                  return (
-                    <tr key={info.tierAlias}>
-                      <td>{info.tierAlias}</td>
-                      <td>{info.dirPath}</td>
-                      <td>{bytesToString(info.capacityBytes)}</td>
-                      <td>{bytesToString(info.usedBytes)}</td>
-                      <td>
-                        <Progress className="h-50 mt-1" multi={true}>
-                          <Progress bar={true} color="dark" value={`${free}`}>{free}%
-                            Free</Progress>
-                          <Progress bar={true} color="secondary" value={`${used}`}>{used}%
-                            Used</Progress>
-                        </Progress>
-                      </td>
-                    </tr>
-                  );
-                })}
-                </tbody>
-              </Table>
-            </div>
-          </div>
+      <React.Fragment>
+        <div className="col-md-6">
+          <h5>Alluxio Summary</h5>
+          <Table hover={true}>
+            <tbody>
+            <tr>
+              <th scope="row">Worker Address</th>
+              <td>{data.workerInfo.workerAddress}</td>
+            </tr>
+            <tr>
+              <th scope="row">Started</th>
+              <td>{data.workerInfo.startTime}</td>
+            </tr>
+            <tr>
+              <th scope="row">Uptime</th>
+              <td>{data.workerInfo.uptime}</td>
+            </tr>
+            <tr>
+              <th scope="row">Version</th>
+              <td>{data.version}</td>
+            </tr>
+            </tbody>
+          </Table>
         </div>
-      </div>
+        <div className="col-md-6">
+          <h5>Cluster Usage Summary</h5>
+          <Table hover={true}>
+            <tbody>
+            <tr>
+              <th scope="row">Total Capacity / Used</th>
+              <td>{data.capacityBytes} / {data.usedBytes}</td>
+            </tr>
+            {data.usageOnTiers.map((info: IStorageTierInfo) => (
+              <tr key={info.tierAlias}>
+                <th scope="row">{info.tierAlias} Capacity / Used</th>
+                <td>{bytesToString(info.capacityBytes)} / {bytesToString(info.usedBytes)}</td>
+              </tr>
+            ))}
+            </tbody>
+          </Table>
+        </div>
+        <div className="col-md-12">
+          <h5>Storage Usage Summary</h5>
+          <Table hover={true}>
+            <thead>
+            <tr>
+              <th>Alias</th>
+              <th>Path</th>
+              <th>Capacity</th>
+              <th>Space Used</th>
+              <th>Space Usage</th>
+            </tr>
+            </thead>
+            <tbody>
+            {data.storageDirs.map((info: IStorageTierInfo) => {
+              const used = Math.round(info.usedBytes / info.capacityBytes * 10000) / 100;
+              const free = 100 - used;
+              return (
+                <tr key={info.tierAlias}>
+                  <td>{info.tierAlias}</td>
+                  <td>{info.dirPath}</td>
+                  <td>{bytesToString(info.capacityBytes)}</td>
+                  <td>{bytesToString(info.usedBytes)}</td>
+                  <td>
+                    <Progress className="h-50 mt-1" multi={true}>
+                      <Progress bar={true} color="dark" value={`${free}`}>{free}%
+                        Free</Progress>
+                      <Progress bar={true} color="secondary" value={`${used}`}>{used}%
+                        Used</Progress>
+                    </Progress>
+                  </td>
+                </tr>
+              );
+            })}
+            </tbody>
+          </Table>
+        </div>
+      </React.Fragment>
     );
   }
 }
@@ -136,5 +132,6 @@ export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     hasFetchData,
     hasErrors,
-    hasLoader
-)(Overview);
+    hasLoader,
+    hasFluidContainer
+)(OverviewPresenter);

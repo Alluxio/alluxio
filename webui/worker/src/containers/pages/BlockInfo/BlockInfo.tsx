@@ -26,6 +26,7 @@ import {createAlertErrors, renderFileNameLink} from '@alluxio/common-ui/src/util
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/blockInfo/actions';
 import {IBlockInfo, IBlockInfoStateToProps, IFileBlocksOnTier} from '../../../store/blockInfo/types';
+import {routePaths} from "../../../constants";
 
 interface IPropsFromState {
   data: IBlockInfo;
@@ -33,7 +34,7 @@ interface IPropsFromState {
 
 export type AllProps = IPropsFromState & IFetchDataPathType;
 
-export class BlockInfo extends React.Component<AllProps> {
+export class BlockInfoPresenter extends React.Component<AllProps> {
   public render() {
     const {data} = this.props;
 
@@ -111,7 +112,7 @@ export class BlockInfo extends React.Component<AllProps> {
           ))}
           </tbody>
         </Table>
-        <Paginator baseUrl={'/blockInfo'} path={path} total={blockInfo.ntotalFile} offset={offset} limit={limit}/>
+        <Paginator baseUrl={routePaths.blockInfo} path={path} total={blockInfo.ntotalFile} offset={offset} limit={limit}/>
       </React.Fragment>
     )
   }
@@ -141,4 +142,4 @@ export default compose(
   hasErrors,
   hasLoader,
   hasFluidContainer
-)(BlockInfo);
+)(BlockInfoPresenter);

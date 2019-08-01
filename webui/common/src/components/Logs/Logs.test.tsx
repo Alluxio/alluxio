@@ -73,7 +73,7 @@ describe('Logs', () => {
 
     describe('Renders FileView', () => {
       beforeAll(() => {
-        const data = {...initialState.logs.data};
+        const data = {...props.data};
         data.fileData = null;
         shallowWrapper.setProps({data: data});
       });

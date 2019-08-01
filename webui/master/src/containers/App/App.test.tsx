@@ -71,7 +71,6 @@ describe('App', () => {
       });
     });
 
-
     it('Should render a Route for redirects', () => {
       expect(shallowWrapper
         .findWhere(n => n.name() === 'Route' && n.prop('path') === undefined))
