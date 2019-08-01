@@ -21,7 +21,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 * Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/deploy/Running-Alluxio-Locally.html).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-  downloaded from Alluxio [download page](http://www.alluxio.io/download).
+  downloaded from Alluxio [download page](https://www.alluxio.io/download).
   Alternatively, advanced users can compile this client jar from the source code
   by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * To run Hive on Hadoop MapReduce, please also follow the instructions in
