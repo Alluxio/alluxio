@@ -35,10 +35,6 @@
       <artifactId>kryo</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.apache</groupId>
-      <artifactId>incubator-iceberg</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
