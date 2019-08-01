@@ -173,6 +173,7 @@
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
+    <module>experimental</module>
     <module>integration</module>
     <module>logserver</module>
     <module>minicluster</module>

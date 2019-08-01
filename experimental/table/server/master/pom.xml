@@ -13,19 +13,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>alluxio-core-server</artifactId>
+    <artifactId>alluxio-experimental-table-server</artifactId>
     <groupId>org.alluxio</groupId>
     <version>2.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-core-server-master</artifactId>
+  <artifactId>alluxio-experimental-table-server-master</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Server - Master</name>
-  <description>Alluxio master service</description>
+  <name>Alluxio Experimental - Table - Server - Master</name>
+  <description>Alluxio master server service</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
   </properties>
 
   <dependencies>
@@ -69,6 +69,22 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-metastore</artifactId>
+      <version>2.3.2</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-1.2-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-slf4j-impl</artifactId>
+        </exclusion>
+    </exclusions>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -118,6 +134,11 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-master</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-job-client</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -158,34 +179,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-
-      <!-- REST API documentation -->
-      <plugin>
-        <inherited>false</inherited>
-        <groupId>com.github.kongchen</groupId>
-        <artifactId>swagger-maven-plugin</artifactId>
-        <configuration>
-          <apiSources>
-            <apiSource>
-              <springmvc>false</springmvc>
-              <schemes>http</schemes>
-              <host>[Alluxio Master Hostname]</host>
-              <basePath>/api/v1</basePath>
-              <info>
-                <version>v1</version>
-                <title>Alluxio Master REST API Documentation</title>
-                <description>
-                  The Alluxio Master is the central metadata service of the Alluxio System.
-                </description>
-              </info>
-              <locations>alluxio.master.meta.AlluxioMasterRestServiceHandler</locations>
-              <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
-              <outputPath>${project.parent.parent.parent.basedir}/generated/master/index.html</outputPath>
-              <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/master/swagger-ui</swaggerDirectory>
-            </apiSource>
-          </apiSources>
-        </configuration>
       </plugin>
     </plugins>
   </build>
