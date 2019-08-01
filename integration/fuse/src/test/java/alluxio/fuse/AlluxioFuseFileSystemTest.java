@@ -51,6 +51,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.struct.FileStat;
+import ru.serce.jnrfuse.struct.FuseContext;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 
 import java.util.Collections;
@@ -116,8 +117,17 @@ public class AlluxioFuseFileSystemTest {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    verify(mFileSystem).createFile(expectedPath, CreateFileOptions.defaults().setMode(new Mode(
-        (short) 0)));
+    FuseContext fc = mFuseFs.getContext();
+    long uid = fc.uid.get();
+    long gid = fc.gid.get();
+    String groupName = AlluxioFuseUtils.getGroupName(gid);
+    assert(!groupName.isEmpty());
+    String userName = AlluxioFuseUtils.getUserName(uid);
+    assert(!userName.isEmpty());
+    verify(mFileSystem).createFile(expectedPath, CreateFileOptions.defaults()
+        .setMode(new Mode((short) 0))
+        .setOwner(userName)
+        .setGroup(groupName));
   }
 
   @Test
@@ -259,9 +269,19 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void mkDir() throws Exception {
     long mode = 0755L;
+    FuseContext fc = mFuseFs.getContext();
+    long uid = fc.uid.get();
+    long gid = fc.gid.get();
+    String groupName = AlluxioFuseUtils.getGroupName(gid);
+    assert(!groupName.isEmpty());
+    String userName = AlluxioFuseUtils.getUserName(uid);
+    assert(!userName.isEmpty());
     mFuseFs.mkdir("/foo/bar", mode);
     verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"),
-        CreateDirectoryOptions.defaults().setMode(new Mode((short) mode)));
+        CreateDirectoryOptions.defaults()
+            .setMode(new Mode((short) mode))
+            .setOwner(userName)
+            .setGroup(groupName));
   }
 
   @Test

@@ -215,7 +215,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int create(String path, @mode_t long mode, FuseFileInfo fi) {
-    FuseContext fc = libFuse.fuse_get_context();
+    FuseContext fc = getContext();
     long uid = fc.uid.get();
     long gid = fc.gid.get();
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
@@ -408,7 +408,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int mkdir(String path, @mode_t long mode) {
-    FuseContext fc = libFuse.fuse_get_context();
+    FuseContext fc = getContext();
     long uid = fc.uid.get();
     long gid = fc.gid.get();
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
