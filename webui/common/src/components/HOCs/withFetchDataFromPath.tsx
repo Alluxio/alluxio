@@ -100,7 +100,7 @@ export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataP
                 this.setState({...this.state, [stateKey]: stateValueCallback()});
             };
         }
-    };
+    }
     (fetchDataFromPathHoc as React.ComponentType<any>).displayName = `withFetchDataFromPath(${getDisplayName(WrappedComponent)})`;
     return fetchDataFromPathHoc;
 }

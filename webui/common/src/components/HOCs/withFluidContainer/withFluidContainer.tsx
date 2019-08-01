@@ -10,15 +10,15 @@
  */
 
 import React from 'react';
-import {LoadingMessage} from "..";
-import {getDisplayName} from "../../utilities/misc/getDisplayName";
+import {LoadingMessage} from "../../index";
+import {getDisplayName} from "../../../utilities/misc/getDisplayName";
 
-interface IProps {
+export interface IFluidContainerProps {
     class: string;
 }
 
-export function withFluidContainer<T extends IProps>(WrappedComponent: React.ComponentType<T>) {
-    const fluidContainerHoc = (props: T) => {
+export function withFluidContainer(WrappedComponent: React.ComponentType<any>) {
+    const fluidContainerHoc = (props: IFluidContainerProps) => {
         return (
             <div className={props.class}>
                 <div className="container-fluid">
@@ -28,7 +28,7 @@ export function withFluidContainer<T extends IProps>(WrappedComponent: React.Com
                 </div>
             </div>
         )
-    }
+    };
     (fluidContainerHoc as React.FunctionComponent).displayName = `withFluidContainer(${getDisplayName(WrappedComponent)})`;
     return fluidContainerHoc;
 }

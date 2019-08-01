@@ -12,20 +12,19 @@
 import {configure, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
-import {IErrorProps, withErrors} from "./withErrors";
-import {createAlertErrors} from "../../../utilities";
+import {IFluidContainerProps, withFluidContainer} from "./withFluidContainer";
 
 configure({adapter: new Adapter()});
 
 const WrappedComponent = () => <div>Wrapped</div>;
-const EnhancedComponent = withErrors(WrappedComponent);
+const EnhancedComponent = withFluidContainer(WrappedComponent);
 
-describe('withErrors HOC', () => {
-    let props: IErrorProps;
+describe('withLoadingMessage HOC', () => {
+    let props: IFluidContainerProps;
 
     beforeAll(() => {
         props = {
-            errors: createAlertErrors(false)
+            class: 'test'
         };
     });
 
@@ -40,23 +39,20 @@ describe('withErrors HOC', () => {
             expect(shallowWrapper.length).toEqual(1);
         });
 
-        describe('No Errors', () => {
-            it('Matches snapshot - renders WrappedComponent', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(false) });
-                expect(shallowWrapper).toMatchSnapshot();
-            });
+        it('Contains a div with class test', () => {
+            expect(shallowWrapper.find('.test').length).toEqual(1);
         });
 
-        describe('With Errors', () => {
-            it('Matches snapshot - renders general error', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(true) });
-                expect(shallowWrapper).toMatchSnapshot();
-            });
+        it('Contains a div with class container-fluid', () => {
+            expect(shallowWrapper.find('.container-fluid').length).toEqual(1);
+        });
 
-            it('Matches snapshot - renders specific errors', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(true, ['error1', 'error2']) });
-                expect(shallowWrapper).toMatchSnapshot();
-            });
+        it('Contains a div with class row', () => {
+            expect(shallowWrapper.find('.row').length).toEqual(1);
+        });
+
+        it('Matches snapshot - renders LoadingMessage', () => {
+            expect(shallowWrapper).toMatchSnapshot();
         });
     });
 });

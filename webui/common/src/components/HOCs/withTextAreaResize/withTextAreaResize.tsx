@@ -10,8 +10,8 @@
  */
 
 import React from 'react';
-import {getDebouncedFunction} from "../../utilities";
-import {getDisplayName} from "../../utilities/misc/getDisplayName";
+import {getDebouncedFunction} from "../../../utilities";
+import {getDisplayName} from "../../../utilities/misc/getDisplayName";
 
 export interface ITextAreaResizeState {
     textAreaHeight?: number;
@@ -47,7 +47,7 @@ export function withTextAreaResize<T>(WrappedComponent: React.ComponentType<T>) 
         private updateTextAreaHeight() {
             this.setState({textAreaHeight: window.innerHeight / 2});
         }
-    };
+    }
     (textAreaResizeHoc as React.ComponentType<any>).displayName = `withTextAreaResize(${getDisplayName(WrappedComponent)})`;
     return textAreaResizeHoc;
 }

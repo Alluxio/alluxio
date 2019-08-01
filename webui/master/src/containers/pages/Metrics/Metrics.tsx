@@ -16,11 +16,16 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {withErrors, withFluidContainer, withLoadingMessage, LineGraph, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {
+  withErrors,
+  withFluidContainer,
+  withLoadingMessage,
+  LineGraph,
+  withFetchData
+} from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics, IMetricsStateToProps} from '../../../store/metrics/types';
-import {withFetchData} from "@alluxio/common-ui/src/components/HOCs/withFetchData";
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 interface IPropsFromState {

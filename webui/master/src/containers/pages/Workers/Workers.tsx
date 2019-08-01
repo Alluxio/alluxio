@@ -15,13 +15,12 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {withErrors, withLoadingMessage, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {withErrors, withLoadingMessage, withFetchData} from '@alluxio/common-ui/src/components';
 import {INodeInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/workers/actions';
 import {IWorkers, IWorkersStateToProp} from '../../../store/workers/types';
 import {IInit} from '../../../store/init/types';
-import {withFetchData} from "@alluxio/common-ui/src/components/HOCs/withFetchData";
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 interface IPropsFromState {

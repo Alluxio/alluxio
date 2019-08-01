@@ -9,17 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import React, {ReactNode} from 'react';
-import {getDisplayName} from "../../utilities/misc/getDisplayName";
+import React from 'react';
+import {getDisplayName} from "../../../utilities/misc/getDisplayName";
 
 export interface IFetchDataProps {
     refresh: boolean;
     fetchRequest: () => void;
 }
 
-export function withFetchData<TWrappedComponentProps extends IFetchDataProps>(WrappedComponent: React.ComponentType<TWrappedComponentProps>) {
-    class fetchDataHoc extends React.Component<TWrappedComponentProps> {
-        public componentDidUpdate(prevProps: TWrappedComponentProps) {
+export function withFetchData(WrappedComponent: React.ComponentType<any>) {
+    class fetchDataHoc extends React.Component<IFetchDataProps> {
+        public componentDidUpdate(prevProps: IFetchDataProps) {
             if (this.props.refresh !== prevProps.refresh) {
                 this.props.fetchRequest();
             }
@@ -29,10 +29,10 @@ export function withFetchData<TWrappedComponentProps extends IFetchDataProps>(Wr
             this.props.fetchRequest();
         }
 
-        public render(): (undefined | ReactNode) {
+        public render() {
             return <WrappedComponent {...this.props} />;
         }
-    };
-    (fetchDataHoc as React.ComponentType<TWrappedComponentProps>).displayName = `withFetchData(${getDisplayName(WrappedComponent)})`;
+    }
+    (fetchDataHoc as React.ComponentType<IFetchDataProps>).displayName = `withFetchData(${getDisplayName(WrappedComponent)})`;
     return fetchDataHoc;
 }

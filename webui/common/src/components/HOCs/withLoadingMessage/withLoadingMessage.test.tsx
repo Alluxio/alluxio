@@ -12,20 +12,20 @@
 import {configure, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
-import {IErrorProps, withErrors} from "./withErrors";
-import {createAlertErrors} from "../../../utilities";
+import {ILoadingProps, withLoadingMessage} from "./withLoadingMessage";
 
 configure({adapter: new Adapter()});
 
 const WrappedComponent = () => <div>Wrapped</div>;
-const EnhancedComponent = withErrors(WrappedComponent);
+const EnhancedComponent = withLoadingMessage(WrappedComponent);
 
-describe('withErrors HOC', () => {
-    let props: IErrorProps;
+describe('withLoadingMessage HOC', () => {
+    let props: ILoadingProps;
 
     beforeAll(() => {
         props = {
-            errors: createAlertErrors(false)
+            loading: false,
+            class: 'test'
         };
     });
 
@@ -40,21 +40,23 @@ describe('withErrors HOC', () => {
             expect(shallowWrapper.length).toEqual(1);
         });
 
-        describe('No Errors', () => {
-            it('Matches snapshot - renders WrappedComponent', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(false) });
+        describe('Loading', () => {
+            beforeAll(() => {
+                shallowWrapper.setProps({ loading: true });
+            });
+
+            it('Contains a div with class test', () => {
+                expect(shallowWrapper.find('.test').length).toEqual(1);
+            });
+
+            it('Matches snapshot - renders LoadingMessage', () => {
                 expect(shallowWrapper).toMatchSnapshot();
             });
         });
 
-        describe('With Errors', () => {
-            it('Matches snapshot - renders general error', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(true) });
-                expect(shallowWrapper).toMatchSnapshot();
-            });
-
-            it('Matches snapshot - renders specific errors', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(true, ['error1', 'error2']) });
+        describe('Not Loading', () => {
+            it('Matches snapshot - renders WrappedComponent', () => {
+                shallowWrapper.setProps({ loading: false });
                 expect(shallowWrapper).toMatchSnapshot();
             });
         });

@@ -15,12 +15,11 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {withErrors, withFluidContainer, withLoadingMessage, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {withErrors, withFluidContainer, withLoadingMessage, withFetchData} from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics, IMetricsStateToProps} from '../../../store/metrics/types';
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
-import {withFetchData} from "@alluxio/common-ui/src/components/HOCs/withFetchData";
 
 interface IPropsFromState {
   data: IMetrics;

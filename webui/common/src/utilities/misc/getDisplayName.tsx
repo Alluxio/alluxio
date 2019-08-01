@@ -12,6 +12,5 @@
 import * as React from "react";
 
 export function getDisplayName(WrappedComponent: React.ComponentType<any>) {
-    if (!WrappedComponent) return 'WrappedComponent';
     return WrappedComponent.displayName || WrappedComponent.name || 'WrappedComponent';
 }

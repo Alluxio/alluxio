@@ -15,12 +15,11 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {withErrors, withLoadingMessage, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {withErrors, withLoadingMessage, withFetchData} from '@alluxio/common-ui/src/components';
 import {IConfigTriple} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/config/actions';
 import {IConfig, IConfigStateToProps} from '../../../store/config/types';
-import {withFetchData, IFetchDataProps} from "@alluxio/common-ui/src/components/HOCs/withFetchData";
 import {IAlertErrors} from "@alluxio/common-ui/src/constants";
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 

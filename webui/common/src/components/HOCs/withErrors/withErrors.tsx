@@ -29,7 +29,7 @@ export function withErrors(WrappedComponent: React.ComponentType<any>) {
                     {errors.specific.map((err, i) => <div key={i}>{err}</div>)}
                 </Alert>
             )
-            : <WrappedComponent {...props} />;
+            : <WrappedComponent {...props} />
     };
     (errorsHoc as React.FunctionComponent).displayName = `withErrors(${getDisplayName(WrappedComponent)})`;
     return errorsHoc;
