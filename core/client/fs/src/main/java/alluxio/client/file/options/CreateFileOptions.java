@@ -263,20 +263,20 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @param name the user name of the file to create
+   * @param owner the owner of the file to create
    * @return the updated options object
    */
-  public CreateFileOptions setOwner(String name) {
-    mOwner = name;
+  public CreateFileOptions setOwner(String owner) {
+    mOwner = owner;
     return this;
   }
 
   /**
-   * @param name the group name of the file to create
+   * @param group the group of the file to create
    * @return the updated options object
    */
-  public CreateFileOptions setGroup(String name) {
-    mGroup = name;
+  public CreateFileOptions setGroup(String group) {
+    mGroup = group;
     return this;
   }
 
