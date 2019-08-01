@@ -95,6 +95,8 @@ public final class Constants {
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String CATALOG_MASTER_NAME = "CatalogMaster";
+  public static final String CATALOG_MASTER_CLIENT_SERVICE_NAME = "CatalogMasterClient";
+  public static final long CATALOG_MSTER_CLIENT_SERVICE_VERSION = 1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
