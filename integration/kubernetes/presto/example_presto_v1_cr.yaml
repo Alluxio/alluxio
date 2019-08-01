@@ -1,0 +1,41 @@
+apiVersion: starburstdata.com/v1
+kind: Presto
+metadata:
+  name: example-presto
+spec:
+  nameOverride: example-presto
+  prometheus:
+    enabled: true
+    additionalRules:
+      - pattern: 'presto.execution<name=TaskManager><>FailedTasks.TotalCount'
+        name: 'failed_tasks'
+        type: COUNTER
+  service:
+    type: NodePort
+    name: example-presto
+  memory:
+    nodeMemoryHeadroom: 1Gi
+  coordinator:
+    cpuRequest: ""
+    memoryAllocation: ""
+  worker:
+    count: 3
+    prestoWorkerShutdownGracePeriodSeconds: 1
+    cpuRequest: ""
+    memoryAllocation: ""
+  hive:
+    metastore:
+      image:
+        pullPolicy: Always
+      memory: 0.5Gi
+      cpu: 0.5
+  additionalCatalogs:
+    tpcds: |
+      connector.name=tpcds
+  additionalEtcPrestoTextFiles:
+    some.text.file: |
+      Hello world
+    another.text.file: Hello world
+  additionalEtcPrestoBinaryFiles:
+    some.binary.file: |
+      aGVsbG8gd29ybGQ=
