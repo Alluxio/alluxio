@@ -15,15 +15,11 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.GetAllDatabasesPRequest;
-import alluxio.grpc.GetWorkerInfoListPOptions;
-import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
-import alluxio.wire.WorkerInfo;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +28,6 @@ import java.util.List;
 @ThreadSafe
 public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
     implements CatalogMasterClient {
-
   private CatalogMasterClientServiceGrpc.CatalogMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -63,7 +58,6 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   protected void afterConnect() {
     mClient = CatalogMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
-
 
   @Override
   public List<String> getAllDatabase() throws IOException {

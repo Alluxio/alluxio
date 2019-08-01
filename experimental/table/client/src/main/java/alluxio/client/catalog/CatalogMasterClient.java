@@ -43,6 +43,11 @@ public interface CatalogMasterClient extends Client {
     }
   }
 
+  /**
+   * Get a list of all database names.
+   *
+   * @return list of database names
+   * @throws IOException
+   */
   List<String> getAllDatabase() throws IOException;
 }
-
