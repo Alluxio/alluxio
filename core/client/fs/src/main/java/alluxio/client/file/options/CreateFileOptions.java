@@ -49,6 +49,8 @@ public final class CreateFileOptions {
   private Mode mMode;
   private int mWriteTier;
   private WriteType mWriteType;
+  private String mOwner;
+  private String mGroup;
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -69,6 +71,8 @@ public final class CreateFileOptions {
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mMode = Mode.defaults().applyFileUMask();
+    mOwner = null;
+    mGroup = null;
   }
 
   /**
@@ -134,6 +138,20 @@ public final class CreateFileOptions {
    */
   public WriteType getWriteType() {
     return mWriteType;
+  }
+
+  /**
+   * @return the user name of the file to create
+   */
+  public String getOwner() {
+    return mOwner;
+  }
+
+  /**
+   * @return the group name of the file to create
+   */
+  public String getGroup() {
+    return mGroup;
   }
 
   /**
@@ -245,6 +263,24 @@ public final class CreateFileOptions {
   }
 
   /**
+   * @param name the user name of the file to create
+   * @return the updated options object
+   */
+  public CreateFileOptions setOwner(String name) {
+    mOwner = name;
+    return this;
+  }
+
+  /**
+   * @param name the group name of the file to create
+   * @return the updated options object
+   */
+  public CreateFileOptions setGroup(String name) {
+    mGroup = name;
+    return this;
+  }
+
+  /**
    * @return representation of this object in the form of {@link OutStreamOptions}
    */
   public OutStreamOptions toOutStreamOptions() {
@@ -255,7 +291,9 @@ public final class CreateFileOptions {
         .setTtl(mTtl)
         .setTtlAction(mTtlAction)
         .setWriteTier(mWriteTier)
-        .setWriteType(mWriteType);
+        .setWriteType(mWriteType)
+        .setOwner(mOwner)
+        .setGroup(mGroup);
   }
 
   @Override
@@ -275,14 +313,16 @@ public final class CreateFileOptions {
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
         && mWriteTier == that.mWriteTier
-        && Objects.equal(mWriteType, that.mWriteType);
+        && Objects.equal(mWriteType, that.mWriteType)
+        && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup);
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl, mTtlAction, mWriteTier,
-            mWriteType, mCommonOptions);
+            mWriteType, mCommonOptions, mOwner, mGroup);
   }
 
   @Override
@@ -292,6 +332,8 @@ public final class CreateFileOptions {
         .add("recursive", mRecursive)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("locationPolicy", mLocationPolicy)
+        .add("owner", mOwner)
+        .add("group", mGroup)
         .add("mode", mMode)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
@@ -314,6 +356,8 @@ public final class CreateFileOptions {
       options.setMode(mMode.toShort());
     }
     options.setCommonOptions(mCommonOptions.toThrift());
+    options.setOwner(mOwner);
+    options.setGroup(mGroup);
     return options;
   }
 }

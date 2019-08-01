@@ -57,6 +57,12 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
       mRecursive = options.isRecursive();
       mTtl = options.getTtl();
       mTtlAction = TtlAction.fromThrift(options.getTtlAction());
+      if (options.isSetOwner()) {
+        mOwner = options.getOwner();
+      }
+      if (options.isSetGroup()) {
+        mGroup = options.getGroup();
+      }
       if (SecurityUtils.isAuthenticationEnabled()) {
         mOwner = SecurityUtils.getOwnerFromThriftClient();
         mGroup = SecurityUtils.getGroupFromThriftClient();
@@ -76,6 +82,8 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mTtlAction = TtlAction.DELETE;
     mMode.applyDirectoryUMask();
     mUfsStatus = null;
+    mOwner = null;
+    mGroup = null;
   }
 
   /**

@@ -28,6 +28,8 @@ struct CreateDirectoryTOptions {
   5: optional i64 ttl
   6: optional common.TTtlAction ttlAction
   7: optional FileSystemMasterCommonTOptions commonOptions
+  8: optional string owner
+  9: optional string group
 }
 struct CreateDirectoryTResponse {}
 
@@ -39,6 +41,8 @@ struct CreateFileTOptions {
   5: optional i16 mode
   6: optional common.TTtlAction ttlAction
   7: optional FileSystemMasterCommonTOptions commonOptions
+  8: optional string owner
+  9: optional string group
 }
 struct CreateFileTResponse {}
 
