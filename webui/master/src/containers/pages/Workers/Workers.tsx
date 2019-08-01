@@ -15,13 +15,13 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {hasErrors, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {withErrors, withLoadingMessage, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {INodeInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/workers/actions';
 import {IWorkers, IWorkersStateToProp} from '../../../store/workers/types';
 import {IInit} from '../../../store/init/types';
-import {hasFetchData} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
+import {withFetchData} from "@alluxio/common-ui/src/components/HOCs/withFetchData";
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 interface IPropsFromState {
@@ -142,7 +142,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  hasFetchData,
-  hasErrors,
-  hasLoader
+  withFetchData,
+  withErrors,
+  withLoadingMessage
 )(WorkersPresenter) as React.Component;

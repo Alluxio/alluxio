@@ -13,6 +13,7 @@ import React, {ReactNode} from 'react';
 
 import {parseQuerystring} from '../../utilities';
 import {IRequest} from "../../constants";
+import {getDisplayName} from "../../utilities/misc/getDisplayName";
 
 interface IFetchDataPathState {
     end?: string;
@@ -36,8 +37,8 @@ interface IHandlers {
 
 export type IFetchDataPathType = IFetchDataPathState & IFetchDataPathProps & IHandlers & {queryStringSuffix: string};
 
-export function hasFetchDataWithPath<TWrappedComponentProps extends IFetchDataPathProps>(WrappedComponent: React.ComponentType<TWrappedComponentProps>) {
-    return class extends React.Component<TWrappedComponentProps, IFetchDataPathState> {
+export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataPathProps>(WrappedComponent: React.ComponentType<TWrappedComponentProps>) {
+    const fetchDataHocWithPath = class extends React.Component<TWrappedComponentProps, IFetchDataPathState> {
         constructor(props: TWrappedComponentProps) {
             super(props);
 
@@ -100,4 +101,6 @@ export function hasFetchDataWithPath<TWrappedComponentProps extends IFetchDataPa
             };
         }
     };
+    (fetchDataHocWithPath as React.ComponentType<any>).displayName = `withFetchDataFromPath(${getDisplayName(WrappedComponent)})`;
+    return fetchDataHocWithPath;
 }

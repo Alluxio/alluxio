@@ -12,13 +12,14 @@
 import React from 'react';
 import {Alert} from "reactstrap";
 import {IAlertErrors} from "../../constants";
+import {getDisplayName} from "../../utilities/misc/getDisplayName";
 
 interface IErrorProps {
     errors: IAlertErrors;
 }
 
-export function hasErrors<T extends IErrorProps>(WrappedComponent: React.ComponentType<T>) {
-    return (props: T) => {
+export function withErrors<T extends IErrorProps>(WrappedComponent: React.ComponentType<T>) {
+    const errorsHoc = (props: T) => {
        const {errors} = props;
 
         return errors.hasErrors
@@ -30,4 +31,6 @@ export function hasErrors<T extends IErrorProps>(WrappedComponent: React.Compone
             )
             : <WrappedComponent {...props} />
     }
+    (errorsHoc as React.FunctionComponent).displayName = `withErrors(${getDisplayName(WrappedComponent)})`;
+    return errorsHoc;
 }

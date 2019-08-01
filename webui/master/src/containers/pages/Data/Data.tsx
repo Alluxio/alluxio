@@ -15,10 +15,10 @@ import {Alert, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
 import {
-  hasErrors,
-  hasFetchDataWithPath,
-  hasFluidContainer,
-  hasLoader, IFetchDataPathType,
+  withErrors,
+  withFetchDataFromPath,
+  withFluidContainer,
+  withLoadingMessage, IFetchDataPathType,
   Paginator
 } from '@alluxio/common-ui/src/components';
 import {IAlertErrors, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
@@ -105,8 +105,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
-    hasFetchDataWithPath,
-    hasErrors,
-    hasLoader,
-    hasFluidContainer
+    withFetchDataFromPath,
+    withErrors,
+    withLoadingMessage,
+    withFluidContainer
 )(DataPresenter) as React.Component;

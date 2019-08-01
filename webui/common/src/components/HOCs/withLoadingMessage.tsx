@@ -11,21 +11,23 @@
 
 import React from 'react';
 import {LoadingMessage} from "..";
+import {getDisplayName} from "../../utilities/misc/getDisplayName";
 
 interface IProps {
+    loading: boolean;
     class: string;
 }
 
-export function hasFluidContainer<T extends IProps>(WrappedComponent: React.ComponentType<T>) {
-    return (props: T) => {
-        return (
-            <div className={props.class}>
-                <div className="container-fluid">
-                    <div className="row">
-                        <WrappedComponent {...props} />
-                    </div>
+export function withLoadingMessage<T extends IProps>(WrappedComponent: React.ComponentType<T>) {
+    const loaderHoc = (props: T) => {
+        return props.loading
+            ? (
+                <div className={props.class}>
+                    <LoadingMessage />
                 </div>
-            </div>
-        )
+            )
+            : <WrappedComponent {...props} />;
     }
+    (loaderHoc as React.FunctionComponent).displayName = `withLoadingMessage(${getDisplayName(WrappedComponent)})`;
+    return loaderHoc;
 }

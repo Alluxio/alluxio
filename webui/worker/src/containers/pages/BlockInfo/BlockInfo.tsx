@@ -15,9 +15,9 @@ import {Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
 import {
-  hasErrors,
-  hasFetchDataWithPath, hasFluidContainer,
-  hasLoader,
+  withErrors,
+  withFetchDataFromPath, withFluidContainer,
+  withLoadingMessage,
   IFetchDataPathType,
   Paginator
 } from '@alluxio/common-ui/src/components';
@@ -138,8 +138,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  hasFetchDataWithPath,
-  hasErrors,
-  hasLoader,
-  hasFluidContainer
+  withFetchDataFromPath,
+  withErrors,
+  withLoadingMessage,
+  withFluidContainer
 )(BlockInfoPresenter);

@@ -19,8 +19,8 @@ import {Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
 import {
-  FileView, hasErrors, hasFetchDataWithPath, hasFluidContainer, hasLoader,
-  hasTextAreaResize, IFetchDataPathType,
+  FileView, withErrors, withFetchDataFromPath, withFluidContainer, withLoadingMessage,
+  withTextAreaResize, IFetchDataPathType,
   ITextAreaResizeState,
   Paginator
 } from '@alluxio/common-ui/src/components';
@@ -249,9 +249,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  hasFetchDataWithPath,
-  hasErrors,
-  hasLoader,
-  hasTextAreaResize,
-  hasFluidContainer,
+  withFetchDataFromPath,
+  withErrors,
+  withLoadingMessage,
+  withTextAreaResize,
+  withFluidContainer,
 )(BrowsePresenter) as React.Component;

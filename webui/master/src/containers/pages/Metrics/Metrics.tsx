@@ -16,11 +16,11 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {hasErrors, hasFluidContainer, hasLoader, LineGraph, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {withErrors, withFluidContainer, withLoadingMessage, LineGraph, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics, IMetricsStateToProps} from '../../../store/metrics/types';
-import {hasFetchData} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
+import {withFetchData} from "@alluxio/common-ui/src/components/HOCs/withFetchData";
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 interface IPropsFromState {
@@ -272,8 +272,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  hasFetchData,
-  hasErrors,
-  hasLoader,
-  hasFluidContainer
+  withFetchData,
+  withErrors,
+  withLoadingMessage,
+  withFluidContainer
 )(MetricsPresenter) as React.Component;

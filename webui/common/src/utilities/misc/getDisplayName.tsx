@@ -9,22 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import React from 'react';
-import {LoadingMessage} from "..";
+import * as React from "react";
 
-interface IProps {
-    loading: boolean;
-    class: string;
-}
-
-export function hasLoader<T extends IProps>(WrappedComponent: React.ComponentType<T>) {
-    return (props: T) => {
-        return props.loading
-            ? (
-                <div className={props.class}>
-                    <LoadingMessage />
-                </div>
-            )
-            : <WrappedComponent {...props} />;
-    }
+export function getDisplayName(WrappedComponent: React.ComponentType<any>) {
+    if (!WrappedComponent) return 'WrappedComponent';
+    return WrappedComponent.displayName || WrappedComponent.name || 'WrappedComponent';
 }

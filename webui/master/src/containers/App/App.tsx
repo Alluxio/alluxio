@@ -19,7 +19,7 @@ import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
 import {Alert} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {Footer, hasErrors, hasLoader, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {Footer, withErrors, withLoadingMessage, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {
   Browse, Configuration, Data, MasterLogs, Metrics, Overview, Workers
@@ -31,7 +31,7 @@ import {IAppStateToProps, IInit} from '../../store/init/types';
 
 import './App.css';
 import {AutoRefresh, createAlertErrors, IAutoRefresh} from "@alluxio/common-ui/src/utilities";
-import {hasFetchData} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
+import {withFetchData} from "@alluxio/common-ui/src/components/HOCs/withFetchData";
 import {IStateToProps} from "@alluxio/common-ui/src/constants";
 
 interface IPropsFromState {
@@ -117,7 +117,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
-    hasFetchData,
-    hasErrors,
-    hasLoader
+    withFetchData,
+    withErrors,
+    withLoadingMessage
 )(App);

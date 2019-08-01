@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './HOCs/hasLoader';
-export * from './HOCs/hasErrors';
-export * from './HOCs/hasTextAreaResize';
-export * from './HOCs/hasFetchDataWithPath';
-export * from './HOCs/hasFluidContainer';
+export * from './HOCs/withLoadingMessage';
+export * from './HOCs/withErrors';
+export * from './HOCs/withTextAreaResize';
+export * from './HOCs/withFetchDataFromPath';
+export * from './HOCs/withFluidContainer';
 export * from './Footer/Footer';
 export * from './Header/Header';
 export * from './LoadingMessage/LoadingMessage';

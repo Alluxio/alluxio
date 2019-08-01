@@ -15,13 +15,13 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
-import {hasErrors, hasFluidContainer, hasLoader, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {withErrors, withFluidContainer, withLoadingMessage, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {bytesToString, createAlertErrors} from '@alluxio/common-ui/src/utilities';
 import {IStorageTierInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/overview/actions';
 import {IOverview, IOverviewStateToProps} from '../../../store/overview/types';
-import {hasFetchData} from "@alluxio/common-ui/src/components/HOCs/hasFetchData";
+import {withFetchData} from "@alluxio/common-ui/src/components/HOCs/withFetchData";
 
 interface IPropsFromState {
   data: IOverview;
@@ -130,8 +130,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
-    hasFetchData,
-    hasErrors,
-    hasLoader,
-    hasFluidContainer
+    withFetchData,
+    withErrors,
+    withLoadingMessage,
+    withFluidContainer
 )(OverviewPresenter);

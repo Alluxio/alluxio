@@ -14,10 +14,10 @@ import React from 'react';
 import {Table} from 'reactstrap';
 import {
   FileView,
-  hasErrors,
-  hasFetchDataWithPath, hasFluidContainer,
-  hasLoader,
-  hasTextAreaResize,
+  withErrors,
+  withFetchDataFromPath, withFluidContainer,
+  withLoadingMessage,
+  withTextAreaResize,
   IFetchDataPathType,
   ITextAreaResizeState
 } from '..';
@@ -120,9 +120,9 @@ export const mapDispatchToLogProps = (dispatch: Dispatch) => ({
 });
 
 export default compose(
-  hasFetchDataWithPath,
-  hasErrors,
-  hasLoader,
-  hasTextAreaResize,
-  hasFluidContainer
+  withFetchDataFromPath,
+  withErrors,
+  withLoadingMessage,
+  withTextAreaResize,
+  withFluidContainer
 )(LogsPresenter) as React.ComponentType<AllProps>;

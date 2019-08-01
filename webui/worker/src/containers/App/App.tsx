@@ -17,7 +17,7 @@ import {StaticContext} from 'react-router';
 import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
 import {compose, Dispatch} from 'redux';
 
-import {Footer, hasErrors, hasLoader, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {Footer, withErrors, withLoadingMessage, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {BlockInfo, WorkerLogs, Metrics, Overview} from '..';
 import {footerNavigationData, headerNavigationData, routePaths} from '../../constants';
@@ -111,6 +111,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  hasErrors,
-  hasLoader
+  withErrors,
+  withLoadingMessage
 )(App);

@@ -11,13 +11,14 @@
 
 import React from 'react';
 import {getDebouncedFunction} from "../../utilities";
+import {getDisplayName} from "../../utilities/misc/getDisplayName";
 
 export interface ITextAreaResizeState {
     textAreaHeight?: number;
 }
 
-export function hasTextAreaResize<T>(WrappedComponent: React.ComponentType<T>) {
-    return class extends React.Component<T, ITextAreaResizeState> {
+export function withTextAreaResize<T>(WrappedComponent: React.ComponentType<T>) {
+    const textAreaResizeHoc = class extends React.Component<T, ITextAreaResizeState> {
         private readonly textAreaResizeMs = 100;
         private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
 
@@ -47,4 +48,6 @@ export function hasTextAreaResize<T>(WrappedComponent: React.ComponentType<T>) {
             this.setState({textAreaHeight: window.innerHeight / 2});
         }
     };
+    (textAreaResizeHoc as React.ComponentType<any>).displayName = `withTextAreaResize(${getDisplayName(WrappedComponent)})`;
+    return textAreaResizeHoc;
 }
