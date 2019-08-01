@@ -64,6 +64,7 @@ message OpenFilePOptions {
   optional ReadPType readType = 1;
   optional int32 maxUfsReadConcurrency = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional bool updateLastAccessTime = 4 [default = true];
 }
 
 message CreateDirectoryPResponse {}
@@ -145,6 +146,7 @@ message GetStatusPOptions {
   optional LoadMetadataPType loadMetadataType = 1;
   optional FileSystemMasterCommonPOptions commonOptions = 2;
   optional Bits accessMode = 3;
+  optional bool updateTimestamps = 4 [default = true];
 }
 message GetStatusPRequest {
   /** the path of the file or directory */

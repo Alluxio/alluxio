@@ -15,6 +15,7 @@ import static alluxio.job.wire.Status.COMPLETED;
 import static alluxio.job.wire.Status.FAILED;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemMasterClient;
@@ -37,7 +38,10 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+
+import java.io.Closeable;
 
 /**
  * Integration tests for {@link PersistDefinition}.
@@ -77,6 +81,35 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // run the persist job again without the overwrite flag and check it fails
     final long jobId = mJobMaster.run(new PersistConfig("/test", 1, false, status.getUfsPath()));
     waitForJobFailure(jobId);
+  }
+
+  /**
+   * Tests persisting a file.
+   */
+  @Test
+  public void persistWithAccessTimeUnchangedTest() throws Exception {
+    // write a file in alluxio only
+    AlluxioURI filePath = new AlluxioURI(TEST_URI);
+    FileOutStream os = mFileSystem.createFile(filePath,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
+    os.write((byte) 0);
+    os.write((byte) 1);
+    os.close();
+
+    // check the file is completed but not persisted
+    URIStatus status = mFileSystem.getStatus(filePath);
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
+    Assert.assertTrue(status.isCompleted());
+
+    // run the persist job and check that it succeeds
+    waitForJobToFinish(mJobMaster.run(new PersistConfig("/test", 1, true, status.getUfsPath())));
+    String ufsPath = status.getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    Assert.assertTrue(ufs.exists(ufsPath));
+
+    // check file access time is not changed
+    URIStatus newStatus = mFileSystem.getStatus(filePath);
+    Assert.assertEquals(newStatus.getLastAccessTimeMs(), status.getLastAccessTimeMs());
   }
 
   @Test

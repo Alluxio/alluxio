@@ -18,6 +18,7 @@ private static final long serialVersionUID = 0L;
   private GetStatusPOptions() {
     loadMetadataType_ = 0;
     accessMode_ = 1;
+    updateTimestamps_ = true;
   }
 
   @java.lang.Override
@@ -84,6 +85,11 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000004;
               accessMode_ = rawValue;
             }
+            break;
+          }
+          case 32: {
+            bitField0_ |= 0x00000008;
+            updateTimestamps_ = input.readBool();
             break;
           }
         }
@@ -164,6 +170,21 @@ private static final long serialVersionUID = 0L;
     return result == null ? alluxio.grpc.Bits.NONE : result;
   }
 
+  public static final int UPDATETIMESTAMPS_FIELD_NUMBER = 4;
+  private boolean updateTimestamps_;
+  /**
+   * <code>optional bool updateTimestamps = 4 [default = true];</code>
+   */
+  public boolean hasUpdateTimestamps() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional bool updateTimestamps = 4 [default = true];</code>
+   */
+  public boolean getUpdateTimestamps() {
+    return updateTimestamps_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -185,6 +206,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       output.writeEnum(3, accessMode_);
     }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      output.writeBool(4, updateTimestamps_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -204,6 +228,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(3, accessMode_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(4, updateTimestamps_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -234,6 +262,11 @@ private static final long serialVersionUID = 0L;
     if (hasAccessMode()) {
       result = result && accessMode_ == other.accessMode_;
     }
+    result = result && (hasUpdateTimestamps() == other.hasUpdateTimestamps());
+    if (hasUpdateTimestamps()) {
+      result = result && (getUpdateTimestamps()
+          == other.getUpdateTimestamps());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -256,6 +289,11 @@ private static final long serialVersionUID = 0L;
     if (hasAccessMode()) {
       hash = (37 * hash) + ACCESSMODE_FIELD_NUMBER;
       hash = (53 * hash) + accessMode_;
+    }
+    if (hasUpdateTimestamps()) {
+      hash = (37 * hash) + UPDATETIMESTAMPS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getUpdateTimestamps());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -397,6 +435,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       accessMode_ = 1;
       bitField0_ = (bitField0_ & ~0x00000004);
+      updateTimestamps_ = true;
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -437,6 +477,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000004;
       }
       result.accessMode_ = accessMode_;
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.updateTimestamps_ = updateTimestamps_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -487,6 +531,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasAccessMode()) {
         setAccessMode(other.getAccessMode());
+      }
+      if (other.hasUpdateTimestamps()) {
+        setUpdateTimestamps(other.getUpdateTimestamps());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -702,6 +749,38 @@ private static final long serialVersionUID = 0L;
     public Builder clearAccessMode() {
       bitField0_ = (bitField0_ & ~0x00000004);
       accessMode_ = 1;
+      onChanged();
+      return this;
+    }
+
+    private boolean updateTimestamps_ = true;
+    /**
+     * <code>optional bool updateTimestamps = 4 [default = true];</code>
+     */
+    public boolean hasUpdateTimestamps() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool updateTimestamps = 4 [default = true];</code>
+     */
+    public boolean getUpdateTimestamps() {
+      return updateTimestamps_;
+    }
+    /**
+     * <code>optional bool updateTimestamps = 4 [default = true];</code>
+     */
+    public Builder setUpdateTimestamps(boolean value) {
+      bitField0_ |= 0x00000008;
+      updateTimestamps_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool updateTimestamps = 4 [default = true];</code>
+     */
+    public Builder clearUpdateTimestamps() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      updateTimestamps_ = true;
       onChanged();
       return this;
     }

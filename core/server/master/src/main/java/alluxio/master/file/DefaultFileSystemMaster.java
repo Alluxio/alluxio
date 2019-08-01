@@ -769,7 +769,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
       Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
-      if (context.getOptions().hasAccessMode()
+      if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
            && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
         mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(),
             inodePath.getInode(), opTimeMs);
