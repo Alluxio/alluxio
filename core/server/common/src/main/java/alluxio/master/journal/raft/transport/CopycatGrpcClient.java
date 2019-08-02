@@ -32,7 +32,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Copycat transport {@link Client} implementation that uses Alluxio gRPC.
@@ -70,70 +69,61 @@ public class CopycatGrpcClient implements Client {
 
   @Override
   public synchronized CompletableFuture<Connection> connect(Address address) {
-    CompletableFuture<Connection> resultFuture = new CompletableFuture<Connection>();
-    try {
-      // Create if there is no existing channel to given address.
-      if (!mChannels.containsKey(address)) {
-        LOG.debug("Creating gRPC channel for target: {}", address);
-        mChannels.put(address,
-            GrpcChannelBuilder
-                .newBuilder(new GrpcServerAddress(address.host(), address.socketAddress()), mConf)
-                .setSubject(mUserState.getSubject()).build());
+    return ThreadContext.currentContextOrThrow().execute(() -> {
+      try {
+        // Create if there is no existing channel to given address.
+        if (!mChannels.containsKey(address)) {
+          LOG.debug("Creating gRPC channel for target: {}", address);
+          mChannels.put(address,
+              GrpcChannelBuilder
+                  .newBuilder(new GrpcServerAddress(address.host(), address.socketAddress()), mConf)
+                  .setSubject(mUserState.getSubject()).build());
+        }
+
+        // Create stub for receiving stream from server.
+        CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =
+            CopycatMessageServerGrpc.newStub(mChannels.get(address));
+
+        // Create client connection that is bound to remote server stream.
+        CopycatGrpcConnection clientConnection = new CopycatGrpcConnection(
+            CopycatGrpcConnection.ConnectionOwner.CLIENT, ThreadContext.currentContextOrThrow(),
+            mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+        clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
+
+        LOG.debug("Created copycat connection for target: {}", address);
+        // Complete the future.
+        mConnections.add(clientConnection);
+        return clientConnection;
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
       }
-
-      // Create stub for receiving stream from server.
-      CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =
-          CopycatMessageServerGrpc.newStub(mChannels.get(address));
-
-      // Create client connection that is bound to remote server stream.
-      CopycatGrpcConnection clientConnection = new CopycatGrpcConnection(
-          CopycatGrpcConnection.ConnectionOwner.CLIENT, ThreadContext.currentContextOrThrow(),
-          mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
-      clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
-
-      LOG.debug("Created copycat connection for target: {}", address);
-      // Complete the future.
-      resultFuture.complete(clientConnection);
-      mConnections.add(clientConnection);
-    } catch (Throwable e) {
-      // Fail the future.
-      resultFuture.completeExceptionally(e);
-    }
-
-    return resultFuture;
+    });
   }
 
   @Override
   public synchronized CompletableFuture<Void> close() {
-    if (!mClosed) {
-      LOG.debug("Closing copycat transport client with {} gRPC channels.", mChannels.size());
-
-      // Close created connections.
-      List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
-      for (Connection connection : mConnections) {
-        connectionCloseFutures.add(connection.close());
-      }
-      mConnections.clear();
-      try {
-        CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0])).get();
-      } catch (InterruptedException ie) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException(
-            "Interrupted while waiting for closing existing client connections.");
-      } catch (ExecutionException ee) {
-        LOG.warn("Failed to close copycat transport client connections", ee.getCause());
-      }
-
-      // Shut down underlying gRPC channels.
-      for (GrpcChannel channel : mChannels.values()) {
-        try {
-          channel.shutdown();
-        } catch (Exception e) {
-          LOG.debug("Failed to close underlying gRPC channel: {}", channel, e);
-        }
-      }
-      mChannels.clear();
+    if (mClosed) {
+      return CompletableFuture.completedFuture(null);
     }
-    return CompletableFuture.completedFuture(null);
+
+    LOG.debug("Closing copycat transport client with {} gRPC channels.", mChannels.size());
+    // Close created connections.
+    List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
+    for (Connection connection : mConnections) {
+      connectionCloseFutures.add(connection.close());
+    }
+    mConnections.clear();
+    return CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0]))
+        .thenRun(() -> {
+          // Shut down underlying gRPC channels once all connections are closed.
+          for (GrpcChannel channel : mChannels.values()) {
+            try {
+              channel.shutdown();
+            } catch (Exception e) {
+              LOG.debug("Failed to close underlying gRPC channel: {}", channel, e);
+            }
+          }
+          mChannels.clear();
+        });
   }
 }

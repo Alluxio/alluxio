@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 /**
@@ -72,60 +71,54 @@ public class CopycatGrpcServer implements Server {
   public synchronized CompletableFuture<Void> listen(Address address,
       Consumer<Connection> listener) {
     LOG.debug("Copycat transport server binding to: {}", address);
-    CompletableFuture<Void> resultFuture = new CompletableFuture<Void>();
+    return ThreadContext.currentContextOrThrow().execute(() -> {
+      // Listener that notifies both this server instance and given listener.
+      Consumer<Connection> forkListener = (connection) -> {
+        addNewConnection(connection);
+        listener.accept(connection);
+      };
 
-    // Listener that notifies both this server instance and given listener.
-    Consumer<Connection> forkListener = (connection) -> {
-      addNewConnection(connection);
-      listener.accept(connection);
-    };
+      // Create gRPC server.
+      mGrpcServer =
+          GrpcServerBuilder.forAddress(address.host(), address.socketAddress(), mConf, mUserState)
+              .addService(new GrpcService(new CopycatMessageServiceClientHandler(forkListener,
+                  ThreadContext.currentContextOrThrow(),
+                  mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
+              .build();
 
-    // Create gRPC server.
-    mGrpcServer =
-        GrpcServerBuilder.forAddress(address.host(), address.socketAddress(), mConf, mUserState)
-            .addService(new GrpcService(new CopycatMessageServiceClientHandler(forkListener,
-                ThreadContext.currentContextOrThrow(),
-                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
-            .build();
+      try {
+        mGrpcServer.start();
+        mActiveAddress = address;
 
-    try {
-      mGrpcServer.start();
-      mActiveAddress = address;
-      resultFuture.complete(null);
-      LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
-    } catch (IOException e) {
-      mGrpcServer = null;
-      LOG.debug("Failed to create gRPC server for copycat transport at: {}.", address, e);
-      resultFuture.completeExceptionally(e);
-    }
-
-    return resultFuture;
+        LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
+        return null;
+      } catch (IOException e) {
+        mGrpcServer = null;
+        LOG.debug("Failed to create gRPC server for copycat transport at: {}.", address, e);
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Override
   public synchronized CompletableFuture<Void> close() {
-    if (!mClosed && mGrpcServer != null) {
-      // Close created connections.
-      List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
-      for (Connection connection : mConnections) {
-        connectionCloseFutures.add(connection.close());
-      }
-      mConnections.clear();
-      try {
-        CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0])).get();
-      } catch (InterruptedException ie) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException(
-            "Interrupted while waiting for closing existing server connections.");
-      } catch (ExecutionException ee) {
-        LOG.warn("Failed to close copycat transport server connections.", ee.getCause());
-      }
-
-      LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
-      mGrpcServer.shutdown();
-      mGrpcServer = null;
+    if (mClosed || mGrpcServer == null) {
+      return CompletableFuture.completedFuture(null);
     }
-    return CompletableFuture.completedFuture(null);
+
+    LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
+    // Close created connections.
+    List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
+    for (Connection connection : mConnections) {
+      connectionCloseFutures.add(connection.close());
+    }
+    mConnections.clear();
+    return CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0]))
+        .thenRun(() -> {
+          // Shut down gRPC server once all connections are closed.
+          mGrpcServer.shutdown();
+          mGrpcServer = null;
+        });
   }
 
   /**
