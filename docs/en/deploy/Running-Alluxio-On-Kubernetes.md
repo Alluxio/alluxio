@@ -132,6 +132,10 @@ secrets:
 EOF
 ```
 
+Install
+```console
+helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
+```
 #### Using `kubectl`
 
 Define environment variables in `alluxio.properties`. Copy the properties template at
@@ -154,8 +158,6 @@ Create a ConfigMap.
 ```console
 $ kubectl create -f alluxio-configMap.yaml
 ```
-
-### Deploy
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the **Docker image**, and CPU and memory requirements for pods.
@@ -204,13 +206,15 @@ $ ./bin/alluxio runTests
 
 ### Uninstall
 
-If using `helm`, uninstall Alluxio as follows:
+#### Using `helm`
+
+Uninstall Alluxio as follows:
 ```console
-$ helm list # Identify release name
-$ helm delete <release-name>
+$ helm delete alluxio
 ```
 
-If using `kubectl`, uninstall Alluxio as follows:
+#### Using `kubectl`
+Uninstall Alluxio as follows:
 ```console
 $ kubectl delete -f alluxio-worker.yaml
 $ kubectl delete -f alluxio-master.yaml
