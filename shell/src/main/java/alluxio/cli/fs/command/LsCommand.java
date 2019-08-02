@@ -19,7 +19,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.CommonUtils;
@@ -38,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -116,18 +116,13 @@ public final class LsCommand extends AbstractFileSystemCommand {
               .desc("reverse order while sorting")
               .build();
 
-  private static final Option USE_ACCESS_TIME_OPTION =
-      Option.builder("u")
+  private static final Option TIMESTAMP_OPTION =
+      Option.builder()
           .required(false)
-          .hasArg(false)
-          .desc("display access time instead of last modification time")
-          .build();
-
-  private static final Option USE_CREATION_TIME_OPTION =
-      Option.builder("U")
-          .required(false)
-          .hasArg(false)
-          .desc("display creation time instead of last modification time")
+          .longOpt("timestamp")
+          .hasArg(true)
+          .desc("display specific timestamp(default is last modification time) "
+              + "{creation|modification|access}")
           .build();
 
   private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
@@ -145,6 +140,14 @@ public final class LsCommand extends AbstractFileSystemCommand {
         Comparator.comparing(URIStatus::getName, String.CASE_INSENSITIVE_ORDER));
     SORT_FIELD_COMPARATORS.put("path", Comparator.comparing(URIStatus::getPath));
     SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getLength));
+  }
+
+  private static final Map<String, Function<URIStatus, Long>> TIMESTAMP_FIELDS = new HashMap<>();
+
+  static {
+    TIMESTAMP_FIELDS.put("creation", URIStatus::getCreationTimeMs);
+    TIMESTAMP_FIELDS.put("access", URIStatus::getLastAccessTimeMs);
+    TIMESTAMP_FIELDS.put("modification", URIStatus::getLastModificationTimeMs);
   }
 
   /**
@@ -189,17 +192,19 @@ public final class LsCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private void printLsString(URIStatus status, boolean hSize, Option timestampOption)
-      throws UnavailableException {
+  private void printLsString(URIStatus status, boolean hSize, String timestampOption)
+      throws InvalidArgumentException {
     // detect the extended acls
     boolean hasExtended = status.getAcl().hasExtended()
         || !status.getDefaultAcl().isEmpty();
-    long timestamp = status.getLastModificationTimeMs();
-    if (timestampOption == USE_ACCESS_TIME_OPTION) {
-      timestamp = status.getLastAccessTimeMs();
-    } else if (timestampOption == USE_CREATION_TIME_OPTION) {
-      timestamp = status.getCreationTimeMs();
+
+    Function<URIStatus, Long> timestampFuncion = TIMESTAMP_FIELDS.get(timestampOption);
+    if (timestampFuncion == null) {
+      throw new InvalidArgumentException(
+          String.format("Unrecognized timestamp option %s", timestampOption));
     }
+
+    long timestamp = timestampFuncion.apply(status);
     System.out.print(formatLsString(hSize,
         SecurityUtils.isSecurityEnabled(mFsContext.getClusterConf()),
         status.isFolder(),
@@ -233,8 +238,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
         .addOption(LIST_DIR_AS_FILE_OPTION)
         .addOption(LIST_HUMAN_READABLE_OPTION)
         .addOption(LIST_PINNED_FILES_OPTION)
-        .addOption(USE_ACCESS_TIME_OPTION)
-        .addOption(USE_CREATION_TIME_OPTION)
+        .addOption(TIMESTAMP_OPTION)
         .addOption(RECURSIVE_OPTION)
         .addOption(REVERSE_SORT_OPTION)
         .addOption(SORT_OPTION);
@@ -251,7 +255,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
                   boolean hSize, boolean pinnedOnly, String sortField, boolean reverse,
-                  Option timestampOption)
+                  String timestampOption)
       throws AlluxioException, IOException {
     URIStatus pathStatus = mFileSystem.getStatus(path);
     if (dirAsFile) {
@@ -313,8 +317,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
         cl.hasOption("p"), cl.getOptionValue("sort", "path"), cl.hasOption("r"),
-        cl.hasOption("u") ? USE_ACCESS_TIME_OPTION
-            : (cl.hasOption("U") ? USE_CREATION_TIME_OPTION : null));
+        cl.getOptionValue("timestamp", "modification"));
   }
 
   @Override
