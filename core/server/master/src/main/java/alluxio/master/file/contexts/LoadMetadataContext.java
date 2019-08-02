@@ -14,7 +14,6 @@ package alluxio.master.file.contexts;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.underfs.UfsStatus;
-import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -52,7 +51,7 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
    */
   public static LoadMetadataContext mergeFrom(LoadMetadataPOptions.Builder optionsBuilder) {
     LoadMetadataPOptions masterOptions =
-        FileSystemOptions.loadMetadataDefaults(ServerConfiguration.global());
+        getOptionsProvider().loadMetadataDefaults(ServerConfiguration.global());
     LoadMetadataPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -62,8 +61,8 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
    * @return the instance of {@link LoadMetadataContext} with default values for master
    */
   public static LoadMetadataContext defaults() {
-    return create(FileSystemOptions
-        .loadMetadataDefaults(ServerConfiguration.global()).toBuilder());
+    return create(
+        getOptionsProvider().loadMetadataDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   /**

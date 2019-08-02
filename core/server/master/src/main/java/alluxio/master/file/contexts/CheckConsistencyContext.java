@@ -13,7 +13,6 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -48,7 +47,7 @@ public class CheckConsistencyContext extends OperationContext<CheckConsistencyPO
    */
   public static CheckConsistencyContext mergeFrom(CheckConsistencyPOptions.Builder optionsBuilder) {
     CheckConsistencyPOptions masterOptions =
-        FileSystemOptions.checkConsistencyDefaults(ServerConfiguration.global());
+        getOptionsProvider().checkConsistencyDefaults(ServerConfiguration.global());
     CheckConsistencyPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -58,8 +57,8 @@ public class CheckConsistencyContext extends OperationContext<CheckConsistencyPO
    * @return the instance of {@link CheckConsistencyContext} with default values for master
    */
   public static CheckConsistencyContext defaults() {
-    return create(FileSystemOptions
-        .checkConsistencyDefaults(ServerConfiguration.global()).toBuilder());
+    return create(
+        getOptionsProvider().checkConsistencyDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   @Override

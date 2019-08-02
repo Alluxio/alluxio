@@ -43,6 +43,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FileSystemOptionsProvider;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -244,6 +245,11 @@ public interface FileSystem extends Closeable {
    * @return whether or not this FileSystem has been closed
    */
   boolean isClosed();
+
+  /**
+   * @return Options provider associated with the file system implementation
+   */
+  FileSystemOptionsProvider getOptionsProvider();
 
   /**
    * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryPOptions)} with

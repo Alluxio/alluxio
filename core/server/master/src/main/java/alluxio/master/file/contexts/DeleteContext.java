@@ -13,7 +13,6 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.DeletePOptions;
-import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -46,7 +45,8 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
    * @return the instance of {@link DeleteContext} with default values for master
    */
   public static DeleteContext mergeFrom(DeletePOptions.Builder optionsBuilder) {
-    DeletePOptions masterOptions = FileSystemOptions.deleteDefaults(ServerConfiguration.global());
+    DeletePOptions masterOptions =
+        getOptionsProvider().deleteDefaults(ServerConfiguration.global());
     DeletePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -56,7 +56,7 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
    * @return the instance of {@link DeleteContext} with default values for master
    */
   public static DeleteContext defaults() {
-    return create(FileSystemOptions.deleteDefaults(ServerConfiguration.global()).toBuilder());
+    return create(getOptionsProvider().deleteDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   @Override

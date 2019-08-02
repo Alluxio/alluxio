@@ -12,7 +12,6 @@
 package alluxio.master.file.contexts;
 
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
 
 import com.google.common.base.MoreObjects;
@@ -51,7 +50,7 @@ public class CompleteFileContext extends OperationContext<CompleteFilePOptions.B
    * @return the instance of {@link CompleteFileContext} with default values for master
    */
   public static CompleteFileContext mergeFrom(CompleteFilePOptions.Builder optionsBuilder) {
-    CompleteFilePOptions masterOptions = FileSystemMasterOptions.completeFileDefaults();
+    CompleteFilePOptions masterOptions = getOptionsProvider().completeFileDefaults();
     CompleteFilePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -61,7 +60,7 @@ public class CompleteFileContext extends OperationContext<CompleteFilePOptions.B
    * @return the instance of {@link CompleteFileContext} with default values for master
    */
   public static CompleteFileContext defaults() {
-    return create(FileSystemMasterOptions.completeFileDefaults().toBuilder());
+    return create(getOptionsProvider().completeFileDefaults().toBuilder());
   }
 
   /**

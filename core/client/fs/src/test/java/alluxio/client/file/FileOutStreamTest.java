@@ -55,6 +55,7 @@ import alluxio.grpc.WritePType;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.util.DefaultFileSystemOptionsProvider;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -123,6 +124,8 @@ public class FileOutStreamTest {
     when(mFileSystemContext.getClientContext()).thenReturn(mClientContext);
     when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
     when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
+    when(mFileSystemContext.getOptionsProvider())
+        .thenReturn(new DefaultFileSystemOptionsProvider());
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 

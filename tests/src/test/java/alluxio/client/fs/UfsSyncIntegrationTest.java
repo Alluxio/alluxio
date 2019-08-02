@@ -42,7 +42,6 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.Sets;
@@ -561,9 +560,11 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     writeUfsFile(ufsPath(fileB), 1);
 
     // Should not exist, since no loading or syncing
-    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA)), ExistsPOptions.newBuilder()
-        .setCommonOptions(FileSystemOptions.commonDefaults(mFileSystem.getConf()).toBuilder()
-            .setSyncIntervalMs(-1).build()).build()));
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA)),
+        ExistsPOptions.newBuilder()
+            .setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build())
+            .build()));
 
     try {
       mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),

@@ -30,6 +30,8 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authentication.AuthenticationUserUtils;
+import alluxio.util.DefaultFileSystemOptionsProvider;
+import alluxio.util.FileSystemOptionsProvider;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -144,6 +146,8 @@ public final class FileSystemContext implements Closeable {
    */
   private volatile FileSystemContextReinitializer mReinitializer;
 
+  private FileSystemOptionsProvider mOptionsProvider;
+
   /**
    * Creates a {@link FileSystemContext} with a null subject.
    *
@@ -230,6 +234,11 @@ public final class FileSystemContext implements Closeable {
     mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
     if (mMetricsEnabled) {
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
+    }
+    mOptionsProvider = ctx.getOptionsProvider();
+    if (mOptionsProvider == null) {
+      // Use default options provider.
+      mOptionsProvider = new DefaultFileSystemOptionsProvider();
     }
   }
 
@@ -356,6 +365,13 @@ public final class FileSystemContext implements Closeable {
    */
   public ClientContext getClientContext() {
     return mMasterClientContext;
+  }
+
+  /**
+   * @return file system options provider
+   */
+  public synchronized FileSystemOptionsProvider getOptionsProvider() {
+    return mOptionsProvider;
   }
 
   /**

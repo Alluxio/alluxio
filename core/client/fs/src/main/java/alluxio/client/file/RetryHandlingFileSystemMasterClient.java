@@ -59,7 +59,6 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
 
 import java.util.ArrayList;
@@ -243,12 +242,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
             .setAlluxioPath(alluxioPath.toString())
             .setOptions(options).build()),
         "UpdateMount");
-  }
-
-  @Override
-  public void rename(final AlluxioURI src, final AlluxioURI dst)
-      throws AlluxioStatusException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getClusterConf()));
   }
 
   @Override

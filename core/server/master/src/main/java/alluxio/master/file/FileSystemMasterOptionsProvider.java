@@ -11,25 +11,16 @@
 
 package alluxio.master.file;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.util.FileSystemOptions;
-
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.util.FileSystemOptionsProvider;
 
 /**
- * The file system class to set default options for master.
+ * This interface defines default options for master-only file system operations.
  */
-@ThreadSafe
-public final class FileSystemMasterOptions {
+public interface FileSystemMasterOptionsProvider extends FileSystemOptionsProvider {
 
   /**
    * @return Master side defaults for {@link CompleteFilePOptions}
    */
-  public static CompleteFilePOptions completeFileDefaults() {
-    return CompleteFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemOptions.commonDefaults(ServerConfiguration.global()))
-        .setUfsLength(0)
-        .build();
-  }
+  CompleteFilePOptions completeFileDefaults();
 }

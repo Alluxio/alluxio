@@ -23,10 +23,11 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsProvider;
 
 import com.google.common.base.Throwables;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -36,8 +37,15 @@ import java.io.IOException;
  * Tests the internal implementation of alluxio Master via a {@link FileSystemMasterClient}.
  */
 public final class FileSystemMasterClientIntegrationTest extends BaseIntegrationTest {
-  private static final GetStatusPOptions GET_STATUS_OPTIONS =
-      FileSystemOptions.getStatusDefaults(ServerConfiguration.global());
+  private FileSystemOptionsProvider mOptionsProvider;
+  private GetStatusPOptions mGetStatusOptions;
+
+  @Before
+  public void before() throws Exception {
+    // Get options provider from cluster.
+    mOptionsProvider = mLocalAlluxioClusterResource.get().getClient().getOptionsProvider();
+    mGetStatusOptions = mOptionsProvider.getStatusDefaults(ServerConfiguration.global());
+  }
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -53,13 +61,13 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
     fsMasterClient.createFile(file,
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global()));
-    Assert.assertNotNull(fsMasterClient.getStatus(file, GET_STATUS_OPTIONS));
+        mOptionsProvider.createFileDefaults(ServerConfiguration.global()));
+    Assert.assertNotNull(fsMasterClient.getStatus(file, mGetStatusOptions));
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    Assert.assertNotNull(fsMasterClient.getStatus(file, GET_STATUS_OPTIONS));
+    Assert.assertNotNull(fsMasterClient.getStatus(file, mGetStatusOptions));
     fsMasterClient.close();
   }
 
@@ -71,7 +79,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
     FileSystemMasterClient fsMasterClient =
         FileSystemMasterClient.Factory.create(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"), GET_STATUS_OPTIONS);
+    fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"), mGetStatusOptions);
     fsMasterClient.close();
   }
 

@@ -24,7 +24,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.DefaultFileSystemOptionsProvider;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 
@@ -122,7 +122,8 @@ public final class OutStreamOptions {
   }
 
   private OutStreamOptions(ClientContext context, AlluxioConfiguration alluxioConf) {
-    mCommonOptions = FileSystemOptions.commonDefaults(alluxioConf);
+    // TODO(ggezer) Remove dependency on DefaultFileSystemOptionsProvider.
+    mCommonOptions = new DefaultFileSystemOptionsProvider().commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mLocationPolicy = BlockLocationPolicy.Factory.create(
         alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),

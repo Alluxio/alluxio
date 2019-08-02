@@ -184,15 +184,6 @@ public interface FileSystemMasterClient extends Client {
    *
    * @param src the path to rename
    * @param dst new file path
-   * @throws NotFoundException if the path does not exist
-   */
-  void rename(AlluxioURI src, AlluxioURI dst) throws AlluxioStatusException;
-
-  /**
-   * Renames a file or a directory.
-   *
-   * @param src the path to rename
-   * @param dst new file path
    * @param options rename options
    * @throws NotFoundException if the path does not exist
    */

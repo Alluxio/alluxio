@@ -18,6 +18,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FileSystemOptionsProvider;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ public class ClientContext {
   private volatile UserState mUserState;
   private volatile String mPathConfHash;
   private volatile boolean mIsPathConfLoaded = false;
+  private volatile FileSystemOptionsProvider mOptionsProvider;
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -86,6 +88,7 @@ public class ClientContext {
     mUserState = ctx.getUserState();
     mClusterConfHash = ctx.getClusterConfHash();
     mPathConfHash = ctx.getPathConfHash();
+    mOptionsProvider = ctx.getOptionsProvider();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
@@ -103,6 +106,17 @@ public class ClientContext {
     }
     mPathConf = PathConfiguration.create(new HashMap<>());
     mUserState = UserState.Factory.create(mClusterConf, subject);
+  }
+
+  /**
+   * Updates client context with given options provider.
+   *
+   * @param optionsProvider the options provider
+   * @return the updated ClientContext instance
+   */
+  public ClientContext withOptionsProvider(FileSystemOptionsProvider optionsProvider) {
+    mOptionsProvider = optionsProvider;
+    return this;
   }
 
   /**
@@ -191,5 +205,12 @@ public class ClientContext {
    */
   public UserState getUserState() {
     return mUserState;
+  }
+
+  /**
+   * @return the FileSystemOptionsProvider for this context
+   */
+  public FileSystemOptionsProvider getOptionsProvider() {
+    return mOptionsProvider;
   }
 }

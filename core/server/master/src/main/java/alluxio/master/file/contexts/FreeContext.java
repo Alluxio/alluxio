@@ -13,7 +13,6 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FreePOptions;
-import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -46,7 +45,7 @@ public class FreeContext extends OperationContext<FreePOptions.Builder> {
    * @return the instance of {@link FreeContext} with default values for master
    */
   public static FreeContext mergeFrom(FreePOptions.Builder optionsBuilder) {
-    FreePOptions masterOptions = FileSystemOptions.freeDefaults(ServerConfiguration.global());
+    FreePOptions masterOptions = getOptionsProvider().freeDefaults(ServerConfiguration.global());
     FreePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -56,7 +55,7 @@ public class FreeContext extends OperationContext<FreePOptions.Builder> {
    * @return the instance of {@link FreeContext} with default values for master
    */
   public static FreeContext defaults() {
-    return create(FileSystemOptions.freeDefaults(ServerConfiguration.global()).toBuilder());
+    return create(getOptionsProvider().freeDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   @Override

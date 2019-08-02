@@ -38,27 +38,23 @@ import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 
 /**
- * This class contains static methods which can be passed Alluxio configuration objects that
+ * This class contains methods which can be passed Alluxio configuration objects that
  * will populate the gRPC options objects with the proper values based on the given configuration.
+ *
+ * It is used as base options provider at client and master for base file system operations.
  */
-public class FileSystemOptions {
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static ScheduleAsyncPersistencePOptions scheduleAsyncPersistenceDefaults(
-      AlluxioConfiguration conf) {
+public class DefaultFileSystemOptionsProvider implements FileSystemOptionsProvider {
+  @Override
+  public ScheduleAsyncPersistencePOptions scheduleAsyncPersistenceDefaults(
+          AlluxioConfiguration conf) {
     return ScheduleAsyncPersistencePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setPersistenceWaitTime(0)
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static CreateDirectoryPOptions createDirectoryDefaults(AlluxioConfiguration conf) {
+  @Override
+  public CreateDirectoryPOptions createDirectoryDefaults(AlluxioConfiguration conf) {
     return CreateDirectoryPOptions.newBuilder()
         .setAllowExists(false)
         .setCommonOptions(commonDefaults(conf))
@@ -69,21 +65,15 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static CheckConsistencyPOptions checkConsistencyDefaults(AlluxioConfiguration conf) {
+  @Override
+  public CheckConsistencyPOptions checkConsistencyDefaults(AlluxioConfiguration conf) {
     return CheckConsistencyPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static CreateFilePOptions createFileDefaults(AlluxioConfiguration conf) {
+  @Override
+  public CreateFilePOptions createFileDefaults(AlluxioConfiguration conf) {
     return CreateFilePOptions.newBuilder()
         .setBlockSizeBytes(conf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
         .setCommonOptions(commonDefaults(conf))
@@ -99,11 +89,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static DeletePOptions deleteDefaults(AlluxioConfiguration conf) {
+  @Override
+  public DeletePOptions deleteDefaults(AlluxioConfiguration conf) {
     return DeletePOptions.newBuilder()
         .setAlluxioOnly(false)
         .setCommonOptions(commonDefaults(conf))
@@ -112,11 +99,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static ExistsPOptions existsDefaults(AlluxioConfiguration conf) {
+  @Override
+  public ExistsPOptions existsDefaults(AlluxioConfiguration conf) {
     return ExistsPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
@@ -124,12 +108,9 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static FileSystemMasterCommonPOptions commonDefaults(
-      AlluxioConfiguration conf) {
+  @Override
+  public FileSystemMasterCommonPOptions commonDefaults(
+          AlluxioConfiguration conf) {
     return FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
         .setTtl(conf.getMs(PropertyKey.USER_FILE_CREATE_TTL))
@@ -137,11 +118,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static FreePOptions freeDefaults(AlluxioConfiguration conf) {
+  @Override
+  public FreePOptions freeDefaults(AlluxioConfiguration conf) {
     return FreePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setForced(false)
@@ -149,11 +127,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static GetStatusPOptions getStatusDefaults(AlluxioConfiguration conf) {
+  @Override
+  public GetStatusPOptions getStatusDefaults(AlluxioConfiguration conf) {
     return GetStatusPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
@@ -161,11 +136,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static ListStatusPOptions listStatusDefaults(AlluxioConfiguration conf) {
+  @Override
+  public ListStatusPOptions listStatusDefaults(AlluxioConfiguration conf) {
     return ListStatusPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
@@ -173,11 +145,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static LoadMetadataPOptions loadMetadataDefaults(AlluxioConfiguration conf) {
+  @Override
+  public LoadMetadataPOptions loadMetadataDefaults(AlluxioConfiguration conf) {
     return LoadMetadataPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setRecursive(false)
@@ -186,11 +155,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static MountPOptions mountDefaults(AlluxioConfiguration conf) {
+  @Override
+  public MountPOptions mountDefaults(AlluxioConfiguration conf) {
     return MountPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setReadOnly(false)
@@ -198,11 +164,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static OpenFilePOptions openFileDefaults(AlluxioConfiguration conf) {
+  @Override
+  public OpenFilePOptions openFileDefaults(AlluxioConfiguration conf) {
     return OpenFilePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setMaxUfsReadConcurrency(conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX))
@@ -211,57 +174,40 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static RenamePOptions renameDefaults(AlluxioConfiguration conf) {
+  @Override
+  public RenamePOptions renameDefaults(AlluxioConfiguration conf) {
     return RenamePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setPersist(conf.getBoolean(PropertyKey.USER_FILE_PERSIST_ON_RENAME))
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static ScheduleAsyncPersistencePOptions scheduleAsyncPersistDefaults(
-      AlluxioConfiguration conf) {
+  @Override
+  public ScheduleAsyncPersistencePOptions scheduleAsyncPersistDefaults(
+          AlluxioConfiguration conf) {
     return ScheduleAsyncPersistencePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static SetAclPOptions setAclDefaults(AlluxioConfiguration conf) {
+  @Override
+  public SetAclPOptions setAclDefaults(AlluxioConfiguration conf) {
     return SetAclPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setRecursive(false)
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static SetAttributePOptions setAttributeDefaults(AlluxioConfiguration conf) {
+  @Override
+  public SetAttributePOptions setAttributeDefaults(AlluxioConfiguration conf) {
     return SetAttributePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setRecursive(false)
         .build();
   }
 
-  /**
-   * Defaults for the SetAttribute RPC which should only be used on the client side.
-   *
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static SetAttributePOptions setAttributeClientDefaults(AlluxioConfiguration conf) {
+  @Override
+  public SetAttributePOptions setAttributeClientDefaults(AlluxioConfiguration conf) {
     // Specifically set and override *only* the metadata sync interval
     // Setting other attributes by default will make the server think the user is intentionally
     // setting the values. Most fields withinSetAttributePOptions are set by inclusion
@@ -272,11 +218,8 @@ public class FileSystemOptions {
         .build();
   }
 
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static UnmountPOptions unmountDefaults(AlluxioConfiguration conf) {
+  @Override
+  public UnmountPOptions unmountDefaults(AlluxioConfiguration conf) {
     return UnmountPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .build();

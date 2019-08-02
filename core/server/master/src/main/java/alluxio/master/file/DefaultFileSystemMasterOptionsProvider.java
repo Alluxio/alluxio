@@ -11,20 +11,20 @@
 
 package alluxio.master.file;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CompleteFilePOptions;
-
-import org.junit.Assert;
-import org.junit.Test;
+import alluxio.util.DefaultFileSystemOptionsProvider;
 
 /**
- * Tests for the {@link alluxio.master.file.FileSystemMasterOptions}.
+ * Default implementation for {@link alluxio.util.FileSystemOptionsProvider} and
+ * {@link FileSystemMasterOptionsProvider}.
  */
-public class FileSystemMasterOptionsTest {
+public class DefaultFileSystemMasterOptionsProvider extends DefaultFileSystemOptionsProvider
+    implements FileSystemMasterOptionsProvider {
 
-  @Test
-  public void completeFileDefaultsTest() {
-    CompleteFilePOptions options = FileSystemMasterOptions.completeFileDefaults();
-    Assert.assertNotNull(options);
-    Assert.assertEquals(0, options.getUfsLength());
+  @Override
+  public CompleteFilePOptions completeFileDefaults() {
+    return CompleteFilePOptions.newBuilder()
+        .setCommonOptions(commonDefaults(ServerConfiguration.global())).setUfsLength(0).build();
   }
 }

@@ -30,7 +30,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -176,8 +175,8 @@ public class FileOutStream extends AbstractOutStream {
       if (!mCanceled && mUnderStorageType.isAsyncPersist()
           && mOptions.getPersistenceWaitTime() != Constants.NO_AUTO_PERSIST) {
         optionsBuilder.setAsyncPersistOptions(
-            FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
-                .setCommonOptions(mOptions.getCommonOptions())
+            mContext.getOptionsProvider().scheduleAsyncPersistDefaults(mContext.getPathConf(mUri))
+                .toBuilder().setCommonOptions(mOptions.getCommonOptions())
                 .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()));
       }
 

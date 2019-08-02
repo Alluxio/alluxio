@@ -25,9 +25,10 @@ import alluxio.security.user.TestUserState;
 import alluxio.security.user.UserState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsProvider;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -49,6 +50,13 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
   private static final String SUPERGROUP = "supergroup";
   private static final String NONSUPER = "nonsuper";
   private static final String SUPERUSER = "alluxio";
+  private FileSystemOptionsProvider mOptionsProvider;
+
+  @Before
+  public void before() throws Exception {
+    // Get options provider from cluster.
+    mOptionsProvider = mLocalAlluxioClusterResource.get().getClient().getOptionsProvider();
+  }
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -144,10 +152,10 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     masterClient.createFile(new AlluxioURI(filename),
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global()));
+        mOptionsProvider.createFileDefaults(ServerConfiguration.global()));
     Assert.assertNotNull(
         masterClient.getStatus(new AlluxioURI(filename),
-            FileSystemOptions.getStatusDefaults(ServerConfiguration.global())));
+            mOptionsProvider.getStatusDefaults(ServerConfiguration.global())));
     masterClient.disconnect();
     masterClient.close();
   }

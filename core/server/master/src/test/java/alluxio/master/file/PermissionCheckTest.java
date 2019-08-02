@@ -54,7 +54,8 @@ import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.security.user.TestUserState;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.DefaultFileSystemOptionsProvider;
+import alluxio.util.FileSystemOptionsProvider;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -112,6 +113,7 @@ public final class PermissionCheckTest {
   private MasterRegistry mRegistry;
   private MetricsMaster mMetricsMaster;
   private FileSystemMaster mFileSystemMaster;
+  private FileSystemOptionsProvider mOptionsProvider;
 
   @Rule
   public ConfigurationRule mConfiguration =
@@ -187,6 +189,7 @@ public final class PermissionCheckTest {
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
+    mOptionsProvider = new DefaultFileSystemOptionsProvider();
     mRegistry.start(true);
 
     createDirAndFileForTest();
@@ -699,9 +702,10 @@ public final class PermissionCheckTest {
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
           GetStatusContext.defaults());
-      return FileSystemOptions.setAttributeDefaults(ServerConfiguration.global()).toBuilder()
-          .setPinned(fileInfo.isPinned()).setCommonOptions(FileSystemMasterCommonPOptions
-              .newBuilder().setTtl(fileInfo.getTtl()).build())
+      return mOptionsProvider.setAttributeDefaults(ServerConfiguration.global()).toBuilder()
+          .setPinned(fileInfo.isPinned())
+          .setCommonOptions(
+              FileSystemMasterCommonPOptions.newBuilder().setTtl(fileInfo.getTtl()).build())
           .setPersisted(fileInfo.isPersisted()).build();
     }
   }

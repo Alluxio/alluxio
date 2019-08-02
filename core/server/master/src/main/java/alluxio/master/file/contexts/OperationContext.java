@@ -11,6 +11,9 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.master.file.FileSystemMasterOptionsProvider;
+import alluxio.master.file.DefaultFileSystemMasterOptionsProvider;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -22,6 +25,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.Builder<?>> {
   // Proto message that is being wrapped
   private T mOptionsBuilder;
+
+  // Static options provider for use by all contexts.
+  private static FileSystemMasterOptionsProvider sOptionsProvider;
+  // Initializer for the options provider.
+  static {
+    sOptionsProvider = new DefaultFileSystemMasterOptionsProvider();
+  }
 
   /**
    * Creates an instance with given proto message.
@@ -37,5 +47,12 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
    */
   public T getOptions() {
     return mOptionsBuilder;
+  }
+
+  /**
+   * @return file system options provider for master
+   */
+  protected static FileSystemMasterOptionsProvider getOptionsProvider() {
+    return sOptionsProvider;
   }
 }

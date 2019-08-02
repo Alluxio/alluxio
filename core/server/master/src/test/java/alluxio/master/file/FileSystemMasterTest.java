@@ -89,7 +89,6 @@ import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.user.TestUserState;
-import alluxio.util.FileSystemOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -161,6 +160,7 @@ public final class FileSystemMasterTest {
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private DefaultFileSystemMaster mFileSystemMaster;
+  private FileSystemMasterOptionsProvider mOptionsProvider;
   private ReadOnlyInodeStore mInodeStore;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
@@ -1672,10 +1672,10 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .setCommonOptions(mOptionsProvider.commonDefaults(ServerConfiguration.global())
+                .toBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
@@ -1692,10 +1692,10 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .setCommonOptions(mOptionsProvider.commonDefaults(ServerConfiguration.global())
+                .toBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
     // Simulate restart.
     stopServices();
     startServices();
@@ -1742,10 +1742,10 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .setCommonOptions(mOptionsProvider.commonDefaults(ServerConfiguration.global())
+                .toBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
 
     // Simulate restart.
     stopServices();
@@ -2676,6 +2676,7 @@ public final class FileSystemMasterTest {
         ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mOptionsProvider = new DefaultFileSystemMasterOptionsProvider();
     mInodeStore = mFileSystemMaster.getInodeStore();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
