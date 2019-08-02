@@ -14,10 +14,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.alluxio</groupId>
-    <artifactId>alluxio-experimental</artifactId>
+    <artifactId>alluxio-experimental-table</artifactId>
     <version>2.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-experimental-client</artifactId>
+  <artifactId>alluxio-experimental-table-client</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Experimental - Client</name>
   <description>Client of Catalog Service</description>
