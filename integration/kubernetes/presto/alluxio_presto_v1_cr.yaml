@@ -1,13 +1,13 @@
 apiVersion: starburstdata.com/v1
 kind: Presto
 metadata:
-  name: example-presto
+  name: presto-alluxio
 spec:
   image:
     name: presto-alluxio
     pullPolicy: IfNotPresent
-    tag: 312-e.1.k8s-0.7-2.0.0-SNAPSHOT
-  nameOverride: example-presto
+    tag: 312-e.1.k8s-0.7-2.0.0
+  nameOverride: presto-alluxio
   prometheus:
     enabled: true
     additionalRules:
@@ -16,17 +16,25 @@ spec:
         type: COUNTER
   service:
     type: NodePort
-    name: example-presto
+    name: presto-alluxio
+    additionalSpecProperties:
+        ports:
+          - port: 19998
+            name: rpc
+          - port: 19999
+            name: web
   memory:
     nodeMemoryHeadroom: 1Gi
   coordinator:
     cpuRequest: ""
     memoryAllocation: ""
+    additionalProperties: ""
   worker:
     count: 3
     prestoWorkerShutdownGracePeriodSeconds: 1
     cpuRequest: ""
     memoryAllocation: ""
+    additionalProperties: ""
   hive:
     metastore:
       image:

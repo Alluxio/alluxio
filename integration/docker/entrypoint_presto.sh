@@ -52,7 +52,10 @@ fi
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # INSERT YOUR CUSTOM STEPS HERE
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+export JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk"
+export ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=presto-alluxio -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=/journal"
 if [ "$ROLE" = "$COORDINATOR" ]; then
+  mkdir /journal
   exec /entrypoint.sh master-only --no-format &
   exec /entrypoint.sh job-master &
 else
