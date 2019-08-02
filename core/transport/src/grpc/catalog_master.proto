@@ -1,0 +1,32 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "CatalogMasterProto";
+
+package alluxio.grpc;
+
+import "grpc/common.proto";
+
+message FieldSchema {
+    optional string name = 1;
+    optional string type = 2;
+    optional string comment = 3;
+}
+
+message GetAllDatabasesPRequest {
+}
+
+message GetAllDatabasesPResponse {
+    repeated string database = 1;
+}
+/**
+ * This interface contains catalog master service endpoints for Alluxio clients.
+ */
+service CatalogMasterClientService {
+
+    /**
+     * Returns all databases in the catalog
+     */
+    rpc GetAllDatabases(GetAllDatabasesPRequest) returns (GetAllDatabasesPResponse);
+}

@@ -131,6 +131,10 @@
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
   </repositories>
 
   <properties>
@@ -169,6 +173,7 @@
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
+    <module>experimental</module>
     <module>integration</module>
     <module>logserver</module>
     <module>minicluster</module>
