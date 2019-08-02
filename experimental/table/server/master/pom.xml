@@ -143,6 +143,11 @@
       <artifactId>alluxio-job-client</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-experimental-base</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- External test dependencies -->
     <dependency>
@@ -168,6 +173,12 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
       <!-- Export test classes in a test-jar so that other projects can use them for testing -->
       <plugin>

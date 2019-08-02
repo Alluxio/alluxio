@@ -12,7 +12,7 @@
 package alluxio.client.catalog;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Constants;
+import alluxio.experimental.Constants;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.ServiceType;

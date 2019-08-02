@@ -11,31 +11,25 @@
 
 package alluxio.master.catalog;
 
-import alluxio.Constants;
-import alluxio.Server;
 import alluxio.clock.SystemClock;
-import alluxio.exception.status.UnavailableException;
+import alluxio.experimental.Constants;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
-import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
-
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.executor.ExecutorServiceFactory;
+
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Table;
 
 import java.io.IOException;
-import java.time.Clock;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This catalog master manages catalogs metadata information.
