@@ -44,10 +44,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Copycat transport {@link Connection} implementation that uses Alluxio gRPC.
+ * Base copycat transport {@link Connection} implementation that uses Alluxio gRPC.
  */
-public class CopycatGrpcConnection implements Connection, StreamObserver<CopycatMessage> {
-  private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcConnection.class);
+public class CopycatGrpcBaseConnection implements Connection, StreamObserver<CopycatMessage> {
+  private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcBaseConnection.class);
 
   /** Exception listeners for this connection.  */
   private final Listeners<Throwable> mExceptionListeners;
@@ -67,9 +67,9 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
   private final AtomicLong mRequestCounter;
 
   /** Map of request handlers. */
-  private final Map<Class, CopycatGrpcConnection.HandlerHolder> mHandlers;
+  private final Map<Class, CopycatGrpcBaseConnection.HandlerHolder> mHandlers;
   /** Map of pending requests. */
-  private final Map<Long, CopycatGrpcConnection.ContextualFuture> mResponseFutures;
+  private final Map<Long, CopycatGrpcBaseConnection.ContextualFuture> mResponseFutures;
 
   /** Thread context of creator of this connection. */
   private final ThreadContext mContext;
@@ -98,8 +98,8 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
    * @param context copycat thread context
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public CopycatGrpcConnection(ConnectionOwner connectionOwner, ThreadContext context,
-      long requestTimeoutMs) {
+  public CopycatGrpcBaseConnection(ConnectionOwner connectionOwner, ThreadContext context,
+                                   long requestTimeoutMs) {
     mConnectionOwner = connectionOwner;
     mContext = context;
     mRequestTimeoutMs = requestTimeoutMs;
@@ -152,8 +152,8 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
       Assert.notNull(request, "request");
 
       // Create a contextual future for the request.
-      CopycatGrpcConnection.ContextualFuture<U> future =
-              new CopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
+      CopycatGrpcBaseConnection.ContextualFuture<U> future =
+              new CopycatGrpcBaseConnection.ContextualFuture<>(System.currentTimeMillis(),
                       ThreadContext.currentContextOrThrow());
 
       // Don't allow request if connection is closed.
@@ -208,8 +208,8 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
       if (mClosed) {
         throw new IllegalStateException("Connection closed");
       }
-      mHandlers.put(type,
-          new CopycatGrpcConnection.HandlerHolder(handler, ThreadContext.currentContextOrThrow()));
+      mHandlers.put(type, new CopycatGrpcBaseConnection.HandlerHolder(handler,
+          ThreadContext.currentContextOrThrow()));
       return null;
     }
   }
@@ -228,7 +228,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
       LOG.debug("Handling request: {} of type: {} at '{}'", requestId, request.getClass().getName(),
           mConnectionOwner);
       // Find handler for the request.
-      CopycatGrpcConnection.HandlerHolder handler = mHandlers.get(request.getClass());
+      CopycatGrpcBaseConnection.HandlerHolder handler = mHandlers.get(request.getClass());
       if (handler != null) {
         // Handle the request.
         handler.getContext().executor().execute(() -> handleRequest(requestId, request, handler));
@@ -251,7 +251,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
    * @param handler registered handler for the request type
    */
   private void handleRequest(long requestId, Object requestObject,
-      CopycatGrpcConnection.HandlerHolder handler) {
+      CopycatGrpcBaseConnection.HandlerHolder handler) {
     // Call handler for processing the request.
     CompletableFuture<Object> responseFuture = handler.getHandler().apply(requestObject);
     // Send if there is a response.
@@ -303,7 +303,7 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
   }
 
   protected void handleResponseMessage(CopycatMessage response) {
-    CopycatGrpcConnection.ContextualFuture future =
+    CopycatGrpcBaseConnection.ContextualFuture future =
         mResponseFutures.remove(response.getResponseHeader().getRequestId());
 
     if (future == null) {
@@ -360,37 +360,37 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
 
   @Override
   public CompletableFuture<Void> close() {
-    if (!mClosed) {
-      LOG.debug("Closing '{}' connection.", mConnectionOwner);
+    return CompletableFuture.runAsync(() -> {
+      if (!mClosed) {
+        LOG.debug("Closing '{}' connection.", mConnectionOwner);
 
-      // Connection can't be used after this.
-      // Lock and set the state.
-      try (LockResource lock = new LockResource(mStateLock.writeLock())) {
-        mClosed = true;
-      }
+        // Connection can't be used after this.
+        // Lock and set the state.
+        try (LockResource lock = new LockResource(mStateLock.writeLock())) {
+          mClosed = true;
+        }
 
-      // Stop timeout timer.
-      mTimeoutScheduler.cancel();
+        // Stop timeout timer.
+        mTimeoutScheduler.cancel();
 
-      // Complete underlying gRPC stream.
-      if (!mStreamCompleted) {
-        try {
-          mTargetObserver.onCompleted();
-        } catch (Exception e) {
-          LOG.debug("Completing underlying gRPC stream failed.", e);
+        // Complete underlying gRPC stream.
+        if (!mStreamCompleted) {
+          try {
+            mTargetObserver.onCompleted();
+          } catch (Exception e) {
+            LOG.debug("Completing underlying gRPC stream failed.", e);
+          }
+        }
+
+        // Close pending requests.
+        failPendingRequests(new ConnectException("Connection closed."));
+
+        // Call close listeners.
+        for (Listener<Connection> listener : mCloseListeners) {
+          listener.accept(this);
         }
       }
-
-      // Close pending requests.
-      failPendingRequests(new ConnectException("Connection closed."));
-
-      // Call close listeners.
-      for (Listener<Connection> listener : mCloseListeners) {
-        listener.accept(this);
-      }
-    }
-
-    return CompletableFuture.completedFuture(null);
+    });
   }
 
   /*
@@ -458,11 +458,11 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
    */
   private void timeoutPendingRequests() {
     long currentTimeMillis = System.currentTimeMillis();
-    Iterator<Map.Entry<Long, CopycatGrpcConnection.ContextualFuture>> responseIterator =
+    Iterator<Map.Entry<Long, CopycatGrpcBaseConnection.ContextualFuture>> responseIterator =
         mResponseFutures.entrySet().iterator();
     while (responseIterator.hasNext()) {
       Map.Entry<Long, ContextualFuture> requestEntry = responseIterator.next();
-      CopycatGrpcConnection.ContextualFuture future = requestEntry.getValue();
+      CopycatGrpcBaseConnection.ContextualFuture future = requestEntry.getValue();
       if (future.getCreationTime() + mRequestTimeoutMs < currentTimeMillis) {
         LOG.debug("Timing out request: {}", requestEntry.getKey());
         responseIterator.remove();
@@ -481,16 +481,16 @@ public class CopycatGrpcConnection implements Connection, StreamObserver<Copycat
    */
   private void failPendingRequests(Throwable error) {
     // Close outstanding calls with given error.
-    Iterator<Map.Entry<Long, CopycatGrpcConnection.ContextualFuture>> responseFutureIterator =
+    Iterator<Map.Entry<Long, CopycatGrpcBaseConnection.ContextualFuture>> responseFutureIter =
         mResponseFutures.entrySet().iterator();
-    while (responseFutureIterator.hasNext()) {
-      Map.Entry<Long, CopycatGrpcConnection.ContextualFuture> responseEntry =
-          responseFutureIterator.next();
+    while (responseFutureIter.hasNext()) {
+      Map.Entry<Long, CopycatGrpcBaseConnection.ContextualFuture> responseEntry =
+          responseFutureIter.next();
 
       LOG.debug("Closing request:{} with error: {}", responseEntry.getKey(),
           error.getClass().getName());
 
-      CopycatGrpcConnection.ContextualFuture<?> responseFuture = responseEntry.getValue();
+      CopycatGrpcBaseConnection.ContextualFuture<?> responseFuture = responseEntry.getValue();
       responseFuture.getContext().executor()
           .execute(() -> responseFuture.completeExceptionally(error));
     }
