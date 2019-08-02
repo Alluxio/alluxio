@@ -1,0 +1,25 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+FROM starburstdata/presto:312-e.1.k8s-0.7
+
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz
+
+ADD ${ALLUXIO_TARBALL} /opt/
+
+# if the tarball was remote, it needs to be untarred
+# use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
+RUN cd /opt && \
+    (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
+    ln -s alluxio-* alluxio
+
+COPY conf /opt/alluxio/conf/
+COPY entrypoint.sh /

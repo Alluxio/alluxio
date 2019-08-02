@@ -3,6 +3,10 @@ kind: Presto
 metadata:
   name: example-presto
 spec:
+  image:
+    name: presto-alluxio
+    pullPolicy: IfNotPresent
+    tag: 312-e.1.k8s-0.7-2.0.0-SNAPSHOT
   nameOverride: example-presto
   prometheus:
     enabled: true
