@@ -65,6 +65,31 @@ public final class LsCommand extends AbstractFileSystemCommand {
       + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
       + LS_FORMAT_TIMESTAMP + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
 
+  private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
+
+  static {
+    SORT_FIELD_COMPARATORS.put("creationTime",
+        Comparator.comparingLong(URIStatus::getCreationTimeMs));
+    SORT_FIELD_COMPARATORS.put("inMemoryPercentage",
+        Comparator.comparingLong(URIStatus::getInMemoryPercentage));
+    SORT_FIELD_COMPARATORS.put("lastAccessTime",
+        Comparator.comparingLong(URIStatus::getLastAccessTimeMs));
+    SORT_FIELD_COMPARATORS.put("lastModificationTime",
+        Comparator.comparingLong(URIStatus::getLastModificationTimeMs));
+    SORT_FIELD_COMPARATORS.put("name",
+        Comparator.comparing(URIStatus::getName, String.CASE_INSENSITIVE_ORDER));
+    SORT_FIELD_COMPARATORS.put("path", Comparator.comparing(URIStatus::getPath));
+    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getLength));
+  }
+
+  private static final Map<String, Function<URIStatus, Long>> TIMESTAMP_FIELDS = new HashMap<>();
+
+  static {
+    TIMESTAMP_FIELDS.put("creation", URIStatus::getCreationTimeMs);
+    TIMESTAMP_FIELDS.put("access", URIStatus::getLastAccessTimeMs);
+    TIMESTAMP_FIELDS.put("modification", URIStatus::getLastModificationTimeMs);
+  }
+
   private static final Option FORCE_OPTION =
       Option.builder("f")
           .required(false)
@@ -105,8 +130,9 @@ public final class LsCommand extends AbstractFileSystemCommand {
           .required(false)
           .longOpt("sort")
           .hasArg(true)
-          .desc("sort statuses by the given field "
-                  + "{size|creationTime|inMemoryPercentage|lastModificationTime|name|path}")
+          .desc("sort statuses by the given field {"
+              + String.join("|", SORT_FIELD_COMPARATORS.keySet())
+              + "}")
           .build();
 
   private static final Option REVERSE_SORT_OPTION =
@@ -121,34 +147,9 @@ public final class LsCommand extends AbstractFileSystemCommand {
           .required(false)
           .longOpt("timestamp")
           .hasArg(true)
-          .desc("display specific timestamp(default is last modification time) "
-              + "{creation|modification|access}")
+          .desc("display specific timestamp(default is last modification time) {"
+              + String.join("|", TIMESTAMP_FIELDS.keySet()) + "}")
           .build();
-
-  private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
-
-  static {
-    SORT_FIELD_COMPARATORS.put("creationTime",
-        Comparator.comparingLong(URIStatus::getCreationTimeMs));
-    SORT_FIELD_COMPARATORS.put("inMemoryPercentage",
-        Comparator.comparingLong(URIStatus::getInMemoryPercentage));
-    SORT_FIELD_COMPARATORS.put("lastAccessTime",
-        Comparator.comparingLong(URIStatus::getLastAccessTimeMs));
-    SORT_FIELD_COMPARATORS.put("lastModificationTime",
-        Comparator.comparingLong(URIStatus::getLastModificationTimeMs));
-    SORT_FIELD_COMPARATORS.put("name",
-        Comparator.comparing(URIStatus::getName, String.CASE_INSENSITIVE_ORDER));
-    SORT_FIELD_COMPARATORS.put("path", Comparator.comparing(URIStatus::getPath));
-    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getLength));
-  }
-
-  private static final Map<String, Function<URIStatus, Long>> TIMESTAMP_FIELDS = new HashMap<>();
-
-  static {
-    TIMESTAMP_FIELDS.put("creation", URIStatus::getCreationTimeMs);
-    TIMESTAMP_FIELDS.put("access", URIStatus::getLastAccessTimeMs);
-    TIMESTAMP_FIELDS.put("modification", URIStatus::getLastModificationTimeMs);
-  }
 
   /**
    * Formats the ls result string.
