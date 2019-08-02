@@ -60,7 +60,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<String> getAllDatabase() throws IOException {
+  public List<String> getAllDatabases() throws IOException {
     return retryRPC(() -> mClient.getAllDatabases(
         GetAllDatabasesPRequest.newBuilder().build()).getDatabaseList());
   }

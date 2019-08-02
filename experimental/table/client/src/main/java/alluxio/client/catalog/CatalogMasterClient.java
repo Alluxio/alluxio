@@ -49,5 +49,5 @@ public interface CatalogMasterClient extends Client {
    * @return list of database names
    * @throws IOException
    */
-  List<String> getAllDatabase() throws IOException;
+  List<String> getAllDatabases() throws IOException;
 }
