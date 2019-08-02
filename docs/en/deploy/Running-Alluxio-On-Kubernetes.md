@@ -84,7 +84,7 @@ Once the helm repository is available, Alluxio prepare the Alluxio configuration
 ```console
 $ cat << EOF > config.yaml
 properties:
-  alluxio.mount.table.root.ufs: "<under_storage_address>"
+  alluxio.master.mount.table.root.ufs: "<under_storage_address>"
 EOF
 ```
 Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
@@ -93,7 +93,7 @@ For example:
 ```console
 $ cat << EOF > config.yaml
 properties:
-  alluxio.mount.table.root.ufs: "s3a://<bucket>"
+  alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
   aws.accessKeyId: "<accessKey>"
   aws.secretKey: "<secretKey>"
 EOF
@@ -107,7 +107,7 @@ Then mount these secrets to the Alluxio master and worker containers as follows:
 ```console
 $ cat << EOF > config.yaml
 properties:
-  alluxio.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
   alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 secrets:
   master:
