@@ -35,8 +35,13 @@ import java.util.Map;
  * This catalog master manages catalogs metadata information.
  */
 public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
+  /**
+   * Constructor for DefaultCatalogMaster.
+   *
+   * @param context core master context
+   */
   public DefaultCatalogMaster(CoreMasterContext context) {
-    super (context, new SystemClock(),
+    super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.CATALOG_MASTER_NAME));
   }
 
