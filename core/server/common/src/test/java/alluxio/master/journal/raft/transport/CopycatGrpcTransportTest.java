@@ -40,8 +40,8 @@ import java.net.ServerSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Units tests for {@link CopycatGrpcTransport}.
@@ -56,7 +56,7 @@ public class CopycatGrpcTransportTest {
   }
 
   @After
-  public void after() {
+  public void after() throws Exception {
     mTransport.close();
   }
 
@@ -134,7 +134,6 @@ public class CopycatGrpcTransportTest {
 
   @Test
   public void testServerClosed() throws Exception {
-
     // Catalyst thread context for managing client/server.
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
@@ -147,7 +146,7 @@ public class CopycatGrpcTransportTest {
     Connection clientConnection = connectClient(connectionContext, mTransport.client(), address);
 
     // Close server.
-    server.close();
+    server.close().get();
 
     // Sent request over connection. Assert request can't be sent over closed connection.
     boolean failed = false;
@@ -178,11 +177,11 @@ public class CopycatGrpcTransportTest {
     context.execute(() -> {
       try {
         // Bind server.
-        server.listen(serverAddress, listener).get();
+        return server.listen(serverAddress, listener);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }).get();
+    }).get().get();
 
     return serverAddress;
   }
@@ -198,15 +197,16 @@ public class CopycatGrpcTransportTest {
    */
   private Connection connectClient(ThreadContext context, Client client, Address serverAddress)
       throws Exception {
-    AtomicReference<Connection> clientConnectionRef = new AtomicReference<>(null);
-    context.execute(() -> {
+    Supplier<CompletableFuture<Connection>> connectionSupplier = () -> {
       try {
         // Create client connection to server.
-        clientConnectionRef.set(client.connect(serverAddress).get());
+        return client.connect(serverAddress);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }).get();
+    };
+    // Run supplier on given context.
+    Connection clientConnection = context.execute(connectionSupplier).get().get();
 
     /*
      * gRPC won't establish stream until message is sent over. Explicitly send a command to cause
@@ -215,9 +215,9 @@ public class CopycatGrpcTransportTest {
      */
 
     // Validate connection.
-    Assert.assertNull(sendRequest(clientConnectionRef.get(), new DummyRequest("dummy")).get());
+    Assert.assertNull(sendRequest(clientConnection, new DummyRequest("dummy")).get());
 
-    return clientConnectionRef.get();
+    return clientConnection;
   }
 
   /**
