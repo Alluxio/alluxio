@@ -219,7 +219,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     final int flags = fi.flags.get();
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
-
     try {
       FuseContext fc = getContext();
       long uid = fc.uid.get();
@@ -555,7 +554,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("{} was not open for reading", path);
       return -ErrorCodes.EBADFD();
     }
-
     try {
       oe.getIn().seek(offset);
       final byte[] dest = new byte[sz];
