@@ -45,8 +45,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)5);
   private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)6);
   private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)7);
-  private static final org.apache.thrift.protocol.TField OWNER_FIELD_DESC = new org.apache.thrift.protocol.TField("owner", org.apache.thrift.protocol.TType.STRING, (short)8);
-  private static final org.apache.thrift.protocol.TField GROUP_FIELD_DESC = new org.apache.thrift.protocol.TField("group", org.apache.thrift.protocol.TType.STRING, (short)9);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -61,8 +59,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private short mode; // optional
   private alluxio.thrift.TTtlAction ttlAction; // optional
   private FileSystemMasterCommonTOptions commonOptions; // optional
-  private String owner; // optional
-  private String group; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -76,9 +72,7 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
      * @see alluxio.thrift.TTtlAction
      */
     TTL_ACTION((short)6, "ttlAction"),
-    COMMON_OPTIONS((short)7, "commonOptions"),
-    OWNER((short)8, "owner"),
-    GROUP((short)9, "group");
+    COMMON_OPTIONS((short)7, "commonOptions");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -107,10 +101,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
           return TTL_ACTION;
         case 7: // COMMON_OPTIONS
           return COMMON_OPTIONS;
-        case 8: // OWNER
-          return OWNER;
-        case 9: // GROUP
-          return GROUP;
         default:
           return null;
       }
@@ -157,7 +147,7 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private static final int __TTL_ISSET_ID = 3;
   private static final int __MODE_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL,_Fields.MODE,_Fields.TTL_ACTION,_Fields.COMMON_OPTIONS,_Fields.OWNER,_Fields.GROUP};
+  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL,_Fields.MODE,_Fields.TTL_ACTION,_Fields.COMMON_OPTIONS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -175,10 +165,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
     tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
-    tmpMap.put(_Fields.OWNER, new org.apache.thrift.meta_data.FieldMetaData("owner", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.GROUP, new org.apache.thrift.meta_data.FieldMetaData("group", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CreateFileTOptions.class, metaDataMap);
   }
@@ -202,12 +188,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     if (other.isSetCommonOptions()) {
       this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
     }
-    if (other.isSetOwner()) {
-      this.owner = other.owner;
-    }
-    if (other.isSetGroup()) {
-      this.group = other.group;
-    }
   }
 
   public CreateFileTOptions deepCopy() {
@@ -228,8 +208,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     this.mode = 0;
     this.ttlAction = null;
     this.commonOptions = null;
-    this.owner = null;
-    this.group = null;
   }
 
   public long getBlockSizeBytes() {
@@ -403,54 +381,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     }
   }
 
-  public String getOwner() {
-    return this.owner;
-  }
-
-  public CreateFileTOptions setOwner(String owner) {
-    this.owner = owner;
-    return this;
-  }
-
-  public void unsetOwner() {
-    this.owner = null;
-  }
-
-  /** Returns true if field owner is set (has been assigned a value) and false otherwise */
-  public boolean isSetOwner() {
-    return this.owner != null;
-  }
-
-  public void setOwnerIsSet(boolean value) {
-    if (!value) {
-      this.owner = null;
-    }
-  }
-
-  public String getGroup() {
-    return this.group;
-  }
-
-  public CreateFileTOptions setGroup(String group) {
-    this.group = group;
-    return this;
-  }
-
-  public void unsetGroup() {
-    this.group = null;
-  }
-
-  /** Returns true if field group is set (has been assigned a value) and false otherwise */
-  public boolean isSetGroup() {
-    return this.group != null;
-  }
-
-  public void setGroupIsSet(boolean value) {
-    if (!value) {
-      this.group = null;
-    }
-  }
-
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case BLOCK_SIZE_BYTES:
@@ -509,22 +439,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       }
       break;
 
-    case OWNER:
-      if (value == null) {
-        unsetOwner();
-      } else {
-        setOwner((String)value);
-      }
-      break;
-
-    case GROUP:
-      if (value == null) {
-        unsetGroup();
-      } else {
-        setGroup((String)value);
-      }
-      break;
-
     }
   }
 
@@ -551,12 +465,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     case COMMON_OPTIONS:
       return getCommonOptions();
 
-    case OWNER:
-      return getOwner();
-
-    case GROUP:
-      return getGroup();
-
     }
     throw new IllegalStateException();
   }
@@ -582,10 +490,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       return isSetTtlAction();
     case COMMON_OPTIONS:
       return isSetCommonOptions();
-    case OWNER:
-      return isSetOwner();
-    case GROUP:
-      return isSetGroup();
     }
     throw new IllegalStateException();
   }
@@ -666,24 +570,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return false;
     }
 
-    boolean this_present_owner = true && this.isSetOwner();
-    boolean that_present_owner = true && that.isSetOwner();
-    if (this_present_owner || that_present_owner) {
-      if (!(this_present_owner && that_present_owner))
-        return false;
-      if (!this.owner.equals(that.owner))
-        return false;
-    }
-
-    boolean this_present_group = true && this.isSetGroup();
-    boolean that_present_group = true && that.isSetGroup();
-    if (this_present_group || that_present_group) {
-      if (!(this_present_group && that_present_group))
-        return false;
-      if (!this.group.equals(that.group))
-        return false;
-    }
-
     return true;
   }
 
@@ -725,16 +611,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     list.add(present_commonOptions);
     if (present_commonOptions)
       list.add(commonOptions);
-
-    boolean present_owner = true && (isSetOwner());
-    list.add(present_owner);
-    if (present_owner)
-      list.add(owner);
-
-    boolean present_group = true && (isSetGroup());
-    list.add(present_group);
-    if (present_group)
-      list.add(group);
 
     return list.hashCode();
   }
@@ -817,26 +693,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetOwner()).compareTo(other.isSetOwner());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetOwner()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.owner, other.owner);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetGroup()).compareTo(other.isSetGroup());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetGroup()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.group, other.group);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     return 0;
   }
 
@@ -903,26 +759,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         sb.append("null");
       } else {
         sb.append(this.commonOptions);
-      }
-      first = false;
-    }
-    if (isSetOwner()) {
-      if (!first) sb.append(", ");
-      sb.append("owner:");
-      if (this.owner == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.owner);
-      }
-      first = false;
-    }
-    if (isSetGroup()) {
-      if (!first) sb.append(", ");
-      sb.append("group:");
-      if (this.group == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.group);
       }
       first = false;
     }
@@ -1031,22 +867,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // OWNER
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.owner = iprot.readString();
-              struct.setOwnerIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 9: // GROUP
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.group = iprot.readString();
-              struct.setGroupIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1101,20 +921,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
           oprot.writeFieldEnd();
         }
       }
-      if (struct.owner != null) {
-        if (struct.isSetOwner()) {
-          oprot.writeFieldBegin(OWNER_FIELD_DESC);
-          oprot.writeString(struct.owner);
-          oprot.writeFieldEnd();
-        }
-      }
-      if (struct.group != null) {
-        if (struct.isSetGroup()) {
-          oprot.writeFieldBegin(GROUP_FIELD_DESC);
-          oprot.writeString(struct.group);
-          oprot.writeFieldEnd();
-        }
-      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1154,13 +960,7 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (struct.isSetCommonOptions()) {
         optionals.set(6);
       }
-      if (struct.isSetOwner()) {
-        optionals.set(7);
-      }
-      if (struct.isSetGroup()) {
-        optionals.set(8);
-      }
-      oprot.writeBitSet(optionals, 9);
+      oprot.writeBitSet(optionals, 7);
       if (struct.isSetBlockSizeBytes()) {
         oprot.writeI64(struct.blockSizeBytes);
       }
@@ -1182,18 +982,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (struct.isSetCommonOptions()) {
         struct.commonOptions.write(oprot);
       }
-      if (struct.isSetOwner()) {
-        oprot.writeString(struct.owner);
-      }
-      if (struct.isSetGroup()) {
-        oprot.writeString(struct.group);
-      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, CreateFileTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(9);
+      BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
         struct.blockSizeBytes = iprot.readI64();
         struct.setBlockSizeBytesIsSet(true);
@@ -1222,14 +1016,6 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         struct.commonOptions = new FileSystemMasterCommonTOptions();
         struct.commonOptions.read(iprot);
         struct.setCommonOptionsIsSet(true);
-      }
-      if (incoming.get(7)) {
-        struct.owner = iprot.readString();
-        struct.setOwnerIsSet(true);
-      }
-      if (incoming.get(8)) {
-        struct.group = iprot.readString();
-        struct.setGroupIsSet(true);
       }
     }
   }
