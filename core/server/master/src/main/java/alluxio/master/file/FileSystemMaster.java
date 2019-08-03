@@ -229,8 +229,18 @@ public interface FileSystemMaster extends Master {
    *
    * @param path an Alluxio path which must be a mount point
    * @return the mount point information
+   * @deprecated will be removed after 2.0
    */
+  @Deprecated
   MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException;
+
+  /**
+   * Gets the mount point information of an Alluxio path for display purpose.
+   *
+   * @param path an Alluxio path which must be a mount point
+   * @return the mount point information
+   */
+  MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException;
 
   /**
    * @return the number of files and directories

@@ -12,7 +12,11 @@
 package alluxio.underfs;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -129,5 +133,21 @@ public final class UnderFileSystemConfiguration {
   public UnderFileSystemConfiguration setUserSpecifiedConf(Map<String, String> ufsConf) {
     mUfsConf = ufsConf;
     return this;
+  }
+
+  /**
+   * @param options options for formatting the configuration values
+   * @return a map from all user configuration property names to their values; values may
+   * potentially be null
+   */
+  public Map<String, String> toUserPropertyMap(ConfigurationValueOptions options) {
+    Map<String, String> map = new HashMap<>();
+    InstancedConfiguration conf = new InstancedConfiguration(
+        new AlluxioProperties());
+    conf.merge(mUfsConf, Source.RUNTIME);
+    // Cannot use Collectors.toMap because we support null keys.
+    conf.getProperties().userKeySet()
+        .forEach(key -> map.put(key.getName(), conf.getOrDefault(key, "", options)));
+    return map;
   }
 }

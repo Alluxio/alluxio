@@ -53,7 +53,7 @@ public final class SetAttributeOptions {
     mCommonOptions = CommonOptions.defaults();
     mPinned = null;
     mTtl = null;
-    mTtlAction = TtlAction.DELETE;
+    mTtlAction = null;
     mPersisted = null;
     mOwner = null;
     mGroup = null;
@@ -235,8 +235,12 @@ public final class SetAttributeOptions {
     if (mPinned != null) {
       options.setPinned(mPinned);
     }
+
     if (mTtl != null) {
       options.setTtl(mTtl);
+    }
+
+    if (mTtlAction != null) {
       options.setTtlAction(TtlAction.toThrift(mTtlAction));
     }
 

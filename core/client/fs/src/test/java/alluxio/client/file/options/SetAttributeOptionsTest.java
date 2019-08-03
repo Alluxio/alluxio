@@ -20,6 +20,7 @@ import static org.junit.Assert.fail;
 import alluxio.security.authorization.Mode;
 import alluxio.test.util.CommonUtils;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.thrift.TTtlAction;
 import alluxio.wire.TtlAction;
 
 import org.junit.Test;
@@ -42,7 +43,7 @@ public final class SetAttributeOptionsTest {
     assertNull(options.getPersisted());
     assertNull(options.getPinned());
     assertNull(options.getTtl());
-    assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertNull(options.getTtlAction());
     assertNull(options.getOwner());
     assertNull(options.getGroup());
     assertNull(options.getMode());
@@ -100,6 +101,7 @@ public final class SetAttributeOptionsTest {
     options.setPersisted(persisted);
     options.setPinned(pinned);
     options.setTtl(ttl);
+    options.setTtlAction(TtlAction.FREE);
     SetAttributeTOptions thriftOptions = options.toThrift();
 
     assertTrue(thriftOptions.isSetPersisted());
@@ -107,7 +109,7 @@ public final class SetAttributeOptionsTest {
     assertTrue(thriftOptions.isSetPinned());
     assertEquals(pinned, thriftOptions.isPinned());
     assertTrue(thriftOptions.isSetTtl());
-    assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
+    assertEquals(TTtlAction.Free, thriftOptions.getTtlAction());
     assertEquals(ttl, thriftOptions.getTtl());
   }
 

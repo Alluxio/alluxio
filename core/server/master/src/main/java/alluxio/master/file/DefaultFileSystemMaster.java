@@ -1435,9 +1435,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public Map<String, MountPointInfo> getMountTable() {
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      mountPoints.put(mountPoint.getKey(), getMountPointInfo(mountPoint.getValue()));
+      mountPoints.put(mountPoint.getKey(), getMountPointInfoInternal(mountPoint.getValue(), true));
     }
     return mountPoints;
+  }
+
+  @Override
+  public MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException {
+    if (!mMountTable.isMountPoint(path)) {
+      throw new InvalidPathException(
+          ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
+    }
+    return getMountPointInfoInternal(mMountTable.getMountTable().get(path.toString()), true);
   }
 
   @Override
@@ -1446,17 +1455,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
     }
-    return getMountPointInfo(mMountTable.getMountTable().get(path.toString()));
+    return getMountPointInfoInternal(mMountTable.getMountTable().get(path.toString()), false);
   }
 
   /**
-   * Gets the mount point information from a mount information.
+   * Gets the mount point information for display from a mount information.
    *
    * @param mountInfo the mount information to transform
+   * @param useDisplayValues return display values instead of raw values
    * @return the mount point information
    */
-  private MountPointInfo getMountPointInfo(MountInfo mountInfo) {
-    MountPointInfo info = mountInfo.toMountPointInfo();
+  private MountPointInfo getMountPointInfoInternal(MountInfo mountInfo, boolean useDisplayValues) {
+    MountPointInfo info = useDisplayValues
+        ? mountInfo.toDisplayMountPointInfo() : mountInfo.toMountPointInfo();
     try (CloseableResource<UnderFileSystem> ufsResource =
              mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
@@ -3264,9 +3275,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (options.getTtl() != null) {
       builder.setTtl(options.getTtl());
+    }
+    if (options.getTtlAction() != null) {
       builder.setTtlAction(ProtobufUtils.toProtobuf(options.getTtlAction()));
     }
-
     if (options.getPersisted() != null) {
       builder.setPersisted(options.getPersisted());
     }
@@ -3738,6 +3750,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (entry.hasTtl()) {
       options.setTtl(entry.getTtl());
+    }
+    if (entry.hasTtlAction()) {
       options.setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()));
     }
     if (entry.hasPersisted()) {
