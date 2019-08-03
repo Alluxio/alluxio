@@ -215,14 +215,15 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int create(String path, @mode_t long mode, FuseFileInfo fi) {
-    FuseContext fc = getContext();
-    long uid = fc.uid.get();
-    long gid = fc.gid.get();
+
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     final int flags = fi.flags.get();
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
+      FuseContext fc = getContext();
+      long uid = fc.uid.get();
+      long gid = fc.gid.get();
       String groupName = AlluxioFuseUtils.getGroupName(gid);
       if (groupName.isEmpty()) {
         // This should never be reached since input gid is always valid
@@ -244,16 +245,15 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
         mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
             null, mFileSystem.createFile(uri,
-            CreateFileOptions.defaults()
-                .setMode(new Mode((short) mode))
-                .setOwner(userName)
-                .setGroup(groupName))));
+            CreateFileOptions.defaults().setMode(new Mode((short) mode)))));
         LOG.debug("Alluxio OutStream created for {}", path);
         fi.fh.set(mNextOpenFileId);
 
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
+      mFileSystem.setAttribute(uri,
+          SetAttributeOptions.defaults().setOwner(userName).setGroup(groupName));
       LOG.debug("{} created and opened", path);
     } catch (FileAlreadyExistsException e) {
       LOG.debug("File {} already exists", uri, e);
@@ -427,7 +427,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EFAULT();
       }
       mFileSystem.createDirectory(turi, CreateDirectoryOptions.defaults()
-          .setMode(new Mode((short) mode))
+          .setMode(new Mode((short) mode)));
+      mFileSystem.setAttribute(turi, SetAttributeOptions.defaults()
           .setOwner(userName)
           .setGroup(groupName));
     } catch (FileAlreadyExistsException e) {

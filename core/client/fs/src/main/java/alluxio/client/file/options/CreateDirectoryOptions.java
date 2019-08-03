@@ -41,8 +41,6 @@ public final class CreateDirectoryOptions {
   private TtlAction mTtlAction;
   private boolean mRecursive;
   private WriteType mWriteType;
-  private String mOwner;
-  private String mGroup;
 
   /**
    * @return the default {@link CreateDirectoryOptions}
@@ -60,8 +58,6 @@ public final class CreateDirectoryOptions {
     mTtlAction = TtlAction.DELETE;
     mWriteType =
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    mOwner = null;
-    mGroup = null;
   }
 
   /**
@@ -76,20 +72,6 @@ public final class CreateDirectoryOptions {
    */
   public Mode getMode() {
     return mMode;
-  }
-
-  /**
-   * @return the group of the directory to create
-   */
-  public String getGroup() {
-    return mGroup;
-  }
-
-  /**
-   * @return the owner of the directory to create
-   */
-  public String getOwner() {
-    return mOwner;
   }
 
   /**
@@ -159,24 +141,6 @@ public final class CreateDirectoryOptions {
   }
 
   /**
-   * @param owner owner to be set
-   * @return the updated options object
-   */
-  public CreateDirectoryOptions setOwner(String owner) {
-    mOwner = owner;
-    return this;
-  }
-
-  /**
-   * @param group group to be set
-   * @return the updated options object
-   */
-  public CreateDirectoryOptions setGroup(String group) {
-    mGroup = group;
-    return this;
-  }
-
-  /**
    * @param recursive the recursive flag value to use; it specifies whether parent directories
    *        should be created if they do not already exist
    * @return the updated options object
@@ -230,16 +194,13 @@ public final class CreateDirectoryOptions {
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
-        && Objects.equal(mWriteType, that.mWriteType)
-        && Objects.equal(mOwner, that.mOwner)
-        && Objects.equal(mGroup, that.mGroup);
+        && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mAllowExists, mCommonOptions, mMode, mRecursive, mTtl, mTtlAction, mWriteType,
-            mOwner, mGroup);
+        .hashCode(mAllowExists, mCommonOptions, mMode, mRecursive, mTtl, mTtlAction, mWriteType);
   }
 
   @Override
@@ -248,8 +209,6 @@ public final class CreateDirectoryOptions {
         .add("commonOptions", mCommonOptions)
         .add("allowExists", mAllowExists)
         .add("mode", mMode)
-        .add("owner", mOwner)
-        .add("group", mGroup)
         .add("recursive", mRecursive)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
@@ -271,8 +230,6 @@ public final class CreateDirectoryOptions {
       options.setMode(mMode.toShort());
     }
     options.setCommonOptions(mCommonOptions.toThrift());
-    options.setOwner(mOwner);
-    options.setGroup(mGroup);
     return options;
   }
 }

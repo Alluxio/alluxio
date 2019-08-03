@@ -58,12 +58,6 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
       mRecursive = options.isRecursive();
       mTtl = options.getTtl();
       mTtlAction = TtlAction.fromThrift(options.getTtlAction());
-      if (options.isSetOwner()) {
-        mOwner = options.getOwner();
-      }
-      if (options.isSetGroup()) {
-        mGroup = options.getGroup();
-      }
       if (SecurityUtils.isAuthenticationEnabled()) {
         mOwner = SecurityUtils.getOwnerFromThriftClient();
         mGroup = SecurityUtils.getGroupFromThriftClient();
@@ -83,8 +77,6 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mTtlAction = TtlAction.DELETE;
     mMode.applyFileUMask();
     mCacheable = false;
-    setOwner("");
-    setGroup("");
   }
 
   /**
@@ -171,20 +163,17 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     }
     CreateFileOptions that = (CreateFileOptions) o;
     return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes) && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction) && Objects.equal(mCacheable, that.mCacheable)
-        && Objects.equal(mOwner, that.mOwner) && Objects.equal(mGroup, that.mGroup);
+        && Objects.equal(mTtlAction, that.mTtlAction) && Objects.equal(mCacheable, that.mCacheable);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction, mCacheable,
-        mOwner, mGroup);
+    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction, mCacheable);
   }
 
   @Override
   public String toString() {
     return toStringHelper().add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("ttlAction", mTtlAction).add("cacheable", mCacheable)
-        .add("owner", mOwner).add("group", mGroup).toString();
+        .add("ttlAction", mTtlAction).add("cacheable", mCacheable).toString();
   }
 }
