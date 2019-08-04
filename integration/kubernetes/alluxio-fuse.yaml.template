@@ -35,6 +35,13 @@ spec:
               memory: "1G"
           command: ["/entrypoint.sh"]
           args: ["fuse"]
+          env:
+          - name: ALLUXIO_CLIENT_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: ALLUXIO_JAVA_OPTS
+            value: " -Dalluxio.user.hostname=$(ALLUXIO_CLIENT_HOSTNAME) "
           securityContext:
             privileged: true
             capabilities:
