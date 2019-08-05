@@ -46,9 +46,9 @@ import java.util.function.Function;
 /**
  * Abstract copycat transport {@link Connection} implementation that uses Alluxio gRPC.
  */
-public abstract class AbstractCopycatGrpcConnection
+public abstract class CopycatGrpcConnection
     implements Connection, StreamObserver<CopycatMessage> {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractCopycatGrpcConnection.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcConnection.class);
 
   /** Exception listeners for this connection.  */
   private final Listeners<Throwable> mExceptionListeners;
@@ -68,9 +68,9 @@ public abstract class AbstractCopycatGrpcConnection
   private final AtomicLong mRequestCounter;
 
   /** Map of request handlers. */
-  private final Map<Class, AbstractCopycatGrpcConnection.HandlerHolder> mHandlers;
+  private final Map<Class, CopycatGrpcConnection.HandlerHolder> mHandlers;
   /** Map of pending requests. */
-  private final Map<Long, AbstractCopycatGrpcConnection.ContextualFuture> mResponseFutures;
+  private final Map<Long, CopycatGrpcConnection.ContextualFuture> mResponseFutures;
 
   /** Thread context of creator of this connection. */
   private final ThreadContext mContext;
@@ -99,8 +99,8 @@ public abstract class AbstractCopycatGrpcConnection
    * @param context copycat thread context
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public AbstractCopycatGrpcConnection(ConnectionOwner connectionOwner, ThreadContext context,
-      long requestTimeoutMs) {
+  public CopycatGrpcConnection(ConnectionOwner connectionOwner, ThreadContext context,
+                               long requestTimeoutMs) {
     mConnectionOwner = connectionOwner;
     mContext = context;
     mRequestTimeoutMs = requestTimeoutMs;
@@ -153,8 +153,8 @@ public abstract class AbstractCopycatGrpcConnection
       Assert.notNull(request, "request");
 
       // Create a contextual future for the request.
-      AbstractCopycatGrpcConnection.ContextualFuture<U> future =
-              new AbstractCopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
+      CopycatGrpcConnection.ContextualFuture<U> future =
+              new CopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
                       ThreadContext.currentContextOrThrow());
 
       // Don't allow request if connection is closed.
@@ -209,7 +209,7 @@ public abstract class AbstractCopycatGrpcConnection
       if (mClosed) {
         throw new IllegalStateException("Connection closed");
       }
-      mHandlers.put(type, new AbstractCopycatGrpcConnection.HandlerHolder(handler,
+      mHandlers.put(type, new CopycatGrpcConnection.HandlerHolder(handler,
           ThreadContext.currentContextOrThrow()));
       return null;
     }
@@ -229,7 +229,7 @@ public abstract class AbstractCopycatGrpcConnection
       LOG.debug("Handling request: {} of type: {} at '{}'", requestId, request.getClass().getName(),
           mConnectionOwner);
       // Find handler for the request.
-      AbstractCopycatGrpcConnection.HandlerHolder handler = mHandlers.get(request.getClass());
+      CopycatGrpcConnection.HandlerHolder handler = mHandlers.get(request.getClass());
       if (handler != null) {
         // Handle the request.
         handler.getContext().executor().execute(() -> handleRequest(requestId, request, handler));
@@ -252,7 +252,7 @@ public abstract class AbstractCopycatGrpcConnection
    * @param handler registered handler for the request type
    */
   private void handleRequest(long requestId, Object requestObject,
-      AbstractCopycatGrpcConnection.HandlerHolder handler) {
+      CopycatGrpcConnection.HandlerHolder handler) {
     // Call handler for processing the request.
     CompletableFuture<Object> responseFuture = handler.getHandler().apply(requestObject);
     // Send if there is a response.
@@ -304,7 +304,7 @@ public abstract class AbstractCopycatGrpcConnection
   }
 
   protected void handleResponseMessage(CopycatMessage response) {
-    AbstractCopycatGrpcConnection.ContextualFuture future =
+    CopycatGrpcConnection.ContextualFuture future =
         mResponseFutures.remove(response.getResponseHeader().getRequestId());
 
     if (future == null) {
@@ -459,11 +459,11 @@ public abstract class AbstractCopycatGrpcConnection
    */
   private void timeoutPendingRequests() {
     long currentTimeMillis = System.currentTimeMillis();
-    Iterator<Map.Entry<Long, AbstractCopycatGrpcConnection.ContextualFuture>> responseIterator =
+    Iterator<Map.Entry<Long, CopycatGrpcConnection.ContextualFuture>> responseIterator =
         mResponseFutures.entrySet().iterator();
     while (responseIterator.hasNext()) {
       Map.Entry<Long, ContextualFuture> requestEntry = responseIterator.next();
-      AbstractCopycatGrpcConnection.ContextualFuture future = requestEntry.getValue();
+      CopycatGrpcConnection.ContextualFuture future = requestEntry.getValue();
       if (future.getCreationTime() + mRequestTimeoutMs < currentTimeMillis) {
         LOG.debug("Timing out request: {}", requestEntry.getKey());
         responseIterator.remove();
@@ -482,16 +482,16 @@ public abstract class AbstractCopycatGrpcConnection
    */
   private void failPendingRequests(Throwable error) {
     // Close outstanding calls with given error.
-    Iterator<Map.Entry<Long, AbstractCopycatGrpcConnection.ContextualFuture>> responseFutureIter =
+    Iterator<Map.Entry<Long, CopycatGrpcConnection.ContextualFuture>> responseFutureIter =
         mResponseFutures.entrySet().iterator();
     while (responseFutureIter.hasNext()) {
-      Map.Entry<Long, AbstractCopycatGrpcConnection.ContextualFuture> responseEntry =
+      Map.Entry<Long, CopycatGrpcConnection.ContextualFuture> responseEntry =
           responseFutureIter.next();
 
       LOG.debug("Closing request:{} with error: {}", responseEntry.getKey(),
           error.getClass().getName());
 
-      AbstractCopycatGrpcConnection.ContextualFuture<?> responseFuture = responseEntry.getValue();
+      CopycatGrpcConnection.ContextualFuture<?> responseFuture = responseEntry.getValue();
       responseFuture.getContext().executor()
           .execute(() -> responseFuture.completeExceptionally(error));
     }

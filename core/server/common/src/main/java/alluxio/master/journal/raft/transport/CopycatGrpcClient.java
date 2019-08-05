@@ -75,7 +75,7 @@ public class CopycatGrpcClient implements Client {
             CopycatMessageServerGrpc.newStub(channel);
 
         // Create client connection that is bound to remote server stream.
-        AbstractCopycatGrpcConnection clientConnection =
+        CopycatGrpcConnection clientConnection =
             new CopycatGrpcClientConnection(ThreadContext.currentContextOrThrow(), channel,
                 mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));

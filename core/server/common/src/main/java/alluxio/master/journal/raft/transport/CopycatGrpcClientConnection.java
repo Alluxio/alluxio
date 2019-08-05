@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * {@link AbstractCopycatGrpcConnection} implementation for client.
+ * {@link CopycatGrpcConnection} implementation for client.
  */
-public class CopycatGrpcClientConnection extends AbstractCopycatGrpcConnection {
+public class CopycatGrpcClientConnection extends CopycatGrpcConnection {
   private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcClientConnection.class);
 
   /** Underlying gRPC channel. */
