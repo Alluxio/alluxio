@@ -145,7 +145,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-experimental-base</artifactId>
+      <artifactId>alluxio-experimental-table-base</artifactId>
       <version>${project.version}</version>
     </dependency>
 
