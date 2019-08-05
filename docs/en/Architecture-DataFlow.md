@@ -300,5 +300,5 @@ while still persisting the data.
 ### Write to UFS Only (`THROUGH`)
 
 With `THROUGH`, data is written to under storage synchronously without being cached to Alluxio
-workers. This write type ensures that data will be persisted after write completes, but the speed
-is limited by the under storage throughput.
+workers. This write type ensures that data will be persisted after the write completes, but the
+speed is limited by the under storage throughput.
