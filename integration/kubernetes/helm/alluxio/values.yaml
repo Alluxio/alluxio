@@ -66,3 +66,10 @@ volumes:
 #   alluxio.master.mount.table.root.ufs: ""
 #   aws.accessKeyId: ""
 #   aws.secretKey: ""
+#
+# Secrets Example: (<name>:<mount path under /secrets/>):
+# secrets:
+#   master:
+#     alluxio-hdfs-config: hdfsConfig
+#   worker:
+#     alluxio-hdfs-config: hdfsConfig
