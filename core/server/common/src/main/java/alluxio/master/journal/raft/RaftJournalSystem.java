@@ -503,7 +503,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void stopInternal() throws InterruptedException, IOException {
     LOG.info("Shutting down raft journal");
-    mRaftJournalWriter.close();
+    if (mRaftJournalWriter != null) {
+      mRaftJournalWriter.close();
+    }
     try {
       mServer.shutdown().get(ServerConfiguration
           .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
