@@ -85,9 +85,9 @@ public final class LsCommand extends AbstractFileSystemCommand {
   private static final Map<String, Function<URIStatus, Long>> TIMESTAMP_FIELDS = new HashMap<>();
 
   static {
-    TIMESTAMP_FIELDS.put("creation", URIStatus::getCreationTimeMs);
-    TIMESTAMP_FIELDS.put("access", URIStatus::getLastAccessTimeMs);
-    TIMESTAMP_FIELDS.put("modification", URIStatus::getLastModificationTimeMs);
+    TIMESTAMP_FIELDS.put("creationTime", URIStatus::getCreationTimeMs);
+    TIMESTAMP_FIELDS.put("lastAccessTime", URIStatus::getLastAccessTimeMs);
+    TIMESTAMP_FIELDS.put("lastModificationTime", URIStatus::getLastModificationTimeMs);
   }
 
   private static final Option FORCE_OPTION =
@@ -239,10 +239,10 @@ public final class LsCommand extends AbstractFileSystemCommand {
         .addOption(LIST_DIR_AS_FILE_OPTION)
         .addOption(LIST_HUMAN_READABLE_OPTION)
         .addOption(LIST_PINNED_FILES_OPTION)
-        .addOption(TIMESTAMP_OPTION)
         .addOption(RECURSIVE_OPTION)
         .addOption(REVERSE_SORT_OPTION)
-        .addOption(SORT_OPTION);
+        .addOption(SORT_OPTION)
+        .addOption(TIMESTAMP_OPTION);
   }
 
   /**
@@ -255,8 +255,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * @param sortField sort the result by this field
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-                  boolean hSize, boolean pinnedOnly, String sortField, boolean reverse,
-                  String timestampOption)
+      boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption)
       throws AlluxioException, IOException {
     URIStatus pathStatus = mFileSystem.getStatus(path);
     if (dirAsFile) {
@@ -318,7 +317,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
         cl.hasOption("p"), cl.getOptionValue("sort", "path"), cl.hasOption("r"),
-        cl.getOptionValue("timestamp", "modification"));
+        cl.getOptionValue("timestamp", "lastModificationTime"));
   }
 
   @Override
