@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`withFetchData HOC Shallow component Matches snapshot - renders WrappedComponent 1`] = `
+<WrappedComponent
+  createButtonHandler={[Function]}
+  createInputChangeHandler={[Function]}
+  fetchRequest={[Function]}
+  location={
+    Object {
+      "search": "",
+    }
+  }
+  offset="0"
+  path=""
+  queryStringSuffix="&offset=0"
+  refresh={false}
+/>
+`;

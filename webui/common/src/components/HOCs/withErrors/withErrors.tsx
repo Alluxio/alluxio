@@ -18,8 +18,8 @@ export interface IErrorProps {
     errors: IAlertErrors;
 }
 
-export function withErrors(WrappedComponent: React.ComponentType<any>) {
-    const errorsHoc = (props: IErrorProps) => {
+export function withErrors<T extends IErrorProps>(WrappedComponent: React.ComponentType<T>) {
+    const errorsHoc = (props: T) => {
         const {errors} = props;
 
         return errors.hasErrors

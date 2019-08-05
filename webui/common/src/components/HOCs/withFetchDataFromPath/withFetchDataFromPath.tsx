@@ -9,20 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import React, {ReactNode} from 'react';
+import React from 'react';
 
-import {parseQuerystring} from '../../utilities';
-import {IRequest} from "../../constants";
-import {getDisplayName} from "../../utilities/misc/getDisplayName";
+import {parseQueryString} from '../../../utilities';
+import {IRequest} from "../../../constants";
+import {getDisplayName} from "../../../utilities/misc/getDisplayName";
 
-interface IFetchDataPathState {
+interface IFetchDataFromPathState {
     end?: string;
     limit?: string;
     offset?: string;
     path?: string;
 }
 
-interface IFetchDataPathProps {
+export interface IFetchDataFromPathProps {
     location: {
         search: string;
     };
@@ -35,17 +35,14 @@ interface IHandlers {
     createButtonHandler: (stateKey: string, stateValueCallback: (value?: string) => string | undefined) => ((event: React.MouseEvent<HTMLButtonElement>) => void);
 }
 
-export type IFetchDataPathType = IFetchDataPathState & IFetchDataPathProps & IHandlers & {queryStringSuffix: string};
+export type IFetchDataPathType = IFetchDataFromPathState & IFetchDataFromPathProps & IHandlers & {queryStringSuffix: string};
 
-export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataPathProps>(WrappedComponent: React.ComponentType<TWrappedComponentProps>) {
-    class fetchDataFromPathHoc extends React.Component<TWrappedComponentProps, IFetchDataPathState> {
+export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataFromPathProps>(WrappedComponent: React.ComponentType<TWrappedComponentProps>) {
+    class fetchDataFromPathHoc extends React.Component<TWrappedComponentProps, IFetchDataFromPathState> {
         constructor(props: TWrappedComponentProps) {
             super(props);
 
-            let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
-            path = decodeURIComponent(path || '');
-            offset = offset || '0';
-            this.state = {end, limit, offset, path};
+            this.state = this.getParsedQuery(this.props.location.search);
 
             this.createInputChangeHandler = this.createInputChangeHandler.bind(this);
             this.createButtonHandler = this.createButtonHandler.bind(this);
@@ -60,9 +57,7 @@ export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataP
             const {refresh, location: {search}} = this.props;
             const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
             if (search !== prevSearch) {
-                let {path, offset, limit, end} = parseQuerystring(search);
-                path = decodeURIComponent(path || '');
-                offset = offset || '0';
+                const {path, offset, limit, end} = this.getParsedQuery(search);
                 this.setState({path, offset, limit, end});
                 this.fetchData({path, offset, limit, end});
             } else if (refresh !== prevRefresh) {
@@ -71,10 +66,11 @@ export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataP
             }
         }
 
-        public render(): (undefined | ReactNode) {
+        public render() {
             let queryStringSuffix = Object.entries(this.state)
                 .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
-                .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
+                .map((obj: any) => `${obj[0]}=${obj[1]}`)
+                .join('&');
             queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
             return <WrappedComponent {...this.props}
@@ -99,6 +95,13 @@ export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataP
             return (event: React.MouseEvent<HTMLButtonElement>) => {
                 this.setState({...this.state, [stateKey]: stateValueCallback()});
             };
+        }
+
+        private getParsedQuery(query: string) {
+            let {path, offset, limit, end} = parseQueryString(query);
+            path = decodeURIComponent(path || '');
+            offset = offset || '0';
+            return {path, offset, limit, end};
         }
     }
     (fetchDataFromPathHoc as React.ComponentType<any>).displayName = `withFetchDataFromPath(${getDisplayName(WrappedComponent)})`;

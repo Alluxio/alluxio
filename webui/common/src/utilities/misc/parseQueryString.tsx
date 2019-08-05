@@ -13,7 +13,7 @@ export interface IParsedQueryString {
   [key: string]: string;
 }
 
-export const parseQuerystring = (searchString: string): IParsedQueryString => {
+export const parseQueryString = (searchString: string): IParsedQueryString => {
   if (!searchString) { return {}; }
 
   const searchArray = searchString.replace('?', '').split(/[=&]/);

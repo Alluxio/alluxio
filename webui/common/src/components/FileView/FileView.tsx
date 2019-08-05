@@ -66,7 +66,8 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             <Input className="col-3" type="number" id="viewDataFileOffset" placeholder="Enter an offset"
                    value={offset} onChange={offsetInputHandler}
                    onKeyUp={this.createInputEnterHandler(history, () =>
-                   `${queryStringPrefix}?path=${path}${queryStringSuffix}`)}/>
+                   `${queryStringPrefix}?path=${path}${queryStringSuffix}`)}
+                   onFocus={(evt: React.FocusEvent<HTMLInputElement>) => evt.currentTarget.select()} />
           </FormGroup>
           <FormGroup className="col-5">
             <Label for="viewDataFileEnd" className="mr-sm-2">Relative to</Label>
@@ -80,7 +81,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             </ButtonGroup>
           </FormGroup>
           <FormGroup className="col-2">
-            <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="secondary">Go</Button>
+            <Button tag={Link} to={`${queryStringPrefix}?path=${encodeURIComponent(path || '')}${queryStringSuffix}`} color="secondary">Go</Button>
           </FormGroup>
           {this.renderDownloadLink()}
         </Form>

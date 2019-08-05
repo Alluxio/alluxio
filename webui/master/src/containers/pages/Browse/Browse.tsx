@@ -56,13 +56,13 @@ export class BrowsePresenter extends React.Component<AllProps> {
     return (
       <div className="col-12">
         {!browseData.currentDirectory.isDirectory
-            ? this.renderFileView(browseData, queryStringSuffix, initData)
-            : this.renderDirectoryListing(initData, browseData, queryStringSuffix)}
+            ? this.renderFileView(initData, browseData, queryStringSuffix)
+            : this.renderDirectoryListing(initData, browseData)}
       </div>
     );
   }
 
-  private renderFileView(browseData: IBrowse, queryStringSuffix: string, initData: IInit) {
+  private renderFileView(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
     const {path, offset, end, history, textAreaHeight, createInputChangeHandler, createButtonHandler} = this.props;
     const offsetInputHandler = createInputChangeHandler('offset', value => value); //.bind(this);
     const beginInputHandler = createButtonHandler('end', value => undefined);//.bind(this);
@@ -105,9 +105,8 @@ export class BrowsePresenter extends React.Component<AllProps> {
     );
   }
 
-  private renderDirectoryListing(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
-    const {path, offset, limit} = this.props;
-    const {history, createInputChangeHandler} = this.props;
+  private renderDirectoryListing(initData: IInit, browseData: IBrowse) {
+    const {path, offset, limit, history, createInputChangeHandler} = this.props;
     const fileInfos = browseData.fileInfos;
     const pathInputHandler = createInputChangeHandler('path', value => value);//.bind(this);
     return (
@@ -115,7 +114,7 @@ export class BrowsePresenter extends React.Component<AllProps> {
         <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}
               onSubmit={disableFormSubmit}>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=/${queryStringSuffix}`} color="secondary"
+            <Button tag={Link} to={`/browse?path=/`} color="secondary"
                     outline={true}>Root</Button>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
@@ -123,10 +122,10 @@ export class BrowsePresenter extends React.Component<AllProps> {
             <Input type="text" id="browsePath" placeholder="Enter a Path" value={path || '/'}
                    onChange={pathInputHandler}
                    onKeyUp={this.createInputEnterHandler(history, () =>
-                   `/browse?path=${path}${queryStringSuffix}`)}/>
+                   `/browse?path=${path}`)}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=${encodeURIComponent(path || '/')}${queryStringSuffix}`}
+            <Button tag={Link} to={`/browse?path=${encodeURIComponent(path || '/')}`}
             color="secondary">Go</Button>
           </FormGroup>
         </Form>

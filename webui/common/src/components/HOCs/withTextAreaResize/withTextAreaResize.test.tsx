@@ -44,7 +44,7 @@ describe('withFetchData HOC', () => {
             setTimeout(() => {expect(shallowWrapper.state('textAreaHeight')).toEqual(100)}, 100);
         });
 
-        it('Check state doesn not updates after unmount', () => {
+        it('Check state does not not updates after unmount', () => {
             const shallowWrapper = shallow(<EnhancedComponent />);
             shallowWrapper.unmount();
             Object.defineProperty(window, 'innerHeight', {writable: true, configurable: true, value: 500});
