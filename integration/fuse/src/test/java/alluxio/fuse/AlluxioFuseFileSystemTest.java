@@ -29,6 +29,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -37,6 +38,7 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.security.authorization.Mode;
+import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
@@ -47,18 +49,28 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+import ru.serce.jnrfuse.struct.Statvfs;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Isolation tests for {@link AlluxioFuseFileSystem}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({BlockMasterClient.Factory.class})
 public class AlluxioFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
@@ -430,5 +442,53 @@ public class AlluxioFuseFileSystemTest {
     when(mFileSystem.exists(uri)).thenReturn(true);
     when(mFileSystem.getStatus(uri)).thenReturn(status);
     return fi;
+  }
+
+  @Test
+  public void statfs() throws Exception {
+    Runtime runtime = Runtime.getSystemRuntime();
+    Pointer pointer = runtime.getMemoryManager().allocateTemporary(4 * Constants.KB, true);
+    Statvfs stbuf = Statvfs.of(pointer);
+
+    int blockSize = 4 * Constants.KB;
+    int totalBlocks = 1341353 / blockSize;
+    int freeBlocks = 1278919 / blockSize;
+
+    // Prepare mock block master client
+    BlockMasterClient mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    PowerMockito.mockStatic(BlockMasterClient.Factory.class);
+    when(BlockMasterClient.Factory.create(any())).thenReturn(mBlockMasterClient);
+
+    Map<String, Long> capacityBytesOnTiers = new HashMap<>();
+    Map<String, Long> usedBytesOnTiers = new HashMap<>();
+    capacityBytesOnTiers.put("MEM", 1341353L);
+    capacityBytesOnTiers.put("RAM", 23112L);
+    capacityBytesOnTiers.put("DOM", 236501L);
+    usedBytesOnTiers.put("MEM", 62434L);
+    usedBytesOnTiers.put("RAM", 6243L);
+    usedBytesOnTiers.put("DOM", 74235L);
+    BlockMasterInfo blockMasterInfo = new BlockMasterInfo()
+        .setLiveWorkerNum(12)
+        .setLostWorkerNum(4)
+        .setCapacityBytes(1341353L)
+        .setCapacityBytesOnTiers(capacityBytesOnTiers)
+        .setUsedBytes(62434L)
+        .setUsedBytesOnTiers(usedBytesOnTiers)
+        .setFreeBytes(1278919L);
+    Mockito.when(mBlockMasterClient.getBlockMasterInfo(Mockito.any()))
+        .thenReturn(blockMasterInfo);
+
+    assertEquals(0, mFuseFs.statfs("/", stbuf));
+
+    assertEquals(blockSize, stbuf.f_bsize.intValue());
+    assertEquals(blockSize, stbuf.f_frsize.intValue());
+    assertEquals(totalBlocks, stbuf.f_blocks.longValue());
+    assertEquals(freeBlocks, stbuf.f_bfree.longValue());
+    assertEquals(freeBlocks, stbuf.f_bavail.longValue());
+
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_files.intValue());
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_ffree.intValue());
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_favail.intValue());
+    assertEquals(AlluxioFuseFileSystem.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
   }
 }
