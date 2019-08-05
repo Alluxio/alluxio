@@ -222,7 +222,14 @@ public class GrpcManagedChannelPool {
    */
   private ManagedChannel createManagedChannel(ChannelKey channelKey) {
     NettyChannelBuilder channelBuilder;
-    channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+    if (channelKey.mAddress instanceof InetSocketAddress) {
+      InetSocketAddress inetServerAddress = (InetSocketAddress) channelKey.mAddress;
+      // This constructor delays DNS lookup to detect changes
+      channelBuilder = NettyChannelBuilder.forAddress(inetServerAddress.getHostName(),
+          inetServerAddress.getPort());
+    } else {
+      channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+    }
 
     if (channelKey.mKeepAliveTime.isPresent()) {
       channelBuilder.keepAliveTime(channelKey.mKeepAliveTime.get().getFirst(),
