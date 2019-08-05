@@ -296,3 +296,9 @@ while still persisting the data.
 <p align="center">
 <img src="{{ '/img/dataflow-async-through.gif' | relativize_url }}" alt="ASYNC_THROUGH data flow"/>
 </p>
+
+### Write to UFS Only (`THROUGH`)
+
+With `THROUGH`, data is written to under storage synchronously without being cached to Alluxio
+workers. This write type ensures that data will be persisted after write completes, but the speed
+is limited by the under storage throughput.
