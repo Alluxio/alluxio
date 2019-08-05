@@ -14,9 +14,9 @@ package alluxio.master.journal.raft.transport;
 import io.atomix.catalyst.concurrent.ThreadContext;
 
 /**
- * {@link CopycatGrpcBaseConnection} implementation for server.
+ * {@link AbstractCopycatGrpcConnection} implementation for server.
  */
-public class CopycatGrpcServerConnection extends CopycatGrpcBaseConnection {
+public class CopycatGrpcServerConnection extends AbstractCopycatGrpcConnection {
   /**
    * Creates a connection object for server.
    *
