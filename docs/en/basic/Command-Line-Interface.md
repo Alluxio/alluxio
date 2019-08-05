@@ -690,7 +690,9 @@ By default, it loads metadata only at the first time at which a directory is lis
 * `-h` option displays file sizes in human-readable formats.
 * `-p` option lists all pinned files.
 * `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
-* `--sort` sorts the result by the given option. Possible values are size, creationTime, inMemoryPercentage, lastModificationTime, and path.
+* `--sort` sorts the result by the given option. Possible values are size, creationTime, inMemoryPercentage, lastModificationTime, lastAccessTime and path.
+* `--timestamp` display the timestamp of the given option. Possible values are creationTime, lastModificationTime, and lastAccessTime.
+The default option is lastModificationTime.
 * `-r` reverses the sorting order.
 
 For example, `ls` can be used to browse the file system.
