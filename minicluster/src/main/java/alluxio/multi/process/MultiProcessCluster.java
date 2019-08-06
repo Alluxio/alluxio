@@ -501,7 +501,7 @@ public final class MultiProcessCluster {
    * Updates internal master list with an external address.
    * @param externalMasterAddress external master address
    */
-  public void addExternalMasterAddress(MasterNetAddress externalMasterAddress) {
+  public synchronized void addExternalMasterAddress(MasterNetAddress externalMasterAddress) {
     mMasterAddresses.add(externalMasterAddress);
     // Reset current context to cause reinstantiation with new addresses.
     mFilesystemContext = null;
