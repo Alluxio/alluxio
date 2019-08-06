@@ -55,8 +55,8 @@ public class CopycatMessageServiceClientHandler
    */
   public StreamObserver<CopycatMessage> connect(StreamObserver<CopycatMessage> responseObserver) {
     // Create server connection that is bound to given client stream.
-    CopycatGrpcConnection clientConnection = new CopycatGrpcConnection(
-        CopycatGrpcConnection.ConnectionOwner.SERVER, mContext, mRequestTimeoutMs);
+    CopycatGrpcConnection clientConnection =
+        new CopycatGrpcServerConnection(mContext, mRequestTimeoutMs);
     clientConnection.setTargetObserver(responseObserver);
 
     // Update copycat with new connection.
