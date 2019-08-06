@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export type IScopedPropertyInfo = {
-  [scopeKey: string]: {// we allow any string as key here
+export interface IScopedPropertyInfo {
+  [scopeKey: string]: {
+    // we allow any string as key here
     [propertyKey: string]: string; // we allow any string as a property key here
   };
-};
+}

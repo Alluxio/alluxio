@@ -10,12 +10,12 @@
  */
 
 export const routePaths = {
-    root: '/',
-    overview: '/overview',
-    browse: '/browse',
-    config: '/config',
-    data: '/data',
-    logs: '/logs',
-    metrics: '/metrics',
-    workers: '/workers'
+  browse: '/browse',
+  config: '/config',
+  data: '/data',
+  logs: '/logs',
+  metrics: '/metrics',
+  overview: '/overview',
+  root: '/',
+  workers: '/workers'
 };

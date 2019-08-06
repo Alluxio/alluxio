@@ -9,22 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import {
+  configure,
+  mount,
+  ReactWrapper,
+  shallow,
+  ShallowWrapper
+} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import { Provider } from 'react-redux';
+import { Store } from 'redux';
+import sinon, { SinonSpy } from 'sinon';
 
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import configureStore from '../../../configureStore';
+import { routePaths } from '../../../constants';
+import { IApplicationState, initialState } from '../../../store';
 import ConnectedApp from '../../App/App';
-import {AllProps, DataPresenter} from './Data';
-import {routePaths} from "../../../constants";
-import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import { AllProps, DataPresenter } from './Data';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Data', () => {
   let history: History<LocationState>;
@@ -32,18 +38,18 @@ describe('Data', () => {
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.data);
     store = configureStore(history, initialState);
     props = {
-      limit: '',
-      offset: '',
-      refresh: false,
-      fetchRequest: sinon.spy(() => {}),
+      class: '',
       data: initialState.data.data,
       errors: createAlertErrors(false),
-      class: '',
-      loading: false
+      fetchRequest: sinon.spy(() => {}),
+      limit: '',
+      loading: false,
+      offset: '',
+      refresh: false,
     };
   });
 
@@ -55,7 +61,7 @@ describe('Data', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<DataPresenter {...props}/>);
+      shallowWrapper = shallow(<DataPresenter {...props} />);
     });
 
     it('Renders without crashing', () => {

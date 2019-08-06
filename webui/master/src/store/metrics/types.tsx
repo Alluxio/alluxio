@@ -9,10 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {LineSerieData} from '@nivo/line';
-import {AxiosResponse} from 'axios';
+import { LineSerieData } from '@nivo/line';
+import { AxiosResponse } from 'axios';
 
-import {ICounter, ICommonState} from '@alluxio/common-ui/src/constants';
+import { ICounter } from '@alluxio/common-ui/src/constants';
 
 export interface IMetrics {
   cacheHitLocal: string;
@@ -44,16 +44,16 @@ export interface IMetrics {
     [key: string]: {
       [key: string]: number;
     };
-  },
+  };
   ufsReadSize: {
     [key: string]: string;
-  },
+  };
   ufsWriteSize: {
     [key: string]: string;
-  },
+  };
   operationMetrics: {
     [key: string]: ICounter;
-  }
+  };
 }
 
 export enum MetricsActionTypes {

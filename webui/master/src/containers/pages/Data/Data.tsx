@@ -10,26 +10,31 @@
  */
 
 import React from 'react';
-import {connect} from 'react-redux';
-import {Table} from 'reactstrap';
-import {compose, Dispatch} from 'redux';
+import { connect } from 'react-redux';
+import { Table } from 'reactstrap';
+import { compose, Dispatch } from 'redux';
 
 import {
+  Paginator,
   withErrors,
   withFetchDataFromPath,
   withFluidContainer,
-  withLoadingMessage,
-  Paginator
+  withLoadingMessage
 } from '@alluxio/common-ui/src/components';
-import {IAlertErrors, ICommonState, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
-import {IApplicationState} from '../../../store';
-import {fetchRequest} from '../../../store/data/actions';
-import {IData} from '../../../store/data/types';
-import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
-import {routePaths} from "../../../constants";
+import {
+  IAlertErrors,
+  ICommonState,
+  IFileInfo,
+  IRequest
+} from '@alluxio/common-ui/src/constants';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import { routePaths } from '../../../constants';
+import { IApplicationState } from '../../../store';
+import { fetchRequest } from '../../../store/data/actions';
+import { IData } from '../../../store/data/types';
 
 interface IPropsFromState extends ICommonState {
-    data: IData
+  data: IData;
 }
 
 interface IPropsFromDispatch {
@@ -37,28 +42,33 @@ interface IPropsFromDispatch {
 }
 
 interface IDataProps {
-    limit?: string;
-    offset?: string;
+  limit?: string;
+  offset?: string;
 }
 
 export type AllProps = IPropsFromState & IPropsFromDispatch & IDataProps;
 
 export class DataPresenter extends React.Component<AllProps> {
   public render() {
-    const {offset, limit, data} = this.props;
+    const { offset, limit, data } = this.props;
 
     return (
-        <div className="col-12">
-          {this.renderFileListing(data.fileInfos)}
-          <Paginator baseUrl={routePaths.data} total={data.inAlluxioFileNum} offset={offset} limit={limit}/>
-        </div>
+      <div className="col-12">
+        {this.renderFileListing(data.fileInfos)}
+        <Paginator
+          baseUrl={routePaths.data}
+          total={data.inAlluxioFileNum}
+          offset={offset}
+          limit={limit}
+        />
+      </div>
     );
   }
 
   private renderFileListing(fileInfos: IFileInfo[]) {
     return (
-        <Table hover={true}>
-          <thead>
+      <Table hover={true}>
+        <thead>
           <tr>
             <th>File Path</th>
             <th>Size</th>
@@ -70,15 +80,18 @@ export class DataPresenter extends React.Component<AllProps> {
             <th>Creation Time</th>
             <th>Modification Time</th>
           </tr>
-          </thead>
-          <tbody>
-          {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
+        </thead>
+        <tbody>
+          {fileInfos &&
+            fileInfos.map((fileInfo: IFileInfo) => (
               <tr key={fileInfo.absolutePath}>
                 <td>{fileInfo.absolutePath}</td>
                 <td>{fileInfo.size}</td>
                 <td>{fileInfo.blockSizeBytes}</td>
                 <td>
-                  <pre className="mb-0"><code>{fileInfo.mode}</code></pre>
+                  <pre className="mb-0">
+                    <code>{fileInfo.mode}</code>
+                  </pre>
                 </td>
                 <td>{fileInfo.owner}</td>
                 <td>{fileInfo.group}</td>
@@ -86,26 +99,29 @@ export class DataPresenter extends React.Component<AllProps> {
                 <td>{fileInfo.creationTime}</td>
                 <td>{fileInfo.modificationTime}</td>
               </tr>
-          ))}
-          </tbody>
-        </Table>
-    )
+            ))}
+        </tbody>
+      </Table>
+    );
   }
 }
 
-const mapStateToProps = ({data, refresh}: IApplicationState): IPropsFromState => {
-  const allErrors: IAlertErrors = createAlertErrors(
-      data.errors != undefined,
-      [data.data.permissionError, data.data.fatalError]
-  );
+const mapStateToProps = ({
+  data,
+  refresh
+}: IApplicationState): IPropsFromState => {
+  const allErrors: IAlertErrors = createAlertErrors(data.errors !== undefined, [
+    data.data.permissionError,
+    data.data.fatalError
+  ]);
 
   return {
+    class: 'data-page',
     data: data.data,
     errors: allErrors,
     loading: data.loading,
-    refresh: refresh.data,
-    class: 'data-page'
-  }
+    refresh: refresh.data
+  };
 };
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -113,9 +129,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 });
 
 export default compose(
-    connect(mapStateToProps, mapDispatchToProps),
-    withFetchDataFromPath,
-    withErrors,
-    withLoadingMessage,
-    withFluidContainer
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
+  withFetchDataFromPath,
+  withErrors,
+  withLoadingMessage,
+  withFluidContainer
 )(DataPresenter) as React.Component;

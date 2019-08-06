@@ -9,22 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import {
+  configure,
+  mount,
+  ReactWrapper,
+  shallow,
+  ShallowWrapper
+} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import { Provider } from 'react-redux';
+import { Store } from 'redux';
+import sinon, { SinonSpy } from 'sinon';
 
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import configureStore from '../../../configureStore';
+import { routePaths } from '../../../constants';
+import { IApplicationState, initialState } from '../../../store';
 import ConnectedApp from '../../App/App';
-import {AllProps, MetricsPresenter} from './Metrics';
-import {routePaths} from "../../../constants";
-import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import { AllProps, MetricsPresenter } from './Metrics';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Metrics', () => {
   let history: History<LocationState>;
@@ -32,16 +38,16 @@ describe('Metrics', () => {
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.metrics);
     store = configureStore(history, initialState);
     props = {
+      class: '',
       data: initialState.metrics.data,
       errors: createAlertErrors(false),
+      fetchRequest: sinon.spy(() => {}),
       loading: false,
-      refresh: initialState.refresh.data,
-      class: '',
-      fetchRequest: sinon.spy(() => {})
+      refresh: initialState.refresh.data
     };
   });
 
@@ -53,7 +59,7 @@ describe('Metrics', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<MetricsPresenter {...props}/>);
+      shallowWrapper = shallow(<MetricsPresenter {...props} />);
     });
 
     it('Renders without crashing', () => {

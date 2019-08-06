@@ -9,30 +9,34 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {IFileBlockInfo, IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
-import {IInit} from "../init/types";
+import {
+  ICommonState,
+  IFileBlockInfo,
+  IFileInfo
+} from '@alluxio/common-ui/src/constants';
+import { IInit } from '../init/types';
 
 export interface IBrowse {
-  'accessControlException': string;
-  'blockSizeBytes': string;
-  'currentDirectory': IFileInfo;
-  'currentPath': string;
-  'debug': boolean;
-  'fatalError': string;
-  'fileBlocks': IFileBlockInfo[],
-  'fileData': string,
-  'fileDoesNotExistException': string;
-  'fileInfos': IFileInfo[];
-  'highestTierAlias': string,
-  'invalidPathError': string;
-  'invalidPathException': string;
-  'masterNodeAddress': string;
-  'ntotalFile': number;
-  'pathInfos': IFileInfo[];
-  'showPermissions': boolean;
-  'viewingOffset': number;
+  accessControlException: string;
+  blockSizeBytes: string;
+  currentDirectory: IFileInfo;
+  currentPath: string;
+  debug: boolean;
+  fatalError: string;
+  fileBlocks: IFileBlockInfo[];
+  fileData: string;
+  fileDoesNotExistException: string;
+  fileInfos: IFileInfo[];
+  highestTierAlias: string;
+  invalidPathError: string;
+  invalidPathException: string;
+  masterNodeAddress: string;
+  ntotalFile: number;
+  pathInfos: IFileInfo[];
+  showPermissions: boolean;
+  viewingOffset: number;
 }
 
 export enum BrowseActionTypes {
