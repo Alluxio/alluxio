@@ -98,13 +98,13 @@ public class ZkMasterInquireClientTest {
     CuratorFramework client = CuratorFrameworkFactory.newClient(mZkServer.getConnectString(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, INQUIRE_RETRY_COUNT));
     // Create the leader path with single(localhost) participant.
-    InetSocketAddress localLeader = new InetSocketAddress(LOOPBACK_IP, 12345);
+    InetSocketAddress localLeader = InetSocketAddress.createUnresolved(LOOPBACK_IP, 12345);
     client.start();
     client.create().forPath(LEADER_PATH);
     client.create().forPath(LEADER_PATH + localLeader);
     client.close();
     // Verify that leader is fetched.
-    Assert.assertEquals(localLeader, zkInquirer.getPrimaryRpcAddress());
+    Assert.assertEquals(localLeader.getAddress(), zkInquirer.getPrimaryRpcAddress());
   }
 
   @Test
@@ -116,8 +116,8 @@ public class ZkMasterInquireClientTest {
     CuratorFramework client = CuratorFrameworkFactory.newClient(mZkServer.getConnectString(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, INQUIRE_RETRY_COUNT));
     // Create the leader path with multiple participants.
-    InetSocketAddress localLeader1 = new InetSocketAddress(LOOPBACK_IP, 12345);
-    InetSocketAddress localLeader2 = new InetSocketAddress(LOOPBACK_IP, 54321);
+    InetSocketAddress localLeader1 = InetSocketAddress.createUnresolved(LOOPBACK_IP, 12345);
+    InetSocketAddress localLeader2 = InetSocketAddress.createUnresolved(LOOPBACK_IP, 54321);
     client.start();
     client.create().forPath(LEADER_PATH);
     client.create().forPath(LEADER_PATH + localLeader1);
