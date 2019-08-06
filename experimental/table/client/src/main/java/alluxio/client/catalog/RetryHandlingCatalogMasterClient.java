@@ -19,9 +19,14 @@ import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 
+import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
+import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.Table;
+
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A wrapper for the gRPC client to interact with the catalog master.
@@ -64,5 +69,66 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   public List<String> getAllDatabase() throws AlluxioStatusException {
     return retryRPC(() -> mClient.getAllDatabases(
         GetAllDatabasesPRequest.newBuilder().build()).getDatabaseList());
+  }
+
+  @Override
+  public Database getDatabase(String databaseName) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public List<String> getAllTables(String databaseName) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public Table getTable(String databaseName, String tableName) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public void createDatabase(Database database) throws AlluxioStatusException {}
+
+  @Override
+  public void createTable(Table table) throws AlluxioStatusException {}
+
+  @Override
+  public List<ColumnStatisticsObj> getTableColumnStatistics(
+          String databaseName,
+          String tableName,
+          List<String> columnNames) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public List<String> getPartitionNames(
+          String databaseName,
+          String tableName) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public List<Partition> getPartitionsByNames(
+          String databaseName,
+          String tableName,
+          List<String> partitionNames) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public Partition getPartition(
+          String databaseName,
+          String tableName,
+          List<String> partitionValues) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public Map<String, List<ColumnStatisticsObj>> getPartitionColumnStatistics(
+          String databaseName,
+          String tableName,
+          List<String> partitionNames,
+          List<String> columnNames) throws AlluxioStatusException {
+    return null;
   }
 }
