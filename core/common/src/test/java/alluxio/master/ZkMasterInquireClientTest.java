@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
 import alluxio.exception.status.UnavailableException;
+import alluxio.util.io.PathUtils;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -101,10 +102,10 @@ public class ZkMasterInquireClientTest {
     InetSocketAddress localLeader = InetSocketAddress.createUnresolved(LOOPBACK_IP, 12345);
     client.start();
     client.create().forPath(LEADER_PATH);
-    client.create().forPath(LEADER_PATH + localLeader);
+    client.create().forPath(PathUtils.concatPath(LEADER_PATH, localLeader));
     client.close();
     // Verify that leader is fetched.
-    Assert.assertEquals(localLeader.getAddress(), zkInquirer.getPrimaryRpcAddress());
+    Assert.assertEquals(localLeader, zkInquirer.getPrimaryRpcAddress());
   }
 
   @Test
@@ -120,8 +121,8 @@ public class ZkMasterInquireClientTest {
     InetSocketAddress localLeader2 = InetSocketAddress.createUnresolved(LOOPBACK_IP, 54321);
     client.start();
     client.create().forPath(LEADER_PATH);
-    client.create().forPath(LEADER_PATH + localLeader1);
-    client.create().forPath(LEADER_PATH + localLeader2);
+    client.create().forPath(PathUtils.concatPath(LEADER_PATH, localLeader1));
+    client.create().forPath(PathUtils.concatPath(LEADER_PATH, localLeader2));
     client.close();
     // Verify that the latest written value is fetched.
     Assert.assertEquals(localLeader2, zkInquirer.getPrimaryRpcAddress());
