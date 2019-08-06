@@ -9,33 +9,42 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {BlockInfoActionTypes, IBlockInfoState} from './types';
+import { BlockInfoActionTypes, IBlockInfoState } from './types';
 
 export const initialBlockInfoState: IBlockInfoState = {
   data: {
-    'blockSizeBytes': '',
-    'fatalError': '',
-    'fileBlocksOnTier': [],
-    'fileInfos': [],
-    'invalidPathError': '',
-    'ntotalFile': 0,
-    'orderedTierAliases': [],
-    'path': ''
+    blockSizeBytes: '',
+    fatalError: '',
+    fileBlocksOnTier: [],
+    fileInfos: [],
+    invalidPathError: '',
+    ntotalFile: 0,
+    orderedTierAliases: [],
+    path: ''
   },
   errors: undefined,
   loading: false
 };
 
-export const blockInfoReducer: Reducer<IBlockInfoState> = (state = initialBlockInfoState, action) => {
+export const blockInfoReducer: Reducer<IBlockInfoState> = (
+  state = initialBlockInfoState,
+  action
+) => {
   switch (action.type) {
     case BlockInfoActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case BlockInfoActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return {
+        ...state,
+        data: action.payload.data,
+        errors: undefined,
+        loading: false,
+        response: action.payload
+      };
     case BlockInfoActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

@@ -9,24 +9,30 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import {
+  configure,
+  mount,
+  ReactWrapper,
+  shallow,
+  ShallowWrapper
+} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import { Provider } from 'react-redux';
+import { Store } from 'redux';
+import sinon, { SinonSpy } from 'sinon';
 
-import {initialRefreshState} from '@alluxio/common-ui/src/store/refresh/reducer';
-import configureStore from '../../configureStore'
-import {initialState, IApplicationState} from '../../store';
-import {initialInitState} from '../../store/init/reducer';
-import ConnectedApp, {AllProps, App} from './App';
-import {Footer, Header} from "@alluxio/common-ui/src/components";
-import {routePaths} from "../../constants";
-import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import { Footer, Header } from '@alluxio/common-ui/src/components';
+import { initialRefreshState } from '@alluxio/common-ui/src/store/refresh/reducer';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import configureStore from '../../configureStore';
+import { routePaths } from '../../constants';
+import { IApplicationState, initialState } from '../../store';
+import { initialInitState } from '../../store/init/reducer';
+import ConnectedApp, { AllProps, App } from './App';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('App', () => {
   let history: History<LocationState>;
@@ -34,17 +40,17 @@ describe('App', () => {
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.root);
     store = configureStore(history, initialState);
     props = {
-      history: history,
-      init: initialInitState.data,
-      triggerRefresh: sinon.spy(() => {}),
       class: '',
-      refresh: initialState.refresh.data,
       errors: createAlertErrors(false),
-      loading: false
+      history,
+      init: initialInitState.data,
+      loading: false,
+      refresh: initialState.refresh.data,
+      triggerRefresh: sinon.spy(() => {})
     };
   });
 
@@ -52,7 +58,7 @@ describe('App', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<App {...props}/>);
+      shallowWrapper = shallow(<App {...props} />);
     });
 
     it('Renders without crashing', () => {
@@ -69,16 +75,20 @@ describe('App', () => {
 
     Object.values(routePaths).forEach(path => {
       it(`Should render Route for ${path}`, () => {
-        expect(shallowWrapper
-            .findWhere(n => n.name() === 'Route' && n.prop('path') === path))
-            .toHaveLength(1);
+        expect(
+          shallowWrapper.findWhere(
+            n => n.name() === 'Route' && n.prop('path') === path
+          )
+        ).toHaveLength(1);
       });
     });
 
     it('Should render a Route for redirects', () => {
-      expect(shallowWrapper
-          .findWhere(n => n.name() === 'Route' && n.prop('path') === undefined))
-          .toHaveLength(1);
+      expect(
+        shallowWrapper.findWhere(
+          n => n.name() === 'Route' && n.prop('path') === undefined
+        )
+      ).toHaveLength(1);
     });
 
     it('Matches snapshot', () => {

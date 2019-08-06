@@ -9,17 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
+import { ICommonState, IFileInfo } from '@alluxio/common-ui/src/constants';
 
 export interface IInit {
-  'debug': boolean;
-  'masterPort': number;
-  'masterHostname': string;
-  'refreshInterval': number;
-  'securityAuthorizationPermissionEnabled': boolean;
-  'webFileInfoEnabled': boolean;
+  debug: boolean;
+  masterPort: number;
+  masterHostname: string;
+  refreshInterval: number;
+  securityAuthorizationPermissionEnabled: boolean;
+  webFileInfoEnabled: boolean;
 }
 
 export enum InitActionTypes {

@@ -10,9 +10,9 @@
  */
 
 export const routePaths = {
-    root: '/',
-    overview: '/overview',
-    blockInfo: '/blockInfo',
-    logs: '/logs',
-    metrics: '/metrics'
+  blockInfo: '/blockInfo',
+  logs: '/logs',
+  metrics: '/metrics',
+  overview: '/overview',
+  root: '/'
 };

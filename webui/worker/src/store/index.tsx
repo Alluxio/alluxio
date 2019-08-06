@@ -9,28 +9,34 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {connectRouter, RouterState} from 'connected-react-router';
-import {History} from 'history';
-import {combineReducers} from 'redux';
-import {all, fork} from 'redux-saga/effects';
+import { connectRouter, RouterState } from 'connected-react-router';
+import { History } from 'history';
+import { combineReducers } from 'redux';
+import { all, fork } from 'redux-saga/effects';
 
-import {initialRefreshState, refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
-import {IRefreshState} from '@alluxio/common-ui/src/store/refresh/types';
-import {initialLogsState, logsReducer} from '@alluxio/common-ui/src/store/logs/reducer';
-import {logsSaga} from '@alluxio/common-ui/src/store/logs/sagas';
-import {ILogsState} from '@alluxio/common-ui/src/store/logs/types';
-import {blockInfoReducer, initialBlockInfoState} from './blockInfo/reducer';
-import {blockInfoSaga} from './blockInfo/sagas';
-import {IBlockInfoState} from './blockInfo/types';
-import {initialMetricsState, metricsReducer} from './metrics/reducer';
-import {metricsSaga} from './metrics/sagas';
-import {IMetricsState} from './metrics/types';
-import {initialOverviewState, overviewReducer} from './overview/reducer';
-import {overviewSaga} from './overview/sagas';
-import {IOverviewState} from './overview/types';
-import {IInitState} from './init/types';
-import {initialInitState, initReducer} from './init/reducer';
-import {initSaga} from './init/sagas';
+import {
+  initialLogsState,
+  logsReducer
+} from '@alluxio/common-ui/src/store/logs/reducer';
+import { logsSaga } from '@alluxio/common-ui/src/store/logs/sagas';
+import { ILogsState } from '@alluxio/common-ui/src/store/logs/types';
+import {
+  initialRefreshState,
+  refreshReducer
+} from '@alluxio/common-ui/src/store/refresh/reducer';
+import { IRefreshState } from '@alluxio/common-ui/src/store/refresh/types';
+import { blockInfoReducer, initialBlockInfoState } from './blockInfo/reducer';
+import { blockInfoSaga } from './blockInfo/sagas';
+import { IBlockInfoState } from './blockInfo/types';
+import { initialInitState, initReducer } from './init/reducer';
+import { initSaga } from './init/sagas';
+import { IInitState } from './init/types';
+import { initialMetricsState, metricsReducer } from './metrics/reducer';
+import { metricsSaga } from './metrics/sagas';
+import { IMetricsState } from './metrics/types';
+import { initialOverviewState, overviewReducer } from './overview/reducer';
+import { overviewSaga } from './overview/sagas';
+import { IOverviewState } from './overview/types';
 
 export interface IApplicationState {
   blockInfo: IBlockInfoState;
@@ -42,17 +48,18 @@ export interface IApplicationState {
   router?: RouterState;
 }
 
-export const rootReducer = (history: History) => combineReducers<IApplicationState>({
-  blockInfo: blockInfoReducer,
-  init: initReducer,
-  logs: logsReducer,
-  metrics: metricsReducer,
-  overview: overviewReducer,
-  refresh: refreshReducer,
-  router: connectRouter(history)
-});
+export const rootReducer = (history: History) =>
+  combineReducers<IApplicationState>({
+    blockInfo: blockInfoReducer,
+    init: initReducer,
+    logs: logsReducer,
+    metrics: metricsReducer,
+    overview: overviewReducer,
+    refresh: refreshReducer,
+    router: connectRouter(history)
+  });
 
-export const rootSaga = function* () {
+export const rootSaga = function*() {
   yield all([
     fork(blockInfoSaga),
     fork(initSaga),

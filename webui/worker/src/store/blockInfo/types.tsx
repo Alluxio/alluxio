@@ -9,23 +9,27 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {IFileBlockInfo, IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
+import {
+  ICommonState,
+  IFileBlockInfo,
+  IFileInfo
+} from '@alluxio/common-ui/src/constants';
 
 export interface IFileBlocksOnTier {
   [tierAlias: string]: IFileBlockInfo[];
 }
 
 export interface IBlockInfo {
-  'blockSizeBytes': string;
-  'fatalError': string;
-  'fileBlocksOnTier': IFileBlocksOnTier[];
-  'fileInfos': IFileInfo[];
-  'invalidPathError': string;
-  'ntotalFile': number;
-  'orderedTierAliases': string[];
-  'path': string;
+  blockSizeBytes: string;
+  fatalError: string;
+  fileBlocksOnTier: IFileBlocksOnTier[];
+  fileInfos: IFileInfo[];
+  invalidPathError: string;
+  ntotalFile: number;
+  orderedTierAliases: string[];
+  path: string;
 }
 
 export enum BlockInfoActionTypes {

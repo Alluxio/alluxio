@@ -10,25 +10,35 @@
  */
 
 import React from 'react';
-import {connect} from 'react-redux';
-import {Table} from 'reactstrap';
-import {compose, Dispatch} from 'redux';
+import { connect } from 'react-redux';
+import { Table } from 'reactstrap';
+import { compose, Dispatch } from 'redux';
 
 import {
+  Paginator,
   withErrors,
-  withFetchDataFromPath, withFluidContainer,
-  withLoadingMessage,
-  Paginator
+  withFetchDataFromPath,
+  withFluidContainer,
+  withLoadingMessage
 } from '@alluxio/common-ui/src/components';
-import {IAlertErrors, ICommonState, IFileBlockInfo, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
-import {createAlertErrors, renderFileNameLink} from '@alluxio/common-ui/src/utilities';
-import {IApplicationState} from '../../../store';
-import {fetchRequest} from '../../../store/blockInfo/actions';
-import {IBlockInfo, IFileBlocksOnTier} from '../../../store/blockInfo/types';
-import {routePaths} from "../../../constants";
+import {
+  IAlertErrors,
+  ICommonState,
+  IFileBlockInfo,
+  IFileInfo,
+  IRequest
+} from '@alluxio/common-ui/src/constants';
+import {
+  createAlertErrors,
+  renderFileNameLink
+} from '@alluxio/common-ui/src/utilities';
+import { routePaths } from '../../../constants';
+import { IApplicationState } from '../../../store';
+import { fetchRequest } from '../../../store/blockInfo/actions';
+import { IBlockInfo, IFileBlocksOnTier } from '../../../store/blockInfo/types';
 
 interface IPropsFromState extends ICommonState {
-  data: IBlockInfo
+  data: IBlockInfo;
 }
 
 interface IPropsFromDispatch {
@@ -43,45 +53,54 @@ export type AllProps = IPropsFromState & IPropsFromDispatch & IBlockInfoProps;
 
 export class BlockInfoPresenter extends React.Component<AllProps> {
   public render() {
-    const {data} = this.props;
+    const { data } = this.props;
 
     return (
       <div className="col-12">
         {data.blockSizeBytes
-        ? this.renderBlockInfoView(data)
-        : this.renderBlockInfoListing(data, data.orderedTierAliases)}
+          ? this.renderBlockInfoView(data)
+          : this.renderBlockInfoListing(data, data.orderedTierAliases)}
       </div>
     );
   }
 
   private renderBlockInfoView(blockInfo: IBlockInfo) {
-    const {request: {path}} = this.props;
+    const {
+      request: { path }
+    } = this.props;
     return (
       <React.Fragment>
         <h5>{path}</h5>
-        <hr/>
-        <h6>Blocks on this worker (block capacity is {blockInfo.blockSizeBytes} Bytes):</h6>
+        <hr />
+        <h6>
+          Blocks on this worker (block capacity is {blockInfo.blockSizeBytes}{' '}
+          Bytes):
+        </h6>
         <Table hover={true}>
           <thead>
-          <tr>
-            <th>ID</th>
-            <th>Tier</th>
-            <th>Size (Byte)</th>
-          </tr>
+            <tr>
+              <th>ID</th>
+              <th>Tier</th>
+              <th>Size (Byte)</th>
+            </tr>
           </thead>
           <tbody>
-          {blockInfo.fileBlocksOnTier.map((fileBlocksOnTier: IFileBlocksOnTier) => {
-            return Object.keys(fileBlocksOnTier).map((tierAlias: string) => {
-              const fileBlocksDatas: IFileBlockInfo[] = fileBlocksOnTier[tierAlias];
-              return fileBlocksDatas.map((fileBlocksData: IFileBlockInfo) => (
-                <tr key={fileBlocksData.id}>
-                  <td>{fileBlocksData.id}</td>
-                  <td>{tierAlias}</td>
-                  <td>{fileBlocksData.blockLength}</td>
-                </tr>
-              ));
-            });
-          })}
+            {blockInfo.fileBlocksOnTier.map(
+              (fileBlocksOnTier: IFileBlocksOnTier) =>
+                Object.keys(fileBlocksOnTier).map((tierAlias: string) => {
+                  const fileBlocksDatas: IFileBlockInfo[] =
+                    fileBlocksOnTier[tierAlias];
+                  return fileBlocksDatas.map(
+                    (fileBlocksData: IFileBlockInfo) => (
+                      <tr key={fileBlocksData.id}>
+                        <td>{fileBlocksData.id}</td>
+                        <td>{tierAlias}</td>
+                        <td>{fileBlocksData.blockLength}</td>
+                      </tr>
+                    )
+                  );
+                })
+            )}
           </tbody>
         </Table>
       </React.Fragment>
@@ -90,53 +109,72 @@ export class BlockInfoPresenter extends React.Component<AllProps> {
 
   private renderBlockInfoListing(blockInfo: IBlockInfo, tierAliases: string[]) {
     const fileInfos = blockInfo.fileInfos;
-    const {request: {path, limit, offset}} = this.props;
+    const {
+      request: { path, limit, offset }
+    } = this.props;
     return (
       <React.Fragment>
         <Table hover={true}>
           <thead>
-          <tr>
-            <th>File Path</th>
-            {tierAliases.map((tierAlias: string) => (
-              <th key={tierAlias}>in-{tierAlias}</th>
-            ))}
-            <th>Size</th>
-            <th>Creation Time</th>
-            <th>Modification Time</th>
-          </tr>
+            <tr>
+              <th>File Path</th>
+              {tierAliases.map((tierAlias: string) => (
+                <th key={tierAlias}>in-{tierAlias}</th>
+              ))}
+              <th>Size</th>
+              <th>Creation Time</th>
+              <th>Modification Time</th>
+            </tr>
           </thead>
           <tbody>
-          {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
-            <tr key={fileInfo.absolutePath}>
-              <td>{renderFileNameLink(fileInfo.absolutePath, `/blockInfo?path=`)}</td>
-              {tierAliases.map((tierAlias: string) => (
-                <td key={tierAlias}>{`${fileInfo.inAlluxioPercentage}%`}</td>
+            {fileInfos &&
+              fileInfos.map((fileInfo: IFileInfo) => (
+                <tr key={fileInfo.absolutePath}>
+                  <td>
+                    {renderFileNameLink(
+                      fileInfo.absolutePath,
+                      '/blockInfo?path='
+                    )}
+                  </td>
+                  {tierAliases.map((tierAlias: string) => (
+                    <td
+                      key={tierAlias}
+                    >{`${fileInfo.inAlluxioPercentage}%`}</td>
+                  ))}
+                  <td>{fileInfo.size}</td>
+                  <td>{fileInfo.creationTime}</td>
+                  <td>{fileInfo.modificationTime}</td>
+                </tr>
               ))}
-              <td>{fileInfo.size}</td>
-              <td>{fileInfo.creationTime}</td>
-              <td>{fileInfo.modificationTime}</td>
-            </tr>
-          ))}
           </tbody>
         </Table>
-        <Paginator baseUrl={routePaths.blockInfo} path={path} total={blockInfo.ntotalFile} offset={offset} limit={limit}/>
+        <Paginator
+          baseUrl={routePaths.blockInfo}
+          path={path}
+          total={blockInfo.ntotalFile}
+          offset={offset}
+          limit={limit}
+        />
       </React.Fragment>
-    )
+    );
   }
 }
 
-const mapStateToProps = ({blockInfo, refresh}: IApplicationState): IPropsFromState => {
+const mapStateToProps = ({
+  blockInfo,
+  refresh
+}: IApplicationState): IPropsFromState => {
   const errors: IAlertErrors = createAlertErrors(
-  blockInfo.errors != undefined,
-      [blockInfo.data.invalidPathError, blockInfo.data.fatalError]
-);
+    blockInfo.errors !== undefined,
+    [blockInfo.data.invalidPathError, blockInfo.data.fatalError]
+  );
   return {
+    class: 'blockInfo-page',
     data: blockInfo.data,
-    errors: errors,
+    errors,
     loading: blockInfo.loading,
-    refresh: refresh.data,
-    class: 'blockInfo-page'
-  }
+    refresh: refresh.data
+  };
 };
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -144,7 +182,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 });
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   withFetchDataFromPath,
   withErrors,
   withLoadingMessage,
