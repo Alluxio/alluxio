@@ -14,7 +14,9 @@ export interface IParsedQueryString {
 }
 
 export const parseQueryString = (searchString: string): IParsedQueryString => {
-  if (!searchString) { return {}; }
+  if (!searchString) {
+    return {};
+  }
 
   const searchArray = searchString.replace('?', '').split(/[=&]/);
   if (searchArray.length % 2 !== 0) {

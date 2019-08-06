@@ -9,8 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Theme} from '@nivo/core';
-import {LineSerieData, ResponsiveLine} from '@nivo/line';
+import { Theme } from '@nivo/core';
+import { LineSerieData, ResponsiveLine } from '@nivo/line';
 import React from 'react';
 
 import './LineGraph.css';
@@ -25,29 +25,40 @@ export interface ILineGraphProps {
 
 export class LineGraph extends React.PureComponent<ILineGraphProps> {
   public render(): JSX.Element {
-    const {data, xAxisLabel, yAxisLabel} = this.props;
+    const { data, xAxisLabel, yAxisLabel } = this.props;
     const nivoTheme: Theme = {
-      background: 'transparent',
       axis: {
-        domain: {line: {stroke: 'transparent', strokeWidth: 1}},
-        ticks: {line: {stroke: '#fff', strokeWidth: 1}, text: {fill: '#bbb', fontSize: 12}},
-        legend: {text: {fill: '#bbb', fontSize: 12}}
+        domain: { line: { stroke: 'transparent', strokeWidth: 1 } },
+        legend: { text: { fill: '#bbb', fontSize: 12 } },
+        ticks: {
+          line: { stroke: '#fff', strokeWidth: 1 },
+          text: { fill: '#bbb', fontSize: 12 },
+        },
       },
-      grid: {line: {stroke: '#ddd', strokeWidth: 1}},
-      legends: {text: {fill: '#bbb', fontSize: 12}},
-      labels: {text: {fill: '#bbb', fontSize: 12}},
-      markers: {lineColor: '#fff', lineStrokeWidth: 1, textColor: '#999', fontSize: '12'},
-      dots: {text: {fill: '#bbb', fontSize: 12}},
+      background: 'transparent',
+      dots: { text: { fill: '#bbb', fontSize: 12 } },
+      grid: { line: { stroke: '#ddd', strokeWidth: 1 } },
+      labels: { text: { fill: '#bbb', fontSize: 12 } },
+      legends: { text: { fill: '#bbb', fontSize: 12 } },
+      markers: {
+        fontSize: '12',
+        lineColor: '#fff',
+        lineStrokeWidth: 1,
+        textColor: '#999',
+      },
       tooltip: {
+        basic: { whiteSpace: 'pre', display: 'flex', alignItems: 'center' },
         container: {
           background: '#222',
-          color: 'inherit',
-          fontSize: 'inherit',
           borderRadius: '2px',
           boxShadow: '0 1px 2px rgba(255, 255, 255, 0.25)',
-          padding: '5px 9px'
-        }, basic: {whiteSpace: 'pre', display: 'flex', alignItems: 'center'}, table: {}, tableCell: {padding: '3px 5px'}
-      }
+          color: 'inherit',
+          fontSize: 'inherit',
+          padding: '5px 9px',
+        },
+        table: {},
+        tableCell: { padding: '3px 5px' },
+      },
     };
 
     return (
@@ -56,38 +67,38 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
         <ResponsiveLine
           theme={nivoTheme}
           data={data}
-          margin={{top: 25, right: 50, bottom: 200, left: 75}}
-          xScale={{type: 'time', format: '%Q', precision: 'minute'}}
-          yScale={{type: 'linear', stacked: false, min: 0, max: 100}}
+          margin={{ top: 25, right: 50, bottom: 200, left: 75 }}
+          xScale={{ type: 'time', format: '%Q', precision: 'minute' }}
+          yScale={{ type: 'linear', stacked: false, min: 0, max: 100 }}
           axisTop={null}
           axisRight={null}
           axisBottom={{
-            tickSize: 5,
-            tickPadding: 5,
-            tickRotation: -90,
+            format: '%x %H:%M:%S',
             legend: xAxisLabel,
             legendOffset: 140,
             legendPosition: 'middle',
-            format: '%x %H:%M:%S'
+            tickPadding: 5,
+            tickRotation: -90,
+            tickSize: 5,
           }}
           axisLeft={{
-            tickSize: 5,
-            tickPadding: 5,
-            tickRotation: 0,
             legend: yAxisLabel,
             legendOffset: -40,
-            legendPosition: 'middle'
+            legendPosition: 'middle',
+            tickPadding: 5,
+            tickRotation: 0,
+            tickSize: 5,
           }}
           dotSize={8}
-          dotColor='inherit:darker(0.3)'
+          dotColor="inherit:darker(0.3)"
           dotBorderWidth={1}
           dotBorderColor="#fff"
           enableDotLabel={true}
           animate={true}
           motionStiffness={90}
           motionDamping={15}
-          curve='natural'
-          colors='set3'
+          curve="natural"
+          colors="set3"
           enableArea={true}
           areaOpacity={0.5}
           areaBaselineValue={0}

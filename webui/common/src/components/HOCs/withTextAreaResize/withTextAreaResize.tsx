@@ -10,43 +10,56 @@
  */
 
 import React from 'react';
-import {getDebouncedFunction, getDisplayName} from "../../../utilities";
+import { getDebouncedFunction, getDisplayName } from '../../../utilities';
 
 export interface ITextAreaResizeState {
-    textAreaHeight?: number;
+  textAreaHeight?: number;
 }
 
-export function withTextAreaResize<T>(WrappedComponent: React.ComponentType<T>) {
-    class textAreaResizeHoc extends React.Component<T, ITextAreaResizeState> {
-        private readonly textAreaResizeMs = 100;
-        private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
+export function withTextAreaResize<T>(
+  WrappedComponent: React.ComponentType<T>,
+) {
+  class TextAreaResizeHoc extends React.Component<T, ITextAreaResizeState> {
+    private readonly textAreaResizeMs = 100;
+    private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(
+      this.updateTextAreaHeight.bind(this),
+      this.textAreaResizeMs,
+      true,
+    );
 
-        constructor(props: T) {
-            super(props);
+    constructor(props: T) {
+      super(props);
 
-            this.updateTextAreaHeight = this.updateTextAreaHeight.bind(this);
-        }
-
-        public componentWillMount() {
-            this.updateTextAreaHeight();
-        }
-
-        public componentDidMount() {
-            window.addEventListener('resize', this.debouncedUpdateTextAreaHeight);
-        }
-
-        public componentWillUnmount() {
-            window.removeEventListener('resize', this.debouncedUpdateTextAreaHeight);
-        }
-
-        public render() {
-            return <WrappedComponent {...this.props} textAreaHeight={this.state.textAreaHeight} />;
-        }
-
-        private updateTextAreaHeight() {
-            this.setState({textAreaHeight: window.innerHeight / 2});
-        }
+      this.updateTextAreaHeight = this.updateTextAreaHeight.bind(this);
     }
-    (textAreaResizeHoc as React.ComponentType<any>).displayName = `withTextAreaResize(${getDisplayName(WrappedComponent)})`;
-    return textAreaResizeHoc;
+
+    public componentWillMount() {
+      this.updateTextAreaHeight();
+    }
+
+    public componentDidMount() {
+      window.addEventListener('resize', this.debouncedUpdateTextAreaHeight);
+    }
+
+    public componentWillUnmount() {
+      window.removeEventListener('resize', this.debouncedUpdateTextAreaHeight);
+    }
+
+    public render() {
+      return (
+        <WrappedComponent
+          {...this.props}
+          textAreaHeight={this.state.textAreaHeight}
+        />
+      );
+    }
+
+    private updateTextAreaHeight() {
+      this.setState({ textAreaHeight: window.innerHeight / 2 });
+    }
+  }
+  (TextAreaResizeHoc as React.ComponentType<
+    any
+  >).displayName = `withTextAreaResize(${getDisplayName(WrappedComponent)})`;
+  return TextAreaResizeHoc;
 }

@@ -19,4 +19,3 @@ export interface INavigationData {
   innerText: string;
   url?: string | ((parameters: INavigationDataCallbackParameters) => string);
 }
-

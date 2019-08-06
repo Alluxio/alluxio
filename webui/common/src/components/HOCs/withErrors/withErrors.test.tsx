@@ -9,54 +9,56 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
-import {IErrorProps, withErrors} from "./withErrors";
-import {createAlertErrors} from "../../../utilities";
+import { createAlertErrors } from '../../../utilities';
+import { IErrorProps, withErrors } from './withErrors';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 const WrappedComponent = () => <div>Wrapped</div>;
 const EnhancedComponent = withErrors(WrappedComponent);
 
 describe('withErrors HOC', () => {
-    let props: IErrorProps;
+  let props: IErrorProps;
+
+  beforeAll(() => {
+    props = {
+      errors: createAlertErrors(false),
+    };
+  });
+
+  describe('Shallow component', () => {
+    let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-        props = {
-            errors: createAlertErrors(false)
-        };
+      shallowWrapper = shallow(<EnhancedComponent {...props} />);
     });
 
-    describe('Shallow component', () => {
-        let shallowWrapper: ShallowWrapper;
-
-        beforeAll(() => {
-            shallowWrapper = shallow(<EnhancedComponent {...props}/>);
-        });
-
-        it('Renders without crashing', () => {
-            expect(shallowWrapper.length).toEqual(1);
-        });
-
-        describe('No Errors', () => {
-            it('Matches snapshot - renders WrappedComponent', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(false) });
-                expect(shallowWrapper).toMatchSnapshot();
-            });
-        });
-
-        describe('With Errors', () => {
-            it('Matches snapshot - renders general error', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(true) });
-                expect(shallowWrapper).toMatchSnapshot();
-            });
-
-            it('Matches snapshot - renders specific errors', () => {
-                shallowWrapper.setProps({ errors: createAlertErrors(true, ['error1', 'error2']) });
-                expect(shallowWrapper).toMatchSnapshot();
-            });
-        });
+    it('Renders without crashing', () => {
+      expect(shallowWrapper.length).toEqual(1);
     });
+
+    describe('No Errors', () => {
+      it('Matches snapshot - renders WrappedComponent', () => {
+        shallowWrapper.setProps({ errors: createAlertErrors(false) });
+        expect(shallowWrapper).toMatchSnapshot();
+      });
+    });
+
+    describe('With Errors', () => {
+      it('Matches snapshot - renders general error', () => {
+        shallowWrapper.setProps({ errors: createAlertErrors(true) });
+        expect(shallowWrapper).toMatchSnapshot();
+      });
+
+      it('Matches snapshot - renders specific errors', () => {
+        shallowWrapper.setProps({
+          errors: createAlertErrors(true, ['error1', 'error2']),
+        });
+        expect(shallowWrapper).toMatchSnapshot();
+      });
+    });
+  });
 });
