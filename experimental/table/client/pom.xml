@@ -67,6 +67,11 @@
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-metastore</artifactId>
+      <version>2.3.6-SNAPSHOT</version>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>

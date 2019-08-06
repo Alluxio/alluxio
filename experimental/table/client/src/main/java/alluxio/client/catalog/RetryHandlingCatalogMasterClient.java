@@ -12,6 +12,7 @@
 package alluxio.client.catalog;
 
 import alluxio.AbstractMasterClient;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.experimental.Constants;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.GetAllDatabasesPRequest;
@@ -60,7 +61,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<String> getAllDatabase() throws IOException {
+  public List<String> getAllDatabase() throws AlluxioStatusException {
     return retryRPC(() -> mClient.getAllDatabases(
         GetAllDatabasesPRequest.newBuilder().build()).getDatabaseList());
   }
