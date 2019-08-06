@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +35,9 @@ import java.util.function.Consumer;
 
 /**
  * Copycat transport {@link Server} implementation that uses Alluxio gRPC.
+ *
+ * Copycat guarantees each server will be used for listening only one address and won't be
+ * recycled. It also guarantees that active listen future will be completed before calling close.
  */
 public class CopycatGrpcServer implements Server {
   private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcServer.class);
@@ -51,9 +55,6 @@ public class CopycatGrpcServer implements Server {
   /** List of all connections created by this server. */
   private final List<Connection> mConnections;
 
-  /** Whether this server is closed. */
-  private boolean mClosed = false;
-
   /**
    * Creates copycat transport server that can be used to accept connections from remote copycat
    * clients.
@@ -64,12 +65,17 @@ public class CopycatGrpcServer implements Server {
   public CopycatGrpcServer(AlluxioConfiguration conf, UserState userState) {
     mConf = conf;
     mUserState = userState;
-    mConnections = new LinkedList<>();
+    mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
   @Override
   public synchronized CompletableFuture<Void> listen(Address address,
       Consumer<Connection> listener) {
+    // Return completion if already listening.
+    if (mActiveAddress != null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
     LOG.debug("Copycat transport server binding to: {}", address);
     return ThreadContext.currentContextOrThrow().execute(() -> {
       // Listener that notifies both this server instance and given listener.
@@ -102,7 +108,7 @@ public class CopycatGrpcServer implements Server {
 
   @Override
   public synchronized CompletableFuture<Void> close() {
-    if (mClosed || mGrpcServer == null) {
+    if (mGrpcServer == null) {
       return CompletableFuture.completedFuture(null);
     }
 
@@ -113,12 +119,26 @@ public class CopycatGrpcServer implements Server {
       connectionCloseFutures.add(connection.close());
     }
     mConnections.clear();
-    return CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0]))
-        .thenRun(() -> {
+
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0]))
+        .whenComplete((result, error) -> {
           // Shut down gRPC server once all connections are closed.
-          mGrpcServer.shutdown();
-          mGrpcServer = null;
+          try {
+            mGrpcServer.shutdown();
+          } catch (Exception e) {
+            LOG.warn("Failed to close gRPC server for copycat transport at:{}", mActiveAddress);
+          } finally {
+            mGrpcServer = null;
+          }
+          // Complete the future with result from connection shut downs.
+          if (error == null) {
+            future.complete(result);
+          } else {
+            future.completeExceptionally(error);
+          }
         });
+    return future;
   }
 
   /**
