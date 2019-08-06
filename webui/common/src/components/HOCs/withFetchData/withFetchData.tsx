@@ -18,7 +18,7 @@ export interface IFetchDataProps {
 }
 
 export function withFetchData<T extends IFetchDataProps>(
-  WrappedComponent: React.ComponentType<T>,
+  WrappedComponent: React.ComponentType<T>
 ) {
   class FetchDataHoc extends React.Component<T> {
     public componentDidUpdate(prevProps: T) {

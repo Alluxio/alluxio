@@ -9,16 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import 'babel-polyfill';
-import 'raf/polyfill';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
+import "babel-polyfill";
+import "raf/polyfill";
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
 
-import 'source-code-pro/source-code-pro.css';
-import 'source-sans-pro/source-sans-pro.css';
-import 'source-serif-pro/source-serif-pro.css';
+import "source-code-pro/source-code-pro.css";
+import "source-sans-pro/source-sans-pro.css";
+import "source-serif-pro/source-serif-pro.css";
 
-import './index.css';
+import "./index.css";
 
-ReactDOM.render(<App />, document.getElementById('root') as HTMLElement);
+ReactDOM.render(<App />, document.getElementById("root") as HTMLElement);

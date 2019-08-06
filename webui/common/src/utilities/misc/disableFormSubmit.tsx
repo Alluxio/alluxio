@@ -12,7 +12,7 @@
 import * as React from 'react';
 
 export const disableFormSubmit = (
-  event: React.KeyboardEvent<HTMLFormElement>,
+  event: React.KeyboardEvent<HTMLFormElement>
 ) => {
   event.preventDefault();
   return false;

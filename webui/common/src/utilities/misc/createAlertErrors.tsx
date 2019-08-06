@@ -13,17 +13,17 @@ import { IAlertErrors } from '../../constants';
 
 export function createAlertErrors(
   errorCondition: boolean,
-  errorList?: string[],
+  errorList?: string[]
 ): IAlertErrors {
   const errors: IAlertErrors = {
     general: errorCondition,
     hasErrors: errorCondition,
-    specific: [],
+    specific: []
   };
 
   if (errorList) {
     errorList.forEach(
-      (err) => err && (errors.hasErrors = true) && errors.specific.push(err),
+      err => err && (errors.hasErrors = true) && errors.specific.push(err)
     );
   }
 

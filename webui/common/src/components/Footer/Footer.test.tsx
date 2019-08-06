@@ -14,7 +14,7 @@ import {
   mount,
   ReactWrapper,
   shallow,
-  ShallowWrapper,
+  ShallowWrapper
 } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
@@ -29,7 +29,7 @@ describe('Footer', () => {
 
   beforeAll(() => {
     props = {
-      data: [],
+      data: []
     };
   });
 
@@ -57,7 +57,7 @@ describe('Footer', () => {
       reactWrapper = mount(
         <StaticRouter location="someLocation" context={context}>
           <Footer {...props} />
-        </StaticRouter>,
+        </StaticRouter>
       );
     });
 

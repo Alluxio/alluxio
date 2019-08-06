@@ -52,7 +52,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
       queryStringSuffix,
       textAreaHeight,
       viewData,
-      history,
+      history
     } = this.props;
 
     return (
@@ -99,7 +99,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
               onChange={offsetInputHandler}
               onKeyUp={this.createInputEnterHandler(
                 history,
-                () => `${queryStringPrefix}?path=${path}${queryStringSuffix}`,
+                () => `${queryStringPrefix}?path=${path}${queryStringSuffix}`
               )}
               onFocus={(evt: React.FocusEvent<HTMLInputElement>) =>
                 evt.currentTarget.select()
@@ -135,7 +135,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             <Button
               tag={Link}
               to={`${queryStringPrefix}?path=${encodeURIComponent(
-                path || '',
+                path || ''
               )}${queryStringSuffix}`}
               color="secondary"
             >
@@ -150,7 +150,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
 
   private createInputEnterHandler(
     history: History<LocationState>,
-    stateValueCallback: (value: string) => string | undefined,
+    stateValueCallback: (value: string) => string | undefined
   ) {
     return (event: React.KeyboardEvent<HTMLInputElement>) => {
       const value = event.key;

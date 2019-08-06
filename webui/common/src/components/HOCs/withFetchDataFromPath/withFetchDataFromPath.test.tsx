@@ -16,7 +16,7 @@ import sinon, { SinonSpy } from 'sinon';
 import { IRequest } from '../../../constants';
 import {
   IFetchDataFromPathProps,
-  withFetchDataFromPath,
+  withFetchDataFromPath
 } from './withFetchDataFromPath';
 
 configure({ adapter: new Adapter() });
@@ -34,7 +34,7 @@ describe('withFetchData HOC', () => {
       props = {
         fetchRequest: sinon.spy(() => {}),
         location: { search: '' },
-        refresh: false,
+        refresh: false
       };
       shallowWrapper = shallow(<EnhancedComponent {...props} />);
     });
@@ -49,7 +49,7 @@ describe('withFetchData HOC', () => {
 
     it('Check encoded search string get parsed into state', () => {
       shallowWrapper.setProps({
-        location: { search: '?path=%2Fexample%2Fnotes.txt&offset=123' },
+        location: { search: '?path=%2Fexample%2Fnotes.txt&offset=123' }
       });
       sinon.assert.calledTwice(props.fetchRequest as SinonSpy);
       const req: IRequest = shallowWrapper.state('request');
@@ -59,7 +59,7 @@ describe('withFetchData HOC', () => {
 
     it('Check decoded search string get parsed into state', () => {
       shallowWrapper.setProps({
-        location: { search: '?path=/example/notes.txt&offset=123' },
+        location: { search: '?path=/example/notes.txt&offset=123' }
       });
       sinon.assert.calledTwice(props.fetchRequest as SinonSpy);
       const req: IRequest = shallowWrapper.state('request');

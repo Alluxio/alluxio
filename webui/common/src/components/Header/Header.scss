@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '../../constants/scss/themeVariables';
+@import "../../constants/scss/themeVariables";
 
 .header {
   .navbar {
@@ -45,7 +45,8 @@
         }
 
         @keyframes brandSpin {
-          0%, 90% {
+          0%,
+          90% {
             transform: rotateY(0deg);
           }
           95% {

@@ -19,7 +19,7 @@ export interface ILoadingProps {
 }
 
 export function withLoadingMessage<T extends ILoadingProps>(
-  WrappedComponent: React.ComponentType<T>,
+  WrappedComponent: React.ComponentType<T>
 ) {
   const loaderHoc = (props: T) =>
     props.loading ? (
@@ -30,7 +30,7 @@ export function withLoadingMessage<T extends ILoadingProps>(
       <WrappedComponent {...props} />
     );
   (loaderHoc as React.FunctionComponent).displayName = `withLoadingMessage(${getDisplayName(
-    WrappedComponent,
+    WrappedComponent
   )})`;
   return loaderHoc;
 }

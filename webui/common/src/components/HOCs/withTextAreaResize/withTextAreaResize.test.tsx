@@ -27,7 +27,7 @@ describe('withFetchData HOC', () => {
       Object.defineProperty(window, 'innerHeight', {
         configurable: true,
         value: defaultHeight,
-        writable: true,
+        writable: true
       });
     });
 
@@ -41,7 +41,7 @@ describe('withFetchData HOC', () => {
       Object.defineProperty(window, 'innerHeight', {
         configurable: true,
         value: 200,
-        writable: true,
+        writable: true
       });
       expect(shallowWrapper.state('textAreaHeight')).toEqual(50);
     });
@@ -51,7 +51,7 @@ describe('withFetchData HOC', () => {
       Object.defineProperty(window, 'innerHeight', {
         configurable: true,
         value: 200,
-        writable: true,
+        writable: true
       });
       setTimeout(() => {
         expect(shallowWrapper.state('textAreaHeight')).toEqual(100);
@@ -64,7 +64,7 @@ describe('withFetchData HOC', () => {
       Object.defineProperty(window, 'innerHeight', {
         configurable: true,
         value: 500,
-        writable: true,
+        writable: true
       });
       setTimeout(() => {
         expect(shallowWrapper.state('textAreaHeight')).toEqual(250);

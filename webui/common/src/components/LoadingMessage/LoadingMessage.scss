@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '../../constants/scss/themeVariables';
+@import "../../constants/scss/themeVariables";
 
 .loadingMessageWrapper {
   position: fixed;
@@ -34,7 +34,8 @@
   }
 
   @keyframes loadingMessageSpin {
-    0%, 50% {
+    0%,
+    50% {
       transform: rotateY(0deg);
     }
     50% {

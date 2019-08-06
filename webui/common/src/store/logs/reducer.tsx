@@ -22,15 +22,15 @@ export const initialLogsState: ILogsState = {
     fileInfos: [],
     invalidPathError: '',
     ntotalFile: 0,
-    viewingOffset: 0,
+    viewingOffset: 0
   },
   errors: undefined,
-  loading: false,
+  loading: false
 };
 
 export const logsReducer: Reducer<ILogsState> = (
   state = initialLogsState,
-  action,
+  action
 ) => {
   switch (action.type) {
     case LogsActionTypes.FETCH_REQUEST:
@@ -41,7 +41,7 @@ export const logsReducer: Reducer<ILogsState> = (
         data: action.payload.data,
         errors: undefined,
         loading: false,
-        response: action.payload,
+        response: action.payload
       };
     case LogsActionTypes.FETCH_ERROR:
       return { ...state, loading: false, errors: action.payload };

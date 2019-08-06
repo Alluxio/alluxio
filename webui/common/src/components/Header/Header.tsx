@@ -23,12 +23,12 @@ import {
   NavbarBrand,
   NavbarToggler,
   NavItem,
-  NavLink,
+  NavLink
 } from 'reactstrap';
 
 import {
   INavigationData,
-  INavigationDataCallbackParameters,
+  INavigationDataCallbackParameters
 } from '../../constants';
 import logo from '../../images/alluxio-mark-tight-sm.svg';
 import { isExternalLink } from '../../utilities';
@@ -54,8 +54,8 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
 
     const {
       history: {
-        location: { pathname },
-      },
+        location: { pathname }
+      }
     } = this.props;
     this.toggleHamburgerMenu = this.toggleHamburgerMenu.bind(this);
     this.toggleAutoRefresh = this.toggleAutoRefresh.bind(this);
@@ -69,10 +69,10 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     history.listen((loc: Location, action: Action) => {
       const {
         history: {
-          location: { pathname },
-        },
+          location: { pathname }
+        }
       } = this.props;
-      this.setState((prevState) => ({ ...prevState, ...{ pathname } }));
+      this.setState(prevState => ({ ...prevState, ...{ pathname } }));
     });
   }
 

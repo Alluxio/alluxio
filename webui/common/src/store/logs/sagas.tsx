@@ -21,7 +21,7 @@ const API_ENDPOINT = `${process.env.REACT_APP_API_ROOT}/webui_logs`;
 const watchRequest = function*() {
   yield takeLatest(
     LogsActionTypes.FETCH_REQUEST,
-    getSagaRequest(axios.get, API_ENDPOINT, fetchSuccess, fetchError),
+    getSagaRequest(axios.get, API_ENDPOINT, fetchSuccess, fetchError)
   );
 };
 

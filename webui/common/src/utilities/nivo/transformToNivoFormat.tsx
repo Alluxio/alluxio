@@ -16,7 +16,7 @@ export interface ITranformableData {
 export const transformToNivoFormat = (
   data: ITranformableData[],
   xKeyName: string,
-  yKeyName: string,
+  yKeyName: string
 ) => {
   data.forEach((item: ITranformableData, index: number) => {
     item.x = item[xKeyName];

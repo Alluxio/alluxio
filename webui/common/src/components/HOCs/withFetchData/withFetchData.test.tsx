@@ -29,7 +29,7 @@ describe('withFetchData HOC', () => {
     beforeEach(() => {
       props = {
         fetchRequest: sinon.spy(() => {}),
-        refresh: false,
+        refresh: false
       };
       shallowWrapper = shallow(<EnhancedComponent {...props} />);
     });

@@ -25,7 +25,7 @@ describe('withErrors HOC', () => {
 
   beforeAll(() => {
     props = {
-      errors: createAlertErrors(false),
+      errors: createAlertErrors(false)
     };
   });
 
@@ -55,7 +55,7 @@ describe('withErrors HOC', () => {
 
       it('Matches snapshot - renders specific errors', () => {
         shallowWrapper.setProps({
-          errors: createAlertErrors(true, ['error1', 'error2']),
+          errors: createAlertErrors(true, ['error1', 'error2'])
         });
         expect(shallowWrapper).toMatchSnapshot();
       });

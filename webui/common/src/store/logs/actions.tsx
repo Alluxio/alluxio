@@ -17,7 +17,7 @@ import { LogsActionTypes } from './types';
 
 export const fetchRequest = ({ path, offset, limit, end }: IRequest) =>
   action(LogsActionTypes.FETCH_REQUEST, {
-    queryString: { end, limit, offset, path },
+    queryString: { end, limit, offset, path }
   });
 export const fetchSuccess = (response: AxiosResponse) =>
   action(LogsActionTypes.FETCH_SUCCESS, response);
