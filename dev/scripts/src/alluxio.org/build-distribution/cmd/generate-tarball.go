@@ -40,7 +40,7 @@ var (
 	hadoopDistributionFlag string
 	targetFlag             string
 	mvnArgsFlag            string
-	buildUIFlag               string
+	skipUIFlag            bool
 )
 
 func init() {
@@ -49,7 +49,7 @@ func init() {
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
 			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
 	cmdSingle.Flags.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
-	cmdSingle.Flags.StringVar(&buildUIFlag, "build-ui", "true", `set this flag to false to skip building the webui`)
+	cmdSingle.Flags.BoolVar(&skipUIFlag, "skip-ui", false, `set this flag to skip building the webui`)
 }
 
 func single(_ *cmdline.Env, _ []string) error {
@@ -293,7 +293,7 @@ func generateTarball(hadoopClients []string) error {
 	}
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
-	if buildUIFlag == "false" {
+	if skipUIFlag {
 		mvnArgsNoUI := append(mvnArgs, "-pl", "!webui")
 		run("compiling repo without UI", "mvn", mvnArgsNoUI...)
 	} else {
@@ -325,7 +325,7 @@ func generateTarball(hadoopClients []string) error {
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
 
-	if buildUIFlag != "false" {
+	if !skipUIFlag {
 		masterWebappDir := "webui/master"
 		run("creating webui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
 		run("copying webui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
