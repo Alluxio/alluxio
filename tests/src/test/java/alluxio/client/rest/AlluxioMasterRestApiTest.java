@@ -15,12 +15,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.RuntimeConstants;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.meta.AlluxioMasterRestServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.testutils.underfs.UnderFileSystemTestUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
@@ -69,6 +72,14 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     return info;
   }
 
+  private Map<String, String> getMetrics(Map<String, String> params) throws Exception {
+    String result =
+        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_METRICS),
+            params, HttpMethod.GET, null).call();
+    Map<String, String> info = new ObjectMapper().readValue(result, Map.class);
+    return info;
+  }
+
   @Test
   public void getCapacity() throws Exception {
     long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
@@ -110,9 +121,20 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getMetrics() throws Exception {
+  public void getMetricsInfo() throws Exception {
     assertEquals(Long.valueOf(0),
         getInfo(NO_PARAMS).getMetrics().get(MetricsSystem.getMetricName("CompleteFileOps")));
+  }
+
+  @Test
+  public void getUfsMetrics() throws Exception {
+    int len = 100;
+    FileSystemTestUtils.createByteFile(mResource.get().getClient(), "/f1", WritePType.THROUGH, len);
+    assertEquals(FormatUtils.getSizeFromBytes(len),
+        getMetrics(NO_PARAMS).get("totalBytesWrittenUfs"));
+    FileSystemTestUtils.createByteFile(mResource.get().getClient(), "/f2", WritePType.THROUGH, len);
+    assertEquals(FormatUtils.getSizeFromBytes(2 * len),
+        getMetrics(NO_PARAMS).get("totalBytesWrittenUfs"));
   }
 
   @Test
