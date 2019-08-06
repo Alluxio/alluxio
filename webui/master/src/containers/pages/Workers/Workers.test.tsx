@@ -23,6 +23,7 @@ import {initialInitState} from '../../../store/init/reducer';
 import ConnectedApp from '../../App/App';
 import {AllProps, WorkersPresenter} from './Workers';
 import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -38,6 +39,11 @@ describe('Workers', () => {
     props = {
       initData: initialInitState.data,
       workersData: initialState.workers.data,
+      errors: createAlertErrors(false),
+      loading: false,
+      refresh: initialState.refresh.data,
+      class: '',
+      fetchRequest: sinon.spy(() => {})
     };
   });
 

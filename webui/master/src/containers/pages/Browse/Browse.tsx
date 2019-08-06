@@ -20,11 +20,10 @@ import {compose, Dispatch} from 'redux';
 
 import {
   FileView, withErrors, withFetchDataFromPath, withFluidContainer, withLoadingMessage,
-  withTextAreaResize, IFetchDataPathType,
-  ITextAreaResizeState,
-  Paginator
+  withTextAreaResize,
+  Paginator, IHandlers
 } from '@alluxio/common-ui/src/components';
-import {IAlertErrors, IFileBlockInfo, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
+import {IAlertErrors, IFileBlockInfo, IFileInfo, IRequest, ICommonState} from '@alluxio/common-ui/src/constants';
 import {
   createAlertErrors,
   disableFormSubmit,
@@ -32,22 +31,33 @@ import {
 } from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/browse/actions';
-import {IBrowse, IBrowseStateToProps} from '../../../store/browse/types';
+import {IBrowse} from '../../../store/browse/types';
 import {IInit} from '../../../store/init/types';
 
 import './Browse.css';
 import {routePaths} from "../../../constants";
 
-interface IPropsFromState {
-  browseData: IBrowse;
-  initData: IInit;
+export interface IPropsFromState extends ICommonState {
+  browseData: IBrowse,
+  initData: IInit
+}
+
+interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
 }
 
 interface IBrowseProps {
+  end?: string;
   history: History<LocationState>;
+  limit?: string;
+  location: {search: string};
+  offset?: string;
+  path?: string;
+  queryStringSuffix: string;
+  textAreaHeight: number;
 }
 
-export type AllProps = IPropsFromState & IBrowseProps & ITextAreaResizeState & IFetchDataPathType;
+export type AllProps = IPropsFromState & IBrowseProps & IPropsFromDispatch & IHandlers;
 
 export class BrowsePresenter extends React.Component<AllProps> {
   public render() {
@@ -220,7 +230,7 @@ export class BrowsePresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({browse, init, refresh}: IApplicationState): IBrowseStateToProps => {
+const mapStateToProps = ({browse, init, refresh}: IApplicationState): IPropsFromState => {
   const errors: IAlertErrors = createAlertErrors(
       init.errors !== undefined || browse.errors !== undefined,
       [

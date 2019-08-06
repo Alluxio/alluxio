@@ -13,7 +13,7 @@ import {AxiosResponse} from 'axios';
 
 import {INodeInfo} from '../../constants';
 import {IInit} from "../init/types";
-import {IStateToProps} from "@alluxio/common-ui/src/constants";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 export interface IWorkers {
   'debug': boolean;
@@ -32,9 +32,4 @@ export interface IWorkersState {
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;
-}
-
-export interface IWorkersStateToProp extends IStateToProps {
-  initData: IInit,
-  workersData: IWorkers
 }

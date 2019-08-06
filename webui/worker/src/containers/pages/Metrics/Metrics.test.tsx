@@ -9,19 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import {configure, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
 import {Store} from 'redux';
 import sinon, {SinonSpy} from 'sinon';
 
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
-import ConnectedApp from '../../App/App';
 import {AllProps, MetricsPresenter} from './Metrics';
 import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -36,6 +35,11 @@ describe('Metrics', () => {
     store = configureStore(history, initialState);
     props = {
       data: initialState.metrics.data,
+      errors: createAlertErrors(false),
+      class: '',
+      loading: false,
+      refresh: initialState.refresh.data,
+      fetchRequest: sinon.spy(() => {})
     };
   });
 

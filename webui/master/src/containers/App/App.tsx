@@ -9,14 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
 import {ConnectedRouter} from 'connected-react-router';
 import {History, LocationState} from 'history';
 import React from 'react';
 import {connect} from 'react-redux';
 import {StaticContext} from 'react-router';
 import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
-import {Alert} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
 import {
@@ -24,7 +22,6 @@ import {
   withErrors,
   withLoadingMessage,
   Header,
-  LoadingMessage,
   withFetchData
 } from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
@@ -34,16 +31,18 @@ import {
 import {footerNavigationData, headerNavigationData, routePaths} from '../../constants';
 import {IApplicationState} from '../../store';
 import {fetchRequest} from '../../store/init/actions';
-import {IAppStateToProps, IInit} from '../../store/init/types';
+import {IInit} from '../../store/init/types';
 
 import './App.css';
 import {AutoRefresh, createAlertErrors, IAutoRefresh} from "@alluxio/common-ui/src/utilities";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
-interface IPropsFromState {
-  init: IInit;
+interface IPropsFromState extends ICommonState {
+  init: IInit
 }
 
 interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
   triggerRefresh: typeof triggerRefresh;
 }
 
@@ -107,7 +106,7 @@ export class App extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({init, refresh}: IApplicationState): IAppStateToProps => ({
+const mapStateToProps = ({init, refresh}: IApplicationState): IPropsFromState => ({
   init: init.data,
   errors: createAlertErrors(init.errors !== undefined),
   loading: !init.data && init.loading,

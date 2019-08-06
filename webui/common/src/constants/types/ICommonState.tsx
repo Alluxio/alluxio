@@ -11,7 +11,7 @@
 
 import {IAlertErrors} from "./IAlertErrors";
 
-export interface IStateToProps {
+export interface ICommonState {
     class: string,
     errors: IAlertErrors,
     loading: boolean,

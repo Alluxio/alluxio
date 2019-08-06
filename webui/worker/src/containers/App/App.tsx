@@ -23,13 +23,14 @@ import {BlockInfo, WorkerLogs, Metrics, Overview} from '..';
 import {footerNavigationData, headerNavigationData, routePaths} from '../../constants';
 import {IApplicationState} from '../../store';
 import {fetchRequest} from '../../store/init/actions';
-import {IInit, IInitStateToProps} from '../../store/init/types';
+import {IInit} from '../../store/init/types';
 
 import './App.css';
 import {AutoRefresh, createAlertErrors, IAutoRefresh} from "@alluxio/common-ui/src/utilities";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
-interface IPropsFromState {
-  init: IInit;
+interface IPropsFromState extends ICommonState {
+  init: IInit
 }
 
 interface IPropsFromDispatch {
@@ -96,7 +97,7 @@ export class App extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({init, refresh}: IApplicationState): IInitStateToProps => ({
+const mapStateToProps = ({init, refresh}: IApplicationState): IPropsFromState => ({
   init: init.data,
   errors: createAlertErrors(init.errors !== undefined),
   loading: init.loading,

@@ -22,6 +22,7 @@ import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
 import {AllProps, ConfigurationPresenter} from './Configuration';
 import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -36,6 +37,11 @@ describe('Configuration', () => {
     store = configureStore(history, initialState);
     props = {
       data: initialState.config.data,
+      class: '',
+      errors: createAlertErrors(false),
+      loading: false,
+      fetchRequest: sinon.spy(() => {}),
+      refresh: false
     };
   });
 

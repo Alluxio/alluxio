@@ -22,6 +22,7 @@ import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
 import {AllProps, BlockInfoPresenter} from './BlockInfo';
 import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -36,13 +37,14 @@ describe('BlockInfo', () => {
     store = configureStore(history, initialState);
     props = {
       path: '',
-      location: {search: ''},
       refresh: false,
       fetchRequest: sinon.spy(() => {}),
-      createInputChangeHandler: sinon.spy(),
-      createButtonHandler: sinon.spy(),
-      queryStringSuffix: '',
       data: initialState.blockInfo.data,
+      loading: false,
+      errors: createAlertErrors(false),
+      class: '',
+      limit: '',
+      offset: ''
     };
   });
 

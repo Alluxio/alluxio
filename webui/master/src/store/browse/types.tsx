@@ -11,7 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 
-import {IFileBlockInfo, IFileInfo, IStateToProps} from '@alluxio/common-ui/src/constants';
+import {IFileBlockInfo, IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
 import {IInit} from "../init/types";
 
 export interface IBrowse {
@@ -46,9 +46,4 @@ export interface IBrowseState {
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;
-}
-
-export interface IBrowseStateToProps extends IStateToProps {
-  browseData: IBrowse,
-  initData: IInit
 }

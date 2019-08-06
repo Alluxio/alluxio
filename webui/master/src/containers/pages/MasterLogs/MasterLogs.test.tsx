@@ -23,6 +23,7 @@ import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
 import {routePaths} from "../../../constants";
 import MasterLogs from "./MasterLogs";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -49,6 +50,9 @@ describe('MasterLogs', () => {
       limit: '',
       createButtonHandler: sinon.spy(),
       createInputChangeHandler: sinon.spy(),
+      errors: createAlertErrors(false),
+      loading: false,
+      class: ''
     };
   });
 

@@ -151,6 +151,7 @@ exports[`Browse Shallow component Renders FileView Matches snapshot with File 1`
     }
     queryStringPrefix="/browse"
     queryStringSuffix=""
+    textAreaHeight={0}
     viewData={
       Object {
         "accessControlException": "",

@@ -18,21 +18,30 @@ import {
   withErrors,
   withFetchDataFromPath, withFluidContainer,
   withLoadingMessage,
-  IFetchDataPathType,
   Paginator
 } from '@alluxio/common-ui/src/components';
-import {IAlertErrors, IFileBlockInfo, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
+import {IAlertErrors, ICommonState, IFileBlockInfo, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
 import {createAlertErrors, renderFileNameLink} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/blockInfo/actions';
-import {IBlockInfo, IBlockInfoStateToProps, IFileBlocksOnTier} from '../../../store/blockInfo/types';
+import {IBlockInfo, IFileBlocksOnTier} from '../../../store/blockInfo/types';
 import {routePaths} from "../../../constants";
 
-interface IPropsFromState {
-  data: IBlockInfo;
+interface IPropsFromState extends ICommonState {
+  data: IBlockInfo
 }
 
-export type AllProps = IPropsFromState & IFetchDataPathType;
+interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
+}
+
+interface IBlockInfoProps {
+  path?: string;
+  offset?: string;
+  limit?: string;
+}
+
+export type AllProps = IPropsFromState & IPropsFromDispatch & IBlockInfoProps;
 
 export class BlockInfoPresenter extends React.Component<AllProps> {
   public render() {
@@ -118,7 +127,7 @@ export class BlockInfoPresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({blockInfo, refresh}: IApplicationState): IBlockInfoStateToProps => {
+const mapStateToProps = ({blockInfo, refresh}: IApplicationState): IPropsFromState => {
   const errors: IAlertErrors = createAlertErrors(
   blockInfo.errors != undefined,
       [blockInfo.data.invalidPathError, blockInfo.data.fatalError]

@@ -9,25 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
-import {Alert, Table} from 'reactstrap';
+import {Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
 import {withErrors, withLoadingMessage, withFetchData} from '@alluxio/common-ui/src/components';
 import {IConfigTriple} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/config/actions';
-import {IConfig, IConfigStateToProps} from '../../../store/config/types';
-import {IAlertErrors} from "@alluxio/common-ui/src/constants";
+import {IConfig} from '../../../store/config/types';
+import {IAlertErrors, ICommonState} from "@alluxio/common-ui/src/constants";
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
-interface IPropsFromState {
-  data: IConfig;
+interface IPropsFromState extends ICommonState {
+  data: IConfig
 }
 
-export type AllProps = IPropsFromState;
+interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
+}
+
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class ConfigurationPresenter extends React.Component<AllProps> {
   public render() {
@@ -79,7 +82,7 @@ export class ConfigurationPresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({config, refresh}: IApplicationState): IConfigStateToProps => {
+const mapStateToProps = ({config, refresh}: IApplicationState): IPropsFromState => {
   const errors: IAlertErrors = createAlertErrors(config.errors !== undefined, []);
   return {
     data: config.data,

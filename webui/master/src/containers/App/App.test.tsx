@@ -25,6 +25,7 @@ import ConnectedApp, {AllProps, App} from './App';
 import {Footer, Header} from "@alluxio/common-ui/src/components";
 import {Route} from "react-router";
 import {routePaths} from "../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -40,7 +41,12 @@ describe('App', () => {
     props = {
       history: history,
       init: initialInitState.data,
-      triggerRefresh: sinon.spy(() => {})
+      triggerRefresh: sinon.spy(() => {}),
+      fetchRequest: sinon.spy(() => {}),
+      errors: createAlertErrors(false),
+      loading: false,
+      refresh: initialState.refresh.data,
+      class: ''
     };
   });
 

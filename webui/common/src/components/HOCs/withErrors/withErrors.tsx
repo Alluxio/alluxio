@@ -12,7 +12,7 @@
 import React from 'react';
 import {Alert} from "reactstrap";
 import {IAlertErrors} from "../../../constants";
-import {getDisplayName} from "../../../utilities/misc/getDisplayName";
+import {getDisplayName} from "../../../utilities";
 
 export interface IErrorProps {
     errors: IAlertErrors;

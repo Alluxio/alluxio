@@ -10,8 +10,7 @@
  */
 
 import React from 'react';
-import {getDebouncedFunction} from "../../../utilities";
-import {getDisplayName} from "../../../utilities/misc/getDisplayName";
+import {getDebouncedFunction, getDisplayName} from "../../../utilities";
 
 export interface ITextAreaResizeState {
     textAreaHeight?: number;

@@ -22,6 +22,7 @@ import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
 import {AllProps, DataPresenter} from './Data';
 import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -35,17 +36,14 @@ describe('Data', () => {
     history.push(routePaths.data);
     store = configureStore(history, initialState);
     props = {
-      end: '',
       limit: '',
       offset: '',
-      path: '',
-      location: {search: ''},
       refresh: false,
       fetchRequest: sinon.spy(() => {}),
-      createInputChangeHandler: sinon.spy(),
-      createButtonHandler: sinon.spy(),
       data: initialState.data.data,
-      queryStringSuffix: ''
+      errors: createAlertErrors(false),
+      class: '',
+      loading: false
     };
   });
 

@@ -11,7 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 
-import {IFileInfo, IStateToProps} from '../../constants';
+import {IFileInfo, ICommonState} from '../../constants';
 
 export interface ILogs {
   'currentPath': string;
@@ -35,8 +35,4 @@ export interface ILogsState {
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;
-}
-
-export interface ILogsStateToProps extends IStateToProps {
-  data: ILogs
 }

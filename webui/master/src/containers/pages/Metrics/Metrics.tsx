@@ -10,12 +10,10 @@
  */
 
 import {LineSerieData} from '@nivo/line';
-import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
-import {Alert, Table} from 'reactstrap';
+import { Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
-
 import {
   withErrors,
   withFluidContainer,
@@ -25,14 +23,19 @@ import {
 } from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
-import {IMetrics, IMetricsStateToProps} from '../../../store/metrics/types';
+import {IMetrics} from '../../../store/metrics/types';
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
-interface IPropsFromState {
-  data: IMetrics;
+interface IPropsFromState extends ICommonState {
+  data: IMetrics
 }
 
-export type AllProps = IPropsFromState;
+interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
+}
+
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class MetricsPresenter extends React.Component<AllProps> {
   public render() {
@@ -261,7 +264,7 @@ export class MetricsPresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({metrics, refresh}: IApplicationState): IMetricsStateToProps => {
+const mapStateToProps = ({metrics, refresh}: IApplicationState): IPropsFromState => {
   return {
     data: metrics.data,
     errors: createAlertErrors(metrics.errors !== undefined),

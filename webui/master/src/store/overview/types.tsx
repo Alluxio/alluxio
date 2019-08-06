@@ -12,7 +12,7 @@
 import {AxiosResponse} from 'axios';
 
 import {IScopedPropertyInfo, IStorageTierInfo} from '../../constants';
-import {IStateToProps} from "@alluxio/common-ui/src/constants";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 export interface IOverview {
   'debug': boolean;
@@ -44,8 +44,4 @@ export interface IOverviewState {
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;
-}
-
-export interface IOverviewStateToProps extends IStateToProps {
-  data: IOverview;
 }

@@ -10,7 +10,7 @@
  */
 
 import React from 'react';
-import {getDisplayName} from "../../../utilities/misc/getDisplayName";
+import {getDisplayName} from "../../../utilities";
 import {LoadingMessage} from "../..";
 
 export interface ILoadingProps {
@@ -18,8 +18,8 @@ export interface ILoadingProps {
     class: string;
 }
 
-export function withLoadingMessage(WrappedComponent: React.ComponentType<any>) {
-    const loaderHoc = (props: ILoadingProps) => {
+export function withLoadingMessage<T extends ILoadingProps>(WrappedComponent: React.ComponentType<T>) {
+    const loaderHoc = (props: T) => {
         return props.loading
             ? (
                 <div className={props.class}>

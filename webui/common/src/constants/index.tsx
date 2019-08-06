@@ -16,4 +16,4 @@ export * from './types/IFileInfo';
 export * from './types/IFileViewData';
 export * from './types/ICounter';
 export * from './types/IRequest';
-export * from './types/IStateToProps';
+export * from './types/ICommonState';

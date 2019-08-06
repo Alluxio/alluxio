@@ -11,7 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 
-import {IFileBlockInfo, IFileInfo, IStateToProps} from '@alluxio/common-ui/src/constants';
+import {IFileBlockInfo, IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
 
 export interface IFileBlocksOnTier {
   [tierAlias: string]: IFileBlockInfo[];
@@ -39,8 +39,4 @@ export interface IBlockInfoState {
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;
-}
-
-export interface IBlockInfoStateToProps extends IStateToProps {
-  data: IBlockInfo
 }

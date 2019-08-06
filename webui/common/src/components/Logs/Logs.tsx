@@ -18,28 +18,37 @@ import {
   withFetchDataFromPath, withFluidContainer,
   withLoadingMessage,
   withTextAreaResize,
-  IFetchDataPathType,
-  ITextAreaResizeState
+  IHandlers
 } from '..';
-import {IAlertErrors, IFileInfo, IRequest} from '../../constants';
+import {IAlertErrors, ICommonState, IFileInfo, IRequest} from '../../constants';
 import {createAlertErrors, renderFileNameLink} from '../../utilities';
-import {ILogs, ILogsState, ILogsStateToProps} from '../../store/logs/types';
+import {ILogs, ILogsState} from '../../store/logs/types';
 import {IRefreshState} from "../../store/refresh/types";
 import {compose, Dispatch} from "redux";
 import {fetchRequest} from "../../store/logs/actions";
 
-interface IPropsFromState {
-  data: ILogs;
-  location: {
-    search: string;
-  };
+interface IPropsFromState extends ICommonState {
+  data: ILogs
+}
+
+interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
 }
 
 interface ILogsProps {
+  end?: string;
   history: History<LocationState>;
+  limit?: string;
+  location: {
+    search: string;
+  };
+  offset?: string;
+  path?: string;
+  queryStringSuffix: string;
+  textAreaHeight: number;
 }
 
-export type AllProps = IPropsFromState & ILogsProps & ITextAreaResizeState & IFetchDataPathType;
+export type AllProps = IPropsFromState & ILogsProps & IPropsFromDispatch & IHandlers;
 
 export class LogsPresenter extends React.Component<AllProps> {
   public render() {
@@ -101,7 +110,7 @@ export class LogsPresenter extends React.Component<AllProps> {
   }
 }
 
-export function getLogPropsFromState(logs: ILogsState, refresh: IRefreshState): ILogsStateToProps {
+export function getLogPropsFromState(logs: ILogsState, refresh: IRefreshState): IPropsFromState {
   const errors: IAlertErrors = createAlertErrors(
       logs.errors != undefined,
       [logs.data.invalidPathError, logs.data.fatalError]

@@ -10,16 +10,16 @@
  */
 
 import React from 'react';
-import {getDisplayName} from "../../../utilities/misc/getDisplayName";
+import {getDisplayName} from "../../../utilities";
 
 export interface IFetchDataProps {
     refresh: boolean;
     fetchRequest: () => void;
 }
 
-export function withFetchData(WrappedComponent: React.ComponentType<any>) {
-    class fetchDataHoc extends React.Component<IFetchDataProps> {
-        public componentDidUpdate(prevProps: IFetchDataProps) {
+export function withFetchData<T extends IFetchDataProps>(WrappedComponent: React.ComponentType<T>) {
+    class fetchDataHoc extends React.Component<T> {
+        public componentDidUpdate(prevProps: T) {
             if (this.props.refresh !== prevProps.refresh) {
                 this.props.fetchRequest();
             }
@@ -33,6 +33,6 @@ export function withFetchData(WrappedComponent: React.ComponentType<any>) {
             return <WrappedComponent {...this.props} />;
         }
     }
-    (fetchDataHoc as React.ComponentType<IFetchDataProps>).displayName = `withFetchData(${getDisplayName(WrappedComponent)})`;
+    (fetchDataHoc as React.ComponentType<T>).displayName = `withFetchData(${getDisplayName(WrappedComponent)})`;
     return fetchDataHoc;
 }

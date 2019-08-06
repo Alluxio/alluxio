@@ -9,24 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
-import {Alert, Progress, Table} from 'reactstrap';
+import {Progress, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
 import {withErrors, withFluidContainer, withLoadingMessage, withFetchData} from '@alluxio/common-ui/src/components';
 import {IScopedPropertyInfo, IStorageTierInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/overview/actions';
-import {IOverview, IOverviewStateToProps} from '../../../store/overview/types';
+import {IOverview} from '../../../store/overview/types';
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
-interface IPropsFromState {
+interface IPropsFromState extends ICommonState {
   data: IOverview;
 }
 
-export type AllProps = IPropsFromState;
+interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
+}
+
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class OverviewPresenter extends React.Component<AllProps> {
   public render() {
@@ -156,7 +160,7 @@ export class OverviewPresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({overview, refresh}: IApplicationState): IOverviewStateToProps => ({
+const mapStateToProps = ({overview, refresh}: IApplicationState): IPropsFromState => ({
   data: overview.data,
   errors: createAlertErrors(overview.errors !== undefined),
   loading: overview.loading,

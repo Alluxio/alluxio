@@ -9,26 +9,30 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
-import {Alert, Progress, Table} from 'reactstrap';
+import {Progress, Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
 import {withErrors, withLoadingMessage, withFetchData} from '@alluxio/common-ui/src/components';
 import {INodeInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/workers/actions';
-import {IWorkers, IWorkersStateToProp} from '../../../store/workers/types';
+import {IWorkers} from '../../../store/workers/types';
 import {IInit} from '../../../store/init/types';
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
-interface IPropsFromState {
-  initData: IInit;
-  workersData: IWorkers;
+interface IPropsFromState extends ICommonState {
+  initData: IInit,
+  workersData: IWorkers
 }
 
-export type AllProps = IPropsFromState;
+interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
+}
+
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class WorkersPresenter extends React.Component<AllProps> {
   public render() {
@@ -126,7 +130,7 @@ export class WorkersPresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({init, refresh, workers}: IApplicationState): IWorkersStateToProp => ({
+const mapStateToProps = ({init, refresh, workers}: IApplicationState): IPropsFromState => ({
   initData: init.data,
   errors: createAlertErrors(init.errors !== undefined || workers.errors !== undefined),
   loading: init.loading || workers.loading,

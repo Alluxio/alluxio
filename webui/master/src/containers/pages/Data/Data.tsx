@@ -11,28 +11,37 @@
 
 import React from 'react';
 import {connect} from 'react-redux';
-import {Alert, Table} from 'reactstrap';
+import {Table} from 'reactstrap';
 import {compose, Dispatch} from 'redux';
 
 import {
   withErrors,
   withFetchDataFromPath,
   withFluidContainer,
-  withLoadingMessage, IFetchDataPathType,
+  withLoadingMessage,
   Paginator
 } from '@alluxio/common-ui/src/components';
-import {IAlertErrors, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
+import {IAlertErrors, ICommonState, IFileInfo, IRequest} from '@alluxio/common-ui/src/constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/data/actions';
-import {IData, IDataStateToProps} from '../../../store/data/types';
+import {IData} from '../../../store/data/types';
 import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 import {routePaths} from "../../../constants";
 
-interface IPropsFromState {
-  data: IData;
+interface IPropsFromState extends ICommonState {
+    data: IData
 }
 
-export type AllProps = IPropsFromState & IFetchDataPathType;
+interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
+}
+
+interface IDataProps {
+    limit?: string;
+    offset?: string;
+}
+
+export type AllProps = IPropsFromState & IPropsFromDispatch & IDataProps;
 
 export class DataPresenter extends React.Component<AllProps> {
   public render() {
@@ -84,7 +93,7 @@ export class DataPresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({data, refresh}: IApplicationState): IDataStateToProps => {
+const mapStateToProps = ({data, refresh}: IApplicationState): IPropsFromState => {
   const allErrors: IAlertErrors = createAlertErrors(
       data.errors != undefined,
       [data.data.permissionError, data.data.fatalError]

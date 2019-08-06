@@ -13,7 +13,7 @@ import React from 'react';
 
 import {parseQueryString} from '../../../utilities';
 import {IRequest} from "../../../constants";
-import {getDisplayName} from "../../../utilities/misc/getDisplayName";
+import {getDisplayName} from "../../../utilities";
 
 interface IFetchDataFromPathState {
     end?: string;
@@ -30,16 +30,14 @@ export interface IFetchDataFromPathProps {
     fetchRequest: (req: IRequest) => void;
 }
 
-interface IHandlers {
+export interface IHandlers {
     createInputChangeHandler: (stateKey: string, stateValueCallback: (value: string) => string | undefined)  => ((event: React.ChangeEvent<HTMLInputElement>) => void);
     createButtonHandler: (stateKey: string, stateValueCallback: (value?: string) => string | undefined) => ((event: React.MouseEvent<HTMLButtonElement>) => void);
 }
 
-export type IFetchDataPathType = IFetchDataFromPathState & IFetchDataFromPathProps & IHandlers & {queryStringSuffix: string};
-
-export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataFromPathProps>(WrappedComponent: React.ComponentType<TWrappedComponentProps>) {
-    class fetchDataFromPathHoc extends React.Component<TWrappedComponentProps, IFetchDataFromPathState> {
-        constructor(props: TWrappedComponentProps) {
+export function withFetchDataFromPath<T extends IFetchDataFromPathProps>(WrappedComponent: React.ComponentType<T>) {
+    class fetchDataFromPathHoc extends React.Component<T, IFetchDataFromPathState> {
+        constructor(props: T) {
             super(props);
 
             this.state = this.getParsedQuery(this.props.location.search);
@@ -53,7 +51,7 @@ export function withFetchDataFromPath<TWrappedComponentProps extends IFetchDataF
             this.fetchData({path, offset, limit, end});
         }
 
-        public componentDidUpdate(prevProps: TWrappedComponentProps) {
+        public componentDidUpdate(prevProps: T) {
             const {refresh, location: {search}} = this.props;
             const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
             if (search !== prevSearch) {

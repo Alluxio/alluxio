@@ -11,7 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 
-import {ICounter, IStateToProps} from '@alluxio/common-ui/src/constants';
+import {ICounter, ICommonState} from '@alluxio/common-ui/src/constants';
 
 export interface IMetrics {
   workerCapacityFreePercentage: number;
@@ -41,8 +41,3 @@ export interface IMetricsState {
   readonly loading: boolean;
   readonly response?: AxiosResponse;
 }
-
-export interface IMetricsStateToProps extends IStateToProps {
-  data: IMetrics
-}
-

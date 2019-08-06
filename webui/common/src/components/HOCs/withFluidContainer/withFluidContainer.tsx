@@ -10,15 +10,14 @@
  */
 
 import React from 'react';
-import {LoadingMessage} from "../../index";
-import {getDisplayName} from "../../../utilities/misc/getDisplayName";
+import {getDisplayName} from "../../../utilities";
 
 export interface IFluidContainerProps {
     class: string;
 }
 
-export function withFluidContainer(WrappedComponent: React.ComponentType<any>) {
-    const fluidContainerHoc = (props: IFluidContainerProps) => {
+export function withFluidContainer<T extends IFluidContainerProps>(WrappedComponent: React.ComponentType<T>) {
+    const fluidContainerHoc = (props: T) => {
         return (
             <div className={props.class}>
                 <div className="container-fluid">

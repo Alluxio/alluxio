@@ -9,20 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import {configure, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
 import {Store} from 'redux';
 import sinon from 'sinon';
 
 import {AllProps} from '@alluxio/common-ui/src/components';
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
-import ConnectedApp from '../../App/App';
 import WorkerLogs from './WorkerLogs';
 import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -49,6 +48,9 @@ describe('Logs', () => {
       limit: '',
       createButtonHandler: sinon.spy(),
       createInputChangeHandler: sinon.spy(),
+      class: '',
+      errors: createAlertErrors(false),
+      loading: false
     };
   });
 

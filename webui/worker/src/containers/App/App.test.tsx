@@ -24,6 +24,7 @@ import {initialInitState} from '../../store/init/reducer';
 import ConnectedApp, {AllProps, App} from './App';
 import {Footer, Header} from "@alluxio/common-ui/src/components";
 import {routePaths} from "../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -39,7 +40,11 @@ describe('App', () => {
     props = {
       history: history,
       init: initialInitState.data,
-      triggerRefresh: sinon.spy(() => {})
+      triggerRefresh: sinon.spy(() => {}),
+      class: '',
+      refresh: initialState.refresh.data,
+      errors: createAlertErrors(false),
+      loading: false
     };
   });
 

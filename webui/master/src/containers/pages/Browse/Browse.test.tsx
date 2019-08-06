@@ -22,6 +22,7 @@ import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App'
 import Browse, {AllProps, BrowsePresenter} from './Browse';
 import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -43,7 +44,11 @@ describe('Browse', () => {
       refresh: initialState.refresh.data,
       createInputChangeHandler: sinon.spy(),
       createButtonHandler: sinon.spy(),
-      queryStringSuffix: ''
+      queryStringSuffix: '',
+      class: '',
+      errors: createAlertErrors(false),
+      loading: false,
+      textAreaHeight: 0
     };
   });
 
