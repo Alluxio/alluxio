@@ -29,9 +29,6 @@ exports[`BlockInfo Shallow component Renders BlockInfo Listing Matches snapshot 
   </Table>
   <Paginator
     baseUrl="/blockInfo"
-    limit=""
-    offset=""
-    path=""
     total={0}
   />
 </div>

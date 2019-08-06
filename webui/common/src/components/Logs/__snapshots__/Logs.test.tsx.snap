@@ -5,7 +5,8 @@ exports[`Logs Shallow component Renders Directory Listing Matches snapshot with 
   className="col-12"
 >
   <FileView
-    end=""
+    beginInputHandler={[Function]}
+    endInputHandler={[Function]}
     history={
       Object {
         "action": "PUSH",
@@ -26,8 +27,7 @@ exports[`Logs Shallow component Renders Directory Listing Matches snapshot with 
         "replace": [Function],
       }
     }
-    offset=""
-    path=""
+    offsetInputHandler={[Function]}
     queryStringPrefix="/logs"
     queryStringSuffix=""
     textAreaHeight={0}

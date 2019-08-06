@@ -36,9 +36,7 @@ interface IPropsFromDispatch {
 }
 
 interface IBlockInfoProps {
-  path?: string;
-  offset?: string;
-  limit?: string;
+  request: IRequest;
 }
 
 export type AllProps = IPropsFromState & IPropsFromDispatch & IBlockInfoProps;
@@ -57,7 +55,7 @@ export class BlockInfoPresenter extends React.Component<AllProps> {
   }
 
   private renderBlockInfoView(blockInfo: IBlockInfo) {
-    const {path} = this.props;
+    const {request: {path}} = this.props;
     return (
       <React.Fragment>
         <h5>{path}</h5>
@@ -92,7 +90,7 @@ export class BlockInfoPresenter extends React.Component<AllProps> {
 
   private renderBlockInfoListing(blockInfo: IBlockInfo, tierAliases: string[]) {
     const fileInfos = blockInfo.fileInfos;
-    const {path, offset, limit} = this.props;
+    const {request: {path, limit, offset}} = this.props;
     return (
       <React.Fragment>
         <Table hover={true}>

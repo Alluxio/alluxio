@@ -21,7 +21,7 @@ import {compose, Dispatch} from 'redux';
 import {
   FileView, withErrors, withFetchDataFromPath, withFluidContainer, withLoadingMessage,
   withTextAreaResize,
-  Paginator, IHandlers
+  Paginator
 } from '@alluxio/common-ui/src/components';
 import {IAlertErrors, IFileBlockInfo, IFileInfo, IRequest, ICommonState} from '@alluxio/common-ui/src/constants';
 import {
@@ -47,17 +47,15 @@ interface IPropsFromDispatch {
 }
 
 interface IBrowseProps {
-  end?: string;
   history: History<LocationState>;
-  limit?: string;
   location: {search: string};
-  offset?: string;
-  path?: string;
   queryStringSuffix: string;
+  request: IRequest;
   textAreaHeight: number;
+  upateRequestParameter: (reqParam: string, value: string | undefined) => void;
 }
 
-export type AllProps = IPropsFromState & IBrowseProps & IPropsFromDispatch & IHandlers;
+export type AllProps = IPropsFromState & IBrowseProps & IPropsFromDispatch;
 
 export class BrowsePresenter extends React.Component<AllProps> {
   public render() {
@@ -73,10 +71,10 @@ export class BrowsePresenter extends React.Component<AllProps> {
   }
 
   private renderFileView(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
-    const {path, offset, end, history, textAreaHeight, createInputChangeHandler, createButtonHandler} = this.props;
-    const offsetInputHandler = createInputChangeHandler('offset', value => value); //.bind(this);
-    const beginInputHandler = createButtonHandler('end', value => undefined);//.bind(this);
-    const endInputHandler = createButtonHandler('end', value => '1');//.bind(this);
+    const {request: {offset, end, path}, history, textAreaHeight} = this.props;
+    const offsetInputHandler = this.createInputChangeHandler('offset').bind(this);
+    const beginInputHandler = this.createButtonHandler('end',undefined).bind(this);
+    const endInputHandler = this.createButtonHandler('end', '1').bind(this);
     return (
         <React.Fragment>
           <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
@@ -116,9 +114,9 @@ export class BrowsePresenter extends React.Component<AllProps> {
   }
 
   private renderDirectoryListing(initData: IInit, browseData: IBrowse) {
-    const {path, offset, limit, history, createInputChangeHandler} = this.props;
+    const {request: {limit, offset, path}, history} = this.props;
     const fileInfos = browseData.fileInfos;
-    const pathInputHandler = createInputChangeHandler('path', value => value);//.bind(this);
+    const pathInputHandler = this.createInputChangeHandler('path').bind(this);
     return (
       <React.Fragment>
         <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}
@@ -213,6 +211,18 @@ export class BrowsePresenter extends React.Component<AllProps> {
         <Paginator baseUrl={routePaths.browse} path={path} total={browseData.ntotalFile} offset={offset} limit={limit}/>
       </React.Fragment>
     )
+  }
+
+  private createInputChangeHandler(reqParam: string) {
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
+      this.props.upateRequestParameter(reqParam, event.target.value);
+    };
+  }
+
+  private createButtonHandler(reqParam: string, value: string | undefined) {
+    return (event: React.MouseEvent<HTMLButtonElement>) => {
+      this.props.upateRequestParameter(reqParam, value);
+    };
   }
 
   private createInputEnterHandler(history: History<LocationState>, stateValueCallback: (value: string) => string | undefined) {

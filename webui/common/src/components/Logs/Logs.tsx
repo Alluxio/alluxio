@@ -17,8 +17,7 @@ import {
   withErrors,
   withFetchDataFromPath, withFluidContainer,
   withLoadingMessage,
-  withTextAreaResize,
-  IHandlers
+  withTextAreaResize
 } from '..';
 import {IAlertErrors, ICommonState, IFileInfo, IRequest} from '../../constants';
 import {createAlertErrors, renderFileNameLink} from '../../utilities';
@@ -36,19 +35,15 @@ interface IPropsFromDispatch {
 }
 
 interface ILogsProps {
-  end?: string;
   history: History<LocationState>;
-  limit?: string;
-  location: {
-    search: string;
-  };
-  offset?: string;
-  path?: string;
+  location: { search: string; };
   queryStringSuffix: string;
+  request: IRequest;
   textAreaHeight: number;
+  upateRequestParameter: (reqParam: string, value: string | undefined) => void;
 }
 
-export type AllProps = IPropsFromState & ILogsProps & IPropsFromDispatch & IHandlers;
+export type AllProps = IPropsFromState & ILogsProps & IPropsFromDispatch;
 
 export class LogsPresenter extends React.Component<AllProps> {
   public render() {
@@ -64,10 +59,10 @@ export class LogsPresenter extends React.Component<AllProps> {
   }
 
   private renderFileView(logs: ILogs, queryStringSuffix: string) {
-    const {textAreaHeight, path, offset, end, history, createInputChangeHandler, createButtonHandler} = this.props;
-    const offsetInputHandler = createInputChangeHandler('offset', value => value);
-    const beginInputHandler = createButtonHandler('end', value => undefined);
-    const endInputHandler = createButtonHandler('end', value => '1');
+    const {textAreaHeight, request: {end, offset, path}, history} = this.props;
+    const offsetInputHandler = this.createInputChangeHandler('offset').bind(this);
+    const beginInputHandler = this.createButtonHandler('end', undefined).bind(this);
+    const endInputHandler = this.createButtonHandler('end', '1').bind(this);
     return (
         <FileView beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
                   offset={offset} offsetInputHandler={offsetInputHandler} path={path}
@@ -107,6 +102,18 @@ export class LogsPresenter extends React.Component<AllProps> {
         </tbody>
       </Table>
     )
+  }
+
+  private createInputChangeHandler(reqParam: string) {
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
+      this.props.upateRequestParameter(reqParam, event.target.value);
+    };
+  }
+
+  private createButtonHandler(reqParam: string, value: string | undefined) {
+    return (event: React.MouseEvent<HTMLButtonElement>) => {
+      this.props.upateRequestParameter(reqParam, value);
+    };
   }
 }
 

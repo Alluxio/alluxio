@@ -14,6 +14,7 @@ import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
 import sinon, {SinonSpy} from 'sinon';
 import {IFetchDataFromPathProps, withFetchDataFromPath} from "./withFetchDataFromPath";
+import {IRequest} from "../../../constants";
 
 configure({adapter: new Adapter()});
 
@@ -46,15 +47,17 @@ describe('withFetchData HOC', () => {
         it('Check encoded search string get parsed into state', () => {
             shallowWrapper.setProps({location: {search: '?path=%2Fexample%2Fnotes.txt&offset=123'}});
             sinon.assert.calledTwice(props.fetchRequest as SinonSpy);
-            expect(shallowWrapper.state('path')).toEqual('/example/notes.txt');
-            expect(shallowWrapper.state('offset')).toEqual('123');
+            const req: IRequest = shallowWrapper.state('request');
+            expect(req.path).toEqual('/example/notes.txt');
+            expect(req.offset).toEqual('123');
         });
 
         it('Check decoded search string get parsed into state', () => {
             shallowWrapper.setProps({location: {search: '?path=/example/notes.txt&offset=123'}});
             sinon.assert.calledTwice(props.fetchRequest as SinonSpy);
-            expect(shallowWrapper.state('path')).toEqual('/example/notes.txt');
-            expect(shallowWrapper.state('offset')).toEqual('123');
+            const req: IRequest = shallowWrapper.state('request');
+            expect(req.path).toEqual('/example/notes.txt');
+            expect(req.offset).toEqual('123');
         });
 
         it('Did not call fetchRequest in componentDidUpdate refresh=false', () => {

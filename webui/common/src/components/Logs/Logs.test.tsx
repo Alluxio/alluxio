@@ -9,15 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import {configure, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
-import {StaticRouter} from "react-router";
-import sinon, {SinonSpy} from 'sinon';
-
+import sinon from 'sinon';
 import Logs, {AllProps, LogsPresenter} from './Logs';
 import {initialState} from "../../../../master/src/store";
+import {createAlertErrors} from "../../utilities";
 
 
 configure({adapter: new Adapter()});
@@ -36,13 +35,12 @@ describe('Logs', () => {
       data: initialState.logs.data,
       refresh: initialState.refresh.data,
       textAreaHeight: 0,
-      path: '',
-      offset: '',
-      end: '',
       queryStringSuffix: '',
-      limit: '',
-      createButtonHandler: sinon.spy(),
-      createInputChangeHandler: sinon.spy(),
+      request: {},
+      loading: false,
+      class: '',
+      errors: createAlertErrors(false),
+      upateRequestParameter: sinon.spy()
     };
   });
 

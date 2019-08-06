@@ -42,13 +42,13 @@ describe('Browse', () => {
       browseData: initialState.browse.data,
       initData: initialState.init.data,
       refresh: initialState.refresh.data,
-      createInputChangeHandler: sinon.spy(),
-      createButtonHandler: sinon.spy(),
       queryStringSuffix: '',
       class: '',
       errors: createAlertErrors(false),
       loading: false,
-      textAreaHeight: 0
+      textAreaHeight: 0,
+      request: {},
+      upateRequestParameter: sinon.spy()
     };
   });
 

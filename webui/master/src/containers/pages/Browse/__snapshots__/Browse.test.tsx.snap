@@ -46,6 +46,7 @@ exports[`Browse Shallow component Renders Directory Listing Matches snapshot wit
       </Label>
       <Input
         id="browsePath"
+        onChange={[Function]}
         onKeyUp={[Function]}
         placeholder="Enter a Path"
         type="text"
@@ -123,6 +124,8 @@ exports[`Browse Shallow component Renders FileView Matches snapshot with File 1`
 >
   <FileView
     allowDownload={true}
+    beginInputHandler={[Function]}
+    endInputHandler={[Function]}
     history={
       Object {
         "action": "PUSH",
@@ -143,6 +146,7 @@ exports[`Browse Shallow component Renders FileView Matches snapshot with File 1`
         "replace": [Function],
       }
     }
+    offsetInputHandler={[Function]}
     proxyDownloadApiUrl={
       Object {
         "prefix": "http://192.168.1.6:39999/api/v1/paths/",

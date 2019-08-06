@@ -10,29 +10,19 @@
  */
 
 import React from 'react';
-
-import {parseQueryString} from '../../../utilities';
 import {IRequest} from "../../../constants";
-import {getDisplayName} from "../../../utilities";
+import {getDisplayName, parseQueryString} from "../../../utilities";
 
 interface IFetchDataFromPathState {
-    end?: string;
-    limit?: string;
-    offset?: string;
-    path?: string;
+    request: IRequest;
 }
 
 export interface IFetchDataFromPathProps {
+    fetchRequest: (req: IRequest) => void;
     location: {
         search: string;
     };
     refresh: boolean;
-    fetchRequest: (req: IRequest) => void;
-}
-
-export interface IHandlers {
-    createInputChangeHandler: (stateKey: string, stateValueCallback: (value: string) => string | undefined)  => ((event: React.ChangeEvent<HTMLInputElement>) => void);
-    createButtonHandler: (stateKey: string, stateValueCallback: (value?: string) => string | undefined) => ((event: React.MouseEvent<HTMLButtonElement>) => void);
 }
 
 export function withFetchDataFromPath<T extends IFetchDataFromPathProps>(WrappedComponent: React.ComponentType<T>) {
@@ -40,62 +30,53 @@ export function withFetchDataFromPath<T extends IFetchDataFromPathProps>(Wrapped
         constructor(props: T) {
             super(props);
 
-            this.state = this.getParsedQuery(this.props.location.search);
+            this.state = {request: this.getParsedQuery(this.props.location.search)};
 
-            this.createInputChangeHandler = this.createInputChangeHandler.bind(this);
-            this.createButtonHandler = this.createButtonHandler.bind(this);
+            this.updateRequestParameter = this.updateRequestParameter.bind(this);
         }
 
         public componentWillMount() {
-            const {path, offset, limit, end} = this.state;
-            this.fetchData({path, offset, limit, end});
+            this.fetchData(this.state.request);
         }
 
         public componentDidUpdate(prevProps: T) {
             const {refresh, location: {search}} = this.props;
             const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
             if (search !== prevSearch) {
-                const {path, offset, limit, end} = this.getParsedQuery(search);
-                this.setState({path, offset, limit, end});
-                this.fetchData({path, offset, limit, end});
+                const request = this.getParsedQuery(search);
+                this.setState({request: request});
+                this.fetchData(request);
             } else if (refresh !== prevRefresh) {
-                const {path, offset, limit, end} = this.state;
-                this.fetchData({path, offset, limit, end});
+                this.fetchData(this.state.request);
             }
         }
 
         public render() {
-            let queryStringSuffix = Object.entries(this.state)
-                .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
-                .map((obj: any) => `${obj[0]}=${obj[1]}`)
-                .join('&');
-            queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
-
             return <WrappedComponent {...this.props}
                                      {...this.state}
-                                     createInputChangeHandler={this.createInputChangeHandler}
-                                     createButtonHandler={this.createButtonHandler}
-                                     queryStringSuffix={queryStringSuffix} />;
+                                     upateRequestParameter={this.updateRequestParameter}
+                                     queryStringSuffix={this.getQueryStringSuffix()} />;
         }
 
         private fetchData(request: IRequest) {
             this.props.fetchRequest(request);
         }
 
-        private createInputChangeHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
-            return (event: React.ChangeEvent<HTMLInputElement>) => {
-                const value = event.target.value;
-                this.setState({...this.state, [stateKey]: stateValueCallback(value)});
-            };
+        private updateRequestParameter(stateKey: string, value: string | undefined) {
+            const updatedReq: IRequest = {...this.state.request, [stateKey]: value};
+            this.setState({request: updatedReq});
         }
 
-        private createButtonHandler(stateKey: string, stateValueCallback: (value?: string) => string | undefined) {
-            return (event: React.MouseEvent<HTMLButtonElement>) => {
-                this.setState({...this.state, [stateKey]: stateValueCallback()});
-            };
+        private getQueryStringSuffix(): string {
+            let queryStringSuffix = Object.entries(this.state.request)
+                .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
+                .map((obj: any) => `${obj[0]}=${obj[1]}`)
+                .join('&');
+            queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
+            return queryStringSuffix;
         }
 
-        private getParsedQuery(query: string) {
+        private getParsedQuery(query: string): IRequest {
             let {path, offset, limit, end} = parseQueryString(query);
             path = decodeURIComponent(path || '');
             offset = offset || '0';

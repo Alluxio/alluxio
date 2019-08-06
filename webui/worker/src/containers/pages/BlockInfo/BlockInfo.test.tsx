@@ -36,15 +36,13 @@ describe('BlockInfo', () => {
     history.push(routePaths.blockInfo);
     store = configureStore(history, initialState);
     props = {
-      path: '',
       refresh: false,
       fetchRequest: sinon.spy(() => {}),
       data: initialState.blockInfo.data,
       loading: false,
       errors: createAlertErrors(false),
-      class: '',
-      limit: '',
-      offset: ''
+      request: {},
+      class: ''
     };
   });
 
