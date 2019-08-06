@@ -386,6 +386,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /** Stores the time series for various metrics which are exposed in the UI. */
   private TimeSeriesStore mTimeSeriesStore;
 
+  private AccessTimeUpdater mAccessTimeUpdater;
+
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
@@ -432,6 +434,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mUfsSyncPathCache = new UfsSyncPathCache();
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
+    mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
     mJournaledComponents = new ArrayList<Journaled>() {
@@ -658,6 +661,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
                 (int) ServerConfiguration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
                 ServerConfiguration.global(), mMasterContext.getUserState()));
       }
+      mAccessTimeUpdater.start();
       mSyncManager.start();
     }
   }
@@ -669,6 +673,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mAsyncAuditLogWriter = null;
     }
     mSyncManager.stop();
+    mAccessTimeUpdater.stop();
     super.stop();
   }
 
@@ -731,6 +736,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   public FileInfo getFileInfo(AlluxioURI path, GetStatusContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
+    long opTimeMs = System.currentTimeMillis();
     LockingScheme lockingScheme =
         createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
     try (RpcContext rpcContext = createRpcContext();
@@ -762,6 +768,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
+      Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
+      if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
+           && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
+        mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(),
+            inodePath.getInode(), opTimeMs);
+      }
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return fileInfo;
     }
@@ -878,7 +890,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       List<FileInfo> ret = new ArrayList<>();
       DescendantType descendantTypeForListStatus = (context.getOptions().getRecursive())
           ? DescendantType.ALL : DescendantType.ONE;
-      listStatusInternal(inodePath, auditContext, descendantTypeForListStatus, ret);
+      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus, ret);
 
       // If we are listing the status of a directory, we remove the directory info that we inserted
       if (inode.isDirectory() && ret.size() >= 1) {
@@ -896,14 +908,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * the descendantType. The result is returned via a list specified by statusList, in postorder
    * traversal order.
    *
+   * @param rpcContext the context for the RPC call
    * @param currInodePath the inode path to find the status
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
    *                       should be returned
    * @param statusList To be populated with the status of the files and directories requested
    */
-  private void listStatusInternal(LockedInodePath currInodePath, AuditContext auditContext,
-      DescendantType descendantType, List<FileInfo> statusList)
+  private void listStatusInternal(RpcContext rpcContext, LockedInodePath currInodePath,
+      AuditContext auditContext, DescendantType descendantType, List<FileInfo> statusList)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
     Inode inode = currInodePath.getInode();
@@ -919,6 +932,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           throw e;
         }
       }
+      mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
+          CommonUtils.getCurrentMs());
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
       // This is to generate a parsed child path components to be passed to lockChildPath
@@ -934,7 +949,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
-          listStatusInternal(childInodePath, auditContext, nextDescendantType, statusList);
+          listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
+              statusList);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{0}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
@@ -1243,6 +1259,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         .setId(inode.getId())
         .setUfsFingerprint(ufsFingerprint)
         .setLastModificationTimeMs(opTimeMs)
+        .setLastAccessTimeMs(opTimeMs)
         .setOverwriteModificationTime(true)
         .build());
     mInodeTree.updateInodeFile(rpcContext, entry.build());

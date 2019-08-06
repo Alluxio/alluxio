@@ -67,14 +67,14 @@ Alluxio 将三个关键的创新领域结合在一起，提供了一套独特的
 
 ## 下载和其他
 
-你可以从 [Alluxio 下载页面](http://alluxio.io/download)获取已发布版本。
+你可以从 [Alluxio 下载页面](https://alluxio.io/download)获取已发布版本。
 每个版本都是由已编译二进制文件组成，与各种 Hadoop 版本兼容。
 如果你想从源码编译生成 Alluxio，请前往[从 Master 分支构建 Alluxio]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
 如果你有任何疑问，请联系我们[用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)（
 对于无法使用 Google Group 的用户，请使用它的[镜像](http://alluxio-users.85194.x6.nabble.com/))
 或者我们的[社区Slack频道](https://alluxio.io/slack).。
 
-- [下载](http://alluxio.io/download/)
+- [下载](https://alluxio.io/download/)
 - [用户文档]({{ '/cn/Getting-Started.html' | relativize_url }})
 - [开发者文档]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }})
 - [Meetup](https://www.meetup.com/Alluxio/)

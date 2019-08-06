@@ -79,6 +79,35 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     waitForJobFailure(jobId);
   }
 
+  /**
+   * Tests persisting a file.
+   */
+  @Test
+  public void persistWithAccessTimeUnchangedTest() throws Exception {
+    // write a file in alluxio only
+    AlluxioURI filePath = new AlluxioURI(TEST_URI);
+    FileOutStream os = mFileSystem.createFile(filePath,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
+    os.write((byte) 0);
+    os.write((byte) 1);
+    os.close();
+
+    // check the file is completed but not persisted
+    URIStatus status = mFileSystem.getStatus(filePath);
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
+    Assert.assertTrue(status.isCompleted());
+
+    // run the persist job and check that it succeeds
+    waitForJobToFinish(mJobMaster.run(new PersistConfig("/test", 1, true, status.getUfsPath())));
+    String ufsPath = status.getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    Assert.assertTrue(ufs.exists(ufsPath));
+
+    // check file access time is not changed
+    URIStatus newStatus = mFileSystem.getStatus(filePath);
+    Assert.assertEquals(newStatus.getLastAccessTimeMs(), status.getLastAccessTimeMs());
+  }
+
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {

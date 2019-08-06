@@ -354,7 +354,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         getReplica(fileStatus), fileStatus.getBlockSizeBytes(),
         fileStatus.getLastModificationTimeMs(),
-        fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getMode()),
+        fileStatus.getLastAccessTimeMs(), new FsPermission((short) fileStatus.getMode()),
         fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
   }
 
@@ -629,8 +629,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
       ret[k] = new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
           status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
-          status.getCreationTimeMs(), new FsPermission((short) status.getMode()), status.getOwner(),
-          status.getGroup(), new Path(mAlluxioHeader + status.getPath()));
+          status.getLastAccessTimeMs(), new FsPermission((short) status.getMode()),
+          status.getOwner(), status.getGroup(),
+          new Path(mAlluxioHeader + status.getPath()));
     }
     return ret;
   }

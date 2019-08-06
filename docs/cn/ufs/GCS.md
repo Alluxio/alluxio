@@ -71,17 +71,17 @@ fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
 
 完成所有的配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local SudoMount
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 运行成功后，访问你的GCS目录`GCS_BUCKET/GCS_DIRECTORY`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
@@ -92,8 +92,8 @@ GCS_BUCKET/GCS_DIRECTORY/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
 
 运行以下命令停止Alluxio:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## GCS访问控制

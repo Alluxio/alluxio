@@ -68,12 +68,12 @@ public class InodeLockManager {
   /**
    * Locks for guarding changes to last modified time and size on read-locked parent inodes.
    *
-   * When renaming, creating, or deleting, we update the last modified time and size of the parent
-   * inode while holding only a read lock. In the presence of concurrent operations, this could
-   * cause the last modified time to decrease, or lead to incorrect directory sizes. To avoid this,
-   * we guard the parent inode read-modify-write with this lock. To avoid deadlock, a thread should
-   * never acquire more than one of these locks at the same time, and no other locks should be taken
-   * while holding one of these locks.
+   * When renaming, creating, or deleting, we update the last modified time, last access time
+   * and size of the parent inode while holding only a read lock. In the presence of concurrent
+   * operations, this could cause the last modified time to decrease, or lead to incorrect
+   * directory sizes. To avoid this, we guard the parent inode read-modify-write with this lock.
+   * To avoid deadlock, a thread should never acquire more than one of these locks at the same time,
+   * and no other locks should be taken while holding one of these locks.
    */
   private final Striped<Lock> mParentUpdateLocks = Striped.lock(1_000);
 

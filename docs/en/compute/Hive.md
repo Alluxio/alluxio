@@ -21,7 +21,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 * Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/deploy/Running-Alluxio-Locally.html).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-  downloaded from Alluxio [download page](http://www.alluxio.io/download).
+  downloaded from Alluxio [download page](https://www.alluxio.io/download).
   Alternatively, advanced users can compile this client jar from the source code
   by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * To run Hive on Hadoop MapReduce, please also follow the instructions in
@@ -35,8 +35,8 @@ Distribute Alluxio client jar on all Hive nodes and include the Alluxio client j
 classpath so Hive can query and access data on Alluxio.
 Within Hive installation directory , set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
-```bash
-export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
+```console
+$ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
 ## Example: Create New Hive Tables in Alluxio
@@ -60,9 +60,9 @@ You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
 
-```bash
-./bin/alluxio fs mkdir /ml-100k
-./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
+```console
+$ ./bin/alluxio fs mkdir /ml-100k
+$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
 ```
 
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
@@ -278,11 +278,11 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 
 Create Directories in Alluxio for Hive:
 
-```bash
-./bin/alluxio fs mkdir /tmp
-./bin/alluxio fs mkdir /user/hive/warehouse
-./bin/alluxio fs chmod 775 /tmp
-./bin/alluxio fs chmod 775 /user/hive/warehouse
+```console
+$ ./bin/alluxio fs mkdir /tmp
+$ ./bin/alluxio fs mkdir /user/hive/warehouse
+$ ./bin/alluxio fs chmod 775 /tmp
+$ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 ```
 
 Then you can follow the
@@ -335,8 +335,8 @@ setup correctly set up with Alluxio. The Hive integration checker can help you a
 
 You can run the following command in the Alluxio project directory:
 
-```bash
-integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+```console
+$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
 
 You can use `-h` to display helpful information about the command, along with this detailed page on 

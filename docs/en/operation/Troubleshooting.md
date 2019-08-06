@@ -114,14 +114,14 @@ properties on all nodes running this framework. Here are some examples:
 
 - For MapReduce jobs, you can append the client jar to `$HADOOP_CLASSPATH`:
 
-```bash
-export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+```console
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 - For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
 
-```bash
-export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
+```console
+$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
 
 Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
@@ -137,16 +137,16 @@ Since Presto has long running processes, ensure they are restarted after the jar
 
 - For Hive, set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
-```bash
-export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
+```console
+$ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 Since Hive has long running processes, ensure they are restarted after the jar has been added.
 
 If the corresponding classpath has been set but exceptions still exist, users can check
 whether the path is valid by:
 
-```bash
-ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
+```console
+$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
 ### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?

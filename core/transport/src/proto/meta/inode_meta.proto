@@ -11,7 +11,7 @@ import "proto/shared/acl.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
- * next available id: 30
+ * next available id: 31
  */
 message Inode {
     optional int64 id = 1;
@@ -29,6 +29,7 @@ message Inode {
     optional alluxio.proto.shared.AccessControlList access_acl = 10;
     optional string ufs_fingerprint = 11;
     repeated string medium_type = 27;
+    optional int64 last_accessed_ms = 30;
 
     // directory only
     optional bool is_mount_point = 12;

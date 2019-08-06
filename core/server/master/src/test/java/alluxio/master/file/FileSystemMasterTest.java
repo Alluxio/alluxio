@@ -267,8 +267,9 @@ public final class FileSystemMasterTest {
   public void createFileUsesOperationTime() throws Exception {
     AlluxioURI path = new AlluxioURI("/test");
     mFileSystemMaster.createFile(path, CreateFileContext.defaults().setOperationTimeMs(100));
-    assertEquals(100, mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults())
-        .getLastModificationTimeMs());
+    FileInfo info = mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults());
+    assertEquals(100, info.getLastModificationTimeMs());
+    assertEquals(100, info.getLastAccessTimeMs());
   }
 
   /**

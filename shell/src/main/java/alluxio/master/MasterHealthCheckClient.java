@@ -50,7 +50,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
    */
   public enum MasterType {
     MASTER("alluxio.master.AlluxioMaster"),
-    JOB_MASTER("alluxio.master.job.JobMaster")
+    JOB_MASTER("alluxio.master.AlluxioJobMaster")
     ;
 
     private String mClassName;

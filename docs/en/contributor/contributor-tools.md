@@ -19,16 +19,16 @@ Instructions for setting up both IDEs can be found below.
  You can generate an
 Eclipse configuration file by running:
 
-```bash
-mvn clean -Pdeveloper install -DskipTests
-mvn clean -Pdeveloper -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+```console
+$ mvn clean -Pdeveloper install -DskipTests
+$ mvn clean -Pdeveloper -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
 ```
 
 Then import the folder into Eclipse.
 You may also have to add the classpath variable `M2_REPO` by running:
 
-```bash
-mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+```console
+$ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 ```
 
 ### IntelliJ IDEA
@@ -54,8 +54,8 @@ your local machine to make sure your changes do not break existing behavior.
 For these maven commands we'll assume that your command terminal is located in the root directory
 of your local copy of the Alluxio repository.
 
-```bash
-cd ${ALLUXIO_HOME}
+```console
+$ cd ${ALLUXIO_HOME}
 ```
 
 ### Checkstyle
@@ -63,8 +63,8 @@ cd ${ALLUXIO_HOME}
 To make sure your code follows our style conventions you may run. Note that this is run any time
 you run targets such as `compile`, `install`, or `test`.
 
-```bash
-mvn checkstyle:checkstyle
+```console
+$ mvn checkstyle:checkstyle
 ```
 
 ### FindBugs
@@ -73,16 +73,16 @@ Before submitting the pull-request, run the latest code against the
 [`findbugs`](http://findbugs.sourceforge.net/) Maven plugin to verify no new warnings are
 introduced.
 
-```bash
-mvn compile findbugs:findbugs
+```console
+$ mvn compile findbugs:findbugs
 ```
 
 ### Compilation
 
 To simply compile the code you can run the following command:
 
-```bash
-mvn clean compile -DskipTests
+```console
+$ mvn clean compile -DskipTests
 ```
 
 This will not execute any unit tests but _will_ execute maven plugins such as `checkstyle` and
@@ -90,8 +90,9 @@ This will not execute any unit tests but _will_ execute maven plugins such as `c
 
 To speed up compilation you may use the following command:
 
-```bash
-mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip -pl '!webui'
+```console
+$ mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip \
+  -Dlicense.skip -pl '!webui'
 ```
 
 This command will skip many of our checks that are in place to help keep our code neat.
@@ -117,8 +118,8 @@ jars with the Maven `install` target.
 The first time Maven executes it will likely need to download many dependencies.
 Please be patient as the first build may take a while.
 
-```bash
-mvn -T 2C install -DskipTests
+```console
+$ mvn -T 2C install -DskipTests
 ```
 
 After the install target executes, you may configure and start a local cluster
@@ -127,56 +128,56 @@ with the following commands:
 > If you haven't configured or set up a local cluster yet, run the following commands to configure
 a local installation.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
-echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
-./bin/alluxio format
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+$ ./bin/alluxio format
 ```
 
 Once you've run those commands steps you can start a local Alluxio instance with
 
-```bash
-./bin/alluxio-start.sh local SudoMount
+```console
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 ### Unit Tests
 
 - Run all unit and integration tests
 
-```bash
-cd ${ALLUXIO_HOME}
-mvn test
+```console
+$ cd ${ALLUXIO_HOME}
+$ mvn test
 ```
 
 This will use the local filesystem as the under storage.
 
 - Run a single unit test:
 
-```bash
-mvn -Dtest=<AlluxioTestClass>#<testMethod> -DfailIfNoTests=false test
+```console
+$ mvn -Dtest=<AlluxioTestClass>#<testMethod> -DfailIfNoTests=false test
 ```
 
 - To run unit tests for a specific module, execute the `maven test` command targeting
 the desired submodule directory. For example, to run tests for HDFS UFS module you would run
 
-```bash
-mvn test -pl underfs/hdfs
+```console
+$ mvn test -pl underfs/hdfs
 ```
 
 Run unit tests for HDFS UFS module with a different Hadoop version:
 
-```bash
+```console
 # build and run test on HDFS under storage module for Hadoop 2.7.0
-mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+$ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
 # build and run test on HDFS under storage module for Hadoop 3.0.0
-mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
+$ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
 The above unit tests will create a simulated HDFS service with the specific version.
 To run more comprehensive tests on HDFS under storage using a real and running HDFS deployment:
 
-```bash
-mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
+```console
+$ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
 ```
 
 - To have the logs output to STDOUT, append the following arguments to the `mvn` command
@@ -199,8 +200,8 @@ files defined in `core/transport/src/grpc/` are used to auto-generate Java code 
 RPCs on clients and implementing the RPCs on servers. To regenerate Java code after changing 
 a gRPC definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
 
-```bash
-mvn clean install -Pgenerate
+```console
+$ mvn clean install -Pgenerate
 ```
 
 ## Modifying a Protocol Buffer Message
@@ -215,8 +216,8 @@ to make sure your change will not break backwards compatibility.
 To regenerate Java code after changing  a definition, you must rebuild `alluxio-core-transport` module with
 the `'generate'` maven profile.
 
-```bash
-mvn clean install -Pgenerate
+```console
+$ mvn clean install -Pgenerate
 ```
 
 ## Usage of `./bin/alluxio`

@@ -28,7 +28,7 @@ This guide is tested with `presto-315`.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-  downloaded from Alluxio [download page](http://www.alluxio.io/download).
+  downloaded from Alluxio [download page](https://www.alluxio.io/download).
 * Make sure that Hive metastore is running to serve metadata information of Hive tables.
 
 ## Basic Setup
@@ -50,8 +50,8 @@ Put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into directory
 `${PRESTO_HOME}/plugin/hive-hadoop2/`
 (this directory may differ across versions) on all Presto servers. Restart Presto service:
 
-```bash
-${PRESTO_HOME}/bin/launcher restart
+```console
+$ ${PRESTO_HOME}/bin/launcher restart
 ```
 
 After completing the basic configuration,
@@ -68,9 +68,9 @@ You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `/ml-100k/` on Alluxio:
 
-```bash
-./bin/alluxio fs mkdir /ml-100k
-./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+```console
+$ ./bin/alluxio fs mkdir /ml-100k
+$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 Create an external Hive table from existing files in Alluxio.
@@ -96,8 +96,8 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 Ensure your Hive metastore service is running. Hive metastore listens on port `9083` by
 default. If it is not running,
 
-```bash
-${HIVE_HOME}/bin/hive --service metastore
+```console
+$ ${HIVE_HOME}/bin/hive --service metastore
 ```
 
 ### Start Presto server
@@ -105,8 +105,8 @@ ${HIVE_HOME}/bin/hive --service metastore
 Start your Presto server. Presto server runs on port `8080` by default (set by
 `http-server.http.port` in `${PRESTO_HOME}/etc/config.properties` ):
 
-```bash
-${PRESTO_HOME}/bin/launcher run
+```console
+$ ${PRESTO_HOME}/bin/launcher run
 ```
 
 ### Query tables using Presto
@@ -118,8 +118,9 @@ directly).
 
 Run a single query (replace `localhost:8080` with your actual Presto server hostname and port):
 
-```bash
-./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
+```console
+$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" \
+  --catalog hive --debug
 ```
 
 And you can see the query results from console:
