@@ -40,7 +40,7 @@ var (
 	hadoopDistributionFlag string
 	targetFlag             string
 	mvnArgsFlag            string
-	skipUIFlag            bool
+	skipUIFlag             bool
 )
 
 func init() {
