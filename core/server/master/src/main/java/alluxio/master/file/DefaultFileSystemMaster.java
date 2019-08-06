@@ -4520,8 +4520,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
           ugi = user + "," + primaryGroup;
         } catch (IOException e) {
-          LOG.warn("Failed to get primary group for user {}.", user);
-          ugi = user;
+          LOG.debug("Failed to get primary group for user {}.", user);
+          ugi = user + ",N/A";
         }
       }
       AuthType authType =
