@@ -23,7 +23,9 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.meta.AlluxioMasterRestServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.testutils.underfs.UnderFileSystemTestUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
@@ -130,11 +132,24 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   public void getUfsMetrics() throws Exception {
     int len = 100;
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), "/f1", WritePType.THROUGH, len);
-    assertEquals(FormatUtils.getSizeFromBytes(len),
-        getMetrics(NO_PARAMS).get("totalBytesWrittenUfs"));
+    CommonUtils.waitFor("Metrics to be updated correctly", () -> {
+      try {
+        return FormatUtils.getSizeFromBytes(len).equals(getMetrics(NO_PARAMS)
+            .get("totalBytesWrittenUfs"));
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(2000));
+
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), "/f2", WritePType.THROUGH, len);
-    assertEquals(FormatUtils.getSizeFromBytes(2 * len),
-        getMetrics(NO_PARAMS).get("totalBytesWrittenUfs"));
+    CommonUtils.waitFor("Metrics to be updated correctly", () -> {
+      try {
+        return FormatUtils.getSizeFromBytes(2 * len).equals(getMetrics(NO_PARAMS)
+            .get("totalBytesWrittenUfs"));
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
   @Test
