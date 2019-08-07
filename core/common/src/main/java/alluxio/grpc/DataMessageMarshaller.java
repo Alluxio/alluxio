@@ -13,6 +13,7 @@ package alluxio.grpc;
 
 import static alluxio.grpc.GrpcSerializationUtils.addBuffersToStream;
 
+import alluxio.collections.ConcurrentIdentityHashMap;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
 import io.grpc.Drainable;
@@ -21,7 +22,6 @@ import io.grpc.internal.CompositeReadableBuffer;
 import io.grpc.internal.ReadableBuffer;
 import io.grpc.internal.ReadableBuffers;
 import io.netty.buffer.ByteBuf;
-import org.jboss.netty.util.internal.ConcurrentIdentityHashMap;
 
 import java.io.IOException;
 import java.io.InputStream;
