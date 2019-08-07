@@ -57,8 +57,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
-
-    MetricsSystem.resetAllCounters();
   }
 
   @After
