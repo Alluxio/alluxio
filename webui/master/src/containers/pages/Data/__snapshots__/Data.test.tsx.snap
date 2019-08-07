@@ -44,8 +44,6 @@ exports[`Data Shallow component Matches snapshot 1`] = `
   </Table>
   <Paginator
     baseUrl="/data"
-    limit=""
-    offset=""
     total={0}
   />
 </div>

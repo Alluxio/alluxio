@@ -36,8 +36,7 @@ describe('Data', () => {
     history.push(routePaths.data);
     store = configureStore(history, initialState);
     props = {
-      limit: '',
-      offset: '',
+      request: {},
       refresh: false,
       fetchRequest: sinon.spy(() => {}),
       data: initialState.data.data,

@@ -37,15 +37,14 @@ interface IPropsFromDispatch {
 }
 
 interface IDataProps {
-    limit?: string;
-    offset?: string;
+    request: IRequest;
 }
 
 export type AllProps = IPropsFromState & IPropsFromDispatch & IDataProps;
 
 export class DataPresenter extends React.Component<AllProps> {
   public render() {
-    const {offset, limit, data} = this.props;
+    const {request: {offset, limit}, data} = this.props;
 
     return (
         <div className="col-12">

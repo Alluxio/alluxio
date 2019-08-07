@@ -199,7 +199,7 @@ exports[`Browse Shallow component Renders FileView Matches snapshot with File 1`
   />
   <hr />
   <h6>
-    Detailed blocks information (block capacity is
+    Detailed blocks information (block capacity is 
      Bytes):
   </h6>
   <Table
@@ -216,7 +216,7 @@ exports[`Browse Shallow component Renders FileView Matches snapshot with File 1`
           Size (Byte)
         </th>
         <th>
-          In
+          In 
         </th>
         <th>
           Locations
