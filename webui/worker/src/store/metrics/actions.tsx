@@ -9,13 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { AxiosResponse } from 'axios';
-import { action } from 'typesafe-actions';
+import {AxiosResponse} from 'axios';
+import {action} from 'typesafe-actions';
 
-import { MetricsActionTypes } from './types';
+import {MetricsActionTypes} from './types';
 
 export const fetchRequest = () => action(MetricsActionTypes.FETCH_REQUEST);
-export const fetchSuccess = (response: AxiosResponse) =>
-  action(MetricsActionTypes.FETCH_SUCCESS, response);
-export const fetchError = (message: string) =>
-  action(MetricsActionTypes.FETCH_ERROR, message);
+export const fetchSuccess = (response: AxiosResponse) => action(MetricsActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string) => action(MetricsActionTypes.FETCH_ERROR, message);

@@ -9,21 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { ICommonState } from '@alluxio/common-ui/src/constants';
-import { AxiosResponse } from 'axios';
-import { IStorageTierInfo } from '../../constants';
+import {AxiosResponse} from 'axios';
+import {IStorageTierInfo} from '../../constants';
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 export interface IOverview {
-  capacityBytes: string;
-  usedBytes: string;
-  workerInfo: {
-    workerAddress: string;
-    startTime: string;
-    uptime: string;
+  'capacityBytes': string;
+  'usedBytes': string;
+  'workerInfo': {
+    'workerAddress': string;
+    'startTime': string;
+    'uptime': string;
   };
-  usageOnTiers: IStorageTierInfo[];
-  storageDirs: IStorageTierInfo[];
-  version: string;
+  'usageOnTiers':IStorageTierInfo[];
+  'storageDirs': IStorageTierInfo[];
+  'version': string;
 }
 
 export enum OverviewActionTypes {

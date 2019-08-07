@@ -10,21 +10,18 @@
  */
 
 import axios from 'axios';
-import { all, fork, takeLatest } from 'redux-saga/effects';
+import {all, fork, takeLatest} from 'redux-saga/effects';
 
-import { getSagaRequest } from '@alluxio/common-ui/src/utilities';
-import { fetchError, fetchSuccess } from './actions';
-import { InitActionTypes } from './types';
+import {getSagaRequest} from '@alluxio/common-ui/src/utilities';
+import {fetchError, fetchSuccess} from './actions';
+import {InitActionTypes} from './types';
 
 const API_ENDPOINT = `${process.env.REACT_APP_API_ROOT}/webui_init`;
 
-const watchRequest = function*() {
-  yield takeLatest(
-    InitActionTypes.FETCH_REQUEST,
-    getSagaRequest(axios.get, API_ENDPOINT, fetchSuccess, fetchError)
-  );
+const watchRequest = function* () {
+  yield takeLatest(InitActionTypes.FETCH_REQUEST, getSagaRequest(axios.get, API_ENDPOINT, fetchSuccess, fetchError));
 };
 
-export const initSaga = function*() {
+export const initSaga = function* () {
   yield all([fork(watchRequest)]);
 };

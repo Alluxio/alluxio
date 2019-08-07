@@ -9,17 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { AxiosResponse } from 'axios';
-import { action } from 'typesafe-actions';
+import {AxiosResponse} from 'axios';
+import {action} from 'typesafe-actions';
 
-import { IRequest } from '@alluxio/common-ui/src/constants';
-import { BlockInfoActionTypes } from './types';
+import {BlockInfoActionTypes} from './types';
+import {IRequest} from "@alluxio/common-ui/src/constants";
 
-export const fetchRequest = ({ path, offset, limit, end }: IRequest) =>
-  action(BlockInfoActionTypes.FETCH_REQUEST, {
-    queryString: { end, limit, offset, path }
-  });
-export const fetchSuccess = (response: AxiosResponse) =>
-  action(BlockInfoActionTypes.FETCH_SUCCESS, response);
-export const fetchError = (message: string) =>
-  action(BlockInfoActionTypes.FETCH_ERROR, message);
+export const fetchRequest = ({path, offset, limit, end}: IRequest) => action(BlockInfoActionTypes.FETCH_REQUEST,
+  {queryString: {end, limit, offset, path}}
+);
+export const fetchSuccess = (response: AxiosResponse) => action(BlockInfoActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string) => action(BlockInfoActionTypes.FETCH_ERROR, message);
