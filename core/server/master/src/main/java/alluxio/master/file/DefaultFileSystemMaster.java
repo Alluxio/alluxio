@@ -4004,54 +4004,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *         the thread-local user is null. Normally this should not happen.
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
-<<<<<<< HEAD
-      @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) throws AccessControlException {
-||||||| parent of 0e3a152f96... Avoid exception when audit log is used with NOSASL authentication
-      @Nullable AlluxioURI dstPath, @Nullable Inode srcInode)
-      throws AccessControlException {
-=======
       @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) {
->>>>>>> 0e3a152f96... Avoid exception when audit log is used with NOSASL authentication
     FileSystemMasterAuditContext auditContext =
         new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {
-<<<<<<< HEAD
-      String user = AuthenticatedClientUser.getClientUser();
-      String ugi;
-||||||| parent of 0e3a152f96... Avoid exception when audit log is used with NOSASL authentication
-      String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
-      String ugi;
-=======
       String user = null;
       String ugi = "";
->>>>>>> 0e3a152f96... Avoid exception when audit log is used with NOSASL authentication
       try {
-<<<<<<< HEAD
-        String primaryGroup = CommonUtils.getPrimaryGroupName(user);
-        ugi = user + "," + primaryGroup;
-      } catch (IOException e) {
-        LOG.warn("Failed to get primary group for user {}.", user);
-        ugi = user;
-||||||| parent of 0e3a152f96... Avoid exception when audit log is used with NOSASL authentication
-        String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
-        ugi = user + "," + primaryGroup;
-      } catch (IOException e) {
-        LOG.warn("Failed to get primary group for user {}.", user);
-        ugi = user;
-=======
-        user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+        user = AuthenticatedClientUser.getClientUser();
       } catch (AccessControlException e) {
         ugi = "N/A";
       }
       if (user != null) {
         try {
-          String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
+          String primaryGroup = CommonUtils.getPrimaryGroupName(user);
           ugi = user + "," + primaryGroup;
         } catch (IOException e) {
           LOG.debug("Failed to get primary group for user {}.", user);
           ugi = user + ",N/A";
         }
->>>>>>> 0e3a152f96... Avoid exception when audit log is used with NOSASL authentication
       }
       AuthType authType =
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
