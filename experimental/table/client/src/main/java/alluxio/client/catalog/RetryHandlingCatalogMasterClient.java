@@ -66,7 +66,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<String> getAllDatabase() throws AlluxioStatusException {
+  public List<String> getAllDatabases() throws AlluxioStatusException {
     return retryRPC(() -> mClient.getAllDatabases(
         GetAllDatabasesPRequest.newBuilder().build()).getDatabaseList());
   }

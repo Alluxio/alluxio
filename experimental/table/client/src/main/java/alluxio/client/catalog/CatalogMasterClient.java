@@ -55,7 +55,7 @@ public interface CatalogMasterClient extends Client {
    * @return list of database names
    * @throws AlluxioStatusException
    */
-  List<String> getAllDatabase() throws AlluxioStatusException;
+  List<String> getAllDatabases() throws AlluxioStatusException;
 
   /**
    * Get database metadata.
