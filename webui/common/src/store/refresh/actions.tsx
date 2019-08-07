@@ -9,8 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { action } from 'typesafe-actions';
+import {action} from 'typesafe-actions';
 
-import { RefreshActionTypes } from './types';
+import {RefreshActionTypes} from './types';
 
 export const triggerRefresh = () => action(RefreshActionTypes.TRIGGER_REFRESH);

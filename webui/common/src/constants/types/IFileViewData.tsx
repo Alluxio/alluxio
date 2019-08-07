@@ -9,16 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { IFileInfo } from '..';
+import {IFileInfo} from '..';
 
 export interface IFileViewData {
-  currentDirectory?: IFileInfo;
-  currentPath: string;
-  debug: boolean;
-  fatalError: string;
-  fileData: string | null;
-  fileInfos: IFileInfo[] | null;
-  invalidPathError: string;
-  ntotalFile: number;
-  viewingOffset: number;
+    currentDirectory?: IFileInfo;
+    'currentPath': string;
+    'debug': boolean;
+    'fatalError': string;
+    'fileData': string | null;
+    'fileInfos': IFileInfo[] | null;
+    'invalidPathError': string;
+    'ntotalFile': number;
+    'viewingOffset': number;
 }

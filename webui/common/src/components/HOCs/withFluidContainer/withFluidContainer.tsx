@@ -10,26 +10,24 @@
  */
 
 import React from 'react';
-import { getDisplayName } from '../../../utilities';
+import {getDisplayName} from "../../../utilities";
 
 export interface IFluidContainerProps {
-  class: string;
+    class: string;
 }
 
-export function withFluidContainer<T extends IFluidContainerProps>(
-  WrappedComponent: React.ComponentType<T>,
-) {
-  const fluidContainerHoc = (props: T) => (
-    <div className={props.class}>
-      <div className="container-fluid">
-        <div className="row">
-          <WrappedComponent {...props} />
-        </div>
-      </div>
-    </div>
-  );
-  (fluidContainerHoc as React.FunctionComponent).displayName = `withFluidContainer(${getDisplayName(
-    WrappedComponent,
-  )})`;
-  return fluidContainerHoc;
+export function withFluidContainer<T extends IFluidContainerProps>(WrappedComponent: React.ComponentType<T>) {
+    const fluidContainerHoc = (props: T) => {
+        return (
+            <div className={props.class}>
+                <div className="container-fluid">
+                    <div className="row">
+                        <WrappedComponent {...props} />
+                    </div>
+                </div>
+            </div>
+        )
+    };
+    (fluidContainerHoc as React.FunctionComponent).displayName = `withFluidContainer(${getDisplayName(WrappedComponent)})`;
+    return fluidContainerHoc;
 }

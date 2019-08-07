@@ -9,50 +9,50 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { configure, shallow, ShallowWrapper } from 'enzyme';
+import {configure, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
-import { IFluidContainerProps, withFluidContainer } from './withFluidContainer';
+import {IFluidContainerProps, withFluidContainer} from "./withFluidContainer";
 
-configure({ adapter: new Adapter() });
+configure({adapter: new Adapter()});
 
 const WrappedComponent = () => <div>Wrapped</div>;
 const EnhancedComponent = withFluidContainer(WrappedComponent);
 
 describe('withLoadingMessage HOC', () => {
-  let props: IFluidContainerProps;
-
-  beforeAll(() => {
-    props = {
-      class: 'test',
-    };
-  });
-
-  describe('Shallow component', () => {
-    let shallowWrapper: ShallowWrapper;
+    let props: IFluidContainerProps;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<EnhancedComponent {...props} />);
+        props = {
+            class: 'test'
+        };
     });
 
-    it('Renders without crashing', () => {
-      expect(shallowWrapper.length).toEqual(1);
-    });
+    describe('Shallow component', () => {
+        let shallowWrapper: ShallowWrapper;
 
-    it('Contains a div with class test', () => {
-      expect(shallowWrapper.find('.test').length).toEqual(1);
-    });
+        beforeAll(() => {
+            shallowWrapper = shallow(<EnhancedComponent {...props}/>);
+        });
 
-    it('Contains a div with class container-fluid', () => {
-      expect(shallowWrapper.find('.container-fluid').length).toEqual(1);
-    });
+        it('Renders without crashing', () => {
+            expect(shallowWrapper.length).toEqual(1);
+        });
 
-    it('Contains a div with class row', () => {
-      expect(shallowWrapper.find('.row').length).toEqual(1);
-    });
+        it('Contains a div with class test', () => {
+            expect(shallowWrapper.find('.test').length).toEqual(1);
+        });
 
-    it('Matches snapshot - renders LoadingMessage', () => {
-      expect(shallowWrapper).toMatchSnapshot();
+        it('Contains a div with class container-fluid', () => {
+            expect(shallowWrapper.find('.container-fluid').length).toEqual(1);
+        });
+
+        it('Contains a div with class row', () => {
+            expect(shallowWrapper.find('.row').length).toEqual(1);
+        });
+
+        it('Matches snapshot - renders LoadingMessage', () => {
+            expect(shallowWrapper).toMatchSnapshot();
+        });
     });
-  });
 });

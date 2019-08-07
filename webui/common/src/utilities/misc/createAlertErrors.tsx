@@ -9,23 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { IAlertErrors } from '../../constants';
+import {IAlertErrors} from "../../constants";
 
-export function createAlertErrors(
-  errorCondition: boolean,
-  errorList?: string[],
-): IAlertErrors {
-  const errors: IAlertErrors = {
-    general: errorCondition,
-    hasErrors: errorCondition,
-    specific: [],
-  };
+export function createAlertErrors(errorCondition: boolean, errorList?: string[]): IAlertErrors {
+    const errors: IAlertErrors = {
+        hasErrors: errorCondition,
+        general: errorCondition,
+        specific: []
+    };
 
-  if (errorList) {
-    errorList.forEach(
-      (err) => err && (errors.hasErrors = true) && errors.specific.push(err),
-    );
-  }
+    errorList && errorList.forEach(err => err && (errors.hasErrors = true) && errors.specific.push(err));
 
-  return errors;
+    return errors;
 }

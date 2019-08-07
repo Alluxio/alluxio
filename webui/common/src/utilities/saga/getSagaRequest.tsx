@@ -9,63 +9,43 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { call, put } from 'redux-saga/effects';
-import { ActionType } from 'typesafe-actions';
+import {call, put} from 'redux-saga/effects';
+import {ActionType} from 'typesafe-actions';
+import {AxiosResponse} from 'axios';
 
-const performRequest = (
-  axiosMethod: (endpoint: string, payload: any) => Promise<any>,
-  endpoint: string,
-  payload: any,
-) =>
-  axiosMethod(endpoint, payload)
-    .then((response: any) => ({ response }))
-    .catch((error: any) => ({ error }));
+const performRequest = (axiosMethod: Function, endpoint: string, payload: any) => axiosMethod(endpoint, payload)
+  .then((response: any) => ({response}))
+  .catch((error: any) => ({error}));
 
-export const getSagaRequest = (
-  AxiosFunction: (endpoint: string, payload: any) => Promise<any>,
-  endpoint: string,
-  successFunction: ActionType<any>,
-  errorFunction: ActionType<any>,
-) =>
-  function*(params: any) {
-    let apiEndpoint = endpoint;
+export const getSagaRequest = (AxiosFunction: Function, endpoint: string, successFunction: ActionType<any>, errorFunction: ActionType<any>) => function* (params: any) {
+  let apiEndpoint = endpoint;
 
-    if (params && params.payload) {
-      if (params.payload.pathSuffix) {
-        apiEndpoint += `/${params.payload.pathSuffix}`;
-      }
-
-      if (params.payload.queryString) {
-        const queryString = Object.keys(params.payload.queryString)
-          .filter((key) => params.payload.queryString[key] !== undefined)
-          .map(
-            (key) =>
-              key + '=' + encodeURIComponent(params.payload.queryString[key]),
-          )
-          .join('&');
-        apiEndpoint += queryString.length ? `?${queryString}` : '';
-      }
+  if (params && params.payload) {
+    if (params.payload.pathSuffix) {
+      apiEndpoint += `/${params.payload.pathSuffix}`;
     }
 
-    try {
-      const response = yield call(
-        performRequest,
-        AxiosFunction,
-        apiEndpoint,
-        params.payload || {},
-      );
-      if (response.error) {
-        yield put(errorFunction(response.error.response));
-      } else {
-        yield put(successFunction(response.response));
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        yield put(errorFunction(err.stack!));
-      } else {
-        yield put(
-          errorFunction('An unknown fetch error occurred in versions.'),
-        );
-      }
+    if (params.payload.queryString) {
+      const queryString = Object.keys(params.payload.queryString)
+        .filter(key => params.payload.queryString[key] !== undefined)
+        .map(key => key + '=' + encodeURIComponent(params.payload.queryString[key]))
+        .join('&');
+      apiEndpoint += queryString.length ? `?${queryString}` : '';
     }
-  };
+  }
+
+  try {
+    const response = yield call(performRequest, AxiosFunction, apiEndpoint, params.payload || {});
+    if (response.error) {
+      yield put(errorFunction(response.error.response));
+    } else {
+      yield put(successFunction(response.response));
+    }
+  } catch (err) {
+    if (err instanceof Error) {
+      yield put(errorFunction(err.stack!));
+    } else {
+      yield put(errorFunction('An unknown fetch error occurred in versions.'));
+    }
+  }
+};

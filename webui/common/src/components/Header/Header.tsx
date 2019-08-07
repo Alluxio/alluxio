@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { faCheckSquare, faSquare } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Action, Location } from 'history';
+import {faCheckSquare, faSquare} from '@fortawesome/free-regular-svg-icons'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {Action, Location} from 'history';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {
   Button,
   ButtonGroup,
@@ -23,15 +23,12 @@ import {
   NavbarBrand,
   NavbarToggler,
   NavItem,
-  NavLink,
+  NavLink
 } from 'reactstrap';
 
-import {
-  INavigationData,
-  INavigationDataCallbackParameters,
-} from '../../constants';
+import {INavigationData, INavigationDataCallbackParameters} from '../../constants';
 import logo from '../../images/alluxio-mark-tight-sm.svg';
-import { isExternalLink } from '../../utilities';
+import {isExternalLink} from '../../utilities';
 
 import './Header.css';
 
@@ -52,44 +49,35 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
   constructor(props: IHeaderProps) {
     super(props);
 
-    const {
-      history: {
-        location: { pathname },
-      },
-    } = this.props;
+    const {history: {location: {pathname}}} = this.props;
     this.toggleHamburgerMenu = this.toggleHamburgerMenu.bind(this);
     this.toggleAutoRefresh = this.toggleAutoRefresh.bind(this);
     this.renderNavItems = this.renderNavItems.bind(this);
     this.closeHeaderOnClick = this.closeHeaderOnClick.bind(this);
-    this.state = { isAutoRefreshing: false, isOpen: false, pathname };
+    this.state = {isAutoRefreshing: false, isOpen: false, pathname};
   }
 
   public componentDidMount() {
-    const { history } = this.props;
+    const {history} = this.props;
     history.listen((loc: Location, action: Action) => {
-      const {
-        history: {
-          location: { pathname },
-        },
-      } = this.props;
-      this.setState((prevState) => ({ ...prevState, ...{ pathname } }));
+      const {history: {location: {pathname}}} = this.props;
+      this.setState((prevState) => (
+        {...prevState, ...{pathname}})
+      );
     });
   }
 
   public render(): JSX.Element {
-    const { isAutoRefreshing, isOpen } = this.state;
-    const { data } = this.props;
+    const {isAutoRefreshing, isOpen} = this.state;
+    const {data} = this.props;
     return (
       <div className={'header'}>
-        <Navbar
-          className="headerNavigation navbar-dark bg-primary pb-0"
-          expand="lg"
-        >
+        <Navbar className="headerNavigation navbar-dark bg-primary pb-0" expand="lg">
           <NavbarBrand tag={Link} to="/" href="/">
             <div className="headerLogo align-top d-inline-block ml-lg-2">
               <div className="brand">
                 <div className="brandImage d-inline-block">
-                  <img className="brandSpin" src={logo} />
+                  <img className="brandSpin" src={logo}/>
                 </div>
                 <div className="brandName d-inline-block align-middle pl-1">
                   ALLUXIO
@@ -97,38 +85,22 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
               </div>
             </div>
           </NavbarBrand>
-          <NavbarToggler className="mr-1" onClick={this.toggleHamburgerMenu} />
-          <Collapse
-            className={`mb-0 mt-2 d-lg-inline-flex justify-content-lg-center${
-              isOpen ? '' : ' tabs'
-            }`}
-            isOpen={isOpen}
-            navbar={true}
-          >
+          <NavbarToggler className="mr-1" onClick={this.toggleHamburgerMenu}/>
+          <Collapse className={`mb-0 mt-2 d-lg-inline-flex justify-content-lg-center${isOpen ? '' : ' tabs'}`}
+                    isOpen={isOpen} navbar={true}>
             <Nav tabs={!isOpen} vertical={isOpen}>
               {this.renderNavItems(data)}
             </Nav>
           </Collapse>
-          <Collapse
-            className={`d-lg-inline-flex justify-content-lg-end${
-              isOpen ? '' : ' tabs'
-            }`}
-            isOpen={isOpen}
-            navbar={true}
-          >
+          <Collapse className={`d-lg-inline-flex justify-content-lg-end${isOpen ? '' : ' tabs'}`}
+                    isOpen={isOpen} navbar={true}>
             <Nav tabs={!isOpen} vertical={isOpen}>
               <NavItem>
                 <ButtonGroup className="auto-refresh-button mr-1">
-                  <Button
-                    size="sm"
-                    color="secondary"
-                    onClick={this.toggleAutoRefresh}
-                    active={isAutoRefreshing}
-                  >
-                    <FontAwesomeIcon
-                      icon={isAutoRefreshing ? faCheckSquare : faSquare}
-                    />
-                    &nbsp; Auto Refresh
+                  <Button size="sm" color="secondary"
+                          onClick={this.toggleAutoRefresh} active={isAutoRefreshing}>
+                    <FontAwesomeIcon icon={isAutoRefreshing ? faCheckSquare : faSquare}/>&nbsp;
+                    Auto Refresh
                   </Button>
                 </ButtonGroup>
               </NavItem>
@@ -140,42 +112,31 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
   }
 
   private renderNavItems(datas: INavigationData[]) {
-    const { pathname } = this.state;
-    const { callbackParameters } = this.props;
+    const {pathname} = this.state;
+    const {callbackParameters} = this.props;
     return datas.map((data: INavigationData) => {
-      const url =
-        typeof data.url === 'function'
-          ? callbackParameters
-            ? data.url(callbackParameters)
-            : data.url({})
-          : data.url;
+      const url = typeof data.url === 'function'
+        ? (callbackParameters ? data.url(callbackParameters) : data.url({}))
+        : data.url;
       return (
         <NavItem key={url}>
-          <NavLink
-            className="text-white"
-            tag={isExternalLink(url) ? NavLink : Link}
-            to={url}
-            href={url}
-            active={pathname === url}
-            onClick={this.closeHeaderOnClick}
-            {...data.attributes}
-          >
-            {data.innerText}
-          </NavLink>
+          <NavLink className="text-white" tag={isExternalLink(url) ? NavLink : Link} to={url} href={url}
+                   active={pathname === url}
+                   onClick={this.closeHeaderOnClick} {...data.attributes}>{data.innerText}</NavLink>
         </NavItem>
-      );
+      )
     });
   }
 
   private closeHeaderOnClick() {
-    this.setState({ isOpen: false });
+    this.setState({isOpen: false});
   }
 
   private toggleAutoRefresh() {
-    const { autoRefreshCallback } = this.props;
-    let { isAutoRefreshing } = this.state;
+    const {autoRefreshCallback} = this.props;
+    let {isAutoRefreshing} = this.state;
     isAutoRefreshing = !isAutoRefreshing;
-    this.setState({ isAutoRefreshing });
+    this.setState({isAutoRefreshing});
     if (autoRefreshCallback) {
       autoRefreshCallback(isAutoRefreshing);
     }
@@ -183,6 +144,6 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
   }
 
   private toggleHamburgerMenu() {
-    this.setState({ isOpen: !this.state.isOpen });
+    this.setState({isOpen: !this.state.isOpen});
   }
 }

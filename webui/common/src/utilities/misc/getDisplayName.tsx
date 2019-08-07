@@ -9,10 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import * as React from 'react';
+import * as React from "react";
 
 export function getDisplayName(WrappedComponent: React.ComponentType<any>) {
-  return (
-    WrappedComponent.displayName || WrappedComponent.name || 'WrappedComponent'
-  );
+    return WrappedComponent.displayName || WrappedComponent.name || 'WrappedComponent';
 }

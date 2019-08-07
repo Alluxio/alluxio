@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint:recommended", "tslint-react"],
+  "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier"],
   "linterOptions": {
     "exclude": [
       "config/**/*.js",
@@ -21,11 +21,6 @@
         "trace"
       ]
     },
-    "no-empty": false,
-    "no-unused-variable": true,
-    "max-line-length": [true, 100],
-    //"prettier": [true, {"singleQuote":  true, "semi":  true}],
-    "quotemark": [true, "single", "jsx-double", "avoid-escape", "avoid-template"],
-    "semicolon": true
+    "quotemark": [true, "single", "jsx-double", "avoid-escape", "avoid-template"]
   }
 }

@@ -10,35 +10,27 @@
  */
 
 import React from 'react';
-import { Alert } from 'reactstrap';
-import { IAlertErrors } from '../../../constants';
-import { getDisplayName } from '../../../utilities';
+import {Alert} from "reactstrap";
+import {IAlertErrors} from "../../../constants";
+import {getDisplayName} from "../../../utilities";
 
 export interface IErrorProps {
-  errors: IAlertErrors;
+    errors: IAlertErrors;
 }
 
-export function withErrors<T extends IErrorProps>(
-  WrappedComponent: React.ComponentType<T>,
-) {
-  const errorsHoc = (props: T) => {
-    const { errors } = props;
+export function withErrors<T extends IErrorProps>(WrappedComponent: React.ComponentType<T>) {
+    const errorsHoc = (props: T) => {
+        const {errors} = props;
 
-    return errors.hasErrors ? (
-      <Alert color="danger">
-        {errors.general && (
-          <div>Unable to reach the api endpoint for this page.</div>
-        )}
-        {errors.specific.map((err, i) => (
-          <div key={i}>{err}</div>
-        ))}
-      </Alert>
-    ) : (
-      <WrappedComponent {...props} />
-    );
-  };
-  (errorsHoc as React.FunctionComponent).displayName = `withErrors(${getDisplayName(
-    WrappedComponent,
-  )})`;
-  return errorsHoc;
+        return errors.hasErrors
+            ? (
+                <Alert color="danger">
+                    {errors.general && <div>Unable to reach the api endpoint for this page.</div>}
+                    {errors.specific.map((err, i) => <div key={i}>{err}</div>)}
+                </Alert>
+            )
+            : <WrappedComponent {...props} />
+    };
+    (errorsHoc as React.FunctionComponent).displayName = `withErrors(${getDisplayName(WrappedComponent)})`;
+    return errorsHoc;
 }

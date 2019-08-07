@@ -10,12 +10,9 @@
  */
 
 import React from 'react';
-import { Nav, NavItem, NavLink } from 'reactstrap';
+import {Nav, NavItem, NavLink} from 'reactstrap';
 
-import {
-  INavigationData,
-  INavigationDataCallbackParameters,
-} from '../../constants';
+import {INavigationData, INavigationDataCallbackParameters} from '../../constants';
 
 import './Footer.css';
 
@@ -32,7 +29,7 @@ export class Footer extends React.PureComponent<IFooterProps> {
   }
 
   public render(): JSX.Element {
-    const { data } = this.props;
+    const {data} = this.props;
     return (
       <div className="footer mt-auto navbar-dark bg-primary">
         <Nav className="justify-content-center">
@@ -43,21 +40,16 @@ export class Footer extends React.PureComponent<IFooterProps> {
   }
 
   private renderNavItems(datas: INavigationData[]) {
-    const { callbackParameters } = this.props;
+    const {callbackParameters} = this.props;
     return datas.map((data: INavigationData) => {
-      const url =
-        typeof data.url === 'function'
-          ? callbackParameters
-            ? data.url(callbackParameters)
-            : data.url({})
-          : data.url;
+      const url = typeof data.url === 'function'
+        ? (callbackParameters ? data.url(callbackParameters) : data.url({}))
+        : data.url;
       return (
         <NavItem key={url}>
-          <NavLink href={url} {...data.attributes}>
-            {data.innerText}
-          </NavLink>
+          <NavLink href={url} {...data.attributes}>{data.innerText}</NavLink>
         </NavItem>
-      );
+      )
     });
   }
 }
