@@ -48,6 +48,7 @@ public class ClientContext {
   private volatile UserState mUserState;
   private volatile String mPathConfHash;
   private volatile boolean mIsPathConfLoaded = false;
+  private volatile boolean mDisableUriValidation = false;
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -149,6 +150,22 @@ public class ClientContext {
       throws AlluxioStatusException {
     loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
     mUserState = UserState.Factory.create(mClusterConf, mUserState.getSubject());
+  }
+
+  /**
+   * @param disableUriValidation whether to disable URI validation
+   * @return updated instance of ClientContext
+   */
+  public ClientContext setDisableUriValidation(boolean disableUriValidation) {
+    mDisableUriValidation = disableUriValidation;
+    return this;
+  }
+
+  /**
+   * @return {@code true} if URI scheme validation is disabled
+   */
+  public boolean getDisableSchemeValidation() {
+    return mDisableUriValidation;
   }
 
   /**

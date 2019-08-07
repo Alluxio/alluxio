@@ -96,6 +96,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
 
+  /** Whether this fs should act like a shim for a foreign scheme. */
+  private boolean mIsShimFs = false;
+
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
    * handler for tests.
@@ -119,7 +122,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     try {
       if (mFileSystem.exists(uri)) {
         throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
@@ -163,7 +166,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(blockSize)
         .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true).build();
 
@@ -213,7 +216,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public FSDataOutputStream createNonRecursive(Path path, FsPermission permission,
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
-    AlluxioURI parentUri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path.getParent()));
+    AlluxioURI parentUri = new AlluxioURI(getAlluxioPath(path.getParent()));
     ensureExists(parentUri);
     return create(path, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
@@ -244,7 +247,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     DeletePOptions options = DeletePOptions.newBuilder().setRecursive(recursive).build();
     try {
       mFileSystem.delete(uri, options);
@@ -278,7 +281,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     List<BlockLocation> blockLocations = new ArrayList<>();
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
+    AlluxioURI path = new AlluxioURI(getAlluxioPath(file.getPath()));
     try {
       List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(path);
       locations.forEach(location -> {
@@ -315,7 +318,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public boolean setReplication(Path path, short replication) throws IOException {
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
 
     try {
       if (!mFileSystem.exists(uri) || mFileSystem.getStatus(uri).isFolder()) {
@@ -330,6 +333,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
+   * @param isShimFs set shim mode for this fs
+   */
+  public void setShimFs(boolean isShimFs) {
+    mIsShimFs = isShimFs;
+  }
+
+  /**
    * {@inheritDoc}
    *
    * If the file does not exist in Alluxio, query it from HDFS.
@@ -341,7 +351,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     URIStatus fileStatus;
     try {
       fileStatus = mFileSystem.getStatus(uri);
@@ -351,11 +361,17 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       throw new IOException(e);
     }
 
-    return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
-        getReplica(fileStatus), fileStatus.getBlockSizeBytes(),
-        fileStatus.getLastModificationTimeMs(),
+    String pathStr;
+    if (mIsShimFs) {
+      pathStr = fileStatus.getUfsPath();
+    } else {
+      pathStr = mAlluxioHeader + fileStatus.getPath();
+    }
+
+    return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(), getReplica(fileStatus),
+        fileStatus.getBlockSizeBytes(), fileStatus.getLastModificationTimeMs(),
         fileStatus.getLastAccessTimeMs(), new FsPermission((short) fileStatus.getMode()),
-        fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
+        fileStatus.getOwner(), fileStatus.getGroup(), new Path(pathStr));
   }
 
   private int getReplica(URIStatus status) {
@@ -375,7 +391,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void setOwner(Path path, final String username, final String groupname)
       throws IOException {
     LOG.debug("setOwner({},{},{})", path, username, groupname);
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
     boolean ownerOrGroupChanged = false;
     if (username != null && !username.isEmpty()) {
@@ -404,7 +420,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
     LOG.debug("setMode({},{})", path, permission.toString());
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     SetAttributePOptions options = SetAttributePOptions.newBuilder()
         .setMode(new Mode(permission.toShort()).toProto()).setRecursive(false).build();
     try {
@@ -464,8 +480,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf,
       @Nullable AlluxioConfiguration alluxioConfiguration)
       throws IOException {
-    Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
-        PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
+    if (!mIsShimFs) {
+      Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
+          PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
+    }
 
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
@@ -474,14 +492,19 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     // HDFS doesn't allow the authority to be empty; it must be "/" instead.
     String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
-    mAlluxioHeader = getScheme() + "://" + authority;
+    // Use URI's scheme for shim mode.
+    String scheme = getScheme();
+    if (mIsShimFs) {
+      scheme = uri.getScheme();
+    }
+    mAlluxioHeader = scheme + "://" + authority;
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
 
     Authority auth = Authority.fromString(uri.getAuthority());
-    if (auth instanceof UnknownAuthority) {
+    if (auth instanceof UnknownAuthority && !mIsShimFs) {
       throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
-              + "configured with the authority from %s", auth, uri));
+          + "configured with the authority from %s", auth, uri));
     }
 
     mUri = URI.create(mAlluxioHeader);
@@ -502,7 +525,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     LOG.info("Initializing filesystem with connect details {}",
         Factory.getConnectDetails(alluxioConf));
 
-    mFileSystem = FileSystem.Factory.create(ClientContext.create(subject, alluxioConf));
+    mFileSystem = FileSystem.Factory
+        .create(ClientContext.create(subject, alluxioConf).setDisableUriValidation(mIsShimFs));
   }
 
   /**
@@ -613,12 +637,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementReadOps(1);
     }
 
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     List<URIStatus> statuses;
     try {
       statuses = mFileSystem.listStatus(uri);
     } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException(HadoopUtils.getPathWithoutScheme(path));
+      throw new FileNotFoundException(getAlluxioPath(path));
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -627,11 +651,17 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     for (int k = 0; k < statuses.size(); k++) {
       URIStatus status = statuses.get(k);
 
+      String pathStr;
+      if (mIsShimFs) {
+        pathStr = status.getUfsPath();
+      } else {
+        pathStr = mAlluxioHeader + status.getPath();
+      }
+
       ret[k] = new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
           status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
           status.getLastAccessTimeMs(), new FsPermission((short) status.getMode()),
-          status.getOwner(), status.getGroup(),
-          new Path(mAlluxioHeader + status.getPath()));
+          status.getOwner(), status.getGroup(), new Path(pathStr));
     }
     return ret;
   }
@@ -649,7 +679,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder().setRecursive(true)
         .setAllowExists(true).setMode(new Mode(permission.toShort()).toProto()).build();
     try {
@@ -675,7 +705,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementReadOps(1);
     }
 
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = new AlluxioURI(getAlluxioPath(path));
     return new FSDataInputStream(new HdfsFileInputStream(mFileSystem, uri, mStatistics));
   }
 
@@ -686,8 +716,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    AlluxioURI srcPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(src));
-    AlluxioURI dstPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(dst));
+    AlluxioURI srcPath = new AlluxioURI(getAlluxioPath(src));
+    AlluxioURI dstPath = new AlluxioURI(getAlluxioPath(dst));
     try {
       mFileSystem.rename(srcPath, dstPath);
     } catch (FileDoesNotExistException e) {
@@ -743,6 +773,21 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mFileSystem.getStatus(path);
     } catch (AlluxioException e) {
       throw new IOException(e);
+    }
+  }
+
+  /**
+   * Returns original path if shim mode is enabled.
+   * Returns URI path component for when shim mode is not enabled.
+   *
+   * @param path the input path
+   * @return the Alluxio path
+   */
+  private String getAlluxioPath(Path path) {
+    if (mIsShimFs) {
+      return path.toString();
+    } else {
+      return HadoopUtils.getPathWithoutScheme(path);
     }
   }
 }

@@ -217,6 +217,16 @@ public interface FileSystemMaster extends Master {
   Map<String, MountPointInfo>  getMountTable();
 
   /**
+   * Translates given URI to an Alluxio URI.
+   * If given URI does not contain a scheme, then it is regarded as Alluxio URI.
+   *
+   * @param uriStr uri
+   * @return URI in Alluxio namespace
+   * @throws InvalidPathException
+   */
+  AlluxioURI translateUri(String uriStr) throws InvalidPathException;
+
+  /**
    * Gets the mount point information of an Alluxio path for display purpose.
    *
    * @param path an Alluxio path which must be a mount point
