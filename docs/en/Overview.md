@@ -106,8 +106,10 @@ To quickly get Alluxio up and running, take a look at our
 which explains how to deploy Alluxio and run examples in a local environment.
 
 Also try our getting started tutorials for Presto & Alluxio via:
-- [On laptop using docker](https://www.alluxio.io/alluxio-presto-sandbox-docker/)
-- [On Amazon AWS using AMI](https://www.alluxio.io/alluxio-presto-sandbox-aws/)
+
+|  |  |
+| :---: | :---: |
+| [![Laptop with Docker](https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png)](https://www.alluxio.io/alluxio-presto-sandbox-docker/) | [![AWS with AMI](https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png)](https://www.alluxio.io/alluxio-presto-sandbox-aws/)
 
 In addition, you can try more advanced testing with a cluster of Alluxio. 
 - Request [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free

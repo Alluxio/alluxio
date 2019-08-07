@@ -25,8 +25,10 @@ The optional sections will be labeled with **[Bonus]**.
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
 
 If you are trying to speedup SQL analytics, you can try the Presto Alluxio Getting Started tutorial:
-- [On laptop using docker](https://www.alluxio.io/alluxio-presto-sandbox-docker/)
-- [On Amazon AWS using AMI](https://www.alluxio.io/alluxio-presto-sandbox-aws/)
+
+|  |  |
+| :---: | :---: |
+| [![Laptop with Docker](https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png)](https://www.alluxio.io/alluxio-presto-sandbox-docker/) | [![AWS with AMI](https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png)](https://www.alluxio.io/alluxio-presto-sandbox-aws/)
 
 In addition, you can try more advanced testing with a cluster of Alluxio. 
 - Request [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free
