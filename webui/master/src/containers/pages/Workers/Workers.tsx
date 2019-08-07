@@ -10,26 +10,22 @@
  */
 
 import React from 'react';
-import { connect } from 'react-redux';
-import { Progress, Table } from 'reactstrap';
-import { compose, Dispatch } from 'redux';
+import {connect} from 'react-redux';
+import {Progress, Table} from 'reactstrap';
+import {compose, Dispatch} from 'redux';
 
-import {
-  withErrors,
-  withFetchData,
-  withLoadingMessage
-} from '@alluxio/common-ui/src/components';
-import { ICommonState } from '@alluxio/common-ui/src/constants';
-import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
-import { INodeInfo } from '../../../constants';
-import { IApplicationState } from '../../../store';
-import { IInit } from '../../../store/init/types';
-import { fetchRequest } from '../../../store/workers/actions';
-import { IWorkers } from '../../../store/workers/types';
+import {withErrors, withLoadingMessage, withFetchData} from '@alluxio/common-ui/src/components';
+import {INodeInfo} from '../../../constants';
+import {IApplicationState} from '../../../store';
+import {fetchRequest} from '../../../store/workers/actions';
+import {IWorkers} from '../../../store/workers/types';
+import {IInit} from '../../../store/init/types';
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 interface IPropsFromState extends ICommonState {
-  initData: IInit;
-  workersData: IWorkers;
+  initData: IInit,
+  workersData: IWorkers
 }
 
 interface IPropsFromDispatch {
@@ -40,7 +36,7 @@ export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class WorkersPresenter extends React.Component<AllProps> {
   public render() {
-    const { initData, workersData } = this.props;
+    const {initData, workersData} = this.props;
 
     return (
       <div className="workers-page">
@@ -50,62 +46,45 @@ export class WorkersPresenter extends React.Component<AllProps> {
               <h5>Live Workers</h5>
               <Table hover={true}>
                 <thead>
-                  <tr>
-                    <th>Node Name</th>
-                    {initData.debug && (
-                      <React.Fragment>
-                        <th>[D]Worker Id</th>
-                        <th>[D]Uptime</th>
-                      </React.Fragment>
-                    )}
-                    <th>Last Heartbeat</th>
-                    <th>State</th>
-                    <th>Workers Capacity</th>
-                    <th>Space Used</th>
-                    <th>Space Usage</th>
-                  </tr>
+                <tr>
+                  <th>Node Name</th>
+                  {initData.debug && (
+                    <React.Fragment>
+                      <th>[D]Worker Id</th>
+                      <th>[D]Uptime</th>
+                    </React.Fragment>
+                  )}
+                  <th>Last Heartbeat</th>
+                  <th>State</th>
+                  <th>Workers Capacity</th>
+                  <th>Space Used</th>
+                  <th>Space Usage</th>
+                </tr>
                 </thead>
                 <tbody>
-                  {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
-                    <tr key={nodeInfo.workerId}>
-                      <td>
-                        <a
-                          href={`//${nodeInfo.host}:${initData.workerPort}`}
-                          target="_blank"
-                        >
-                          {nodeInfo.host}
-                        </a>
-                      </td>
-                      {initData.debug && (
-                        <React.Fragment>
-                          <td>{nodeInfo.workerId}</td>
-                          <td>{nodeInfo.uptimeClockTime}</td>
-                        </React.Fragment>
-                      )}
-                      <td>{nodeInfo.lastHeartbeat}</td>
-                      <td>{nodeInfo.state}</td>
-                      <td>{nodeInfo.capacity}</td>
-                      <td>{nodeInfo.usedMemory}</td>
-                      <td>
-                        <Progress className="h-50 mt-1" multi={true}>
-                          <Progress
-                            bar={true}
-                            color="dark"
-                            value={`${nodeInfo.freeSpacePercent}`}
-                          >
-                            {nodeInfo.freeSpacePercent}% Free
-                          </Progress>
-                          <Progress
-                            bar={true}
-                            color="secondary"
-                            value={`${nodeInfo.usedSpacePercent}`}
-                          >
-                            {nodeInfo.usedSpacePercent}% Used
-                          </Progress>
-                        </Progress>
-                      </td>
-                    </tr>
-                  ))}
+                {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
+                  <tr key={nodeInfo.workerId}>
+                    <td><a href={`//${nodeInfo.host}:${initData.workerPort}`} target="_blank">{nodeInfo.host}</a></td>
+                    {initData.debug && (
+                      <React.Fragment>
+                        <td>{nodeInfo.workerId}</td>
+                        <td>{nodeInfo.uptimeClockTime}</td>
+                      </React.Fragment>
+                    )}
+                    <td>{nodeInfo.lastHeartbeat}</td>
+                    <td>{nodeInfo.state}</td>
+                    <td>{nodeInfo.capacity}</td>
+                    <td>{nodeInfo.usedMemory}</td>
+                    <td>
+                      <Progress className="h-50 mt-1" multi={true}>
+                        <Progress bar={true} color="dark"
+                                  value={`${nodeInfo.freeSpacePercent}`}>{nodeInfo.freeSpacePercent}% Free</Progress>
+                        <Progress bar={true} color="secondary"
+                                  value={`${nodeInfo.usedSpacePercent}`}>{nodeInfo.usedSpacePercent}% Used</Progress>
+                      </Progress>
+                    </td>
+                  </tr>
+                ))}
                 </tbody>
               </Table>
             </div>
@@ -115,32 +94,32 @@ export class WorkersPresenter extends React.Component<AllProps> {
               <h5>Lost Workers</h5>
               <Table hover={true}>
                 <thead>
-                  <tr>
-                    <th>Node Name</th>
-                    {initData.debug && (
-                      <React.Fragment>
-                        <th>[D]Worker Id</th>
-                        <th>[D]Uptime</th>
-                      </React.Fragment>
-                    )}
-                    <th>Last Heartbeat</th>
-                    <th>Workers Capacity</th>
-                  </tr>
+                <tr>
+                  <th>Node Name</th>
+                  {initData.debug && (
+                    <React.Fragment>
+                      <th>[D]Worker Id</th>
+                      <th>[D]Uptime</th>
+                    </React.Fragment>
+                  )}
+                  <th>Last Heartbeat</th>
+                  <th>Workers Capacity</th>
+                </tr>
                 </thead>
                 <tbody>
-                  {workersData.failedNodeInfos.map((nodeInfo: INodeInfo) => (
-                    <tr key={nodeInfo.workerId}>
-                      <td>{nodeInfo.host}</td>
-                      {initData.debug && (
-                        <React.Fragment>
-                          <td>{nodeInfo.workerId}</td>
-                          <td>{nodeInfo.uptimeClockTime}</td>
-                        </React.Fragment>
-                      )}
-                      <td>{nodeInfo.lastHeartbeat}</td>
-                      <td>{nodeInfo.capacity}</td>
-                    </tr>
-                  ))}
+                {workersData.failedNodeInfos.map((nodeInfo: INodeInfo) => (
+                  <tr key={nodeInfo.workerId}>
+                    <td>{nodeInfo.host}</td>
+                    {initData.debug && (
+                      <React.Fragment>
+                        <td>{nodeInfo.workerId}</td>
+                        <td>{nodeInfo.uptimeClockTime}</td>
+                      </React.Fragment>
+                    )}
+                    <td>{nodeInfo.lastHeartbeat}</td>
+                    <td>{nodeInfo.capacity}</td>
+                  </tr>
+                ))}
                 </tbody>
               </Table>
             </div>
@@ -151,19 +130,13 @@ export class WorkersPresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({
-  init,
-  refresh,
-  workers
-}: IApplicationState): IPropsFromState => ({
-  class: 'workers-page',
-  errors: createAlertErrors(
-    init.errors !== undefined || workers.errors !== undefined
-  ),
+const mapStateToProps = ({init, refresh, workers}: IApplicationState): IPropsFromState => ({
   initData: init.data,
+  errors: createAlertErrors(init.errors !== undefined || workers.errors !== undefined),
   loading: init.loading || workers.loading,
   refresh: refresh.data,
-  workersData: workers.data
+  workersData: workers.data,
+  class: 'workers-page'
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -171,10 +144,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 });
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   withFetchData,
   withErrors,
   withLoadingMessage

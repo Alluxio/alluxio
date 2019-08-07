@@ -9,19 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import React from 'react';
+import {connect} from 'react-redux';
 import {
   getLogPropsFromState,
   mapDispatchToLogProps
 } from '@alluxio/common-ui/src/components';
-import Logs from '@alluxio/common-ui/src/components/Logs/Logs';
-import React from 'react';
-import { connect } from 'react-redux';
-import { IApplicationState } from '../../../store';
+import {IApplicationState} from '../../../store';
+import Logs from "@alluxio/common-ui/src/components/Logs/Logs";
 
-const mapStateToProps = ({ logs, refresh }: IApplicationState) =>
-  getLogPropsFromState(logs, refresh);
+const mapStateToProps = ({logs, refresh}: IApplicationState) => getLogPropsFromState(logs, refresh);
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToLogProps
+    mapStateToProps,
+    mapDispatchToLogProps
 )(Logs);

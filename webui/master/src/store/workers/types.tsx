@@ -9,16 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { AxiosResponse } from 'axios';
+import {AxiosResponse} from 'axios';
 
-import { ICommonState } from '@alluxio/common-ui/src/constants';
-import { INodeInfo } from '../../constants';
-import { IInit } from '../init/types';
+import {INodeInfo} from '../../constants';
+import {IInit} from "../init/types";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 export interface IWorkers {
-  debug: boolean;
-  normalNodeInfos: INodeInfo[];
-  failedNodeInfos: INodeInfo[];
+  'debug': boolean;
+  'normalNodeInfos': INodeInfo[],
+  'failedNodeInfos': INodeInfo[]
 }
 
 export enum WorkersActionTypes {

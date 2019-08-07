@@ -9,50 +9,36 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { ConnectedRouter } from 'connected-react-router';
-import { History, LocationState } from 'history';
+import {ConnectedRouter} from 'connected-react-router';
+import {History, LocationState} from 'history';
 import React from 'react';
-import { connect } from 'react-redux';
-import { StaticContext } from 'react-router';
-import { Redirect, Route, RouteComponentProps, Switch } from 'react-router-dom';
-import { compose, Dispatch } from 'redux';
+import {connect} from 'react-redux';
+import {StaticContext} from 'react-router';
+import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
+import {compose, Dispatch} from 'redux';
 
 import {
   Footer,
-  Header,
   withErrors,
-  withFetchData,
-  withLoadingMessage
+  withLoadingMessage,
+  Header,
+  withFetchData
 } from '@alluxio/common-ui/src/components';
-import { triggerRefresh } from '@alluxio/common-ui/src/store/refresh/actions';
+import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {
-  Browse,
-  Configuration,
-  Data,
-  MasterLogs,
-  Metrics,
-  Overview,
-  Workers
+  Browse, Configuration, Data, MasterLogs, Metrics, Overview, Workers
 } from '..';
-import {
-  footerNavigationData,
-  headerNavigationData,
-  routePaths
-} from '../../constants';
-import { IApplicationState } from '../../store';
-import { fetchRequest } from '../../store/init/actions';
-import { IInit } from '../../store/init/types';
+import {footerNavigationData, headerNavigationData, routePaths} from '../../constants';
+import {IApplicationState} from '../../store';
+import {fetchRequest} from '../../store/init/actions';
+import {IInit} from '../../store/init/types';
 
-import { ICommonState } from '@alluxio/common-ui/src/constants';
-import {
-  AutoRefresh,
-  createAlertErrors,
-  IAutoRefresh
-} from '@alluxio/common-ui/src/utilities';
 import './App.css';
+import {AutoRefresh, createAlertErrors, IAutoRefresh} from "@alluxio/common-ui/src/utilities";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 interface IPropsFromState extends ICommonState {
-  init: IInit;
+  init: IInit
 }
 
 interface IPropsFromDispatch {
@@ -72,72 +58,33 @@ export class App extends React.Component<AllProps> {
   constructor(props: AllProps) {
     super(props);
 
-    this.autoRefresh = new AutoRefresh(
-      props.triggerRefresh,
-      props.init.refreshInterval
-    );
+    this.autoRefresh = new AutoRefresh(props.triggerRefresh, props.init.refreshInterval);
   }
 
   public render() {
-    const { history } = this.props;
+    const {history} = this.props;
 
     return (
       <ConnectedRouter history={history}>
         <div className="App h-100">
           <div className="w-100 sticky-top header-wrapper">
-            <Header
-              history={history}
-              data={headerNavigationData}
-              autoRefreshCallback={this.autoRefresh.setAutoRefresh}
-            />
+            <Header history={history} data={headerNavigationData} autoRefreshCallback={this.autoRefresh.setAutoRefresh}/>
           </div>
           <div className="w-100 pt-5 mt-3 pb-4 mb-2">
             <Switch>
-              <Route
-                path={routePaths.root}
-                exact={true}
-                render={this.redirectToOverview}
-              />
-              <Route
-                path={routePaths.overview}
-                exact={true}
-                render={this.renderView(Overview, undefined)}
-              />
-              <Route
-                path={routePaths.browse}
-                exact={true}
-                render={this.renderView(Browse, { history })}
-              />
-              <Route
-                path={routePaths.config}
-                exact={true}
-                render={this.renderView(Configuration, undefined)}
-              />
-              <Route
-                path={routePaths.data}
-                exact={true}
-                render={this.renderView(Data, undefined)}
-              />
-              <Route
-                path={routePaths.logs}
-                exact={true}
-                render={this.renderView(MasterLogs, { history })}
-              />
-              <Route
-                path={routePaths.metrics}
-                exact={true}
-                render={this.renderView(Metrics, undefined)}
-              />
-              <Route
-                path={routePaths.workers}
-                exact={true}
-                render={this.renderView(Workers, undefined)}
-              />
-              <Route render={this.redirectToOverview} />
+              <Route path={routePaths.root} exact={true} render={this.redirectToOverview}/>
+              <Route path={routePaths.overview} exact={true} render={this.renderView(Overview, undefined)}/>
+              <Route path={routePaths.browse} exact={true} render={this.renderView(Browse, {history})}/>
+              <Route path={routePaths.config} exact={true} render={this.renderView(Configuration, undefined)}/>
+              <Route path={routePaths.data} exact={true} render={this.renderView(Data, undefined)}/>
+              <Route path={routePaths.logs} exact={true} render={this.renderView(MasterLogs, {history})}/>
+              <Route path={routePaths.metrics} exact={true} render={this.renderView(Metrics, undefined)}/>
+              <Route path={routePaths.workers} exact={true} render={this.renderView(Workers, undefined)}/>
+              <Route render={this.redirectToOverview}/>
             </Switch>
           </div>
           <div className="w-100 footer-wrapper">
-            <Footer data={footerNavigationData} />
+            <Footer data={footerNavigationData}/>
           </div>
         </div>
       </ConnectedRouter>
@@ -145,27 +92,26 @@ export class App extends React.Component<AllProps> {
   }
 
   private renderView(Container: any, props: any) {
-    return (routerProps: RouteComponentProps<any, StaticContext, any>) => (
-      <Container {...routerProps} {...props} />
-    );
+    return (routerProps: RouteComponentProps<any, StaticContext, any>) => {
+      return (
+        <Container {...routerProps} {...props}/>
+      );
+    }
   }
 
-  private redirectToOverview(
-    routerProps: RouteComponentProps<any, StaticContext, any>
-  ) {
-    return <Redirect to={routePaths.overview} />;
+  private redirectToOverview(routerProps: RouteComponentProps<any, StaticContext, any>) {
+    return (
+      <Redirect to={routePaths.overview}/>
+    );
   }
 }
 
-const mapStateToProps = ({
-  init,
-  refresh
-}: IApplicationState): IPropsFromState => ({
-  class: 'App',
-  errors: createAlertErrors(init.errors !== undefined),
+const mapStateToProps = ({init, refresh}: IApplicationState): IPropsFromState => ({
   init: init.data,
+  errors: createAlertErrors(init.errors !== undefined),
   loading: !init.data && init.loading,
-  refresh: refresh.data
+  refresh: refresh.data,
+  class: 'App'
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -174,11 +120,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 });
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  ),
-  withFetchData,
-  withErrors,
-  withLoadingMessage
+    connect(mapStateToProps, mapDispatchToProps),
+    withFetchData,
+    withErrors,
+    withLoadingMessage
 )(App);

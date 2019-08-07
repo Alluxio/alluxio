@@ -9,28 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {
-  configure,
-  mount,
-  ReactWrapper,
-  shallow,
-  ShallowWrapper
-} from 'enzyme';
+import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import { createBrowserHistory, History, LocationState } from 'history';
+import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
-import { Provider } from 'react-redux';
-import { Store } from 'redux';
-import sinon, { SinonSpy } from 'sinon';
+import {Provider} from 'react-redux';
+import {Store} from 'redux';
+import sinon, {SinonSpy} from 'sinon';
 
-import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
-import configureStore from '../../../configureStore';
-import { routePaths } from '../../../constants';
-import { IApplicationState, initialState } from '../../../store';
+import configureStore from '../../../configureStore'
+import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
-import { AllProps, OverviewPresenter } from './Overview';
+import {AllProps, OverviewPresenter} from './Overview';
+import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
-configure({ adapter: new Adapter() });
+configure({adapter: new Adapter()});
 
 describe('Overview', () => {
   let history: History<LocationState>;
@@ -38,16 +32,16 @@ describe('Overview', () => {
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({ keyLength: 0 });
+    history = createBrowserHistory({keyLength: 0});
     history.push(routePaths.overview);
     store = configureStore(history, initialState);
     props = {
-      class: '',
       data: initialState.overview.data,
       errors: createAlertErrors(false),
-      fetchRequest: sinon.spy(() => {}),
       loading: false,
-      refresh: initialState.refresh.data
+      refresh: initialState.refresh.data,
+      class: '',
+      fetchRequest: sinon.spy(() => {})
     };
   });
 
@@ -59,7 +53,7 @@ describe('Overview', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<OverviewPresenter {...props} />);
+      shallowWrapper = shallow(<OverviewPresenter {...props}/>);
     });
 
     it('Renders without crashing', () => {

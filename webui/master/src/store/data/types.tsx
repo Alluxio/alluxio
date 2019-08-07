@@ -9,17 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { AxiosResponse } from 'axios';
+import {AxiosResponse} from 'axios';
 
-import { ICommonState, IFileInfo } from '@alluxio/common-ui/src/constants';
+import {IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
 
 export interface IData {
-  fatalError: string;
-  fileInfos: IFileInfo[];
-  inAlluxioFileNum: number;
-  masterNodeAddress: string;
-  permissionError: string;
-  showPermissions: boolean;
+  'fatalError': string;
+  'fileInfos': IFileInfo[],
+  'inAlluxioFileNum': number;
+  'masterNodeAddress': string;
+  'permissionError': string;
+  'showPermissions': boolean;
 }
 
 export enum DataActionTypes {

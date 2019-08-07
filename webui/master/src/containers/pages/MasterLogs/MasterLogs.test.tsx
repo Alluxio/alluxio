@@ -9,29 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {
-  configure,
-  mount,
-  ReactWrapper,
-  shallow,
-  ShallowWrapper
-} from 'enzyme';
+import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import { createBrowserHistory, History, LocationState } from 'history';
+import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
-import { Provider } from 'react-redux';
-import { Store } from 'redux';
+import {Provider} from 'react-redux';
+import {Store} from 'redux';
 import sinon from 'sinon';
 
-import { AllProps } from '@alluxio/common-ui/src/components';
-import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
-import configureStore from '../../../configureStore';
-import { routePaths } from '../../../constants';
-import { IApplicationState, initialState } from '../../../store';
+import {AllProps} from '@alluxio/common-ui/src/components';
+import configureStore from '../../../configureStore'
+import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
-import MasterLogs from './MasterLogs';
+import {routePaths} from "../../../constants";
+import MasterLogs from "./MasterLogs";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
-configure({ adapter: new Adapter() });
+configure({adapter: new Adapter()});
 
 describe('MasterLogs', () => {
   let history: History<LocationState>;
@@ -39,22 +33,22 @@ describe('MasterLogs', () => {
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({ keyLength: 0 });
+    history = createBrowserHistory({keyLength: 0});
     history.push(routePaths.logs);
     store = configureStore(history, initialState);
     props = {
-      class: '',
-      data: initialState.logs.data,
-      errors: createAlertErrors(false),
+      location: {search: ''},
+      history: history,
       fetchRequest: sinon.spy(() => {}),
-      history,
-      loading: false,
-      location: { search: '' },
-      queryStringSuffix: '',
+      data: initialState.logs.data,
       refresh: initialState.refresh.data,
-      request: {},
       textAreaHeight: 0,
-      upateRequestParameter: sinon.spy(() => {})
+      request: {},
+      upateRequestParameter: sinon.spy(() => {}),
+      queryStringSuffix: '',
+      errors: createAlertErrors(false),
+      loading: false,
+      class: ''
     };
   });
 
@@ -66,7 +60,7 @@ describe('MasterLogs', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<MasterLogs {...props} />);
+      shallowWrapper = shallow(<MasterLogs {...props}/>);
     });
 
     it('Renders without crashing', () => {

@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { Reducer } from 'redux';
+import {Reducer} from 'redux';
 
-import { ConfigActionTypes, IConfigState } from './types';
+import {ConfigActionTypes, IConfigState} from './types';
 
 export const initialConfigState: IConfigState = {
   data: {
@@ -22,23 +22,14 @@ export const initialConfigState: IConfigState = {
   loading: false
 };
 
-export const configReducer: Reducer<IConfigState> = (
-  state = initialConfigState,
-  action
-) => {
+export const configReducer: Reducer<IConfigState> = (state = initialConfigState, action) => {
   switch (action.type) {
     case ConfigActionTypes.FETCH_REQUEST:
-      return { ...state, loading: true };
+      return {...state, loading: true};
     case ConfigActionTypes.FETCH_SUCCESS:
-      return {
-        ...state,
-        data: action.payload.data,
-        errors: undefined,
-        loading: false,
-        response: action.payload
-      };
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case ConfigActionTypes.FETCH_ERROR:
-      return { ...state, loading: false, errors: action.payload };
+      return {...state, loading: false, errors: action.payload};
     default:
       return state;
   }
