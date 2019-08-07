@@ -19,13 +19,13 @@ import {
   withFetchDataFromPath,
   withFluidContainer,
   withLoadingMessage,
-  withTextAreaResize
+  withTextAreaResize,
 } from '..';
 import {
   IAlertErrors,
   ICommonState,
   IFileInfo,
-  IRequest
+  IRequest,
 } from '../../constants';
 import { fetchRequest } from '../../store/logs/actions';
 import { ILogs, ILogsState } from '../../store/logs/types';
@@ -68,13 +68,13 @@ export class LogsPresenter extends React.Component<AllProps> {
     const {
       textAreaHeight,
       request: { end, offset, path },
-      history
+      history,
     } = this.props;
     const offsetInputHandler = this.createInputChangeHandler('offset').bind(
-      this
+      this,
     );
     const beginInputHandler = this.createButtonHandler('end', undefined).bind(
-      this
+      this,
     );
     const endInputHandler = this.createButtonHandler('end', '1').bind(this);
     return (
@@ -143,23 +143,23 @@ export class LogsPresenter extends React.Component<AllProps> {
 
 export function getLogPropsFromState(
   logs: ILogsState,
-  refresh: IRefreshState
+  refresh: IRefreshState,
 ): IPropsFromState {
   const errors: IAlertErrors = createAlertErrors(logs.errors !== undefined, [
     logs.data.invalidPathError,
-    logs.data.fatalError
+    logs.data.fatalError,
   ]);
   return {
     class: 'logs-page',
     data: logs.data,
     errors,
     loading: logs.loading,
-    refresh: refresh.data
+    refresh: refresh.data,
   };
 }
 
 export const mapDispatchToLogProps = (dispatch: Dispatch) => ({
-  fetchRequest: (request: IRequest) => dispatch(fetchRequest(request))
+  fetchRequest: (request: IRequest) => dispatch(fetchRequest(request)),
 });
 
 export default compose(
@@ -167,5 +167,5 @@ export default compose(
   withErrors,
   withLoadingMessage,
   withTextAreaResize,
-  withFluidContainer
+  withFluidContainer,
 )(LogsPresenter) as React.ComponentType<AllProps>;

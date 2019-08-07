@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import React from "react";
+import React from 'react';
 
-import logo from "../../images/alluxio-mark-tight-sm.svg";
+import logo from '../../images/alluxio-mark-tight-sm.svg';
 
-import "./LoadingMessage.css";
+import './LoadingMessage.css';
 
 export class LoadingMessage extends React.PureComponent {
   public render() {

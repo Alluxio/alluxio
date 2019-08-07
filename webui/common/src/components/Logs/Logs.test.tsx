@@ -39,7 +39,7 @@ describe('Logs', () => {
       refresh: initialState.refresh.data,
       request: {},
       textAreaHeight: 0,
-      upateRequestParameter: sinon.spy()
+      upateRequestParameter: sinon.spy(),
     };
   });
 

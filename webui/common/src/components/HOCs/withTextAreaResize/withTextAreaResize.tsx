@@ -17,14 +17,14 @@ export interface ITextAreaResizeState {
 }
 
 export function withTextAreaResize<T>(
-  WrappedComponent: React.ComponentType<T>
+  WrappedComponent: React.ComponentType<T>,
 ) {
   class TextAreaResizeHoc extends React.Component<T, ITextAreaResizeState> {
     private readonly textAreaResizeMs = 100;
     private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(
       this.updateTextAreaHeight.bind(this),
       this.textAreaResizeMs,
-      true
+      true,
     );
 
     constructor(props: T) {

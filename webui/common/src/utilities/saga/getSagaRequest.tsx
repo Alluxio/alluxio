@@ -15,7 +15,7 @@ import { ActionType } from 'typesafe-actions';
 const performRequest = (
   axiosMethod: (endpoint: string, payload: any) => Promise<any>,
   endpoint: string,
-  payload: any
+  payload: any,
 ) =>
   axiosMethod(endpoint, payload)
     .then((response: any) => ({ response }))
@@ -25,7 +25,7 @@ export const getSagaRequest = (
   AxiosFunction: (endpoint: string, payload: any) => Promise<any>,
   endpoint: string,
   successFunction: ActionType<any>,
-  errorFunction: ActionType<any>
+  errorFunction: ActionType<any>,
 ) =>
   function*(params: any) {
     let apiEndpoint = endpoint;
@@ -37,10 +37,10 @@ export const getSagaRequest = (
 
       if (params.payload.queryString) {
         const queryString = Object.keys(params.payload.queryString)
-          .filter(key => params.payload.queryString[key] !== undefined)
+          .filter((key) => params.payload.queryString[key] !== undefined)
           .map(
-            key =>
-              key + '=' + encodeURIComponent(params.payload.queryString[key])
+            (key) =>
+              key + '=' + encodeURIComponent(params.payload.queryString[key]),
           )
           .join('&');
         apiEndpoint += queryString.length ? `?${queryString}` : '';
@@ -52,7 +52,7 @@ export const getSagaRequest = (
         performRequest,
         AxiosFunction,
         apiEndpoint,
-        params.payload || {}
+        params.payload || {},
       );
       if (response.error) {
         yield put(errorFunction(response.error.response));
@@ -64,7 +64,7 @@ export const getSagaRequest = (
         yield put(errorFunction(err.stack!));
       } else {
         yield put(
-          errorFunction('An unknown fetch error occurred in versions.')
+          errorFunction('An unknown fetch error occurred in versions.'),
         );
       }
     }

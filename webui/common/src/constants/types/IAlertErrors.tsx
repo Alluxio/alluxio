@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { AxiosResponse } from "axios";
+import { AxiosResponse } from 'axios';
 
 export interface IAlertErrors {
   hasErrors: boolean;

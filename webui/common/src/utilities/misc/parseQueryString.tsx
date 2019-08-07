@@ -18,9 +18,9 @@ export const parseQueryString = (searchString: string): IParsedQueryString => {
     return {};
   }
 
-  const searchArray = searchString.replace("?", "").split(/[=&]/);
+  const searchArray = searchString.replace('?', '').split(/[=&]/);
   if (searchArray.length % 2 !== 0) {
-    throw new Error("unable to parse querystring");
+    throw new Error('unable to parse querystring');
   }
 
   const parsedSearch: IParsedQueryString = {};

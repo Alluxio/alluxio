@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { triggerRefresh } from "../../store/refresh/actions";
+import { triggerRefresh } from '../../store/refresh/actions';
 
 export interface IAutoRefresh {
   setAutoRefresh: (should: boolean) => void;

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { IFileInfo } from "..";
+import { IFileInfo } from '..';
 
 export interface IFileViewData {
   currentDirectory?: IFileInfo;

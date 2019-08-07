@@ -11,7 +11,7 @@
 
 import {
   faAngleDoubleRight,
-  faAngleRight
+  faAngleRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
@@ -23,7 +23,7 @@ import {
   Pagination,
   PaginationItem,
   PaginationLink,
-  UncontrolledButtonDropdown
+  UncontrolledButtonDropdown,
 } from 'reactstrap';
 
 import './Paginator.css';

@@ -27,7 +27,7 @@ export interface ILogs {
 export enum LogsActionTypes {
   FETCH_REQUEST = '@@logs/FETCH_REQUEST',
   FETCH_SUCCESS = '@@logs/FETCH_SUCCESS',
-  FETCH_ERROR = '@@logs/FETCH_ERROR'
+  FETCH_ERROR = '@@logs/FETCH_ERROR',
 }
 
 export interface ILogsState {

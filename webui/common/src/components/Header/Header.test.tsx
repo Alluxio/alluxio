@@ -14,7 +14,7 @@ import {
   mount,
   ReactWrapper,
   shallow,
-  ShallowWrapper
+  ShallowWrapper,
 } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { createBrowserHistory, History, LocationState } from 'history';
@@ -34,7 +34,7 @@ describe('Header', () => {
     history.push('/');
     props = {
       data: [],
-      history
+      history,
     };
   });
 
@@ -62,7 +62,7 @@ describe('Header', () => {
       reactWrapper = mount(
         <StaticRouter location={history.location} context={context}>
           <Header {...props} />
-        </StaticRouter>
+        </StaticRouter>,
       );
     });
 

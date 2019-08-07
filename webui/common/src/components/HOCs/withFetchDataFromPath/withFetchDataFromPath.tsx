@@ -26,7 +26,7 @@ export interface IFetchDataFromPathProps {
 }
 
 export function withFetchDataFromPath<T extends IFetchDataFromPathProps>(
-  WrappedComponent: React.ComponentType<T>
+  WrappedComponent: React.ComponentType<T>,
 ) {
   class FetchDataFromPathHoc extends React.Component<
     T,
@@ -47,11 +47,11 @@ export function withFetchDataFromPath<T extends IFetchDataFromPathProps>(
     public componentDidUpdate(prevProps: T) {
       const {
         refresh,
-        location: { search }
+        location: { search },
       } = this.props;
       const {
         refresh: prevRefresh,
-        location: { search: prevSearch }
+        location: { search: prevSearch },
       } = prevProps;
       if (search !== prevSearch) {
         const request = this.getParsedQuery(search);
@@ -79,7 +79,7 @@ export function withFetchDataFromPath<T extends IFetchDataFromPathProps>(
 
     private updateRequestParameter(
       stateKey: string,
-      value: string | undefined
+      value: string | undefined,
     ) {
       const updatedReq: IRequest = { ...this.state.request, [stateKey]: value };
       this.setState({ request: updatedReq });
@@ -89,7 +89,7 @@ export function withFetchDataFromPath<T extends IFetchDataFromPathProps>(
       let queryStringSuffix = Object.entries(this.state.request)
         .filter(
           (obj: any[]) =>
-            ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] !== undefined
+            ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] !== undefined,
         )
         .map((obj: any) => `${obj[0]}=${obj[1]}`)
         .join('&');

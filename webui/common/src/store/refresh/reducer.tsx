@@ -14,12 +14,12 @@ import { Reducer } from 'redux';
 import { IRefreshState, RefreshActionTypes } from './types';
 
 export const initialRefreshState: IRefreshState = {
-  data: false
+  data: false,
 };
 
 export const refreshReducer: Reducer<IRefreshState> = (
   state = initialRefreshState,
-  action
+  action,
 ) => {
   switch (action.type) {
     case RefreshActionTypes.TRIGGER_REFRESH:

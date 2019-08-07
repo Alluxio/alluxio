@@ -24,7 +24,7 @@ describe('withLoadingMessage HOC', () => {
 
   beforeAll(() => {
     props = {
-      class: 'test'
+      class: 'test',
     };
   });
 

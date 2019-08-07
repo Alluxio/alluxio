@@ -14,7 +14,7 @@ import { Nav, NavItem, NavLink } from 'reactstrap';
 
 import {
   INavigationData,
-  INavigationDataCallbackParameters
+  INavigationDataCallbackParameters,
 } from '../../constants';
 
 import './Footer.css';

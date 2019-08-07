@@ -10,7 +10,7 @@
  */
 
 export enum RefreshActionTypes {
-  TRIGGER_REFRESH = '@@refresh/TRIGGER_REFRESH'
+  TRIGGER_REFRESH = '@@refresh/TRIGGER_REFRESH',
 }
 
 export interface IRefreshState {

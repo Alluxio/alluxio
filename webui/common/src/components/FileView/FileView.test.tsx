@@ -14,7 +14,7 @@ import {
   mount,
   ReactWrapper,
   shallow,
-  ShallowWrapper
+  ShallowWrapper,
 } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { createBrowserHistory, History, LocationState } from 'history';
@@ -47,8 +47,8 @@ describe('FileView', () => {
         fileInfos: [],
         invalidPathError: '',
         ntotalFile: 0,
-        viewingOffset: 0
-      }
+        viewingOffset: 0,
+      },
     };
   });
 
@@ -76,7 +76,7 @@ describe('FileView', () => {
       reactWrapper = mount(
         <StaticRouter location="someLocation" context={context}>
           <FileView {...props} />
-        </StaticRouter>
+        </StaticRouter>,
       );
     });
 

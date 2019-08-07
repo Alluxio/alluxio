@@ -32,8 +32,8 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
         legend: { text: { fill: '#bbb', fontSize: 12 } },
         ticks: {
           line: { stroke: '#fff', strokeWidth: 1 },
-          text: { fill: '#bbb', fontSize: 12 }
-        }
+          text: { fill: '#bbb', fontSize: 12 },
+        },
       },
       background: 'transparent',
       dots: { text: { fill: '#bbb', fontSize: 12 } },
@@ -44,7 +44,7 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
         fontSize: '12',
         lineColor: '#fff',
         lineStrokeWidth: 1,
-        textColor: '#999'
+        textColor: '#999',
       },
       tooltip: {
         basic: { whiteSpace: 'pre', display: 'flex', alignItems: 'center' },
@@ -54,11 +54,11 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
           boxShadow: '0 1px 2px rgba(255, 255, 255, 0.25)',
           color: 'inherit',
           fontSize: 'inherit',
-          padding: '5px 9px'
+          padding: '5px 9px',
         },
         table: {},
-        tableCell: { padding: '3px 5px' }
-      }
+        tableCell: { padding: '3px 5px' },
+      },
     };
 
     return (
@@ -79,7 +79,7 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
             legendPosition: 'middle',
             tickPadding: 5,
             tickRotation: -90,
-            tickSize: 5
+            tickSize: 5,
           }}
           axisLeft={{
             legend: yAxisLabel,
@@ -87,7 +87,7 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
             legendPosition: 'middle',
             tickPadding: 5,
             tickRotation: 0,
-            tickSize: 5
+            tickSize: 5,
           }}
           dotSize={8}
           dotColor="inherit:darker(0.3)"

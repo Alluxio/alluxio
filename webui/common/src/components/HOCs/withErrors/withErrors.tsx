@@ -19,7 +19,7 @@ export interface IErrorProps {
 }
 
 export function withErrors<T extends IErrorProps>(
-  WrappedComponent: React.ComponentType<T>
+  WrappedComponent: React.ComponentType<T>,
 ) {
   const errorsHoc = (props: T) => {
     const { errors } = props;
@@ -38,7 +38,7 @@ export function withErrors<T extends IErrorProps>(
     );
   };
   (errorsHoc as React.FunctionComponent).displayName = `withErrors(${getDisplayName(
-    WrappedComponent
+    WrappedComponent,
   )})`;
   return errorsHoc;
 }

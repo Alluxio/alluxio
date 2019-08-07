@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom';
 
 export const renderFileNameLink = (
   path: string,
-  urlPrefix: string
+  urlPrefix: string,
 ): JSX.Element => {
   const encodedPath = encodeURIComponent(path) || '';
   const encodedUrl = urlPrefix + encodedPath;

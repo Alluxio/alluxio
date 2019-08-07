@@ -9,8 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import React from "react";
-import { RouteComponentProps, StaticContext } from "react-router";
+import React from 'react';
+import { RouteComponentProps, StaticContext } from 'react-router';
 
 export function renderView(Container: any, props: any) {
   return (routerProps: RouteComponentProps<any, StaticContext, any>) => (

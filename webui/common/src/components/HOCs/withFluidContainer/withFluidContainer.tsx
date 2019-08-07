@@ -17,7 +17,7 @@ export interface IFluidContainerProps {
 }
 
 export function withFluidContainer<T extends IFluidContainerProps>(
-  WrappedComponent: React.ComponentType<T>
+  WrappedComponent: React.ComponentType<T>,
 ) {
   const fluidContainerHoc = (props: T) => (
     <div className={props.class}>
@@ -29,7 +29,7 @@ export function withFluidContainer<T extends IFluidContainerProps>(
     </div>
   );
   (fluidContainerHoc as React.FunctionComponent).displayName = `withFluidContainer(${getDisplayName(
-    WrappedComponent
+    WrappedComponent,
   )})`;
   return fluidContainerHoc;
 }

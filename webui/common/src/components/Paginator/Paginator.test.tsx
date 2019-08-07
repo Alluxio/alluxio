@@ -14,7 +14,7 @@ import {
   mount,
   ReactWrapper,
   shallow,
-  ShallowWrapper
+  ShallowWrapper,
 } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
@@ -30,7 +30,7 @@ describe('Paginator', () => {
   beforeAll(() => {
     props = {
       baseUrl: '',
-      total: 0
+      total: 0,
     };
   });
 
@@ -58,7 +58,7 @@ describe('Paginator', () => {
       reactWrapper = mount(
         <StaticRouter location="someLocation" context={context}>
           <Paginator {...props} />
-        </StaticRouter>
+        </StaticRouter>,
       );
     });
 

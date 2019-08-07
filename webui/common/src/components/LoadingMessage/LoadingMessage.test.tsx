@@ -14,7 +14,7 @@ import {
   mount,
   ReactWrapper,
   shallow,
-  ShallowWrapper
+  ShallowWrapper,
 } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
@@ -49,7 +49,7 @@ describe('LoadingMessage', () => {
       reactWrapper = mount(
         <StaticRouter location="someLocation" context={context}>
           <LoadingMessage />
-        </StaticRouter>
+        </StaticRouter>,
       );
     });
 
