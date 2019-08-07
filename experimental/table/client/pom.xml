@@ -70,7 +70,6 @@
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-metastore</artifactId>
-      <version>3.0.0</version>
     </dependency>
 
     <!-- Internal dependencies -->
