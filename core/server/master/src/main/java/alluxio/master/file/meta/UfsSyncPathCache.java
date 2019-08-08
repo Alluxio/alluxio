@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.util.io.PathUtils;
@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -81,7 +82,7 @@ public final class UfsSyncPathCache {
 
     // check the last sync information for the path itself.
     SyncTime lastSync = mCache.getIfPresent(path);
-    if (lastSync != null && (System.currentTimeMillis() - lastSync.getLastSyncMs()) < intervalMs) {
+    if (!shouldSyncInternal(lastSync, intervalMs, false)) {
       // Sync is not necessary for this path.
       return false;
     }
@@ -93,8 +94,7 @@ public final class UfsSyncPathCache {
       try {
         currPath = PathUtils.getParent(currPath);
         lastSync = mCache.getIfPresent(currPath);
-        if (lastSync != null
-            && (System.currentTimeMillis() - lastSync.getLastRecursiveSyncMs()) < intervalMs) {
+        if (!shouldSyncInternal(lastSync, intervalMs, true)) {
           // Sync is not necessary because an ancestor was already recursively synced
           return false;
         }
@@ -109,15 +109,41 @@ public final class UfsSyncPathCache {
     return true;
   }
 
+  /**
+   * Determines if the sync should be performed.
+   *
+   * @param syncTime the {@link SyncTime} to examine
+   * @param intervalMs the sync interval, in ms
+   * @param checkRecursive checks the recursive sync time if true, checks the standard sync time
+   *                       otherwise
+   * @return true if the sync should be performed
+   */
+  private boolean shouldSyncInternal(@Nullable SyncTime syncTime, long intervalMs,
+      boolean checkRecursive) {
+    if (syncTime == null) {
+      return true;
+    }
+    long lastSyncMs = syncTime.getLastSyncMs();
+    if (checkRecursive) {
+      lastSyncMs = syncTime.getLastRecursiveSyncMs();
+    }
+    if (lastSyncMs == SyncTime.UNSYNCED) {
+      // was not synced ever, so should sync
+      return true;
+    }
+    return (System.currentTimeMillis() - lastSyncMs) >= intervalMs;
+  }
+
   private static class SyncTime {
+    static final long UNSYNCED = -1;
     /** the last time (in ms) that a sync was performed. */
     private long mLastSyncMs;
     /** the last time (in ms) that a recursive sync was performed. */
     private long mLastRecursiveSyncMs;
 
     SyncTime(long syncMs, DescendantType descendantType) {
-      mLastSyncMs = -1;
-      mLastRecursiveSyncMs = -1;
+      mLastSyncMs = UNSYNCED;
+      mLastRecursiveSyncMs = UNSYNCED;
       updateSync(syncMs, descendantType);
     }
 
