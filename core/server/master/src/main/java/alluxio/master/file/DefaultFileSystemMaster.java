@@ -3399,7 +3399,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             loadMetadataAndJournal(rpcContext, inodePath, LoadMetadataOptions.defaults()
                 .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
 
-            mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
+            mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
           } catch (Exception e) {
             // This may be expected. For example, when creating a new file, the UFS file is not
             // expected to exist.
@@ -3416,8 +3416,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
+<<<<<<< HEAD
             mUfsSyncPathCache.notifySyncedPath(mountPoint);
 
+||||||| parent of b880cef284... Improve sync cache to consider recursive sync of ancestors
+            mUfsSyncPathCache.notifySyncedPath(mountPoint);
+=======
+            mUfsSyncPathCache.notifySyncedPath(mountPoint, syncDescendantType);
+>>>>>>> b880cef284... Improve sync cache to consider recursive sync of ancestors
           }
         }
       } catch (InvalidPathException e) {
@@ -3427,7 +3433,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // Update metadata for inodePath
     if (pathsToLoad.isEmpty()) {
-      mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
+      mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
     }
     return true;
   }
