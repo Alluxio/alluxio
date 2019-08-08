@@ -11,8 +11,12 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.file.options.DescendantType;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -33,7 +37,7 @@ public final class UfsSyncPathCache {
       ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** Cache of paths which have been synced. */
-  private final Cache<String, Long> mCache;
+  private final Cache<String, SyncTime> mCache;
 
   /**
    * Creates a new instance of {@link UfsSyncPathCache}.
@@ -46,9 +50,18 @@ public final class UfsSyncPathCache {
    * Notifies the cache that the path was synced.
    *
    * @param path the path that was synced
+   * @param descendantType the descendant type that the path was synced with
    */
-  public void notifySyncedPath(String path) {
-    mCache.put(path, System.currentTimeMillis());
+  public void notifySyncedPath(String path, DescendantType descendantType) {
+    long syncTimeMs = System.currentTimeMillis();
+    mCache.asMap().compute(path, (key, oldSyncTime) -> {
+      if (oldSyncTime != null) {
+        // update the existing sync time
+        oldSyncTime.updateSync(syncTimeMs, descendantType);
+        return oldSyncTime;
+      }
+      return new SyncTime(syncTimeMs, descendantType);
+    });
   }
 
   /**
@@ -65,11 +78,62 @@ public final class UfsSyncPathCache {
       // Always sync.
       return true;
     }
-    Long lastSync = mCache.getIfPresent(path);
-    if (lastSync == null) {
-      // No info about the last sync, so trigger a sync.
-      return true;
+
+    // check the last sync information for the path itself.
+    SyncTime lastSync = mCache.getIfPresent(path);
+    if (lastSync != null && (System.currentTimeMillis() - lastSync.getLastSyncMs()) < intervalMs) {
+      // Sync is not necessary for this path.
+      return false;
     }
-    return (System.currentTimeMillis() - lastSync) >= intervalMs;
+
+    // sync should be done on this path, but check all ancestors to determine if a recursive sync
+    // had been performed (to avoid a sync again).
+    String currPath = path;
+    while (!currPath.equals(AlluxioURI.SEPARATOR)) {
+      try {
+        currPath = PathUtils.getParent(currPath);
+        lastSync = mCache.getIfPresent(currPath);
+        if (lastSync != null
+            && (System.currentTimeMillis() - lastSync.getLastRecursiveSyncMs()) < intervalMs) {
+          // Sync is not necessary because an ancestor was already recursively synced
+          return false;
+        }
+      } catch (InvalidPathException e) {
+        // this is not expected, but the sync should be triggered just in case.
+        LOG.debug("Failed to get parent of ({}), for checking sync for ({})", currPath, path);
+        return true;
+      }
+    }
+
+    // trigger a sync, because a sync on the path (or an ancestor) was performed recently
+    return true;
+  }
+
+  private static class SyncTime {
+    /** the last time (in ms) that a sync was performed. */
+    private long mLastSyncMs;
+    /** the last time (in ms) that a recursive sync was performed. */
+    private long mLastRecursiveSyncMs;
+
+    SyncTime(long syncMs, DescendantType descendantType) {
+      mLastSyncMs = -1;
+      mLastRecursiveSyncMs = -1;
+      updateSync(syncMs, descendantType);
+    }
+
+    void updateSync(long syncMs, DescendantType descendantType) {
+      mLastSyncMs = syncMs;
+      if (descendantType == DescendantType.ALL) {
+        mLastRecursiveSyncMs = syncMs;
+      }
+    }
+
+    long getLastSyncMs() {
+      return mLastSyncMs;
+    }
+
+    long getLastRecursiveSyncMs() {
+      return mLastRecursiveSyncMs;
+    }
   }
 }
