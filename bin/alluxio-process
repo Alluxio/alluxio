@@ -32,47 +32,24 @@ alluxio-start.sh unless you know what you are doing.
     -c                Provide this flag to also log directly to stdout
 "
 
-
-
 # Launches an Alluxio process
 #
 # Arguments:
 #         1: name of the *_JAVA_OPTS variable to use when launching
 #         2: the main class to launch
-#         3: The name of the logging variable
-#         4: The value of the logging variable
-#         5: "true" or "false" whether or not to enable console logging
-#         6... additional arguments to the java program
-#
+#         3.... Additional arguments to the java process
 launch_process() {
 
   local process_java_opts_name
   local main_class
-  local logging_var_name
-  local logging_var_value
-  local console_logging_enabled
 
   process_java_opts_name=${1}
   main_class=${2}
-  logging_var_name=${3}
-  logging_var_value=${4}
-  console_logging_enabled=${5}
-
-  if [[ "${console_logging_enabled}" == "true" ]]; then
-    logging_var_value="Console,"
-    logging_var_value+="${4}"
-  fi
-
   # Set the java opts variable equal to "ALLUXIO_JAVA_OPTS" if it isn't set yet
   if [[ -z "${!process_java_opts_name}" ]]; then
     eval ${process_java_opts_name}=${ALLUXIO_JAVA_OPTS}
   fi
-
-  # Set the logging variable equal to the appropriate value
-  eval ${logging_var_name}="${logging_var_value}"
-  . ${BIN}/../libexec/alluxio-config.sh
-
-  exec ${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${!process_java_opts_name} "${main_class}" ${@:6}
+  exec ${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${!process_java_opts_name} "${main_class}" ${@:3}
 
 }
 
@@ -87,10 +64,7 @@ launch_master() {
     ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
   launch_process "ALLUXIO_MASTER_JAVA_OPTS" \
-                 "alluxio.master.AlluxioMaster" \
-                 "ALLUXIO_MASTER_LOGGER" \
-                 "MASTER_LOGGER" \
-                 "${CONSOLE_LOG}"
+                 "alluxio.master.AlluxioMaster"
 }
 
 launch_secondary_master() {
@@ -100,18 +74,12 @@ launch_secondary_master() {
     ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
   launch_process "ALLUXIO_SECONDARY_MASTER_JAVA_OPTS" \
-                 "alluxio.master.AlluxioSecondaryMaster" \
-                 "ALLUXIO_SECONDARY_MASTER_LOGGER" \
-                 "SECONDARY_MASTER_LOGGER" \
-                 "${CONSOLE_LOG}"
+                 "alluxio.master.AlluxioSecondaryMaster"
 }
 
 launch_job_master() {
   launch_process "ALLUXIO_JOB_MASTER_JAVA_OPTS" \
-                 "alluxio.master.AlluxioJobMaster" \
-                 "ALLUXIO_JOB_MASTER_LOGGER" \
-                 "JOB_MASTER_LOGGER" \
-                 "${CONSOLE_LOG}"
+                 "alluxio.master.AlluxioJobMaster"
 }
 
 launch_worker() {
@@ -132,35 +100,23 @@ launch_worker() {
   fi
 
   launch_process "ALLUXIO_WORKER_JAVA_OPTS" \
-                 "alluxio.worker.AlluxioWorker" \
-                 "ALLUXIO_WORKER_LOGGER" \
-                 "WORKER_LOGGER" \
-                 "${CONSOLE_LOG}"
+                 "alluxio.worker.AlluxioWorker"
 }
 
 launch_job_worker() {
   launch_process "ALLUXIO_JOB_WORKER_JAVA_OPTS" \
-                 "alluxio.worker.AlluxioJobWorker" \
-                 "ALLUXIO_JOB_WORKER_LOGGER" \
-                 "JOB_WORKER_LOGGER" \
-                 "${CONSOLE_LOG}"
+                 "alluxio.worker.AlluxioJobWorker"
 }
 
 launch_proxy() {
   launch_process "ALLUXIO_PROXY_JAVA_OPTS" \
-                 "alluxio.proxy.AlluxioProxy" \
-                 "ALLUXIO_PROXY_LOGGER" \
-                 "PROXY_LOGGER" \
-                 "${CONSOLE_LOG}"
+                 "alluxio.proxy.AlluxioProxy"
 }
 
 # Requires ALLUXIO_LOGSERVER_LOGS_DIR to be set beforehand
 launch_logserver() {
   launch_process "ALLUXIO_LOGSERVER_JAVA_OPTS" \
                  "alluxio.logserver.AlluxioLogServer" \
-                 "ALLUXIO_LOGSERVER_LOGGER" \
-                 "LOGSERVER_LOGGER" \
-                 "${CONSOLE_LOG}" \
                  "${ALLUXIO_LOGSERVER_LOGS_DIR}"
 }
 
@@ -179,15 +135,27 @@ get_env() {
   CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
 }
 
+# 1: The exit code
+print_help() {
+  if [[ "${1}" -ne "0" ]]; then
+    echo -e "${USAGE}" >&2
+  else
+    echo -e "${USAGE}"
+  fi
+
+  exit ${1}
+}
+
 # Launch the desired process
 main() {
 
   if [[ "$#" -gt "2" || "${#}" -eq "0" ]]; then
-    echo "${USAGE}"
-    exit 0
+    print_help 1
   fi
 
-  local CONSOLE_LOG
+  local logger_var_name
+  local logger_var_value
+  local console_logging_enabled
   local process
 
   process=${1}
@@ -198,18 +166,60 @@ main() {
   while getopts "hc" o; do
     case "${o}" in
       h)
-        echo -e "${USAGE}"
-        exit 0
+        print_help 0
         ;;
       c)
-        CONSOLE_LOG="true"
+        console_logging_enabled="true"
         ;;
       *)
-        echo -e "${USAGE}" >&2
-        exit 1
+        print_help 1
         ;;
     esac
   done
+
+  case "${process}" in
+    master)
+      logger_var_name="ALLUXIO_MASTER_LOGGER"
+      logger_var_value="MASTER_LOGGER"
+      ;;
+    secondary_master)
+      logger_var_name="ALLUXIO_SECONDARY_MASTER_LOGGER"
+      logger_var_value="SECONDARY_MASTER_LOGGER"
+      ;;
+    job_master)
+      logger_var_name="ALLUXIO_JOB_MASTER_LOGGER"
+      logger_var_value="JOB_MASTER_LOGGER"
+      ;;
+    worker)
+      logger_var_name="ALLUXIO_WORKER_LOGGER"
+      logger_var_value="WORKER_LOGGER"
+      ;;
+    job_worker)
+      logger_var_name="ALLUXIO_JOB_WORKER_LOGGER"
+      logger_var_value="JOB_WORKER_LOGGER"
+      ;;
+    logserver)
+      logger_var_name="ALLUXIO_LOGSERVER_LOGGER"
+      logger_var_value="LOGSERVER_LOGGER"
+      ;;
+    proxy)
+      logger_var_name="ALLUXIO_PROXY_LOGGER"
+      logger_var_value="PROXY_LOGGER"
+      ;;
+    *)
+      print_help 1
+      ;;
+  esac
+
+  if [[ "${console_logging_enabled}" == "true" ]]; then
+    local tmp_val=${logger_var_value}
+    logger_var_value="Console,"
+    logger_var_value+="${tmp_val}"
+  fi
+
+  # Set the logging variable equal to the appropriate value
+  eval ${logger_var_name}="${logger_var_value}"
+  get_env
 
   case "${process}" in
     master)
@@ -232,6 +242,9 @@ main() {
       ;;
     proxy)
       launch_proxy
+      ;;
+    *)
+      print_help 1
       ;;
   esac
 

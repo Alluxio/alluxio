@@ -200,7 +200,8 @@ start_logserver() {
     fi
 
     echo "Starting logserver @ $(hostname -f)."
-    (ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR}" nohup ${BIN}/alluxio-process logserver > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+    (ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR}" \
+    nohup ${BIN}/alluxio-process logserver > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
     # Wait for 1s before starting other Alluxio servers, otherwise may cause race condition
     # leading to connection errors.
     sleep 1
