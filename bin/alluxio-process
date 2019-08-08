@@ -37,13 +37,12 @@ alluxio-start.sh unless you know what you are doing.
 # Launches an Alluxio process
 #
 # Arguments:
-#         1: process classpath name
-#         2: name of the *_JAVA_OPTS variable to use when launching
-#         3: the main class to launch
-#         4: The name of the logging variable
-#         5: The value of the logging variable
-#         6: "true" or "false" whether or not to enable console logging
-#         7... additional arguments to the java program
+#         1: name of the *_JAVA_OPTS variable to use when launching
+#         2: the main class to launch
+#         3: The name of the logging variable
+#         4: The value of the logging variable
+#         5: "true" or "false" whether or not to enable console logging
+#         6... additional arguments to the java program
 #
 launch_process() {
 
@@ -62,11 +61,9 @@ launch_process() {
   if [[ "${console_logging_enabled}" == "true" ]]; then
     logging_var_value="Console,"
     logging_var_value+="${4}"
-  else
-    logging_var_value="${4}"
   fi
 
-  # Set the java opts variable equal to "ALLUXIO_JAVA_OPTS" if it doesn't exist
+  # Set the java opts variable equal to "ALLUXIO_JAVA_OPTS" if it isn't set yet
   if [[ -z "${!process_java_opts_name}" ]]; then
     eval ${process_java_opts_name}=${ALLUXIO_JAVA_OPTS}
   fi
