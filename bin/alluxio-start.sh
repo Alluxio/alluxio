@@ -9,7 +9,6 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-
 LAUNCHER=
 # If debugging is enabled propagate that through to sub-shells
 if [[ "$-" == *x* ]]; then
@@ -66,14 +65,6 @@ ensure_dirs() {
     echo "ALLUXIO_LOGS_DIR: ${ALLUXIO_LOGS_DIR}"
     mkdir -p ${ALLUXIO_LOGS_DIR}
   fi
-}
-
-# returns 1 if "$1" contains "$2", 0 otherwise.
-contains() {
-  if [[ "$1" = *"$2"* ]]; then
-    return 1
-  fi
-  return 0
 }
 
 get_env() {
@@ -176,14 +167,8 @@ start_job_master() {
   fi
 
   if [[ ${ALLUXIO_MASTER_SECONDARY} != "true" ]]; then
-    if [[ -z ${ALLUXIO_JOB_MASTER_JAVA_OPTS} ]] ; then
-      ALLUXIO_JOB_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-    fi
-
     echo "Starting job master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${JAVA} -cp ${CLASSPATH} \
-     ${ALLUXIO_JOB_MASTER_JAVA_OPTS} \
-     alluxio.master.AlluxioJobMaster > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
+    (nohup ${BIN}/alluxio-process job_master > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
    fi
 }
 
@@ -192,21 +177,14 @@ start_job_masters() {
 }
 
 start_job_worker() {
-  if [[ -z ${ALLUXIO_JOB_WORKER_JAVA_OPTS} ]] ; then
-    ALLUXIO_JOB_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  fi
-
   echo "Starting job worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup ${JAVA} -cp ${CLASSPATH} \
-   ${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
-   alluxio.worker.AlluxioJobWorker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+  (nohup ${BIN}/alluxio-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
   ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.job.worker.rpc.port=0 -Dalluxio.job.worker.web.port=0"
   local nworkers=${ALLUXIO_JOB_WORKER_COUNT:-1}
   for (( c = 1; c < ${nworkers}; c++ )); do
     echo "Starting job worker #$((c+1)) @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${JAVA} -cp ${CLASSPATH} \
-     ${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
-     alluxio.worker.AlluxioJobWorker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+    (ALLUXIO_JOB_WORKER_JAVA_OPTS=${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
+    nohup ${BIN}/alluxio-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
   done
 }
 
@@ -221,9 +199,7 @@ start_logserver() {
     fi
 
     echo "Starting logserver @ $(hostname -f)."
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_LOGSERVER_JAVA_OPTS} \
-     alluxio.logserver.AlluxioLogServer "${ALLUXIO_LOGSERVER_LOGS_DIR}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+    (ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR}" nohup ${BIN}/alluxio-process logserver > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
     # Wait for 1s before starting other Alluxio servers, otherwise may cause race condition
     # leading to connection errors.
     sleep 1
@@ -242,38 +218,11 @@ start_master() {
   fi
 
   if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
-    if [[ -z ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} ]]; then
-      ALLUXIO_SECONDARY_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-    fi
-
-    # use a default Xmx value for the master
-    contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx"
-    if [[ $? -eq 0 ]]; then
-      ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
-    fi
-
     echo "Starting secondary master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} \
-     alluxio.master.AlluxioSecondaryMaster > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
+    (nohup ${BIN}/alluxio-process secondary_master > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
   else
-    if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-    fi
-    if [[ -n ${journal_backup} ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.backup=${journal_backup}"
-    fi
-
-    # use a default Xmx value for the master
-    contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx"
-    if [[ $? -eq 0 ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
-    fi
-
     echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_MASTER_JAVA_OPTS} \
-     alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
+    (JOURNAL_BACKUP="${journal_backup}" nohup ${BIN}/alluxio-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
   fi
 }
 
@@ -286,14 +235,8 @@ start_masters() {
 }
 
 start_proxy() {
-  if [[ -z ${ALLUXIO_PROXY_JAVA_OPTS} ]]; then
-    ALLUXIO_PROXY_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  fi
-
   echo "Starting proxy @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup "${JAVA}" -cp ${CLASSPATH} \
-   ${ALLUXIO_PROXY_JAVA_OPTS} \
-   alluxio.proxy.AlluxioProxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
+  (nohup ${BIN}/alluxio-process proxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
 }
 
 start_proxies() {
@@ -308,26 +251,9 @@ start_worker() {
     exit 1
   fi
 
-  if [[ -z ${ALLUXIO_WORKER_JAVA_OPTS} ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  fi
-
-  # use a default Xmx value for the worker
-  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx"
-  if [[ $? -eq 0 ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
-  fi
-
-  # use a default MaxDirectMemorySize value for the worker
-  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize"
-  if [[ $? -eq 0 ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
-  fi
-
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup "${JAVA}" -cp ${CLASSPATH} \
-   ${ALLUXIO_WORKER_JAVA_OPTS} \
-   alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
+  (ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_WORKER_JAVA_OPTS} \
+     nohup ${BIN}/alluxio-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
 }
 
 start_workers() {
@@ -342,9 +268,7 @@ restart_worker() {
   RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_WORKER_JAVA_OPTS} \
-     alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
+    (nohup ${BIN}/alluxio-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
 }
 

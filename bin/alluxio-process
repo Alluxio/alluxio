@@ -1,0 +1,242 @@
+#!/usr/bin/env bash
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+set -e
+
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+
+USAGE="Usage: alluxio-process <process name> [-c]
+
+alluxio-process launches one of the Alluxio processes in the foreground.
+By default it will only log to the configured log file. To configure the
+process, add configuration properties in alluxio-site.properties or
+environment variables in conf/alluxio-env.sh.
+
+Note that this script does not verify Alluxio configuration before
+starting. It simply populates the necessary environment variables and
+launches the desired process in the foreground.
+
+    <process name>    One of: master, secondary_master, job_master, worker,
+                      job_worker, proxy
+
+    -c                Provide this flag to also log directly to stdout
+"
+
+
+
+# Launches an Alluxio process
+#
+# Arguments:
+#         1: process classpath name
+#         2: name of the *_JAVA_OPTS variable to use when launching
+#         3: the main class to launch
+#         4: The name of the logging variable
+#         5: The value of the logging variable
+#         6: "true" or "false" whether or not to enable console logging
+#         7... additional arguments to the java program
+#
+launch_process() {
+
+  local process_java_opts_name
+  local main_class
+  local logging_var_name
+  local logging_var_value
+  local console_logging_enabled
+
+  process_java_opts_name=${1}
+  main_class=${2}
+  logging_var_name=${3}
+  logging_var_value=${4}
+  console_logging_enabled=${5}
+
+  if [[ "${console_logging_enabled}" == "true" ]]; then
+    logging_var_value="Console,"
+    logging_var_value+="${4}"
+  else
+    logging_var_value="${4}"
+  fi
+
+  # Set the java opts variable equal to "ALLUXIO_JAVA_OPTS" if it doesn't exist
+  if [[ -z "${!process_java_opts_name}" ]]; then
+    eval ${process_java_opts_name}=${ALLUXIO_JAVA_OPTS}
+  fi
+
+  # Set the logging variable equal to the appropriate value
+  eval ${logging_var_name}="${logging_var_value}"
+  . ${BIN}/../libexec/alluxio-config.sh
+
+  exec ${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${!process_java_opts_name} "${main_class}" ${@:6}
+
+}
+
+launch_master() {
+  if [[ -n ${JOURNAL_BACKUP} ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.backup=${JOURNAL_BACKUP}"
+  fi
+
+  # use a default Xmx value for the master
+  contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx"
+  if [[ $? -eq 0 ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
+  fi
+  launch_process "ALLUXIO_MASTER_JAVA_OPTS" \
+                 "alluxio.master.AlluxioMaster" \
+                 "ALLUXIO_MASTER_LOGGER" \
+                 "MASTER_LOGGER" \
+                 "${CONSOLE_LOG}"
+}
+
+launch_secondary_master() {
+  # use a default Xmx value for the master
+  contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx"
+  if [[ $? -eq 0 ]]; then
+    ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
+  fi
+  launch_process "ALLUXIO_SECONDARY_MASTER_JAVA_OPTS" \
+                 "alluxio.master.AlluxioSecondaryMaster" \
+                 "ALLUXIO_SECONDARY_MASTER_LOGGER" \
+                 "SECONDARY_MASTER_LOGGER" \
+                 "${CONSOLE_LOG}"
+}
+
+launch_job_master() {
+  launch_process "ALLUXIO_JOB_MASTER_JAVA_OPTS" \
+                 "alluxio.master.AlluxioJobMaster" \
+                 "ALLUXIO_JOB_MASTER_LOGGER" \
+                 "JOB_MASTER_LOGGER" \
+                 "${CONSOLE_LOG}"
+}
+
+launch_worker() {
+  if [[ -z ${ALLUXIO_WORKER_JAVA_OPTS} ]]; then
+    ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  fi
+
+  # use a default Xmx value for the worker
+  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx"
+  if [[ $? -eq 0 ]]; then
+    ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
+  fi
+
+  # use a default MaxDirectMemorySize value for the worker
+  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize"
+  if [[ $? -eq 0 ]]; then
+    ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
+  fi
+
+  launch_process "ALLUXIO_WORKER_JAVA_OPTS" \
+                 "alluxio.worker.AlluxioWorker" \
+                 "ALLUXIO_WORKER_LOGGER" \
+                 "WORKER_LOGGER" \
+                 "${CONSOLE_LOG}"
+}
+
+launch_job_worker() {
+  launch_process "ALLUXIO_JOB_WORKER_JAVA_OPTS" \
+                 "alluxio.worker.AlluxioJobWorker" \
+                 "ALLUXIO_JOB_WORKER_LOGGER" \
+                 "JOB_WORKER_LOGGER" \
+                 "${CONSOLE_LOG}"
+}
+
+launch_proxy() {
+  launch_process "ALLUXIO_PROXY_JAVA_OPTS" \
+                 "alluxio.proxy.AlluxioProxy" \
+                 "ALLUXIO_PROXY_LOGGER" \
+                 "PROXY_LOGGER" \
+                 "${CONSOLE_LOG}"
+}
+
+# Requires ALLUXIO_LOGSERVER_LOGS_DIR to be set beforehand
+launch_logserver() {
+  launch_process "ALLUXIO_LOGSERVER_JAVA_OPTS" \
+                 "alluxio.logserver.AlluxioLogServer" \
+                 "ALLUXIO_LOGSERVER_LOGGER" \
+                 "LOGSERVER_LOGGER" \
+                 "${CONSOLE_LOG}" \
+                 "${ALLUXIO_LOGSERVER_LOGS_DIR}"
+}
+
+# returns 1 if "$1" contains "$2", 0 otherwise.
+contains() {
+  if [[ "$1" = *"$2"* ]]; then
+    return 1
+  fi
+  return 0
+}
+
+get_env() {
+  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
+  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+  CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+}
+
+# Launch the desired process
+main() {
+
+  if [[ "$#" -gt "2" || "${#}" -eq "0" ]]; then
+    echo "${USAGE}"
+    exit 0
+  fi
+
+  local CONSOLE_LOG
+  local process
+
+  process=${1}
+  shift
+
+  CONSOLE_LOG="false"
+
+  while getopts "hc" o; do
+    case "${o}" in
+      h)
+        echo -e "${USAGE}"
+        exit 0
+        ;;
+      c)
+        CONSOLE_LOG="true"
+        ;;
+      *)
+        echo -e "${USAGE}" >&2
+        exit 1
+        ;;
+    esac
+  done
+
+  case "${process}" in
+    master)
+      launch_master
+      ;;
+    secondary_master)
+      launch_secondary_master
+      ;;
+    job_master)
+      launch_job_master
+      ;;
+    worker)
+      launch_worker
+      ;;
+    job_worker)
+      launch_job_worker
+      ;;
+    logserver)
+      launch_logserver
+      ;;
+    proxy)
+      launch_proxy
+      ;;
+  esac
+
+}
+
+main $@
