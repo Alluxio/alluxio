@@ -38,7 +38,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -385,30 +384,27 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * Reverse lookup given foreign URI and returns Alluxio path.
    *
-   * @param foreignUri foreign URI
+   * @param foreignUriStr foreign URI string
    * @return Alluxio URI for given foreign path
    * @throws InvalidPathException
    */
-  public AlluxioURI translate(AlluxioURI foreignUri) throws InvalidPathException {
-    Preconditions.checkArgument(foreignUri.hasScheme(), "foreignUri.hasScheme()");
-
+  public AlluxioURI translate(String foreignUriStr) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
-      LOG.debug("Translating foreign URI {}", foreignUri);
-      String uriStr = foreignUri.toString();
+      LOG.debug("Translating foreign URI {}", foreignUriStr);
       // Enumerate existing mount points to find a mount point that owns
       // given uri.
       for (Map.Entry<String, MountInfo> mountEntry : mState.getMountTable().entrySet()) {
         AlluxioURI ufsUri = mountEntry.getValue().getUfsUri();
         String ufsUriStr = ufsUri.toString();
         // Check if current mount point owns given path.
-        if (uriStr.startsWith(ufsUriStr)) {
-          return new AlluxioURI(
-              PathUtils.concatPath(mountEntry.getKey(), uriStr.substring(ufsUriStr.length())));
+        if (foreignUriStr.startsWith(ufsUriStr)) {
+          return new AlluxioURI(PathUtils.concatPath(mountEntry.getKey(),
+              foreignUriStr.substring(ufsUriStr.length())));
         }
       }
       // No mount found for given path.
       throw new InvalidPathException(
-          String.format("Foreign URI: %s is not found on Alluxio mounts.", uriStr));
+          String.format("Foreign URI: %s is not found on Alluxio mounts.", foreignUriStr));
     }
   }
 
