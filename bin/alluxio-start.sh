@@ -9,6 +9,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 LAUNCHER=
 # If debugging is enabled propagate that through to sub-shells
 if [[ "$-" == *x* ]]; then
