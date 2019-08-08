@@ -31,6 +31,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -388,6 +389,35 @@ public final class MountTableTest {
     Assert.assertEquals(info1, mMountTable.getMountInfo(info1.getMountId()));
     Assert.assertEquals(info2, mMountTable.getMountInfo(info2.getMountId()));
     Assert.assertEquals(null, mMountTable.getMountInfo(4L));
+  }
+
+  /**
+   * Tests {@link MountTable#translate(String)}.
+   */
+  @Test
+  public void translate() throws Exception {
+    String mountPath = "/mnt/foo";
+    String ufsPath = "ufs-1://authority/root";
+    addMount(mountPath, ufsPath, 2);
+    // Test successful translation.
+    String testFile = PathUtils.uniqPath();
+    String testFileUfsPath = PathUtils.concatPath(ufsPath, testFile);
+    String testFileAlluxioPath = PathUtils.concatPath(mountPath, testFile);
+    Assert.assertEquals(testFileAlluxioPath, mMountTable.translate(testFileUfsPath).getPath());
+
+    // Test unknown translation.
+    String unmountedUfsPath = "ufs-unknown://authority/root";
+    testFileUfsPath = PathUtils.concatPath(unmountedUfsPath, testFile);
+    boolean translateFailed = false;
+    try {
+      mMountTable.translate(testFileUfsPath);
+    } catch (InvalidPathException e) {
+      // Exception expected
+      Assert.assertEquals(ExceptionMessage.FOREIGN_URI_NOT_MOUNTED.getMessage(testFileUfsPath),
+          e.getMessage());
+      translateFailed = true;
+    }
+    Assert.assertTrue(translateFailed);
   }
 
   private void addMount(String alluxio, String ufs, long id) throws Exception {

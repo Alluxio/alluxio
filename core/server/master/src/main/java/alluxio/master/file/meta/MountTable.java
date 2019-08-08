@@ -404,7 +404,7 @@ public final class MountTable implements DelegatingJournaled {
       }
       // No mount found for given path.
       throw new InvalidPathException(
-          String.format("Foreign URI: %s is not found on Alluxio mounts.", foreignUriStr));
+          String.format(ExceptionMessage.FOREIGN_URI_NOT_MOUNTED.getMessage(foreignUriStr)));
     }
   }
 
