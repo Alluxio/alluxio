@@ -45,13 +45,13 @@ public class GetMasterWorkerAddressTest {
     int defaultPort = Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue());
     InetSocketAddress masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
-    assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("RemoteMaster1", 10000), masterAddress);
     conf = ConfigurationTestUtils.defaults();
 
     // port only
     conf.set(PropertyKey.MASTER_RPC_PORT, "20000");
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
-    assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved(defaultHostname, 20000), masterAddress);
     conf = ConfigurationTestUtils.defaults();
 
     // connect host only

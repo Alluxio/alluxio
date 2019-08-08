@@ -74,7 +74,7 @@ public class NetworkAddressUtilsTest {
 
     // all default
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress(localHostName, service.getDefaultPort()),
+    assertEquals(InetSocketAddress.createUnresolved(localHostName, service.getDefaultPort()),
         masterAddress);
 
     // bind host only
