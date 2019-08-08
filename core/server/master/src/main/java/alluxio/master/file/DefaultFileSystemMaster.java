@@ -4004,18 +4004,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *         the thread-local user is null. Normally this should not happen.
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
-      @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) throws AccessControlException {
+      @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) {
     FileSystemMasterAuditContext auditContext =
         new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {
-      String user = AuthenticatedClientUser.getClientUser();
-      String ugi;
+      String user = null;
+      String ugi = "";
       try {
-        String primaryGroup = CommonUtils.getPrimaryGroupName(user);
-        ugi = user + "," + primaryGroup;
-      } catch (IOException e) {
-        LOG.warn("Failed to get primary group for user {}.", user);
-        ugi = user;
+        user = AuthenticatedClientUser.getClientUser();
+      } catch (AccessControlException e) {
+        ugi = "N/A";
+      }
+      if (user != null) {
+        try {
+          String primaryGroup = CommonUtils.getPrimaryGroupName(user);
+          ugi = user + "," + primaryGroup;
+        } catch (IOException e) {
+          LOG.debug("Failed to get primary group for user {}.", user);
+          ugi = user + ",N/A";
+        }
       }
       AuthType authType =
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
