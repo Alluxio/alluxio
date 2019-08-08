@@ -185,6 +185,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -3756,6 +3757,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try {
         mSyncManager.startSyncPostJournal(uri);
       } catch (Throwable e) {
+        LOG.info("Start sync failed because {}", ExceptionUtils.getStackTrace(e));
         // revert state;
         RemoveSyncPointEntry removeSyncPoint =
             File.RemoveSyncPointEntry.newBuilder()
@@ -3807,6 +3809,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         long mountId = resolution.getMountId();
         mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
       } catch (Throwable e) {
+        LOG.info("Stop sync failed because {}", ExceptionUtils.getStackTrace(e));
         // revert state;
         AddSyncPointEntry addSyncPoint =
             File.AddSyncPointEntry.newBuilder()
