@@ -66,4 +66,18 @@ public class MetricsStoreTest {
         Metric.from("client.192_1_1_1:B.metric1", 15, MetricType.GAUGE)),
         mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.CLIENT, "metric1"));
   }
+
+  @Test
+  public void putTaggedMetrics() {
+    String name = "test";
+    Metric metric1 =
+        new Metric(MetricsSystem.InstanceType.WORKER, "host", MetricType.COUNTER, name, 1.0);
+    metric1.addTag("Tag", "1");
+    Metric metric2 =
+        new Metric(MetricsSystem.InstanceType.WORKER, "host", MetricType.COUNTER, name, 2.0);
+    metric2.addTag("Tag", "2");
+    mMetricStore.putWorkerMetrics("host", Lists.newArrayList(metric1, metric2));
+    assertEquals(mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER,
+        name), Sets.newHashSet(metric1, metric2));
+  }
 }

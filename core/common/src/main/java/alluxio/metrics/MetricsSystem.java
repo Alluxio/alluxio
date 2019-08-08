@@ -420,11 +420,14 @@ public final class MetricsSystem {
   }
 
   /**
-   * Resets all the counters to 0 for testing.
+   * Resets all counters to 0 and unregisters gauges for testing.
    */
-  public static void resetAllCounters() {
+  public static void resetCountersAndGauges() {
     for (Map.Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
       entry.getValue().dec(entry.getValue().getCount());
+    }
+    for (String gauge : METRIC_REGISTRY.getGauges().keySet()) {
+      METRIC_REGISTRY.remove(gauge);
     }
   }
 
