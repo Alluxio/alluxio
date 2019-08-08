@@ -57,11 +57,11 @@ public class GetMasterWorkerAddressTest {
     // connect host only
     conf.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster3");
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
-    assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("RemoteMaster3", defaultPort), masterAddress);
     conf = ConfigurationTestUtils.defaults();
 
     // all default
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
-    assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved(defaultHostname, defaultPort), masterAddress);
   }
 }
