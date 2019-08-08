@@ -81,7 +81,8 @@ public class NetworkAddressUtilsTest {
     mConfiguration.unset(service.getHostNameKey());
     mConfiguration.set(service.getBindHostKey(), "bind.host");
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(InetSocketAddress.createUnresolved("bind.host", service.getDefaultPort()), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("bind.host", service.getDefaultPort()),
+        masterAddress);
 
     // connect host and bind host
     mConfiguration.set(service.getHostNameKey(), "connect.host");
@@ -92,7 +93,8 @@ public class NetworkAddressUtilsTest {
     // wildcard connect host and bind host
     mConfiguration.set(service.getHostNameKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(InetSocketAddress.createUnresolved("bind.host", service.getDefaultPort()), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("bind.host", service.getDefaultPort()),
+        masterAddress);
 
     // wildcard connect host and wildcard bind host
     mConfiguration.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
