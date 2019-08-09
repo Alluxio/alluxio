@@ -70,18 +70,9 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
       // ignore
     }
     long fileId = BlockId.getFileId(blockId);
-<<<<<<< HEAD
-    String path = mFsClient.getFilePath(new GetFilePathTOptions(fileId));
-    System.out.println(info);
-    System.out.printf("This block belongs to file {id=%s, path=%s}%n", fileId, path);
-||||||| parent of c46a1f4305... Allow getBlockInfo command to handle errors
-    String path = mFsClient.getFilePath(fileId);
-    System.out.println(info);
-    System.out.printf("This block belongs to file {id=%s, path=%s}%n", fileId, path);
-=======
     String path = null;
     try {
-      path = mFsClient.getFilePath(fileId);
+      path = mFsClient.getFilePath(new GetFilePathTOptions(fileId));
     } catch (Exception e) {
       // ignore
     }
@@ -95,7 +86,6 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
     } else {
       System.out.printf("This block belongs to file {id=%s}%n", fileId);
     }
->>>>>>> c46a1f4305... Allow getBlockInfo command to handle errors
     return 0;
   }
 
