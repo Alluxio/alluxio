@@ -30,6 +30,8 @@ alluxio-start.sh unless you know what you are doing.
                       job_worker, proxy, logserver
 
     -c                Provide this flag to also log directly to stdout
+
+    -h                Print this help text to stdout
 "
 
 # Launches an Alluxio process
