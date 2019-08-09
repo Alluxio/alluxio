@@ -180,7 +180,7 @@ start_job_masters() {
 start_job_worker() {
   echo "Starting job worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
   (nohup ${BIN}/alluxio-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
-  ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.job.worker.rpc.port=0 -Dalluxio.job.worker.web.port=0"
+  ALLUXIO_JOB_WORKER_JAVA_OPTS=" -Dalluxio.job.worker.rpc.port=0 -Dalluxio.job.worker.web.port=0"
   local nworkers=${ALLUXIO_JOB_WORKER_COUNT:-1}
   for (( c = 1; c < ${nworkers}; c++ )); do
     echo "Starting job worker #$((c+1)) @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
