@@ -160,8 +160,6 @@ main() {
   process=${1}
   shift
 
-  CONSOLE_LOG="false"
-
   while getopts "hc" o; do
     case "${o}" in
       h)
