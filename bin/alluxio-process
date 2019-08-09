@@ -44,7 +44,7 @@ launch_process() {
   local process_java_opts_name
   local main_class
 
-  process_java_opts=${1}
+  process_java_opts_name=${1}
   main_class=${2}
   # Set the java opts variable equal to "ALLUXIO_JAVA_OPTS" if it isn't set yet
   if [[ -z "${!process_java_opts_name}" ]]; then
