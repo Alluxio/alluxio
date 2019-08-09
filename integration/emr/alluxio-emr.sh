@@ -175,6 +175,7 @@ main() {
     sudo rm /tmp/alluxio-site.properties
   fi
 
+if [ ! -z "${delimited_properties}" ]; then
   # Inject user defined properties from args
   IFS="${property_delimiter}" read -ra conf <<< "${delimited_properties}"
   for property in "${conf[@]}"; do
@@ -182,6 +183,7 @@ main() {
     local value=${property#*"="}
     append_alluxio_property "${key}" "${value}"
   done
+  fi
 
   local mem_size=$(get_default_mem_size)
 
