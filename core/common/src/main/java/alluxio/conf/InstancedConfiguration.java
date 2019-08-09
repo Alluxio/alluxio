@@ -51,6 +51,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Source of the truth of all property values (default or customized). */
   protected AlluxioProperties mProperties;
+  protected CredentialConfiguration mCredProperties;
 
   private final boolean mClusterDefaultsLoaded;
 
@@ -162,6 +163,18 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     return value;
   }
 
+  public String getCredential(PropertyKey key) {
+    if (!key.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
+      throw new RuntimeException();
+    }
+    String value = mProperties.get(key);
+    if (value == null) {
+      // if value or default value is not set in configuration for the given key
+      throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
+    }
+    return value;
+  }
+
   private boolean isResolvable(PropertyKey key) {
     String val = mProperties.get(key);
     try {
@@ -207,7 +220,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     Preconditions.checkArgument(!value.equals(""),
         String.format("The key \"%s\" cannot be have an empty string as a value. Use "
             + "ServerConfiguration.unset to remove a key from the configuration.", key));
-    mProperties.put(key, String.valueOf(value), source);
+    if (key.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
+      LOG.warn("Setting {}", key);
+      new Exception().printStackTrace();
+    } else {
+      mProperties.put(key, String.valueOf(value), source);
+    }
   }
 
   /**
