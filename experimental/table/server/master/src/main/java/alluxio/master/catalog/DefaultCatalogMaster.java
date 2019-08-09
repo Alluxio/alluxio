@@ -11,6 +11,7 @@
 
 package alluxio.master.catalog;
 
+import alluxio.client.file.FileSystem;
 import alluxio.clock.SystemClock;
 import alluxio.experimental.Constants;
 import alluxio.grpc.GrpcService;
@@ -24,6 +25,8 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,29 +38,33 @@ import java.util.Map;
  * This catalog master manages catalogs metadata information.
  */
 public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultCatalogMaster.class);
+  private final AlluxioCatalog mCatalog;
+
   /**
    * Constructor for DefaultCatalogMaster.
    *
    * @param context core master context
    */
-  public DefaultCatalogMaster(CoreMasterContext context) {
+  public DefaultCatalogMaster(CoreMasterContext context, FileSystem fileSystem) {
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.CATALOG_MASTER_NAME));
+    mCatalog = new AlluxioCatalog(fileSystem);
   }
 
   @Override
   public List<String> getAllDatabases() {
-    return null;
+    return mCatalog.getAllDatabases();
   }
 
   @Override
   public Database getDatabase(String dbName) {
-    return null;
+    return mCatalog.getDatabase(dbName);
   }
 
   @Override
   public List<String> getAllTables(String databaseName) {
-    return null;
+    return mCatalog.getAllTables(databaseName);
   }
 
   @Override
