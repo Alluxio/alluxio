@@ -41,18 +41,16 @@ alluxio-start.sh unless you know what you are doing.
 #         2: the main class to launch
 #         3.... Additional arguments to the java process
 launch_process() {
-
   local process_java_opts_name
   local main_class
 
-  process_java_opts_name=${1}
+  process_java_opts=${1}
   main_class=${2}
   # Set the java opts variable equal to "ALLUXIO_JAVA_OPTS" if it isn't set yet
   if [[ -z "${!process_java_opts_name}" ]]; then
     eval ${process_java_opts_name}=${ALLUXIO_JAVA_OPTS}
   fi
   exec ${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${!process_java_opts_name} "${main_class}" ${@:3}
-
 }
 
 launch_master() {
@@ -149,7 +147,6 @@ print_help() {
 
 # Launch the desired process
 main() {
-
   if [[ "$#" -gt "2" || "${#}" -eq "0" ]]; then
     print_help 1
   fi
