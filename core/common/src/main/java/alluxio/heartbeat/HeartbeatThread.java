@@ -54,6 +54,8 @@ public final class HeartbeatThread implements Runnable {
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
     mTimer = CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},
         new Object[] {threadName, intervalMs});
+    // Assign a default shutdown tracker that never gets set.
+    mShutdownTracker = new AtomicBoolean(false);
   }
 
   /**

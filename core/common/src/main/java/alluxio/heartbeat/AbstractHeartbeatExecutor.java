@@ -20,7 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * checking whether shutdown is initiated.
  */
 public abstract class AbstractHeartbeatExecutor implements HeartbeatExecutor {
-  private AtomicBoolean mShutdownTracker;
+  // Assign a default tracker that never gets set.
+  private AtomicBoolean mShutdownTracker = new AtomicBoolean(false);
 
   @Override
   public void setShutdownTracker(AtomicBoolean shutdownTracker) {
