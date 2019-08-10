@@ -123,11 +123,13 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     CommonUtils.waitFor("file system worker executor shutdown", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
-        getExecutorService().shutdownNow();
+        getExecutorService().shutdown();
         try {
           return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
+        } finally {
+          getExecutorService().shutdownNow();
         }
       }
     });

@@ -11,6 +11,8 @@
 
 package alluxio.worker;
 
+import alluxio.heartbeat.HeartbeatAwareExecutorService;
+
 import com.google.common.base.Preconditions;
 
 import java.util.concurrent.ExecutorService;
@@ -29,7 +31,8 @@ public abstract class AbstractWorker implements Worker {
    * @param executorService executor service to use internally
    */
   protected AbstractWorker(ExecutorService executorService)  {
-    mExecutorService = Preconditions.checkNotNull(executorService, "executorService");
+    mExecutorService = new HeartbeatAwareExecutorService(
+        Preconditions.checkNotNull(executorService, "executorService"));
   }
 
   /**

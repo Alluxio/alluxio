@@ -260,11 +260,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     CommonUtils.waitFor("block worker executor shutdown", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
-        getExecutorService().shutdownNow();
+        getExecutorService().shutdown();
         try {
           return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
+        } finally {
+          getExecutorService().shutdownNow();
         }
       }
     });

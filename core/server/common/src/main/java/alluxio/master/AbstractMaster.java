@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.HeartbeatAwareExecutorService;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.resource.LockResource;
@@ -99,7 +100,7 @@ public abstract class AbstractMaster implements Master {
   @Override
   public void start(Boolean isPrimary) throws IOException {
     Preconditions.checkState(mExecutorService == null);
-    mExecutorService = mExecutorServiceFactory.create();
+    mExecutorService = new HeartbeatAwareExecutorService(mExecutorServiceFactory.create());
     mIsPrimary = isPrimary;
     if (mIsPrimary) {
       /**
@@ -125,7 +126,7 @@ public abstract class AbstractMaster implements Master {
     // Shut down the executor service, interrupting any running threads.
     if (mExecutorService != null) {
       try {
-        mExecutorService.shutdownNow();
+        mExecutorService.shutdown();
         String awaitFailureMessage =
             "waiting for {} executor service to shut down. Daemons may still be running";
         try {
@@ -136,6 +137,7 @@ public abstract class AbstractMaster implements Master {
           LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
         }
       } finally {
+        mExecutorService.shutdownNow();
         mExecutorService = null;
       }
     }
