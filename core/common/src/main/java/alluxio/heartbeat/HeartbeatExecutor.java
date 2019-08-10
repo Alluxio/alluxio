@@ -12,6 +12,7 @@
 package alluxio.heartbeat;
 
 import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * An interface for a heartbeat execution. The {@link HeartbeatThread} calls the
@@ -24,6 +25,14 @@ public interface HeartbeatExecutor extends Closeable {
    * @throws InterruptedException if the thread is interrupted
    */
   void heartbeat() throws InterruptedException;
+
+  /**
+   * Sets the tracker which will be set to {@code true} when shutdown
+   * is initiated for the underlying thread pool that runs this heartbeat.
+   *
+   * @param shutdownTracker shutdown tracker reference
+   */
+  void setShutdownTracker(AtomicBoolean shutdownTracker);
 
   /**
    * Cleans up any resources used by the heartbeat executor.

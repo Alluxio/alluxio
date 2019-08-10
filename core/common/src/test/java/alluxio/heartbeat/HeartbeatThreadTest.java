@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link HeartbeatThread}. This test uses
@@ -109,6 +110,29 @@ public final class HeartbeatThreadTest {
   }
 
   /**
+   * This for {@link HeartbeatAwareExecutorService}.
+   */
+  @Test
+  public void shutdownHeartbeat() throws Exception {
+    int sleepStepMs = 100;
+    String threadName = "Sleeping-heartbeat";
+    // Create new heartbeat thread that keeps sleeping until executor shutdown is initiated.
+    HeartbeatThread sleepingThread;
+    try (ManuallyScheduleHeartbeat.Resource r =
+        new ManuallyScheduleHeartbeat.Resource(Arrays.asList(threadName))) {
+      sleepingThread =
+          new HeartbeatThread(threadName, new SleepingHeartbeatExecutor(sleepStepMs), sleepStepMs);
+    }
+    // Submit the task and then shutdown the executor.
+    ExecutorService executor =
+        new HeartbeatAwareExecutorService(Executors.newSingleThreadExecutor());
+    executor.submit(sleepingThread);
+    executor.shutdown();
+    // Make sure task finishes.
+    Assert.assertTrue(executor.awaitTermination(5 * sleepStepMs, TimeUnit.MILLISECONDS));
+  }
+
+  /**
    * Executes a dummy heartbeat executor using {@link HeartbeatScheduler}.
    */
   private class DummyHeartbeatTestCallable implements Callable<Void>  {
@@ -157,7 +181,7 @@ public final class HeartbeatThreadTest {
   /**
    * The dummy heartbeat executor.
    */
-  private class DummyHeartbeatExecutor implements HeartbeatExecutor {
+  private class DummyHeartbeatExecutor extends AbstractHeartbeatExecutor {
 
     private int mCounter = 0;
 
@@ -173,6 +197,33 @@ public final class HeartbeatThreadTest {
 
     public int getCounter() {
       return mCounter;
+    }
+  }
+
+  /**
+   * Used to test shutdown tracker infra.
+   */
+  private class SleepingHeartbeatExecutor extends AbstractHeartbeatExecutor {
+    private final int mSleepStepMs;
+
+    public SleepingHeartbeatExecutor(int sleepStepMs) {
+      mSleepStepMs = sleepStepMs;
+    }
+
+    @Override
+    public void heartbeat() {
+      try {
+        while (!shutdownInitiated()) {
+          Thread.sleep(mSleepStepMs);
+        }
+      } catch (InterruptedException ie) {
+        // Do nothing.
+      }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
     }
   }
 }
