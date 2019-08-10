@@ -64,8 +64,8 @@
       <artifactId>grpc-stub</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-metastore</artifactId>
     </dependency>
 
     <!-- Internal dependencies -->

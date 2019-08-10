@@ -12,7 +12,9 @@
 package alluxio.master.catalog;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.clock.SystemClock;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.experimental.Constants;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -20,6 +22,7 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -46,10 +49,12 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
    *
    * @param context core master context
    */
-  public DefaultCatalogMaster(CoreMasterContext context, FileSystem fileSystem) {
+  public DefaultCatalogMaster(CoreMasterContext context) {
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.CATALOG_MASTER_NAME));
-    mCatalog = new AlluxioCatalog(fileSystem);
+    FileSystemContext fsContext =
+        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    mCatalog = new AlluxioCatalog(FileSystem.Factory.create(fsContext));
   }
 
   @Override
