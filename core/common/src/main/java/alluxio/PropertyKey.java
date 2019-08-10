@@ -1012,6 +1012,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_ENTRY_BUFFER_COUNT =
+      new Builder(Name.MASTER_BACKUP_ENTRY_BUFFER_COUNT)
+          .setDefaultValue("10000")
+          .setDescription("How many journal entries to buffer during a back-up.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -3363,6 +3370,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BACKUP_DIRECTORY =
         "alluxio.master.backup.directory";
+    public static final String MASTER_BACKUP_ENTRY_BUFFER_COUNT =
+        "alluxio.master.backup.entry.buffer.count";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
         "alluxio.master.client.socket.cleanup.interval";
