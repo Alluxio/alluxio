@@ -169,7 +169,7 @@ start_job_master() {
 
   if [[ ${ALLUXIO_MASTER_SECONDARY} != "true" ]]; then
     echo "Starting job master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${BIN}/alluxio-process job_master > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
+    (nohup ${BIN}/launch-process job_master > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
    fi
 }
 
@@ -179,13 +179,13 @@ start_job_masters() {
 
 start_job_worker() {
   echo "Starting job worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup ${BIN}/alluxio-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+  (nohup ${BIN}/launch-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
   ALLUXIO_JOB_WORKER_JAVA_OPTS=" -Dalluxio.job.worker.rpc.port=0 -Dalluxio.job.worker.web.port=0"
   local nworkers=${ALLUXIO_JOB_WORKER_COUNT:-1}
   for (( c = 1; c < ${nworkers}; c++ )); do
     echo "Starting job worker #$((c+1)) @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
     (ALLUXIO_JOB_WORKER_JAVA_OPTS=${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
-    nohup ${BIN}/alluxio-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+    nohup ${BIN}/launch-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
   done
 }
 
@@ -201,7 +201,7 @@ start_logserver() {
 
     echo "Starting logserver @ $(hostname -f)."
     (ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR}" \
-    nohup ${BIN}/alluxio-process logserver > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+    nohup ${BIN}/launch-process logserver > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
     # Wait for 1s before starting other Alluxio servers, otherwise may cause race condition
     # leading to connection errors.
     sleep 1
@@ -221,10 +221,10 @@ start_master() {
 
   if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
     echo "Starting secondary master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${BIN}/alluxio-process secondary_master > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
+    (nohup ${BIN}/launch-process secondary_master > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
   else
     echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (JOURNAL_BACKUP="${journal_backup}" nohup ${BIN}/alluxio-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
+    (JOURNAL_BACKUP="${journal_backup}" nohup ${BIN}/launch-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
   fi
 }
 
@@ -238,7 +238,7 @@ start_masters() {
 
 start_proxy() {
   echo "Starting proxy @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup ${BIN}/alluxio-process proxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
+  (nohup ${BIN}/launch-process proxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
 }
 
 start_proxies() {
@@ -255,7 +255,7 @@ start_worker() {
 
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
   (ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_WORKER_JAVA_OPTS} \
-     nohup ${BIN}/alluxio-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
+     nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
 }
 
 start_workers() {
@@ -270,7 +270,7 @@ restart_worker() {
   RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${BIN}/alluxio-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
+    (nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
 }
 
