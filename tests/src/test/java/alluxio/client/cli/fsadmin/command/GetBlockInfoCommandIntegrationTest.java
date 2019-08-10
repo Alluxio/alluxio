@@ -11,16 +11,16 @@
 
 package alluxio.client.cli.fsadmin.command;
 
+import static org.hamcrest.CoreMatchers.containsString;
+
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.master.block.BlockId;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,9 +42,12 @@ public final class GetBlockInfoCommandIntegrationTest extends AbstractFsAdminShe
   public void blockMetaNotFound() {
     long invalidId = 1421312312L;
     int ret = mFsAdminShell.run("getBlockInfo", String.valueOf(invalidId));
-    Assert.assertEquals(-1, ret);
-    Assert.assertEquals(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(invalidId) + "\n",
-        mOutput.toString());
+    // invalid block id should still continue to return useful information
+    Assert.assertEquals(0, ret);
+    Assert.assertThat(mOutput.toString(),
+        containsString("BlockMeta is not available for blockId"));
+    Assert.assertThat(mOutput.toString(),
+        containsString("This block belongs to file"));
   }
 
   @Test
@@ -58,9 +61,9 @@ public final class GetBlockInfoCommandIntegrationTest extends AbstractFsAdminShe
     Assert.assertEquals(0, ret);
     String output = mOutput.toString();
 
-    Assert.assertThat(output, CoreMatchers.containsString(
+    Assert.assertThat(output, containsString(
         "BlockInfo{id=" + blockId + ", length=10, locations=[BlockLocation{workerId="));
-    Assert.assertThat(output, CoreMatchers.containsString(
+    Assert.assertThat(output, containsString(
         "This block belongs to file {id=" + BlockId.getFileId(blockId) + ", path=/foo/foobar1}"));
   }
 }
