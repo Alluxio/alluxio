@@ -22,8 +22,8 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.BackupManager;
@@ -443,7 +443,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /**
    * Lost master periodic check.
    */
-  private final class LostMasterDetectionHeartbeatExecutor implements HeartbeatExecutor {
+  private final class LostMasterDetectionHeartbeatExecutor extends AbstractHeartbeatExecutor {
 
     /**
      * Constructs a new {@link LostMasterDetectionHeartbeatExecutor}.
@@ -477,7 +477,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /**
    * Periodically log the config check report.
    */
-  private final class LogConfigReportHeartbeatExecutor implements HeartbeatExecutor {
+  private final class LogConfigReportHeartbeatExecutor extends AbstractHeartbeatExecutor {
     private volatile boolean mFirst = true;
 
     @Override

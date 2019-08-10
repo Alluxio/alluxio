@@ -20,7 +20,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.Command;
@@ -60,7 +60,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * it before retrying.
  */
 @NotThreadSafe
-public final class BlockMasterSync implements HeartbeatExecutor {
+public final class BlockMasterSync extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
 
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;

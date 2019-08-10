@@ -14,7 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class represents the executor for periodic inode ttl check.
  */
 @NotThreadSafe
-final class InodeTtlChecker implements HeartbeatExecutor {
+final class InodeTtlChecker extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTtlChecker.class);
 
   private final FileSystemMaster mFileSystemMaster;
@@ -53,10 +53,18 @@ final class InodeTtlChecker implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat() throws InterruptedException {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
     for (TtlBucket bucket : expiredBuckets) {
       for (Inode inode : bucket.getInodes()) {
+        if (shutdownInitiated()) {
+          LOG.info("Quitting InodeTtlChecker due to shutdown.");
+          return;
+        }
+        // Throw if interrupted.
+        if (Thread.interrupted()) {
+          throw new InterruptedException("Interrupted while enumerating lost files.");
+        }
         AlluxioURI path = null;
         try (LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(inode.getId(), InodeTree.LockMode.READ)) {

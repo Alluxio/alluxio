@@ -11,7 +11,7 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.LineageMaster;
 
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Schedules a checkpoint plan.
  */
 @NotThreadSafe
-public final class CheckpointSchedulingExecutor implements HeartbeatExecutor {
+public final class CheckpointSchedulingExecutor extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(CheckpointSchedulingExecutor.class);
 
   private final LineageMaster mLineageMaster;

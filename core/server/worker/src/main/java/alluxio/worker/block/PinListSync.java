@@ -11,7 +11,7 @@
 
 package alluxio.worker.block;
 
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  */
 @NotThreadSafe
-public final class PinListSync implements HeartbeatExecutor {
+public final class PinListSync extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(PinListSync.class);
 
   /** Block worker handle responsible for interacting with Alluxio and UFS storage. */

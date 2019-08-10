@@ -20,7 +20,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * reserved on the tier above to reduce the impact of cascading eviction.
  */
 @NotThreadSafe
-public class SpaceReserver implements HeartbeatExecutor {
+public class SpaceReserver extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(SpaceReserver.class);
 
   /** The block worker the space reserver monitors. */

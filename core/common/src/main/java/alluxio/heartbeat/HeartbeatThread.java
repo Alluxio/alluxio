@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -35,6 +36,7 @@ public final class HeartbeatThread implements Runnable {
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
   private HeartbeatTimer mTimer;
+  private AtomicBoolean mShutdownTracker;
 
   /**
    * Creates a {@link Runnable} to execute heartbeats for the given {@link HeartbeatExecutor}.
@@ -54,6 +56,17 @@ public final class HeartbeatThread implements Runnable {
         new Object[] {threadName, intervalMs});
   }
 
+  /**
+   * Sets the tracker which will be set to {@code true} when shutdown
+   * is initiated for the underlying thread pool that runs this heartbeat.
+   *
+   * @param shutdownTracker shutdown tracker reference
+   */
+  public void setShutdownTracker(AtomicBoolean shutdownTracker) {
+    mShutdownTracker = shutdownTracker;
+    mExecutor.setShutdownTracker(shutdownTracker);
+  }
+
   @Override
   public void run() {
     try {
@@ -68,10 +81,13 @@ public final class HeartbeatThread implements Runnable {
     Thread.currentThread().setName(mThreadName);
     try {
       // Thread.interrupted() clears the interrupt status. Do not call interrupt again to clear it.
-      while (!Thread.interrupted()) {
+      while (!Thread.interrupted() && !mShutdownTracker.get()) {
         // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mTimer.tick();
-        mExecutor.heartbeat();
+        // Check shutdown status after waking up from tick.
+        if (!mShutdownTracker.get()) {
+          mExecutor.heartbeat();
+        }
       }
     } catch (InterruptedException e) {
       LOG.info("Hearbeat {} is interrupted.", mThreadName);

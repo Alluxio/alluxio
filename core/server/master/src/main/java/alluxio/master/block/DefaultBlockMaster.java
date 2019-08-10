@@ -28,8 +28,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
@@ -996,7 +996,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /**
    * Lost worker periodic check.
    */
-  private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+  private final class LostWorkerDetectionHeartbeatExecutor extends AbstractHeartbeatExecutor {
 
     /**
      * Constructs a new {@link LostWorkerDetectionHeartbeatExecutor}.
@@ -1007,6 +1007,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     public void heartbeat() {
       long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
+        if (shutdownInitiated()) {
+          LOG.info("Quitting LostWorkerDetectionHeartbeat due to shutdown.");
+          return;
+        }
         synchronized (worker) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {

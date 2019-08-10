@@ -13,7 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
@@ -46,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * TODO(yupeng): merge this with {@link BlockMasterSync} to use a central command pattern.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
+final class FileWorkerMasterSyncExecutor extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(FileWorkerMasterSyncExecutor.class);
 
   /** Logic for managing async file persistence. */

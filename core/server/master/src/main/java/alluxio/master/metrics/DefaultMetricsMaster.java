@@ -15,8 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.clock.SystemClock;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
@@ -221,7 +221,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   /**
    * Heartbeat executor that updates the cluster metrics.
    */
-  private class ClusterMetricsUpdater implements HeartbeatExecutor {
+  private class ClusterMetricsUpdater extends AbstractHeartbeatExecutor {
     @Override
     public void heartbeat() throws InterruptedException {
       updateMultiValueMetrics();

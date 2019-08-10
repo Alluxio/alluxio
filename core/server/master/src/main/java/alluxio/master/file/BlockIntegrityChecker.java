@@ -13,7 +13,7 @@ package alluxio.master.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Heartbeat executor for validating inode and block integrity.
  */
-public final class BlockIntegrityChecker implements HeartbeatExecutor {
+public final class BlockIntegrityChecker extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockIntegrityChecker.class);
 
   private final FileSystemMaster mFileSystemMaster;

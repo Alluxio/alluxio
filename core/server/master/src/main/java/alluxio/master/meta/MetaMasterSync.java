@@ -11,7 +11,7 @@
 
 package alluxio.master.meta;
 
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.thrift.MetaCommand;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.Address;
@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * cycle will continue.
  */
 @NotThreadSafe
-public final class MetaMasterSync implements HeartbeatExecutor {
+public final class MetaMasterSync extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterSync.class);
   private static final long UNINITIALIZED_MASTER_ID = -1L;
 

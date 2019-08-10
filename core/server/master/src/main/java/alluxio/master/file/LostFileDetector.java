@@ -12,7 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Lost files periodic check.
  */
 @NotThreadSafe
-final class LostFileDetector implements HeartbeatExecutor {
+final class LostFileDetector extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(LostFileDetector.class);
   private final FileSystemMaster mFileSystemMaster;
   private final InodeTree mInodeTree;
@@ -41,8 +41,12 @@ final class LostFileDetector implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat() throws InterruptedException {
     for (long fileId : mFileSystemMaster.getLostFiles()) {
+      if (shutdownInitiated()) {
+        LOG.info("Quitting LostFileDetector due to shutdown.");
+        return;
+      }
       // update the state
       try (LockedInodePath inodePath = mInodeTree
           .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {

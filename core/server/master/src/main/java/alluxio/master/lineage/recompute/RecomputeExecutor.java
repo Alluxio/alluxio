@@ -16,7 +16,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.meta.Lineage;
 import alluxio.master.lineage.meta.LineageStateUtils;
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A periodical executor that detects lost files and launches recompute jobs.
  */
 @ThreadSafe
-public final class RecomputeExecutor implements HeartbeatExecutor {
+public final class RecomputeExecutor extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(RecomputeExecutor.class);
 
   private static final int DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE = 10;

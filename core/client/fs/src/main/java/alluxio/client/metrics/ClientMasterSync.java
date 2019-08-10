@@ -12,7 +12,7 @@
 package alluxio.client.metrics;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.AbstractHeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 
@@ -34,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * it before retrying.
  */
 @ThreadSafe
-public final class ClientMasterSync implements HeartbeatExecutor {
+public final class ClientMasterSync extends AbstractHeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ClientMasterSync.class);
 
   /** Client for communicating to metrics master. */
