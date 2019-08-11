@@ -92,7 +92,7 @@ public class BackupManager {
       List<Master> masters = mRegistry.getServers();
       Map<String, Master> mastersByName = Maps.uniqueIndex(masters, Master::getName);
       // Create buffer to avoid flushing per-entry.
-      int bufferLimit = Configuration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT);
+      int bufferLimit = Configuration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BATCH_SIZE);
       List<JournalEntry> entryBuffer = new ArrayList<>(bufferLimit);
       // Apply entries from input stream.
       JournalEntry entry;
