@@ -273,7 +273,7 @@ start_master() {
     # use a default Xmx value for the master
     contains "${ALLUXIO_MASTER_JAVA_OPTS}" "XX:MetaspaceSize"
     if [[ $? -eq 0 ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=128M "
+      ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
     fi
 
     echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
