@@ -48,7 +48,7 @@ public class ClientContext {
   private volatile UserState mUserState;
   private volatile String mPathConfHash;
   private volatile boolean mIsPathConfLoaded = false;
-  private volatile boolean mDisableUriValidation = false;
+  private volatile boolean mUriValidationEnabled = true;
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -153,19 +153,19 @@ public class ClientContext {
   }
 
   /**
-   * @param disableUriValidation whether to disable URI validation
+   * @param uriValidationEnabled whether URI validation is enabled
    * @return updated instance of ClientContext
    */
-  public ClientContext setDisableUriValidation(boolean disableUriValidation) {
-    mDisableUriValidation = disableUriValidation;
+  public ClientContext setUriValidationEnabled(boolean uriValidationEnabled) {
+    mUriValidationEnabled = uriValidationEnabled;
     return this;
   }
 
   /**
-   * @return {@code true} if URI scheme validation is disabled
+   * @return {@code true} if URI validation is enabled
    */
-  public boolean getDisableSchemeValidation() {
-    return mDisableUriValidation;
+  public boolean getUriValidationEnabled() {
+    return mUriValidationEnabled;
   }
 
   /**

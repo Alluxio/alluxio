@@ -144,8 +144,8 @@ public final class FileSystemContext implements Closeable {
    */
   private volatile FileSystemContextReinitializer mReinitializer;
 
-  /** Whether to disable URI scheme validation for file systems using this context.  */
-  private boolean mDisableUriValidation = false;
+  /** Whether to do URI scheme validation for file systems using this context.  */
+  private boolean mUriValidationEnabled = true;
 
   /**
    * Creates a {@link FileSystemContext} with a null subject.
@@ -179,7 +179,7 @@ public final class FileSystemContext implements Closeable {
   public static FileSystemContext create(ClientContext clientContext) {
     FileSystemContext ctx = new FileSystemContext();
     ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf()));
-    ctx.mDisableUriValidation = clientContext.getDisableSchemeValidation();
+    ctx.mUriValidationEnabled = clientContext.getUriValidationEnabled();
     return ctx;
   }
 
@@ -391,10 +391,10 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return {@code true} if URI validation is disabled
+   * @return {@code true} if URI validation is enabled
    */
-  public boolean getDisableUriValidation() {
-    return mDisableUriValidation;
+  public boolean getUriValidationEnabled() {
+    return mUriValidationEnabled;
   }
 
   private FileSystemMasterClient acquireMasterClient() {

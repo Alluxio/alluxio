@@ -62,7 +62,7 @@ public class ShimFileSystemIntegrationTest {
     // Create a BaseFileSystem that has URI validation disabled.
     // Hadoop fs implementation, {@link ShimFileSystem} will also set this flag.
     mShimFileSystem = FileSystem.Factory.create(FileSystemContext
-        .create(ClientContext.create(ServerConfiguration.global()).setDisableUriValidation(true)));
+        .create(ClientContext.create(ServerConfiguration.global()).setUriValidationEnabled(false)));
     // Mount fs-ufs for testing.
     mFileSystem.mount(new AlluxioURI(SHIM_MOUNT_PATH),
         new AlluxioURI(mTempFolder.getRoot().toURI().toString()));

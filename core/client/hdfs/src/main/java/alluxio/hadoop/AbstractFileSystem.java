@@ -525,7 +525,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         Factory.getConnectDetails(alluxioConf));
 
     mFileSystem = FileSystem.Factory
-        .create(ClientContext.create(subject, alluxioConf).setDisableUriValidation(mIsShimFs));
+        .create(ClientContext.create(subject, alluxioConf).setUriValidationEnabled(!mIsShimFs));
   }
 
   /**

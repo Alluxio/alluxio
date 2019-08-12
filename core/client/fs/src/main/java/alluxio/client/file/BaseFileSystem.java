@@ -542,7 +542,7 @@ public class BaseFileSystem implements FileSystem {
    */
   private void checkUri(AlluxioURI uri) {
     Preconditions.checkNotNull(uri, "uri");
-    if (mFsContext.getDisableUriValidation()) {
+    if (!mFsContext.getUriValidationEnabled()) {
       return;
     }
 
