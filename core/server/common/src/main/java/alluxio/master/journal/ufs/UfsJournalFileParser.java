@@ -38,7 +38,7 @@ public final class UfsJournalFileParser implements JournalFileParser {
 
   private final UnderFileSystem mUfs;
   /** Buffer used to read from the file. */
-  private final byte[] mBuffer = new byte[1024];
+  private byte[] mBuffer = new byte[1024];
 
   /** The input stream to read from the journal file. */
   private InputStream mInputStream;
@@ -79,12 +79,14 @@ public final class UfsJournalFileParser implements JournalFileParser {
       LOG.warn("Journal entry was truncated in the size portion.");
       return null;
     }
-    byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
+    if (size > mBuffer.length) {
+      mBuffer = new byte[size];
+    }
     // Total bytes read so far for journal entry.
     int totalBytesRead = 0;
     while (totalBytesRead < size) {
       // Bytes read in last read request.
-      int latestBytesRead = mInputStream.read(buffer, totalBytesRead, size - totalBytesRead);
+      int latestBytesRead = mInputStream.read(mBuffer, totalBytesRead, size - totalBytesRead);
       if (latestBytesRead < 0) {
         break;
       }
@@ -96,6 +98,6 @@ public final class UfsJournalFileParser implements JournalFileParser {
       return null;
     }
 
-    return Journal.JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
+    return Journal.JournalEntry.parser().parseFrom(mBuffer, 0, size);
   }
 }
