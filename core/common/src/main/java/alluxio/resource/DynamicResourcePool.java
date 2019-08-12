@@ -341,6 +341,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
             throw new TimeoutException("Acquire resource times out.");
           }
         } catch (InterruptedException e) {
+          // TODO(calvin): Propagate the interrupted exception instead of converting to IOException
+          Thread.currentThread().interrupt();
           throw new IOException("Thread interrupted while acquiring client from pool: " + this);
         }
       }
