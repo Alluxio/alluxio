@@ -319,7 +319,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
    * @param uri uri
    * @return transport path
    */
-  private String getTransportPath(AlluxioURI uri) {
+  private static String getTransportPath(AlluxioURI uri) {
     if (uri.hasScheme()) {
       return uri.toString();
     } else {
