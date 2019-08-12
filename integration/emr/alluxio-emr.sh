@@ -10,17 +10,6 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# This script is meant for bootstrapping the Alluxio service to an EMR cluster.
-# Arguments for the script are listed below.
-# Arg 1. Download URI (ex. http://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz)
-# Arg 2. Root UFS URI (ex. s3://my-bucket/alluxio-emr/mount)
-# Arg 3. (Optional) HTTP(S) or S3 URIs pointing to alluxio-site.properties file
-#        that will be used on cluster startup. The resource must be named "alluxio-site.properties"
-# Arg 4. (Optional) Extra Alluxio Options. These will be appended to
-#        alluxio-site.properties. Multiple options can be specified using Arg 5
-#        as a delimiter (ex. alluxio.user.file.writetype.default=CACHE_THROUGH;alluxio.user.file.readtype.default=CACHE)
-# Arg 5. (Optional) Delimeter for additional properties. Defaults to ;
-
 set -o errexit  # exit when a command fails - append "|| true" to allow a
                 # command to fail
 set -o nounset  # exit when attempting to use undeclared variables
@@ -32,6 +21,56 @@ set -x
 # script constants
 ALLUXIO_HOME=/opt/alluxio
 ALLUXIO_SITE_PROPERTIES=${ALLUXIO_HOME}/conf/alluxio-site.properties
+AWS_SHUTDOWN_ACTIONS_DIR=/mnt/var/lib/instance-controller/public/shutdown-actions/
+USAGE="Usage: alluxio-emr.sh <root-ufs-uri> [ -d <alluxio-download-uri>]
+                             [-b <backup_uri>]
+                             [-i <journal_backup_uri>]
+                             [-p <delimited_properties>]
+                             [-s <property_delimiter>]
+                             [-f <file_uri>]
+
+alluxio-emr.sh is a script which can be used to bootstrap an AWS EMR cluster
+with Alluxio. It can download and install Alluxio as well as add properties
+specified as arguments to the script.
+
+  <root-ufs-uri>    (Required) The URI of the root UFS in the Alluxio
+                    namespace.
+
+  -b                An s3:// URI that the Alluxio master will write a backup
+                    to upon shutdown of the EMR cluster. The backup and and
+                    upload MUST be run within 60 seconds. If the backup cannot
+                    finish within 60 seconds, then an incomplete journal may
+                    be uploaded. This option is not recommended for production
+                    or mission critical use cases where the backup is relied
+                    upon to restore cluster state after a previous shutdown.
+
+  -d                An s3:// or https:// URI which points to an Alluxio
+                    tarball. If this argument isn't specified, it is assumed
+                    that Alluxio is already installed under /opt/alluxio.
+                    Otherwise this script will download and untar the given
+                    tarball and install Alluxio at /opt/alluxio if an Alluxio
+                    installation doesn't already exist at that location.
+
+  -f                An s3:// or https:// URI to any remote file. This property
+                    can be specified multiple times. Any file specified through
+                    this property will be downloaded and stored with the same
+                    name to /opt/alluxio/conf/
+
+  -i                An s3:// or https:// URI which represent the URI of a
+                    previous Alluxio journal backup. If supplied, the backup
+                    will be downloaded, and upon Alluxio startup, the Alluxio
+                    master will read and restore the backup.
+
+  -p                A string containing a delimited set of properties which
+                    should be added to the
+                    ${ALLUXIO_HOME}/conf/alluxio-site.properties file. The
+                    delimiter by default is a semicolon \";\". If a different
+                    delimiter is desired use the [-s] argument.
+
+  -s                A string containing a single character representing what
+                    delimiter should be used to split the Alluxio properties
+                    provided in the [-p] argument.
+"
 
 # Downloads a file to the local machine from a remote HTTP(S) or S3 URI into the cwd
 #
@@ -99,30 +138,26 @@ get_aws_region() {
   echo "${ec2_region}"
 }
 
-main() {
-  local alluxio_tarball
-  local root_ufs_uri
-  local site_properties_uri
-  local property_delimiter
-  local delimited_properties
-  alluxio_tarball=${1}
-  root_ufs_uri=${2}
-  site_properties_uri=${3:-""}
-  delimited_properties=${4:-""}
-  property_delimiter=${5:-";"}
 
-  # Create user
-  sudo groupadd alluxio -g 600
-  sudo useradd alluxio -u 600 -g 600
-
-  # Download the release
-  if [[ -z ${alluxio_tarball} ]]
-  then
-    echo "No Download URL Provided. Please go to http://downloads.alluxio.io to see available release downloads."
+print_help() {
+  if [[ "${1}" -eq "1" ]]; then
+    echo -e "${USAGE}" >&2
     exit 1
-  else
-    download_file ${alluxio_tarball}
   fi
+  echo -e "${USAGE}"
+  exit ${1}
+
+}
+
+# Installs alluxio to /opt/alluxio
+#
+# Arguments:
+#         1: The s3:// or http(s):// URI that points to an Alluxio tarball
+install_alluxio() {
+  local alluxio_tarball
+  alluxio_tarball=${1}
+
+  download_file ${alluxio_tarball}
 
   local release=`basename ${alluxio_tarball}`
   local release_unzip=${release%"-bin.tar.gz"}
@@ -136,7 +171,106 @@ main() {
   sudo mv /opt/${release_unzip} ${ALLUXIO_HOME}
   sudo chown -R alluxio:alluxio ${ALLUXIO_HOME}
   rm ${release}
-  doas alluxio "cp ${ALLUXIO_SITE_PROPERTIES}.template ${ALLUXIO_SITE_PROPERTIES}"
+
+}
+
+# Puts a shutdown hook under the EMR defined
+# /mnt/var/lib/instance-controller/public/shutdown-actions/ directory.
+#
+# Arguments:
+#         1: The URI to upload the backup to. Requires Alluxio to still be running.
+register_backup_on_shutdown() {
+
+  local backup_uri
+  backup_uri="${1}"
+  mkdir -p "${AWS_SHUTDOWN_ACTIONS_DIR}"
+
+  echo "#!/usr/bin/env bash
+
+# This script will shut down, and then back up and upload the Alluxio journal to
+# the S3 path ${AWS_SHUTDOWN_ACTIONS_DIR}. The path can then be used in
+conjunction with the -i (restore from backup) option.
+
+mkdir -p /tmp/alluxio_backups
+cd /tmp/alluxio_backups
+${ALLUXIO_HOME}/bin/alluxio fsadmin backup
+aws s3 cp /tmp/alluxio_backups \"${backup_uri}\"
+
+" > ${AWS_SHUTDOWN_ACTIONS_DIR}
+
+
+}
+
+main() {
+  local backup_uri
+  local root_ufs_uri
+  local property_delimiter
+  local delimited_properties
+  local restore_from_backup_uri
+  local files_list
+
+  if [[ "$#" -lt "1" ]]; then
+    echo -e "No root UFS URI provided"
+    print_help 1
+  fi
+
+  root_ufs_uri=${1}
+  shift
+
+  backup_uri=""
+  property_delimiter=";"
+  restore_from_backup_uri=""
+  delimited_properties=""
+  files_list=""
+
+
+  while getopts "c:d:f:i:p:s:" option; do
+    case "${option}" in
+      b)
+        backup_uri=${OPTARG}
+        ;;
+      d)
+        alluxio_tarball="${OPTARG}"
+        ;;
+      f)
+        # URIs to http(s)/s3 URIs should be URL encoded, so a space delimiter
+        # works without issue.
+        files_list+=" ${OPTARG}"
+        ;;
+      i)
+        restore_from_backup_uri="${OPTARG}"
+        ;;
+      p)
+        delimited_properties="${OPTARG}"
+        ;;
+      s)
+        property_delimiter="${OPTARG}"
+        ;;
+      *)
+        print_help 1
+        ;;
+    esac
+  done
+
+  if [[ "${alluxio_tarball}" ]]; then
+    alluxio_tarball="https://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz"
+  fi
+
+
+  if [[ ! -d "/opt/alluxio" ]]; then
+    install_alluxio "${alluxio_tarball}"
+  fi
+
+
+  if [[ ! -d "/opt/alluxio" ]]; then
+    echo -e "/opt/alluxio install not found. Please provide a download URI with
+-d or install it on the OS before running this script."
+    exit 1
+  fi
+
+  # Create user
+  sudo groupadd alluxio -g 600
+  sudo useradd alluxio -u 600 -g 600
 
   local aws_region=$(get_aws_region)
 
@@ -162,20 +296,20 @@ main() {
   # Identify master
   local is_master=`jq '.isMaster' /mnt/var/lib/info/instance.json`
 
-  # Download user-specified site properties file to
-  # ${ALLUXIO_HOME/conf/alluxio-site.properties}. Must be named
-  # "alluxio-site.properties"
-  if [[ ! -z "${site_properties_uri}" ]]; then
-    download_file ${site_properties_uri}
-    mv ./alluxio-site.properties /tmp/alluxio-site.properties
-    sudo chown alluxio:alluxio /tmp/alluxio-site.properties
-    doas alluxio "cp /tmp/alluxio-site.properties ${ALLUXIO_SITE_PROPERTIES}"
-    # Add newline in case file doens't end in newline
-    doas alluxio "echo >> ${ALLUXIO_SITE_PROPERTIES}"
-    sudo rm /tmp/alluxio-site.properties
-  fi
+  # Download files provided by "-f" to /opt/alluxio/conf
+  local cwd=`pwd`
+  cd ${ALLUXIO_HOME}/conf
+  IFS=" " read -ra files_to_be_downloaded <<< "${files_list}"
+  for file in "${files_to_be_downloaded[@]}"; do
+    download_file "${file}"
+  done
+  sudo chown -R alluxio:alluxio /opt/alluxio/conf
+  cd "${cwd}"
 
-  if [[ ! -z "${delimited_properties}" ]]; then
+  # Add newline to alluxio-site.properties in case the provided file doesn't end in newline
+  doas alluxio "echo >> ${ALLUXIO_SITE_PROPERTIES}"
+
+  if [[ "${delimited_properties}" ]]; then
     # Inject user defined properties from args
     IFS="${property_delimiter}" read -ra conf <<< "${delimited_properties}"
     for property in "${conf[@]}"; do
@@ -203,7 +337,14 @@ main() {
   # Alluxio can't rely on SSH to start services (i.e. no alluxio-start.sh all)
   if [[ ${is_master} = "true" ]]
   then
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a master"
+    local args=""
+    if [[ "${restore_from_backup_uri}" ]]; then
+      local backup_name="$(basename ${restore_from_backup_uri})"
+      mkdir -p /tmp/alluxio_backup
+      aws s3 cp "${backup_name}" /tmp/alluxio_backup
+      args="-i /tmp/alluxio_backup/${backup_name}"
+    fi
+    doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
   else
@@ -215,6 +356,13 @@ main() {
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a worker"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_worker"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
+  fi
+
+  # Wait until now to register the backup function because it won't complete
+  # unless the master is running
+
+  if [[ "${backup_uri}" ]]; then
+    register_backup_on_shutdown "${backup_uri}"
   fi
 
   # Compute application configs
