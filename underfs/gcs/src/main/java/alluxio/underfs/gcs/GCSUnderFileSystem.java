@@ -95,8 +95,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     Preconditions.checkArgument(conf.isSet(PropertyKey.GCS_SECRET_KEY),
             "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
     GSCredentials googleCredentials = new GSCredentials(
-        conf.get(PropertyKey.GCS_ACCESS_KEY),
-        conf.get(PropertyKey.GCS_SECRET_KEY));
+        conf.getCredential(PropertyKey.GCS_ACCESS_KEY),
+        conf.getCredential(PropertyKey.GCS_SECRET_KEY));
 
     // TODO(chaomin): maybe add proxy support for GCS.
     GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);

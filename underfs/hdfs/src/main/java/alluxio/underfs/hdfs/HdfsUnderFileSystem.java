@@ -477,6 +477,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         || !mUfsConf.isSet(PropertyKey.MASTER_PRINCIPAL)) {
       return;
     }
+    // TODO(jiacheng): consider masking keytab file location
     String masterKeytab = mUfsConf.get(PropertyKey.MASTER_KEYTAB_KEY_FILE);
     String masterPrincipal = mUfsConf.get(PropertyKey.MASTER_PRINCIPAL);
 
@@ -490,6 +491,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         || !mUfsConf.isSet(PropertyKey.WORKER_PRINCIPAL)) {
       return;
     }
+    // TODO(jiacheng): consider masking keytab file location
     String workerKeytab = mUfsConf.get(PropertyKey.WORKER_KEYTAB_FILE);
     String workerPrincipal = mUfsConf.get(PropertyKey.WORKER_PRINCIPAL);
 

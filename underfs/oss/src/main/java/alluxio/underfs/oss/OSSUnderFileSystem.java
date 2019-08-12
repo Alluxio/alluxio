@@ -75,8 +75,9 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to OSS", PropertyKey.OSS_SECRET_KEY);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ENDPOINT_KEY),
         "Property %s is required to connect to OSS", PropertyKey.OSS_ENDPOINT_KEY);
+    // TODO(jiacheng): OSS_ACCESS_KEY and OSS_ENDPOINT_KEY are credential fields?
     String accessId = conf.get(PropertyKey.OSS_ACCESS_KEY);
-    String accessKey = conf.get(PropertyKey.OSS_SECRET_KEY);
+    String accessKey = conf.getCredential(PropertyKey.OSS_SECRET_KEY);
     String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientBuilderConfiguration ossClientConf = initializeOSSClientConfig(conf);

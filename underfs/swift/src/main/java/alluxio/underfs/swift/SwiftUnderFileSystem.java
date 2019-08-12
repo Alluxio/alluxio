@@ -112,13 +112,13 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       config.setMockAllowEveryone(true);
     } else {
       if (conf.isSet(PropertyKey.SWIFT_PASSWORD_KEY)) {
-        config.setPassword(conf.get(PropertyKey.SWIFT_PASSWORD_KEY));
+        config.setPassword(conf.getCredential(PropertyKey.SWIFT_PASSWORD_KEY));
       }
       config.setAuthUrl(conf.get(PropertyKey.SWIFT_AUTH_URL_KEY));
       String authMethod = conf.get(PropertyKey.SWIFT_AUTH_METHOD_KEY);
       if (authMethod != null) {
-        config.setUsername(conf.get(PropertyKey.SWIFT_USER_KEY));
-        config.setTenantName(conf.get(PropertyKey.SWIFT_TENANT_KEY));
+        config.setUsername(conf.getCredential(PropertyKey.SWIFT_USER_KEY));
+        config.setTenantName(conf.getCredential(PropertyKey.SWIFT_TENANT_KEY));
         switch (authMethod) {
           case Constants.SWIFT_AUTH_KEYSTONE:
             config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
@@ -141,16 +141,16 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
             // swiftauth requires authentication header to be of the form tenant:user.
             // JOSS however generates header of the form user:tenant.
             // To resolve this, we switch user with tenant
-            config.setTenantName(conf.get(PropertyKey.SWIFT_USER_KEY));
-            config.setUsername(conf.get(PropertyKey.SWIFT_TENANT_KEY));
+            config.setTenantName(conf.getCredential(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(conf.getCredential(PropertyKey.SWIFT_TENANT_KEY));
             break;
           default:
             config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
             // tempauth requires authentication header to be of the form tenant:user.
             // JOSS however generates header of the form user:tenant.
             // To resolve this, we switch user with tenant
-            config.setTenantName(conf.get(PropertyKey.SWIFT_USER_KEY));
-            config.setUsername(conf.get(PropertyKey.SWIFT_TENANT_KEY));
+            config.setTenantName(conf.getCredential(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(conf.getCredential(PropertyKey.SWIFT_TENANT_KEY));
         }
       }
     }
@@ -169,7 +169,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     // Assume the Swift user name has 1-1 mapping to Alluxio username.
-    mAccountOwner = conf.get(PropertyKey.SWIFT_USER_KEY);
+    mAccountOwner = conf.getCredential(PropertyKey.SWIFT_USER_KEY);
     short mode = (short) 0;
     List<String> readAcl =
         Arrays.asList(container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));

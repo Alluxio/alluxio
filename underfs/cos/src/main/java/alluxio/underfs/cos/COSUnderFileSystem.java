@@ -81,8 +81,9 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to COS", PropertyKey.COS_REGION);
     Preconditions.checkArgument(conf.isSet(PropertyKey.COS_APP_ID),
         "Property %s is required to connect to COS", PropertyKey.COS_APP_ID);
-    String accessKey = conf.get(PropertyKey.COS_ACCESS_KEY);
-    String secretKey = conf.get(PropertyKey.COS_SECRET_KEY);
+    // TODO(jiacheng): Is COS_ACCESS_KEY a credential field?
+    String accessKey = conf.getCredential(PropertyKey.COS_ACCESS_KEY);
+    String secretKey = conf.getCredential(PropertyKey.COS_SECRET_KEY);
     String regionName = conf.get(PropertyKey.COS_REGION);
     String appId = conf.get(PropertyKey.COS_APP_ID);
 
