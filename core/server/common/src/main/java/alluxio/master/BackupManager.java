@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
@@ -25,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -86,15 +90,48 @@ public class BackupManager {
     try (GzipCompressorInputStream gzIn = new GzipCompressorInputStream(is);
          JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {
       List<Master> masters = mRegistry.getServers();
-      JournalEntry entry;
       Map<String, Master> mastersByName = Maps.uniqueIndex(masters, Master::getName);
-      while ((entry = reader.readEntry()) != null) {
-        String masterName = JournalEntryAssociation.getMasterForEntry(entry);
-        Master master = mastersByName.get(masterName);
-        master.processJournalEntry(entry);
-        try (JournalContext jc = master.createJournalContext()) {
-          jc.append(entry);
-          count++;
+      // Create buffer to avoid flushing per-entry.
+      int bufferLimit = Configuration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BATCH_SIZE);
+      List<JournalEntry> entryBuffer = new ArrayList<>(bufferLimit);
+      // Apply entries from input stream.
+      JournalEntry entry;
+      while (true) {
+        // Read next entry.
+        entry = reader.readEntry();
+        // Buffer next entry.
+        if (entry != null) {
+          entryBuffer.add(entry);
+        }
+        // Process the buffer if it is full or the input stream has no more entries.
+        if (entry == null || entryBuffer.size() >= bufferLimit) {
+          // Used to keep track of journal contexts per master.
+          Map<String, JournalContext> contextMap = new HashMap<>();
+          // Process each buffered entry.
+          for (JournalEntry bufferedEntry : entryBuffer) {
+            String masterName = JournalEntryAssociation.getMasterForEntry(bufferedEntry);
+            Master master = mastersByName.get(masterName);
+            // Apply entry to master.
+            master.processJournalEntry(bufferedEntry);
+            // Create journal context if master is seens the first time.
+            if (!contextMap.containsKey(masterName)) {
+              contextMap.put(masterName, master.createJournalContext());
+            }
+            // Apply entry to journal.
+            contextMap.get(masterName).append(bufferedEntry);
+            // entry is processed.
+            count++;
+          }
+          // Close journal context.
+          for (JournalContext context : contextMap.values()) {
+            context.close();
+          }
+          // Clear the buffer.
+          entryBuffer.clear();
+        }
+        // Quit applying when stream has no more entries.
+        if (entry == null) {
+          break;
         }
       }
     }
