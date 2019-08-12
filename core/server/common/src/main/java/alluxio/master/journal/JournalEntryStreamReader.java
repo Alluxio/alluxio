@@ -75,7 +75,7 @@ public class JournalEntryStreamReader implements Closeable {
           totalBytesRead);
       return null;
     }
-    return JournalEntry.parser().parseFrom(mBuffer, 0, size);
+    return JournalEntry.PARSER.parseFrom(mBuffer, 0, size);
   }
 
   @Override

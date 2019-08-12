@@ -94,6 +94,6 @@ public final class UfsJournalFileParser implements JournalFileParser {
       return null;
     }
 
-    return Journal.JournalEntry.parser().parseFrom(mBuffer, 0, size);
+    return Journal.JournalEntry.PARSER.parseFrom(mBuffer, 0, size);
   }
 }
