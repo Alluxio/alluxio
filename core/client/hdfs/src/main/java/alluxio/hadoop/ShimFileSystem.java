@@ -32,8 +32,7 @@ public class ShimFileSystem extends AbstractFileSystem {
    * Constructs a new {@link ShimFileSystem}.
    */
   public ShimFileSystem() {
-    super();
-    setShimFs(true);
+    super(true);
   }
 
   /**
@@ -43,8 +42,7 @@ public class ShimFileSystem extends AbstractFileSystem {
    * @param fileSystem handler to file system
    */
   public ShimFileSystem(alluxio.client.file.FileSystem fileSystem) {
-    super(fileSystem);
-    setShimFs(true);
+    super(fileSystem, true);
   }
 
   @Override

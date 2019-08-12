@@ -97,23 +97,29 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private String mAlluxioHeader = null;
 
   /** Whether this fs should act like a shim for a foreign scheme. */
-  private boolean mIsShimFs = false;
+  private final boolean mIsShimFs;
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
    * handler for tests.
    *
    * @param fileSystem handler to file system
+   * @param isShimFs whether to act as a shim
    */
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-  AbstractFileSystem(FileSystem fileSystem) {
+  AbstractFileSystem(FileSystem fileSystem, boolean isShimFs) {
     mFileSystem = fileSystem;
+    mIsShimFs = isShimFs;
   }
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance.
+   *
+   * @param isShimFs whether to act as a shim
    */
-  AbstractFileSystem() {}
+  AbstractFileSystem(boolean isShimFs) {
+    mIsShimFs = isShimFs;
+  }
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
@@ -330,13 +336,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-  }
-
-  /**
-   * @param isShimFs set shim mode for this fs
-   */
-  public void setShimFs(boolean isShimFs) {
-    mIsShimFs = isShimFs;
   }
 
   /**
