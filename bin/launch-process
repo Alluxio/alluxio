@@ -115,6 +115,12 @@ launch_master() {
   if [[ $? -eq 0 ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
+  # use a default MetaspaceSize value for the master
+  contains "${ALLUXIO_MASTER_JAVA_OPTS}" "XX:MetaspaceSize"
+  if [[ $? -eq 0 ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
+  fi
+
   launch_process "${ALLUXIO_MASTER_JAVA_OPTS}" \
                  "alluxio.master.AlluxioMaster"
 }
