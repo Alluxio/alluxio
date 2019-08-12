@@ -220,20 +220,28 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
+      SetAttributeOptions options = SetAttributeOptions.defaults();
       FuseContext fc = getContext();
       long uid = fc.uid.get();
       long gid = fc.gid.get();
-      String groupName = AlluxioFuseUtils.getGroupName(gid);
-      if (groupName.isEmpty()) {
-        // This should never be reached since input gid is always valid
-        LOG.error("Failed to get group name from gid {}.", gid);
-        return -ErrorCodes.EFAULT();
+
+      if (gid != GID) {
+        String groupName = AlluxioFuseUtils.getGroupName(gid);
+        if (groupName.isEmpty()) {
+          // This should never be reached since input gid is always valid
+          LOG.error("Failed to get group name from gid {}.", gid);
+          return -ErrorCodes.EFAULT();
+        }
+        options.setGroup(groupName);
       }
-      String userName = AlluxioFuseUtils.getUserName(uid);
-      if (userName.isEmpty()) {
-        // This should never be reached since input uid is always valid
-        LOG.error("Failed to get user name from uid {}", uid);
-        return -ErrorCodes.EFAULT();
+      if (uid != UID) {
+        String userName = AlluxioFuseUtils.getUserName(uid);
+        if (userName.isEmpty()) {
+          // This should never be reached since input uid is always valid
+          LOG.error("Failed to get user name from uid {}", uid);
+          return -ErrorCodes.EFAULT();
+        }
+        options.setOwner(userName);
       }
       synchronized (mOpenFiles) {
         if (mOpenFiles.size() >= MAX_OPEN_FILES) {
@@ -251,8 +259,10 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
-      mFileSystem.setAttribute(uri,
-          SetAttributeOptions.defaults().setOwner(userName).setGroup(groupName));
+      if (gid != GID || uid != UID) {
+        LOG.debug("{} setattr {}", path, options);
+        mFileSystem.setAttribute(uri, options);
+      }
       LOG.debug("{} created and opened", path);
     } catch (FileAlreadyExistsException e) {
       LOG.debug("File {} already exists", uri, e);
