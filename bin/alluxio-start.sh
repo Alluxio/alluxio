@@ -270,7 +270,7 @@ start_master() {
       ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
     fi
 
-    # use a default Xmx value for the master
+    # use a default MetaspaceSize value for the master
     contains "${ALLUXIO_MASTER_JAVA_OPTS}" "XX:MetaspaceSize"
     if [[ $? -eq 0 ]]; then
       ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
