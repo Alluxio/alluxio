@@ -324,7 +324,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             "Unexpected exception encountered when starting a {} job (uri={},"
                 + " block ID={}, num replicas={}) : {}",
             mode, uri, blockId, numReplicas, e.getMessage());
-        SAMPLING_LOG.debug("Job service unexpected exception: ", e);
+        LOG.debug("Job service unexpected exception: ", e);
       }
     }
   }
