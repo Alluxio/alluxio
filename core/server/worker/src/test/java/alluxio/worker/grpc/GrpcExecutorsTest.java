@@ -11,6 +11,8 @@
 
 package alluxio.worker.grpc;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
@@ -19,8 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
-
-import static org.junit.Assert.assertEquals;
 
 public class GrpcExecutorsTest {
   private static final String IMPERSONATION_PROXY_USER_NAME = "foo";
