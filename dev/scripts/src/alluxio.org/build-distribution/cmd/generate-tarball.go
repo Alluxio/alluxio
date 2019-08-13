@@ -304,6 +304,9 @@ func generateTarball(hadoopClients []string) error {
 	buildModules(srcPath, "underfs", "hdfs", ufsModulesFlag, version, ufsModules, mvnArgs)
 
 	tarball := strings.Replace(targetFlag, versionMarker, version, 1)
+	if skipUIFlag {
+		tarball = strings.Replace(tarball, version, version+"-noUI", 1)
+	}
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
 	dstDir = strings.TrimSuffix(dstDir, "-bin")
 	dstPath := filepath.Join(cwd, dstDir)
