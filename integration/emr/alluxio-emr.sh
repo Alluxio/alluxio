@@ -22,12 +22,12 @@ set -x
 ALLUXIO_HOME=/opt/alluxio
 ALLUXIO_SITE_PROPERTIES=${ALLUXIO_HOME}/conf/alluxio-site.properties
 AWS_SHUTDOWN_ACTIONS_DIR=/mnt/var/lib/instance-controller/public/shutdown-actions/
-USAGE="Usage: alluxio-emr.sh <root-ufs-uri> [ -d <alluxio-download-uri>]
-                             [-b <backup_uri>]
+USAGE="Usage: alluxio-emr.sh <root-ufs-uri> [-b <backup_uri>]
+                             [ -d <alluxio-download-uri>]
+                             [-f <file_uri>]
                              [-i <journal_backup_uri>]
                              [-p <delimited_properties>]
                              [-s <property_delimiter>]
-                             [-f <file_uri>]
 
 alluxio-emr.sh is a script which can be used to bootstrap an AWS EMR cluster
 with Alluxio. It can download and install Alluxio as well as add properties
@@ -189,19 +189,21 @@ register_backup_on_shutdown() {
 
 # This script will shut down, and then back up and upload the Alluxio journal to
 # the S3 path ${AWS_SHUTDOWN_ACTIONS_DIR}. The path can then be used in
-conjunction with the -i (restore from backup) option.
+# conjunction with the -i (restore from backup) option.
+set -x
 
 mkdir -p /tmp/alluxio_backups
 cd /tmp/alluxio_backups
 ${ALLUXIO_HOME}/bin/alluxio fsadmin backup
 aws s3 cp /tmp/alluxio_backups \"${backup_uri}\"
 
-" > "${AWS_SHUTDOWN_ACTIONS_DIR}"
+" > "${AWS_SHUTDOWN_ACTIONS_DIR}/alluxio-backup.sh"
 
 
 }
 
 main() {
+  local alluxio_tarball
   local backup_uri
   local root_ufs_uri
   local property_delimiter
@@ -225,7 +227,7 @@ main() {
   restore_from_backup_uri=""
 
 
-  while getopts "c:d:f:i:p:s:" option; do
+  while getopts "b:d:f:i:p:s:" option; do
     case "${option}" in
       b)
         backup_uri="${OPTARG}"
@@ -257,11 +259,13 @@ main() {
     alluxio_tarball="https://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz"
   fi
 
+  # Create user
+  sudo groupadd alluxio -g 600
+  sudo useradd alluxio -u 600 -g 600
 
   if [[ ! -d "/opt/alluxio" ]]; then
     install_alluxio "${alluxio_tarball}"
   fi
-
 
   if [[ ! -d "/opt/alluxio" ]]; then
     echo -e "/opt/alluxio install not found. Please provide a download URI with
@@ -269,9 +273,7 @@ main() {
     exit 1
   fi
 
-  # Create user
-  sudo groupadd alluxio -g 600
-  sudo useradd alluxio -u 600 -g 600
+
 
   local aws_region=$(get_aws_region)
 
@@ -298,14 +300,13 @@ main() {
   local is_master=`jq '.isMaster' /mnt/var/lib/info/instance.json`
 
   # Download files provided by "-f" to /opt/alluxio/conf
-  local cwd=`pwd`
-  cd "${ALLUXIO_HOME}/conf"
   IFS=" " read -ra files_to_be_downloaded <<< "${files_list}"
   for file in "${files_to_be_downloaded[@]}"; do
+    local filename="$(basename ${file})"
     download_file "${file}"
+    sudo mv "${filename}" "${ALLUXIO_HOME}/conf/${filename}"
   done
   sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}/conf"
-  cd "${cwd}"
 
   # Add newline to alluxio-site.properties in case the provided file doesn't end in newline
   doas alluxio "echo >> ${ALLUXIO_SITE_PROPERTIES}"
@@ -350,6 +351,10 @@ main() {
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
+
+    if [[ "${backup_uri}" ]]; then
+      register_backup_on_shutdown "${backup_uri}"
+    fi
   else
     ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
     until ${ALLUXIO_HOME}/bin/alluxio fsadmin report
@@ -359,13 +364,6 @@ main() {
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a worker"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_worker"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
-  fi
-
-  # Wait until now to register the backup function because it won't complete
-  # unless the master is running
-
-  if [[ "${backup_uri}" ]]; then
-    register_backup_on_shutdown "${backup_uri}"
   fi
 
   # Compute application configs
