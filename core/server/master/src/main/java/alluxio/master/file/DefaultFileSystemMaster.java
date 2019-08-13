@@ -4015,6 +4015,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
       // Process persist requests.
       for (long fileId : mPersistRequests.keySet()) {
+        // Throw if interrupted.
+        if (Thread.interrupted()) {
+          throw new InterruptedException("PersistenceScheduler interrupted.");
+        }
         boolean remove = true;
         alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
         if (timer == null) {
@@ -4196,6 +4200,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       boolean queueEmpty = mPersistCheckerPool.getQueue().isEmpty();
       // Check the progress of persist jobs.
       for (long fileId : mPersistJobs.keySet()) {
+        // Throw if interrupted.
+        if (Thread.interrupted()) {
+          throw new InterruptedException("PersistenceChecker interrupted.");
+        }
         final PersistJob job = mPersistJobs.get(fileId);
         if (job == null) {
           // This could happen if a key is removed from mPersistJobs while we are iterating.
