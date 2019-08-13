@@ -58,10 +58,14 @@ final class InodeTtlChecker implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat() throws InterruptedException {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
     for (TtlBucket bucket : expiredBuckets) {
       for (Inode inode : bucket.getInodes()) {
+        // Throw if interrupted.
+        if (Thread.interrupted()) {
+          throw new InterruptedException("InodeTtlChecker interrupted.");
+        }
         AlluxioURI path = null;
         try (LockedInodePath inodePath =
             mInodeTree.lockFullInodePath(inode.getId(), LockPattern.READ)) {
