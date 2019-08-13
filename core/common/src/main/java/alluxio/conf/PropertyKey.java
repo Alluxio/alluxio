@@ -1013,6 +1013,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey SWIFT_PASSWORD_KEY = new Builder(Name.SWIFT_PASSWORD_KEY)
       .setDescription("The password used for user:tenant authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey SWIFT_SIMULATION = new Builder(Name.SWIFT_SIMULATION)
       .setDescription("Whether to simulate a single node Swift backend for testing purposes: "
@@ -1022,10 +1023,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey SWIFT_TENANT_KEY = new Builder(Name.SWIFT_TENANT_KEY)
       .setDescription("Swift user for authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey SWIFT_USER_KEY = new Builder(Name.SWIFT_USER_KEY)
       .setDescription("Swift tenant for authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey SWIFT_REGION_KEY = new Builder(Name.SWIFT_REGION_KEY)
       .setDescription("Service region when using Keystone authentication.")
@@ -1036,6 +1039,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The access key of COS bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   public static final PropertyKey COS_APP_ID =
       new Builder(Name.COS_APP_ID)
@@ -1070,6 +1074,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The secret key of COS bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   // Journal ufs related properties
   public static final PropertyKey MASTER_JOURNAL_UFS_OPTION =
@@ -1083,6 +1088,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The access key of Kodo bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   public static final PropertyKey KODO_SECRET_KEY =
       new Builder(Name.KODO_SECRET_KEY)
