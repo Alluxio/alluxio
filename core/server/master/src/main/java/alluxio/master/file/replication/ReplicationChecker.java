@@ -12,6 +12,7 @@
 package alluxio.master.file.replication;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
@@ -28,16 +29,15 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +47,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The executor to check block replication level periodically and handle over-replicated and
  * under-replicated blocks correspondingly.
@@ -54,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 @ThreadSafe
 public final class ReplicationChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicationChecker.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10 * Constants.MINUTE_MS);
   private static final long MAX_QUIET_PERIOD_SECONDS = 64;
 
   /** Handler to the inode tree. */
@@ -327,11 +330,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             e.getMessage());
         return;
       } catch (Exception e) {
-        LOG.warn(
-            "Unexpected exception encountered when starting a replication / eviction job (uri={},"
+        SAMPLING_LOG.warn(
+            "Unexpected exception encountered when starting a {} job (uri={},"
                 + " block ID={}, num replicas={}) : {}",
-            uri, blockId, numReplicas, e.getMessage());
-        LOG.debug("Exception: ", e);
+            mode, uri, blockId, numReplicas, e.getMessage());
+        LOG.debug("Job service unexpected exception: ", e);
       }
     }
   }
