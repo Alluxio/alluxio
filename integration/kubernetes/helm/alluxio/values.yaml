@@ -13,6 +13,10 @@ image: alluxio/alluxio
 imageTag: "2.1.0-SNAPSHOT"
 imagePullPolicy: IfNotPresent
 
+user: 0
+group: 0
+fsGroup: 0
+
 resources:
   master:
     replicaCount: 1

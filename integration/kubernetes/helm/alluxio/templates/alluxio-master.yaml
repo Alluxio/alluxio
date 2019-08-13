@@ -52,6 +52,10 @@ spec:
       labels:
         app: alluxio-master
     spec:
+      securityContext:
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
+        fsGroup: {{ .Values.fsGroup }}
       containers:
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
