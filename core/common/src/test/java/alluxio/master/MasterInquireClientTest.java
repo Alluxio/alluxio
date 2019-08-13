@@ -61,7 +61,8 @@ public final class MasterInquireClientTest {
         put(PropertyKey.MASTER_RPC_PORT, Integer.toString(port));
       }
     }, mConfiguration).toResource()) {
-      ConnectDetails cs = new SingleMasterConnectDetails(new InetSocketAddress(host, port));
+      ConnectDetails cs =
+          new SingleMasterConnectDetails(InetSocketAddress.createUnresolved(host, port));
       assertCurrentConnectString(cs);
       assertEquals("testhost:123", cs.toString());
     }

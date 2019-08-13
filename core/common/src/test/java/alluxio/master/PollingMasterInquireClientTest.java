@@ -39,8 +39,8 @@ public class PollingMasterInquireClientTest {
     int port = mPort.getPort();
     RejectingServer s = new RejectingServer(port);
     s.start();
-    List<InetSocketAddress> addrs = Arrays.asList(
-        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(Constants.SECOND_MS), port));
+    List<InetSocketAddress> addrs = Arrays.asList(InetSocketAddress
+        .createUnresolved(NetworkAddressUtils.getLocalHostName(Constants.SECOND_MS), port));
     PollingMasterInquireClient client = new PollingMasterInquireClient(addrs,
         () -> new CountingRetry(0), new ConfigurationBuilder().build());
     try {
