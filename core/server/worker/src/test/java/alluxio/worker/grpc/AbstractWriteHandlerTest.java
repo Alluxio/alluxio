@@ -166,6 +166,11 @@ public abstract class AbstractWriteHandlerTest {
     mWriteHandler.onError(new IOException("test exception"));
   }
 
+  @Test
+  public void impersonationInfoPropagated() {
+
+  }
+
   /**
    * Checks the file content matches expectation (file length and file checksum).
    *
