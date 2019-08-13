@@ -126,7 +126,6 @@ import alluxio.util.SecurityUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
-import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.CommonOptions;
@@ -182,7 +181,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
-  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10 * Constants.MINUTE_MS);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
 
@@ -3680,8 +3678,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           if (ufs.isObjectStorage()) {
-            SAMPLING_LOG.debug("setOwner/setMode is not supported to object storage UFS via "
-                + "Alluxio. UFS: {}. This has no effect on the underlying object.", ufsUri);
+            LOG.debug("setOwner/setMode is not supported to object storage UFS via Alluxio. "
+                + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
           } else {
             String owner = null;
             String group = null;
