@@ -105,4 +105,9 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
     return "Changes the group of a file or directory specified by args."
         + " Specify -R to change the group recursively.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

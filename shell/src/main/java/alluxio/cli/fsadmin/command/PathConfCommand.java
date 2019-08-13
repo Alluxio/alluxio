@@ -84,6 +84,11 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public String getDescription() {
     return description();
   }

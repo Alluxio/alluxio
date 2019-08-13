@@ -92,4 +92,9 @@ public final class CountCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Displays the number of files and directories matching the specified prefix.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

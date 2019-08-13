@@ -109,6 +109,11 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     if (cl.getArgs().length != 1) {
       throw new InvalidArgumentException("Command updateMount takes 1 argument, not " + cl

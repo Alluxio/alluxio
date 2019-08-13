@@ -79,6 +79,11 @@ public final class CatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
     runWildCardCmd(new AlluxioURI(args[0]), cl);

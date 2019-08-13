@@ -59,6 +59,9 @@ public final class CommandTest {
     }
 
     @Override
+    public String getDocumentation() { return "documentation"; }
+
+    @Override
     public int run(CommandLine cl) {
       return 0;
     }

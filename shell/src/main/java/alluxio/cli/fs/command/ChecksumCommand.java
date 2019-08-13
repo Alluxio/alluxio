@@ -96,4 +96,9 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Calculates the md5 checksum of a file in the Alluxio filesystem.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

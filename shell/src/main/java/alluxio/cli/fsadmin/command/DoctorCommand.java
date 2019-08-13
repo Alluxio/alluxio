@@ -134,6 +134,11 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public Options getOptions() {
     return new Options()
         .addOption(HELP_OPTION);

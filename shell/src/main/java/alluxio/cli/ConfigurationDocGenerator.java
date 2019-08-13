@@ -11,25 +11,25 @@
 
 package alluxio.cli;
 
+import alluxio.cli.fs.FileSystemShell;
+import alluxio.cli.fs.FileSystemShellUtils;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.zookeeper.server.ServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,6 +42,9 @@ public final class ConfigurationDocGenerator {
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
+
+  //CLI Variables
+  private static final String CLI_YML_DIR = "docs/_data/table/en/cli";
 
   private ConfigurationDocGenerator() {} // prevent instantiation
 
@@ -202,6 +205,38 @@ public final class ConfigurationDocGenerator {
     }
   }
 
+  public static void writeCliYMLFile(Map<String, Command> commands, String filePath)
+      throws IOException {
+    if (commands.size() == 0) {
+      return;
+    }
+
+    FileWriter fileWriter;
+    Closer closer = Closer.create();
+
+    Set<Map.Entry<String, Command>> st = commands.entrySet();
+
+    fileWriter = new FileWriter(PathUtils.concatPath(filePath, commands.get("cp").getCommandName() + ".yml"));
+    closer.register(fileWriter);
+    fileWriter.append(StringEscapeUtils.escapeHtml(commands.get("cp").getCommandName()));
+
+    try {
+      for (Map.Entry<String, Command> mt : st) {
+
+      }
+
+      LOG.info("Command CSV files were created successfully.");
+    } catch(Exception e){
+        throw closer.rethrow(e);
+      } finally{
+        try {
+          closer.close();
+        } catch (IOException e) {
+          LOG.error("Error while flushing/closing Command CSV FileWriter", e);
+        }
+      }
+    }
+
   /**
    * Main entry for this util class.
    *
@@ -218,5 +253,11 @@ public final class ConfigurationDocGenerator {
     // generate YML files
     filePath = PathUtils.concatPath(homeDir, YML_FILE_DIR);
     writeYMLFile(defaultKeys, filePath);
+
+    //For Alluxio Commands
+    Closer mCloser = Closer.create();
+    Map<String, Command> commands = FileSystemShellUtils.loadCommands(mCloser.register(FileSystemContext.create(ServerConfiguration.global())));
+    filePath = PathUtils.concatPath(homeDir, CLI_YML_DIR);
+    writeCliYMLFile(commands, filePath);
   }
 }

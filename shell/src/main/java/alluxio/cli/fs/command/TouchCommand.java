@@ -70,4 +70,9 @@ public final class TouchCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Creates a 0 byte file. The file will be written to the under file system.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

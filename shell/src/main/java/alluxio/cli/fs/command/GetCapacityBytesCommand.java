@@ -63,4 +63,9 @@ public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Gets the capacity of the Alluxio file system.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

@@ -117,6 +117,11 @@ public final class MountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     if (cl.getArgs().length != 2 && cl.getArgs().length != 0) {
       throw new InvalidArgumentException("Command mount takes 0 or 2 arguments, not " + cl

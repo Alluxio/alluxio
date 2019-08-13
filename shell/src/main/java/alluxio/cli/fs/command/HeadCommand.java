@@ -110,6 +110,11 @@ public final class HeadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public Options getOptions() {
     return new Options().addOption(BYTES_OPTION);
   }

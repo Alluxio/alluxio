@@ -109,4 +109,9 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
     return "Changes the permission of a file or directory specified by args."
         + " Specify -R to change the permission recursively.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

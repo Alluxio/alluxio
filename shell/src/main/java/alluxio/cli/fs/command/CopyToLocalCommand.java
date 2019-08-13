@@ -74,4 +74,9 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Copies a file or a directory from the Alluxio filesystem to the local filesystem.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

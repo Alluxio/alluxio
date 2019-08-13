@@ -121,4 +121,9 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Loads a file or directory in Alluxio space, making it resident in memory.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

@@ -800,6 +800,19 @@ public final class CpCommand extends AbstractFileSystemCommand {
         + "filesystem. Local Path with schema \"file\".";
   }
 
+  @Override
+  public String getDocumentation() {
+    String docs;
+    docs = getCommandName() + ":\n Usage: <src> <dst> \n"
+            + "Copies a file or a directory in the Alluxio filesystem or between local filesystem \"\n"
+            + "and Alluxio filesystem. Schemes can be used to indicate which UFS to copy to and no"
+            + "scheme indicates the Alluxio file system."
+            + "\n Options: \n"
+            +"[-R] copies entire subtree at source to destination directory"
+            +"[--buffersize <bytes>]";
+    return docs;
+  }
+
   private static boolean isAlluxio(String scheme) {
     return Constants.SCHEME.equals(scheme);
   }

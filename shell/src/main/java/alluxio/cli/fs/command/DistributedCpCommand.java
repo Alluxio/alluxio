@@ -79,4 +79,9 @@ public final class DistributedCpCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Copies a file or directory in parallel at file level.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

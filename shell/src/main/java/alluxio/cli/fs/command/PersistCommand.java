@@ -113,6 +113,11 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     // Parse arguments
     int parallelism = FileSystemShellUtils.getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);

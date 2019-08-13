@@ -85,4 +85,9 @@ public class QuorumCommand extends AbstractFsAdminCommand {
   public String getDescription() {
     return description();
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

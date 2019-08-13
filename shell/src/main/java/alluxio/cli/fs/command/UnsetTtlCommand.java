@@ -73,4 +73,9 @@ public final class UnsetTtlCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Unsets the TTL value for the given path.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

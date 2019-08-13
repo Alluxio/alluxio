@@ -233,4 +233,9 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
         + "specify the number of threads that should be used when repairing. Defaults to "
         + "2*<number of CPU cores>";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

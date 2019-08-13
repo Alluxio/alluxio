@@ -126,4 +126,9 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
         + "number of replicas. If 'path' is a directory and '-R' is specified, it will recursively "
         + "set all files in this directory.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

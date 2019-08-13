@@ -176,4 +176,9 @@ public final class TestCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Test a property of a path, returning 0 if the property is true, or 1 otherwise.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

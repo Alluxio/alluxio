@@ -64,4 +64,9 @@ public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Gets number of bytes used in the Alluxio file system.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

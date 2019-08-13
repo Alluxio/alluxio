@@ -70,4 +70,9 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Unmounts an Alluxio path.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

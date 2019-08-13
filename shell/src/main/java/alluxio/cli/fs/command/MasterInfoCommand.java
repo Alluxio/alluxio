@@ -78,4 +78,9 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
     return "Prints information regarding master fault tolerance such as leader address, list of "
         + "master addresses, and the configured Zookeeper address.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

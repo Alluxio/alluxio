@@ -110,4 +110,9 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
         + "The TTL to set can be in one of the unit: ms, millisecond, s, second, m, min, minute, "
         + "h, hour, d, day, default to ms";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

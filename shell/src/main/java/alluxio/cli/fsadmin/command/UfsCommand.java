@@ -108,4 +108,9 @@ public final class UfsCommand extends AbstractFsAdminCommand {
   public String getDescription() {
     return "Update attributes for a ufs path.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

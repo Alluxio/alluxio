@@ -60,6 +60,11 @@ public final class InstallCommand implements Command {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     String extensionsDir = ServerConfiguration.get(PropertyKey.EXTENSIONS_DIR);

@@ -66,4 +66,9 @@ public final class MvCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Renames a file or directory.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

@@ -89,6 +89,11 @@ public class BackupCommand extends AbstractFsAdminCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 1);
   }

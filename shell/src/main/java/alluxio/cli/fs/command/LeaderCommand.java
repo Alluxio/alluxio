@@ -84,4 +84,9 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Prints the current leader master host name.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

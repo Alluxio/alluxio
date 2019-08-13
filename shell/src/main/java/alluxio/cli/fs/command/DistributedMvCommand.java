@@ -81,4 +81,11 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Moves a file or directory in parallel at file level.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+
 }

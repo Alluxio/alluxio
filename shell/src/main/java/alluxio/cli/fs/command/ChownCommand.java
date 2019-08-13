@@ -141,4 +141,9 @@ public final class ChownCommand extends AbstractFileSystemCommand {
     return "Changes the owner of a file or directory specified by args."
         + " Specify -R to change the owner recursively.";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }
