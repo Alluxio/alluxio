@@ -8,10 +8,33 @@ package alluxio.grpc;
 
 import "grpc/common.proto";
 
+message Schema {
+    repeated FieldSchema cols = 1;
+    map<string, string> parameters = 2;
+}
 message FieldSchema {
     optional string name = 1;
     optional string type = 2;
     optional string comment = 3;
+}
+
+message Database {
+    optional string name = 1;
+    optional string description = 2;
+    optional string location = 3;
+    map<string, string> parameter = 4;
+}
+
+enum TableType {
+    NATIVE = 0;  //native alluxio metastore table, both metadata and datafile managed by alluxio
+    IMPORTED = 1; //imported alluxio metastore table, only the metadata is managed by alluxio
+}
+message TableInfo {
+    optional string table_name = 1;
+    optional string db_name = 2;
+    optional TableType type = 3;
+    optional string base_location = 4;
+    optional uint32 version = 5;
 }
 
 message GetAllDatabasesPRequest {
@@ -20,6 +43,45 @@ message GetAllDatabasesPRequest {
 message GetAllDatabasesPResponse {
     repeated string database = 1;
 }
+
+message GetAllTablesPRequest {
+    optional string database = 1;
+}
+
+message GetAllTablesPResponse {
+    repeated string table = 1;
+}
+
+message GetTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+}
+
+message GetTablePResponse {
+    optional TableInfo table_info = 1;
+}
+
+message LoadTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional string data_location = 3;
+}
+
+message CreateTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional Schema schema = 3;
+}
+
+message LoadTablePResponse {
+    optional bool success = 1;
+}
+
+message CreateTablePResponse {
+    optional bool success = 1;
+    optional TableInfo table_info = 2;
+}
+
 /**
  * This interface contains catalog master service endpoints for Alluxio clients.
  */
@@ -29,4 +91,24 @@ service CatalogMasterClientService {
      * Returns all databases in the catalog
      */
     rpc GetAllDatabases(GetAllDatabasesPRequest) returns (GetAllDatabasesPResponse);
+
+    /**
+     * Returns all tables in the database
+     */
+    rpc GetAllTables(GetAllTablesPRequest) returns (GetAllTablesPResponse);
+
+    /**
+     * Returns a specific table info
+     */
+    rpc GetTable(GetTablePRequest) returns (GetTablePResponse);
+
+    /**
+     * Load a data table into the metastore
+     */
+    rpc LoadTable(LoadTablePRequest) returns (LoadTablePResponse);
+
+    /**
+     * Create a new table in the metastore
+     */
+    rpc CreateTable(CreateTablePRequest) returns (CreateTablePResponse);
 }

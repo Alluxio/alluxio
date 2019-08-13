@@ -66,6 +66,11 @@ public interface CatalogMaster extends Master {
   void createTable(Table table);
 
   /**
+   * Get a table.
+   */
+  Table getTable(String databaseName, String tableName);
+
+  /**
    * Get the schema of a table.
    *
    * @param databaseName the name of a database

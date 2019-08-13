@@ -45,10 +45,8 @@ public class CatalogMasterClientServiceHandler
   @Override
   public void getAllDatabases(GetAllDatabasesPRequest request,
       StreamObserver<GetAllDatabasesPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetAllDatabasesPResponse>) () -> {
-
-      return GetAllDatabasesPResponse.newBuilder()
-          .addAllDatabase(mCatalogMaster.getAllDatabases()).build();
-    }, "getAllDatabase", "", responseObserver);
+    RpcUtils.call(LOG, () -> GetAllDatabasesPResponse.newBuilder()
+        .addAllDatabase(mCatalogMaster.getAllDatabases()).build(), "getAllDatabase", "", responseObserver);
   }
+  
 }
