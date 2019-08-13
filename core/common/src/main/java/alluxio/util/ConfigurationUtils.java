@@ -170,7 +170,8 @@ public final class ConfigurationUtils {
   }
 
   private static List<InetSocketAddress> overridePort(List<InetSocketAddress> addrs, int port) {
-    return StreamUtils.map(addr -> new InetSocketAddress(addr.getHostString(), port), addrs);
+    return StreamUtils.map(addr -> InetSocketAddress.createUnresolved(addr.getHostString(), port),
+        addrs);
   }
 
   /**
