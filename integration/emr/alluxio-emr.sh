@@ -184,7 +184,7 @@ register_backup_on_shutdown() {
   local backup_uri
   backup_uri="${1}"
   mkdir -p "${AWS_SHUTDOWN_ACTIONS_DIR}"
-
+  BACKUP_DIR=/tmp/alluxio_backups
   echo "#!/usr/bin/env bash
 
 # This script will shut down, and then back up and upload the Alluxio journal to
@@ -192,10 +192,11 @@ register_backup_on_shutdown() {
 # conjunction with the -i (restore from backup) option.
 set -x
 
-mkdir -p /tmp/alluxio_backups
-cd /tmp/alluxio_backups
-${ALLUXIO_HOME}/bin/alluxio fsadmin backup
-aws s3 cp /tmp/alluxio_backups \"${backup_uri}\"
+
+mkdir -p ${BACKUP_DIR}
+chmod 777 ${BACKUP_DIR}
+${ALLUXIO_HOME}/bin/alluxio fsadmin backup ${BACKUP_DIR} --local
+aws s3 cp --recursive ${BACKUP_DIR} \"${backup_uri}\"
 
 " > "${AWS_SHUTDOWN_ACTIONS_DIR}/alluxio-backup.sh"
 
@@ -273,8 +274,6 @@ main() {
     exit 1
   fi
 
-
-
   local aws_region=$(get_aws_region)
 
   #Get hostnames and load into masters/workers file
@@ -346,6 +345,7 @@ main() {
       mkdir -p "${backup_location}"
       cd "${backup_location}"
       download_file "${restore_from_backup_uri}"
+      chmod -R 777 "${backup_location}"
       args="-i ${backup_location}/${backup_name}"
     fi
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
