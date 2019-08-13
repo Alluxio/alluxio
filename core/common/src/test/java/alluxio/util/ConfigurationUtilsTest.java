@@ -14,8 +14,10 @@ package alluxio.util;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
+import alluxio.conf.CredentialProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
@@ -140,6 +142,16 @@ public final class ConfigurationUtilsTest {
             + ".job.master.embedded.journal.addresses=[comma-separated alluxio job master "
             + "addresses]",
         ConfigurationUtils.getJobMasterHostNotConfiguredMessage("test service 2"));
+  }
+
+  @Test
+  public void splitCredFields() {
+    AlluxioConfiguration conf = createConf(Collections.emptyMap());
+    Pair<AlluxioProperties, CredentialProperties> pair =
+            ConfigurationUtils.splitCredentialProperties(conf.copyProperties());
+    AlluxioProperties normalProperties = pair.getFirst();
+    CredentialProperties credProperties = pair.getSecond();
+
   }
 
   private AlluxioConfiguration createConf(Map<PropertyKey, String> properties) {

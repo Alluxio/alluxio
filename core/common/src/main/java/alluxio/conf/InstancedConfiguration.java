@@ -11,6 +11,7 @@
 
 package alluxio.conf;
 
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -51,7 +53,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Source of the truth of all property values (default or customized). */
   protected AlluxioProperties mProperties;
-  protected CredentialConfiguration mCredProperties;
+  private CredentialProperties mCredProperties;
 
   private final boolean mClusterDefaultsLoaded;
 
@@ -85,7 +87,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param properties alluxio properties underlying this configuration
    */
   public InstancedConfiguration(AlluxioProperties properties) {
-    mProperties = properties;
+    Pair<AlluxioProperties, CredentialProperties> pair =
+            ConfigurationUtils.splitCredentialProperties(properties);
+    mProperties = pair.getFirst();
+    mCredProperties = pair.getSecond();
     mClusterDefaultsLoaded = false;
   }
 
@@ -101,8 +106,17 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param clusterDefaultsLoaded Whether or not the properties represent the cluster defaults
    */
   public InstancedConfiguration(AlluxioProperties properties, boolean clusterDefaultsLoaded) {
-    mProperties = properties;
+    Pair<AlluxioProperties, CredentialProperties> pair =
+            ConfigurationUtils.splitCredentialProperties(properties);
+    mProperties = pair.getFirst();
+    mCredProperties = pair.getSecond();
     mClusterDefaultsLoaded = clusterDefaultsLoaded;
+  }
+
+  public InstancedConfiguration(Pair<AlluxioProperties, AlluxioProperties> propertyPair) {
+    mProperties = propertyPair.getFirst();
+    mCredProperties = (CredentialProperties) propertyPair.getSecond();
+    mClusterDefaultsLoaded = false;
   }
 
   /**
@@ -116,7 +130,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param conf configuration to copy
    */
   public InstancedConfiguration(AlluxioConfiguration conf) {
+    // Only used by tests
     mProperties = conf.copyProperties();
+    // TODO(jiacheng): how is cred field propagated?
     mClusterDefaultsLoaded = conf.clusterDefaultsLoaded();
   }
 
@@ -127,6 +143,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     return mProperties.copy();
   }
 
+  // TODO(jiacheng): mind the generic types
+  public Pair<AlluxioProperties, AlluxioProperties> copyPropertiesIncludeCredentials() {
+    return new Pair<>(mProperties.copy(), mCredProperties.copy());
+  }
+
   @Override
   public String get(PropertyKey key) {
     return get(key, ConfigurationValueOptions.defaults());
@@ -134,6 +155,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public String get(PropertyKey key, ConfigurationValueOptions options) {
+    if (key.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
+      // TODO(jiacheng): Add a field in ExceptionMessage
+      throw new RuntimeException(key.toString() + " is a credential field!");
+    }
     String value = mProperties.get(key);
     if (value == null) {
       // if value or default value is not set in configuration for the given key
@@ -147,6 +172,25 @@ public class InstancedConfiguration implements AlluxioConfiguration {
             + key.getName() + "\": " + e.getMessage(), e);
       }
     }
+    return value;
+  }
+
+  // TODO(jiacheng): Add this to the interface
+  public String getCredential(PropertyKey key) {
+    return getCredential(key, ConfigurationValueOptions.defaults());
+  }
+
+  public String getCredential(PropertyKey key, ConfigurationValueOptions options) {
+    if (!key.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
+      throw new RuntimeException(key.toString() + " is not a credential field!");
+    }
+    String value = mCredProperties.get(key);
+    if (value == null) {
+      // if value or default value is not set in configuration for the given key
+      throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
+    }
+    // TODO(jiacheng): use raw value nested check like get()?
+    // TODO(jiacheng): Is there a use case for this? We should just remove the need for masked fields
     if (options.shouldUseDisplayValue()) {
       PropertyKey.DisplayType displayType = key.getDisplayType();
       switch (displayType) {
@@ -157,25 +201,16 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           break;
         default:
           throw new IllegalStateException(String.format("Invalid displayType %s for property %s",
-              displayType.name(), key.getName()));
+                  displayType.name(), key.getName()));
       }
     }
     return value;
   }
 
-  public String getCredential(PropertyKey key) {
-    if (!key.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
-      throw new RuntimeException();
-    }
-    String value = mProperties.get(key);
-    if (value == null) {
-      // if value or default value is not set in configuration for the given key
-      throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
-    }
-    return value;
-  }
-
   private boolean isResolvable(PropertyKey key) {
+    if (mCredProperties.isSetByUser(key)) {
+      return true;
+    }
     String val = mProperties.get(key);
     try {
       // Lookup to resolve any key before simply returning isSet. An exception will be thrown if
@@ -189,12 +224,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public boolean isSet(PropertyKey key) {
-    return mProperties.isSet(key) && isResolvable(key);
+    return (mProperties.isSet(key) || mCredProperties.isSet(key)) && isResolvable(key);
   }
 
   @Override
   public boolean isSetByUser(PropertyKey key) {
-    return mProperties.isSetByUser(key) && isResolvable(key);
+    return (mProperties.isSetByUser(key) || mCredProperties.isSetByUser(key)) && isResolvable(key);
   }
 
   /**
@@ -215,17 +250,17 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
+    if (key.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
+      throw new UnsupportedOperationException("Cannot set credential field "
+        + key.toString() + " at runtime!");
+    }
     Preconditions.checkArgument(key != null && value != null && !value.equals(""),
         String.format("The key value pair (%s, %s) cannot be null", key, value));
     Preconditions.checkArgument(!value.equals(""),
         String.format("The key \"%s\" cannot be have an empty string as a value. Use "
             + "ServerConfiguration.unset to remove a key from the configuration.", key));
-    if (key.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
-      LOG.warn("Setting {}", key);
-      new Exception().printStackTrace();
-    } else {
-      mProperties.put(key, String.valueOf(value), source);
-    }
+
+    mProperties.put(key, String.valueOf(value), source);
   }
 
   /**
@@ -237,6 +272,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public void unset(PropertyKey key) {
     Preconditions.checkNotNull(key, "key");
     mProperties.remove(key);
+    mCredProperties.remove(key);
   }
 
   /**
@@ -245,18 +281,24 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param properties map of keys to values
    * @param source the source type for these properties
    */
+  // TODO(jiacheng): update this
   public void merge(Map<?, ?> properties, Source source) {
     mProperties.merge(properties, source);
   }
 
   @Override
   public Set<PropertyKey> keySet() {
-    return mProperties.keySet();
+    Set<PropertyKey> keySet = new HashSet<>(mProperties.keySet());
+    // default keySet has been included
+    keySet.addAll(mCredProperties.userKeySet());
+    return keySet;
   }
 
   @Override
   public Set<PropertyKey> userKeySet() {
-    return mProperties.userKeySet();
+    Set<PropertyKey> keySet = mProperties.userKeySet();
+    keySet.addAll(mCredProperties.userKeySet());
+    return keySet;
   }
 
   @Override
@@ -365,6 +407,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  // TODO(jiacheng): double check if this can involve cred fields
   public <T> Class<T> getClass(PropertyKey key) {
     String rawValue = get(key);
 
@@ -380,7 +423,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public Map<String, String> getNestedProperties(PropertyKey prefixKey) {
+    if (prefixKey.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
+      throw new UnsupportedOperationException("Property "
+        + prefixKey.toString() + " cannot be prefix of other properties!");
+    }
     Map<String, String> ret = Maps.newHashMap();
+    // TODO(jiacheng): add check for credentials being nested
     for (Map.Entry<PropertyKey, String> entry: mProperties.entrySet()) {
       String key = entry.getKey().getName();
       if (prefixKey.isNested(key)) {
@@ -393,14 +441,22 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public Source getSource(PropertyKey key) {
-    return mProperties.getSource(key);
+    if (mCredProperties.isSetByUser(key)) {
+      return mCredProperties.getSource(key);
+    } else {
+      // if not set this returns Source.DEFAULT
+      return mProperties.getSource(key);
+    }
   }
 
   @Override
   public Map<String, String> toMap(ConfigurationValueOptions opts) {
     Map<String, String> map = new HashMap<>();
     // Cannot use Collectors.toMap because we support null keys.
-    keySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, opts)));
+    mProperties.keySet().forEach(key -> map.put(key.getName(),
+            getOrDefault(key, null, opts)));
+    // default keys are included already
+    mCredProperties.userKeySet().forEach(key -> map.put(key.getName(), getCredential(key)));
     return map;
   }
 
@@ -438,11 +494,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public String hash() {
-    return mProperties.hash();
+    return Integer.toString(Objects.hash(mProperties.hash(), mCredProperties.hash()));
   }
 
   /**
    * Lookup key names to handle ${key} stuff.
+   * Replacement is not allowed in credential fields.
    *
    * @param base the String to look for
    * @return resolved String value
@@ -453,6 +510,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   /**
    * Actual recursive lookup replacement.
+   * Replacement is not allowed in credential fields.
    *
    * @param base the string to resolve
    * @param seen strings already seen during this lookup, used to prevent unbound recursion

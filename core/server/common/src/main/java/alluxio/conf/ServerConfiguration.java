@@ -352,6 +352,7 @@ public final class ServerConfiguration {
       GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, sConf,
           false, true);
       AlluxioConfiguration conf = ConfigurationUtils.getClusterConf(response, sConf);
+      // TODO(jiacheng): default includes credentials?
       sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
     }
   }

@@ -477,6 +477,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
+    // TODO(jiacheng): adapt to the new API
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
             : ConfigurationUtils.defaults();

@@ -27,8 +27,10 @@ import alluxio.TestLoggerRule;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.util.ConfigurationUtils;
 
+import alluxio.wire.Property;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.UnhandledException;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,6 +44,7 @@ import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -78,6 +81,20 @@ public class InstancedConfigurationTest {
   @AfterClass
   public static void after() {
     ConfigurationUtils.reloadProperties();
+  }
+
+  /**
+   * This method is only used in test for setting credential fields.
+   * */
+  public static void setCredentialField(InstancedConfiguration conf, PropertyKey key, String value) {
+    try {
+      Field credField = conf.getClass().getDeclaredField("mCredProperties");
+      credField.setAccessible(true);
+      CredentialProperties cred = (CredentialProperties) credField.get(conf);
+      cred.set(key, value);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("Failed to set " + key.toString() + " in configuration!");
+    }
   }
 
   @Test
@@ -274,7 +291,7 @@ public class InstancedConfigurationTest {
   }
 
   @Test
-  public void getBytespT() {
+  public void getBytesPb() {
     mConfiguration.set(PropertyKey.WEB_THREADS, "10pb");
     assertEquals(10 * Constants.PB, mConfiguration.getBytes(PropertyKey.WEB_THREADS));
   }
@@ -431,8 +448,38 @@ public class InstancedConfigurationTest {
   @Test
   public void getUnsetValueThrowsException() {
     mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage("No value set for configuration key");
+    mConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+  }
+
+  @Test
+  public void getCredentialField() {
+    setCredentialField(mConfiguration, PropertyKey.S3A_ACCESS_KEY, "KEY");
+    assertEquals(mConfiguration.getCredential(PropertyKey.S3A_ACCESS_KEY), "KEY");
+  }
+
+  @Test
+  public void getUnsetCredentialFieldThrowsException() {
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage("No value set for configuration key");
+    mConfiguration.getCredential(PropertyKey.S3A_ACCESS_KEY);
+  }
+
+  @Test
+  public void getCredentialWrongGetterThrowsException() {
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage("is a credential field");
     mConfiguration.get(PropertyKey.S3A_ACCESS_KEY);
   }
+
+  @Test
+  public void getNormalPropertyWrongGetterThrowsException() {
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage("is not a credential field");
+    mConfiguration.getCredential(PropertyKey.CONF_DIR);
+  }
+
+  // TODO(jiacheng): Add more tests here
 
   @Test
   public void getNestedProperties() {

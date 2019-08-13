@@ -98,6 +98,7 @@ public class ClientContext {
     }
     // Copy the properties so that future modification doesn't affect this ClientContext.
     if (alluxioConf != null) {
+      // TODO(jiacheng): adapt to the new API
       mClusterConf = new InstancedConfiguration(alluxioConf.copyProperties(),
           alluxioConf.clusterDefaultsLoaded());
       mClusterConfHash = alluxioConf.hash();

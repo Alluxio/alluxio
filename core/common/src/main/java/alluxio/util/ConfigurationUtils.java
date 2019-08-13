@@ -15,9 +15,12 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.CredentialConfiguration;
+import alluxio.conf.CredentialProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -55,6 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -458,6 +462,7 @@ public final class ConfigurationUtils {
    */
   public static AlluxioConfiguration merge(AlluxioConfiguration conf, Map<?, ?> properties,
       Source source) {
+    // TODO(jiacheng): adapt to the new API
     AlluxioProperties props = conf.copyProperties();
     props.merge(properties, source);
     return new InstancedConfiguration(props);
@@ -554,6 +559,7 @@ public final class ConfigurationUtils {
       clusterProps.remove(PropertyKey.VERSION);
     }
     // Merge conf returned by master as the cluster default into conf object
+    // TODO(jiacheng): adapt to the new API
     AlluxioProperties props = conf.copyProperties();
     props.merge(clusterProps, Source.CLUSTER_DEFAULT);
     // Use the constructor to set cluster defaults as being loaded.
@@ -607,5 +613,21 @@ public final class ConfigurationUtils {
 
     return Constants.HEADER + conf.get(PropertyKey.MASTER_HOSTNAME) + ":" + conf
         .get(PropertyKey.MASTER_RPC_PORT);
+  }
+
+  /**
+   * Separate the credential properties into another AlluxioProperties instance
+   * */
+  public static Pair<AlluxioProperties, CredentialProperties> splitCredentialProperties(AlluxioProperties properties) {
+    CredentialProperties credProperties = new CredentialProperties();
+    Set<PropertyKey> keys = properties.userKeySet();
+    for(PropertyKey key: keys) {
+      if (key.getDisplayType().equals(PropertyKey.DisplayType.CREDENTIALS)) {
+        String value = properties.get(key);
+        credProperties.put(key, value, properties.getSource(key));
+        properties.remove(key);
+      }
+    }
+    return new Pair<>(properties, credProperties);
   }
 }
