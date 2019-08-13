@@ -11,7 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
@@ -80,58 +79,94 @@ public final class UfsSyncPathCache {
       return true;
     }
 
-    // check the last sync information for the path itself.
-    SyncTime lastSync = mCache.getIfPresent(path);
-    if (!shouldSyncInternal(lastSync, intervalMs, false)) {
-      // Sync is not necessary for this path.
-      return false;
-    }
-
-    // sync should be done on this path, but check all ancestors to determine if a recursive sync
-    // had been performed (to avoid a sync again).
+    // sync should be done on this path, but check path itself and all ancestors to determine
+    // if a recursive sync had been performed (to avoid a sync again).
+    int parentLevel = 0;
     String currPath = path;
-    while (!currPath.equals(AlluxioURI.SEPARATOR)) {
-      try {
+    SyncTimeLevel timeLevel = new SyncTimeLevel();
+    adjustSyncTimeLevel(timeLevel, mCache.getIfPresent(currPath), parentLevel);
+    try {
+      while (!PathUtils.isRoot(currPath)) {
         currPath = PathUtils.getParent(currPath);
-        lastSync = mCache.getIfPresent(currPath);
-        if (!shouldSyncInternal(lastSync, intervalMs, true)) {
-          // Sync is not necessary because an ancestor was already recursively synced
-          return false;
-        }
-      } catch (InvalidPathException e) {
-        // this is not expected, but the sync should be triggered just in case.
-        LOG.debug("Failed to get parent of ({}), for checking sync for ({})", currPath, path);
-        return true;
+        adjustSyncTimeLevel(timeLevel, mCache.getIfPresent(currPath), ++parentLevel);
       }
+    } catch (InvalidPathException e) {
+      // this is not expected, but the sync should be triggered just in case.
+      LOG.debug("Failed to get parent of ({}), for checking sync for ({})", currPath, path);
+      return true;
     }
 
-    // trigger a sync, because a sync on the path (or an ancestor) was performed recently
-    return true;
+    return shouldSyncInternal(timeLevel, intervalMs);
+  }
+
+  private void adjustSyncTimeLevel(SyncTimeLevel timeLevel, SyncTime lastSync, int parentLevel) {
+    if (timeLevel == null || lastSync == null) {
+      return;
+    }
+    if (timeLevel.getLastSyncMs() < lastSync.getLastSyncMs()) {
+      timeLevel.setLastSyncMs(lastSync.getLastSyncMs(), parentLevel);
+    }
+    if (timeLevel.getLastRecursiveSyncMs() < lastSync.getLastRecursiveSyncMs()) {
+      timeLevel.setLastRecursiveSyncMs(lastSync.getLastRecursiveSyncMs());
+    }
+    if (parentLevel <= 1 && timeLevel.getLastRecursiveSyncMs() < lastSync.getLastSyncMs()) {
+      timeLevel.setLastRecursiveSyncMs(lastSync.getLastSyncMs());
+    }
   }
 
   /**
    * Determines if the sync should be performed.
    *
-   * @param syncTime the {@link SyncTime} to examine
+   * @param timeLevel the {@link SyncTimeLevel} to examine
    * @param intervalMs the sync interval, in ms
-   * @param checkRecursive checks the recursive sync time if true, checks the standard sync time
-   *                       otherwise
    * @return true if the sync should be performed
    */
-  private boolean shouldSyncInternal(@Nullable SyncTime syncTime, long intervalMs,
-      boolean checkRecursive) {
-    if (syncTime == null) {
-      return true;
-    }
-    long lastSyncMs = syncTime.getLastSyncMs();
-    if (checkRecursive) {
-      lastSyncMs = syncTime.getLastRecursiveSyncMs();
+  private boolean shouldSyncInternal(@Nullable SyncTimeLevel timeLevel, long intervalMs) {
+    long lastSyncMs = timeLevel.getLastSyncMs();
+    if (timeLevel.getLastSyncPl() > 1) {
+      lastSyncMs = timeLevel.getLastRecursiveSyncMs();
     }
     if (lastSyncMs == SyncTime.UNSYNCED) {
       // was not synced ever, so should sync
       return true;
     }
     return (System.currentTimeMillis() - lastSyncMs) >= intervalMs;
+  }
+
+  private static class SyncTimeLevel {
+    /** the parent level for time mLastSyncMs. */
+    private int mLastSyncPl;
+    /** record the last time mLastSyncMs in SyncTime. */
+    private long mLastSyncMs;
+    /** record the last time mLastRecursiveSyncMs in SyncTime. */
+    private long mLastRecursiveSyncMs;
+
+    SyncTimeLevel() {
+      mLastSyncPl = 0;
+      mLastSyncMs = SyncTime.UNSYNCED;
+      mLastRecursiveSyncMs = SyncTime.UNSYNCED;
+    }
+
+    void setLastSyncMs(long lastSyncMs, int lastSyncPl) {
+      mLastSyncMs = lastSyncMs;
+      mLastSyncPl = lastSyncPl;
+    }
+
+    void setLastRecursiveSyncMs(long lastRecursiveSyncMs) {
+      mLastRecursiveSyncMs = lastRecursiveSyncMs;
+    }
+
+    int getLastSyncPl() {
+      return mLastSyncPl;
+    }
+
+    long getLastSyncMs() {
+      return mLastSyncMs;
+    }
+
+    long getLastRecursiveSyncMs() {
+      return mLastRecursiveSyncMs;
+    }
   }
 
   private static class SyncTime {
