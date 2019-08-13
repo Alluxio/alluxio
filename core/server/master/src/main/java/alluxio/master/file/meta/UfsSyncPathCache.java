@@ -89,12 +89,14 @@ public final class UfsSyncPathCache {
 
     // sync should be done on this path, but check all ancestors to determine if a recursive sync
     // had been performed (to avoid a sync again).
+    int parentLevel = 0;
     String currPath = path;
     while (!currPath.equals(AlluxioURI.SEPARATOR)) {
       try {
         currPath = PathUtils.getParent(currPath);
+        parentLevel++;
         lastSync = mCache.getIfPresent(currPath);
-        if (!shouldSyncInternal(lastSync, intervalMs, true)) {
+        if (!shouldSyncInternal(lastSync, intervalMs, parentLevel > 1)) {
           // Sync is not necessary because an ancestor was already recursively synced
           return false;
         }
