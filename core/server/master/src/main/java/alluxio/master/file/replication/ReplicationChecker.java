@@ -194,8 +194,13 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     return movement;
   }
 
-  private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler) {
+  private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler)
+      throws InterruptedException {
     for (long inodeId : inodes) {
+      // Throw if interrupted.
+      if (Thread.interrupted()) {
+        throw new InterruptedException("ReplicationChecker interrupted.");
+      }
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
@@ -234,10 +239,15 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     }
   }
 
-  private void check(Set<Long> inodes, ReplicationHandler handler, Mode mode) {
+  private void check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
+      throws InterruptedException {
     Set<Long> lostBlocks = mBlockMaster.getLostBlocks();
     Set<Triple<AlluxioURI, Long, Integer>> requests = new HashSet<>();
     for (long inodeId : inodes) {
+      // Throw if interrupted.
+      if (Thread.interrupted()) {
+        throw new InterruptedException("ReplicationChecker interrupted.");
+      }
       // TODO(binfan): calling lockFullInodePath locks the entire path from root to the target
       // file and may increase lock contention in this tree. Investigate if we could avoid
       // locking the entire path but just the inode file since this access is read-only.
