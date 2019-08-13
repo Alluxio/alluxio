@@ -152,7 +152,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         } catch (Exception e) {
           return false;
         }
-      }, WaitForOptions.defaults().setTimeoutMs(2
+      }, WaitForOptions.defaults().setTimeoutMs(6
           * (int) ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)));
 
       // Remove unavailable masters using shell.
