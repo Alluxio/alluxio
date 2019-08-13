@@ -77,11 +77,11 @@ specified as arguments to the script.
 # Args:
 #   $1: URI - the remote location to retrieve the file from
 download_file() {
-  local uri=$1
+  local uri="$1"
 
   if [[ "${uri}" == s3://* ]]
   then
-    aws s3 cp ${uri} ./
+    aws s3 cp "${uri}" ./
   else
     # TODO Add metadata header tag to the wget for filtering out in download metrics.
     wget -nv "${uri}"
@@ -106,8 +106,8 @@ doas() {
 #   $1: property name
 #   $2: property value
 append_alluxio_property() {
-  local property=$1
-  local value=$2
+  local property="$1"
+  local value="$2"
 
   # OK to fail in this section
   set +o errexit
@@ -155,22 +155,22 @@ print_help() {
 #         1: The s3:// or http(s):// URI that points to an Alluxio tarball
 install_alluxio() {
   local alluxio_tarball
-  alluxio_tarball=${1}
+  alluxio_tarball="${1}"
 
   download_file ${alluxio_tarball}
 
-  local release=`basename ${alluxio_tarball}`
-  local release_unzip=${release%"-bin.tar.gz"}
-  release_unzip=${release_unzip%".tar.gz"}
+  local release=`basename "${alluxio_tarball}"`
+  local release_unzip="${release%"-bin.tar.gz"}"
+  release_unzip="${release_unzip%".tar.gz"}"
 
   # Unpack and inflate the release tar
   # TODO logic for different compression formats, s3 URIs, git URIs, etc.
-  sudo cp ${release} /opt/
-  sudo tar -xvf /opt/${release} -C /opt/
-  sudo rm -R /opt/${release}
-  sudo mv /opt/${release_unzip} ${ALLUXIO_HOME}
-  sudo chown -R alluxio:alluxio ${ALLUXIO_HOME}
-  rm ${release}
+  sudo cp "${release}" /opt/
+  sudo tar -xvf "/opt/${release}" -C /opt/
+  sudo rm -R "/opt/${release}"
+  sudo mv "/opt/${release_unzip}" "${ALLUXIO_HOME}"
+  sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}"
+  rm "${release}"
 
 }
 
@@ -196,7 +196,7 @@ cd /tmp/alluxio_backups
 ${ALLUXIO_HOME}/bin/alluxio fsadmin backup
 aws s3 cp /tmp/alluxio_backups \"${backup_uri}\"
 
-" > ${AWS_SHUTDOWN_ACTIONS_DIR}
+" > "${AWS_SHUTDOWN_ACTIONS_DIR}"
 
 
 }
@@ -214,20 +214,21 @@ main() {
     print_help 1
   fi
 
-  root_ufs_uri=${1}
+  root_ufs_uri="${1}"
   shift
 
+  alluxio_tarball=""
   backup_uri=""
-  property_delimiter=";"
-  restore_from_backup_uri=""
   delimited_properties=""
   files_list=""
+  property_delimiter=";"
+  restore_from_backup_uri=""
 
 
   while getopts "c:d:f:i:p:s:" option; do
     case "${option}" in
       b)
-        backup_uri=${OPTARG}
+        backup_uri="${OPTARG}"
         ;;
       d)
         alluxio_tarball="${OPTARG}"
@@ -252,7 +253,7 @@ main() {
     esac
   done
 
-  if [[ "${alluxio_tarball}" ]]; then
+  if [[ -z "${alluxio_tarball}" ]]; then
     alluxio_tarball="https://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz"
   fi
 
@@ -298,12 +299,12 @@ main() {
 
   # Download files provided by "-f" to /opt/alluxio/conf
   local cwd=`pwd`
-  cd ${ALLUXIO_HOME}/conf
+  cd "${ALLUXIO_HOME}/conf"
   IFS=" " read -ra files_to_be_downloaded <<< "${files_list}"
   for file in "${files_to_be_downloaded[@]}"; do
     download_file "${file}"
   done
-  sudo chown -R alluxio:alluxio /opt/alluxio/conf
+  sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}/conf"
   cd "${cwd}"
 
   # Add newline to alluxio-site.properties in case the provided file doesn't end in newline
@@ -340,9 +341,11 @@ main() {
     local args=""
     if [[ "${restore_from_backup_uri}" ]]; then
       local backup_name="$(basename ${restore_from_backup_uri})"
-      mkdir -p /tmp/alluxio_backup
-      aws s3 cp "${backup_name}" /tmp/alluxio_backup
-      args="-i /tmp/alluxio_backup/${backup_name}"
+      local backup_location=/tmp/alluxio_backup
+      mkdir -p "${backup_location}"
+      cd "${backup_location}"
+      download_file "${restore_from_backup_uri}"
+      args="-i ${backup_location}/${backup_name}"
     fi
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
@@ -368,9 +371,9 @@ main() {
   # Compute application configs
   doas alluxio "ln -s ${ALLUXIO_HOME}/client/*client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar"
   sudo mkdir -p /usr/lib/spark/jars/
-  sudo ln -s ${ALLUXIO_HOME}/client/alluxio-client.jar /usr/lib/spark/jars/alluxio-client.jar
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" /usr/lib/spark/jars/alluxio-client.jar
   sudo mkdir -p /usr/lib/presto/plugin/hive-hadoop2/
-  sudo ln -s ${ALLUXIO_HOME}/client/alluxio-client.jar /usr/lib/presto/plugin/hive-hadoop2/alluxio-client.jar
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" /usr/lib/presto/plugin/hive-hadoop2/alluxio-client.jar
 }
 
 main "$@"
