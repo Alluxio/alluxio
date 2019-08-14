@@ -12,6 +12,7 @@
 package alluxio.master.metastore.caching;
 
 import alluxio.Constants;
+import alluxio.master.metastore.ReadOption;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
@@ -85,8 +86,7 @@ public abstract class Cache<K, V> implements Closeable {
     mEvictionThread.setDaemon(true);
     // The eviction thread is started lazily when we first reach the high water mark.
 
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"),
-        () -> mMap.size());
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"), mMap::size);
   }
 
   /**
@@ -95,16 +95,16 @@ public abstract class Cache<K, V> implements Closeable {
    * If the value needs to be loaded, concurrent calls to get(key) will block while waiting for the
    * first call to finish loading the value.
    *
+   * If option.shouldSkipCache() is true, then the value loaded from the backing store will not be
+   * cached and the eviction thread will not be woken up.
+   *
    * @param key the key to get the value for
+   * @param option the read options
    * @return the value, or empty if the key doesn't exist in the cache or in the backing store
    */
-  public Optional<V> get(K key) {
-    if (cacheIsFull()) {
-      Entry entry = mMap.get(key);
-      if (entry == null) {
-        return load(key);
-      }
-      return Optional.ofNullable(entry.mValue);
+  public Optional<V> get(K key, ReadOption option) {
+    if (option.shouldSkipCache() || cacheIsFull()) {
+      return getSkipCache(key);
     }
     Entry result = mMap.compute(key, (k, entry) -> {
       if (entry != null) {
@@ -125,6 +125,29 @@ public abstract class Cache<K, V> implements Closeable {
     }
     wakeEvictionThreadIfNecessary();
     return Optional.of(result.mValue);
+  }
+
+  /**
+   * @param key the key to get the value for
+   * @return the result of {@link #get(Object, ReadOption)} with default option
+   */
+  public Optional<V> get(K key) {
+    return get(key, ReadOption.defaults());
+  }
+
+  /**
+   * Retrieves a value from the cache if already cached, otherwise, loads from the backing store
+   * without caching the value. Eviction is not triggered.
+   *
+   * @param key the key to get the value for
+   * @return the value, or empty if the key doesn't exist in the cache or in the backing store
+   */
+  private Optional<V> getSkipCache(K key) {
+    Entry entry = mMap.get(key);
+    if (entry == null) {
+      return load(key);
+    }
+    return Optional.ofNullable(entry.mValue);
   }
 
   /**
@@ -217,10 +240,6 @@ public abstract class Cache<K, V> implements Closeable {
     mMap.clear();
   }
 
-  private boolean overLowWaterMark() {
-    return mMap.size() > mLowWaterMark;
-  }
-
   private boolean overHighWaterMark() {
     return mMap.size() >= mHighWaterMark;
   }
@@ -263,13 +282,13 @@ public abstract class Cache<K, V> implements Closeable {
     @VisibleForTesting
     volatile boolean mIsSleeping = true;
 
-    private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
-    private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10 * Constants.SECOND_MS);
-
-    // These are used temporarily in each call to evictEntries. We store them as fields to avoid
-    // re-allocating arrays on each eviction batch.
+    // Populated with #fillBatch, cleared with #evictBatch. We keep it around so that we don't need
+    // to keep re-allocating the list.
     private final List<Entry> mEvictionCandidates = new ArrayList<>(mEvictBatchSize);
     private final List<Entry> mDirtyEvictionCandidates = new ArrayList<>(mEvictBatchSize);
+    private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10 * Constants.SECOND_MS);
+
+    private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
 
     private EvictionThread() {
       super(mName + "-eviction-thread");
@@ -292,6 +311,12 @@ public abstract class Cache<K, V> implements Closeable {
             }
           }
         }
+        if (cacheIsFull()) {
+          mCacheFullLogger.warn(
+              "Metastore {} cache is full. Consider increasing the cache size or lowering the "
+                  + "high water mark. size:{} lowWaterMark:{} highWaterMark:{} maxSize:{}",
+              mName, mMap.size(), mLowWaterMark, mHighWaterMark, mMaxSize);
+        }
         evictToLowWaterMark();
       }
     }
@@ -301,13 +326,11 @@ public abstract class Cache<K, V> implements Closeable {
       int toEvict = mMap.size() - mLowWaterMark;
       int evictionCount = 0;
       while (evictionCount < toEvict) {
-        if (cacheIsFull()) {
-          mCacheFullLogger.warn(
-              "Metastore {} cache is full. Consider increasing the cache size or lowering the "
-                  + "high water mark. size:{} lowWaterMark:{} highWaterMark:{} maxSize:{}",
-              mName, mMap.size(), mLowWaterMark, mHighWaterMark, mMaxSize);
+        if (!mEvictionHead.hasNext()) {
+          mEvictionHead = mMap.values().iterator();
         }
-        evictionCount += evictBatch(Math.min(toEvict - evictionCount, mEvictBatchSize));
+        fillBatch(toEvict - evictionCount);
+        evictionCount += evictBatch();
       }
       if (evictionCount > 0) {
         LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,
@@ -316,23 +339,15 @@ public abstract class Cache<K, V> implements Closeable {
     }
 
     /**
-     * @param batchSize the target number of entries to evict. If batchSize is less than 1, no
-     *        entries will be evicted
-     * @return the number of entries evicted
+     * Attempts to fill mEvictionCandidates with up to min(count, mEvictBatchSize) candidates for
+     * eviction.
+     *
+     * @param count maximum number of entries to store in the batch
      */
-    private int evictBatch(int batchSize) {
-      int evictionCount = 0;
-      mEvictionCandidates.clear();
-      mDirtyEvictionCandidates.clear();
-      while (mEvictionCandidates.size() < batchSize) {
-        // Every iteration either sets a referenced bit from true to false or adds a new candidate.
-        if (!mEvictionHead.hasNext()) {
-          mEvictionHead = mMap.values().iterator();
-        }
+    private void fillBatch(int count) {
+      int targetSize = Math.min(count, mEvictBatchSize);
+      while (mEvictionCandidates.size() < targetSize && mEvictionHead.hasNext()) {
         Entry candidate = mEvictionHead.next();
-        if (candidate == null) {
-          return evictionCount; // cache is empty, nothing to evict
-        }
         if (candidate.mReferenced) {
           candidate.mReferenced = false;
           continue;
@@ -342,22 +357,41 @@ public abstract class Cache<K, V> implements Closeable {
           mDirtyEvictionCandidates.add(candidate);
         }
       }
+    }
+
+    /**
+     * Attempts to evict all entries in mEvictionCandidates.
+     *
+     * @return the number of candidates actually evicted
+     */
+    private int evictBatch() {
+      int evicted = 0;
       if (mEvictionCandidates.isEmpty()) {
-        return 0;
+        return evicted;
       }
       flushEntries(mDirtyEvictionCandidates);
-      for (Entry candidate : mEvictionCandidates) {
-        if (null == mMap.computeIfPresent(candidate.mKey, (key, entry) -> {
-          if (entry.mDirty) {
-            return entry; // entry must have been written since we evicted.
-          }
-          onCacheRemove(candidate.mKey);
-          return null;
-        })) {
-          evictionCount++;
+      for (Entry entry : mEvictionCandidates) {
+        if (evictIfClean(entry)) {
+          evicted++;
         }
       }
-      return evictionCount;
+      mEvictionCandidates.clear();
+      mDirtyEvictionCandidates.clear();
+      return evicted;
+    }
+
+    /**
+     * @param entry the entry to try to evict
+     * @return whether the entry was successfully evicted
+     */
+    private boolean evictIfClean(Entry entry) {
+      return null == mMap.computeIfPresent(entry.mKey, (key, e) -> {
+        if (entry.mDirty) {
+          return entry; // entry must have been written since we evicted.
+        }
+        onCacheRemove(entry.mKey);
+        return null;
+      });
     }
   }
 
@@ -373,7 +407,7 @@ public abstract class Cache<K, V> implements Closeable {
 
   /**
    * Callback triggered when an update is made to a key/value pair in the cache. For removals, value
-   * will be null
+   * will be null.
    *
    * @param key the updated key
    * @param value the updated value, or null if the key is being removed
@@ -383,7 +417,7 @@ public abstract class Cache<K, V> implements Closeable {
   /**
    * Callback triggered when a key is removed from the cache.
    *
-   * This may be used in conjunction with onCacheUpdate to keep track of all changes to the cache
+   * This may be used in conjunction with onCacheUpdate to keep track of all changes to the cache.
    *
    * @param key the removed key
    */
@@ -450,7 +484,6 @@ public abstract class Cache<K, V> implements Closeable {
     // Whether the entry has been recently accessed. Accesses set the bit to true, while the
     // eviction thread sets it to false. This is the same as the "referenced" bit described in the
     // CLOCK algorithm.
-
     private volatile boolean mReferenced = true;
 
     private Entry(K key, V value) {

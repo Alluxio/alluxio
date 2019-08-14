@@ -11,9 +11,13 @@
 
 FROM openjdk:8-jdk-alpine
 
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.8.1/alluxio-1.8.1-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz
+ARG ALLUXIO_USERNAME=alluxio
+ARG ALLUXIO_GROUP=alluxio
+ARG ALLUXIO_UID=1000
+ARG ALLUXIO_GID=1000
 
-RUN apk add --update bash && \
+RUN apk --no-cache --update add bash libc6-compat shadow && \
     rm -rf /var/cache/apk/*
 
 ADD ${ALLUXIO_TARBALL} /opt/
@@ -26,5 +30,21 @@ RUN cd /opt && \
 
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
+
+# if Alluxio user, group, gid, and uid aren't root|0
+# then create the alluxio user and set file permissions accordingly
+RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
+    && [ ${ALLUXIO_GROUP} != "root" ] \
+    && [ ${ALLUXIO_UID} -ne 0 ] \
+    && [ ${ALLUXIO_GID} -ne 0 ]; then \
+      addgroup -g ${ALLUXIO_GID} -S ${ALLUXIO_GROUP} && \
+      adduser -u ${ALLUXIO_UID} -S ${ALLUXIO_USERNAME} -G ${ALLUXIO_GROUP} && \
+      usermod -a -G root ${ALLUXIO_USERNAME} && \
+      mkdir -p /journal && \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /opt/* /journal && \
+      chmod -R g=u /opt/* /journal; \
+    fi
+
+USER ${ALLUXIO_UID}
 
 ENTRYPOINT ["/entrypoint.sh"]

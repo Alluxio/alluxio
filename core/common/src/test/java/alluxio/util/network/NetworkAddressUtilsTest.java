@@ -50,6 +50,10 @@ public class NetworkAddressUtilsTest {
   @Test
   public void testGetConnectAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
+      if (service == ServiceType.JOB_MASTER_RAFT || service == ServiceType.MASTER_RAFT) {
+        // Skip the raft services, which don't support separate bind and connect ports.
+        continue;
+      }
       getConnectAddress(service);
     }
   }
@@ -70,57 +74,59 @@ public class NetworkAddressUtilsTest {
 
     // all default
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress(localHostName, service.getDefaultPort()),
+    assertEquals(InetSocketAddress.createUnresolved(localHostName, service.getDefaultPort()),
         masterAddress);
 
     // bind host only
     mConfiguration.unset(service.getHostNameKey());
     mConfiguration.set(service.getBindHostKey(), "bind.host");
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("bind.host", service.getDefaultPort()),
+        masterAddress);
 
     // connect host and bind host
     mConfiguration.set(service.getHostNameKey(), "connect.host");
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("connect.host", service.getDefaultPort()),
+    assertEquals(InetSocketAddress.createUnresolved("connect.host", service.getDefaultPort()),
         masterAddress);
 
     // wildcard connect host and bind host
     mConfiguration.set(service.getHostNameKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("bind.host", service.getDefaultPort()),
+        masterAddress);
 
     // wildcard connect host and wildcard bind host
     mConfiguration.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress(localHostName, service.getDefaultPort()),
+    assertEquals(InetSocketAddress.createUnresolved(localHostName, service.getDefaultPort()),
         masterAddress);
 
     // connect host and wildcard bind host
     mConfiguration.set(service.getHostNameKey(), "connect.host");
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("connect.host", service.getDefaultPort()),
+    assertEquals(InetSocketAddress.createUnresolved("connect.host", service.getDefaultPort()),
         masterAddress);
 
     // connect host and wildcard bind host with port
     mConfiguration.set(service.getPortKey(), "10000");
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("connect.host", 10000), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("connect.host", 10000), masterAddress);
 
     // connect host and bind host with port
     mConfiguration.set(service.getBindHostKey(), "bind.host");
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("connect.host", 10000), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("connect.host", 10000), masterAddress);
 
     // empty connect host and bind host with port
     mConfiguration.unset(service.getHostNameKey());
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("bind.host", 10000), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved("bind.host", 10000), masterAddress);
 
     // empty connect host and wildcard bind host with port
     mConfiguration.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress(localHostName, 10000), masterAddress);
+    assertEquals(InetSocketAddress.createUnresolved(localHostName, 10000), masterAddress);
   }
 
    /**
@@ -131,6 +137,10 @@ public class NetworkAddressUtilsTest {
   @Test
   public void testGetBindAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
+      if (service == ServiceType.JOB_MASTER_RAFT || service == ServiceType.MASTER_RAFT) {
+        // Skip the raft services, which don't support separate bind and connect ports.
+        continue;
+      }
       getBindAddress(service);
     }
   }
@@ -142,44 +152,42 @@ public class NetworkAddressUtilsTest {
    * @param service the service name used to connect
    */
   private void getBindAddress(ServiceType service) throws Exception {
-    int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
-    String localHostName = NetworkAddressUtils.getLocalHostName(resolveTimeout);
-    InetSocketAddress workerAddress;
+    InetSocketAddress address;
 
     // all default
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
     assertEquals(
         new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, service.getDefaultPort()),
-        workerAddress);
+        address);
 
     // bind host only
     mConfiguration.set(service.getBindHostKey(), "bind.host");
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), workerAddress);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), address);
 
     // connect host and bind host
     mConfiguration.set(service.getHostNameKey(), "connect.host");
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), workerAddress);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), address);
 
     // wildcard connect host and bind host
     mConfiguration.set(service.getHostNameKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), workerAddress);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), address);
 
     // wildcard connect host and wildcard bind host
     mConfiguration.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
     assertEquals(
         new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, service.getDefaultPort()),
-        workerAddress);
+        address);
 
     // connect host and wildcard bind host
     mConfiguration.set(service.getHostNameKey(), "connect.host");
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
     assertEquals(
         new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, service.getDefaultPort()),
-        workerAddress);
+        address);
 
     // connect host and wildcard bind host with port
     switch (service) {
@@ -220,36 +228,37 @@ public class NetworkAddressUtilsTest {
         Assert.fail("Unrecognized service type: " + service.toString());
         break;
     }
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
     assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000),
-        workerAddress);
+        address);
 
     // connect host and bind host with port
     mConfiguration.set(service.getBindHostKey(), "bind.host");
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("bind.host", 20000), workerAddress);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    assertEquals(new InetSocketAddress("bind.host", 20000), address);
 
     // empty connect host and bind host with port
     mConfiguration.unset(service.getHostNameKey());
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress("bind.host", 20000), workerAddress);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    assertEquals(new InetSocketAddress("bind.host", 20000), address);
 
     // empty connect host and wildcard bind host with port
     mConfiguration.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
     assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000),
-        workerAddress);
+        address);
 
     // unset connect host and bind host with port
     mConfiguration.unset(service.getBindHostKey());
-    workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000), workerAddress);
+    address = NetworkAddressUtils.getBindAddress(service, mConfiguration);
+    assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000), address);
   }
 
   @Test
   public void getLocalNodeNameClient() throws Exception {
     CommonUtils.PROCESS_TYPE.set(ProcessType.CLIENT);
-    try (Closeable c = new ConfigurationRule(PropertyKey.USER_HOSTNAME, "client", mConfiguration)
+    try (Closeable c =
+        new ConfigurationRule(PropertyKey.LOCALITY_TIER_NODE, "client", mConfiguration)
         .toResource()) {
       assertEquals("client", NetworkAddressUtils.getLocalNodeName(mConfiguration));
     }
@@ -329,7 +338,7 @@ public class NetworkAddressUtilsTest {
 
   @Test
   public void getConfiguredClientHostname() {
-    mConfiguration.set(PropertyKey.USER_HOSTNAME, "clienthost");
+    mConfiguration.set(PropertyKey.LOCALITY_TIER_NODE, "clienthost");
     assertEquals("clienthost", NetworkAddressUtils.getClientHostName(mConfiguration));
   }
 

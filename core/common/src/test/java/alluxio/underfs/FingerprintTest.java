@@ -14,11 +14,11 @@ package alluxio.underfs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import alluxio.security.authorization.AccessControlList;
 import alluxio.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -39,8 +39,8 @@ public final class FingerprintTest {
         (short) mRandom.nextInt());
     Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status);
     String expected = fp.serialize();
-    Assert.assertNotNull(expected);
-    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
+    assertNotNull(expected);
+    assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 
   @Test
@@ -50,16 +50,16 @@ public final class FingerprintTest {
         (short) mRandom.nextInt());
     Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status);
     String expected = fp.serialize();
-    Assert.assertNotNull(expected);
-    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
+    assertNotNull(expected);
+    assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 
   @Test
   public void parseInvalidFingerprint() {
     Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), null);
     String expected = fp.serialize();
-    Assert.assertNotNull(expected);
-    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
+    assertNotNull(expected);
+    assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 
   @Test
@@ -131,9 +131,9 @@ public final class FingerprintTest {
         Arrays.asList("user::rw-", "group::r--", "other::rwx"));
     Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status, acl);
     String expected = fp.serialize();
-    Assert.assertNotNull(expected);
-    Assert.assertEquals("user::rw-,group::r--,other::rwx",
+    assertNotNull(expected);
+    assertEquals("user::rw-,group::r--,other::rwx",
         Fingerprint.parse(expected).getTag(Fingerprint.Tag.ACL));
-    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
+    assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 }

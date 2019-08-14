@@ -27,9 +27,10 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
+import alluxio.TestLoggerRule;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.TestLoggerRule;
+import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -41,6 +42,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.FileInfo;
 
@@ -91,9 +93,16 @@ public final class BaseFileSystemTest {
     mClientContext = ClientContext.create(mConf);
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
+    when(mFileContext.acquireMasterClientResource()).thenReturn(
+        new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
+          @Override
+          public void close() {
+            // Noop.
+          }
+        });
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
-    when(mFileContext.getConf()).thenReturn(mConf);
+    when(mFileContext.getClusterConf()).thenReturn(mConf);
+    when(mFileContext.getPathConf(any())).thenReturn(mConf);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
   }
 
@@ -106,8 +115,7 @@ public final class BaseFileSystemTest {
    * Verifies and releases the master client after a test with a filesystem operation.
    */
   public void verifyFilesystemContextAcquiredAndReleased() {
-    verify(mFileContext).acquireMasterClient();
-    verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
+    verify(mFileContext).acquireMasterClientResource();
   }
 
   /**
@@ -404,12 +412,11 @@ public final class BaseFileSystemTest {
   public void openFile() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
-    GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
-            .toBuilder().mergeFrom(getStatusOptions).build())).thenReturn(status);
+    GetStatusPOptions getStatusOptions = getOpenOptions(GetStatusPOptions.getDefaultInstance());
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions))
+        .thenReturn(status);
     mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
-    verify(mFileSystemMasterClient).getStatus(file,
-        FileSystemOptions.getStatusDefaults(mConf).toBuilder().mergeFrom(getStatusOptions).build());
+    verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -420,9 +427,9 @@ public final class BaseFileSystemTest {
   @Test
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
-        .toBuilder().mergeFrom(getStatusOptions).build())).thenThrow(EXCEPTION);
+    GetStatusPOptions getStatusOptions = getOpenOptions(GetStatusPOptions.getDefaultInstance());
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions))
+        .thenThrow(EXCEPTION);
     try {
       mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -474,9 +481,23 @@ public final class BaseFileSystemTest {
   @Test
   public void setAttribute() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
+    SetAttributePOptions setAttributeOptions =
+        FileSystemOptions.setAttributeClientDefaults(mFileContext.getPathConf(file));
     mFileSystem.setAttribute(file, setAttributeOptions);
     verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
+  }
+
+  /**
+   * Tests that the metadata sync interval is included on setAttributePOptions by default.
+   */
+  @Test
+  public void setAttributeSyncMetadataInterval() throws Exception {
+    AlluxioURI file = new AlluxioURI("/file");
+    SetAttributePOptions opt =
+        FileSystemOptions.setAttributeClientDefaults(mFileContext.getPathConf(file));
+    // Check that metadata sync interval from configuration is used when options are omitted
+    mFileSystem.setAttribute(file);
+    verify(mFileSystemMasterClient).setAttribute(file, opt);
   }
 
   /**
@@ -485,7 +506,8 @@ public final class BaseFileSystemTest {
   @Test
   public void setStateException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
+    SetAttributePOptions setAttributeOptions =
+        FileSystemOptions.setAttributeClientDefaults(mFileContext.getPathConf(file));
     doThrow(EXCEPTION).when(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
     try {
       mFileSystem.setAttribute(file, setAttributeOptions);
@@ -601,6 +623,12 @@ public final class BaseFileSystemTest {
     assertBadAuthority("a:0,b:0,c:0", "Should fail on non-zk authority");
     assertBadAuthority("zk@a:0", "Should fail on zk authority with different addresses");
     assertBadAuthority("zk@a:0,b:0,c:1", "Should fail on zk authority with different addresses");
+  }
+
+  private GetStatusPOptions getOpenOptions(GetStatusPOptions getStatusOptions) {
+    return FileSystemOptions.getStatusDefaults(mConf)
+        .toBuilder().setAccessMode(Bits.READ).setUpdateTimestamps(true)
+        .mergeFrom(getStatusOptions).build();
   }
 
   private void assertBadAuthority(String authority, String failureMessage) throws Exception {

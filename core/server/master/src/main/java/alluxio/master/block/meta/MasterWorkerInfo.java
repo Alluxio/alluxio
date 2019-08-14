@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.grpc.StorageList;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -70,6 +71,8 @@ public final class MasterWorkerInfo {
   private Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
   private Set<Long> mToRemoveBlocks;
+  /** Mapping from tier alias to lost storage paths. */
+  private Map<String, List<String>> mLostStorage;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -88,6 +91,7 @@ public final class MasterWorkerInfo {
     mUsedBytesOnTiers = new HashMap<>();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
+    mLostStorage = new HashMap<>();
   }
 
   /**
@@ -173,6 +177,31 @@ public final class MasterWorkerInfo {
   public void removeBlock(long blockId) {
     mBlocks.remove(blockId);
     mToRemoveBlocks.remove(blockId);
+  }
+
+  /**
+   * Adds a new worker lost storage path.
+   *
+   * @param tierAlias the tier alias
+   * @param dirPath the lost storage path
+   */
+  public void addLostStorage(String tierAlias, String dirPath) {
+    List<String> paths = mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
+    paths.add(dirPath);
+    mLostStorage.put(tierAlias, paths);
+  }
+
+  /**
+   * Adds new worker lost storage paths.
+   *
+   * @param lostStorage the lost storage to add
+   */
+  public void addLostStorage(Map<String, StorageList> lostStorage) {
+    for (Map.Entry<String, StorageList> entry : lostStorage.entrySet()) {
+      List<String> paths = mLostStorage.getOrDefault(entry.getKey(), new ArrayList<>());
+      paths.addAll(entry.getValue().getStorageList());
+      mLostStorage.put(entry.getKey(), paths);
+    }
   }
 
   /**
@@ -330,11 +359,26 @@ public final class MasterWorkerInfo {
     return freeCapacityBytes;
   }
 
+  /**
+   * @return the map from tier alias to lost storage paths in this worker
+   */
+  public Map<String, List<String>> getLostStorage() {
+    return new HashMap<>(mLostStorage);
+  }
+
+  /**
+   * @return true if this worker has lost storage, false otherwise
+   */
+  public boolean hasLostStorage() {
+    return mLostStorage.size() > 0;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks).toString();
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks)
+        .add("lostStorage", mLostStorage).toString();
   }
 
   /**

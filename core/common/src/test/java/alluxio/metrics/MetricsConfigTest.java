@@ -11,7 +11,9 @@
 
 package alluxio.metrics;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,12 +47,12 @@ public final class MetricsConfigTest {
     MetricsConfig config = new MetricsConfig(mMetricsProps);
 
     Properties masterProp = config.getProperties();
-    Assert.assertEquals(4, masterProp.size());
-    Assert.assertEquals("alluxio.metrics.sink.ConsoleSink",
+    assertEquals(4, masterProp.size());
+    assertEquals("alluxio.metrics.sink.ConsoleSink",
         masterProp.getProperty("sink.console.class"));
-    Assert.assertEquals("15", masterProp.getProperty("sink.console.period"));
-    Assert.assertEquals("minutes", masterProp.getProperty("sink.console.unit"));
-    Assert.assertEquals("alluxio.metrics.sink.JmxSink", masterProp.getProperty("sink.jmx.class"));
+    assertEquals("15", masterProp.getProperty("sink.console.period"));
+    assertEquals("minutes", masterProp.getProperty("sink.console.unit"));
+    assertEquals("alluxio.metrics.sink.JmxSink", masterProp.getProperty("sink.jmx.class"));
   }
 
   /**
@@ -64,16 +66,16 @@ public final class MetricsConfigTest {
 
     Map<String, Properties> sinkProps =
         MetricsConfig.subProperties(properties, MetricsSystem.SINK_REGEX);
-    Assert.assertEquals(2, sinkProps.size());
-    Assert.assertTrue(sinkProps.containsKey("console"));
-    Assert.assertTrue(sinkProps.containsKey("jmx"));
+    assertEquals(2, sinkProps.size());
+    assertTrue(sinkProps.containsKey("console"));
+    assertTrue(sinkProps.containsKey("jmx"));
 
     Properties consoleProp = sinkProps.get("console");
-    Assert.assertEquals(3, consoleProp.size());
-    Assert.assertEquals("alluxio.metrics.sink.ConsoleSink", consoleProp.getProperty("class"));
+    assertEquals(3, consoleProp.size());
+    assertEquals("alluxio.metrics.sink.ConsoleSink", consoleProp.getProperty("class"));
 
     Properties jmxProp = sinkProps.get("jmx");
-    Assert.assertEquals(1, jmxProp.size());
-    Assert.assertEquals("alluxio.metrics.sink.JmxSink", jmxProp.getProperty("class"));
+    assertEquals(1, jmxProp.size());
+    assertEquals("alluxio.metrics.sink.JmxSink", jmxProp.getProperty("class"));
   }
 }

@@ -45,7 +45,7 @@ full POSIX semantics and will have specific limitations.  Please read the [secti
 After having properly configured and started the Alluxio cluster, and from the node where you wish
 to mount Alluxio, point a shell to your `$ALLUXIO_HOME` and run:
 
-```bash
+```console
 $ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
 ```
 
@@ -55,7 +55,8 @@ specified at `alluxio_path` to the local file system on the specified `mount_poi
 For example, the following command will mount the Alluxio path `/people` to the folder `/mnt/people`
 in the local file system.
 
-```bash
+```console
+$ ./bin/alluxio fs mkdir /people
 $ sudo mkdir -p /mnt/people
 $ sudo chown $(whoami) /mnt/people
 $ chmod 755 /mnt/people
@@ -64,8 +65,8 @@ $ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 
 When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that the
 `mount_point` must be an existing and empty path in your local file system hierarchy and that the
-user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write
-permissions on it. You can mount Alluxio to multiple mount points. All of these alluxio-fuse
+user that runs the `integration/fuse/bin/alluxio-fuse` script must own the mount point and have read and write
+permissions on it. You can mount Alluxio to multiple mount points. All of these `AlluxioFuse`
 processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`, which is useful for
 troubleshooting when errors happen on operations under the mounting point.
 
@@ -74,14 +75,14 @@ troubleshooting when errors happen on operations under the mounting point.
 To unmount a previously mounted Alluxio-FUSE file system, on the node where the file system is
 mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
-```bash
+```console
 $ integration/fuse/bin/alluxio-fuse unmount mount_point
 ```
 
 This unmounts the file system at the mounting point and stops the corresponding alluxio-fuse
 process. For example,
 
-```bash
+```console
 $ integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
@@ -91,7 +92,7 @@ Unmount fuse at /mnt/people (PID:97626).
 To list the mounting points, on the node where the file system is mounted, point a shell to your
 `$ALLUXIO_HOME` and run:
 
-```bash
+```console
 $ integration/fuse/bin/alluxio-fuse stat
 ```
 
@@ -99,7 +100,7 @@ This outputs the `pid, mount_point, alluxio_path` of all the running Alluxio-FUS
 
 For example, the output will be like:
 
-```bash
+```
 pid	mount_point	alluxio_path
 80846	/mnt/people	/people
 80847	/mnt/sales	/sales
@@ -127,8 +128,9 @@ The mount options of MacOS with osxfuse are listed [here](https://github.com/osx
 Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
 and the set up process may be different according to platforms. 
 
-```bash
-$ integration/fuse/bin/alluxio-fuse mount -o [comma separated mount options] mount_point [alluxio_path]
+```console
+$ integration/fuse/bin/alluxio-fuse mount \
+  -o [comma separated mount options] mount_point [alluxio_path]
 ```
 
 Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache
@@ -155,7 +157,7 @@ to allow other users to use the `allow_other` and `allow_root` mount options.
 
 After setting up, pass the `allow_other` or `allow_root` mount options when mounting Alluxio-Fuse:
 
-```bash
+```console
 # All users (including root) can access the files.
 $ integration/fuse/bin/alluxio-fuse mount -o allow_other mount_point [alluxio_path]
 # The user mounting the filesystem and root can access the files.
@@ -184,7 +186,7 @@ characteristics, please be aware that:
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to
 be worse than what you would see by using the
-[Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#Java-Client) directly.
+[Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#java-client) directly.
 
 Most of the overheads come from the fact that there are several memory copies going on for each call
 on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This

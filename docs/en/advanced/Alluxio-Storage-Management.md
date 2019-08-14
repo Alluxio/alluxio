@@ -73,7 +73,7 @@ information.
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the
 ramdisk size to be 16GB on each worker:
 
-```
+```properties
 alluxio.worker.memory.size=16GB
 ```
 
@@ -82,9 +82,16 @@ to update `alluxio.worker.tieredstore.level0.dirs.path` to take specify each sto
 to use as a storage directory. For example, to use the ramdisk (mounted at `/mnt/ramdisk`) and two
 SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
 
-```
+```properties
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
+alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 ```
+
+Note that the ordering of the medium types must match with the ordering of the paths.
+Here, MEM and SSD are two types preconfigured in Alluxio.
+`alluxio.master.tieredstore.global.mediumtype` is a configuration parameter that has a list of
+all available medium types and by default it is set to `MEM, SSD, HDD`. This list can be modified
+if the user has additional storage media types.
 
 The paths provided should point to paths in the local filesystem mounting the appropriate storage
 media. To enable short circuit operations, the permissions of these paths should be permissive for the
@@ -94,11 +101,12 @@ the client user who is among the same group of the user that starts the Alluxio 
 After updating the storage media, we need to indicate how much storage is allocated for each storage
 directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on each SSD:
 
-```
+```properties
 alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 ```
 
 Note that the ordering of the quotas must match with the ordering of the paths.
+
 
 There is a subtle difference between `alluxio.worker.memory.size` and
 `alluxio.worker.tieredstore.level0.dirs.quota`, which defaults to the former. Alluxio will
@@ -148,7 +156,7 @@ Tiered storage can be enabled in Alluxio using
 [configuration parameters]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}).
 To specify additional tiers for Alluxio, use the following configuration parameters:
 
-```
+```properties
 alluxio.worker.tieredstore.levels
 alluxio.worker.tieredstore.level{x}.alias
 alluxio.worker.tieredstore.level{x}.dirs.quota
@@ -160,7 +168,7 @@ alluxio.worker.tieredstore.level{x}.watermark.low.ratio
 For example, if you wanted to configure Alluxio to have two tiers, memory and hard disk drive,
 you could use a configuration similar to:
 
-```
+```properties
 # configure 2 tiers in Alluxio
 alluxio.worker.tieredstore.levels=2
 # the first (top) tier to be a memory tier
@@ -196,9 +204,7 @@ To use multiple hard drives in the HDD tier, specify multiple paths when configu
 When Alluxio storage is full, Alluxio frees up space for new data as its storage is designed to be
 volatile. Eviction is the mechanism that removes old data.
 
-There are two modes of eviction in Alluxio: asynchronous and synchronous.
-
-Asynchronous eviction is the default implementation of eviction. It relies on a periodic space
+Alluxio applies asynchronous eviction in the background. It relies on a periodic space
 reserver thread in each worker to evict data. When the worker storage utilization reaches a
 maximum threshold, it evicts data until the usage reaches a minimum threshold. The two thresholds
 are configurable, labeled as the high and low watermarks respectively. In the case where we have
@@ -210,18 +216,12 @@ alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
 alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75
 ```
 
-Asynchronous eviction is particularly useful for write or read-cache heavy workloads.
-
-Synchronous eviction waits for a client to request more space than is currently available on the
-worker and then kicks off the eviction process to free up enough space to serve that request. This
+Asynchronous eviction is particularly useful for write or read-cache heavy workloads compared to
+synchronous eviction used prior to Alluxio 2.0, which waits for a client to request more space than
+is currently available on the worker and then kicks off the eviction process to free up enough
+space to serve that request. This
 leads to many small eviction attempts, which is less efficient, but maximizes the utilization of
-available Alluxio space. Synchronous eviction is enabled by configuring the setting:
-
-```
-alluxio.worker.tieredstore.reserver.enabled=false
-```
-
-In general, it is recommended to use the default asynchronous eviction.
+available Alluxio space.
 
 ### Eviction Policies
 
@@ -264,7 +264,7 @@ For Alluxio to use the custom evictor, the fully qualified class name must be sp
 `alluxio.worker.evictor.class` property. After compiling the class to a JAR file, the JAR file
 needs to be accessible and added to the Alluxio worker's java classpath.
 
-## Managing Data in Alluxio
+## Managing the Data Lifecycle in Alluxio
 
 Users should understanding the following concepts to properly utilize available resources:
 
@@ -285,7 +285,7 @@ TTL to remove the corresponding data stored in a UFS.
 In order to manually free data in Alluxio, you can use the `./bin/alluxio` file system command
 line interface.
 
-```bash
+```console
 $ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
 ```
 
@@ -301,12 +301,13 @@ configured [eviction policy](#eviction-policies) will take care of removing unus
 If the data is already in a UFS, use
 [`alluxio fs load`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#load)
 
-```bash
+```console
 $ ./bin/alluxio fs load ${PATH_TO_FILE}
 ```
 
-To load data from the local file system, use the
-[command `copyFromLocal`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#copyfromlocal).
+To load data from the local file system, use the command
+[`alluxio fs copyFromLocal`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url
+}}#copyfromlocal).
 This will only load the file into Alluxio storage, but may not persist the data to a UFS.
 Setting the write type to `MUST_CACHE` write type will _not_ persist data to a UFS,
 whereas `CACHE` and `CACHE_THROUGH` will. Manually loading data is not recommended as Alluxio
@@ -314,10 +315,11 @@ will automatically load data into the Alluxio cache when a file is used for the 
 
 ### Persisting Data in Alluxio
 
-[The `alluxio fs persist`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#persist)
-command allows a user to push data from the Alluxio cache to a UFS.
+The command [`alluxio fs persist`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url
+}}#persist)
+allows a user to push data from the Alluxio cache to a UFS.
 
-```bash
+```console
 $ ./bin/alluxio fs persist ${PATH_TO_FILE}
 ```
 
@@ -343,7 +345,7 @@ next check interval an hour later.
 
 To set the interval to 10 minutes, add the following to `alluxio-site.properties`:
 
-```
+```properties
 alluxio.master.ttl.checker.interval=10m
 ```
 
@@ -386,10 +388,6 @@ the same TTL attributes.
 
 Passive TTL works with the following configuration options:
 
-* `alluxio.user.file.load.ttl` - The TTL duration to set on any file newly loaded into Alluxio
-from an under store. By default, no TTL duration is set.
-* `alluxio.user.file.load.ttl.action` - The TTL action to set on any file newly loaded into Alluxio
-from an under store. By default, this action is `DELETE`.
 * `alluxio.user.file.create.ttl` - The TTL duration to set on any file newly created in Alluxio.
 By default, no TTL duration is set.
 * `alluxio.user.file.create.ttl.action` - The TTL action to set on any file newly created
@@ -404,20 +402,89 @@ access patterns.
 
 For example, to delete the files created by the `runTests` after 3 minutes:
 
-```bash
-$ bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m -Dalluxio.user.file.create.ttl
-.action=DELETE
+```console
+$ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m \
+  -Dalluxio.user.file.create.ttl.action=DELETE
 ```
 
 For this example, ensure the `alluxio.master.ttl.checker.interval` is set to a short
 duration, such as a minute, in order for the the master to quickly identify the expired files.
+
+## Managing Data Replication in Alluxio
+
+### Passive Replication
+
+Like many distributed file systems, each file in Alluxio consists of one or multiple blocks stored
+across the cluster. By default, Alluxio may adjust the replication level of different blocks
+automatically based on the workload and storage capacity. For example, Alluxio may
+create more replicas of a particular block when more clients request to read this block with read
+type `CACHE` or `CACHE_PROMOTE`; Alluxio may also remove existing replicas when they are used less
+often to reclaim the space for data that is accessed more often ([Evictor in Alluxio Storage](#eviction-policies)).
+It is possible that in the same file different blocks have a different number
+of replicas according to the popularity.
+
+By default, this replication or eviction decision and the corresponding data transfer is completely
+transparent to users and applications accessing data stored in Alluxio.
+
+### Active Replication
+
+In addition to the dynamic replication adjustment, Alluxio also provides APIs and command-line
+interfaces for users to explicitly maintain a target range of replication levels for a file explicitly.
+Particularly, a user can configure the following two properties for a file in Alluxio:
+
+1. `alluxio.user.file.replication.min` is the minimum possible number of replicas of this file. Its
+default value is 0, so in the default case Alluxio may completely evict this file from Alluxio
+managed space after the file becomes cold. By setting this property to a positive integer, Alluxio
+will check the replication levels of all the blocks in this file periodically. When some blocks
+become under-replicated, Alluxio will not evict any of these blocks and actively create more
+replicas to restore the replication level.
+1. `alluxio.user.file.replication.max` is the maximum number of replicas. Once the property of this
+file is set to a positive integer, Alluxio will check the replication level and remove the excessive
+replicas. Set this property to -1 to make no upper limit (the default case), and to 0 to prevent
+storing any data of this file in Alluxio. Note that, the value of `alluxio.user.file.replication.max`
+must be no less than `alluxio.user.file.replication.min`.
+
+For example, users can copy a local file `/path/to/file` to Alluxio with at least two replicas initially:
+
+```console
+$ ./bin/alluxio fs -Dalluxio.user.file.replication.min=2 \
+copyFromLocal /path/to/file /file
+```
+
+Next, set the replication level range of `/file` between 3 and 5. Note that, this command will
+return right after setting the new replication level range in a background process and achieving
+the target asynchronously.
+
+```console
+$ ./bin/alluxio fs setReplication --min 3 --max 5 /file
+```
+
+Set the `alluxio.user.file.replication.max` to unlimited.
+
+```console
+$ ./bin/alluxio fs setReplication --max -1 /file
+```
+
+Recursirvely set replication level of all files inside a directory `/dir` (including its
+sub-directories) using `-R`:
+
+```console
+$ ./bin/alluxio fs setReplication --min 3 --max -5 -R /dir
+```
+
+To check the target replication level of a file, run
+
+```console
+$ ./bin/alluxio fs stat /foo
+```
+and look for the `replicationMin` and `replicationMax` fields in the output.
 
 ## Checking Alluxio Cache Capacity and Usage
 
 The Alluxio shell command `fsadmin report` provides a short summary of space availability,
 along with other useful information. A sample output is shown below:
 
-```bash
+```console
 $ ./bin/alluxio fsadmin report
 Alluxio cluster summary:
     Master Address: localhost/127.0.0.1:19998
@@ -425,7 +492,7 @@ Alluxio cluster summary:
     Rpc Port: 19998
     Started: 09-28-2018 12:52:09:486
     Uptime: 0 day(s), 0 hour(s), 0 minute(s), and 26 second(s)
-    Version: 1.8.0
+    Version: 2.0.0
     Safe Mode: true
     Zookeeper Enabled: false
     Live Workers: 1
@@ -442,13 +509,13 @@ the Alluxio cache.
 
 To get the total used bytes in the Alluxio cache:
 
-```bash
+```console
 $ ./bin/alluxio fs getUsedBytes
 ```
 
 To get the total capacity of the Alluxio cache in bytes:
 
-```bash
+```console
 $ ./bin/alluxio fs getCapacityBytes
 ```
 

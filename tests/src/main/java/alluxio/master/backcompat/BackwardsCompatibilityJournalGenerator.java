@@ -14,7 +14,8 @@ package alluxio.master.backcompat;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.grpc.BackupPOptions;
 import alluxio.master.backcompat.ops.AsyncPersist;
 import alluxio.master.backcompat.ops.CreateDirectory;
 import alluxio.master.backcompat.ops.CreateFile;
@@ -25,9 +26,10 @@ import alluxio.master.backcompat.ops.PersistFile;
 import alluxio.master.backcompat.ops.Rename;
 import alluxio.master.backcompat.ops.SetAcl;
 import alluxio.master.backcompat.ops.UpdateUfsMode;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
-import alluxio.security.LoginUser;
+import alluxio.security.user.ServerUserState;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -88,7 +90,7 @@ public final class BackwardsCompatibilityJournalGenerator {
   public static void main(String[] args) throws Exception {
     BackwardsCompatibilityJournalGenerator generator = new BackwardsCompatibilityJournalGenerator();
     new JCommander(generator, args);
-    if (!LoginUser.get(ServerConfiguration.global()).getName().equals("root")) {
+    if (!ServerUserState.global().getUser().getName().equals("root")) {
       System.err
           .printf("Journals must be generated as root so that they can be replayed by root%n");
       System.exit(-1);
@@ -110,6 +112,7 @@ public final class BackwardsCompatibilityJournalGenerator {
             .setClusterName("BackwardsCompatibility")
             .setNumMasters(1)
             .setNumWorkers(1)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
             .build();
     try {
       cluster.start();
@@ -119,7 +122,9 @@ public final class BackwardsCompatibilityJournalGenerator {
         op.apply(cluster.getClients());
       }
       AlluxioURI backup = cluster.getMetaMasterClient()
-          .backup(new File(generator.getOutputDirectory()).getAbsolutePath(), true)
+          .backup(BackupPOptions.newBuilder()
+              .setTargetDirectory(new File(generator.getOutputDirectory()).getAbsolutePath())
+              .setLocalFileSystem(true).build())
           .getBackupUri();
       FileUtils.moveFile(new File(backup.getPath()), backupDst);
       cluster.stopMasters();

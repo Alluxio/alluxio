@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that operation was rejected because the system is not in a state required
  * for the operation's execution. For example, directory to be deleted may be non-empty, an rmdir
@@ -40,14 +42,14 @@ public class FailedPreconditionException extends AlluxioStatusException {
    * @param message the exception message
    */
   public FailedPreconditionException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public FailedPreconditionException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -55,6 +57,6 @@ public class FailedPreconditionException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public FailedPreconditionException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

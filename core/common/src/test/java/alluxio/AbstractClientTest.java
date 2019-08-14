@@ -12,8 +12,6 @@
 package alluxio;
 
 import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.UnavailableException;
@@ -21,11 +19,11 @@ import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
 import alluxio.util.ConfigurationUtils;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
@@ -38,9 +36,16 @@ public final class AbstractClientTest {
   public ExpectedException mExpectedException = ExpectedException.none();
 
   private static class BaseTestClient extends AbstractClient {
+    private long mRemoteServiceVersion;
+
     protected BaseTestClient() {
       super(ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())), null,
           () -> new CountingRetry(1));
+    }
+
+    public BaseTestClient(long remoteServiceVersion) {
+      this();
+      mRemoteServiceVersion = remoteServiceVersion;
     }
 
     @Override
@@ -57,6 +62,11 @@ public final class AbstractClientTest {
     protected long getServiceVersion() {
       return 1;
     }
+
+    @Override
+    protected long getRemoteServiceVersion() {
+      return mRemoteServiceVersion;
+    }
   }
 
   @Test
@@ -72,24 +82,18 @@ public final class AbstractClientTest {
     client.connect();
   }
 
-  // TODO(ggezer) Fix
-  @Ignore
   @Test
   public void unsupportedVersion() throws Exception {
-    //mExpectedException.expect(IOException.class);
+    mExpectedException.expect(IOException.class);
     mExpectedException.expectMessage(INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME, 0, 1));
-    final AbstractClient client = mock(BaseTestClient.class);
-    when(client.getRemoteServiceVersion()).thenReturn(1L);
+    final AbstractClient client = new BaseTestClient(1);
     client.checkVersion(0);
     client.close();
   }
 
-  // TODO(ggezer) Fix
-  @Ignore
   @Test
   public void supportedVersion() throws Exception {
-    final AbstractClient client = mock(BaseTestClient.class);
-    when(client.getRemoteServiceVersion()).thenReturn(1L);
+    final AbstractClient client = new BaseTestClient(1);
     client.checkVersion(1);
     client.close();
   }

@@ -96,7 +96,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(LockPattern.WRITE_EDGE, mPath.getLockPattern());
 
     checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mFileC);
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB);
     checkOnlyIncomingEdgesWriteLocked(mFileC);
   }
@@ -136,6 +136,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
     checkOnlyNodesWriteLocked();
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB);
+    checkIncomingEdgeReadLocked(mDirB.getId(), "missing");
     checkOnlyIncomingEdgesWriteLocked();
   }
 
@@ -242,7 +243,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(1, mPath.getExistingInodeCount());
 
     checkOnlyNodesReadLocked();
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mRootDir);
     checkOnlyIncomingEdgesReadLocked();
     checkOnlyIncomingEdgesWriteLocked(mRootDir);
   }
@@ -259,7 +260,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
     checkOnlyNodesReadLocked(mRootDir);
     checkOnlyNodesWriteLocked();
-    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA);
     checkOnlyIncomingEdgesWriteLocked();
   }
 
@@ -290,14 +291,14 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB), pathC.getInodeList());
 
     checkOnlyNodesReadLocked(mRootDir);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mDirA, mDirB);
     checkOnlyIncomingEdgesReadLocked(mRootDir);
-    checkOnlyIncomingEdgesWriteLocked(mDirA);
+    checkOnlyIncomingEdgesWriteLocked(mDirA, mDirB, mFileC);
 
     pathC.close();
 
     checkOnlyNodesReadLocked(mRootDir);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mDirA);
     checkOnlyIncomingEdgesReadLocked(mRootDir);
     checkOnlyIncomingEdgesWriteLocked(mDirA);
   }
@@ -394,7 +395,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(mDirB, childPath.getInode());
 
     checkOnlyNodesReadLocked(mRootDir, mDirA);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mDirB);
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA);
     checkOnlyIncomingEdgesWriteLocked(mDirB);
 
@@ -439,11 +440,10 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertTrue(childPath.fullPathExists());
     assertEquals(mDirB, childPath.getInode());
 
-    // No new locks are taken since we already have a write lock
     checkOnlyNodesReadLocked(mRootDir);
-    checkOnlyNodesWriteLocked(mDirA);
+    checkOnlyNodesWriteLocked(mDirA, mDirB);
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA);
-    checkOnlyIncomingEdgesWriteLocked();
+    checkOnlyIncomingEdgesWriteLocked(mDirB);
 
     childPath.close();
 
@@ -513,7 +513,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), childPath.getInodeList());
 
     checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mFileC);
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB);
     checkOnlyIncomingEdgesWriteLocked(mFileC);
 
@@ -535,14 +535,14 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), childPath.getInodeList());
 
     checkOnlyNodesReadLocked();
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mRootDir, mDirA, mDirB, mFileC);
     checkOnlyIncomingEdgesReadLocked();
-    checkOnlyIncomingEdgesWriteLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked(mRootDir, mDirA, mDirB, mFileC);
 
     childPath.close();
 
     checkOnlyNodesReadLocked();
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mRootDir);
     checkOnlyIncomingEdgesReadLocked();
     checkOnlyIncomingEdgesWriteLocked(mRootDir);
   }

@@ -75,7 +75,7 @@ public final class FileSystemShellUtils {
    * @param alluxioConf Alluxio configuration
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
-   *         alluxio.master.hostname and alluxio.master.port, respectively.
+   *         alluxio.master.hostname and alluxio.master.rpc.port, respectively.
    */
   public static String validatePath(String path, AlluxioConfiguration alluxioConf)
       throws IOException {
@@ -233,6 +233,23 @@ public final class FileSystemShellUtils {
     if (cl.hasOption(option.getLongOpt())) {
       String argOption = cl.getOptionValue(option.getLongOpt());
       arg = Integer.parseInt(argOption);
+    }
+    return arg;
+  }
+
+  /**
+   * Gets the value of an option from the command line.
+   *
+   * @param cl command line object
+   * @param option the option to check for in the command line
+   * @param defaultValue default value for the option
+   * @return argument from command line or default if not present
+   */
+  public static long getMsArg(CommandLine cl, Option option, long defaultValue) {
+    long arg = defaultValue;
+    if (cl.hasOption(option.getLongOpt())) {
+      String argOption = cl.getOptionValue(option.getLongOpt());
+      arg = FormatUtils.parseTimeSize(argOption);
     }
     return arg;
   }

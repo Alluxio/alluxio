@@ -79,13 +79,14 @@ otherwise it returns the current logger level.
 For example, the following command sets the logger level of the class `alluxio.heartbeat.HeartbeatContext` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
 
-```bash
-alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=master,192.168.100.100:30000 --level=DEBUG
+```console
+$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
+  --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
 And the following command returns the log level of the class `alluxio.heartbeat.HeartbeatContext` among all the workers:
-```bash
-alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
+```console
+$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
 
 For more information, refer to the help text of the `logLevel` command by running `./bin/alluxio logLevel`
@@ -111,13 +112,13 @@ You can choose the directory that the log server will write logs to by setting t
 
 On the log server, execute the following command.
 
-```bash
+```console
 $ ./bin/alluxio-start.sh logserver
 ```
 
 #### Stop the Log Server
 
-```bash
+```console
 $ ./bin/alluxio-stop.sh logserver
 ```
 
@@ -136,7 +137,7 @@ The two environment variables `ALLUXIO_LOGSERVER_HOSTNAME` and `ALLUXIO_LOGSERVE
 the logging behavior of masters and workers in an Alluxio cluster.
 
 Suppose the hostname of the log server is `AlluxioLogServer`, and the port is `45010`.
-The following lines would need to be added to `conf/alluxio-env.sh` to enable the correct :
+The following lines would need to be added to `conf/alluxio-env.sh` to enable remote logging :
 
 ```bash
 ALLUXIO_LOGSERVER_HOSTNAME=AlluxioLogServer
@@ -144,9 +145,7 @@ ALLUXIO_LOGSERVER_PORT=45010
 ```
 
 These variables propagate their values to the `alluxio.logserver.hostname` and
-`alluxio.logserver.port`
-[system properties]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.logserver.hostname)
-when set via `alluxio-env.sh` which are then referenced within `log4j.properties`
+`alluxio.logserver.port` [system properties] when set via `alluxio-env.sh` which are then referenced within `log4j.properties`
 
 #### Enable Remote Logging with `log4j.properties`
 
@@ -184,7 +183,7 @@ SSH to the machine on which log server is running.
 Go to the directory where the log server has been configured to store logs received from
 other Alluxio servers. In the above example, the directory is `/tmp/alluxio_remote_logs`.
 
-```bash
+```console
 $ cd /tmp/alluxio_remote_logs
 $ ls
 master          proxy           secondary_master    worker

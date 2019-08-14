@@ -56,10 +56,10 @@ public interface DataWriter extends Closeable, Cancelable {
      */
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
         WorkerNetAddress address, OutStreamOptions options) throws IOException {
-      AlluxioConfiguration alluxioConf = context.getConf();
+      AlluxioConfiguration alluxioConf = context.getClusterConf();
       if (CommonUtils.isLocalHost(address, alluxioConf) && alluxioConf
           .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
-          .isDomainSocketSupported(address, alluxioConf)) {
+          .isDomainSocketSupported(address)) {
         if (options.getWriteType() == WriteType.ASYNC_THROUGH
             && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,

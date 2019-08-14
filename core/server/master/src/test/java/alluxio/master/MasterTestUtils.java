@@ -17,6 +17,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.security.user.UserState;
 
 /**
  * Util methods to help with master testing.
@@ -35,12 +36,23 @@ public final class MasterTestUtils {
    * @param journalSystem a journal system to use in the context
    */
   public static CoreMasterContext testMasterContext(JournalSystem journalSystem) {
+    return testMasterContext(journalSystem, null);
+  }
+
+  /**
+   * @return a basic master context for the purpose of testing
+   * @param journalSystem a journal system to use in the context
+   * @param userState the user state to use in the context
+   */
+  public static CoreMasterContext testMasterContext(JournalSystem journalSystem,
+      UserState userState) {
     return CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
+        .setUserState(userState)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
-        .setBlockStoreFactory(args -> new HeapBlockStore(args))
-        .setInodeStoreFactory(args -> new HeapInodeStore(args))
+        .setBlockStoreFactory(() -> new HeapBlockStore())
+        .setInodeStoreFactory(x -> new HeapInodeStore())
         .setStartTimeMs(-1)
         .setPort(-1)
         .build();

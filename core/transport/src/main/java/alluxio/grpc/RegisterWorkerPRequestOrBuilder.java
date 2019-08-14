@@ -169,7 +169,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
 
   /**
    * <pre>
-   ** the map of list of blocks on each tier 
+   ** the map of list of blocks on each tier (deprecated since 2.0, replaced by currentBlocks
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; currentBlocksOnTiers = 5;</code>
@@ -177,7 +177,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
   int getCurrentBlocksOnTiersCount();
   /**
    * <pre>
-   ** the map of list of blocks on each tier 
+   ** the map of list of blocks on each tier (deprecated since 2.0, replaced by currentBlocks
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; currentBlocksOnTiers = 5;</code>
@@ -192,7 +192,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
   getCurrentBlocksOnTiers();
   /**
    * <pre>
-   ** the map of list of blocks on each tier 
+   ** the map of list of blocks on each tier (deprecated since 2.0, replaced by currentBlocks
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; currentBlocksOnTiers = 5;</code>
@@ -201,7 +201,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
   getCurrentBlocksOnTiersMap();
   /**
    * <pre>
-   ** the map of list of blocks on each tier 
+   ** the map of list of blocks on each tier (deprecated since 2.0, replaced by currentBlocks
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; currentBlocksOnTiers = 5;</code>
@@ -212,7 +212,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
       alluxio.grpc.TierList defaultValue);
   /**
    * <pre>
-   ** the map of list of blocks on each tier 
+   ** the map of list of blocks on each tier (deprecated since 2.0, replaced by currentBlocks
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; currentBlocksOnTiers = 5;</code>
@@ -233,4 +233,102 @@ public interface RegisterWorkerPRequestOrBuilder extends
    * <code>optional .alluxio.grpc.block.RegisterWorkerPOptions options = 6;</code>
    */
   alluxio.grpc.RegisterWorkerPOptionsOrBuilder getOptionsOrBuilder();
+
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+  int getLostStorageCount();
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+  boolean containsLostStorage(
+      java.lang.String key);
+  /**
+   * Use {@link #getLostStorageMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+  getLostStorage();
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+  java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+  getLostStorageMap();
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+
+  alluxio.grpc.StorageList getLostStorageOrDefault(
+      java.lang.String key,
+      alluxio.grpc.StorageList defaultValue);
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+
+  alluxio.grpc.StorageList getLostStorageOrThrow(
+      java.lang.String key);
+
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry currentBlocks = 8;</code>
+   */
+  java.util.List<alluxio.grpc.LocationBlockIdListEntry> 
+      getCurrentBlocksList();
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry currentBlocks = 8;</code>
+   */
+  alluxio.grpc.LocationBlockIdListEntry getCurrentBlocks(int index);
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry currentBlocks = 8;</code>
+   */
+  int getCurrentBlocksCount();
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry currentBlocks = 8;</code>
+   */
+  java.util.List<? extends alluxio.grpc.LocationBlockIdListEntryOrBuilder> 
+      getCurrentBlocksOrBuilderList();
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry currentBlocks = 8;</code>
+   */
+  alluxio.grpc.LocationBlockIdListEntryOrBuilder getCurrentBlocksOrBuilder(
+      int index);
 }

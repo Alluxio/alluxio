@@ -61,11 +61,11 @@ public final class BlockMasterClientRestApiTest extends RestApiTest {
     long initialBytes = 3;
 
     BlockWorker blockWorker = mResource.get().getWorkerProcess().getWorker(BlockWorker.class);
-    String file = blockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes);
+    String file = blockWorker.createBlock(sessionId, blockId, tierAlias, "",  initialBytes);
     FileOutputStream outStream = new FileOutputStream(file);
     outStream.write("abc".getBytes());
     outStream.close();
-    blockWorker.commitBlock(sessionId, blockId);
+    blockWorker.commitBlock(sessionId, blockId, false);
 
     Map<String, String> params = new HashMap<>();
     params.put("blockId", Long.toString(blockId));

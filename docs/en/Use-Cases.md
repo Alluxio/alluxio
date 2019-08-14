@@ -10,7 +10,7 @@ priority: 1
 
 Leading companies around the world run Alluxio in production to extract value
 from their data. Some of them are listed in our
-[Powered-By](https://www.alluxio.org/community/powered-by-alluxio) page.
+[Powered-By](https://www.alluxio.io/powered-by-alluxio) page.
 In this section, we introduce some of the most common Alluxio use cases.
 
 ## Object Storage Data Acceleration
@@ -46,7 +46,7 @@ metadata to avoid particular inefficient metadata operations of object stores.
 
 See example use cases from
 [BazzarVoice](https://www.slideshare.net/ThaiBui7/hybrid-collaborative-tiered-storage-with-alluxio),
-[Myntra](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/myntra-case-study-accelerating-analytics-in-the-cloud-for-mobile-e-commerce).
+[Myntra](https://www.alluxio.io/app/uploads/2019/05/myntra-case-study-accelerating-analytics-in-the-cloud-for-mobile-e-commerce.pdf).
 
 ## Satellite Compute Clusters Enabler
 
@@ -64,7 +64,7 @@ cache frequently accessed data local to the satellite cluster to reduce network 
 decreasing the overall load of the main data cluster.
 
 See example use cases from
-[Tencent News](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/tencent-case-study-delivering-customized-news-to-over-100-million-montly-users).
+[Tencent News](https://www.alluxio.io/app/uploads/2019/05/tencent-case-study-delivering-customized-news-to-over-100-million-montly-users.pdf).
 
 ## A Common Data Access Layer
 
@@ -88,4 +88,4 @@ whose data can be backed by multiple different persistent storages.
 This drastically simplifies the development, maintenance and management of an application.
 
 See example use cases from
-[Lenovo](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/lenovo-analyzes-petabytes-of-smartphone-data-from-multiple-locations-and-eliminates-etl-with-alluxio).
+[Lenovo](https://www.alluxio.io/app/uploads/2019/05/lenovo-analyzes-petabytes-of-smartphone-data-from-multiple-locations-and-eliminates-etl-with-alluxio.pdf).

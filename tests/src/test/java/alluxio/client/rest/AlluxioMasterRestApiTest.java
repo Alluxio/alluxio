@@ -14,15 +14,18 @@ package alluxio.client.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.meta.AlluxioMasterRestServiceHandler;
+import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.meta.AlluxioMasterRestServiceHandler;
 import alluxio.metrics.MetricsSystem;
-import alluxio.testutils.master.MasterTestUtils;
 import alluxio.testutils.underfs.UnderFileSystemTestUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
@@ -54,8 +57,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
-
-    MetricsSystem.resetAllCounters();
   }
 
   @After
@@ -68,6 +69,14 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_INFO),
             params, HttpMethod.GET, null).call();
     AlluxioMasterInfo info = new ObjectMapper().readValue(result, AlluxioMasterInfo.class);
+    return info;
+  }
+
+  private Map<String, String> getMetrics(Map<String, String> params) throws Exception {
+    String result =
+        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_METRICS),
+            params, HttpMethod.GET, null).call();
+    Map<String, String> info = new ObjectMapper().readValue(result, Map.class);
     return info;
   }
 
@@ -112,9 +121,33 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getMetrics() throws Exception {
+  public void getMetricsInfo() throws Exception {
     assertEquals(Long.valueOf(0),
         getInfo(NO_PARAMS).getMetrics().get(MetricsSystem.getMetricName("CompleteFileOps")));
+  }
+
+  @Test
+  public void getUfsMetrics() throws Exception {
+    int len = 100;
+    FileSystemTestUtils.createByteFile(mResource.get().getClient(), "/f1", WritePType.THROUGH, len);
+    CommonUtils.waitFor("Metrics to be updated correctly", () -> {
+      try {
+        return FormatUtils.getSizeFromBytes(len).equals(getMetrics(NO_PARAMS)
+            .get("totalBytesWrittenUfs"));
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(2000));
+
+    FileSystemTestUtils.createByteFile(mResource.get().getClient(), "/f2", WritePType.THROUGH, len);
+    CommonUtils.waitFor("Metrics to be updated correctly", () -> {
+      try {
+        return FormatUtils.getSizeFromBytes(2 * len).equals(getMetrics(NO_PARAMS)
+            .get("totalBytesWrittenUfs"));
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
   @Test
@@ -140,17 +173,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getStartTimeMs() throws Exception {
     assertTrue(getInfo(NO_PARAMS).getStartTimeMs() > 0);
-  }
-
-  @Test
-  public void getStartupConsistencyCheckStatus() throws Exception {
-    MasterTestUtils.waitForStartupConsistencyCheck(mFileSystemMaster);
-    alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
-        .getStartupConsistencyCheck();
-    assertEquals(
-        StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
-        status.getStatus());
-    assertEquals(0, status.getInconsistentUris().size());
   }
 
   @Test

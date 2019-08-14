@@ -35,13 +35,13 @@ ALLUXIO_LOGSERVER_LOGS_DIR=/tmp/alluxio_remote_logs
 
 ### 启动日志服务器
 在日志服务器，运行下列命令
-```bash
+```console
 $ ./bin/alluxio-start.sh logserver
 ```
 
 ### 启动Alluxio
 在Alluxio master上, 运行下列命令
-```bash
+```console
 $ ./bin/alluxio-start.sh all SudoMount
 ```
 
@@ -50,7 +50,7 @@ $ ./bin/alluxio-start.sh all SudoMount
 
 第二步，进入之前设置好的日志服务器存储远程日志的目录。在上述例子中，这个目录是 `/tmp/alluxio_remote_logs`。
 
-```bash
+```console
 $ cd /tmp/alluxio_remote_logs
 $ ls
 master          proxy           secondary_master    worker

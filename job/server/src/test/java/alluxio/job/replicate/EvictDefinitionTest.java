@@ -11,10 +11,15 @@
 
 package alluxio.job.replicate;
 
+import static org.mockito.Mockito.when;
+
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.job.JobMasterContext;
+import alluxio.job.JobServerContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
+import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -26,7 +31,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -38,8 +42,7 @@ import java.util.Map;
  * Tests {@link EvictDefinition}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class,
-    JobMasterContext.class})
+@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class})
 public final class EvictDefinitionTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final WorkerNetAddress ADDRESS_1 =
@@ -53,15 +56,18 @@ public final class EvictDefinitionTest {
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
   private static final Map<WorkerInfo, SerializableVoid> EMPTY = Maps.newHashMap();
 
+  private FileSystem mMockFileSystem;
   private FileSystemContext mMockFileSystemContext;
   private AlluxioBlockStore mMockBlockStore;
-  private JobMasterContext mMockJobMasterContext;
+  private JobServerContext mJobServerContext;
 
   @Before
   public void before() {
-    mMockJobMasterContext = Mockito.mock(JobMasterContext.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystem = PowerMockito.mock(FileSystem.class);
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    mJobServerContext = new JobServerContext(mMockFileSystem, mMockFileSystemContext,
+        PowerMockito.mock(UfsManager.class));
   }
 
   /**
@@ -77,13 +83,14 @@ public final class EvictDefinitionTest {
       throws Exception {
     BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);
     blockInfo.setLocations(blockLocations);
-    Mockito.when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
+    when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
     EvictConfig config = new EvictConfig(TEST_BLOCK_ID, replicas);
-    EvictDefinition definition = new EvictDefinition(mMockFileSystemContext);
-    return definition.selectExecutors(config, workerInfoList, mMockJobMasterContext);
+    EvictDefinition definition = new EvictDefinition();
+    return definition.selectExecutors(config, workerInfoList,
+        new SelectExecutorsContext(1, mJobServerContext));
   }
 
   @Test

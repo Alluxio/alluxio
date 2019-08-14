@@ -13,7 +13,10 @@ package alluxio.master.journal;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.master.CheckpointType;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -41,12 +44,12 @@ public final class JournalUtilsTest {
     Journaled journaled = new TestJournaled(0);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     JournalUtils.writeJournalEntryCheckpoint(baos, journaled);
-    JournalUtils.restoreJournalEntryCheckpoint(new ByteArrayInputStream(baos.toByteArray()),
-        journaled);
+    JournalUtils.restoreJournalEntryCheckpoint(
+        new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())), journaled);
   }
 
   @Test
-  public void restoreInvalidJournalEntryCheckpoint() throws IOException, InterruptedException {
+  public void restoreInvalidJournalEntryCheckpoint() throws IOException {
     Journaled journaled = new TestJournaled(0);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     // Checkpoint version doesn't match Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION.
@@ -54,8 +57,8 @@ public final class JournalUtilsTest {
     cos.flush();
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage("Unrecognized checkpoint type");
-    JournalUtils.restoreJournalEntryCheckpoint(new ByteArrayInputStream(baos.toByteArray()),
-        journaled);
+    JournalUtils.restoreJournalEntryCheckpoint(
+        new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())), journaled);
   }
 
   @Test
@@ -67,7 +70,8 @@ public final class JournalUtilsTest {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     JournalUtils.writeToCheckpoint(baos, components);
     components.forEach(c -> assertEquals(0, c.getNumEntriesProcessed()));
-    JournalUtils.restoreFromCheckpoint(new ByteArrayInputStream(baos.toByteArray()), components);
+    JournalUtils.restoreFromCheckpoint(
+        new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())), components);
     components.forEach(c -> assertEquals(1, c.getNumEntriesProcessed()));
   }
 

@@ -70,9 +70,21 @@ public interface AlluxioConfiguration {
   boolean isSet(PropertyKey key);
 
   /**
+   * @param key the key to check
+   * @return true if there is value for the key set by user, false otherwise even when there is a
+   *         default value for the key
+   */
+  boolean isSetByUser(PropertyKey key);
+
+  /**
    * @return the keys configured by the configuration
    */
   Set<PropertyKey> keySet();
+
+  /**
+   * @return the keys set by user
+   */
+  Set<PropertyKey> userKeySet();
 
   /**
    * Gets the integer representation of the value for the given key.
@@ -215,4 +227,11 @@ public interface AlluxioConfiguration {
    * @return whether or not the configuration has been merged with cluster defaults
    */
   boolean clusterDefaultsLoaded();
+
+  /**
+   * @return hash of properties, if hashing is not supported, return empty string
+   */
+  default String hash() {
+    return "";
+  }
 }

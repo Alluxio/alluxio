@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.Server;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -59,6 +59,9 @@ public final class MockMaster implements Master {
 
   @Override
   public void stop() {}
+
+  @Override
+  public void close() {}
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {

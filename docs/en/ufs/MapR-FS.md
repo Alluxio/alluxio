@@ -70,12 +70,12 @@ There are various ways to configure Alluxio to use MapR-FS as under storage. If 
 mount MapR-FS to the root of Alluxio, add the following to `conf/alluxio-site.properties`:
 
 ```properties
-alluxio.underfs.address=maprfs:///<path in MapR-FS>/
+alluxio.master.mount.table.root.ufs=maprfs:///<path in MapR-FS>/
 ```
 
 You can also mount a directory in MapR-FS to a directory in the Alluxio namespace.
 
-```bash
+```console
 $ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR-FS>/
 ```
 
@@ -83,14 +83,19 @@ $ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in Ma
 
 Start up Alluxio locally to see that everything works.
 
-{% include Common-Commands/start-alluxio.md %}
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
+```
 
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Run a simple example program:
 
-{% include Common-Commands/runTests.md %}
+```console
+$ ./bin/alluxio runTests
+```
 
 Visit MapR-FS web UI to verify the files and directories created by
 Alluxio exist. For this test, you should see files named like:
@@ -98,4 +103,6 @@ Alluxio exist. For this test, you should see files named like:
 
 Stop Alluxio by running:
 
-{% include Common-Commands/stop-alluxio.md %}
+```console
+$ ./bin/alluxio-stop.sh local
+```

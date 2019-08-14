@@ -22,7 +22,9 @@ import alluxio.grpc.WriteResponse;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -31,7 +33,6 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,13 +68,17 @@ public final class UfsFallbackBlockWriteHandler
    * Creates an instance of {@link UfsFallbackBlockWriteHandler}.
    *
    * @param blockWorker the block worker
+   * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether using a domain socket
    */
-  UfsFallbackBlockWriteHandler(BlockWorker blockWorker,
-      UfsManager ufsManager, StreamObserver<WriteResponse> responseObserver) {
-    super(responseObserver);
+  UfsFallbackBlockWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
+      boolean domainSocketEnabled) {
+    super(responseObserver, userInfo);
     mWorker = blockWorker;
     mUfsManager = ufsManager;
-    mBlockWriteHandler = new BlockWriteHandler(blockWorker, responseObserver);
+    mBlockWriteHandler =
+        new BlockWriteHandler(blockWorker, responseObserver, userInfo, domainSocketEnabled);
   }
 
   @Override
@@ -86,7 +91,8 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-          mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+          mStorageTierAssoc.getAlias(request.getTier()),
+          request.getMediumType(), FILE_BUFFER_SIZE);
     }
     return context;
   }
@@ -118,7 +124,7 @@ public final class UfsFallbackBlockWriteHandler
         context.setOutputStream(null);
       }
       if (context.getUfsResource() != null) {
-        context.getUfsResource().get().deleteFile(context.getUfsPath());
+        context.getUfsResource().get().deleteExistingFile(context.getUfsPath());
       }
     }
     if (context.getUfsResource() != null) {
@@ -146,11 +152,11 @@ public final class UfsFallbackBlockWriteHandler
 
   @Override
   protected void writeBuf(BlockWriteRequestContext context,
-      StreamObserver<WriteResponse> responseObserver, ByteString buf, long pos) throws Exception {
+      StreamObserver<WriteResponse> responseObserver, DataBuffer buf, long pos) throws Exception {
     if (context.isWritingToLocal()) {
       // TODO(binfan): change signature of writeBuf to pass current offset and length of buffer.
       // Currently pos is the calculated offset after writeBuf succeeds.
-      long posBeforeWrite = pos - buf.size();
+      long posBeforeWrite = pos - buf.readableBytes();
       try {
         mBlockWriteHandler.writeBuf(context, responseObserver, buf, pos);
         return;
@@ -175,7 +181,7 @@ public final class UfsFallbackBlockWriteHandler
     if (context.getOutputStream() == null) {
       createUfsBlock(context);
     }
-    buf.writeTo(context.getOutputStream());
+    buf.readBytes(context.getOutputStream(), buf.readableBytes());
   }
 
   @Override
@@ -217,7 +223,7 @@ public final class UfsFallbackBlockWriteHandler
     UnderFileSystem ufs = ufsResource.get();
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
-        ufs.create(ufsPath,
+        ufs.createNonexistingFile(ufsPath,
             CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
                 .setCreateParent(true));
     context.setOutputStream(ufsOutputStream);

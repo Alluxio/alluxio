@@ -17,7 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.policy.LocalFirstPolicy;
+import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -28,6 +28,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
@@ -45,9 +46,11 @@ import java.util.Map;
  * Integration tests for writing to various storage tiers.
  */
 public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
-  private static final int CAPACITY_BYTES = Constants.KB;
-  private static final int FILE_SIZE = CAPACITY_BYTES;
+  private static final int FILES_PER_TIER = 10;
   private static final String BLOCK_SIZE_BYTES = "1KB";
+  private static final int FILE_SIZE = (int) FormatUtils.parseSpaceSize(BLOCK_SIZE_BYTES);
+  private static final int CAPACITY_BYTES = FILE_SIZE * FILES_PER_TIER;
+  private static final double LOW_WATERMARK = 0.7;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -56,7 +59,6 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2), "HDD")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
@@ -68,11 +70,24 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(2),
               Files.createTempDir().getAbsolutePath())
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(2),
-              String.valueOf(CAPACITY_BYTES)).build();
+              String.valueOf(CAPACITY_BYTES))
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(0),
+              LOW_WATERMARK)
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(1),
+              LOW_WATERMARK)
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(2),
+              LOW_WATERMARK)
+          .setProperty(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
+              LocalFirstPolicy.class.getTypeName())
+          .build();
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallyScheduleEviction =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_SPACE_RESERVER);
 
   private FileSystem mFileSystem = null;
   private BlockMaster mBlockMaster;
@@ -95,8 +110,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private void writeFileAndCheckUsage(int writeTier, long memBytes, long ssdBytes, long hddBytes)
       throws Exception {
     CreateFilePOptions createOptions = CreateFilePOptions.newBuilder().setWriteTier(writeTier)
-        .setWriteType(WritePType.MUST_CACHE)
-        .setFileWriteLocationPolicy(LocalFirstPolicy.class.getTypeName()).build();
+        .setWriteType(WritePType.MUST_CACHE).build();
     FileOutStream os = mFileSystem.createFile(
         new AlluxioURI("/tier-" + writeTier + "_" + CommonUtils.randomAlphaNumString(5)),
         createOptions);
@@ -176,32 +190,55 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void topTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(0, FILE_SIZE, 0, 0);
-    writeFileAndCheckUsage(0, FILE_SIZE, FILE_SIZE, 0);
-    writeFileAndCheckUsage(0, FILE_SIZE, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(0, FILE_SIZE, FILE_SIZE, FILE_SIZE);
+    // Free space in first tier is based off the low watermark after async eviction
+    long unreservedTier1 = Math.round(CAPACITY_BYTES * LOW_WATERMARK);
+    for (int i = 0; i < FILES_PER_TIER; i++) {
+      writeFileAndCheckUsage(0, (i + 1) * FILE_SIZE, 0, 0);
+    }
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
+    writeFileAndCheckUsage(0, FILE_SIZE + unreservedTier1, CAPACITY_BYTES - unreservedTier1, 0);
   }
 
   @Test
   public void midTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(1, 0, FILE_SIZE, 0);
-    writeFileAndCheckUsage(1, 0, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(1, 0, FILE_SIZE, FILE_SIZE);
+    // Free space in second tier will be low watermark + data reserved in the first tier
+    // This is because we evict in anticipation of data coming from the first tier
+    long reservedTier1 = Math.round(CAPACITY_BYTES * (1 - LOW_WATERMARK));
+    long unreservedTier2 = Math.round(CAPACITY_BYTES * LOW_WATERMARK) - reservedTier1;
+    for (int i = 0; i < FILES_PER_TIER; i++) {
+      writeFileAndCheckUsage(1, 0, (i + 1) * FILE_SIZE, 0);
+    }
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
+    writeFileAndCheckUsage(1, 0, unreservedTier2 + FILE_SIZE, CAPACITY_BYTES - unreservedTier2);
   }
 
   @Test
   public void bottomTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(2, 0, 0, FILE_SIZE);
-    writeFileAndCheckUsage(2, 0, 0, FILE_SIZE);
+    // Free space in third tier will be low watermark + data reserved in the first two tiers
+    // This is because we evict in anticipation of data coming from the first and second tiers
+    long reservedTier1 = Math.round(CAPACITY_BYTES * (1 - LOW_WATERMARK));
+    long reservedTier2 = Math.round(CAPACITY_BYTES * (1 - LOW_WATERMARK));
+    long unreservedTier3 =
+        Math.round(CAPACITY_BYTES * LOW_WATERMARK) - reservedTier1 - reservedTier2;
+    for (int i = 0; i < FILES_PER_TIER; i++) {
+      writeFileAndCheckUsage(2, 0, 0, (i + 1) * FILE_SIZE);
+    }
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
+    writeFileAndCheckUsage(2, 0, 0, unreservedTier3 + FILE_SIZE);
   }
 
   @Test
   public void allTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(0, FILE_SIZE, 0, 0);
-    writeFileAndCheckUsage(1, FILE_SIZE, FILE_SIZE, 0);
-    writeFileAndCheckUsage(2, FILE_SIZE, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(-1, FILE_SIZE, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(-2, FILE_SIZE, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(-3, FILE_SIZE, FILE_SIZE, FILE_SIZE);
+    // All tiers have data so the evictor will evict till low watermark for all tiers
+    long unreservedTier1 = Math.round(CAPACITY_BYTES * LOW_WATERMARK);
+    long unreservedTier2 = Math.round(CAPACITY_BYTES * LOW_WATERMARK);
+    long unreservedTier3 = Math.round(CAPACITY_BYTES * LOW_WATERMARK);
+    for (int i = 0; i < FILES_PER_TIER; i++) {
+      writeFileAndCheckUsage(0, (i + 1) * FILE_SIZE, i * FILE_SIZE, i * FILE_SIZE);
+      writeFileAndCheckUsage(1, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE, i * FILE_SIZE);
+      writeFileAndCheckUsage(2, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE);
+    }
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
+    writeFileAndCheckUsage(0, unreservedTier1 + FILE_SIZE, unreservedTier2, unreservedTier3);
   }
 }

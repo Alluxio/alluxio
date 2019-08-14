@@ -329,9 +329,19 @@ final class UfsJournalLogWriter implements JournalWriter {
     } catch (IOJournalClosedException e) {
       throw e.toJournalClosedException();
     } catch (IOException e) {
-      mRotateLogForNextWrite = true;
       UfsJournalFile currentLog = mJournalOutputStream.currentLog();
-      mJournalOutputStream = null;
+      // Try to close and complete the current file.
+      try {
+        closeAndCompleteCurrentStream();
+      } catch (IOException ioExc) {
+        // Journal file left in uncompleted state after flush failure.
+        LOG.error("Journal flush mitigation failure. Flush failure:{}. Mitigation failure:{}", e,
+            ioExc);
+        System.exit(-1);
+      } finally {
+        mRotateLogForNextWrite = true;
+        mJournalOutputStream = null;
+      }
       throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
               currentLog, e.getMessage()), e);
@@ -346,6 +356,26 @@ final class UfsJournalLogWriter implements JournalWriter {
             mMaxLogSize);
       }
       mRotateLogForNextWrite = true;
+    }
+  }
+
+  /**
+   * Used to close the current stream during failure. If close fails, it tries to complete the
+   * underlying log file regardless.
+   */
+  private void closeAndCompleteCurrentStream() throws IOException {
+    // Try to close and complete the current file.
+    try {
+      mJournalOutputStream.close();
+    } catch (IOException ioExc) {
+      LOG.warn("Failed to close current journal output stream at: {}. Error: {}",
+          mJournalOutputStream.currentLog().getLocation(), ioExc);
+      // Couldn't close the output stream.
+      // Try to complete the file.
+      completeLog(mJournalOutputStream.currentLog(), mNextSequenceNumber);
+    } finally {
+      mRotateLogForNextWrite = true;
+      mJournalOutputStream = null;
     }
   }
 

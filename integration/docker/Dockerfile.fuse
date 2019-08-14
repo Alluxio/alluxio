@@ -11,8 +11,11 @@
 
 FROM ubuntu:16.04
 
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.8.1/alluxio-1.8.1-bin.tar.gz
-ENV ENABLE_FUSE true
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz
+ARG ALLUXIO_USERNAME=alluxio
+ARG ALLUXIO_GROUP=alluxio
+ARG ALLUXIO_UID=1000
+ARG ALLUXIO_GID=1000
 
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
@@ -24,16 +27,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
-RUN mkdir -p /alluxio-fuse
-
 ADD ${ALLUXIO_TARBALL} /opt/
 
 # if the tarball was remote, it needs to be untarred
+# use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
-    mv alluxio-* alluxio
+    ln -s alluxio-* alluxio
 
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
+
+# if Alluxio user, group, gid, and uid aren't root|0
+# then create the alluxio user and set file permissions accordingly
+RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
+    && [ ${ALLUXIO_GROUP} != "root" ] \
+    && [ ${ALLUXIO_UID} -ne 0 ] \
+    && [ ${ALLUXIO_GID} -ne 0 ]; then \
+      groupadd -g ${ALLUXIO_GID} -r ${ALLUXIO_GROUP} && \
+      useradd -u ${ALLUXIO_UID} -r ${ALLUXIO_USERNAME} -g ${ALLUXIO_GROUP} && \
+      usermod -a -G root ${ALLUXIO_USERNAME} && \
+      mkdir -p /journal && \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /opt/* /journal && \
+      chmod -R g=u /opt/* /journal; \
+    fi
+
+USER ${ALLUXIO_UID}
 
 ENTRYPOINT ["/entrypoint.sh"]

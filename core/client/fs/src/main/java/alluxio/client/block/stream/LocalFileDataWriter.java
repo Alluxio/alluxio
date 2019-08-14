@@ -68,26 +68,22 @@ public final class LocalFileDataWriter implements DataWriter {
   public static LocalFileDataWriter create(final FileSystemContext context,
       final WorkerNetAddress address,
       long blockId, OutStreamOptions options) throws IOException {
-    AlluxioConfiguration conf = context.getConf();
+    AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
 
-    final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
     Closer closer = Closer.create();
     try {
-      closer.register(new Closeable() {
-        @Override
-        public void close() throws IOException {
-          context.releaseBlockWorkerClient(address, blockWorker);
-        }
-      });
+      final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
+      closer.register(() -> context.releaseBlockWorkerClient(address, blockWorker));
       int writerBufferSizeMessages =
           conf.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
-      long fileBufferByes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
+      long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       long dataTimeout = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
       CreateLocalBlockRequest.Builder builder =
-          CreateLocalBlockRequest.newBuilder().setBlockId(blockId)
-              .setTier(options.getWriteTier()).setSpaceToReserve(fileBufferByes);
+          CreateLocalBlockRequest.newBuilder().setBlockId(blockId).setTier(options.getWriteTier())
+              .setSpaceToReserve(fileBufferBytes).setMediumType(options.getMediumType())
+              .setPinOnCreate(options.getWriteType() == WriteType.ASYNC_THROUGH);
       if (options.getWriteType() == WriteType.ASYNC_THROUGH
           && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
         builder.setCleanupOnFailure(false);
@@ -106,7 +102,7 @@ public final class LocalFileDataWriter implements DataWriter {
       LocalFileBlockWriter writer =
           closer.register(new LocalFileBlockWriter(response.getPath()));
       return new LocalFileDataWriter(chunkSize, blockWorker,
-          writer, createRequest, stream, closer, fileBufferByes,
+          writer, createRequest, stream, closer, fileBufferBytes,
           dataTimeout);
     } catch (Exception e) {
       throw CommonUtils.closeAndRethrow(closer, e);

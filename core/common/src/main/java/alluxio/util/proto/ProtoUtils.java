@@ -11,7 +11,6 @@
 
 package alluxio.util.proto;
 
-import alluxio.exception.status.Status;
 import alluxio.proto.journal.File;
 import alluxio.proto.shared.Acl;
 import alluxio.proto.status.Status.PStatus;
@@ -26,6 +25,7 @@ import alluxio.grpc.SetAclAction;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.grpc.Status;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,20 +74,6 @@ public final class ProtoUtils {
   public static alluxio.proto.journal.Job.TaskInfo.Builder setResult(
           alluxio.proto.journal.Job.TaskInfo.Builder builder, byte[] bytes) {
     return builder.setResult(com.google.protobuf.ByteString.copyFrom(bytes));
-  }
-
-  /**
-   * A wrapper of
-   * {@link alluxio.proto.journal.Job.StartJobEntry.Builder#setSerializedJobConfig}
-   * to take byte[] as input.
-   *
-   * @param builder the builder to update
-   * @param bytes results bytes to set
-   * @return updated builder
-   */
-  public static alluxio.proto.journal.Job.StartJobEntry.Builder setSerializedJobConfig(
-          alluxio.proto.journal.Job.StartJobEntry.Builder builder, byte[] bytes) {
-    return builder.setSerializedJobConfig(com.google.protobuf.ByteString.copyFrom(bytes));
   }
 
   /**
@@ -226,12 +212,12 @@ public final class ProtoUtils {
    * @return the protocol buffer type status
    */
   public static PStatus toProto(Status status) {
-    switch (status) {
+    switch (status.getCode()) {
       case ABORTED:
         return PStatus.ABORTED;
       case ALREADY_EXISTS:
         return PStatus.ALREADY_EXISTS;
-      case CANCELED:
+      case CANCELLED:
         return PStatus.CANCELED;
       case DATA_LOSS:
         return PStatus.DATA_LOSS;
@@ -463,7 +449,7 @@ public final class ProtoUtils {
       case ALREADY_EXISTS:
         return Status.ALREADY_EXISTS;
       case CANCELED:
-        return Status.CANCELED;
+        return Status.CANCELLED;
       case DATA_LOSS:
         return Status.DATA_LOSS;
       case DEADLINE_EXCEEDED:

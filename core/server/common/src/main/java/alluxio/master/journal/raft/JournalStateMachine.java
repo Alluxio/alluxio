@@ -12,9 +12,13 @@
 package alluxio.master.journal.raft;
 
 import alluxio.ProcessUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.StreamUtils;
 
@@ -33,6 +37,8 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -48,7 +54,7 @@ import javax.annotation.concurrent.GuardedBy;
  */
 @ThreadSafe
 public class JournalStateMachine extends StateMachine implements Snapshottable {
-  private static final Logger LOG = LoggerFactory.getLogger(RaftJournalSystem.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JournalStateMachine.class);
 
   private final Map<String, RaftJournal> mJournals;
   @GuardedBy("this")
@@ -62,13 +68,21 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   private volatile long mLastPrimaryStartSequenceNumber = 0;
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
+  // The start time of the most recent snapshot
+  private volatile long mLastSnapshotStartTime = 0;
+
+  /** A supplier of journal sinks for this journal. */
+  private final Supplier<Set<JournalSink>> mJournalSinks;
 
   /**
    * @param journals master journals; these journals are still owned by the caller, not by the
    *        journal state machine
+   * @param journalSinks a supplier for journal sinks
    */
-  public JournalStateMachine(Map<String, RaftJournal> journals) {
+  public JournalStateMachine(Map<String, RaftJournal> journals,
+      Supplier<Set<JournalSink>> journalSinks) {
     mJournals = Collections.unmodifiableMap(journals);
+    mJournalSinks = journalSinks;
     resetState();
     LOG.info("Initialized new journal state machine");
   }
@@ -86,7 +100,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       entry = JournalEntry.parseFrom(commit.command().getSerializedJournalEntry());
     } catch (Exception e) {
       ProcessUtils.fatalError(LOG, e,
-          "Encountered invalid journal entry in commit: {}.", commit);
+          "Encountered invalid journal entry in commit: %s.", commit);
       System.exit(-1);
       throw new IllegalStateException(e); // We should never reach here.
     }
@@ -136,14 +150,17 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
     }
     long newSN = entry.getSequenceNumber();
     if (newSN < mNextSequenceNumberToRead) {
-      LOG.info("Ignoring duplicate journal entry with SN {} when next SN is {}", newSN,
+      // This can happen due to retried writes. For example, if flushing [3, 4] fails, we will
+      // retry, and the log may end up looking like [1, 2, 3, 4, 3, 4] if the original request
+      // eventually succeeds. Once we've read the first "4", we must ignore the next two entries.
+      LOG.debug("Ignoring duplicate journal entry with SN {} when next SN is {}", newSN,
           mNextSequenceNumberToRead);
       return;
     }
     if (newSN > mNextSequenceNumberToRead) {
       ProcessUtils.fatalError(LOG,
-          "Unexpected journal entry. The next expected SN is {}, but"
-              + " encountered an entry with SN {}. Full journal entry: {}",
+          "Unexpected journal entry. The next expected SN is %s, but"
+              + " encountered an entry with SN %s. Full journal entry: %s",
           mNextSequenceNumberToRead, newSN, entry);
     }
 
@@ -158,16 +175,17 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
     try {
       masterName = JournalEntryAssociation.getMasterForEntry(entry);
     } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Unrecognized journal entry: {}", entry);
+      ProcessUtils.fatalError(LOG, t, "Unrecognized journal entry: %s", entry);
       throw new IllegalStateException();
     }
     try {
       Journaled master = mJournals.get(masterName).getStateMachine();
       LOG.trace("Applying entry to master {}: {} ", masterName, entry);
       master.processJournalEntry(entry);
+      JournalUtils.sinkAppend(mJournalSinks, entry);
     } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Failed to apply journal entry to master {}. Entry: {}",
-          masterName, entry);
+      JournalUtils.handleJournalReplayFailure(LOG, t,
+          "Failed to apply journal entry to master %s. Entry: %s", masterName, entry);
     }
   }
 
@@ -180,7 +198,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
     LOG.debug("Calling snapshot");
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
-    long start = System.currentTimeMillis();
+    mLastSnapshotStartTime = System.currentTimeMillis();
     long snapshotId = mNextSequenceNumberToRead - 1;
     try (SnapshotWriterStream sws = new SnapshotWriterStream(writer)) {
       writer.writeLong(snapshotId);
@@ -190,7 +208,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       throw new RuntimeException(t);
     }
     LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
-        System.currentTimeMillis() - start);
+        System.currentTimeMillis() - mLastSnapshotStartTime);
     mSnapshotting = false;
   }
 
@@ -204,13 +222,16 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       return;
     }
 
-    long snapshotId;
+    long snapshotId = 0L;
     try (InputStream srs = new SnapshotReaderStream(snapshotReader)) {
       snapshotId = snapshotReader.readLong();
-      JournalUtils.restoreFromCheckpoint(srs, getStateMachines());
+      JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(srs), getStateMachines());
     } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Failed to install snapshot");
-      throw new RuntimeException(t);
+      JournalUtils.handleJournalReplayFailure(LOG, t,
+          "Failed to install snapshot");
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+        return;
+      }
     }
 
     if (snapshotId < mNextSequenceNumberToRead - 1) {
@@ -260,6 +281,13 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
    */
   public long getLastPrimaryStartSequenceNumber() {
     return mLastPrimaryStartSequenceNumber;
+  }
+
+  /**
+   * @return the start time of the most recent snapshot
+   */
+  public long getLastSnapshotStartTime() {
+    return mLastSnapshotStartTime;
   }
 
   /**

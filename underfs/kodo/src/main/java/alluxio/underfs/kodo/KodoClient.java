@@ -11,6 +11,8 @@
 
 package alluxio.underfs.kodo;
 
+import alluxio.exception.status.NotFoundException;
+
 import com.qiniu.common.QiniuException;
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.Configuration;
@@ -22,6 +24,7 @@ import com.qiniu.util.Auth;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.commons.httpclient.HttpStatus;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,6 +115,9 @@ public class KodoClient {
                 + String.valueOf(endPos < contentLength ? endPos - 1 : contentLength - 1))
         .addHeader("Host", mDownloadHost).get().build();
     Response response = mOkHttpClient.newCall(request).execute();
+    if (response.code() == HttpStatus.SC_NOT_FOUND) {
+      throw new NotFoundException("Qiniu kodo: " + response.message());
+    }
     if (response.code() != 200 && response.code() != 206) {
       throw new IOException(String.format("Qiniu kodo:get object failed errcode:%d,errmsg:%s",
           response.code(), response.message()));

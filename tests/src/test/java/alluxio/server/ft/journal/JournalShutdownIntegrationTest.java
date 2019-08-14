@@ -31,7 +31,6 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.master.MasterTestUtils;
@@ -75,7 +74,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
           .put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "100")
           .put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
-          .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "32")
+          .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "128")
           .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec").build(),
           ServerConfiguration.global());
 
@@ -139,7 +138,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
             .setClusterName("multiMasterJournalStopIntegration")
             .setNumWorkers(0)
             .setNumMasters(TEST_NUM_MASTERS)
-            .setDeployMode(DeployMode.ZOOKEEPER_HA)
             // Cannot go lower than 2x the tick time. Curator testing cluster tick time is 3s and
             // cannot be overridden until later versions of Curator.
             .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "6s")
@@ -174,26 +172,36 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
+        any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
   }
 
   @Test
   public void multiMasterMountUnmountJournal() throws Exception {
-    MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
-    UnderFileSystemFactory factory = mountUnmount(cluster.getClient());
-    // Kill the leader one by one.
-    for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      cluster.waitForNewMaster(120 * Constants.SECOND_MS);
-      assertTrue(cluster.stopLeader());
+    MultiMasterLocalAlluxioCluster cluster = null;
+    UnderFileSystemFactory factory = null;
+    try {
+      cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
+      cluster.initConfiguration();
+      cluster.start();
+      cluster.stopLeader();
+      factory = mountUnmount(cluster.getClient());
+      // Kill the leader one by one.
+      for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
+        cluster.waitForNewMaster(120 * Constants.SECOND_MS);
+        assertTrue(cluster.stopLeader());
+      }
+    } finally {
+      // Shutdown the cluster
+      if (cluster != null) {
+        cluster.stopFS();
+      }
     }
-    // Shutdown the cluster
-    cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
+        any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
   }
 
@@ -203,8 +211,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private UnderFileSystemFactory mountUnmount(FileSystem fs) throws Exception {
     SleepingUnderFileSystem sleepingUfs = new SleepingUnderFileSystem(new AlluxioURI("sleep:///"),
-        new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults(),
-        ServerConfiguration.global());
+        new SleepingUnderFileSystemOptions(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     SleepingUnderFileSystemFactory sleepingUfsFactory =
         new SleepingUnderFileSystemFactory(sleepingUfs);
     UnderFileSystemFactoryRegistry.register(sleepingUfsFactory);
@@ -229,17 +237,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-  }
-
-  /**
-   * Sets up and starts a multi-master cluster.
-   */
-  private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
-    // Setup and start the alluxio-ft cluster.
-    MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
-    cluster.initConfiguration();
-    cluster.start();
-    return cluster;
   }
 
   /**

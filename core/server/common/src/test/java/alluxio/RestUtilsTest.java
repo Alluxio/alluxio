@@ -13,9 +13,9 @@ package alluxio;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.Status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.grpc.Status;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -95,13 +95,13 @@ public class RestUtilsTest {
     Response response = RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        throw new AlluxioStatusException(status, message);
+        throw new AlluxioStatusException(status.withDescription(message));
       }
     }, ServerConfiguration.global());
     Assert.assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
         response.getStatus());
     RestUtils.ErrorResponse errorResponse = (RestUtils.ErrorResponse) response.getEntity();
-    Assert.assertEquals(status, errorResponse.getStatus());
+    Assert.assertEquals(status.getCode(), errorResponse.getStatusCode());
     Assert.assertEquals(message, errorResponse.getMessage());
   }
 }

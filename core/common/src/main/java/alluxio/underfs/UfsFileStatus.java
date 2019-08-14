@@ -11,6 +11,9 @@
 
 package alluxio.underfs;
 
+import java.util.Map;
+
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,12 +36,29 @@ public class UfsFileStatus extends UfsStatus {
    * @param owner of the file
    * @param group of the file
    * @param mode of the file
+   * @param xAttr extended attributes, if any
+   */
+  public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
+      String owner, String group, short mode, @Nullable Map<String, byte[]> xAttr) {
+    super(name, false, owner, group, mode, lastModifiedTimeMs, xAttr);
+    mContentHash = contentHash;
+    mContentLength = contentLength;
+  }
+
+  /**
+   * Creates a new instance of {@link UfsFileStatus} without any extended attributes.
+   *
+   * @param name relative path of file
+   * @param contentHash hash of the file contents
+   * @param contentLength in bytes
+   * @param lastModifiedTimeMs UTC time
+   * @param owner of the file
+   * @param group of the file
+   * @param mode of the file
    */
   public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
       String owner, String group, short mode) {
-    super(name, false, owner, group, mode, lastModifiedTimeMs);
-    mContentHash = contentHash;
-    mContentLength = contentLength;
+    this(name, contentHash, contentLength, lastModifiedTimeMs, owner, group, mode, null);
   }
 
   /**

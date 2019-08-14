@@ -20,8 +20,11 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.StorageList;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
+import alluxio.proto.meta.Block;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
@@ -84,6 +87,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       throws UnavailableException, InvalidArgumentException;
 
   /**
+   * @return a list of worker lost storage information
+   */
+  List<WorkerLostStorageInfo> getWorkerLostStorage();
+
+  /**
    * Removes blocks from workers.
    *
    * @param blockIds a list of block ids to remove from Alluxio space
@@ -108,13 +116,15 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the updated used bytes on the tier of the worker
    * @param tierAlias the alias of the storage tier where the worker is committing the block to
+   * @param mediumType the medium type where the worker is committing the block to
    * @param blockId the committing block id
    * @param length the length of the block
    * @throws NotFoundException if the workerId is not active
    */
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
-  void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId, long
-      length) throws NotFoundException, UnavailableException;
+  void commitBlock(long workerId, long usedBytesOnTier, String tierAlias,
+      String mediumType, long blockId, long length)
+      throws NotFoundException, UnavailableException;
 
   /**
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.
@@ -166,14 +176,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    *        hierarchy
    * @param totalBytesOnTiers a mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
-   * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
+   * @param currentBlocksOnLocation a mapping from storage tier alias to a list of blocks
+   * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
    * @param options the options that may contain worker configuration
    * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers,
-      RegisterWorkerPOptions options) throws NotFoundException;
+      Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+      throws NotFoundException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
@@ -182,13 +194,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param capacityBytesOnTiers a mapping from tier alias to the capacity bytes
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
-   * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
+   * @param addedBlocks a mapping from tier alias to the added blocks
+   * @param lostStorage a mapping from tier alias to lost storage paths
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
   Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
-      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds, Map<String,
-      List<Long>> addedBlocksOnTiers, List<Metric> metrics);
+      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
+      Map<Block.BlockLocation, List<Long>> addedBlocks,
+      Map<String, StorageList> lostStorage,
+      List<Metric> metrics);
 
   /**
    * @return the block ids of lost blocks in Alluxio

@@ -2,4 +2,5 @@ alluxio.job.load.LoadDefinition
 alluxio.job.migrate.MigrateDefinition
 alluxio.job.persist.PersistDefinition
 alluxio.job.replicate.EvictDefinition
+alluxio.job.replicate.MoveDefinition
 alluxio.job.replicate.ReplicateDefinition

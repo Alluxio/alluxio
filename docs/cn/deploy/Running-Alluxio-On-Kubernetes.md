@@ -20,7 +20,7 @@ Alluxio可以在Kubernetes上运行。这个指南演示了如何使用Alluxio G
 
 ## 克隆Alluxio库
 
-```bash
+```console
 $ git clone https://github.com/Alluxio/alluxio.git
 $ cd integration/kubernetes
 ```
@@ -32,7 +32,7 @@ $ cd integration/kubernetes
 短路访问使客户端可以直接对worker的内存执行读取和写入操作，而不必经过worker进程。在所有有资格运行Alluxio worker进程的主机上设置一个域套接字来启用这种操作模式。
 
 在主机上，为共享域套接字创建一个目录。
-```bash
+```console
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
 ```
@@ -51,14 +51,14 @@ alluxio.worker.data.server.domain.socket.address=/path/to/domain/socket/director
 Alluxio master可以配置为使用[持久性卷](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)来存储日志。一旦使用，在master进程的重启之间该卷将被持久化。
 
 从模板创建持久性卷。访问模式`ReadWriteMany`用于允许多个Alluxio master节点访问共享卷。
-```bash
+```console
 $ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
 
 注意：提供的说明是使用`hostPath`卷在单节点部署上进行演示。对于多节点集群，可以选择使用NFS，AWSElasticBlockStore，GCEPersistentDisk或其他可用的持久性卷插件。
 
 创建持久性卷。
-```bash
+```console
 $ kubectl create -f alluxio-journal-volume.yaml
 ```
 
@@ -67,48 +67,48 @@ Kubernetes中的Alluxio容器使用环境变量来设置Alluxio属性。有关`c
 
 在一个文件中定义所有的环境变量。复制`integration/kubernetes/conf`中的属性模板，并根据需要修改或添加配置属性。
 请注意，在与主机联网运行Alluxio时，分配给Alluxio服务的端口不能事先被占用。
-```bash
+```console
 $ cp conf/alluxio.properties.template conf/alluxio.properties
 ```
 
 创建一个ConfigMap。
-```bash
+```console
 $ kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
 ## 部署
 
 从模板准备Alluxio部署。 修改所需的参数，例如Docker映像的位置，以及Pod的CPU和内存要求。
-```bash
+```console
 $ cp alluxio-master.yaml.template alluxio-master.yaml
 $ cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
 
 一旦所有的前提条件和配置已经建立，部署Alluxio。
-```bash
+```console
 $ kubectl create -f alluxio-master.yaml
 $ kubectl create -f alluxio-worker.yaml
 ```
 
 验证Alluxio部署的状态。
-```bash
+```console
 $ kubectl get pods
 ```
 
 如果为Alluxio master使用持久卷，卷的状态应该变为 `CLAIMED`。
-```bash
+```console
 $ kubectl get pv alluxio-journal-volume
 ```
 
 ## 验证
 
 准备就绪后，从master pod 访问Alluxio CLI并运行基本的I/O测试。
-```bash
+```console
 $ kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 从master pod执行以下操作：
-```bash
+```console
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
 ```
@@ -116,13 +116,13 @@ $ ./bin/alluxio runTests
 ## 卸载
 
 卸载Alluxio：
-```bash
-kubectl delete -f alluxio-worker.yaml
-kubectl delete -f alluxio-master.yaml
-kubectl delete configmaps alluxio-config
+```console
+$ kubectl delete -f alluxio-worker.yaml
+$ kubectl delete -f alluxio-master.yaml
+$ kubectl delete configmaps alluxio-config
 ```
 
 执行以下命令来清理储存Alluxio journal数据的持久化卷。注意：Alluxio的元数据会丢失！
-```bash
-kubectl delete -f alluxio-journal-volume.yaml
+```console
+$ kubectl delete -f alluxio-journal-volume.yaml
 ```

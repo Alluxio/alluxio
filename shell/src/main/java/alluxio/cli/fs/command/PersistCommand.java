@@ -68,6 +68,15 @@ public final class PersistCommand extends AbstractFileSystemCommand {
               + DEFAULT_TIMEOUT)
           .required(false)
           .build();
+  private static final int DEFAULT_WAIT_TIME = 0;
+  private static final Option WAIT_OPTION =
+      Option.builder("w")
+          .longOpt("wait")
+          .argName("the initial persistence wait time")
+          .numberOfArgs(1)
+          .desc("The time to wait before persisting. default: " + DEFAULT_WAIT_TIME)
+          .required(false)
+          .build();
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -83,7 +92,8 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(PARALLELISM_OPTION).addOption(TIMEOUT_OPTION);
+    return new Options().addOption(PARALLELISM_OPTION).addOption(TIMEOUT_OPTION)
+        .addOption(WAIT_OPTION);
   }
 
   @Override
@@ -93,7 +103,8 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "persist [-p|--parallelism <#>] [-t|--timeout <milliseconds>] <path> [<path> ...]";
+    return "persist [-p|--parallelism <#>] [-t|--timeout <milliseconds>] "
+        + "[-w|--wait <milliseconds>] <path> [<path> ...]";
   }
 
   @Override
@@ -103,9 +114,18 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    // Parse arguments.
+    // Parse arguments
     int parallelism = FileSystemShellUtils.getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
-    int timeoutMs = FileSystemShellUtils.getIntArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
+    int timeoutMs = (int) FileSystemShellUtils.getMsArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
+    long persistenceWaitTimeMs = FileSystemShellUtils.getMsArg(cl, WAIT_OPTION, DEFAULT_WAIT_TIME);
+
+    // Validate arguments
+    if ((persistenceWaitTimeMs > timeoutMs && timeoutMs != -1) || persistenceWaitTimeMs < 0) {
+      System.out.println("Persistence initial wait time should be smaller than persist timeout "
+          + "and bigger than zero");
+      return -1;
+    }
+
     String[] args = cl.getArgs();
 
     // Gather files to persist and enqueue them.
@@ -132,7 +152,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     List<Future<Void>> futures = new ArrayList<>(parallelism);
     for (int i = 0; i < parallelism; i++) {
       futures.add(service.submit(new PersistCallable(toPersist, totalFiles, completedFiles,
-          progressLock, timeoutMs)));
+          progressLock, persistenceWaitTimeMs, timeoutMs)));
     }
 
     // Await result.
@@ -173,14 +193,16 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     private final int mTotalFiles;
     private final Object mProgressLock;
     private final AtomicInteger mCompletedFiles;
+    private final long mPersistenceWaitTime;
     private final int mTimeoutMs;
 
     PersistCallable(Queue<AlluxioURI> toPersist, int totalFiles, AtomicInteger completedFiles,
-        Object progressLock, int timeoutMs) {
+        Object progressLock, long persistenceWaitTime, int timeoutMs) {
       mFilesToPersist = toPersist;
       mTotalFiles = totalFiles;
       mProgressLock = progressLock;
       mCompletedFiles = completedFiles;
+      mPersistenceWaitTime = persistenceWaitTime;
       mTimeoutMs = timeoutMs;
     }
 
@@ -189,7 +211,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
       AlluxioURI toPersist = mFilesToPersist.poll();
       while (toPersist != null) {
         try {
-          FileSystemUtils.persistAndWait(mFileSystem, toPersist, mTimeoutMs);
+          FileSystemUtils.persistAndWait(mFileSystem, toPersist, mPersistenceWaitTime, mTimeoutMs);
           synchronized (mProgressLock) { // Prevents out of order progress tracking.
             String progress = "(" + mCompletedFiles.incrementAndGet() + "/" + mTotalFiles + ")";
             System.out.println(progress + " Successfully persisted file: " + toPersist);

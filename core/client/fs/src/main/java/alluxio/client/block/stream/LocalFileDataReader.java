@@ -101,6 +101,7 @@ public final class LocalFileDataReader implements DataReader {
     private final long mLocalReaderChunkSize;
     private final int mReadBufferSize;
     private final GrpcBlockingStream<OpenLocalBlockRequest, OpenLocalBlockResponse> mStream;
+
     private LocalFileBlockReader mReader;
     private final long mDataTimeoutMs;
     private boolean mClosed;
@@ -116,7 +117,7 @@ public final class LocalFileDataReader implements DataReader {
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long localReaderChunkSize, InStreamOptions options) throws IOException {
-      AlluxioConfiguration conf = context.getConf();
+      AlluxioConfiguration conf = context.getClusterConf();
       mContext = context;
       mAddress = address;
       mBlockId = blockId;

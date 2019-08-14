@@ -35,8 +35,8 @@ alluxio.master.journal.folder=/opt/alluxio/journal
 第一次启动Alluxio master节点时，日志必须格式化。
 
 **警告: 格式化日志将会删除Alluxio所有元数据**
-```bash
-$ bin/alluxio formatMaster
+```console
+$ ./bin/alluxio formatMaster
 ```
 
 # 备份
@@ -45,8 +45,8 @@ Alluxio支持对日志进行备份，以便可以将Alluxio元数据恢复到以
 生成备份会在备份发生时导致服务临时不可用。
 
 使用 `fsadmin backup`命令生成备份。
-```bash
-$ bin/alluxio fsadmin backup
+```console
+$ ./bin/alluxio fsadmin backup
 ```
 
 默认情况下，这将编写一个名为`alluxio-journal-YYYY-MM-DD-timestamp.gz`的备份指向文件系统下根目录的"/alluxio_backups"目录，
@@ -63,10 +63,10 @@ alluxio.master.backup.directory=/alluxio/backups
 要从日志备份中恢复Alluxio系统，请停止系统，格式化，
 然后重新启动系统，使用 `-i`(import) 标志传递备份的URI。
 
-```bash
-$ bin/alluxio-stop.sh masters
-$ bin/alluxio formatMaster
-$ bin/alluxio-start.sh -i <backup_uri> masters
+```console
+$ ./bin/alluxio-stop.sh masters
+$ ./bin/alluxio formatMaster
+$ ./bin/alluxio-start.sh -i <backup_uri> masters
 ```
 
  `<backup_uri>` 应该是对所有主机都可用的完整URI路径, e.g.

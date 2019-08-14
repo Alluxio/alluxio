@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.grpc;
 
 import alluxio.collections.Pair;
@@ -18,13 +29,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +58,7 @@ public class GrpcManagedChannelPool {
   }
 
   /**
-   * @return the singleton pool instance.
+   * @return the singleton pool instance
    */
   public static GrpcManagedChannelPool INSTANCE() {
     return sInstance;
@@ -62,7 +72,7 @@ public class GrpcManagedChannelPool {
   /** Channels per address. */
   @GuardedBy("mLock")
   private HashMap<ChannelKey, ManagedChannelReference> mChannels;
-  /** Used to control access to mChannel */
+  /** Used to control access to mChannel. */
   private ReentrantReadWriteLock mLock;
 
   /** Scheduler for destruction of idle channels. */
@@ -129,6 +139,8 @@ public class GrpcManagedChannelPool {
    * Acquires and increases the ref-count for the {@link ManagedChannel}.
    *
    * @param channelKey channel key
+   * @param healthCheckTimeoutMs health check timeout in milliseconds
+   * @param shutdownTimeoutMs shutdown timeout in milliseconds
    * @return a {@link ManagedChannel}
    */
   public ManagedChannel acquireManagedChannel(ChannelKey channelKey, long healthCheckTimeoutMs,
@@ -155,9 +167,8 @@ public class GrpcManagedChannelPool {
       if (shutdownExistingChannel && mChannels.containsKey(channelKey)
           && mChannels.get(channelKey) == managedChannelRef) {
         existingRefCount = managedChannelRef.getRefCount();
-        LOG.debug(
-            "Shutting down an existing unhealthy managed channel. ChannelKey: {}. Existing Ref-count: {}",
-            channelKey, existingRefCount);
+        LOG.debug("Shutting down an existing unhealthy managed channel. "
+            + "ChannelKey: {}. Existing Ref-count: {}", channelKey, existingRefCount);
         shutdownManagedChannel(channelKey, shutdownTimeoutMs);
         mChannels.remove(channelKey);
       }
@@ -177,6 +188,7 @@ public class GrpcManagedChannelPool {
    * It shuts down and releases the {@link ManagedChannel} if reference count reaches zero.
    *
    * @param channelKey host address
+   * @param shutdownTimeoutMs shutdown timeout in milliseconds
    */
   public void releaseManagedChannel(ChannelKey channelKey, long shutdownTimeoutMs) {
     boolean shutdownManagedChannel;
@@ -209,7 +221,16 @@ public class GrpcManagedChannelPool {
    * @return the created channel
    */
   private ManagedChannel createManagedChannel(ChannelKey channelKey) {
-    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+    NettyChannelBuilder channelBuilder;
+    if (channelKey.mAddress instanceof InetSocketAddress) {
+      InetSocketAddress inetServerAddress = (InetSocketAddress) channelKey.mAddress;
+      // This constructor delays DNS lookup to detect changes
+      channelBuilder = NettyChannelBuilder.forAddress(inetServerAddress.getHostName(),
+          inetServerAddress.getPort());
+    } else {
+      channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+    }
+
     if (channelKey.mKeepAliveTime.isPresent()) {
       channelBuilder.keepAliveTime(channelKey.mKeepAliveTime.get().getFirst(),
           channelKey.mKeepAliveTime.get().getSecond());
@@ -230,9 +251,7 @@ public class GrpcManagedChannelPool {
     if (channelKey.mEventLoopGroup.isPresent()) {
       channelBuilder.eventLoopGroup(channelKey.mEventLoopGroup.get());
     }
-    if (channelKey.mPlain) {
-      channelBuilder.usePlaintext();
-    }
+    channelBuilder.usePlaintext();
     return channelBuilder.build();
   }
 
@@ -264,7 +283,7 @@ public class GrpcManagedChannelPool {
     }
 
     /**
-     * @return current ref-count.
+     * @return current ref-count
      */
     private int getRefCount() {
       return mRefCount.get();
@@ -273,11 +292,14 @@ public class GrpcManagedChannelPool {
     /**
      * @return the underlying {@link ManagedChannel} without changing the ref-count
      */
-    private ManagedChannel get(){
+    private ManagedChannel get() {
       return mChannel;
     }
   }
 
+  /**
+   * Enumeration to determine the pooling strategy.
+   */
   public enum PoolingStrategy {
     DEFAULT,
     DISABLED
@@ -288,7 +310,6 @@ public class GrpcManagedChannelPool {
    */
   public static class ChannelKey {
     private SocketAddress mAddress;
-    private boolean mPlain = true;
     private Optional<Pair<Long, TimeUnit>> mKeepAliveTime = Optional.empty();
     private Optional<Pair<Long, TimeUnit>> mKeepAliveTimeout = Optional.empty();
     private Optional<Integer> mMaxInboundMessageSize = Optional.empty();
@@ -297,6 +318,11 @@ public class GrpcManagedChannelPool {
     private Optional<EventLoopGroup> mEventLoopGroup = Optional.empty();
     private long mPoolKey = 0;
 
+    /**
+     * Creates a {@link ChannelKey}.
+     * @param conf the Alluxio configuration
+     * @return the created instance
+     */
     public static ChannelKey create(AlluxioConfiguration conf) {
       return new ChannelKey();
     }
@@ -309,16 +335,6 @@ public class GrpcManagedChannelPool {
      */
     public ChannelKey setAddress(SocketAddress address) {
       mAddress = address;
-      return this;
-    }
-
-    /**
-     * Plaintext channel with no transport security.
-     *
-     * @return the modified {@link ChannelKey}
-     */
-    public ChannelKey usePlaintext() {
-      mPlain = true;
       return this;
     }
 
@@ -405,7 +421,6 @@ public class GrpcManagedChannelPool {
     public int hashCode() {
       return new HashCodeBuilder()
           .append(mAddress)
-          .append(mPlain)
           .append(mKeepAliveTime)
           .append(mKeepAliveTimeout)
           .append(mMaxInboundMessageSize)
@@ -423,7 +438,6 @@ public class GrpcManagedChannelPool {
       if (other instanceof ChannelKey) {
         ChannelKey otherKey = (ChannelKey) other;
         return mAddress.equals(otherKey.mAddress)
-            && mPlain == otherKey.mPlain
             && mKeepAliveTime.equals(otherKey.mKeepAliveTime)
             && mKeepAliveTimeout.equals(otherKey.mKeepAliveTimeout)
             && mFlowControlWindow.equals(otherKey.mFlowControlWindow)
@@ -439,7 +453,6 @@ public class GrpcManagedChannelPool {
     public String toString() {
       return MoreObjects.toStringHelper(this)
           .add("Address", mAddress)
-          .add("IsPlain", mPlain)
           .add("KeepAliveTime", mKeepAliveTime)
           .add("KeepAliveTimeout", mKeepAliveTimeout)
           .add("FlowControlWindow", mFlowControlWindow)

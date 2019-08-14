@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that the operation was aborted, typically due to a concurrency issue like
  * sequencer check failures, transaction aborts, etc.
@@ -26,14 +28,14 @@ public class AbortedException extends AlluxioStatusException {
    * @param message the exception message
    */
   public AbortedException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public AbortedException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -41,6 +43,6 @@ public class AbortedException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public AbortedException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

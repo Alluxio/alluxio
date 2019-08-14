@@ -11,10 +11,11 @@
 
 package alluxio.security.authentication;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.security.authentication.plain.PlainSaslServer;
 import alluxio.security.authentication.plain.PlainSaslServerProvider;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -111,7 +112,7 @@ public final class PlainSaslServerTest {
     String testUser = "alluxio";
     String password = "anonymous";
     mPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
-    Assert.assertEquals(testUser, mPlainSaslServer.getAuthorizationID());
+    assertEquals(testUser, mPlainSaslServer.getAuthorizationID());
   }
 
   /**

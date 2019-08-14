@@ -18,9 +18,10 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Copies a file or a directory from the Alluxio filesystem to the local filesystem.
@@ -65,7 +66,7 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   @Override
   public String getUsage() {
     return "copyToLocal "
-        + "[--buffersize <read buffer size in bytes>] "
+        + "[--buffersize <bytes>] "
         + " <src> <localDst>";
   }
 

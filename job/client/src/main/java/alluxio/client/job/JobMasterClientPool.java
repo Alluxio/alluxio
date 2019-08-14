@@ -37,7 +37,7 @@ public final class JobMasterClientPool extends ResourcePool<JobMasterClient> {
    * @param context Job master connection information
    */
   public JobMasterClientPool(JobMasterClientContext context) {
-    super(context.getConf().getInt(PropertyKey.JOB_MASTER_CLIENT_THREADS));
+    super(context.getClusterConf().getInt(PropertyKey.JOB_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
     mMasterContext = context;
   }

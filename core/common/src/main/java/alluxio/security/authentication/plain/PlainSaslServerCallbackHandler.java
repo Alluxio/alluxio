@@ -34,21 +34,18 @@ import javax.security.sasl.AuthorizeCallback;
  */
 public final class PlainSaslServerCallbackHandler implements CallbackHandler {
   private final AuthenticationProvider mAuthenticationProvider;
-  private final Runnable mCallback;
   private final ImpersonationAuthenticator mImpersonationAuthenticator;
 
   /**
    * Constructs a new callback handler.
    *
    * @param authenticationProvider the authentication provider used
-   * @param callback the callback runs when the authentication is established
    * @param conf Alluxio configuration
    */
   public PlainSaslServerCallbackHandler(AuthenticationProvider authenticationProvider,
-      Runnable callback, AlluxioConfiguration conf) {
+      AlluxioConfiguration conf) {
     mAuthenticationProvider = Preconditions.checkNotNull(authenticationProvider,
         "authenticationProvider");
-    mCallback = callback;
     mImpersonationAuthenticator = new ImpersonationAuthenticator(conf);
   }
 
@@ -58,6 +55,8 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
     String password = null;
     AuthorizeCallback ac = null;
 
+    // Iterate over given callbacks for callback activation.
+    // We need to do an initial pass since callbacks may depend on each other.
     for (Callback callback : callbacks) {
       if (callback instanceof NameCallback) {
         NameCallback nc = (NameCallback) callback;
@@ -87,8 +86,6 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
 
       // After verification succeeds, a user with this authz id will be set to a Threadlocal.
       AuthenticatedClientUser.set(ac.getAuthorizedID());
-
-      mCallback.run();
     }
   }
 }

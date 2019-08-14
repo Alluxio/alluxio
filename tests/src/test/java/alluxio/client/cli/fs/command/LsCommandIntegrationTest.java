@@ -18,31 +18,43 @@ import static org.junit.Assert.assertThat;
 import alluxio.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclEntry;
+import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
 
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Function;
 
 /**
  * Tests for ls command.
  */
 public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
   // Helper function to create a set of files in the file system
-  private void createFiles() {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE,
-        10);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WritePType.THROUGH, 30);
+  private void createFiles(String user) throws Exception {
+    FileSystem fs = mFileSystem;
+    if (user != null) {
+      fs = mLocalAlluxioCluster.getClient(FileSystemContext
+          .create(new TestUserState(user, ServerConfiguration.global()).getSubject(),
+              ServerConfiguration.global()));
+    }
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(fs, "/testRoot/testDir/testFileB", WritePType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileC", WritePType.THROUGH, 30);
   }
 
   /**
@@ -52,8 +64,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsNoAcl() {
-    createFiles();
+  public void lsNoAcl() throws Exception {
+    createFiles(null);
     mFsShell.run("ls", "/testRoot");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
@@ -68,8 +80,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsHumanReadable() throws IOException, AlluxioException {
-    createFiles();
+  public void lsHumanReadable() throws Exception {
+    createFiles(null);
     mFsShell.run("ls", "-h", "/testRoot");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
@@ -84,8 +96,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsPinned() throws IOException, AlluxioException {
-    createFiles();
+  public void lsPinned() throws Exception {
+    createFiles(null);
     AlluxioURI fileURI1 = new AlluxioURI("/testRoot/testDir/testFileB");
     AlluxioURI fileURI2 = new AlluxioURI("/testRoot/testFileA");
     mFileSystem.setAttribute(fileURI1,
@@ -105,8 +117,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsDirectoryAsPlainFileNoAcl() throws IOException, AlluxioException {
-    createFiles();
+  public void lsDirectoryAsPlainFileNoAcl() throws Exception {
+    createFiles(null);
     mFsShell.run("ls", "-d", "/testRoot");
     checkOutput("              3       PERSISTED .+ .+  DIR /testRoot");
   }
@@ -118,7 +130,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsRootNoAcl() throws IOException, AlluxioException {
+  public void lsRootNoAcl() throws Exception {
     mFsShell.run("ls", "-d", "/");
     checkOutput("              0       PERSISTED .+ .+  DIR /    ");
   }
@@ -134,9 +146,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
           "alluxio.security.group.provider.IdentityUserGroupsMapping",
           PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls"})
   public void ls() throws Exception {
-    String testUser = "test_user_ls";
-    clearAndLogin(testUser);
-    createFiles();
+    createFiles("test_user_ls");
     mFsShell.run("ls", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
@@ -153,7 +163,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsWildcardNoAcl() throws IOException, AlluxioException {
+  public void lsWildcardNoAcl() throws Exception {
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     mFsShell.run("ls", testDir + "/*/foo*");
@@ -184,10 +194,11 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
           PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
           "test_user_lsWildcard"})
   public void lsWildcard() throws Exception {
-    String testUser = "test_user_lsWildcard";
-    clearAndLogin(testUser);
+    FileSystem fs = mLocalAlluxioCluster.getClient(FileSystemContext.create(
+        new TestUserState("test_user_lsWildcard", ServerConfiguration.global()).getSubject(),
+        ServerConfiguration.global()));
 
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(fs);
     mFsShell.run("ls", testDir + "/*/foo*");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
@@ -206,17 +217,16 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
-   * Tests lsr command with wildcard when security is not enabled.
+   * Tests ls -R command with wildcard when security is not enabled.
    */
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsrNoAcl() throws IOException, AlluxioException {
-    createFiles();
-    mFsShell.run("lsr", "/testRoot");
+  public void lsrNoAcl() throws Exception {
+    createFiles(null);
+    mFsShell.run("ls", "-R", "/testRoot");
     checkOutput(
-        "WARNING: lsr is deprecated. Please use ls -R instead.",
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -224,7 +234,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
-   * Tests lsr command with wildcard when security is enabled.
+   * Tests ls -R command with wildcard when security is enabled.
    */
   @Test
   @LocalAlluxioClusterResource.Config(
@@ -235,14 +245,10 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
           PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
           "test_user_lsr"})
   public void lsr() throws Exception {
-    String testUser = "test_user_lsr";
-    clearAndLogin(testUser);
-
-    createFiles();
-    mFsShell.run("lsr", "/testRoot");
+    createFiles("test_user_lsr");
+    mFsShell.run("ls", "-R", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
-        "WARNING: lsr is deprecated. Please use ls -R instead.",
         "drwxr-xr-x  test_user_lsr  test_user_lsr                1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "-rw-r--r--  test_user_lsr  test_user_lsr               20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB",
         "-rw-r--r--  test_user_lsr  test_user_lsr               10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -285,6 +291,52 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
         "             50   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileZ",
         "            100   NOT_PERSISTED .+ .+ 100% /testRoot/testLongFile");
+  }
+
+  /**
+   * Tests ls command with sort by access time option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+  public void lsWithSortByAccessTime() throws IOException, AlluxioException {
+    String oldFileRecentlyAccessed = "/testRoot/testFileRecent";
+    String oldFileName = "/testRoot/testFile";
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
+
+    FileSystemTestUtils.loadFile(mFileSystem, oldFileRecentlyAccessed);
+    mFsShell.run("ls", "--sort", "lastAccessTime", "/testRoot");
+    checkOutput(
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName,
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed);
+  }
+
+  /**
+   * Tests ls command with sort by creation time option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+  public void lsWithSortByCreationTime() throws IOException, AlluxioException {
+    String oldFileRecentlyAccessed = "/testRoot/testFileRecent";
+    String oldFileName = "/testRoot/testFile";
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
+
+    FileSystemTestUtils.loadFile(mFileSystem, oldFileRecentlyAccessed);
+    mFsShell.run("ls", "--sort", "creationTime", "/testRoot");
+    checkOutput(
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed,
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName);
   }
 
   /**
@@ -365,6 +417,71 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
         "             50   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA");
   }
 
+  private String getDisplayTime(long timestamp) {
+    String formatString = ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
+    return CommonUtils.convertMsToDate(timestamp, formatString);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"
+      })
+  public void lsWithCreationTime() throws Exception {
+    checkLsWithTimestamp("creationTime", URIStatus::getCreationTimeMs);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"
+      })
+  public void lsWithModificationTime() throws Exception {
+    checkLsWithTimestamp("lastModificationTime", URIStatus::getLastModificationTimeMs);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"
+      })
+  public void lsWithAccessTime() throws Exception {
+    checkLsWithTimestamp("lastAccessTime", URIStatus::getLastAccessTimeMs);
+  }
+
+  private void checkLsWithTimestamp(String parameter, Function<URIStatus, Long> timestampFunc)
+      throws Exception {
+    createFiles("test_user_ls");
+    String testDir = "/testRoot/testDir";
+    String testFileA = "/testRoot/testFileA";
+    String testFileC = "/testRoot/testFileC";
+    mFileSystem.listStatus(new AlluxioURI(testDir));
+    FileSystemTestUtils.loadFile(mFileSystem, testFileA);
+    FileSystemTestUtils.loadFile(mFileSystem, testFileC);
+    mFsShell.run("ls", "--timestamp", parameter, "/testRoot");
+    long time1 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testDir)));
+    long time2 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testFileA)));
+    long time3 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testFileC)));
+    // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
+    checkOutput(
+        "drwxr-xr-x  test_user_ls   test_user_ls                 1   NOT_PERSISTED " +  getDisplayTime(time1) + "  DIR /testRoot/testDir",
+        "-rw-r--r--  test_user_ls   test_user_ls                10   NOT_PERSISTED " +  getDisplayTime(time2) + " 100% /testRoot/testFileA",
+        "-rw-r--r--  test_user_ls   test_user_ls                30       PERSISTED " +  getDisplayTime(time3) + " 100% /testRoot/testFileC");
+    // CHECKSTYLE.ON: LineLengthExceed
+  }
+
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
@@ -373,13 +490,14 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
           "alluxio.security.group.provider.IdentityUserGroupsMapping",
           PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_extended"})
   public void lsWithExtendedAcl() throws IOException, AlluxioException {
-    String testUser = "test_user_extended";
     int size = 50;
-    clearAndLogin(testUser);
 
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+    FileSystem fs = mLocalAlluxioCluster.getClient(FileSystemContext
+        .create(new TestUserState("test_user_extended", ServerConfiguration.global()).getSubject(),
+            ServerConfiguration.global()));
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testDir/testFileB",
         WritePType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFile",
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFile",
         WritePType.MUST_CACHE, size, size);
 
     mFsShell.run("ls", "--sort", "path", "/testRoot");
@@ -390,9 +508,9 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     // CHECKSTYLE.ON: LineLengthExceed
     mOutput.reset();
 
-    mFileSystem.setAcl(new AlluxioURI("/testRoot/testDir"), SetAclAction.MODIFY,
+    fs.setAcl(new AlluxioURI("/testRoot/testDir"), SetAclAction.MODIFY,
         Arrays.asList(AclEntry.fromCliString("default:user:nameduser:rwx")));
-    mFileSystem.setAcl(new AlluxioURI("/testRoot/testFile"), SetAclAction.MODIFY,
+    fs.setAcl(new AlluxioURI("/testRoot/testFile"), SetAclAction.MODIFY,
         Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")));
 
     mFsShell.run("ls", "--sort", "path", "/testRoot");

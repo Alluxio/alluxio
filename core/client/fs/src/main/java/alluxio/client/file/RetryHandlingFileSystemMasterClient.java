@@ -54,6 +54,7 @@ import alluxio.grpc.StartSyncPRequest;
 import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
+import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
@@ -210,15 +211,17 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public List<URIStatus> listStatus(final AlluxioURI path,
-      final ListStatusPOptions options) throws AlluxioStatusException {
+  public List<URIStatus> listStatus(final AlluxioURI path, final ListStatusPOptions options)
+      throws AlluxioStatusException {
     return retryRPC(() -> {
       List<URIStatus> result = new ArrayList<>();
-      for (alluxio.grpc.FileInfo fileInfo : mClient.listStatus(ListStatusPRequest.newBuilder()
-          .setPath(path.getPath()).setOptions(options).build())
-          .getFileInfosList()) {
-        result.add(new URIStatus(GrpcUtils.fromProto(fileInfo)));
-      }
+      mClient
+          .listStatus(
+              ListStatusPRequest.newBuilder().setPath(path.getPath()).setOptions(options).build())
+          .forEachRemaining(
+              (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                  .collect(Collectors.toList())));
       return result;
     }, "ListStatus");
   }
@@ -233,9 +236,19 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
+  public void updateMount(final AlluxioURI alluxioPath, final MountPOptions options)
+      throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.updateMount(UpdateMountPRequest.newBuilder()
+            .setAlluxioPath(alluxioPath.toString())
+            .setOptions(options).build()),
+        "UpdateMount");
+  }
+
+  @Override
   public void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getConf()));
+    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getClusterConf()));
   }
 
   @Override

@@ -19,4 +19,13 @@ public interface ScheduleAsyncPersistencePOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
+
+  /**
+   * <code>optional int64 persistenceWaitTime = 2;</code>
+   */
+  boolean hasPersistenceWaitTime();
+  /**
+   * <code>optional int64 persistenceWaitTime = 2;</code>
+   */
+  long getPersistenceWaitTime();
 }

@@ -11,9 +11,13 @@
 
 package alluxio.master.journal;
 
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Iterator;
@@ -37,11 +41,14 @@ public interface NoopJournaled extends Journaled {
   }
 
   @Override
-  default void writeToCheckpoint(OutputStream output) {
+  default void writeToCheckpoint(OutputStream output) throws IOException {
+    // Just write a checkpoint type with no data. The stream constructor writes unbuffered to the
+    // underlying output, so we don't need to flush or close.
+    new CheckpointOutputStream(output, CheckpointType.JOURNAL_ENTRY);
   }
 
   @Override
-  default void restoreFromCheckpoint(InputStream input) {
+  default void restoreFromCheckpoint(CheckpointInputStream input) {
   }
 
   @Override

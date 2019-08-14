@@ -223,6 +223,38 @@ public final class BlockMasterClientServiceGrpc {
      return getGetWorkerReportMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerLostStoragePOptions,
+      alluxio.grpc.GetWorkerLostStoragePResponse> getGetWorkerLostStorageMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetWorkerLostStorage",
+      requestType = alluxio.grpc.GetWorkerLostStoragePOptions.class,
+      responseType = alluxio.grpc.GetWorkerLostStoragePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerLostStoragePOptions,
+      alluxio.grpc.GetWorkerLostStoragePResponse> getGetWorkerLostStorageMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerLostStoragePOptions, alluxio.grpc.GetWorkerLostStoragePResponse> getGetWorkerLostStorageMethod;
+    if ((getGetWorkerLostStorageMethod = BlockMasterClientServiceGrpc.getGetWorkerLostStorageMethod) == null) {
+      synchronized (BlockMasterClientServiceGrpc.class) {
+        if ((getGetWorkerLostStorageMethod = BlockMasterClientServiceGrpc.getGetWorkerLostStorageMethod) == null) {
+          BlockMasterClientServiceGrpc.getGetWorkerLostStorageMethod = getGetWorkerLostStorageMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetWorkerLostStoragePOptions, alluxio.grpc.GetWorkerLostStoragePResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.block.BlockMasterClientService", "GetWorkerLostStorage"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetWorkerLostStoragePOptions.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetWorkerLostStoragePResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new BlockMasterClientServiceMethodDescriptorSupplier("GetWorkerLostStorage"))
+                  .build();
+          }
+        }
+     }
+     return getGetWorkerLostStorageMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -320,6 +352,17 @@ public final class BlockMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getGetWorkerReportMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Returns a list of worker lost storage information
+     * </pre>
+     */
+    public void getWorkerLostStorage(alluxio.grpc.GetWorkerLostStoragePOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerLostStoragePResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetWorkerLostStorageMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -364,6 +407,13 @@ public final class BlockMasterClientServiceGrpc {
                 alluxio.grpc.GetWorkerReportPOptions,
                 alluxio.grpc.GetWorkerInfoListPResponse>(
                   this, METHODID_GET_WORKER_REPORT)))
+          .addMethod(
+            getGetWorkerLostStorageMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetWorkerLostStoragePOptions,
+                alluxio.grpc.GetWorkerLostStoragePResponse>(
+                  this, METHODID_GET_WORKER_LOST_STORAGE)))
           .build();
     }
   }
@@ -461,6 +511,18 @@ public final class BlockMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getGetWorkerReportMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns a list of worker lost storage information
+     * </pre>
+     */
+    public void getWorkerLostStorage(alluxio.grpc.GetWorkerLostStoragePOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerLostStoragePResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetWorkerLostStorageMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -549,6 +611,17 @@ public final class BlockMasterClientServiceGrpc {
     public alluxio.grpc.GetWorkerInfoListPResponse getWorkerReport(alluxio.grpc.GetWorkerReportPOptions request) {
       return blockingUnaryCall(
           getChannel(), getGetWorkerReportMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns a list of worker lost storage information
+     * </pre>
+     */
+    public alluxio.grpc.GetWorkerLostStoragePResponse getWorkerLostStorage(alluxio.grpc.GetWorkerLostStoragePOptions request) {
+      return blockingUnaryCall(
+          getChannel(), getGetWorkerLostStorageMethod(), getCallOptions(), request);
     }
   }
 
@@ -645,6 +718,18 @@ public final class BlockMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getGetWorkerReportMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns a list of worker lost storage information
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetWorkerLostStoragePResponse> getWorkerLostStorage(
+        alluxio.grpc.GetWorkerLostStoragePOptions request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetWorkerLostStorageMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_BLOCK_INFO = 0;
@@ -653,6 +738,7 @@ public final class BlockMasterClientServiceGrpc {
   private static final int METHODID_GET_USED_BYTES = 3;
   private static final int METHODID_GET_WORKER_INFO_LIST = 4;
   private static final int METHODID_GET_WORKER_REPORT = 5;
+  private static final int METHODID_GET_WORKER_LOST_STORAGE = 6;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -694,6 +780,10 @@ public final class BlockMasterClientServiceGrpc {
         case METHODID_GET_WORKER_REPORT:
           serviceImpl.getWorkerReport((alluxio.grpc.GetWorkerReportPOptions) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerInfoListPResponse>) responseObserver);
+          break;
+        case METHODID_GET_WORKER_LOST_STORAGE:
+          serviceImpl.getWorkerLostStorage((alluxio.grpc.GetWorkerLostStoragePOptions) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerLostStoragePResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -762,6 +852,7 @@ public final class BlockMasterClientServiceGrpc {
               .addMethod(getGetUsedBytesMethod())
               .addMethod(getGetWorkerInfoListMethod())
               .addMethod(getGetWorkerReportMethod())
+              .addMethod(getGetWorkerLostStorageMethod())
               .build();
         }
       }

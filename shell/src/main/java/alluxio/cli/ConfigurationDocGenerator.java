@@ -18,6 +18,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,8 +103,6 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("worker");
         } else if (pKey.startsWith("alluxio.security.")) {
           fileWriter = fileWriterMap.get("security");
-        } else if (pKey.startsWith("alluxio.keyvalue.")) {
-          fileWriter = fileWriterMap.get("key-value");
         } else if (pKey.startsWith("alluxio.integration")) {
           fileWriter = fileWriterMap.get("cluster-management");
         } else {
@@ -169,8 +168,9 @@ public final class ConfigurationDocGenerator {
 
         // Write property key and default value to yml files
         if (iteratorPK.isIgnoredSiteProperty()) {
-          description += " Note: This property must be specified as a JVM property; "
-              + "it is not accepted in alluxio-site.properties.";
+          description += " Note: overwriting this property will only work when it is passed as a "
+              + "JVM system property (e.g., appending \"-D" + iteratorPK + "\"=<NEW_VALUE>\" to "
+              + "$ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.";
         }
         String keyValueStr = pKey + ":\n  '" + description + "'\n";
         if (pKey.startsWith("alluxio.user.")) {
@@ -181,14 +181,12 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("worker");
         } else if (pKey.startsWith("alluxio.security.")) {
           fileWriter = fileWriterMap.get("security");
-        } else if (pKey.startsWith("alluxio.keyvalue.")) {
-          fileWriter = fileWriterMap.get("key-value");
         } else if (pKey.startsWith("alluxio.integration.")) {
           fileWriter = fileWriterMap.get("cluster-management");
         } else {
           fileWriter = fileWriterMap.get("common");
         }
-        fileWriter.append(keyValueStr);
+        fileWriter.append(StringEscapeUtils.escapeHtml(keyValueStr));
       }
 
       LOG.info("YML files for description of Property Keys were created successfully.");

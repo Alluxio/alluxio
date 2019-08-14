@@ -18,9 +18,10 @@ import static org.junit.Assert.assertTrue;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.client.MetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
@@ -63,12 +64,36 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerMultiMastersTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
-        .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
     ConfigCheckReport report = getReport();
-    assertEquals(ConfigStatus.WARN, report.getConfigStatus());
+    // When using embedded journal, the journal paths are different
+    assertEquals(mCluster.getDeployMode().equals(DeployMode.ZOOKEEPER_HA)
+        ? ConfigStatus.WARN : ConfigStatus.FAILED, report.getConfigStatus());
+    assertThat(report.getConfigWarns().toString(),
+        CoreMatchers.containsString(key.getName()));
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void multiMastersEmbeddedHA() throws Exception {
+    PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
+    Map<Integer, Map<PropertyKey, String>> masterProperties
+        = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
+    mCluster = MultiProcessCluster
+        .newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_MASTERS_EMBEDDED_HA)
+        .setClusterName("ConfigCheckerMultiMastersEmbeddedHATest")
+        .setNumMasters(TEST_NUM_MASTERS)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .setMasterProperties(masterProperties)
+        .build();
+    mCluster.start();
+    ConfigCheckReport report = getReport();
+    // The master values of {@link PropertyKey#ALLUXIO_MASTER_JOURNAL_FOLDER} are different
+    // when using embedded HA
+    assertEquals(ConfigStatus.FAILED, report.getConfigStatus());
     assertThat(report.getConfigWarns().toString(),
         CoreMatchers.containsString(key.getName()));
     mCluster.notifySuccess();
@@ -110,7 +135,6 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerMultiNodesTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
-        .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .setWorkerProperties(workerProperties)
         .build();
@@ -131,18 +155,25 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerUnsetVsSet")
         .setNumMasters(2)
         .setNumWorkers(0)
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
     ConfigCheckReport report = getReport();
     Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
     assertTrue(errors.containsKey(Scope.MASTER));
-    assertEquals(1, errors.get(Scope.MASTER).size());
-    InconsistentProperty property = errors.get(Scope.MASTER).get(0);
-    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName(), property.getName());
-    assertTrue(property.getValues().containsKey(Optional.of("option")));
-    assertTrue(property.getValues().containsKey(Optional.empty()));
+
+    if (mCluster.getDeployMode().equals(DeployMode.ZOOKEEPER_HA)) {
+      assertEquals(1, errors.get(Scope.MASTER).size());
+      InconsistentProperty property = errors.get(Scope.MASTER).get(0);
+      assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName(), property.getName());
+      assertTrue(property.getValues().containsKey(Optional.of("option")));
+      assertTrue(property.getValues().containsKey(Optional.empty()));
+    } else {
+      // When using embedded journal, the journal paths are different
+      assertEquals(2, errors.get(Scope.MASTER).size());
+      assertThat(report.getConfigErrors().toString(),
+          CoreMatchers.containsString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName()));
+    }
     mCluster.notifySuccess();
   }
 

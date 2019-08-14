@@ -35,9 +35,9 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
@@ -69,11 +69,6 @@ public interface FileSystemMaster extends Master {
    * Periodically clean up the under file systems.
    */
   void cleanupUfs();
-
-  /**
-   * @return the status of the startup consistency check and inconsistent paths if it is complete
-   */
-  StartupConsistencyCheck getStartupConsistencyCheck();
 
   /**
    * Returns the file id for a given path. If the given path does not exist in Alluxio, the method
@@ -222,17 +217,17 @@ public interface FileSystemMaster extends Master {
   Map<String, MountPointInfo>  getMountTable();
 
   /**
-   * Gets the mount point information of an Alluxio path.
+   * Gets the mount point information of an Alluxio path for display purpose.
    *
    * @param path an Alluxio path which must be a mount point
    * @return the mount point information
    */
-  MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException;
+  MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException;
 
   /**
-   * @return an estimate of the number of files and directories
+   * @return the number of files and directories
    */
-  long estimateNumberOfPaths();
+  long getInodeCount();
 
   /**
    * @return the number of pinned files and directories
@@ -375,27 +370,6 @@ public interface FileSystemMaster extends Master {
   List<Long> getLostFiles();
 
   /**
-   * Loads metadata for the object identified by the given path from UFS into Alluxio.
-   * <p>
-   * This operation requires users to have WRITE permission on the path
-   * and its parent path if path is a file, or WRITE permission on the
-   * parent path if path is a directory.
-   *
-   * @param path the path for which metadata should be loaded
-   * @param context the load metadata context
-   * @return the file id of the loaded path
-   * @throws BlockInfoException if an invalid block size is encountered
-   * @throws FileDoesNotExistException if there is no UFS path
-   * @throws InvalidPathException if invalid path is encountered
-   * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws FileAlreadyCompletedException if the file is already completed
-   * @throws AccessControlException if permission checking fails
-   */
-  long loadMetadata(AlluxioURI path, LoadMetadataContext context)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException;
-
-  /**
    * Mounts a UFS path onto an Alluxio path.
    * <p>
    * This operation requires users to have WRITE permission on the parent
@@ -425,6 +399,22 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException if the permission check fails
    */
   void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException, InvalidPathException,
+      IOException, AccessControlException;
+
+  /**
+   * Update properties of an Alluxio mount point.
+   * <p>
+   * This operation requires users to have WRITE permission on the parent
+   * of the Alluxio path.
+   *
+   * @param alluxioPath the Alluxio path to update, must be a mount point
+   * @param context the mount context
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws InvalidPathException if the given path is not a mount point
+   * @throws AccessControlException if the permission check fails
+   */
+  void updateMount(AlluxioURI alluxioPath, MountContext context)
+      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 
   /**
@@ -463,8 +453,10 @@ public interface FileSystemMaster extends Master {
    * Schedules a file for async persistence.
    *
    * @param path the path of the file for persistence
+   * @param context the schedule async persistence context
    */
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
+  void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
+      throws AlluxioException, UnavailableException;
 
   /**
    * Update the operation mode for the given ufs path under one or more mount points.

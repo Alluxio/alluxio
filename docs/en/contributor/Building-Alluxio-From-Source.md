@@ -21,7 +21,7 @@ This guide describes how to clone the Alluxio repository, compile the source cod
 
 Checkout the Alluxio master branch from Github:
 
-```bash
+```console
 $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 ```
@@ -31,13 +31,13 @@ particular version of the code you may check out the version using a git tag.
 
 For example to checkout the source for version v{{site.ALLUXIO_RELEASED_VERSION}}, run:
 
-```bash
+```console
 $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
 To view a list of all possible versions you can run
 
-```bash
+```console
 $ git tag
 ```
 
@@ -46,19 +46,20 @@ $ git tag
 Build the source code using Maven:
 
 ```java
-$ mvn clean install -DskipTests
+mvn clean install -DskipTests
 ```
 
 To speed up the compilation, you can run the following instruction to skip different checks:
 
-```bash
-$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
+```console
+$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
+  -Dcheckstyle.skip -Dlicense.skip
 ```
 
 If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
 variable to increase the memory heap size for maven:
 
-```bash
+```console
 $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 ```
 
@@ -70,9 +71,7 @@ all the dependencies. Subsequent builds, however, will be much faster.
 
 Once Alluxio is built, you can validate and start it with:
 
-```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
-$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+```console
 $ ./bin/alluxio validateEnv local
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local SudoMount
@@ -83,7 +82,7 @@ check the log in the `alluxio/logs` directory. The `worker.log` and `master.log`
 typically be the most useful. It may take a few seconds for the web server to start. You can also
 run a simple program to test that data can be read and written to Alluxio's UFS:
 
-```bash
+```console
 $ ./bin/alluxio runTests
 ```
 
@@ -91,7 +90,7 @@ You should be able to see the result `Passed the test!`
 
 You can stop the local Alluxio system by using:
 
-```bash
+```console
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -109,7 +108,7 @@ The Alluxio client jar built and located at
 To build Alluxio against one of the different distributions of hadoop, you can run the following
 command by specifying `<HADOOP_PROFILE>` and the corresponding `hadoop.version`.:
 
-```bash
+```console
 $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 where `<HADOOP_VERSION>` can be set for different distributions.

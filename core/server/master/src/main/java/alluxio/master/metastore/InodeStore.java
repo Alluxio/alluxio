@@ -11,12 +11,13 @@
 
 package alluxio.master.metastore;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.checkpoint.Checkpointed;
 
+import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -36,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * manager locks when making any modifications to the inode store.
  */
 @ThreadSafe
-public interface InodeStore extends ReadOnlyInodeStore {
+public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable {
   /**
    * Gets a mutable representation of the specified inode.
    *
@@ -44,13 +45,22 @@ public interface InodeStore extends ReadOnlyInodeStore {
    * inode.
    *
    * @param id an inode id
+   * @param option read options
    * @return the inode with the given id, if it exists
    */
-  Optional<MutableInode<?>> getMutable(long id);
+  Optional<MutableInode<?>> getMutable(long id, ReadOption option);
+
+  /**
+   * @param id an inode id
+   * @return the result of {@link #getMutable(long, ReadOption)} with default option
+   */
+  default Optional<MutableInode<?>> getMutable(long id) {
+    return getMutable(id, ReadOption.defaults());
+  }
 
   @Override
-  default Optional<Inode> get(long id) {
-    return getMutable(id).map(inode -> Inode.wrap(inode));
+  default Optional<Inode> get(long id, ReadOption option) {
+    return getMutable(id, option).map(Inode::wrap);
   }
 
   /**
@@ -166,12 +176,15 @@ public interface InodeStore extends ReadOnlyInodeStore {
    */
   void removeChild(long parentId, String name);
 
+  @Override
+  default void close() {}
+
   /**
    * Used to perform batched writes. Call {@link #createWriteBatch()} to use batched writes.
    *
    * Write batches may or may not be applied atomically.
    */
-  interface WriteBatch {
+  interface WriteBatch extends AutoCloseable {
     /**
      * Adds an inode to the write batch. This method serializes the inode, so future modifications
      * to the inode will not affect the write batch.
@@ -208,41 +221,13 @@ public interface InodeStore extends ReadOnlyInodeStore {
      * Performs the batched write.
      */
     void commit();
-  }
 
-  /**
-   * Arguments for creating an inode store.
-   */
-  class InodeStoreArgs {
-    private final InodeLockManager mLockManager;
-    private final AlluxioConfiguration mConf;
-
-    /**
-     * @param lockManager inode lock manager
-     * @param conf configuration
-     */
-    public InodeStoreArgs(InodeLockManager lockManager, AlluxioConfiguration conf) {
-      mLockManager = lockManager;
-      mConf = conf;
-    }
-
-    /**
-     * @return the inode lock manager
-     */
-    public InodeLockManager getLockManager() {
-      return mLockManager;
-    }
-
-    /**
-     * @return the configuration
-     */
-    public AlluxioConfiguration getConf() {
-      return mConf;
-    }
+    @Override
+    void close();
   }
 
   /**
    * Factory for creating inode stores.
    */
-  interface Factory extends Function<InodeStoreArgs, InodeStore> {}
+  interface Factory extends Function<InodeLockManager, InodeStore> {}
 }

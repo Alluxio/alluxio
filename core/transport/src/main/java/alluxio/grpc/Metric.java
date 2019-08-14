@@ -26,6 +26,7 @@ private static final long serialVersionUID = 0L;
     instanceId_ = "";
     name_ = "";
     value_ = 0D;
+    metricType_ = 0;
   }
 
   @java.lang.Override
@@ -88,11 +89,22 @@ private static final long serialVersionUID = 0L;
             value_ = input.readDouble();
             break;
           }
-          case 50: {
-            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+          case 48: {
+            int rawValue = input.readEnum();
+            alluxio.grpc.MetricType value = alluxio.grpc.MetricType.valueOf(rawValue);
+            if (value == null) {
+              unknownFields.mergeVarintField(6, rawValue);
+            } else {
+              bitField0_ |= 0x00000020;
+              metricType_ = rawValue;
+            }
+            break;
+          }
+          case 58: {
+            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
               tags_ = com.google.protobuf.MapField.newMapField(
                   TagsDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000020;
+              mutable_bitField0_ |= 0x00000040;
             }
             com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
             tags__ = input.readMessage(
@@ -122,7 +134,7 @@ private static final long serialVersionUID = 0L;
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
-      case 6:
+      case 7:
         return internalGetTags();
       default:
         throw new RuntimeException(
@@ -320,7 +332,23 @@ private static final long serialVersionUID = 0L;
     return value_;
   }
 
-  public static final int TAGS_FIELD_NUMBER = 6;
+  public static final int METRICTYPE_FIELD_NUMBER = 6;
+  private int metricType_;
+  /**
+   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   */
+  public boolean hasMetricType() {
+    return ((bitField0_ & 0x00000020) == 0x00000020);
+  }
+  /**
+   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   */
+  public alluxio.grpc.MetricType getMetricType() {
+    alluxio.grpc.MetricType result = alluxio.grpc.MetricType.valueOf(metricType_);
+    return result == null ? alluxio.grpc.MetricType.GAUGE : result;
+  }
+
+  public static final int TAGS_FIELD_NUMBER = 7;
   private static final class TagsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, java.lang.String> defaultEntry =
@@ -347,7 +375,7 @@ private static final long serialVersionUID = 0L;
     return internalGetTags().getMap().size();
   }
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
 
   public boolean containsTags(
@@ -363,14 +391,14 @@ private static final long serialVersionUID = 0L;
     return getTagsMap();
   }
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
 
   public java.util.Map<java.lang.String, java.lang.String> getTagsMap() {
     return internalGetTags().getMap();
   }
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
 
   public java.lang.String getTagsOrDefault(
@@ -382,7 +410,7 @@ private static final long serialVersionUID = 0L;
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
 
   public java.lang.String getTagsOrThrow(
@@ -402,6 +430,10 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (!hasMetricType()) {
+      memoizedIsInitialized = 0;
+      return false;
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -423,12 +455,15 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       output.writeDouble(5, value_);
     }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      output.writeEnum(6, metricType_);
+    }
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
         internalGetTags(),
         TagsDefaultEntryHolder.defaultEntry,
-        6);
+        7);
     unknownFields.writeTo(output);
   }
 
@@ -453,6 +488,10 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeDoubleSize(5, value_);
     }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(6, metricType_);
+    }
     for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
          : internalGetTags().getMap().entrySet()) {
       com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
@@ -461,7 +500,7 @@ private static final long serialVersionUID = 0L;
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, tags__);
+          .computeMessageSize(7, tags__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -506,6 +545,10 @@ private static final long serialVersionUID = 0L;
           == java.lang.Double.doubleToLongBits(
               other.getValue()));
     }
+    result = result && (hasMetricType() == other.hasMetricType());
+    if (hasMetricType()) {
+      result = result && metricType_ == other.metricType_;
+    }
     result = result && internalGetTags().equals(
         other.internalGetTags());
     result = result && unknownFields.equals(other.unknownFields);
@@ -539,6 +582,10 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + VALUE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           java.lang.Double.doubleToLongBits(getValue()));
+    }
+    if (hasMetricType()) {
+      hash = (37 * hash) + METRICTYPE_FIELD_NUMBER;
+      hash = (53 * hash) + metricType_;
     }
     if (!internalGetTags().getMap().isEmpty()) {
       hash = (37 * hash) + TAGS_FIELD_NUMBER;
@@ -658,7 +705,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
-        case 6:
+        case 7:
           return internalGetTags();
         default:
           throw new RuntimeException(
@@ -669,7 +716,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMutableMapField(
         int number) {
       switch (number) {
-        case 6:
+        case 7:
           return internalGetMutableTags();
         default:
           throw new RuntimeException(
@@ -710,6 +757,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000008);
       value_ = 0D;
       bitField0_ = (bitField0_ & ~0x00000010);
+      metricType_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000020);
       internalGetMutableTags().clear();
       return this;
     }
@@ -755,6 +804,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000010;
       }
       result.value_ = value_;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000020;
+      }
+      result.metricType_ = metricType_;
       result.tags_ = internalGetTags();
       result.tags_.makeImmutable();
       result.bitField0_ = to_bitField0_;
@@ -822,6 +875,9 @@ private static final long serialVersionUID = 0L;
       if (other.hasValue()) {
         setValue(other.getValue());
       }
+      if (other.hasMetricType()) {
+        setMetricType(other.getMetricType());
+      }
       internalGetMutableTags().mergeFrom(
           other.internalGetTags());
       this.mergeUnknownFields(other.unknownFields);
@@ -830,6 +886,9 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      if (!hasMetricType()) {
+        return false;
+      }
       return true;
     }
 
@@ -1188,6 +1247,42 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    private int metricType_ = 0;
+    /**
+     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     */
+    public boolean hasMetricType() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     */
+    public alluxio.grpc.MetricType getMetricType() {
+      alluxio.grpc.MetricType result = alluxio.grpc.MetricType.valueOf(metricType_);
+      return result == null ? alluxio.grpc.MetricType.GAUGE : result;
+    }
+    /**
+     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     */
+    public Builder setMetricType(alluxio.grpc.MetricType value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      bitField0_ |= 0x00000020;
+      metricType_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     */
+    public Builder clearMetricType() {
+      bitField0_ = (bitField0_ & ~0x00000020);
+      metricType_ = 0;
+      onChanged();
+      return this;
+    }
+
     private com.google.protobuf.MapField<
         java.lang.String, java.lang.String> tags_;
     private com.google.protobuf.MapField<java.lang.String, java.lang.String>
@@ -1215,7 +1310,7 @@ private static final long serialVersionUID = 0L;
       return internalGetTags().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 6;</code>
+     * <code>map&lt;string, string&gt; tags = 7;</code>
      */
 
     public boolean containsTags(
@@ -1231,14 +1326,14 @@ private static final long serialVersionUID = 0L;
       return getTagsMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 6;</code>
+     * <code>map&lt;string, string&gt; tags = 7;</code>
      */
 
     public java.util.Map<java.lang.String, java.lang.String> getTagsMap() {
       return internalGetTags().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 6;</code>
+     * <code>map&lt;string, string&gt; tags = 7;</code>
      */
 
     public java.lang.String getTagsOrDefault(
@@ -1250,7 +1345,7 @@ private static final long serialVersionUID = 0L;
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 6;</code>
+     * <code>map&lt;string, string&gt; tags = 7;</code>
      */
 
     public java.lang.String getTagsOrThrow(
@@ -1270,7 +1365,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 6;</code>
+     * <code>map&lt;string, string&gt; tags = 7;</code>
      */
 
     public Builder removeTags(
@@ -1289,7 +1384,7 @@ private static final long serialVersionUID = 0L;
       return internalGetMutableTags().getMutableMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 6;</code>
+     * <code>map&lt;string, string&gt; tags = 7;</code>
      */
     public Builder putTags(
         java.lang.String key,
@@ -1301,7 +1396,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 6;</code>
+     * <code>map&lt;string, string&gt; tags = 7;</code>
      */
 
     public Builder putAllTags(

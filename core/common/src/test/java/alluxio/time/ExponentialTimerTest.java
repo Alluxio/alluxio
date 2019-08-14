@@ -11,9 +11,11 @@
 
 package alluxio.time;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -28,9 +30,9 @@ public class ExponentialTimerTest {
   public void expiration() {
     int maxTotalWaitTimeMs = 1000;
     ExponentialTimer timer = new ExponentialTimer(0, 0, 0, maxTotalWaitTimeMs);
-    Assert.assertEquals(ExponentialTimer.Result.READY, timer.tick());
+    assertEquals(ExponentialTimer.Result.READY, timer.tick());
     CommonUtils.sleepMs(maxTotalWaitTimeMs);
-    Assert.assertEquals(ExponentialTimer.Result.EXPIRED, timer.tick());
+    assertEquals(ExponentialTimer.Result.EXPIRED, timer.tick());
   }
 
   /**
@@ -46,7 +48,7 @@ public class ExponentialTimerTest {
         CommonUtils.sleepMs(10);
       }
       long now = System.currentTimeMillis();
-      Assert.assertTrue(now - start >= (1 << i - 1));
+      assertTrue(now - start >= (1 << i - 1));
     }
   }
 }

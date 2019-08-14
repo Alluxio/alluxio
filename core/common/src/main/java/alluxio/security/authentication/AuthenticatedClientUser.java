@@ -40,6 +40,17 @@ public final class AuthenticatedClientUser {
   private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<>();
 
   /**
+   * A {@link ThreadLocal} variable to maintain the connection user along with a specific thread.
+   */
+  private static ThreadLocal<User> sConnectionUserThreadLocal = new ThreadLocal<>();
+
+  /**
+   * A {@link ThreadLocal} variable to maintain the authentication method along with a specific
+   * thread.
+   */
+  private static ThreadLocal<String> sConnectionAuthMethod = new ThreadLocal<>();
+
+  /**
    * Creates a {@link User} and sets it to the {@link ThreadLocal} variable.
    *
    * @param userName the name of the client user
@@ -55,6 +66,24 @@ public final class AuthenticatedClientUser {
    */
   public static void set(User user) {
     sUserThreadLocal.set(user);
+  }
+
+  /**
+   * Creates a connection {@link User} and sets it to the {@link ThreadLocal} variable.
+   *
+   * @param userName the name of the connection user
+   */
+  public static void setConnectionUser(String userName) {
+    sConnectionUserThreadLocal.set(new User(userName));
+  }
+
+  /**
+   * Sets the connection authentication method to the {@link ThreadLocal} variable.
+   *
+   * @param authMethod the name of the authentication method
+   */
+  public static void setAuthMethod(String authMethod) {
+    sConnectionAuthMethod.set(authMethod);
   }
 
   /**
@@ -97,6 +126,38 @@ public final class AuthenticatedClientUser {
     } catch (IOException e) {
       throw new AccessControlException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
     }
+  }
+
+  /**
+   * Gets the connection user name from the {@link ThreadLocal} variable.
+   *
+   * @param conf Alluxio configuration
+   * @return the client user in string, null if the user is not present
+   * @throws AccessControlException if the authentication is not enabled
+   */
+  public static String getConnectionUser(AlluxioConfiguration conf) throws AccessControlException {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+      throw new AccessControlException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
+    }
+    User user = sConnectionUserThreadLocal.get();
+    if (user == null) {
+      return null;
+    }
+    return user.getName();
+  }
+
+  /**
+   * Gets the connection authentication method from the {@link ThreadLocal} variable.
+   *
+   * @param conf Alluxio configuration
+   * @return the client user in string, null if the user is not present
+   * @throws AccessControlException if the authentication is not enabled
+   */
+  public static String getAuthMethod(AlluxioConfiguration conf) throws AccessControlException {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+      throw new AccessControlException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
+    }
+    return sConnectionAuthMethod.get();
   }
 
   /**

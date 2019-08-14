@@ -19,8 +19,11 @@ import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
@@ -31,6 +34,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -53,10 +57,14 @@ public class LocalUnderFileSystemTest {
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
 
+  @Rule
+  public ExpectedException mException = ExpectedException.none();
+
   @Before
   public void before() throws IOException {
     mLocalUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsRoot, sConf);
+    mLocalUfs =
+        UnderFileSystem.Factory.create(mLocalUfsRoot, UnderFileSystemConfiguration.defaults(sConf));
   }
 
   @Test
@@ -221,6 +229,40 @@ public class LocalUnderFileSystemTest {
     is.close();
 
     Assert.assertArrayEquals(bytes, bytes1);
+  }
+
+  @Test
+  public void getDirStatusFails() throws IOException {
+    mException.expect(IOException.class);
+    String file = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    mLocalUfs.create(file).close();
+    mLocalUfs.getDirectoryStatus(file);
+  }
+
+  @Test
+  public void getDirStatus() throws IOException {
+    String dir = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    mLocalUfs.mkdirs(dir);
+    UfsDirectoryStatus s = mLocalUfs.getDirectoryStatus(dir);
+    assertTrue(s.isDirectory());
+    assertFalse(s.isFile());
+  }
+
+  @Test
+  public void getFileStatusFails() throws IOException {
+    mException.expect(IOException.class);
+    String dir = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    mLocalUfs.mkdirs(dir);
+    mLocalUfs.getFileStatus(dir);
+  }
+
+  @Test
+  public void getFileStatus() throws IOException {
+    String file = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    mLocalUfs.create(file).close();
+    UfsFileStatus s = mLocalUfs.getFileStatus(file);
+    assertFalse(s.isDirectory());
+    assertTrue(s.isFile());
   }
 
   private byte[] getBytes() {

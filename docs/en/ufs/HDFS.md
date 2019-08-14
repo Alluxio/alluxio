@@ -17,7 +17,7 @@ as Alluxio's under storage system.
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio server binaries to each of
 these machines. You can either
-[download the precompiled binaries directly](http://www.alluxio.org/download)
+[download the precompiled binaries directly](https://www.alluxio.io/download)
 with the correct Hadoop version (recommended), or
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 (for advanced users).
@@ -27,7 +27,7 @@ work with Apache Hadoop HDFS of version `2.2.0`. To work with Hadoop distributio
 versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 
-```bash
+```console
 $ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
 ```
 
@@ -35,7 +35,7 @@ Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2` (ena
 `hadoop-3` for the major Hadoop versions 1.x, 2.x and 3.x. If you want to build Alluxio with a specific
 Hadoop release version, you can also specify the version in the command. For example,
 
-```bash
+```console
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
 $ mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
@@ -56,7 +56,7 @@ To configure Alluxio to use HDFS as under storage, you will need to modify the c
 file `conf/alluxio-site.properties`.
 If the file does not exist, create the configuration file from the template.
 
-```bash
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -65,9 +65,11 @@ address and the HDFS directory you want to mount to Alluxio. For example, the un
 can be `hdfs://localhost:8020` if you are running the HDFS namenode locally with default port and
 mapping HDFS root directory to Alluxio, or `hdfs://localhost:8020/alluxio/data` if only the HDFS
 directory `/alluxio/data` is mapped to Alluxio.
+To find out where hdfs is runing, use `hdfs getconf -confKey fs.defaultFS` to get the default hostname
+and port HDFS is listening on.
 
 ```
-alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
+alluxio.master.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
 ```
 
 ## Example: Running Alluxio Locally with HDFS
@@ -75,9 +77,15 @@ alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
 Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
 exists. Start the Alluxio servers:
 
-```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
+```
+
+If your ramdisk is not mounted, the format command can fail. This is likely because this is the first time you are running Alluxio, you may need to start Alluxio with the `SudoMount` option.
+
+```console
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
@@ -85,8 +93,8 @@ This will start one Alluxio master and one Alluxio worker locally. You can see t
 
 Run a simple example program:
 
-```bash
-$ bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 If the test fails with permission errors, make sure that the current user (`${USER}`) has
@@ -101,19 +109,21 @@ files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 
 Stop Alluxio by running:
 
-```bash
-$ bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
 
-### HDFS namenode HA mode
+### Specify HDFS Configuration Location
 
-To configure Alluxio to work with HDFS namenodes in HA mode, you need to configure Alluxio servers to
-access HDFS with the proper configuration file. Note that once this is set, your applications using
+When HDFS has non-default configurations, you need to configure Alluxio servers to
+access HDFS with the proper configuration file.
+Note that once this is set, your applications using
 Alluxio client do not need any special configuration.
 
 There are two possible approaches:
+
 - Copy or make symbolic links from `hdfs-site.xml` and
 `core-site.xml` from your Hadoop installation into `${ALLUXIO_HOME}/conf`. Make sure
 this is set up on all servers running Alluxio.
@@ -126,13 +136,17 @@ your `hdfs-site.xml` and `core-site.xml`. Make sure this configuration is set on
 alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 
-Set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
+### HDFS Namenode HA Mode
+
+To configure Alluxio to work with HDFS namenodes in HA mode, first configure Alluxio servers to [access HDFS with the proper configuration files](#specify-hdfs-configuration-location).
+
+In addition, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
 service already configured in `core-site.xml`). To mount an HDFS subdirectory to Alluxio instead
 of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
 
 ```
-alluxio.underfs.address=hdfs://nameservice/
+alluxio.master.mount.table.root.ufs=hdfs://nameservice/
 ```
 
 ### User/Permission Mapping
@@ -160,7 +174,9 @@ applications using this user.
 
 ### Connect to Secure HDFS
 
-If your HDFS cluster is Kerberized, security configuration is needed for Alluxio to be able to
+If your HDFS cluster is Kerberized, first configure Alluxio servers to [access HDFS with the proper configuration files](#specify-hdfs-configuration-location).
+
+In addition, security configuration is needed for Alluxio to be able to
 communicate with the HDFS cluster. Set the following Alluxio properties in `alluxio-site.properties`:
 
 ```properties
@@ -192,19 +208,29 @@ ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.sec
 ### Mount HDFS with Specific Versions
 
 There are multiple ways for a user to mount an HDFS cluster with a specified version as an under storage into Alluxio namespace.
+Before mounting HDFS with a specific version, make sure you have built a client with that specific version of HDFS.
+You can check the existence of this client by going to the `lib` directory under the Alluxio directory.
+
+If you have built Alluxio from source, you can build additional client jar files by running `mvn` command under the `underfs` directory in the Alluxio source tree. For example, issuing the following command would build the client jar for the 2.8.0 version.
+
+```console
+$ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
+-Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true \
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
+```
 
 #### Using Mount Command-line
-When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specificed, by default Alluxio treats it as Apache HDFS 2.2.
+When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, by default Alluxio treats it as Apache HDFS 2.2.
 
 For example, the following commands mount two HDFS deployments—one is HDFS 1.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs12` and `/mnt/hdfs27`.
 
-```bash
+```console
 $ ./bin/alluxio fs mount \
---option alluxio.underfs.version=1.2 \
-/mnt/hdfs12 hdfs://namenode1:8020/
+  --option alluxio.underfs.version=1.2 \
+  /mnt/hdfs12 hdfs://namenode1:8020/
 $ ./bin/alluxio fs mount \
---option alluxio.underfs.version=2.7 \
-/mnt/hdfs27 hdfs://namenode2:8020/
+  --option alluxio.underfs.version=2.7 \
+  /mnt/hdfs27 hdfs://namenode2:8020/
 ```
 
 #### Using Site Properties
@@ -222,3 +248,17 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=1.2
 Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
 - Apache Hadoop: 1.0, 1.2, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
+
+### Use Hadoop Native Library
+
+Hadoop comes with a native library that provides better performance and additional features compared to its Java implementation.
+For example, when the native library is used, the HDFS client can use native checksum function which is more efficient than the default Java implementation.
+To use the Hadoop native library with Alluxio HDFS under filesystem, first install the native library on Alluxio nodes by following the
+instructions on [this page](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/NativeLibraries.html).
+Once the hadoop native library is installed on the machine, update Alluxio startup Java parameters in `conf/alluxio-env.sh` by adding the following line:
+
+```
+ALLUXIO_JAVA_OPTS+=" -Djava.library.path=<local_path_containing_hadoop_native_library> "
+```
+
+Make sure to restart Alluxio services for the change to take effect.

@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -49,22 +48,14 @@ public final class AlluxioJobWorker {
     }
 
     if (!ConfigurationUtils.masterHostConfigured(ServerConfiguration.global())) {
-      System.out.println(String.format(
-          "Cannot run alluxio job worker; master hostname is not "
-              + "configured. Please modify %s to either set %s or configure zookeeper with "
-              + "%s=true and %s=[comma-separated zookeeper master addresses]",
-          Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+      System.out.println(ConfigurationUtils
+          .getMasterHostNotConfiguredMessage("Alluxio job worker"));
       System.exit(1);
     }
 
     if (!ConfigurationUtils.jobMasterHostConfigured(ServerConfiguration.global())) {
-      System.out.println(String.format(
-          "Cannot run alluxio job worker; job master hostname is not "
-              + "configured. Please modify %s to either set %s or configure zookeeper with "
-              + "%s=true and %s=[comma-separated zookeeper master addresses]",
-          Constants.SITE_PROPERTIES, PropertyKey.JOB_MASTER_HOSTNAME.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+      System.out.println(ConfigurationUtils
+          .getJobMasterHostNotConfiguredMessage("Alluxio job worker"));
       System.exit(1);
     }
 
@@ -74,13 +65,14 @@ public final class AlluxioJobWorker {
     try {
       RetryUtils.retry("load cluster default configuration with master", () -> {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
-        ServerConfiguration.loadClusterDefaults(masterAddress);
+        ServerConfiguration.loadClusterDefaultsIfNotLoaded(masterAddress);
       },
           RetryUtils.defaultWorkerMasterClientRetry(
               ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (IOException e) {
       ProcessUtils.fatalError(LOG,
-          "Failed to load cluster default configuration for job worker: %s", e.getMessage());
+          "Failed to load cluster default configuration for job worker. Please make sure that "
+              + "Alluxio master is running: %s", e.toString());
     }
     JobWorkerProcess process = JobWorkerProcess.Factory.create();
     ProcessUtils.run(process);

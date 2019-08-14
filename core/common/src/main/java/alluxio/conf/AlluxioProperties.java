@@ -18,6 +18,8 @@ import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -56,6 +58,11 @@ public class AlluxioProperties {
       new ConcurrentHashMap<>();
   /** Map of property sources. */
   private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
+
+  private Hash mHash = new Hash(() -> keySet().stream()
+      .filter(key -> get(key) != null)
+      .sorted(Comparator.comparing(PropertyKey::getName))
+      .map(key -> String.format("%s:%s:%s", key.getName(), get(key), getSource(key)).getBytes()));
 
   /**
    * Constructs a new instance of Alluxio properties.
@@ -98,10 +105,11 @@ public class AlluxioProperties {
    * @param value value to put
    * @param source the source of this value for the key
    */
-  protected void put(PropertyKey key, String value, Source source) {
+  public void put(PropertyKey key, String value, Source source) {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
+      mHash.markOutdated();
     }
   }
 
@@ -124,7 +132,7 @@ public class AlluxioProperties {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public void merge(Map<?, ?> properties, Source source) {
-    if (properties == null) {
+    if (properties == null || properties.isEmpty()) {
       return;
     }
     // merge the properties
@@ -145,6 +153,7 @@ public class AlluxioProperties {
       }
       put(propertyKey, value, source);
     }
+    mHash.markOutdated();
   }
 
   /**
@@ -156,6 +165,8 @@ public class AlluxioProperties {
     // remove is a nop if the key doesn't already exist
     if (mUserProps.containsKey(key)) {
       mUserProps.remove(key);
+      mSources.remove(key);
+      mHash.markOutdated();
     }
   }
 
@@ -166,12 +177,24 @@ public class AlluxioProperties {
    * @return true if there is value for the key, false otherwise
    */
   public boolean isSet(PropertyKey key) {
+    if (isSetByUser(key)) {
+      return true;
+    }
+    // In case key is not the reference to the original key
+    return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
+  }
+
+  /**
+   * @param key the key to check
+   * @return true if there is a value for the key set by user, false otherwise even when there is a
+   *         default value for the key
+   */
+  public boolean isSetByUser(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       Optional<String> val = mUserProps.get(key);
       return val.isPresent();
     }
-    // In case key is not the reference to the original key
-    return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
+    return false;
   }
 
   /**
@@ -187,7 +210,14 @@ public class AlluxioProperties {
   public Set<PropertyKey> keySet() {
     Set<PropertyKey> keySet = new HashSet<>(PropertyKey.defaultKeys());
     keySet.addAll(mUserProps.keySet());
-    return keySet;
+    return Collections.unmodifiableSet(keySet);
+  }
+
+  /**
+   * @return the key set of user set properties
+   */
+  public Set<PropertyKey> userKeySet() {
+    return Collections.unmodifiableSet(mUserProps.keySet());
   }
 
   /**
@@ -219,6 +249,7 @@ public class AlluxioProperties {
   @VisibleForTesting
   public void setSource(PropertyKey key, Source source) {
     mSources.put(key, source);
+    mHash.markOutdated();
   }
 
   /**
@@ -231,5 +262,12 @@ public class AlluxioProperties {
       return source;
     }
     return Source.DEFAULT;
+  }
+
+  /**
+   * @return the current hash of the properties
+   */
+  public String hash() {
+    return mHash.get();
   }
 }

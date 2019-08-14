@@ -12,11 +12,13 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
@@ -24,11 +26,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
@@ -85,33 +88,43 @@ public class FileOutStream extends AbstractOutStream {
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
       throws IOException {
     mCloser = Closer.create();
-    mUri = Preconditions.checkNotNull(path, "path");
-    mBlockSize = options.getBlockSizeBytes();
-    mAlluxioStorageType = options.getAlluxioStorageType();
-    mUnderStorageType = options.getUnderStorageType();
-    mOptions = options;
+    // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
+    // using mContext.
+    // The resource will be released in close().
     mContext = context;
-    mBlockStore = AlluxioBlockStore.create(mContext);
-    mPreviousBlockOutStreams = new ArrayList<>();
-    mClosed = false;
-    mCanceled = false;
-    mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
-    mBytesWritten = 0;
-    if (!mUnderStorageType.isSyncPersist()) {
-      mUnderStorageOutputStream = null;
-    } else { // Write is through to the under storage, create mUnderStorageOutputStream.
-      WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
-          options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getEligibleWorkers(), 0);
-      if (workerNetAddress == null) {
-        // Assume no worker is available because block size is 0.
-        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-      }
-      try {
+    mCloser.register(mContext.blockReinit());
+    try {
+      mUri = Preconditions.checkNotNull(path, "path");
+      mBlockSize = options.getBlockSizeBytes();
+      mAlluxioStorageType = options.getAlluxioStorageType();
+      mUnderStorageType = options.getUnderStorageType();
+      mOptions = options;
+      mBlockStore = AlluxioBlockStore.create(mContext);
+      mPreviousBlockOutStreams = new ArrayList<>();
+      mClosed = false;
+      mCanceled = false;
+      mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
+      mBytesWritten = 0;
+
+      if (!mUnderStorageType.isSyncPersist()) {
+        mUnderStorageOutputStream = null;
+      } else { // Write is through to the under storage, create mUnderStorageOutputStream.
+        GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
+            .setBlockWorkerInfos(mBlockStore.getEligibleWorkers())
+            .setBlockInfo(new BlockInfo()
+                .setBlockId(-1)
+                .setLength(0)); // not storing data to Alluxio, so block size is 0
+        WorkerNetAddress workerNetAddress =
+            options.getLocationPolicy().getWorker(getWorkerOptions);
+        if (workerNetAddress == null) {
+          // Assume no worker is available because block size is 0.
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
         mUnderStorageOutputStream = mCloser
             .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
-      } catch (Throwable t) {
-        throw CommonUtils.closeAndRethrow(mCloser, t);
       }
+    } catch (Throwable t) {
+      throw CommonUtils.closeAndRethrow(mCloser, t);
     }
   }
 
@@ -159,17 +172,21 @@ public class FileOutStream extends AbstractOutStream {
         }
       }
 
+      // Whether to complete file with async persist request.
+      if (!mCanceled && mUnderStorageType.isAsyncPersist()
+          && mOptions.getPersistenceWaitTime() != Constants.NO_AUTO_PERSIST) {
+        optionsBuilder.setAsyncPersistOptions(
+            FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
+                .setCommonOptions(mOptions.getCommonOptions())
+                .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()));
+      }
+
       // Complete the file if it's ready to be completed.
       if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
         try (CloseableResource<FileSystemMasterClient> masterClient = mContext
             .acquireMasterClientResource()) {
           masterClient.get().completeFile(mUri, optionsBuilder.build());
         }
-      }
-
-      if (!mCanceled && mUnderStorageType.isAsyncPersist()) {
-        // only schedule the persist for completed files.
-        scheduleAsyncPersist();
       }
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is.
@@ -293,23 +310,12 @@ public class FileOutStream extends AbstractOutStream {
   }
 
   /**
-   * Schedules the async persistence of the current file.
-   */
-  protected void scheduleAsyncPersist() throws IOException {
-    try (CloseableResource<FileSystemMasterClient> masterClient = mContext
-        .acquireMasterClientResource()) {
-      masterClient.get().scheduleAsyncPersist(mUri,
-          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getConf()));
-    }
-  }
-
-  /**
    * Class that contains metrics about FileOutStream.
    */
   @ThreadSafe
   private static final class Metrics {
     private static final Counter BYTES_WRITTEN_UFS =
-        MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_UFS);
+        MetricsSystem.counter(ClientMetrics.BYTES_WRITTEN_UFS);
 
     private Metrics() {} // prevent instantiation
   }

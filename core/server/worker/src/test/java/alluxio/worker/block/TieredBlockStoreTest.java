@@ -61,7 +61,9 @@ public final class TieredBlockStoreTest {
   private static final long BLOCK_ID1 = 1000;
   private static final long BLOCK_ID2 = 1001;
   private static final long TEMP_BLOCK_ID = 1003;
+  private static final long TEMP_BLOCK_ID2 = 1004;
   private static final long BLOCK_SIZE = 512;
+  private static final long FREE_SPACE_TIMEOUT_MS = 100;
   private static final String FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
   private static final String SECOND_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[1];
   private TieredBlockStore mBlockStore;
@@ -70,6 +72,7 @@ public final class TieredBlockStoreTest {
   private StorageDir mTestDir1;
   private StorageDir mTestDir2;
   private StorageDir mTestDir3;
+  private StorageDir mTestDir4;
   private Evictor mEvictor;
 
   /** Rule to create a new temporary folder during each test. */
@@ -86,7 +89,7 @@ public final class TieredBlockStoreTest {
   @Before
   public void before() throws Exception {
     ServerConfiguration.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_FREE_SPACE_TIMEOUT, FREE_SPACE_TIMEOUT_MS);
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
@@ -105,6 +108,7 @@ public final class TieredBlockStoreTest {
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
     mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
     mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(1);
+    mTestDir4 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(2);
   }
 
   /**
@@ -183,7 +187,7 @@ public final class TieredBlockStoreTest {
   public void commitBlock() throws Exception {
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     assertFalse(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID, false);
     assertTrue(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
     assertFalse(
         FileUtils.exists(TempBlockMeta.tempPath(mTestDir1, SESSION_ID1, TEMP_BLOCK_ID)));
@@ -344,7 +348,7 @@ public final class TieredBlockStoreTest {
     Evictor evictor = mock(Evictor.class);
     when(
         evictor.freeSpaceWithView(any(Long.class), any(BlockStoreLocation.class),
-            any(BlockMetadataManagerView.class), any(Mode.class)))
+            any(BlockMetadataEvictorView.class), any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
           CommonUtils.sleepMs(20);
           return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
@@ -357,7 +361,8 @@ public final class TieredBlockStoreTest {
     for (int i = 0; i < threadAmount; i++) {
       runnables.add(() -> {
         try {
-          mBlockStore.freeSpace(SESSION_ID1, 0, new BlockStoreLocation("MEM", 0));
+          mBlockStore.freeSpace(SESSION_ID1, 0,
+              new BlockStoreLocation("MEM", 0, BlockStoreLocation.ANY_MEDIUM));
         } catch (Exception e) {
           fail();
         }
@@ -367,6 +372,23 @@ public final class TieredBlockStoreTest {
     while (retry.attempt()) {
       ConcurrencyUtils.assertConcurrent(runnables, threadAmount);
     }
+  }
+
+  /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
+  public void freeSpaceWithPinnedBlocks() throws Exception {
+    // create a pinned block
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mBlockStore,
+        mTestDir1.toBlockStoreLocation(), true);
+
+    // Expect an empty eviction plan is feasible
+    mThrown.expect(WorkerOutOfSpaceException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+        mTestDir1.toBlockStoreLocation());
   }
 
   /**
@@ -393,21 +415,19 @@ public final class TieredBlockStoreTest {
     assertEquals(mTestDir1, tempBlockMeta.getParentDir());
   }
 
-  /**
-   * Tests the {@link TieredBlockStore#createBlock(long, long, BlockStoreLocation, long)} method
-   * to work with eviction.
-   */
   @Test
-  public void createBlockMetaWithEviction() throws Exception {
-    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
-        mEvictor);
+  public void createBlockMetaWithMediumType() throws Exception {
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTierWithMedium("MEM");
     TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
-        mTestDir1.toBlockStoreLocation(), mTestDir1.getCapacityBytes());
-    // Expect BLOCK_ID1 evicted from mTestDir1
-    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
-    assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
-    assertEquals(mTestDir1.getCapacityBytes(), tempBlockMeta.getBlockSize());
-    assertEquals(mTestDir1, tempBlockMeta.getParentDir());
+        loc, 1);
+    assertEquals(1, tempBlockMeta.getBlockSize());
+    assertEquals(mTestDir2, tempBlockMeta.getParentDir());
+
+    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInTierWithMedium("SSD");
+    TempBlockMeta tempBlockMeta2 = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID2,
+        loc2, 1);
+    assertEquals(1, tempBlockMeta2.getBlockSize());
+    assertEquals(mTestDir4, tempBlockMeta2.getParentDir());
   }
 
   /**
@@ -424,9 +444,10 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(
-        ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(mTestDir1.getCapacityBytes(),
-            mTestDir1.toBlockStoreLocation().tierAlias()));
+    mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT.getMessage(
+        mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation(), FREE_SPACE_TIMEOUT_MS,
+        TEMP_BLOCK_ID));
+
     mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
 
@@ -456,8 +477,9 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
-        BLOCK_SIZE, mTestDir2.toBlockStoreLocation().tierAlias()));
+    mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT.getMessage(
+        mTestDir2.toBlockStoreLocation(), BLOCK_ID1, FREE_SPACE_TIMEOUT_MS));
+
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
 
     // Expect createBlockMeta to succeed after unlocking this block.
@@ -541,7 +563,7 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID, false);
     mBlockStore.abortBlock(SESSION_ID1, TEMP_BLOCK_ID);
   }
 
@@ -607,8 +629,8 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID);
-    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID , false);
+    mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID, false);
   }
 
   /**
@@ -619,7 +641,7 @@ public final class TieredBlockStoreTest {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
-    mBlockStore.commitBlock(SESSION_ID1, BLOCK_ID1);
+    mBlockStore.commitBlock(SESSION_ID1, BLOCK_ID1, false);
   }
 
   /**
@@ -633,7 +655,7 @@ public final class TieredBlockStoreTest {
         SESSION_ID1, SESSION_ID2));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
-    mBlockStore.commitBlock(SESSION_ID2, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(SESSION_ID2, TEMP_BLOCK_ID, false);
   }
 
   /**

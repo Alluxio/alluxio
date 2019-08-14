@@ -25,6 +25,8 @@ public class SourceTest {
     assertEquals(-1, Source.DEFAULT.compareTo(Source.CLUSTER_DEFAULT));
     assertEquals(-1, Source.CLUSTER_DEFAULT.compareTo(Source.siteProperty("")));
     assertEquals(-1, Source.Type.SITE_PROPERTY.compareTo(Source.Type.SYSTEM_PROPERTY));
-    assertEquals(-1, Source.SYSTEM_PROPERTY.compareTo(Source.RUNTIME));
+    assertEquals(-1, Source.Type.SYSTEM_PROPERTY.compareTo(Source.Type.PATH_DEFAULT));
+    assertEquals(-1, Source.PATH_DEFAULT.compareTo(Source.RUNTIME));
+    assertEquals(-1, Source.RUNTIME.compareTo(Source.MOUNT_OPTION));
   }
 }

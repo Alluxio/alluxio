@@ -20,6 +20,7 @@ import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Counter;
@@ -69,6 +70,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
   private static final long MAX_CHUNK_SIZE =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
+  private static final long MAX_BYTES_IN_FLIGHT =
+      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES);
 
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
@@ -76,6 +79,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   private Executor mSerializingExecutor;
 
   private final ReentrantLock mLock = new ReentrantLock();
+
+  protected AuthenticatedUserInfo mUserInfo;
 
   /**
    * This is only created in the gRPC event thread when a read request is received.
@@ -90,12 +95,14 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    *
    * @param executorService the executor service to run {@link DataReader}s
    * @param responseObserver the response observer of the
+   * @param userInfo the authenticated user info
    */
   AbstractReadHandler(ExecutorService executorService,
-      StreamObserver<ReadResponse> responseObserver) {
+      StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo) {
     mDataReaderExecutor = executorService;
     mSerializingExecutor = new SerializingExecutor(executorService);
     mResponseObserver = responseObserver;
+    mUserInfo = userInfo;
   }
 
   @Override
@@ -105,10 +112,18 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     // validation msg as validation may require to update error in context.
     LOG.debug("Received read request {}.", request);
     try (LockResource lr = new LockResource(mLock)) {
+      if (request.hasOffsetReceived()) {
+        mContext.setPosReceived(request.getOffsetReceived());
+        if (!tooManyPendingChunks()) {
+          onReady();
+        }
+        return;
+      }
       Preconditions.checkState(mContext == null || !mContext.isDataReaderActive());
       mContext = createRequestContext(request);
       validateReadRequest(request);
       mContext.setPosToQueue(mContext.getRequest().getStart());
+      mContext.setPosReceived(mContext.getRequest().getStart());
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
     } catch (Exception e) {
@@ -117,6 +132,14 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mSerializingExecutor.execute(() -> mResponseObserver
           .onError(AlluxioStatusException.fromCheckedException(e).toGrpcStatusException()));
     }
+  }
+
+  /**
+   * @return true if there are too many chunks in-flight
+   */
+  @GuardedBy("mLock")
+  public boolean tooManyPendingChunks() {
+    return mContext.getPosToQueue() - mContext.getPosReceived() >= MAX_BYTES_IN_FLIGHT;
   }
 
   @Override
@@ -287,7 +310,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
           cancel = mContext.isCancel();
           error = mContext.getError();
 
-          if (eof || cancel || error != null || !mResponse.isReady()) {
+          if (eof || cancel || error != null || (!mResponse.isReady() && tooManyPendingChunks())) {
             mContext.setDataReaderActive(false);
             break;
           }

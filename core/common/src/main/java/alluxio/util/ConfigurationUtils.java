@@ -21,18 +21,23 @@ import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.conf.path.PathConfiguration;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -45,9 +50,12 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BiFunction;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -67,18 +75,72 @@ public final class ConfigurationUtils {
   private ConfigurationUtils() {} // prevent instantiation
 
   /**
+   * Gets the embedded journal addresses to use for the given service type (either master-raft or
+   * job-master-raft).
+   *
+   * @param conf configuration
+   * @param serviceType the service to get addresses for
+   * @return the addresses
+   */
+  public static List<InetSocketAddress> getEmbeddedJournalAddresses(AlluxioConfiguration conf,
+      ServiceType serviceType) {
+    Preconditions.checkState(
+        serviceType == ServiceType.MASTER_RAFT || serviceType == ServiceType.JOB_MASTER_RAFT);
+    if (serviceType == ServiceType.MASTER_RAFT) {
+      return getMasterEmbeddedJournalAddresses(conf);
+    }
+    return getJobMasterEmbeddedJournalAddresses(conf);
+  }
+
+  /**
+   * @param conf configuration
+   * @return the embedded journal addresses to use for the master
+   */
+  public static List<InetSocketAddress> getMasterEmbeddedJournalAddresses(
+      AlluxioConfiguration conf) {
+    PropertyKey property = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    if (conf.isSet(property)) {
+      return parseInetSocketAddresses(conf.getList(property, ","));
+    }
+    // Fall back on master_hostname:master_raft_port
+    return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RAFT, conf));
+  }
+
+  /**
+   * @param conf configuration
+   * @return the embedded journal addresses to use for the job master
+   */
+  public static List<InetSocketAddress> getJobMasterEmbeddedJournalAddresses(
+      AlluxioConfiguration conf) {
+    PropertyKey jobMasterProperty = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    if (conf.isSet(jobMasterProperty)) {
+      return parseInetSocketAddresses(conf.getList(jobMasterProperty, ","));
+    }
+    // Fall back on using the master embedded journal addresses, with the job master port.
+    PropertyKey masterProperty = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    int jobRaftPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RAFT, conf);
+    if (conf.isSet(masterProperty)) {
+      return overridePort(getMasterEmbeddedJournalAddresses(conf), jobRaftPort);
+    }
+    // Fall back on job_master_hostname:job_master_raft_port.
+    return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RAFT, conf));
+  }
+
+  /**
    * Gets the RPC addresses of all masters based on the configuration.
    *
    * @param conf the configuration to use
    * @return the master rpc addresses
    */
   public static List<InetSocketAddress> getMasterRpcAddresses(AlluxioConfiguration conf) {
+    // First check whether rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
-    } else {
-      int rpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.MASTER_RPC, conf);
-      return getRpcAddresses(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, rpcPort, conf);
     }
+
+    // Fall back on server-side journal configuration.
+    int rpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.MASTER_RPC, conf);
+    return overridePort(getEmbeddedJournalAddresses(conf, ServiceType.MASTER_RAFT), rpcPort);
   }
 
   /**
@@ -88,36 +150,28 @@ public final class ConfigurationUtils {
    * @return the job master rpc addresses
    */
   public static List<InetSocketAddress> getJobMasterRpcAddresses(AlluxioConfiguration conf) {
-    int jobRpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC,
-        conf);
+    // First check whether job rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(
           conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
-    } else if (conf.isSet(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
-      return getRpcAddresses(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, jobRpcPort, conf);
-    } else if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
-      return getRpcAddresses(PropertyKey.MASTER_RPC_ADDRESSES, jobRpcPort, conf);
-    } else {
-      return getRpcAddresses(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, jobRpcPort, conf);
     }
+
+    int jobRpcPort =
+        NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, conf);
+    // Fall back on explicitly configured regular master rpc addresses.
+    if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
+      List<InetSocketAddress> addrs =
+          parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
+      return overridePort(addrs, jobRpcPort);
+    }
+
+    // Fall back on server-side journal configuration.
+    return overridePort(getEmbeddedJournalAddresses(conf, ServiceType.JOB_MASTER_RAFT), jobRpcPort);
   }
 
-  /**
-   * @param addressesKey configuration key for a list of addresses
-   * @param overridePort the port to use
-   * @param conf the configuration to use
-   * @return a list of inet addresses using the hostnames from addressesKey with the port
-   *         overridePort
-   */
-  private static List<InetSocketAddress> getRpcAddresses(
-      PropertyKey addressesKey, int overridePort, AlluxioConfiguration conf) {
-    List<InetSocketAddress> addresses =
-        parseInetSocketAddresses(conf.getList(addressesKey, ","));
-    List<InetSocketAddress> newAddresses = new ArrayList<>(addresses.size());
-    for (InetSocketAddress addr : addresses) {
-      newAddresses.add(new InetSocketAddress(addr.getHostName(), overridePort));
-    }
-    return newAddresses;
+  private static List<InetSocketAddress> overridePort(List<InetSocketAddress> addrs, int port) {
+    return StreamUtils.map(addr -> InetSocketAddress.createUnresolved(addr.getHostString(), port),
+        addrs);
   }
 
   /**
@@ -125,8 +179,7 @@ public final class ConfigurationUtils {
    * @return a list of InetSocketAddresses representing the given address strings
    */
   private static List<InetSocketAddress> parseInetSocketAddresses(List<String> addresses) {
-    List<InetSocketAddress> inetSocketAddresses =
-        new ArrayList<>(addresses.size());
+    List<InetSocketAddress> inetSocketAddresses = new ArrayList<>(addresses.size());
     for (String address : addresses) {
       try {
         inetSocketAddresses.add(NetworkAddressUtils.parseInetSocketAddress(address));
@@ -221,6 +274,37 @@ public final class ConfigurationUtils {
         && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
     return conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
         || getJobMasterRpcAddresses(conf).size() > 1;
+  }
+
+  /**
+   * Returns a unified message for cases when the master hostname cannot be determined.
+   *
+   * @param serviceName the name of the service that couldn't run. i.e. Alluxio worker, fsadmin
+   *                    shell, etc.
+   * @return a string with the message
+   */
+  public static String getMasterHostNotConfiguredMessage(String serviceName) {
+    return getHostNotConfiguredMessage(serviceName, "master", PropertyKey.MASTER_HOSTNAME,
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+  }
+
+  /**
+   * Returns a unified message for cases when the job master hostname cannot be determined.
+   *
+   * @param serviceName the name of the service that couldn't run. i.e. Alluxio worker, fsadmin
+   *                    shell, etc.
+   * @return a string with the message
+   */
+  public static String getJobMasterHostNotConfiguredMessage(String serviceName) {
+    return getHostNotConfiguredMessage(serviceName, "job master", PropertyKey.JOB_MASTER_HOSTNAME,
+        PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+  }
+
+  private static String getHostNotConfiguredMessage(String serviceName, String masterName,
+      PropertyKey masterHostnameKey, PropertyKey embeddedJournalKey) {
+    return ExceptionMessage.UNABLE_TO_DETERMINE_MASTER_HOSTNAME.getMessage(serviceName, masterName,
+        masterHostnameKey.getName(), PropertyKey.ZOOKEEPER_ENABLED.getName(),
+        PropertyKey.ZOOKEEPER_ADDRESS.getName(), embeddedJournalKey.getName());
   }
 
   /**
@@ -379,39 +463,34 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Loads cluster default values from the meta master.
+   * Loads configuration from meta master in one RPC.
    *
-   * @param address the master address
-   * @param conf configuration to use
-   * @return a configuration object containing the original configuration merged with cluster
-   *         defaults, or the original object if the cluster defaults have already been loaded
+   * @param address the meta master address
+   * @param conf the existing configuration
+   * @param ignoreClusterConf do not load cluster configuration related information
+   * @param ignorePathConf do not load path configuration related information
+   * @return the RPC response
    */
-  public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address,
-      AlluxioConfiguration conf)
+  public static GetConfigurationPResponse loadConfiguration(InetSocketAddress address,
+      AlluxioConfiguration conf, boolean ignoreClusterConf, boolean ignorePathConf)
       throws AlluxioStatusException {
-    if (!conf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
-        || conf.clusterDefaultsLoaded()) {
-      return conf;
-    }
-    LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
-        RuntimeConstants.VERSION, address);
-
     GrpcChannel channel = null;
-    List<alluxio.grpc.ConfigProperty> clusterConfig;
-
     try {
-      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
+      LOG.debug("Alluxio client (version {}) is trying to load configuration from meta master {}",
+          RuntimeConstants.VERSION, address);
+      channel = GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf)
+          .disableAuthentication().build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
-      clusterConfig =
-          client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
-              .getConfigsList();
+      GetConfigurationPResponse response = client.getConfiguration(
+          GetConfigurationPOptions.newBuilder().setRawValue(true)
+              .setIgnoreClusterConf(ignoreClusterConf).setIgnorePathConf(ignorePathConf).build());
+      LOG.info("Alluxio client has loaded configuration from meta master {}", address);
+      return response;
     } catch (io.grpc.StatusRuntimeException e) {
-      AlluxioStatusException ase = AlluxioStatusException.fromStatusRuntimeException(e);
-      LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
       throw new UnavailableException(String.format(
-          "Failed to handshake with master %s to load cluster default configuration values",
-          address), e);
+          "Failed to handshake with master %s to load cluster default configuration values: %s",
+          address, e.getMessage()), e);
     } catch (UnauthenticatedException e) {
       throw new RuntimeException(String.format(
           "Received authentication exception during boot-strap connect with host:%s", address),
@@ -421,10 +500,19 @@ public final class ConfigurationUtils {
         channel.shutdown();
       }
     }
+  }
 
-    // merge conf returned by master as the cluster default into conf object
-    Properties clusterProps = new Properties();
-    for (ConfigProperty property : clusterConfig) {
+  /**
+   * Loads client scope properties from the property list returned by grpc.
+   *
+   * @param properties the property list returned by grpc
+   * @param logMessage a function with key and value as parameter and returns debug log message
+   * @return the loaded properties
+   */
+  private static Properties loadClientProperties(List<ConfigProperty> properties,
+      BiFunction<PropertyKey, String, String> logMessage) {
+    Properties props = new Properties();
+    for (ConfigProperty property : properties) {
       String name = property.getName();
       // TODO(binfan): support propagating unsetting properties from master
       if (PropertyKey.isValid(name) && property.hasValue()) {
@@ -434,24 +522,70 @@ public final class ConfigurationUtils {
           continue;
         }
         String value = property.getValue();
-        clusterProps.put(key, value);
-        LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
+        props.put(key, value);
+        LOG.debug(logMessage.apply(key, value));
       }
     }
+    return props;
+  }
 
+  /**
+   * Loads the cluster level configuration from the get configuration response, and merges it with
+   * the existing configuration.
+   *
+   * @param response the get configuration RPC response
+   * @param conf the existing configuration
+   * @return the merged configuration
+   */
+  public static AlluxioConfiguration getClusterConf(GetConfigurationPResponse response,
+      AlluxioConfiguration conf) {
     String clientVersion = conf.get(PropertyKey.VERSION);
+    LOG.info("Alluxio client (version {}) is trying to load cluster level configurations",
+        clientVersion);
+    List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
+    Properties clusterProps = loadClientProperties(clusterConfig, (key, value) ->
+        String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
+    // Check version.
     String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
     if (!clientVersion.equals(clusterVersion)) {
       LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
           clientVersion, clusterVersion);
       clusterProps.remove(PropertyKey.VERSION);
     }
+    // Merge conf returned by master as the cluster default into conf object
     AlluxioProperties props = conf.copyProperties();
     props.merge(clusterProps, Source.CLUSTER_DEFAULT);
-    // Use the constructor to set cluster defaults as being laoded.
+    // Use the constructor to set cluster defaults as being loaded.
     InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);
     updatedConf.validate();
-    LOG.info("Alluxio client has bootstrap-connected with {}", address);
+    LOG.info("Alluxio client has loaded cluster level configurations");
     return updatedConf;
+  }
+
+  /**
+   * Loads the path level configuration from the get configuration response.
+   *
+   * Only client scope properties will be loaded.
+   *
+   * @param response the get configuration RPC response
+   * @param clusterConf cluster level configuration
+   * @return the loaded path level configuration
+   */
+  public static PathConfiguration getPathConf(GetConfigurationPResponse response,
+      AlluxioConfiguration clusterConf) {
+    String clientVersion = clusterConf.get(PropertyKey.VERSION);
+    LOG.info("Alluxio client (version {}) is trying to load path level configurations",
+        clientVersion);
+    Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
+    response.getPathConfigsMap().forEach((path, conf) -> {
+      Properties props = loadClientProperties(conf.getPropertiesList(),
+          (key, value) -> String.format("Loading property: %s (%s) -> %s for path %s",
+              key, key.getScope(), value, path));
+      AlluxioProperties properties = new AlluxioProperties();
+      properties.merge(props, Source.PATH_DEFAULT);
+      pathConfs.put(path, new InstancedConfiguration(properties, true));
+    });
+    LOG.info("Alluxio client has loaded path level configurations");
+    return PathConfiguration.create(pathConfs);
   }
 }

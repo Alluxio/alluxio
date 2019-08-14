@@ -11,6 +11,9 @@
 
 package alluxio.worker.block.evictor;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.worker.block.BlockMetadataManager;
@@ -19,7 +22,6 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 
 import com.google.common.base.Preconditions;
-import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -182,8 +184,8 @@ public class EvictorTestUtils {
    */
   public static void assertEvictionPlanValid(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws Exception {
-    Assert.assertNotNull(plan);
-    Assert.assertTrue(validNonCascadingPlan(bytesToBeAvailable, plan, metaManager)
+    assertNotNull(plan);
+    assertTrue(validNonCascadingPlan(bytesToBeAvailable, plan, metaManager)
         || validCascadingPlan(bytesToBeAvailable, plan, metaManager));
   }
 

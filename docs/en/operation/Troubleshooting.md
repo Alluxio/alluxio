@@ -13,7 +13,8 @@ This page is a collection of high-level guides and tips regarding how to diagnos
 Alluxio.
 
 Note: this doc is not intended to be the full list of Alluxio questions.
-Feel free to post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
+Join the [Alluxio community Slack Channel](https://www.alluxio.io/slack) to chat with users and
+developers, or post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
 
 ## Where are the Alluxio logs?
 
@@ -64,7 +65,7 @@ in these logs. Double check if you missed any configuration
 steps in [Running-Alluxio-Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 Typical issues:
-- `ALLUXIO_UNDERFS_ADDRESS` is not configured correctly.
+- `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS` is not configured correctly.
 - If running `ssh localhost` fails, make sure the public SSH key for the host is added in `~/.ssh/authorized_keys`.
 
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
@@ -113,13 +114,13 @@ properties on all nodes running this framework. Here are some examples:
 
 - For MapReduce jobs, you can append the client jar to `$HADOOP_CLASSPATH`:
 
-```bash
+```console
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 - For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
 
-```bash
+```console
 $ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
 
@@ -127,14 +128,24 @@ Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
 
 ```properties
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
-spark.executor.extraClassPath
-{{site.ALLUXIO_CLIENT_JAR_PATH}}
+spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
+
+- For Presto, put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
+`${PRESTO_HOME}/plugin/hive-hadoop2/`
+Since Presto has long running processes, ensure they are restarted after the jar has been added.
+
+- For Hive, set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
+
+```console
+$ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
+```
+Since Hive has long running processes, ensure they are restarted after the jar has been added.
 
 If the corresponding classpath has been set but exceptions still exist, users can check
 whether the path is valid by:
 
-```bash
+```console
 $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
@@ -154,23 +165,10 @@ Please read [Configuration-Settings]({{ '/en/basic/Configuration-Settings.html' 
 
 A: This error indicates insufficient space left on Alluxio workers to complete your write request.
 
-- For Alluxio version 1.6.0 and above, `copyFromLocal` uses `RoundRobinPolicy` by default.
-You can change the location policy for this command by changing `alluxio.user.file.copyfromlocal.write.location.policy.class` property.
-
-Before version 1.6.0, if you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
-and stores data on the local worker (see [location policy]({{ '/en/api/FS-API.html' | relativize_url }}#location-policy)).
-In this case, you will see the above error once the local worker does not have enough space.
-To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
-
-```bash
-$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
-```
-
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
 See [Command-Line-Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) for more details.
 - Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
 See [Configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}#common-configuration) for more description.
-
 
 ### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application
 
@@ -179,29 +177,6 @@ it is because Alluxio master failed to update journal files stored in a HDFS dir
 the property `alluxio.master.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
 some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
 HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
-
-### Q: I'm seeing that client connection was rejected by master
-
-A: When you see errors from applications like `"alluxio.exception.status.UnavailableException:
-Failed to connect to BlockMasterClient @ hostname:19998 after 13 attempts"` and also find the
-following warning messages in `logs/master.log`: `"WARN  TThreadPoolServer - Task has been rejected by
-ExecutorService 9 times till timedout, reason: java.util.concurrent.RejectedExecutionException:
-Task org.apache.thrift.server.TThreadPoolServer$WorkerProcess@22fba58c rejected from
-java.util.concurrent.ThreadPoolExecutor@19593091[Running, pool size = 2048, active threads = 2048,
-queued tasks = 0, completed tasks = 14]"`, it indicates that the Alluxio master server has run out
-threads in its thread pool to serve new incoming client requests.
-
-To solve this issue, you can try:
-- Increase the thread pool size on the master to serve client requests by increasing
-`alluxio.master.worker.threads.max`. You can set this property to a larger value in
-`conf/alluxio-site.properties`. Note that, this value should be no larger than the number of max
-open files allowed by the system allows. One can check the system limit using `"ulimit -n"` on Linux
-or [other approaches](https://stackoverflow.com/questions/880557/socket-accept-too-many-open-files)
-- Decrease the connection pool size on the client to send requests to master by decreasing
-`alluxio.user.block.master.client.threads` (default to 10) and
-`alluxio.user.file.master.client.threads` (default to 10). You can set this property to a smaller
-value in `conf/alluxio-site.properties`. Note that, reducing the value of these two properties may
-potentially add latency for master to serve requests.
 
 ### Q: I added some files in under file system. How can I reveal the files in Alluxio?
 
@@ -224,10 +199,11 @@ A: When writing files to Alluxio, one of the several write type can be used to t
 
 `THROUGH`: data will be only written to UFS
 
-By default the write type used by Alluxio client is `MUST_CACHE`, therefore a new file written to Alluxio is only stored in Alluxio
-worker storage, and can be evicted when Alluxio worker storage is full and some new data needs to be cached. To make sure
-data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type, or [pin]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#pin) the files
-you would like to preserve.
+`ASYNC_THROUGH`: data will be stored in Alluxio synchronously and then written to UFS asynchronously
+
+By default the write type used by Alluxio client is `ASYNC_THROUGH`, therefore a new file written to Alluxio is only stored in Alluxio
+worker storage, and can be lost if a worker crashes. To make sure data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type,
+or increase `alluxio.user.file.replication.durable` to an acceptable degree of redundancy.
 
 Another possible cause for this error is that the block exists in the file system, but no worker has connected to master. In that
 case the error will go away once at least one worker containing this block is connected.

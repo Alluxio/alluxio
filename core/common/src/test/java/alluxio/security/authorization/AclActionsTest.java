@@ -11,7 +11,10 @@
 
 package alluxio.security.authorization;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 /**
@@ -24,12 +27,12 @@ public class AclActionsTest {
   @Test
   public void constructor() {
     AclActions actions = new AclActions();
-    Assert.assertTrue(actions.getActions().isEmpty());
+    assertTrue(actions.getActions().isEmpty());
 
     AclActions copiedActions = new AclActions(actions);
     copiedActions.add(AclAction.READ);
-    Assert.assertEquals(1, copiedActions.getActions().size());
-    Assert.assertEquals(0, actions.getActions().size());
+    assertEquals(1, copiedActions.getActions().size());
+    assertEquals(0, actions.getActions().size());
   }
 
   /**
@@ -38,40 +41,40 @@ public class AclActionsTest {
   @Test
   public void toModeBits() {
     AclActions actions = new AclActions();
-    Assert.assertEquals(Mode.Bits.NONE, actions.toModeBits());
+    assertEquals(Mode.Bits.NONE, actions.toModeBits());
 
     actions = new AclActions();
     actions.add(AclAction.READ);
-    Assert.assertEquals(Mode.Bits.READ, actions.toModeBits());
+    assertEquals(Mode.Bits.READ, actions.toModeBits());
 
     actions = new AclActions();
     actions.add(AclAction.WRITE);
-    Assert.assertEquals(Mode.Bits.WRITE, actions.toModeBits());
+    assertEquals(Mode.Bits.WRITE, actions.toModeBits());
 
     actions = new AclActions();
     actions.add(AclAction.EXECUTE);
-    Assert.assertEquals(Mode.Bits.EXECUTE, actions.toModeBits());
-
-    actions = new AclActions();
-    actions.add(AclAction.READ);
-    actions.add(AclAction.WRITE);
-    Assert.assertEquals(Mode.Bits.READ_WRITE, actions.toModeBits());
-
-    actions = new AclActions();
-    actions.add(AclAction.READ);
-    actions.add(AclAction.EXECUTE);
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, actions.toModeBits());
-
-    actions = new AclActions();
-    actions.add(AclAction.WRITE);
-    actions.add(AclAction.EXECUTE);
-    Assert.assertEquals(Mode.Bits.WRITE_EXECUTE, actions.toModeBits());
+    assertEquals(Mode.Bits.EXECUTE, actions.toModeBits());
 
     actions = new AclActions();
     actions.add(AclAction.READ);
     actions.add(AclAction.WRITE);
+    assertEquals(Mode.Bits.READ_WRITE, actions.toModeBits());
+
+    actions = new AclActions();
+    actions.add(AclAction.READ);
     actions.add(AclAction.EXECUTE);
-    Assert.assertEquals(Mode.Bits.ALL, actions.toModeBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, actions.toModeBits());
+
+    actions = new AclActions();
+    actions.add(AclAction.WRITE);
+    actions.add(AclAction.EXECUTE);
+    assertEquals(Mode.Bits.WRITE_EXECUTE, actions.toModeBits());
+
+    actions = new AclActions();
+    actions.add(AclAction.READ);
+    actions.add(AclAction.WRITE);
+    actions.add(AclAction.EXECUTE);
+    assertEquals(Mode.Bits.ALL, actions.toModeBits());
   }
 
   /**
@@ -81,35 +84,35 @@ public class AclActionsTest {
   public void updateByModeBits() {
     AclActions actions = new AclActions();
     actions.updateByModeBits(Mode.Bits.NONE);
-    Assert.assertEquals(Mode.Bits.NONE, actions.toModeBits());
+    assertEquals(Mode.Bits.NONE, actions.toModeBits());
 
     actions = new AclActions();
     actions.updateByModeBits(Mode.Bits.READ);
-    Assert.assertEquals(Mode.Bits.READ, actions.toModeBits());
+    assertEquals(Mode.Bits.READ, actions.toModeBits());
 
     actions = new AclActions();
     actions.updateByModeBits(Mode.Bits.WRITE);
-    Assert.assertEquals(Mode.Bits.WRITE, actions.toModeBits());
+    assertEquals(Mode.Bits.WRITE, actions.toModeBits());
 
     actions = new AclActions();
     actions.updateByModeBits(Mode.Bits.EXECUTE);
-    Assert.assertEquals(Mode.Bits.EXECUTE, actions.toModeBits());
+    assertEquals(Mode.Bits.EXECUTE, actions.toModeBits());
 
     actions = new AclActions();
     actions.updateByModeBits(Mode.Bits.READ_WRITE);
-    Assert.assertEquals(Mode.Bits.READ_WRITE, actions.toModeBits());
+    assertEquals(Mode.Bits.READ_WRITE, actions.toModeBits());
 
     actions = new AclActions();
     actions.updateByModeBits(Mode.Bits.READ_EXECUTE);
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, actions.toModeBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, actions.toModeBits());
 
     actions = new AclActions();
     actions.updateByModeBits(Mode.Bits.WRITE_EXECUTE);
-    Assert.assertEquals(Mode.Bits.WRITE_EXECUTE, actions.toModeBits());
+    assertEquals(Mode.Bits.WRITE_EXECUTE, actions.toModeBits());
 
     actions = new AclActions();
     actions.updateByModeBits(Mode.Bits.ALL);
-    Assert.assertEquals(Mode.Bits.ALL, actions.toModeBits());
+    assertEquals(Mode.Bits.ALL, actions.toModeBits());
   }
 
   /**
@@ -118,16 +121,16 @@ public class AclActionsTest {
   @Test
   public void contains() {
     AclActions actions = new AclActions();
-    Assert.assertFalse(actions.contains(AclAction.READ));
-    Assert.assertFalse(actions.contains(AclAction.WRITE));
-    Assert.assertFalse(actions.contains(AclAction.EXECUTE));
+    assertFalse(actions.contains(AclAction.READ));
+    assertFalse(actions.contains(AclAction.WRITE));
+    assertFalse(actions.contains(AclAction.EXECUTE));
 
     actions.add(AclAction.READ);
-    Assert.assertTrue(actions.contains(AclAction.READ));
+    assertTrue(actions.contains(AclAction.READ));
     actions.add(AclAction.WRITE);
-    Assert.assertTrue(actions.contains(AclAction.WRITE));
+    assertTrue(actions.contains(AclAction.WRITE));
     actions.add(AclAction.EXECUTE);
-    Assert.assertTrue(actions.contains(AclAction.EXECUTE));
+    assertTrue(actions.contains(AclAction.EXECUTE));
   }
 
   /**
@@ -136,23 +139,23 @@ public class AclActionsTest {
   @Test
   public void merge() {
     AclActions actions = new AclActions();
-    Assert.assertEquals(Mode.Bits.NONE, actions.toModeBits());
+    assertEquals(Mode.Bits.NONE, actions.toModeBits());
 
     // Merge empty actions.
     actions.merge(new AclActions());
-    Assert.assertEquals(Mode.Bits.NONE, actions.toModeBits());
+    assertEquals(Mode.Bits.NONE, actions.toModeBits());
 
     // Merge read and write actions.
     AclActions readWrite = new AclActions();
     readWrite.add(AclAction.READ);
     readWrite.add(AclAction.WRITE);
     actions.merge(readWrite);
-    Assert.assertEquals(Mode.Bits.READ_WRITE, actions.toModeBits());
+    assertEquals(Mode.Bits.READ_WRITE, actions.toModeBits());
 
     // Merge execute action.
     AclActions execute = new AclActions();
     execute.add(AclAction.EXECUTE);
     actions.merge(execute);
-    Assert.assertEquals(Mode.Bits.ALL, actions.toModeBits());
+    assertEquals(Mode.Bits.ALL, actions.toModeBits());
   }
 }

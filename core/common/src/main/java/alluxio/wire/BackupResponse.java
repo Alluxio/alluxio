@@ -38,7 +38,7 @@ public class BackupResponse {
    * @param pResp proto options
    * @return wire type options corresponding to the proto options
    */
-  public static BackupResponse fromPoto(BackupPResponse pResp) {
+  public static BackupResponse fromProto(BackupPResponse pResp) {
     return new BackupResponse(new AlluxioURI(pResp.getBackupUri()), pResp.getHostname());
   }
 

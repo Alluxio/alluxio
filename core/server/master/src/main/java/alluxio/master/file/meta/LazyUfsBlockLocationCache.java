@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -65,6 +66,7 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
   }
 
   @Override
+  @Nullable
   public List<String> get(long blockId, AlluxioURI fileUri, long offset) {
     List<String> locations = mCache.getIfPresent(blockId);
     if (locations != null) {

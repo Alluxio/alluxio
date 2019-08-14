@@ -12,7 +12,6 @@
 package alluxio.client.job;
 
 import alluxio.ClientContext;
-import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
@@ -26,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -72,43 +70,6 @@ public final class JobGrpcClientUtils {
       LOG.warn("Job {} failed to complete: {}", jobId, jobInfo.getErrorMessage());
     }
     throw new RuntimeException("Failed to successfully complete the job.");
-  }
-
-  /**
-   * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
-   * interval of 2 seconds.
-   *
-   * @param stream the print stream to write to
-   * @return the thread
-   */
-  public static Thread createProgressThread(PrintStream stream) {
-    return createProgressThread(2 * Constants.SECOND_MS, stream);
-  }
-
-  /**
-   * Creates a thread which will write "." to the given print stream at the given interval. The
-   * created thread is not started by this method. The created thread will be daemonic and will
-   * halt when interrupted.
-   *
-   * @param intervalMs the time interval in milliseconds between writes
-   * @param stream the print stream to write to
-   * @return the thread
-   */
-  public static Thread createProgressThread(final long intervalMs, final PrintStream stream) {
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (true) {
-          CommonUtils.sleepMs(intervalMs);
-          if (Thread.interrupted()) {
-            return;
-          }
-          stream.print(".");
-        }
-      }
-    });
-    thread.setDaemon(true);
-    return thread;
   }
 
   /**

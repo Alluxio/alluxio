@@ -14,19 +14,18 @@ package alluxio.worker.block.evictor;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -69,7 +68,7 @@ public final class LRFUEvictor extends AbstractEvictor {
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
-  public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
+  public LRFUEvictor(BlockMetadataEvictorView view, Allocator allocator) {
     super(view, allocator);
     mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
@@ -80,9 +79,9 @@ public final class LRFUEvictor extends AbstractEvictor {
         "Attenuation factor should be no less than 2.0");
 
     // Preloading blocks
-    for (StorageTierView tier : mManagerView.getTierViews()) {
+    for (StorageTierView tier : mMetadataView.getTierViews()) {
       for (StorageDirView dir : tier.getDirViews()) {
-        for (BlockMeta block : dir.getEvictableBlocks()) {
+        for (BlockMeta block : ((StorageDirEvictorView) dir).getEvictableBlocks()) {
           mBlockIdToLastUpdateTime.put(block.getBlockId(), 0L);
           mBlockIdToCRFValue.put(block.getBlockId(), 0.0);
         }
@@ -104,17 +103,18 @@ public final class LRFUEvictor extends AbstractEvictor {
   @Nullable
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataManagerView view, Mode mode) {
+      BlockMetadataEvictorView view, Mode mode) {
     synchronized (mBlockIdToLastUpdateTime) {
       updateCRFValue();
-      mManagerView = view;
+      mMetadataView = view;
 
       List<BlockTransferInfo> toMove = new ArrayList<>();
       List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
-      StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, mode);
+      StorageDirEvictorView candidateDir
+          = cascadingEvict(bytesToBeAvailable, location, plan, mode);
 
-      mManagerView.clearBlockMarks();
+      mMetadataView.clearBlockMarks();
       if (candidateDir == null) {
         return null;
       }
@@ -125,13 +125,7 @@ public final class LRFUEvictor extends AbstractEvictor {
 
   @Override
   protected Iterator<Long> getBlockIterator() {
-    return Iterators.transform(getSortedCRF().iterator(),
-        new Function<Map.Entry<Long, Double>, Long>() {
-          @Override
-          public Long apply(Entry<Long, Double> input) {
-            return input.getKey();
-          }
-        });
+    return Iterators.transform(getSortedCRF().iterator(), Entry::getKey);
   }
 
   /**
@@ -141,12 +135,7 @@ public final class LRFUEvictor extends AbstractEvictor {
    */
   private List<Map.Entry<Long, Double>> getSortedCRF() {
     List<Map.Entry<Long, Double>> sortedCRF = new ArrayList<>(mBlockIdToCRFValue.entrySet());
-    Collections.sort(sortedCRF, new Comparator<Map.Entry<Long, Double>>() {
-      @Override
-      public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {
-        return Double.compare(o1.getValue(), o2.getValue());
-      }
-    });
+    sortedCRF.sort(Comparator.comparingDouble(Entry::getValue));
     return sortedCRF;
   }
 
@@ -185,7 +174,7 @@ public final class LRFUEvictor extends AbstractEvictor {
    * This function is used to update CRF of all the blocks according to current logic time. When
    * some block is accessed in some time, only CRF of that block itself will be updated to current
    * time, other blocks who are not accessed recently will only be updated until
-   * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataManagerView)} is called
+   * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataEvictorView)} is called
    * because blocks need to be sorted in the increasing order of CRF. When this function is called,
    * {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} need to be locked in case
    * of the changing of values.

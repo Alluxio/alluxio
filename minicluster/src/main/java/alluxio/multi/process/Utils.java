@@ -31,13 +31,10 @@ public final class Utils {
    * @param lifetimeMs the time to wait before terminating the current process
    */
   public static void limitLife(final long lifetimeMs) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        CommonUtils.sleepMs(lifetimeMs);
-        LOG.info("Process has timed out after {}ms, exiting now", lifetimeMs);
-        System.exit(-1);
-      }
+    new Thread(() -> {
+      CommonUtils.sleepMs(lifetimeMs);
+      LOG.info("Process has timed out after {}ms, exiting now", lifetimeMs);
+      System.exit(-1);
     }, "life-limiter").start();
   }
 

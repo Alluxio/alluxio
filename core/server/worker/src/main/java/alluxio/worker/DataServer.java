@@ -37,15 +37,17 @@ public interface DataServer extends Closeable {
     /**
      * Factory for {@link DataServer}.
      *
+     * @param hostName the host name of the data server
      * @param dataAddress the address of the data server
      * @param worker the Alluxio worker handle
      * @return the generated {@link DataServer}
      */
-    public static DataServer create(final SocketAddress dataAddress, final WorkerProcess worker) {
+    public static DataServer create(final String hostName,
+        final SocketAddress dataAddress, final WorkerProcess worker) {
       return CommonUtils.createNewClassInstance(
           ServerConfiguration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
-          new Class[] {SocketAddress.class, WorkerProcess.class},
-          new Object[] {dataAddress, worker});
+          new Class[] {String.class, SocketAddress.class, WorkerProcess.class},
+          new Object[] {hostName, dataAddress, worker});
     }
   }
 

@@ -51,7 +51,8 @@ message CheckConsistencyPRequest {
 message CompleteFilePResponse {}
 message CompleteFilePOptions {
   optional int64 ufsLength = 1;
-  optional FileSystemMasterCommonPOptions commonOptions = 2;
+  optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
 }
 message CompleteFilePRequest {
   /** the path of the file */
@@ -62,9 +63,8 @@ message CompleteFilePRequest {
 message OpenFilePOptions {
   optional ReadPType readType = 1;
   optional int32 maxUfsReadConcurrency = 2;
-  optional string fileReadLocationPolicy = 3;
-  optional int32 hashingNumberOfShards = 4;
-  optional FileSystemMasterCommonPOptions commonOptions = 5;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional bool updateLastAccessTime = 4 [default = true];
 }
 
 message CreateDirectoryPResponse {}
@@ -91,10 +91,10 @@ message CreateFilePOptions {
   optional int32 replicationMax = 4;
   optional int32 replicationMin = 5;
   optional int32 replicationDurable = 6;
-  optional string fileWriteLocationPolicy = 7;
-  optional int32 writeTier = 8;
-  optional WritePType writeType = 9;
-  optional FileSystemMasterCommonPOptions commonOptions = 10;
+  optional int32 writeTier = 7;
+  optional WritePType writeType = 8;
+  optional FileSystemMasterCommonPOptions commonOptions = 9;
+  optional int64 persistenceWaitTime = 10;
 }
 message CreateFilePRequest {
   /** the path of the file */
@@ -145,6 +145,8 @@ message GetStatusPResponse {
 message GetStatusPOptions {
   optional LoadMetadataPType loadMetadataType = 1;
   optional FileSystemMasterCommonPOptions commonOptions = 2;
+  optional Bits accessMode = 3;
+  optional bool updateTimestamps = 4 [default = true];
 }
 message GetStatusPRequest {
   /** the path of the file or directory */
@@ -189,20 +191,12 @@ message ListStatusPRequest {
   optional ListStatusPOptions options = 2;
 }
 
-message LoadMetadataPResponse {
-  optional int64 id = 1;
-}
 message LoadMetadataPOptions {
   /** whether to load metadata recursively */
   optional bool recursive = 1;
   optional bool createAncestors = 2;
   optional fscommon.LoadDescendantPType loadDescendantType = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
-}
-message LoadMetadataPRequest {
-  /** the path of the under file system */
-  optional string ufsPath = 1;
-  optional LoadMetadataPOptions options = 2;
 }
 
 enum PAclEntryType {
@@ -278,6 +272,7 @@ message FileInfo {
   optional PAcl defaultAcl = 28;
   optional int32 replicationMax = 29;
   optional int32 replicationMin = 30;
+  optional int64 lastAccessTimeMs = 31;
 }
 
 message GetFilePathPResponse {
@@ -338,6 +333,7 @@ message FileSystemCommand {
 message RenamePResponse {}
 message RenamePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool persist = 2;
 }
 message RenamePRequest {
   /** the source path of the file or directory */
@@ -358,6 +354,7 @@ message SetAttributePOptions {
   optional int32 replicationMax = 7;
   optional int32 replicationMin = 8;
   optional FileSystemMasterCommonPOptions commonOptions = 9;
+  repeated string pinnedMedia = 10;
 }
 message SetAttributePRequest {
   /** the path of the file */
@@ -392,6 +389,7 @@ message SetAclPRequest {
 message ScheduleAsyncPersistencePResponse {}
 message ScheduleAsyncPersistencePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional int64 persistenceWaitTime = 2;
 }
 message ScheduleAsyncPersistencePRequest {
   /** the path of the file */
@@ -437,6 +435,13 @@ enum UfsPMode {
   READ_ONLY = 2;
   READ_WRITE = 3;
 }
+
+message UpdateMountPRequest {
+  /** the path of alluxio mount point */
+  optional string alluxioPath = 1;
+  optional MountPOptions options = 3;
+}
+message UpdateMountPResponse {}
 
 message UpdateUfsModePResponse {}
 message UpdateUfsModePOptions {
@@ -508,7 +513,7 @@ service FileSystemMasterClientService {
    * If the path points to a directory, the method returns a list with file information for the
    * directory contents.
    */
-  rpc ListStatus(ListStatusPRequest) returns (ListStatusPResponse);
+  rpc ListStatus(ListStatusPRequest) returns (stream ListStatusPResponse);
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
@@ -557,6 +562,11 @@ service FileSystemMasterClientService {
    * will be persisted before they are removed from the Alluxio namespace.
    */
   rpc Unmount(UnmountPRequest) returns (UnmountPResponse);
+
+  /**
+   * Updates an existing "mount point", changing its mount properties
+   */
+  rpc UpdateMount(UpdateMountPRequest) returns (UpdateMountPResponse);
 
   /**
    * Updates the ufs mode for a ufs path under one or more mount points.

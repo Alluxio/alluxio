@@ -17,14 +17,13 @@ import static org.junit.Assume.assumeFalse;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.PropertyKey.Name;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Name;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -43,6 +42,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -51,7 +51,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -62,6 +61,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -79,7 +79,6 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
-import alluxio.grpc.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -101,6 +100,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -148,6 +148,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
               String.valueOf(TTL_CHECKER_INTERVAL_MS))
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, 1000)
+          .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
   @Rule
@@ -545,6 +546,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0)).setOperationTimeMs(opTimeMs));
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
+    Assert.assertEquals(opTimeMs, fileInfo.getLastAccessTimeMs());
   }
 
   @Test
@@ -555,6 +557,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), context);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
+    Assert.assertEquals(opTimeMs, folderInfo.getLastAccessTimeMs());
   }
 
   /**
@@ -566,11 +569,14 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
     long folderId = mFsMaster.getFileId(new AlluxioURI("/testFolder"));
     long modificationTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
+    long accessTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastAccessTimeMs();
     CommonUtils.sleepMs(2);
     mFsMaster.delete(new AlluxioURI("/testFolder/testFile"),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
     long modificationTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
+    long accessTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastAccessTimeMs();
     Assert.assertTrue(modificationTimeBeforeDelete < modificationTimeAfterDelete);
+    Assert.assertTrue(accessTimeBeforeDelete < accessTimeAfterDelete);
   }
 
   @Test
@@ -582,6 +588,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.rename(srcPath, dstPath, RenameContext.defaults().setOperationTimeMs(TEST_TIME_MS));
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(TEST_TIME_MS, folderInfo.getLastModificationTimeMs());
+    Assert.assertEquals(TEST_TIME_MS, folderInfo.getLastAccessTimeMs());
   }
 
   @Test
@@ -780,6 +787,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       for (Future<?> future : futures) {
         future.get();
       }
+      Assert.assertEquals(countPaths(), mFsMaster.getInodeCount());
 
       // Stop Alluxio.
       mLocalAlluxioClusterResource.get().stopFS();
@@ -789,6 +797,23 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       threadPool.shutdownNow();
       threadPool.awaitTermination(SHUTDOWN_TIME_MS, TimeUnit.MILLISECONDS);
     }
+  }
+
+  private long countPaths() throws Exception {
+    long count = 1;
+    Stack<AlluxioURI> dirs = new Stack();
+    dirs.push(new AlluxioURI("/"));
+    while (!dirs.isEmpty()) {
+      AlluxioURI uri = dirs.pop();
+      for (FileInfo child : mFsMaster.listStatus(uri, ListStatusContext.defaults())) {
+        count++;
+        AlluxioURI childUri = new AlluxioURI(PathUtils.concatPath(uri, child.getName()));
+        if (mFsMaster.getFileInfo(childUri, GetStatusContext.defaults()).isFolder()) {
+          dirs.push(childUri);
+        }
+      }
+    }
+    return count;
   }
 
   @Test
@@ -909,14 +934,13 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsDirectoryStatus ufsStatus = new
         UfsDirectoryStatus("test", "owner", "group", (short) 511);
-    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any(),
-        Matchers.any(AlluxioConfiguration.class))).thenReturn(mockUfs);
+    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
         .thenReturn(new AlluxioURI(ufsBase));
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), "/dir1"))
         .thenReturn(new AlluxioURI(ufsBase + "/dir1"));
-    Mockito.when(mockUfs.getDirectoryStatus(ufsBase))
+    Mockito.when(mockUfs.getExistingDirectoryStatus(ufsBase))
         .thenReturn(ufsStatus);
     Mockito.when(mockUfs.mkdirs(Matchers.eq(ufsBase + "/dir1"), Matchers.any()))
         .thenThrow(new IOException("ufs unavailable"));
@@ -1156,6 +1180,55 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     fsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
   }
 
+  @Test
+  public void setModeOwnerNoWritePermission() throws Exception {
+    AlluxioURI root = new AlluxioURI("/");
+    mFsMaster.setAttribute(root, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    try (AutoCloseable closeable =
+             new AuthenticatedUserRule("foo", ServerConfiguration.global()).toResource()) {
+      AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+      FileInfo file = mFsMaster.createFile(alluxioFile, CreateFileContext.defaults());
+
+      long opTimeMs = TEST_TIME_MS;
+      mFsMaster.completeFile(alluxioFile, CompleteFileContext
+          .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0))
+          .setOperationTimeMs(opTimeMs));
+      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0407).toProto())));
+      Assert.assertEquals(0407, mFsMaster.getFileInfo(file.getFileId()).getMode());
+      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+      Assert.assertEquals(0777, mFsMaster.getFileInfo(file.getFileId()).getMode());
+    }
+  }
+
+  @Test
+  public void setModeNoOwner() throws Exception {
+    AlluxioURI root = new AlluxioURI("/");
+    mFsMaster.setAttribute(root, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+    try (AutoCloseable closeable =
+             new AuthenticatedUserRule("foo", ServerConfiguration.global()).toResource()) {
+      FileInfo file = mFsMaster.createFile(alluxioFile, CreateFileContext.defaults());
+
+      long opTimeMs = TEST_TIME_MS;
+      mFsMaster.completeFile(alluxioFile, CompleteFileContext
+          .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0))
+          .setOperationTimeMs(opTimeMs));
+      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+      Assert.assertEquals(0777, mFsMaster.getFileInfo(file.getFileId()).getMode());
+    }
+    mThrown.expect(AccessControlException.class);
+    try (AutoCloseable closeable =
+             new AuthenticatedUserRule("bar", ServerConfiguration.global()).toResource()) {
+      mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+          .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0677).toProto())));
+    }
+  }
+
   /**
    * Tests creating a directory in a nested directory load the UFS status of Inodes on the path.
    */
@@ -1328,6 +1401,68 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(parentInfo.isPersisted());
     Assert.assertEquals(actualTime, alluxioTime);
     Assert.assertTrue(FileUtils.exists(parentUfsPath));
+  }
+
+  /**
+   * Tests journal is updated with access time asynchronously before master is stopped.
+   */
+  @Test
+  public void updateAccessTimeAsyncFlush() throws Exception {
+    String parentName = "d1";
+    AlluxioURI parentPath = new AlluxioURI("/" + parentName);
+    long parentId = mFsMaster.createDirectory(parentPath,
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+            .setMode(new Mode((short) 0700).toProto())));
+    long oldAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
+    Thread.sleep(100);
+    mFsMaster.listStatus(parentPath, ListStatusContext.defaults());
+    long newAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is changed in master
+    Assert.assertNotEquals(newAccessTime, oldAccessTime);
+    MasterRegistry registry = createFileSystemMasterFromJournal();
+    FileSystemMaster fsm = registry.get(FileSystemMaster.class);
+    long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is not flushed to journal
+    Assert.assertEquals(journaledAccessTime, oldAccessTime);
+    // Stop Alluxio.
+    mLocalAlluxioClusterResource.get().stopFS();
+    // Create the master using the existing journal.
+    registry = createFileSystemMasterFromJournal();
+    fsm = registry.get(FileSystemMaster.class);
+    long journaledAccessTimeAfterStop = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is now flushed to journal
+    Assert.assertEquals(journaledAccessTimeAfterStop, newAccessTime);
+  }
+
+  /**
+   * Tests journal is not updated with access time asynchronously after delete.
+   */
+  @Test
+  public void updateAccessTimeAsyncFlushAfterDelete() throws Exception {
+    String parentName = "d1";
+    AlluxioURI parentPath = new AlluxioURI("/" + parentName);
+    long parentId = mFsMaster.createDirectory(parentPath,
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+            .setMode(new Mode((short) 0700).toProto())));
+    long oldAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
+    Thread.sleep(100);
+    mFsMaster.listStatus(parentPath, ListStatusContext.defaults());
+    long newAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is changed in master
+    Assert.assertNotEquals(newAccessTime, oldAccessTime);
+    MasterRegistry registry = createFileSystemMasterFromJournal();
+    FileSystemMaster fsm = registry.get(FileSystemMaster.class);
+    long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+    // time is not flushed to journal
+    Assert.assertEquals(journaledAccessTime, oldAccessTime);
+    // delete the directory
+    mFsMaster.delete(parentPath, DeleteContext.defaults());
+    // Stop Alluxio.
+    mLocalAlluxioClusterResource.get().stopFS();
+    // Create the master using the existing journal.
+    registry = createFileSystemMasterFromJournal();
+    fsm = registry.get(FileSystemMaster.class);
+    Assert.assertEquals(fsm.getFileId(parentPath), -1);
   }
 
   /**

@@ -27,36 +27,42 @@ this="${config_bin}/${script}"
 
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=2.0.0-SNAPSHOT
+VERSION=2.1.0-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
 ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
+ALLUXIO_USER_LOGS_DIR="${ALLUXIO_USER_LOGS_DIR:-${ALLUXIO_LOGS_DIR}/user}"
 
 if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
   . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 fi
 
-if [[ -z "$(which java)" ]]; then
-  echo "Cannot find the 'java' command."
-  exit 1
+# Check if java is found
+if [[ -z "${JAVA}" ]]; then
+  if [[ -n "$(which java)" ]]; then
+    JAVA=$(which java)
+  elif [[ -n "${JAVA_HOME}" ]] && [[ -x "${JAVA_HOME}/bin/java" ]];  then
+    JAVA="${JAVA_HOME}/bin/java"
+  else
+    echo "Error: Cannot find 'java' on path or under \$JAVA_HOME/bin/."
+    exit 1
+  fi
 fi
 
-JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
-JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
-
-if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
-  echo "ALLUXIO_MASTER_ADDRESS is deprecated since version 1.1 and will be remove in version 2.0."
-  echo "Please use \"ALLUXIO_MASTER_HOSTNAME\" instead."
-  ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_ADDRESS}
+# Check Java version == 1.8
+JAVA_VERSION=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}')
+if [[ $(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}') != 001008 ]]; then
+  echo "Error: Alluxio requires Java 8, currently Java $JAVA_VERSION found."
+  exit 1
 fi
 
 if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
 fi
 
-ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
+ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.user.logs.dir=${ALLUXIO_USER_LOGS_DIR}"
 
 if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.alias=MEM"
@@ -67,8 +73,12 @@ if [[ -n "${ALLUXIO_MASTER_HOSTNAME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}"
 fi
 
-if [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.underfs.address=${ALLUXIO_UNDERFS_ADDRESS}"
+if [[ -n "${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.mount.table.root.ufs=${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}"
+elif [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
+  echo "Warning: ALLUXIO_UNDERFS_ADDRESS is deprecated by ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS"
+  ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="${ALLUXIO_UNDERFS_ADDRESS}"
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.mount.table.root.ufs=${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}"
 fi
 
 if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then

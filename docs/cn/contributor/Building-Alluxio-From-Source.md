@@ -19,13 +19,13 @@ priority: 1
 
 从Github上获取主分支并编译：
 
-```bash
+```console
 $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 ```
 您可以编译特定版本的Alluxio，例如{{site.ALLUXIO_RELEASED_VERSION}}。否则这将编译源码的master分支。
 
-```bash
+```console
 $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
@@ -33,19 +33,19 @@ $ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
 
 使用Maven编译源码：
 
-```java
+```console
 $ mvn clean install -DskipTests
 ```
 
 为了加速编译过程，你可以运行如下指令跳过不同的检查：
 
-```bash
+```console
 $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
 ```
 
 如果你看到了 `java.lang.OutOfMemoryError: Java heap space`，请设置如下变量增大maven可使用的内存空间：
 
-```bash
+```console
 $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 ```
 
@@ -55,7 +55,7 @@ Maven编译环境将自动获取依赖，编译源码，运行单元测试，并
 
 一旦Alluxio编译完成，你可以运行如下命令：
 
-```bash
+```console
 $ echo "alluxio.master.hostname=localhost" > conf/alluxio-site.properties
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
@@ -63,7 +63,7 @@ $ ./bin/alluxio-start.sh local
 
 若要确认Alluxio是否在运行，可以访问[http://localhost:19999](http://localhost:19999)，或者查看`alluxio/logs`目录下的日志文件，也可以执行下面的简单程序:
 
-```bash
+```console
 $ ./bin/alluxio runTests
 ```
 
@@ -71,7 +71,7 @@ $ ./bin/alluxio runTests
 
 你可以通过使用如下命令停止Alluxio：
 
-```bash
+```console
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -83,7 +83,7 @@ $ ./bin/alluxio-stop.sh local
 ### Hadoop发行版的支持
 要针对hadoop发行版本中某一个版本构建Alluxio，可以通过指定`<HADOOP_PROFILE>`和对应的`hadoop.version`来运行如下命令：
 
-```bash
+```console
 $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 

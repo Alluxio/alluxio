@@ -6,7 +6,7 @@ group: Data Applications
 priority: 2
 ---
 
-[Presto](https://prestodb.io/)
+[Presto](https://prestosql.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
 This guide describes how to run Presto to query Alluxio as a distributed cache layer,
@@ -22,13 +22,13 @@ latency especially when data is remote or network is slow or congested.
 
 ## Prerequisites
 
-* Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
-* [Deploy Presto](https://prestodb.io/docs/current/installation/deployment.html).
-This guide is tested with `presto-0.208`.
+* Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
+* [Deploy Presto](https://prestosql.io/docs/current/installation/deployment.html).
+This guide is tested with `presto-315`.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-  downloaded from Alluxio [download page](http://www.alluxio.org/download).
+  downloaded from Alluxio [download page](https://www.alluxio.io/download).
 * Make sure that Hive metastore is running to serve metadata information of Hive tables.
 
 ## Basic Setup
@@ -50,7 +50,7 @@ Put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into directory
 `${PRESTO_HOME}/plugin/hive-hadoop2/`
 (this directory may differ across versions) on all Presto servers. Restart Presto service:
 
-```bash
+```console
 $ ${PRESTO_HOME}/bin/launcher restart
 ```
 
@@ -68,9 +68,9 @@ You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `/ml-100k/` on Alluxio:
 
-```bash
-$ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+```console
+$ ./bin/alluxio fs mkdir /ml-100k
+$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 Create an external Hive table from existing files in Alluxio.
@@ -96,7 +96,7 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 Ensure your Hive metastore service is running. Hive metastore listens on port `9083` by
 default. If it is not running,
 
-```bash
+```console
 $ ${HIVE_HOME}/bin/hive --service metastore
 ```
 
@@ -105,21 +105,22 @@ $ ${HIVE_HOME}/bin/hive --service metastore
 Start your Presto server. Presto server runs on port `8080` by default (set by
 `http-server.http.port` in `${PRESTO_HOME}/etc/config.properties` ):
 
-```bash
+```console
 $ ${PRESTO_HOME}/bin/launcher run
 ```
 
 ### Query tables using Presto
 
-Follow [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
+Follow [Presto CLI guidence](https://prestosql.io/docs/current/installation/cli.html) to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
 rename it to `presto`, and make it executable with `chmod +x`
 (sometimes the executable `presto` exists in `${PRESTO_HOME}/bin/presto` and you can use it
 directly).
 
 Run a single query (replace `localhost:8080` with your actual Presto server hostname and port):
 
-```bash
-$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
+```console
+$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" \
+  --catalog hive --debug
 ```
 
 And you can see the query results from console:
@@ -156,34 +157,33 @@ hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xm
 
 #### Example: connect to Alluxio with HA
 
-To use Alluxio in fault tolerant mode, set the Alluxio cluster properties appropriately in an
+If the Alluxio HA cluster uses internal leader election,
+set the Alluxio cluster property appropriately in the
 `alluxio-site.properties` file which is on the classpath.
 
 ```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-Alternatively you can add the properties to the Hadoop `core-site.xml` configuration
+Alternatively you can add the property to the Hadoop `core-site.xml` configuration
 which is contained by `hive.config.resources`.
 
 ```xml
 <configuration>
   <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+    <name>alluxio.master.rpc.addresses</name>
+    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
   </property>
 </configuration>
 ```
 
+For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
+
 #### Example: change default Alluxio write type
 
 For example, change
-`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
+`alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`.
 
 One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
 of each Hive node:
@@ -215,8 +215,8 @@ async cache on Alluxio workers.
 
 ### Avoid Presto timeout reading large files
 
-It is recommended to increase `alluxio.user.network.netty.timeout` to a bigger value (e.g.
-`10min`) to avoid the timeout
+It is recommended to increase `alluxio.user.network.data.timeout` to a bigger value (e.g
+`10min`) to avoid a timeout
  failure when reading large files from remote worker.
 
 ## Troubleshooting

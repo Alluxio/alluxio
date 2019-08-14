@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that the caller does not have permission to execute the specified operation.
  * It must not be used for rejections caused by exhausting some resource (use
@@ -25,14 +27,14 @@ public class PermissionDeniedException extends AlluxioStatusException {
    * @param message the exception message
    */
   public PermissionDeniedException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public PermissionDeniedException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -40,6 +42,6 @@ public class PermissionDeniedException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public PermissionDeniedException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

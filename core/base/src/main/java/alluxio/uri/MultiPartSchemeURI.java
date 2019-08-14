@@ -16,6 +16,7 @@ import static alluxio.uri.URI.Factory.getSchemeComponents;
 import alluxio.collections.Pair;
 import alluxio.util.URIUtils;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -81,6 +82,7 @@ public final class MultiPartSchemeURI extends StandardURI {
    * @param uriScheme the scheme of the URI
    * @return the combined scheme
    */
+  @Nullable
   private String getFullScheme(String schemePrefix, String uriScheme) {
     if (uriScheme == null) {
       return null;

@@ -15,4 +15,22 @@ public interface GetConfigurationPOptionsOrBuilder extends
    * <code>optional bool rawValue = 1;</code>
    */
   boolean getRawValue();
+
+  /**
+   * <code>optional bool ignoreClusterConf = 2;</code>
+   */
+  boolean hasIgnoreClusterConf();
+  /**
+   * <code>optional bool ignoreClusterConf = 2;</code>
+   */
+  boolean getIgnoreClusterConf();
+
+  /**
+   * <code>optional bool ignorePathConf = 3;</code>
+   */
+  boolean hasIgnorePathConf();
+  /**
+   * <code>optional bool ignorePathConf = 3;</code>
+   */
+  boolean getIgnorePathConf();
 }

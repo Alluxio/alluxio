@@ -12,6 +12,8 @@
 package alluxio.master.job;
 
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -28,6 +30,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
+import alluxio.job.JobServerContext;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.meta.JobInfo;
 import alluxio.job.meta.MasterWorkerInfo;
@@ -46,6 +49,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.grpc.Context;
 import net.jcip.annotations.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +76,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
   private static final long RETENTION_MS =
-      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_MS);
+      ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
 
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =
@@ -90,6 +94,11 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
           return o.getWorkerAddress();
         }
       };
+
+  /**
+   * The Filesystem context that the job master uses for its client.
+   */
+  private final JobServerContext mJobServerContext;
 
   /**
    * The total number of jobs that the JobMaster may run at any moment.
@@ -135,24 +144,22 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private final SortedSet<JobInfo> mFinishedJobs;
 
   /**
-   * The manager for all ufs.
-   */
-  private UfsManager mUfsManager;
-
-  /**
    * Creates a new instance of {@link JobMaster}.
    *
    * @param masterContext the context for Alluxio master
+   * @param filesystem the Alluxio filesystem client the job master uses to communicate
+   * @param fsContext the filesystem client's underlying context
    * @param ufsManager the ufs manager
    */
-  public JobMaster(MasterContext masterContext, UfsManager ufsManager) {
+  public JobMaster(MasterContext masterContext, FileSystem filesystem,
+      FileSystemContext fsContext, UfsManager ufsManager) {
     super(masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
+    mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
     mIdToJobCoordinator = new ConcurrentHashMap<>();
     mFinishedJobs = new ConcurrentSkipListSet<>();
-    mUfsManager = ufsManager;
   }
 
   @Override
@@ -168,8 +175,8 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
-              ServerConfiguration.getInt(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL_MS),
-              ServerConfiguration.global()));
+              (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
+              ServerConfiguration.global(), mMasterContext.getUserState()));
     }
   }
 
@@ -199,45 +206,54 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    */
   public synchronized long run(JobConfig jobConfig)
       throws JobDoesNotExistException, ResourceExhaustedException {
-    if (mIdToJobCoordinator.size() == mCapacity) {
-      if (mFinishedJobs.isEmpty()) {
-        // The job master is at full capacity and no job has finished.
-        throw new ResourceExhaustedException(
-            ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
-      }
-      // Discard old jobs that have completion time beyond retention policy
-      Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
-      // Used to denote whether space could be reserved for the new job
-      // It's 'true' if job master is at full capacity
-      boolean isfull = true;
-      while (jobIterator.hasNext()) {
-        JobInfo oldestJob = jobIterator.next();
-        long completedBeforeMs = CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs();
-        if (completedBeforeMs < RETENTION_MS) {
-          // mFinishedJobs is sorted. Can't iterate to a job within retention policy
-          break;
+    // This RPC service implementation triggers another RPC.
+    // Run the implementation under forked context to avoid interference.
+    // Then restore the current context at the end.
+    Context forkedCtx = Context.current().fork();
+    Context prevCtx = forkedCtx.attach();
+    try {
+      if (mIdToJobCoordinator.size() == mCapacity) {
+        if (mFinishedJobs.isEmpty()) {
+          // The job master is at full capacity and no job has finished.
+          throw new ResourceExhaustedException(
+              ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
         }
-        jobIterator.remove();
-        mIdToJobCoordinator.remove(oldestJob.getId());
-        isfull = false;
-      }
-      if (isfull) {
-        throw new ResourceExhaustedException(
-            ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
-      }
-    }
-    long jobId = mJobIdGenerator.getNewJobId();
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mUfsManager,
-        getWorkerInfoList(), jobId, jobConfig, (jobInfo) -> {
-          Status status = jobInfo.getStatus();
-          mFinishedJobs.remove(jobInfo);
-          if (status.isFinished()) {
-            mFinishedJobs.add(jobInfo);
+        // Discard old jobs that have completion time beyond retention policy
+        Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
+        // Used to denote whether space could be reserved for the new job
+        // It's 'true' if job master is at full capacity
+        boolean isFull = true;
+        while (jobIterator.hasNext()) {
+          JobInfo oldestJob = jobIterator.next();
+          long completedBeforeMs = CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs();
+          if (completedBeforeMs < RETENTION_MS) {
+            // mFinishedJobs is sorted. Can't iterate to a job within retention policy
+            break;
           }
-          return null;
-        });
-    mIdToJobCoordinator.put(jobId, jobCoordinator);
-    return jobId;
+          jobIterator.remove();
+          mIdToJobCoordinator.remove(oldestJob.getId());
+          isFull = false;
+        }
+        if (isFull) {
+          throw new ResourceExhaustedException(
+              ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
+        }
+      }
+      long jobId = mJobIdGenerator.getNewJobId();
+      JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+          getWorkerInfoList(), jobId, jobConfig, (jobInfo) -> {
+            Status status = jobInfo.getStatus();
+            mFinishedJobs.remove(jobInfo);
+            if (status.isFinished()) {
+              mFinishedJobs.add(jobInfo);
+            }
+            return null;
+          });
+      mIdToJobCoordinator.put(jobId, jobCoordinator);
+      return jobId;
+    } finally {
+      forkedCtx.detach(prevCtx);
+    }
   }
 
   /**
@@ -369,8 +385,8 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs = ServerConfiguration
-          .getInt(PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS);
+      int masterWorkerTimeoutMs = (int) ServerConfiguration
+          .getMs(PropertyKey.JOB_MASTER_WORKER_TIMEOUT);
       List<MasterWorkerInfo> lostWorkers = new ArrayList<MasterWorkerInfo>();
       // Run under shared lock for mWorkers
       try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {

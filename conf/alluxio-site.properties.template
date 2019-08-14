@@ -10,11 +10,11 @@
 #
 
 # Site specific configuration properties for Alluxio
-# Details about all configuration properties http://www.alluxio.org/documentation/en/Configuration-Settings.html
+# Details about all configuration properties https://docs.alluxio.io/os/user/stable/en/reference/Properties-List.html
 
 # Common properties
 # alluxio.master.hostname=localhost
-# alluxio.underfs.address=${alluxio.work.dir}/underFSStorage
+# alluxio.master.mount.table.root.ufs=${alluxio.work.dir}/underFSStorage
 
 # Security properties
 # alluxio.security.authorization.permission.enabled=true

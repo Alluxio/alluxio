@@ -17,6 +17,7 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.util.CommonUtils.ProcessType;
 
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
@@ -80,8 +81,8 @@ public class AlluxioMasterExecutor implements Executor {
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemFactoryRegistry.class.getClassLoader());
 
-          JournalSystem journalSystem =
-              new JournalSystem.Builder().setLocation(JournalUtils.getJournalLocation()).build();
+          JournalSystem journalSystem = new JournalSystem.Builder()
+              .setLocation(JournalUtils.getJournalLocation()).build(ProcessType.MASTER);
           if (!journalSystem.isFormatted()) {
             Format.format(Format.Mode.MASTER, ServerConfiguration.global());
           }

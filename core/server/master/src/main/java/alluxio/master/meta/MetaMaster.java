@@ -11,20 +11,25 @@
 
 package alluxio.master.meta;
 
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.ConfigProperty;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.master.Master;
 import alluxio.wire.Address;
-import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The interface of meta master.
@@ -37,7 +42,7 @@ public interface MetaMaster extends Master {
    * @param options method options
    * @return the uri of the created backup
    */
-  BackupResponse backup(BackupOptions options) throws IOException;
+  BackupResponse backup(BackupPOptions options) throws IOException;
 
   /**
    * @return the server-side configuration checker report
@@ -48,7 +53,36 @@ public interface MetaMaster extends Master {
    * @param options method options
    * @return configuration information list
    */
-  List<ConfigProperty> getConfiguration(GetConfigurationPOptions options);
+  Configuration getConfiguration(GetConfigurationPOptions options);
+
+  /**
+   * @return hashes of cluster and path level configuration
+   */
+  ConfigHash getConfigHash();
+
+  /**
+   * Sets properties for a path.
+   *
+   * @param path the path
+   * @param properties the properties for path
+   */
+  void setPathConfiguration(String path, Map<PropertyKey, String> properties)
+      throws UnavailableException;
+
+  /**
+   * Removes properties for a path.
+   *
+   * @param path the path
+   * @param keys the property keys
+   */
+  void removePathConfiguration(String path, Set<String> keys) throws UnavailableException;
+
+  /**
+   * Removes all properties for a path.
+   *
+   * @param path the path
+   */
+  void removePathConfiguration(String path) throws UnavailableException;
 
   /**
    * @return the addresses of live masters
@@ -109,4 +143,11 @@ public interface MetaMaster extends Master {
    * @throws NotFoundException if masterId cannot be found
    */
   void masterRegister(long masterId, RegisterMasterPOptions options) throws NotFoundException;
+
+  /**
+   * Creates a checkpoint in the primary master journal system.
+   *
+   * @return the hostname of the master that did the checkpoint
+   */
+  String checkpoint() throws IOException;
 }

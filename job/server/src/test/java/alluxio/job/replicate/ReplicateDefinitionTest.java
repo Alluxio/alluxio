@@ -41,8 +41,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
-import alluxio.job.JobMasterContext;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.JobServerContext;
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.BufferUtils;
@@ -75,7 +76,7 @@ import java.util.Map;
  * Tests {@link ReplicateConfig}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobMasterContext.class})
+@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class})
 public final class ReplicateDefinitionTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final long TEST_BLOCK_SIZE = 512L;
@@ -97,7 +98,7 @@ public final class ReplicateDefinitionTest {
   private FileSystemContext mMockFileSystemContext;
   private AlluxioBlockStore mMockBlockStore;
   private FileSystem mMockFileSystem;
-  private JobMasterContext mMockJobMasterContext;
+  private JobServerContext mMockJobServerContext;
   private UfsManager mMockUfsManager;
 
   @Rule
@@ -105,13 +106,14 @@ public final class ReplicateDefinitionTest {
 
   @Before
   public void before() {
-    mMockJobMasterContext = mock(JobMasterContext.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
+    mMockJobServerContext =
+        new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager);
   }
 
   /**
@@ -133,9 +135,9 @@ public final class ReplicateDefinitionTest {
 
     String path = "/test";
     ReplicateConfig config = new ReplicateConfig(path, TEST_BLOCK_ID, numReplicas);
-    ReplicateDefinition definition = new ReplicateDefinition(mMockFileSystemContext,
-        mMockFileSystem);
-    return definition.selectExecutors(config, workerInfoList, mMockJobMasterContext);
+    ReplicateDefinition definition = new ReplicateDefinition();
+    return definition.selectExecutors(config, workerInfoList,
+        new SelectExecutorsContext(1, mMockJobServerContext));
   }
 
   /**
@@ -167,9 +169,8 @@ public final class ReplicateDefinitionTest {
     when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
     ReplicateConfig config = new ReplicateConfig(path, TEST_BLOCK_ID, 1 /* value not used */);
-    ReplicateDefinition definition =
-        new ReplicateDefinition(mMockFileSystemContext, mMockFileSystem);
-    definition.runTask(config, null, new JobWorkerContext(1, 1, mMockUfsManager));
+    ReplicateDefinition definition = new ReplicateDefinition();
+    definition.runTask(config, null, new RunTaskContext(1, 1, mMockJobServerContext));
   }
 
   @Test

@@ -12,6 +12,10 @@
 package alluxio.client.block.stream;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -20,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.exception.status.CanceledException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.WriteRequest;
@@ -31,7 +35,6 @@ import io.grpc.Status;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -99,7 +102,7 @@ public final class GrpcBlockingStreamTest {
 
     WriteResponse actualResponse = mStream.receive(TIMEOUT);
 
-    Assert.assertEquals(response, actualResponse);
+    assertEquals(response, actualResponse);
   }
 
   /**
@@ -109,8 +112,8 @@ public final class GrpcBlockingStreamTest {
   public void close() throws Exception {
     mStream.close();
 
-    Assert.assertTrue(mStream.isClosed());
-    Assert.assertFalse(mStream.isOpen());
+    assertTrue(mStream.isClosed());
+    assertFalse(mStream.isOpen());
     verify(mRequestObserver).onCompleted();
   }
 
@@ -121,8 +124,8 @@ public final class GrpcBlockingStreamTest {
   public void cancel() throws Exception {
     mStream.cancel();
 
-    Assert.assertTrue(mStream.isCanceled());
-    Assert.assertFalse(mStream.isOpen());
+    assertTrue(mStream.isCanceled());
+    assertFalse(mStream.isOpen());
     verify(mRequestObserver).cancel(any(String.class), eq(null));
   }
 
@@ -134,7 +137,7 @@ public final class GrpcBlockingStreamTest {
     mResponseObserver.onCompleted();
 
     WriteResponse actualResponse = mStream.receive(TIMEOUT);
-    Assert.assertNull(actualResponse);
+    assertNull(actualResponse);
   }
 
   /**
@@ -155,7 +158,7 @@ public final class GrpcBlockingStreamTest {
   @Test
   public void sendFailsAfterClosed() throws Exception {
     mStream.close();
-    mThrown.expect(CanceledException.class);
+    mThrown.expect(CancelledException.class);
     mThrown.expectMessage(containsString(TEST_MESSAGE));
 
     mStream.send(WriteRequest.newBuilder().build(), TIMEOUT);
@@ -167,7 +170,7 @@ public final class GrpcBlockingStreamTest {
   @Test
   public void sendFailsAfterCanceled() throws Exception {
     mStream.cancel();
-    mThrown.expect(CanceledException.class);
+    mThrown.expect(CancelledException.class);
     mThrown.expectMessage(containsString(TEST_MESSAGE));
 
     mStream.send(WriteRequest.newBuilder().build(), TIMEOUT);
@@ -179,7 +182,7 @@ public final class GrpcBlockingStreamTest {
   @Test
   public void receiveFailsAfterCanceled() throws Exception {
     mStream.cancel();
-    mThrown.expect(CanceledException.class);
+    mThrown.expect(CancelledException.class);
     mThrown.expectMessage(containsString(TEST_MESSAGE));
 
     mStream.receive(TIMEOUT);
@@ -266,7 +269,7 @@ public final class GrpcBlockingStreamTest {
 
     WriteResponse actualResponse = mStream.receive(TIMEOUT);
 
-    Assert.assertEquals(response, actualResponse);
+    assertEquals(response, actualResponse);
   }
 
   /**
@@ -286,7 +289,7 @@ public final class GrpcBlockingStreamTest {
 
     for (WriteResponse response : responses) {
       WriteResponse actualResponse = mStream.receive(TIMEOUT);
-      Assert.assertEquals(response, actualResponse);
+      assertEquals(response, actualResponse);
     }
   }
 
@@ -306,7 +309,7 @@ public final class GrpcBlockingStreamTest {
 
     for (WriteResponse response : responses) {
       WriteResponse actualResponse = mStream.receive(TIMEOUT);
-      Assert.assertEquals(response, actualResponse);
+      assertEquals(response, actualResponse);
     }
   }
 
@@ -331,12 +334,12 @@ public final class GrpcBlockingStreamTest {
     });
 
     WriteResponse actualResponse = mStream.receive(TIMEOUT);
-    Assert.assertEquals(responses[0], actualResponse);
+    assertEquals(responses[0], actualResponse);
 
     mStream.waitForComplete(TIMEOUT);
 
     actualResponse = mStream.receive(TIMEOUT);
-    Assert.assertEquals(null, actualResponse);
+    assertEquals(null, actualResponse);
   }
 
   /**
@@ -360,7 +363,7 @@ public final class GrpcBlockingStreamTest {
     });
 
     WriteResponse actualResponse = mStream.receive(SHORT_TIMEOUT);
-    Assert.assertEquals(responses[0], actualResponse);
+    assertEquals(responses[0], actualResponse);
     mThrown.expect(DeadlineExceededException.class);
     mThrown.expectMessage(containsString(TEST_MESSAGE));
 

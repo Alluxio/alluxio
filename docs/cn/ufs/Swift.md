@@ -19,19 +19,18 @@ priority: 1
 
 要使用底层存储系统，你需要编辑`conf/alluxio-site.properties`来配置Alluxio。如果该文件不存在，那就从模板创建一个配置文件。
 
-```bash
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 修改`conf/alluxio-site.properties`配置文件的内容包括：
   
 ```properties
-alluxio.underfs.address=swift://<container>/<folder>
+alluxio.master.mount.table.root.ufs=swift://<container>/<folder>
 fs.swift.user=<swift-user>
 fs.swift.tenant=<swift-tenant>
 fs.swift.password=<swift-user-password>
 fs.swift.auth.url=<swift-auth-url>
-fs.swift.use.public.url=<swift-use-public>
 fs.swift.auth.method=<swift-auth-model>
 ```
 
@@ -53,7 +52,7 @@ fs.swift.region=<swift-preferred-region>
 
 完成配置后，你可以启动一个Alluxio集群：
 
-```bash
+```console
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -62,25 +61,25 @@ $ ./bin/alluxio-start.sh local
 
 接着，你可以运行一个简单的示例程序：
 
-```bash
+```console
 $ ./bin/alluxio runTests
 ```
 
 运行成功后，访问你的Swift容器，其中应该包含了由Alluxio创建的文件和目录。在这个测试中，你应该会看到创建的文件名像下面这样：
 
-```bash
+```
 <container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 运行以下命令停止Alluxio：
 
-```bash
+```console
 $ ./bin/alluxio-stop.sh local
 ```
 
 ## 运行功能测试  
 
-```bash
+```console
 $ mvn test -DtestSwiftContainerKey=swift://<container>
 ```
 

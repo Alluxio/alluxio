@@ -17,13 +17,13 @@ priority: 2
 
 为了在集群上部署Alluxio，首先要在每个节点下载Alluxio tar文件并解压：
 
-为了在集群上部署Alluxio，首先 [下载](https://alluxio.org/download) Alluxio文件(.tar)，然后在每个节点上解压它。
+为了在集群上部署Alluxio，首先 [下载](https://alluxio.io/download) Alluxio文件(.tar)，然后在每个节点上解压它。
 
 ### 配置Alluxio
 
 在`${ALLUXIO_HOME}/conf`目录下，从模板创建`conf/alluxio-site.properties`配置文件。
 
-```bash
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -33,7 +33,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 最后，同步所有信息到worker节点。你可以使用
 
-```bash
+```console
 $ ./bin/alluxio copyDir <dirname>
 ```
 
@@ -44,7 +44,7 @@ $ ./bin/alluxio copyDir <dirname>
 
 现在，你可以启动 Alluxio:
 
-```bash
+```console
 $ cd alluxio
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh # use the right parameters here. e.g. all Mount
@@ -53,7 +53,7 @@ $ ./bin/alluxio-start.sh # use the right parameters here. e.g. all Mount
 
 为了确保Alluxio正在运行，访问 `http://<alluxio_master_hostname>:19999`，检查文件夹`alluxio/logs`下的日志，or 或者运行简单程序：
 
-```bash
+```console
 $ ./bin/alluxio runTests
 ```
 
@@ -175,19 +175,19 @@ hadoop fs -ls alluxio:///directory
 
 要测试自动故障处理，请ssh登录至当前的Alluxio master leader，并使用以下命令查找`AlluxioMaster`进程的进程ID：
 
-```bash
+```console
 $ jps | grep AlluxioMaster
 ```
 
 然后使用以下命令杀死leader：
 
-```bash
+```console
 $ kill -9 <leader pid found via the above command>
 ```
 
 然后可以使用以下命令查看leader：
 
-```bash
+```console
 $ ./bin/alluxio fs leader
 ```
 

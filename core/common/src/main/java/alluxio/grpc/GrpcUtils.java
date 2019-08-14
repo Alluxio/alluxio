@@ -183,6 +183,7 @@ public final class GrpcUtils {
     blockLocation.setWorkerId(blockPLocation.getWorkerId());
     blockLocation.setWorkerAddress(fromProto(blockPLocation.getWorkerAddress()));
     blockLocation.setTierAlias(blockPLocation.getTierAlias());
+    blockLocation.setMediumType(blockPLocation.getMediumType());
     return blockLocation;
   }
 
@@ -207,13 +208,14 @@ public final class GrpcUtils {
    * @return wire representation of the file information
    */
   public static FileInfo fromProto(alluxio.grpc.FileInfo pInfo) {
-    return new FileInfo().setFileId(pInfo.getFileId()).setName(pInfo.getName())
+    FileInfo fileInfo = new FileInfo().setFileId(pInfo.getFileId()).setName(pInfo.getName())
         .setPath(pInfo.getPath()).setUfsPath(pInfo.getUfsPath()).setLength(pInfo.getLength())
         .setBlockSizeBytes(pInfo.getBlockSizeBytes()).setCreationTimeMs(pInfo.getCreationTimeMs())
         .setCompleted(pInfo.getCompleted()).setFolder(pInfo.getFolder())
         .setPinned(pInfo.getPinned()).setCacheable(pInfo.getCacheable())
         .setPersisted(pInfo.getPersisted()).setBlockIds(pInfo.getBlockIdsList())
         .setLastModificationTimeMs(pInfo.getLastModificationTimeMs()).setTtl(pInfo.getTtl())
+        .setLastAccessTimeMs(pInfo.getLastAccessTimeMs())
         .setTtlAction(pInfo.getTtlAction()).setOwner(pInfo.getOwner())
         .setGroup(pInfo.getGroup()).setMode(pInfo.getMode())
         .setPersistenceState(pInfo.getPersistenceState()).setMountPoint(pInfo.getMountPoint())
@@ -227,6 +229,7 @@ public final class GrpcUtils {
             pInfo.hasDefaultAcl() ? ((DefaultAccessControlList) fromProto(pInfo.getDefaultAcl()))
                 : DefaultAccessControlList.EMPTY_DEFAULT_ACL)
         .setReplicationMax(pInfo.getReplicationMax()).setReplicationMin(pInfo.getReplicationMin());
+    return fileInfo;
   }
 
   /**
@@ -421,7 +424,9 @@ public final class GrpcUtils {
   public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
     return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
         .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
-        .setTierAlias(blockLocation.getTierAlias()).build();
+        .setTierAlias(blockLocation.getTierAlias())
+        .setMediumType(blockLocation.getMediumType())
+        .build();
   }
 
   /**
@@ -444,6 +449,7 @@ public final class GrpcUtils {
         .setCacheable(fileInfo.isCacheable()).setPersisted(fileInfo.isPersisted())
         .addAllBlockIds(fileInfo.getBlockIds())
         .setLastModificationTimeMs(fileInfo.getLastModificationTimeMs()).setTtl(fileInfo.getTtl())
+        .setLastAccessTimeMs(fileInfo.getLastAccessTimeMs())
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup()).setMode(fileInfo.getMode())
         .setPersistenceState(fileInfo.getPersistenceState()).setMountPoint(fileInfo.isMountPoint())
         .addAllFileBlockInfos(fileBlockInfos)

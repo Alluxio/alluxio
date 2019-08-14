@@ -99,7 +99,7 @@ private static final long serialVersionUID = 0L;
    */
   public alluxio.grpc.ServiceType getServiceType() {
     alluxio.grpc.ServiceType result = alluxio.grpc.ServiceType.valueOf(serviceType_);
-    return result == null ? alluxio.grpc.ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE : result;
+    return result == null ? alluxio.grpc.ServiceType.UNKNOWN_SERVICE : result;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -408,7 +408,7 @@ private static final long serialVersionUID = 0L;
      */
     public alluxio.grpc.ServiceType getServiceType() {
       alluxio.grpc.ServiceType result = alluxio.grpc.ServiceType.valueOf(serviceType_);
-      return result == null ? alluxio.grpc.ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE : result;
+      return result == null ? alluxio.grpc.ServiceType.UNKNOWN_SERVICE : result;
     }
     /**
      * <code>optional .alluxio.grpc.version.ServiceType serviceType = 1;</code>

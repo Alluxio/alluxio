@@ -18,11 +18,12 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
 
-import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 
 import org.slf4j.Logger;
@@ -48,15 +49,21 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
+  private final boolean mDomainSocketEnabled;
+
   /**
    * Creates an instance of {@link BlockWriteHandler}.
    *
    * @param blockWorker the block worker
    * @param responseObserver the stream observer for the write response
+   * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether reading block over domain socket
    */
-  BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver) {
-    super(responseObserver);
+  BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver,
+      AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
+    super(responseObserver, userInfo);
     mWorker = blockWorker;
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   @Override
@@ -65,7 +72,15 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
     BlockWriteRequest request = context.getRequest();
     mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-        mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+        mStorageTierAssoc.getAlias(request.getTier()),
+        request.getMediumType(), FILE_BUFFER_SIZE);
+    if (mDomainSocketEnabled) {
+      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_DOMAIN));
+      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT));
+    } else {
+      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
+      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
+    }
     return context;
   }
 
@@ -75,7 +90,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (context.getBlockWriter() != null) {
       context.getBlockWriter().close();
     }
-    mWorker.commitBlock(request.getSessionId(), request.getId());
+    mWorker.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
   }
 
   @Override
@@ -101,7 +116,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
 
   @Override
   protected void writeBuf(BlockWriteRequestContext context,
-      StreamObserver<WriteResponse> observer, ByteString buf, long pos) throws Exception {
+      StreamObserver<WriteResponse> observer, DataBuffer buf, long pos) throws Exception {
     Preconditions.checkState(context != null);
     WriteRequest request = context.getRequest();
     long bytesReserved = context.getBytesReserved();
@@ -112,15 +127,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.setBytesReserved(bytesReserved + bytesToReserve);
     }
     if (context.getBlockWriter() == null) {
-      String metricName = WorkerMetrics.BYTES_WRITTEN_ALLUXIO;
       context.setBlockWriter(
           mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId()));
-      context.setCounter(MetricsSystem.counter(metricName));
-      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
     }
     Preconditions.checkState(context.getBlockWriter() != null);
-    int sz = buf.size();
-    Preconditions.checkState(
-        context.getBlockWriter().append(buf.asReadOnlyByteBuffer())  == sz);
+    int sz = buf.readableBytes();
+    Preconditions.checkState(context.getBlockWriter().append(buf)  == sz);
   }
 }

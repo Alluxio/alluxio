@@ -15,11 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -30,8 +28,8 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.AbstractVoidJobDefinition;
-import alluxio.job.JobMasterContext;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.io.PathUtils;
@@ -104,30 +102,15 @@ import java.util.concurrent.ConcurrentMap;
 public final class MigrateDefinition
     extends AbstractVoidJobDefinition<MigrateConfig, ArrayList<MigrateCommand>> {
   private static final Logger LOG = LoggerFactory.getLogger(MigrateDefinition.class);
-  private final FileSystem mFileSystem;
-  private final FileSystemContext mFsContext;
   private final Random mRandom = new Random();
 
   /**
    * Constructs a new {@link MigrateDefinition}.
    */
   public MigrateDefinition() {
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
-    mFileSystem = BaseFileSystem.create(mFsContext);
   }
 
-  /**
-   * Constructs a new {@link MigrateDefinition} with FileSystem context and instance.
-   *
-   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
-   * @param fileSystem the {@link FileSystem} client
-   */
-  public MigrateDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
-    mFsContext = fsContext;
-    mFileSystem = fileSystem;
-  }
-
-  private void checkMigrateValid(MigrateConfig config) throws Exception {
+  private void checkMigrateValid(MigrateConfig config, FileSystem fs) throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     // The source cannot be a prefix of the destination -
@@ -138,9 +121,9 @@ public final class MigrateDefinition
     }
 
     // This will throw an appropriate exception if the source does not exist.
-    boolean sourceIsDirectory = mFileSystem.getStatus(source).isFolder();
+    boolean sourceIsDirectory = fs.getStatus(source).isFolder();
     try {
-      URIStatus destinationStatus = mFileSystem.getStatus(destination);
+      URIStatus destinationStatus = fs.getStatus(destination);
       // Handle the case where the destination exists.
       boolean destinationIsDirectory = destinationStatus.isFolder();
       if (sourceIsDirectory && !destinationIsDirectory) {
@@ -157,7 +140,7 @@ public final class MigrateDefinition
     } catch (FileDoesNotExistException e) {
       // Handle the case where the destination does not exist.
       // This will throw an appropriate exception if the destination's parent does not exist.
-      URIStatus destinationParentStatus = mFileSystem.getStatus(destination.getParent());
+      URIStatus destinationParentStatus = fs.getStatus(destination.getParent());
       if (!destinationParentStatus.isFolder()) {
         throw new RuntimeException(ExceptionMessage.MIGRATE_TO_FILE_AS_DIRECTORY
             .getMessage(destination, destination.getParent()));
@@ -173,30 +156,31 @@ public final class MigrateDefinition
    */
   @Override
   public Map<WorkerInfo, ArrayList<MigrateCommand>> selectExecutors(MigrateConfig config,
-      List<WorkerInfo> jobWorkerInfoList, JobMasterContext jobMasterContext) throws Exception {
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     if (source.equals(destination)) {
       return new HashMap<>();
     }
-    checkMigrateValid(config);
+    checkMigrateValid(config, context.getFileSystem());
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
-    List<URIStatus> allPathStatuses = getPathStatuses(source);
+    List<URIStatus> allPathStatuses = getPathStatuses(source, context.getFileSystem());
     ConcurrentMap<WorkerInfo, ArrayList<MigrateCommand>> assignments = Maps.newConcurrentMap();
     ConcurrentMap<String, WorkerInfo> hostnameToWorker = Maps.newConcurrentMap();
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       hostnameToWorker.put(workerInfo.getAddress().getHost(), workerInfo);
     }
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFsContext).getAllWorkers();
+        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers();
     // Assign each file to the worker with the most block locality.
     for (URIStatus status : allPathStatuses) {
       if (status.isFolder()) {
-        migrateDirectory(status.getPath(), source.getPath(), destination.getPath());
+        migrateDirectory(status.getPath(), source.getPath(), destination.getPath(),
+            context.getFileSystem());
       } else {
-        WorkerInfo bestJobWorker = getBestJobWorker(status, alluxioWorkerInfoList,
-            jobWorkerInfoList, hostnameToWorker);
+        WorkerInfo bestJobWorker =
+            getBestJobWorker(status, alluxioWorkerInfoList, jobWorkerInfoList, hostnameToWorker);
         String destinationPath =
             computeTargetPath(status.getPath(), source.getPath(), destination.getPath());
         assignments.putIfAbsent(bestJobWorker, Lists.newArrayList());
@@ -242,9 +226,10 @@ public final class MigrateDefinition
    * @param source the base source path being migrated
    * @param destination the destination path
    */
-  private void migrateDirectory(String path, String source, String destination) throws Exception {
+  private void migrateDirectory(String path, String source, String destination, FileSystem fs)
+      throws Exception {
     String newDir = computeTargetPath(path, source, destination);
-    mFileSystem.createDirectory(new AlluxioURI(newDir));
+    fs.createDirectory(new AlluxioURI(newDir));
   }
 
   /**
@@ -256,17 +241,17 @@ public final class MigrateDefinition
    * @return a list of the {@link URIStatus} for all paths under the given path
    * @throws Exception if an exception occurs
    */
-  private List<URIStatus> getPathStatuses(AlluxioURI path) throws Exception {
+  private List<URIStatus> getPathStatuses(AlluxioURI path, FileSystem fs) throws Exception {
     // Depth-first search to to find all files under path.
     Stack<AlluxioURI> pathsToConsider = new Stack<>();
     pathsToConsider.add(path);
     List<URIStatus> allStatuses = Lists.newArrayList();
     while (!pathsToConsider.isEmpty()) {
       AlluxioURI nextPath = pathsToConsider.pop();
-      URIStatus status = mFileSystem.getStatus(nextPath);
+      URIStatus status = fs.getStatus(nextPath);
       allStatuses.add(status);
       if (status.isFolder()) {
-        List<URIStatus> childStatuses = mFileSystem.listStatus(nextPath);
+        List<URIStatus> childStatuses = fs.listStatus(nextPath);
         for (URIStatus childStatus : childStatuses) {
           if (childStatus.isFolder()) {
             pathsToConsider.push(new AlluxioURI(childStatus.getPath()));
@@ -287,18 +272,20 @@ public final class MigrateDefinition
    */
   @Override
   public SerializableVoid runTask(MigrateConfig config, ArrayList<MigrateCommand> commands,
-                                  JobWorkerContext jobWorkerContext) throws Exception {
+      RunTaskContext context) throws Exception {
     WriteType writeType = config.getWriteType() == null
         ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : WriteType.valueOf(config.getWriteType());
     for (MigrateCommand command : commands) {
-      migrate(command, writeType.toProto(), config.isDeleteSource(), mFileSystem);
+      migrate(command, writeType.toProto(), config.isDeleteSource(),
+          context.getFileSystem());
     }
     // Try to delete the source directory if it is empty.
-    if (config.isDeleteSource() && !hasFiles(new AlluxioURI(config.getSource()), mFileSystem)) {
+    if (config.isDeleteSource() && !hasFiles(new AlluxioURI(config.getSource()),
+        context.getFileSystem())) {
       try {
         LOG.debug("Deleting {}", config.getSource());
-        mFileSystem.delete(new AlluxioURI(config.getSource()),
+        context.getFileSystem().delete(new AlluxioURI(config.getSource()),
             DeletePOptions.newBuilder().setRecursive(true).build());
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.

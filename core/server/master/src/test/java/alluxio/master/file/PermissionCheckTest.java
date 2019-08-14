@@ -20,7 +20,6 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.LoginUserRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
@@ -48,11 +47,13 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.MutableInodeDirectory;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.security.user.TestUserState;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
@@ -126,10 +127,6 @@ public final class PermissionCheckTest {
       new AuthenticatedUserRule(TEST_USER_ADMIN.getUser(), ServerConfiguration.global());
 
   @Rule
-  public LoginUserRule mLoginUserRule = new LoginUserRule(TEST_USER_ADMIN.getUser(),
-      ServerConfiguration.global());
-
-  @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Rule
@@ -185,7 +182,8 @@ public final class PermissionCheckTest {
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(new NoopJournalSystem(),
+        new TestUserState(TEST_USER_ADMIN.getUser(), ServerConfiguration.global()));
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);

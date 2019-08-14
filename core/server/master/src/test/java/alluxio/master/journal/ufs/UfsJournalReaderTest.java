@@ -19,6 +19,8 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalReader.State;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -33,6 +35,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.net.URI;
+import java.util.Collections;
 
 /**
  * Unit tests for {@link UfsJournalReader}.
@@ -49,8 +52,9 @@ public final class UfsJournalReaderTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
-    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+    mUfs = Mockito
+        .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
   }
 
   @After
@@ -272,7 +276,9 @@ public final class UfsJournalReaderTest {
     byte[] bytes = CommonUtils.randomAlphaNumString(10).getBytes();
     try (UfsJournalCheckpointWriter writer =
         UfsJournalCheckpointWriter.create(mJournal, sequenceNumber)) {
-      writer.write(bytes);
+      CheckpointOutputStream stream =
+          new CheckpointOutputStream(writer, CheckpointType.JOURNAL_ENTRY);
+      stream.write(bytes);
     }
     return bytes;
   }

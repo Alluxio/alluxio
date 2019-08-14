@@ -14,22 +14,23 @@ package alluxio.security.authentication;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
-import alluxio.util.SecurityUtils;
+import alluxio.security.authentication.plain.SaslServerHandlerPlain;
+import alluxio.util.LogUtils;
 import alluxio.util.ThreadFactoryUtils;
 
-import io.grpc.ServerInterceptor;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.security.sasl.SaslException;
-import javax.security.sasl.SaslServer;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -54,70 +55,107 @@ public class DefaultAuthenticationServer
   protected final ConcurrentHashMap<UUID, AuthenticatedChannelInfo> mChannels;
   /** Scheduler for periodic cleaning of channels registry. */
   protected final ScheduledExecutorService mScheduler;
+  /** Address of the authentication host.  */
+  protected final String mHostName;
 
   /** Interval for clean-up task to fire. */
   protected final long mCleanupIntervalMs;
 
-  private final AlluxioConfiguration mConfiguration;
+  /** Alluxio client configuration. */
+  protected final AlluxioConfiguration mConfiguration;
 
   /**
    * Creates {@link DefaultAuthenticationServer} instance.
-   *
-   * @param conf Alluxio configuration
+   * @param hostName host name of the server
+   * @param conf Alluxio client configuration
    */
-  public DefaultAuthenticationServer(AlluxioConfiguration conf) {
-    checkSupported(conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+  public DefaultAuthenticationServer(String hostName, AlluxioConfiguration conf) {
+    mHostName = hostName;
+    mConfiguration = conf;
     mCleanupIntervalMs =
         conf.getMs(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD);
-    mConfiguration = conf;
+    checkSupported(conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
     mChannels = new ConcurrentHashMap<>();
-    mScheduler = Executors.newScheduledThreadPool(1,
-        ThreadFactoryUtils.build("auth-cleanup", true));
-    mScheduler.scheduleAtFixedRate(() -> {
-      cleanupStaleClients();
-    }, mCleanupIntervalMs, mCleanupIntervalMs, TimeUnit.MILLISECONDS);
+    mScheduler =
+        Executors.newScheduledThreadPool(1, ThreadFactoryUtils.build("auth-cleanup", true));
+    mScheduler.scheduleAtFixedRate(this::cleanupStaleClients, mCleanupIntervalMs,
+        mCleanupIntervalMs, TimeUnit.MILLISECONDS);
   }
 
   @Override
   public StreamObserver<SaslMessage> authenticate(StreamObserver<SaslMessage> responseObserver) {
     // Create and return server sasl driver that will coordinate authentication traffic.
-    SaslStreamServerDriver driver = new SaslStreamServerDriver(this, mConfiguration);
+    SaslStreamServerDriver driver = new SaslStreamServerDriver(this);
     driver.setClientObserver(responseObserver);
     return driver;
   }
 
   @Override
-  public void registerChannel(UUID channelId, String authorizedUser, SaslServer saslServer) {
-    LOG.debug("Registering new channel:{} for user:{}", channelId, authorizedUser);
+  public void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo,
+      SaslStreamServerDriver saslDriver) {
+    LOG.debug("Registering new channel:{} for user:{}", channelId, userInfo);
     if (null != mChannels.putIfAbsent(channelId,
-        new AuthenticatedChannelInfo(authorizedUser, saslServer))) {
+        new AuthenticatedChannelInfo(userInfo, saslDriver))) {
       AuthenticatedChannelInfo existingInfo = mChannels.remove(channelId);
       throw new RuntimeException(
           String.format("Channel: %s already exists in authentication registry for user: %s.",
-              channelId.toString(), existingInfo.getUserName()));
+              channelId.toString(), existingInfo.getUserInfo()));
     }
   }
 
   @Override
-  public String getUserNameForChannel(UUID channelId) throws UnauthenticatedException {
-    if (mChannels.containsKey(channelId)) {
-      AuthenticatedChannelInfo clientInfo = mChannels.get(channelId);
-      return clientInfo.getUserName();
+  public AuthenticatedUserInfo getUserInfoForChannel(UUID channelId)
+      throws UnauthenticatedException {
+    AuthenticatedChannelInfo clientInfo = mChannels.get(channelId);
+    if (clientInfo != null) {
+      return clientInfo.getUserInfo();
     } else {
       throw new UnauthenticatedException(
-          String.format("Client:%s needs to be authenticated", channelId.toString()));
+          String.format("Channel:%s needs to be authenticated", channelId.toString()));
     }
   }
 
   @Override
-  public void unregisterChannel(UUID channelId) {
+  public boolean unregisterChannel(UUID channelId) {
+    LOG.debug("Unregistering channel: {}", channelId);
+    // Remove channel.
     AuthenticatedChannelInfo channelInfo = mChannels.remove(channelId);
-    if (channelInfo != null) {
+    if (channelInfo == null) {
+      LOG.debug("Channel was not registered: {}", channelId);
+      return false;
+    }
+    // Close authentication driver.
+    try {
+      channelInfo.getSaslServerDriver().close();
+    } catch (Exception e) {
+      LogUtils.warnWithException(LOG,
+          "Failed to complete the authentication session for channel-Id: {}", channelId, e);
+    }
+    return true;
+  }
+
+  @Override
+  public SaslServerHandler createSaslHandler(ChannelAuthenticationScheme authScheme)
+      throws SaslException, UnauthenticatedException {
+    switch (authScheme) {
+      case SIMPLE:
+      case CUSTOM:
+        return new SaslServerHandlerPlain(mHostName, mConfiguration);
+      default:
+        throw new StatusRuntimeException(Status.UNAUTHENTICATED.augmentDescription(
+            String.format("Authentication scheme:%s is not supported", authScheme)));
+    }
+  }
+
+  @Override
+  public void close() {
+    for (Map.Entry<UUID, AuthenticatedChannelInfo> entry : mChannels.entrySet()) {
       try {
-        channelInfo.getSaslServer().dispose();
-      } catch (SaslException e) {
-        LOG.warn("Failed to dispose sasl client for channel-Id: {}. Error: {}", channelId,
-            e.getMessage());
+        entry.getValue().getSaslServerDriver().close();
+        LOG.debug("Closed authentication session for channel:{}", entry.getKey());
+      } catch (Exception exc) {
+        LOG.debug("Failed closing authentication session for channel:{}. Error:{}", entry.getKey(),
+            exc);
       }
     }
   }
@@ -137,7 +175,6 @@ public class DefaultAuthenticationServer
         staleChannels.add(clientEntry.getKey());
       }
     }
-
     // Unregister stale clients.
     LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
     for (UUID clientId : staleChannels) {
@@ -152,35 +189,15 @@ public class DefaultAuthenticationServer
    * @param authType authentication type
    * @throws RuntimeException if not supported
    */
-  private void checkSupported(AuthType authType) {
+  protected void checkSupported(AuthType authType) {
     switch (authType) {
       case NOSASL:
       case SIMPLE:
       case CUSTOM:
-        break;
+        return;
       default:
         throw new RuntimeException("Authentication type not supported:" + authType.name());
     }
-  }
-
-  @Override
-  public List<ServerInterceptor> getInterceptors() {
-    if (!SecurityUtils.isSecurityEnabled(mConfiguration)) {
-      return Collections.emptyList();
-    }
-    List<ServerInterceptor> interceptorsList = new ArrayList<>(2);
-    AuthType authType = mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.class);
-    checkSupported(authType);
-    switch (authType) {
-      case SIMPLE:
-      case CUSTOM:
-        interceptorsList.add(new AuthenticatedUserInjector(this));
-        break;
-      default:
-        throw new RuntimeException("Unsupported authentication type:" + authType);
-    }
-    return interceptorsList;
   }
 
   /**
@@ -190,16 +207,17 @@ public class DefaultAuthenticationServer
    */
   class AuthenticatedChannelInfo {
     private LocalTime mLastAccessTime;
-    private SaslServer mAuthenticatedServer;
-    private String mAuthorizedUser;
+    private AuthenticatedUserInfo mUserInfo;
+    private SaslStreamServerDriver mSaslServerDriver;
 
     /**
-     * @param authorizedUser authorized user
-     * @param authenticatedServer authenticated sasl server
+     * @param userInfo authenticated user info
+     * @param saslServerDriver sasl server driver
      */
-    public AuthenticatedChannelInfo(String authorizedUser, SaslServer authenticatedServer) {
-      mAuthorizedUser = authorizedUser;
-      mAuthenticatedServer = authenticatedServer;
+    public AuthenticatedChannelInfo(AuthenticatedUserInfo userInfo,
+        SaslStreamServerDriver saslServerDriver) {
+      mUserInfo = userInfo;
+      mSaslServerDriver = saslServerDriver;
       mLastAccessTime = LocalTime.now();
     }
 
@@ -215,23 +233,23 @@ public class DefaultAuthenticationServer
     }
 
     /**
-     * PS: Updates the last-access-time for this instance.
-     *
-     * @return the sasl server
-     */
-    public SaslServer getSaslServer() {
-      updateLastAccessTime();
-      return mAuthenticatedServer;
-    }
-
-    /**
-     * PS: Updates the last-access-time for this instance.
+     * Note: Updates the last-access-time for this instance.
      *
      * @return the user name
      */
-    public String getUserName() {
+    public AuthenticatedUserInfo getUserInfo() {
       updateLastAccessTime();
-      return mAuthorizedUser;
+      return mUserInfo;
+    }
+
+    /**
+     * Note: Updates the last-access-time for this instance.
+     *
+     * @return the sasl server driver
+     */
+    public SaslStreamServerDriver getSaslServerDriver() {
+      updateLastAccessTime();
+      return mSaslServerDriver;
     }
   }
 }

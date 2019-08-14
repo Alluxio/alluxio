@@ -12,7 +12,7 @@ priority: 10
 This guide describes how to configure Alluxio with Ceph as the under storage system. Alluxio supports
 two different clients APIs to connect to [Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/)
 using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
-- [S3A](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred)
+- [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred)
 - [Swift](http://docs.openstack.org/developer/swift/)
 
 ## Prerequisites
@@ -31,37 +31,36 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-#### Option 1: S3A Interface (preferred)
+#### Option 1: S3 Interface (preferred)
 
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.address=s3a://<bucket>/<folder>
+alluxio.master.mount.table.root.ufs=s3://<bucket>/<folder>
 alluxio.master.mount.table.root.option.aws.accessKeyId=<access-key>
 alluxio.master.mount.table.root.option.aws.secretKey=<secret-key>
 alluxio.master.mount.table.root.option.alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
 alluxio.master.mount.table.root.option.alluxio.underfs.s3.disable.dns.buckets=true
-alluxio.master.mount.table.root.option.alluxio.underfs.s3a.inherit_acl=<inherit-acl>
+alluxio.master.mount.table.root.option.alluxio.underfs.s3.inherit.acl=<inherit-acl>
 ```
 
-If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3a.signer.algorithm=S3SignerType`
+If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3.signer.algorithm=S3SignerType`
 to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
-`alluxio.underfs.s3a.list.objects.v1=true`.
+`alluxio.underfs.s3.list.objects.v1=true`.
 
 #### Option 2: Swift Interface
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.address=swift://<bucket>/<folder>
+alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
 alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
 alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
 alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
 alluxio.master.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
-alluxio.master.mount.table.root.option.fs.swift.use.public.url=<swift-use-public>
 alluxio.master.mount.table.root.option.fs.swift.auth.method=<swift-auth-method>
 ```
 Replace `<bucket>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>` are
@@ -73,26 +72,29 @@ as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 An Ceph location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
 
-Issue the following command to use the S3A interface:
-```bash
-$ ./bin/alluxio fs mount --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> --option aws.secretKey=<CEPH_SECRET_ACCESS_KEY>\
+Issue the following command to use the S3 interface:
+```console
+$ ./bin/alluxio fs mount \
+  --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> --option aws .secretKey=<CEPH_SECRET_ACCESS_KEY>\
   --option alluxio.underfs.s3.endpoint=<HTTP_ENDPOINT> --option alluxio.underfs.s3.disable.dns.buckets=true \
-  --option alluxio.underfs.s3a.inherit_acl=false /mnt/ceph s3a://<BUCKET>/<FOLDER>
+  --option alluxio.underfs.s3.inherit_acl=false /mnt/ceph s3://<BUCKET>/<FOLDER>
 ```
 
 Similarly, to use the Swift interface:
-```bash
-$ ./bin/alluxio fs mount --option fs.swift.user=<SWIFT_USER> --option fs.swift.tenant=<SWIFT_TENANT> \
---option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
---option fs.swift.use.public.url=<USE_PUBLIC> --option fs.swift.auth.method=<AUTH_METHOD> \
-/mnt/ceph swift://<BUCKET>/<FOLDER>
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.swift.user=<SWIFT_USER> \
+  --option fs.swift.tenant=<SWIFT_TENANT> \
+  --option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
+  --option fs.swift.auth.method=<AUTH_METHOD> \
+  /mnt/ceph swift://<BUCKET>/<FOLDER>
 ```
 
 ## Running Alluxio Locally with Ceph
 
 Start up Alluxio locally to see that everything works.
 
-```bash
+```console
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -102,7 +104,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```bash
+```console
 $ ./bin/alluxio runTests
 ```
 
@@ -115,7 +117,7 @@ You should see files named like:
 
 To stop Alluxio, run:
 
-```bash
+```console
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -125,5 +127,5 @@ $ ./bin/alluxio-stop.sh local
 
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying Ceph
 Object Storage. Depending on the interace used, refer to
-[S3A Access Control]({{ '/en/ufs/S3.html' | relativize_url }}#s3-access-control) or
+[S3 Access Control]({{ '/en/ufs/S3.html' | relativize_url }}#s3-access-control) or
 [Swift Access Control]({{ '/en/ufs/Swift.html' | relativize_url }}#swift-access-control) for more information.

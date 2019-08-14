@@ -17,7 +17,7 @@ that you can easily store HBase tables into Alluxio at various storage levels.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-downloaded from Alluxio [download page](http://www.alluxio.org/download).
+downloaded from Alluxio [download page](https://www.alluxio.io/download).
 Alternatively, advanced users can compile this client jar from the source code
 by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * [Deploy HBase](https://hbase.apache.org/book.html#configuration)
@@ -61,19 +61,22 @@ We need to make the Alluxio client jar file available to HBase, because it conta
 Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 
-```bash
-export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
+```console
+$ export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
 Alternative ways are described in the [Advanced Setup]({{ '/en/compute/HBase.html' | relativize_url }}#advanced-setup)
 
 ## Example
 
-Start HBase:
+Ensure alluxio scheme is recognized before starting HBase:
 
-```bash
+```console
 $ ${HBASE_HOME}/bin/start-hbase.sh
 ```
+
+If not, follow the [Usage FAQs]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#usage-faq)
+ as needed.
 
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
@@ -99,8 +102,8 @@ get 'test', 'row1'
 
 Run the following command from the top level HBase project directory:
 
-```bash
-bin/hbase shell simple_test.txt
+```console
+$ bin/hbase shell simple_test.txt
 ```
 
 You should see some output like this:
@@ -110,8 +113,8 @@ You should see some output like this:
 If you have Hadoop installed, you can run a Hadoop-utility program in HBase shell to
 count the rows of the newly created table:
 
-```bash
-bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
+```console
+$ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 ```
 
 After this mapreduce job finishes, you can see a result like this:
@@ -122,20 +125,24 @@ After this mapreduce job finishes, you can see a result like this:
 
 ### Alluxio in HA mode
 
-When Alluxio is running in fault tolerant mode, change the `hbase.rootdir` property in `conf/hbase-site.xml`
-to include Zookeeper information.
+When Alluxio is running in HA mode, change the `hbase.rootdir` property in `conf/hbase-site.xml`
+to use a HA-style Alluxio authority like `host1:19998,host2:19998,host3:19998`
+or `zk@host1:2181,host2:2181,host3:2181`.
 
 ```xml
 <property>
   <name>hbase.rootdir</name>
-  <value>alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/hbase</value>
+  <value>alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/hbase</value>
 </property>
 ```
+
+See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority)
+for more details.
 
 ### Add additional Alluxio site properties to HBase
 
 If there are any Alluxio site properties you want to specify for HBase, add those to `hbase-site.xml`. For example,
-change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
+change `alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`:
 
 ```xml
 <property>

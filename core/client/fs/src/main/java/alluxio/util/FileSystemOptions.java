@@ -42,6 +42,17 @@ import alluxio.security.authorization.Mode;
  * will populate the gRPC options objects with the proper values based on the given configuration.
  */
 public class FileSystemOptions {
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static ScheduleAsyncPersistencePOptions scheduleAsyncPersistenceDefaults(
+      AlluxioConfiguration conf) {
+    return ScheduleAsyncPersistencePOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .setPersistenceWaitTime(0)
+        .build();
+  }
 
   /**
    * @param conf Alluxio configuration
@@ -76,9 +87,9 @@ public class FileSystemOptions {
     return CreateFilePOptions.newBuilder()
         .setBlockSizeBytes(conf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
         .setCommonOptions(commonDefaults(conf))
-        .setFileWriteLocationPolicy(conf.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
             conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+        .setPersistenceWaitTime(conf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME))
         .setRecursive(false)
         .setReplicationDurable(conf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMax(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
@@ -194,9 +205,6 @@ public class FileSystemOptions {
   public static OpenFilePOptions openFileDefaults(AlluxioConfiguration conf) {
     return OpenFilePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
-        .setFileReadLocationPolicy(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
-        .setHashingNumberOfShards(conf
-            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
         .setMaxUfsReadConcurrency(conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX))
         .setReadType(conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
             .toProto())
@@ -210,6 +218,7 @@ public class FileSystemOptions {
   public static RenamePOptions renameDefaults(AlluxioConfiguration conf) {
     return RenamePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
+        .setPersist(conf.getBoolean(PropertyKey.USER_FILE_PERSIST_ON_RENAME))
         .build();
   }
 
@@ -243,6 +252,23 @@ public class FileSystemOptions {
     return SetAttributePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .setRecursive(false)
+        .build();
+  }
+
+  /**
+   * Defaults for the SetAttribute RPC which should only be used on the client side.
+   *
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static SetAttributePOptions setAttributeClientDefaults(AlluxioConfiguration conf) {
+    // Specifically set and override *only* the metadata sync interval
+    // Setting other attributes by default will make the server think the user is intentionally
+    // setting the values. Most fields withinSetAttributePOptions are set by inclusion
+    return SetAttributePOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
+            .build())
         .build();
   }
 

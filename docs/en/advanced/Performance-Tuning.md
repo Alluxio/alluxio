@@ -27,14 +27,17 @@ The following is a checklist to run through to address common problems when tuni
 
    If the compute application is running co-located with Alluxio workers, check that the
    application is performing short-circuit reads and writes with its local Alluxio worker.
-   Monitor the values for `cluster.BytesReadAlluxioThroughput` and `cluster.BytesReadLocalThroughput`
-   while the application is running.
+   Monitor the metrics values for `cluster.BytesReadAlluxioThroughput` and `cluster.BytesReadLocalThroughput`
+   while the application is running (Metrics can be viewed through `alluxio fsadmin report metrics`. ).
    If the local throughput is zero or significantly lower than the total throughput,
    the compute application is likely not interfacing with a local Alluxio worker.
    The Alluxio client uses hostname matching to discover a local Alluxio worker;
    check that the client and worker use the same hostname string.
    Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
+   
+   Note: In order to retrieve metrics for short circuit IO, the client metrics collection need to be enabled by setting
+   `alluxio.user.metrics.collection.enabled=true` in `alluxio-site.properties` or corresponding application configuration.
 
 1. Is data is well-distributed across Alluxio workers?
 
@@ -47,21 +50,21 @@ The following is a checklist to run through to address common problems when tuni
 1. Are there warnings or errors in the master or worker logs related to thread pool exhaustion?
 
    Alluxio clients maintain a connection to the master to avoid using a new connection each time.
-   Until a client shuts down, it will occupy a server thread even if it is not sending requests.
+   Each client will occupy a server thread while an RPC request is pending.
    This may deplete the master's thread pool; its size can be increased by setting
-   `alluxio.master.worker.threads.max`, which defaults to 1/3 of the system's max file descriptor limit.
+   `alluxio.master.rpc.executor.max.pool.size`, which has a default value of 500.
    The file descriptor limit may also need to be increased to allow the desired number of open connections.
    The default number of threads used by a client can be decreased by setting
    `alluxio.user.file.master.client.threads` and `alluxio.user.block.master.client.threads`,
    both of which have a default value of `10`.
 
-1. Are there error messages containing "Connection reset by peer" in the worker logs?
+1. Are there error messages containing "DeadlineExceededException" in the user logs?
 
    This could indicate that the client is timing out when communicating with the Alluxio worker.
-   To increase the timeout, configure `alluxio.user.network.netty.timeout`, which has a default of `30s`.
+   To increase the timeout, configure `alluxio.user.network.data.timeout`, which has a default of `30s`.
 
-   If write operations are timing out, configure `alluxio.user.network.netty.writer.close.timeout`,
-   which has a default of `5m`. This is especially important when writing large files to object stores
+   If write operations are timing out, configure `alluxio.user.network.writer.close.timeout`,
+   which has a default of `30m`. This is especially important when writing large files to object stores
    with a slow network connection. The entire object is uploaded at once upon closing the file.
 
 1. Are there frequent JVM GC events?
@@ -70,7 +73,7 @@ The following is a checklist to run through to address common problems when tuni
    This can be identified by adding logging for GC events; append the following to `conf/allulxio-env.sh`:
 
 ```
-ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimestamps"
+ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps"
 ```
 
    Restart the Alluxio service and check the output in `logs/master.out` or `logs/worker.out`
@@ -204,13 +207,11 @@ If this is set to 0, the cache is disabled and the `Once` setting will behave li
 
 ## Worker Tuning
 
-### Block thread pool size
+### Block reading thread pool size
 
-The `alluxio.worker.block.threads.max` property configures the maximum number of incoming RPC requests to
-worker that can be handled.
-This value is used to configure maximum number of threads in Thrift thread pool of the block worker.
-This value should be greater than the sum of `alluxio.user.block.worker.client.threads` across concurrent Alluxio clients.
-Otherwise, the worker connection pool can be drained, preventing new connections from being established.
+The `alluxio.worker.network.block.reader.threads.max` property configures the maximum number of threads used to
+handle block read requests. This value should be increased if you are getting connection refused errors while
+reading files.
 
 ### Async block caching
 
@@ -219,15 +220,11 @@ and immediately returns the requested data to the client.
 The worker will asynchronously continue to read the remainder of the block without blocking the client request.
 
 The number of asynchronous threads used to finish reading partial blocks is set by the
-`alluxio.worker.network.netty.async.cache.manager.threads.max` property, with a default value of `512`.
+`alluxio.worker.network.async.cache.manager.threads.max` property.
 When large amounts of data are expected to be asynchronously cached concurrently, it may be helpful
-to reduce this value to reduce resource contention.
-
-### Netty Configs
-
-The number of RPC threads available on a worker is configured by
-`alluxio.worker.network.netty.rpc.threads.max`, with a default value of `2048`.
-This value should be increased if exhausted thread pool errors are being logged on workers.
+to increase this value to handle a higher workload.
+However, increase this number sparingly, as it will consume more CPU resources on the worker node
+as the number is increased.
 
 ## Client Tuning
 
@@ -242,3 +239,56 @@ When enabled, the same data blocks are available across multiple workers,
 reducing the amount of available storage capacity for unique data.
 Disabling passive caching is important for workloads that have no concept of locality and whose
 dataset is large compared to the capacity of a single Alluxio worker.
+
+### Optimized Commits for Compute Frameworks
+
+Running with optimized commits through Alluxio can provide an order of magnitude improvement in the
+overall runtime of compute jobs.
+
+Computation frameworks that leverage the Hadoop MapReduce committer pattern (ie. Spark, Hive) are
+not optimally designed for interacting with storages that provide slow renames (mainly Object
+Stores). This is most common when using stacks such as Spark on S3 or Hive on Ceph.
+
+The Hadoop MapReduce committer leverages renames to commit data from a staging directory (usually
+`output/_temporary`) to the final output directory (ie. `output`). When writing data with
+`CACHE_THROUGH` or `THROUGH` this protocol translates to the following:
+1. Write temporary data to Alluxio and Object Store
+    - Data is written to Alluxio storage quickly
+    - Data is written to object store slowly
+1. Rename temporary data to final output location
+    - Rename within Alluxio is fast because it is a metadata operation
+    - Rename in object store is slow because it is a copy and delete
+1. Job completes to the user
+
+When running jobs which have a large number or size of output files, the overhead of the object
+store dominates the run time of the workload.
+
+Alluxio provides a way to only incur the cost of writing the data to Alluxio (fast) on the critical
+path. Users should configure the following Alluxio properties in the compute framework:
+
+```
+# Writes data only to Alluxio before returning a successful write
+alluxio.user.file.writetype.default=ASYNC_THROUGH
+# Does not persist the data automatically to the underlying storage, this is important because
+# only the final committed data is necessary to persist
+alluxio.user.file.persistence.initial.wait.time=-1
+# Hints that Alluxio should treat renaming as committing data and trigger a persist operation
+alluxio.user.file.persist.on.rename=true
+# Determines the number of copies in Alluxio when files are not yet persisted, increase this to
+# a larger number to ensure fault tolerance in case of Alluxio worker failures
+alluxio.user.file.replication.durable=1
+```
+
+With this configuration, the protocol translates to the following:
+1. Write temporary data to Alluxio
+    - Data is written to Alluxio storage quickly
+1. Rename temporary data to final output location
+    - Rename within Alluxio is fast because it is a metadata operation
+    - An asynchronous persist task is launched
+1. Job completes to the user
+1. Write final output to object store
+    - Data is written to object store slowly
+
+Overall, a copy and delete operation in the object store is saved, and the slow portion of writing
+to the object store is moved off the critical path.
+

@@ -12,13 +12,14 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -121,12 +122,15 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests writing to a file and specify the location to be localhost.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
+      "alluxio.client.block.policy.LocalFirstPolicy"
+      })
   public void writeSpecifyLocal() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
-        .setFileWriteLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).setRecursive(true)
-        .build();
+        .setRecursive(true).build();
     try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
       os.write((byte) 0);
       os.write((byte) 1);
@@ -150,7 +154,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       os.write((byte) 0);
-      Thread.sleep((int) ServerConfiguration.getMs(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
+      Thread.sleep(Constants.SECOND_MS * 2);
       os.write((byte) 1);
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {

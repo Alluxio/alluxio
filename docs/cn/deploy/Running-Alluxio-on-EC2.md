@@ -20,14 +20,14 @@ Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及撤销集
 
 安装AWS Vagrant插件：
 
-```bash
+```console
 $ vagrant plugin install vagrant-aws
 $ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
 ```
 
 **安装Alluxio**
 
-下载[Alluxio](https://alluxio.org/download)到你本地的机器上并解压(unzip)。
+下载[Alluxio](https://alluxio.io/download)到你本地的机器上并解压(unzip)。
 
 **安装python库依赖**
 
@@ -35,13 +35,13 @@ $ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dumm
 
 进入`deploy/vagrant`目录下，运行：
 
-```bash
+```console
 $ sudo bash bin/install.sh
 ```
 
 另外，你可以选择手动安装[pip](https://pip.pypa.io/en/latest/installing/)，之后进入`deploy/vagrant`目录，运行：
 
-```bash
+```console
 $ sudo pip install -r pip-req.txt
 ```
 
@@ -51,7 +51,7 @@ $ sudo pip install -r pip-req.txt
 
 接着创建[access keys](https://aws.amazon.com/developers/access-keys/)并且设置`AWS_ACCESS_KEY_ID`和`AWS_SECRET_ACCESS_KEY`环境变量:
 
-```bash
+```console
 $ export AWS_ACCESS_KEY_ID=<your access key>
 $ export AWS_SECRET_ACCESS_KEY=<your secret access key>
 ```
@@ -59,13 +59,13 @@ $ export AWS_SECRET_ACCESS_KEY=<your secret access key>
 接着生成EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)。确保将私钥文件的权限设置成只对你可读。
 
-```bash
+```console
 $ chmod 400 <your key pair>.pem
 ```
 
 复制`deploy/vagrant/conf/ec2.yml.template`到`deploy/vagrant/conf/ec2.yml`：
 
-```bash
+```console
 $ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
 ```
 
@@ -78,7 +78,7 @@ Vagrant脚本默认使用[Amazon S3](http://aws.amazon.com/s3)作为Alluxio的�
 
 现在你可以以你选择的文件系统作为Alluxio的底层文件系统，在你所选择的可用区域下启动Alluxio集群了，在`deploy/vagrant`目录下运行：
 
-```bash
+```console
 $ ./create <number of machines> aws
 ```
 
@@ -107,13 +107,13 @@ Alluxio Web UI的默认端口为**19999**。
 
 通过ssh登陆一个节点，运行:
 
-```bash
+```console
 $ vagrant ssh <node name>
 ```
 
 例如，通过以下命令可以登陆`AlluxioMaster`节点：
 
-```bash
+```console
 $ vagrant ssh AlluxioMaster
 ```
 
@@ -121,7 +121,7 @@ $ vagrant ssh AlluxioMaster
 
 在`AlluxioMaster`节点上，可以对Alluxio运行测试检测其健康状态：
 
-```bash
+```console
 $ /alluxio/bin/alluxio runTests
 ```
 
@@ -133,7 +133,7 @@ $ /alluxio/bin/alluxio runTests
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
-```bash
+```console
 $ ssh AlluxioWorker1
 ```
 
@@ -141,7 +141,7 @@ $ ssh AlluxioWorker1
 
 在`deploy/vagrant`目录下运行：
 
-```bash
+```console
 $ ./destroy
 ```
 

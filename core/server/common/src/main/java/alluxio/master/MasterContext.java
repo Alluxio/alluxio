@@ -12,6 +12,8 @@
 package alluxio.master;
 
 import alluxio.master.journal.JournalSystem;
+import alluxio.security.user.ServerUserState;
+import alluxio.security.user.UserState;
 
 import com.google.common.base.Preconditions;
 
@@ -24,19 +26,36 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class MasterContext {
   private final JournalSystem mJournalSystem;
-  private final ReadWriteLock mStateLock;
-
   /**
-   * Creates a new master context.
-   *
    * The stateLock is used to allow us to pause master state changes so that we can take backups of
    * master state. All state modifications should hold the read lock so that holding the write lock
    * allows a thread to pause state modifications.
+   */
+  private final ReadWriteLock mStateLock;
+  private final UserState mUserState;
+
+  /**
+   * Creates a new master context, using the global server UserState.
    *
    * @param journalSystem the journal system to use for tracking master operations
    */
   public MasterContext(JournalSystem journalSystem) {
+    this(journalSystem, null);
+  }
+
+  /**
+   * Creates a new master context.
+   *
+   * @param journalSystem the journal system to use for tracking master operations
+   * @param userState the user state of the server. If null, will use the global server user state
+   */
+  public MasterContext(JournalSystem journalSystem, UserState userState) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
+    if (userState == null) {
+      mUserState = ServerUserState.global();
+    } else {
+      mUserState = userState;
+    }
     mStateLock = new ReentrantReadWriteLock();
   }
 
@@ -45,6 +64,13 @@ public class MasterContext {
    */
   public JournalSystem getJournalSystem() {
     return mJournalSystem;
+  }
+
+  /**
+   * @return the UserState of the server
+   */
+  public UserState getUserState() {
+    return mUserState;
   }
 
   /**

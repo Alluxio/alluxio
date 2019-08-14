@@ -14,15 +14,14 @@ package alluxio.master.journal.raft;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,17 +50,33 @@ public class RaftJournalConfiguration {
    */
   public static RaftJournalConfiguration defaults(ServiceType serviceType) {
     return new RaftJournalConfiguration()
-        .setClusterAddresses(defaultClusterAddresses(serviceType))
-        .setElectionTimeoutMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
+        .setClusterAddresses(ConfigurationUtils
+            .getEmbeddedJournalAddresses(ServerConfiguration.global(), serviceType))
         .setHeartbeatIntervalMs(
             ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL))
+        .setElectionTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
         .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
             ServerConfiguration.global()))
         .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
         .setPath(new File(JournalUtils.getJournalLocation().getPath()))
         .setStorageLevel(ServerConfiguration
             .getEnum(PropertyKey.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL, StorageLevel.class));
+  }
+
+  /**
+   * Validates the configuration.
+   */
+  public void validate() {
+    Preconditions.checkState(getMaxLogSize() <= Integer.MAX_VALUE,
+        "{} has value {} but must not exceed {}", PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+        getMaxLogSize(), Integer.MAX_VALUE);
+    Preconditions.checkState(getHeartbeatIntervalMs() < getElectionTimeoutMs() / 2,
+        "Heartbeat interval (%sms) should be less than half of the election timeout (%sms)",
+        getHeartbeatIntervalMs(), getElectionTimeoutMs());
+    Preconditions.checkState(getClusterAddresses().contains(getLocalAddress()),
+        "The cluster addresses (%s) must contain the local master address (%s)",
+        getClusterAddresses(), getLocalAddress());
   }
 
   /**
@@ -174,40 +189,5 @@ public class RaftJournalConfiguration {
   public RaftJournalConfiguration setStorageLevel(StorageLevel storageLevel) {
     mStorageLevel = storageLevel;
     return this;
-  }
-
-  private static List<InetSocketAddress> defaultClusterAddresses(ServiceType serviceType) {
-    PropertyKey addressKey;
-    if (serviceType.equals(ServiceType.MASTER_RAFT)) {
-      addressKey = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
-    } else {
-      Preconditions.checkState(serviceType.equals(ServiceType.JOB_MASTER_RAFT));
-      // If the job master embedded journal addresses aren't explicitly configured, default to
-      // using the same hostnames as the alluxio master embedded journal addresses, but with the job
-      // master port.
-      if (!ServerConfiguration.isSet(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
-        List<InetSocketAddress> addrs = defaultClusterAddresses(ServiceType.MASTER_RAFT);
-        List<InetSocketAddress> jobAddrs = new ArrayList<>(addrs.size());
-        int port = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RAFT,
-            ServerConfiguration.global()
-        );
-        for (InetSocketAddress addr : addrs) {
-          jobAddrs.add(new InetSocketAddress(addr.getHostName(), port));
-        }
-        return jobAddrs;
-      }
-      addressKey = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
-    }
-    List<String> addresses = ServerConfiguration.getList(addressKey, ",");
-    List<InetSocketAddress> inetAddresses = new ArrayList<>();
-    for (String address : addresses) {
-      try {
-        inetAddresses.add(NetworkAddressUtils.parseInetSocketAddress(address));
-      } catch (IOException e) {
-        throw new IllegalArgumentException(
-            String.format("Failed to parse address %s for property %s", address, addressKey), e);
-      }
-    }
-    return inetAddresses;
   }
 }

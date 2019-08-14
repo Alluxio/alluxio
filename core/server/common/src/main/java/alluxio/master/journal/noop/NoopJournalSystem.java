@@ -14,6 +14,12 @@ package alluxio.master.journal.noop;
 import alluxio.master.Master;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.sink.JournalSink;
+
+import java.util.Collections;
+import java.util.Set;
+
+import javax.annotation.Nullable;
 
 /**
  * Journal system which doesn't do anything.
@@ -45,6 +51,17 @@ public final class NoopJournalSystem implements JournalSystem {
   }
 
   @Override
+  public void addJournalSink(Master master, JournalSink journalSink) {}
+
+  @Override
+  public void removeJournalSink(Master master, JournalSink journalSink) {}
+
+  @Override
+  public Set<JournalSink> getJournalSinks(@Nullable Master master) {
+    return Collections.emptySet();
+  }
+
+  @Override
   public boolean isEmpty() {
     return true;
   }
@@ -57,4 +74,7 @@ public final class NoopJournalSystem implements JournalSystem {
 
   @Override
   public void stop() {}
+
+  @Override
+  public void checkpoint() {}
 }

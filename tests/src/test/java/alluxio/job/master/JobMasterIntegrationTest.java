@@ -51,9 +51,9 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS, 20)
-          .setProperty(PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS, WORKER_TIMEOUT_MS)
-          .setProperty(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL_MS, LOST_WORKER_INTERVAL_MS)
+          .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, 20)
+          .setProperty(PropertyKey.JOB_MASTER_WORKER_TIMEOUT, WORKER_TIMEOUT_MS)
+          .setProperty(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL, LOST_WORKER_INTERVAL_MS)
           .build();
 
   @Rule
@@ -75,7 +75,7 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "1",
-      PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_MS, "0"})
+      PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0"})
   public void flowControl() throws Exception {
     for (int i = 0; i < 10; i++) {
       while (true) {
@@ -106,7 +106,7 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.JOB_MASTER_LOST_WORKER_INTERVAL_MS, "10000000"})
+      confParams = {PropertyKey.Name.JOB_MASTER_LOST_WORKER_INTERVAL, "10000000"})
   public void restartMasterAndReregisterWorker() throws Exception {
     long jobId = mJobMaster.run(new SleepJobConfig(1));
     JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);

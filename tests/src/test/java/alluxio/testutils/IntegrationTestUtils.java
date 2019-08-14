@@ -39,7 +39,9 @@ import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -138,10 +140,21 @@ public final class IntegrationTestUtils {
    *
    * @param masterName the name of the master
    */
-  public static void waitForCheckpoint(String masterName)
+  public static void waitForUfsJournalCheckpoint(String masterName)
       throws TimeoutException, InterruptedException {
-    UfsJournal journal = new UfsJournal(URIUtils.appendPathOrDie(JournalUtils.getJournalLocation(),
-        masterName), new NoopMaster(""), 0);
+    waitForUfsJournalCheckpoint(masterName, JournalUtils.getJournalLocation());
+  }
+
+  /**
+   * Waits for a checkpoint to be written in the specified master's journal.
+   *
+   * @param masterName the name of the master
+   * @param journalLocation the location of the journal
+   */
+  public static void waitForUfsJournalCheckpoint(String masterName, URI journalLocation)
+      throws TimeoutException, InterruptedException {
+    UfsJournal journal = new UfsJournal(URIUtils.appendPathOrDie(journalLocation,
+        masterName), new NoopMaster(""), 0, Collections::emptySet);
     CommonUtils.waitFor("checkpoint to be written", () -> {
       UfsJournalSnapshot snapshot;
       try {
@@ -158,7 +171,8 @@ public final class IntegrationTestUtils {
    */
   public static void reserveMasterPorts() {
     for (ServiceType service : Arrays.asList(ServiceType.MASTER_RPC, ServiceType.MASTER_WEB,
-        ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB)) {
+        ServiceType.MASTER_RAFT, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB,
+        ServiceType.JOB_MASTER_RAFT)) {
       PropertyKey key = service.getPortKey();
       ServerConfiguration.set(key, PortRegistry.reservePort());
     }

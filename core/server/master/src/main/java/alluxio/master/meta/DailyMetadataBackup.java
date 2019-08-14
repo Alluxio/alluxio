@@ -14,13 +14,13 @@ package alluxio.master.meta;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.BackupPOptions;
 import alluxio.master.BackupManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 
 import com.google.common.base.Preconditions;
@@ -108,7 +108,8 @@ public final class DailyMetadataBackup {
    */
   private void dailyBackup() {
     try {
-      BackupResponse resp = mMetaMaster.backup(new BackupOptions(mBackupDir, mIsLocal));
+      BackupResponse resp = mMetaMaster.backup(BackupPOptions.newBuilder()
+          .setTargetDirectory(mBackupDir).setLocalFileSystem(mIsLocal).build());
       if (mIsLocal) {
         LOG.info("Successfully backed up journal to {} on master {}",
             resp.getBackupUri(), resp.getHostname());
@@ -156,7 +157,7 @@ public final class DailyMetadataBackup {
     for (int i = 0; i < toDeleteFileNum; i++) {
       String toDeleteFile = PathUtils.concatPath(mBackupDir,
           timeToFile.pollFirstEntry().getValue());
-      mUfs.deleteFile(toDeleteFile);
+      mUfs.deleteExistingFile(toDeleteFile);
     }
     LOG.info("Deleted {} stale metadata backup files at {}", toDeleteFileNum, mBackupDir);
   }

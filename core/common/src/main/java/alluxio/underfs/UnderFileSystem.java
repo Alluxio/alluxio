@@ -31,19 +31,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Alluxio stores data into an under layer file system. Any file system implementing this interface
- * can be a valid under layer file system
+ * can be a valid under layer file system.
+ *
+ * There are two sets of APIs in the under file system:
+ * (1) normal operations (e.g. create, renameFile, deleteFile)
+ * (2) operations deal with the eventual consistency issue
+ * (e.g. createNonexistingFile, renameRenamableFile)
+ * When confirmed by Alluxio metadata that an operation should succeed but may fail because of the
+ * under filesystem eventual consistency issue, use the second set of APIs.
  */
 @PublicApi
 @ThreadSafe
@@ -62,22 +70,12 @@ public interface UnderFileSystem extends Closeable {
      * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
      * only be used for journal operations and tests.
      *
-     * @param path the file path storing over the ufs
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
-      return create(path, UnderFileSystemConfiguration.defaults(conf), conf);
-    }
-
-    /**
-     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
-     * only be used for journal operations and tests.
-     *
      * @param path journal path in ufs
+     * @param conf the configuration object w/o mount specific options
      * @return the instance of under file system for Alluxio journal directory
      */
-    public static UnderFileSystem create(URI path, AlluxioConfiguration conf) {
-      return create(path.toString(), conf);
+    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
+      return create(path, UnderFileSystemConfiguration.defaults(conf));
     }
 
     /**
@@ -86,15 +84,13 @@ public interface UnderFileSystem extends Closeable {
      * path or if no under file system could successfully be created.
      *
      * @param path path
-     * @param ufsConf optional configuration object for the UFS, may be null
-     * @param alluxioConf Alluxio configuration
+     * @param ufsConf configuration object for the UFS
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf,
-        AlluxioConfiguration alluxioConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
-          UnderFileSystemFactoryRegistry.findAll(path, ufsConf, alluxioConf);
+          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -108,8 +104,7 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf, alluxioConf),
-              alluxioConf);
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
@@ -230,6 +225,29 @@ public interface UnderFileSystem extends Closeable {
   OutputStream create(String path, CreateOptions options) throws IOException;
 
   /**
+   * Creates a file in the under file system with the indicated name.
+   *
+   * Similar to {@link #create(String)} but
+   * deals with the delete-then-create eventual consistency issue.
+   *
+   * @param path the file name
+   * @return A {@code OutputStream} object
+   */
+  OutputStream createNonexistingFile(String path) throws IOException;
+
+  /**
+   * Creates a file in the under file system with the specified {@link CreateOptions}.
+   *
+   * Similar to {@link #create(String, CreateOptions)} but
+   * deals with the delete-then-create eventual consistency issue.
+   *
+   * @param path the file name
+   * @param options the options for create
+   * @return A {@code OutputStream} object
+   */
+  OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException;
+
+  /**
    * Deletes a directory from the under file system with the indicated name non-recursively. A
    * non-recursive delete is successful only if the directory is empty.
    *
@@ -248,12 +266,46 @@ public interface UnderFileSystem extends Closeable {
   boolean deleteDirectory(String path, DeleteOptions options) throws IOException;
 
   /**
+   * Deletes a directory from the under file system.
+   *
+   * Similar to {@link #deleteDirectory(String)} but
+   * deals with the create-delete eventual consistency issue.
+   *
+   * @param path of the directory to delete
+   * @return true if directory was found and deleted, false otherwise
+   */
+  boolean deleteExistingDirectory(String path) throws IOException;
+
+  /**
+   * Deletes a directory from the under file system with the indicated name.
+   *
+   * Similar to {@link #deleteDirectory(String, DeleteOptions)} but
+   * deals with the create-then-delete eventual consistency issue.
+   *
+   * @param path of the directory to delete
+   * @param options for directory delete semantics
+   * @return true if directory was found and deleted, false otherwise
+   */
+  boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException;
+
+  /**
    * Deletes a file from the under file system with the indicated name.
    *
    * @param path of the file to delete
    * @return true if file was found and deleted, false otherwise
    */
   boolean deleteFile(String path) throws IOException;
+
+  /**
+   * Deletes a file from the under file system with the indicated name.
+   *
+   * Similar to {@link #deleteFile(String)} but
+   * deals with the create-then-delete eventual consistency issue.
+   *
+   * @param path of the file to delete
+   * @return true if file was found and deleted, false otherwise
+   */
+  boolean deleteExistingFile(String path) throws IOException;
 
   /**
    * Checks if a file or directory exists in under file system.
@@ -271,6 +323,7 @@ public interface UnderFileSystem extends Closeable {
    *         return null if ACL is unsupported or disabled
    * @throws IOException if ACL is supported and enabled but cannot be retrieved
    */
+  @Nullable
   Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path) throws IOException;
 
   /**
@@ -287,8 +340,20 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path to the directory
    * @return the directory status
+   * @throws FileNotFoundException when the path does not exist
    */
   UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
+
+  /**
+   * Gets the directory status.
+   *
+   * Similar to {@link #getDirectoryStatus(String)} but
+   * deals with the write-then-get-status eventual consistency issue.
+   *
+   * @param path the path to the directory
+   * @return the directory status
+   */
+  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException;
 
   /**
    * Gets the list of locations of the indicated path.
@@ -313,8 +378,20 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path to the file
    * @return the file status
+   * @throws FileNotFoundException when the path does not exist
    */
   UfsFileStatus getFileStatus(String path) throws IOException;
+
+  /**
+   * Gets the file status.
+   *
+   * Similar to {@link #getFileStatus(String)} but
+   * deals with the write-then-get-status eventual consistency issue.
+   *
+   * @param path the path to the file
+   * @return the file status
+   */
+  UfsFileStatus getExistingFileStatus(String path) throws IOException;
 
   /**
    * Computes and returns a fingerprint for the path. The fingerprint is used to determine if two
@@ -365,8 +442,20 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path to get the status
    * @return the file or directory status
+   * @throws FileNotFoundException when the path does not exist
    */
   UfsStatus getStatus(String path) throws IOException;
+
+  /**
+   * Gets the file or directory status.
+   *
+   * Similar to {@link #getStatus(String)} but
+   * deals with the write-then-get-status eventual consistency issue.
+   *
+   * @param path the path to get the status
+   * @return the file or directory status
+   */
+  UfsStatus getExistingStatus(String path) throws IOException;
 
   /**
    * Returns the name of the under filesystem implementation.
@@ -384,6 +473,17 @@ public interface UnderFileSystem extends Closeable {
    * @return true if the path exists and is a directory, false otherwise
    */
   boolean isDirectory(String path) throws IOException;
+
+  /**
+   * Checks if a directory exists in under file system.
+   *
+   * Similar to {@link #isDirectory(String)} but
+   * deals with the write-then-list eventual consistency issue.
+   *
+   * @param path the absolute directory path
+   * @return true if the path exists and is a directory, false otherwise
+   */
+  boolean isExistingDirectory(String path) throws IOException;
 
   /**
    * Checks if a file exists in under file system.
@@ -426,6 +526,7 @@ public interface UnderFileSystem extends Closeable {
    *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
+  @Nullable
   UfsStatus[] listStatus(String path) throws IOException;
 
   /**
@@ -448,6 +549,7 @@ public interface UnderFileSystem extends Closeable {
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
+  @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
@@ -487,6 +589,29 @@ public interface UnderFileSystem extends Closeable {
   InputStream open(String path, OpenOptions options) throws IOException;
 
   /**
+   * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
+   *
+   * Similar to {@link #open(fString)} but
+   * deals with the write-then-read eventual consistency issue.
+   *
+   * @param path the file name
+   * @return The {@code InputStream} object
+   */
+  InputStream openExistingFile(String path) throws IOException;
+
+  /**
+   * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
+   *
+   * Similar to {@link #open(String, OpenOptions)} but
+   * deals with the write-then-read eventual consistency issue.
+   *
+   * @param path the file name
+   * @param options to open input stream
+   * @return The {@code InputStream} object
+   */
+  InputStream openExistingFile(String path, OpenOptions options) throws IOException;
+
+  /**
    * Renames a directory from {@code src} to {@code dst} in under file system.
    *
    * @param src the source directory path
@@ -496,6 +621,18 @@ public interface UnderFileSystem extends Closeable {
   boolean renameDirectory(String src, String dst) throws IOException;
 
   /**
+   * Renames a directory from {@code src} to {@code dst} in under file system.
+   *
+   * Similar to {@link #renameDirectory(String, String)} but
+   * deals with the write-src-then-rename and delete-dst-then-rename eventual consistency issue.
+   *
+   * @param src the source directory path
+   * @param dst the destination directory path
+   * @return true if succeed, false otherwise
+   */
+  boolean renameRenamableDirectory(String src, String dst) throws IOException;
+
+  /**
    * Renames a file from {@code src} to {@code dst} in under file system.
    *
    * @param src the source file path
@@ -503,6 +640,18 @@ public interface UnderFileSystem extends Closeable {
    * @return true if succeed, false otherwise
    */
   boolean renameFile(String src, String dst) throws IOException;
+
+  /**
+   * Renames a file from {@code src} to {@code dst} in under file system.
+   *
+   * Similar to {@link #renameFile(String, String)} but
+   * deals with the write-src-then-rename and delete-dst-then-rename eventual consistency issue.
+   *
+   * @param src the source file path
+   * @param dst the destination file path
+   * @return true if succeed, false otherwise
+   */
+  boolean renameRenamableFile(String src, String dst) throws IOException;
 
   /**
    * Returns an {@link AlluxioURI} representation for the {@link UnderFileSystem} given a base
@@ -550,7 +699,7 @@ public interface UnderFileSystem extends Closeable {
    *
    * @return true if this type of UFS supports flush, false otherwise
    */
-  boolean supportsFlush();
+  boolean supportsFlush() throws IOException;
 
   /**
    * Whether this type of UFS supports active sync.

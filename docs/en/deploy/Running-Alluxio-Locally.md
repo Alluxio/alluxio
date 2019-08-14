@@ -17,7 +17,7 @@ The prerequisite for this part is that you have
 [Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) (JDK 8
 or above) installed.
 
-[Download](https://alluxio.org/download) the binary distribution of Alluxio
+[Download](https://alluxio.io/download) the binary distribution of Alluxio
 {{site.ALLUXIO_RELEASED_VERSION}}
 
 To run in standalone mode, do the following:
@@ -27,8 +27,8 @@ To run in standalone mode, do the following:
 * Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e.,
 `alluxio.master.hostname=localhost`).
 
-* Set `alluxio.underfs.address` in `conf/alluxio-site.properties` to a tmp directory in the local
-  filesystem (e.g., `alluxio.underfs.address=/tmp`).
+* Set `alluxio.master.mount.table.root.ufs` in `conf/alluxio-site.properties` to a tmp directory in the local
+  filesystem (e.g., `alluxio.master.mount.table.root.ufs=/tmp`).
 
 * Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
 repeatedly input the password, you can add the public SSH key for the host into
@@ -42,7 +42,7 @@ details.
 > all previously stored data and metadata in Alluxio filesystem will be erased.
 > However, data in under storage will not be changed.
 
-```bash
+```console
 $ ./bin/alluxio format
 ```
 
@@ -50,7 +50,7 @@ $ ./bin/alluxio format
 
 Simply run the following command to start Alluxio filesystem.
 
-```bash
+```console
 # If you have not mounted the ramdisk or want to remount it (ie. to change the size)
 $ ./bin/alluxio-start.sh local SudoMount
 # OR if you have already mounted the ramdisk
@@ -68,11 +68,15 @@ To verify that Alluxio is running, you can visit
 
 To run a more comprehensive sanity check:
 
-{% include Running-Alluxio-Locally/run-tests.md %}
+```console
+$ ./bin/alluxio runTests
+```
 
 You can stop Alluxio any time by running:
 
-{% include Running-Alluxio-Locally/Alluxio-stop.md %}
+```console
+$ ./bin/alluxio-stop.sh local
+```
 
 
 ## FAQ
@@ -91,14 +95,14 @@ If you have no sudo privileges on Linux, for Alluxio Filesystem to work, it requ
 by the system admin and accessible for read/write-operations by the user. In this case you have can specify the path in
 `conf/alluxio-site.properties`:
 
-```
+```properties
 alluxio.worker.tieredstore.level0.alias=MEM
 alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 ```
 
 and then start Alluxio with `NoMount` option to use the above directory as its data storage:
 
-```bash
+```console
 $ ./bin/alluxio-start.sh local NoMount
 ```
 
@@ -107,14 +111,14 @@ as the data storage. Tmpfs is a temporary file storage backed by memory (e.g., t
 therefore provides less performance guarantees compared to ramfs. Similar to using a pre-mounted RAMFS, you can specify the tempfs path in
 `conf/alluxio-site.properties`:
 
-```
+```properties
 alluxio.worker.tieredstore.level0.alias=MEM
 alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 ```
 
 followed by:
 
-```bash
+```console
 $ ./bin/alluxio-start.sh local NoMount
 ```
 

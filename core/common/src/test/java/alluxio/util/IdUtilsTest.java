@@ -11,7 +11,9 @@
 
 package alluxio.util;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotEquals;
+
 import org.junit.Test;
 
 /**
@@ -26,9 +28,9 @@ public final class IdUtilsTest {
   public void getRandomNonNegativeLong() throws Exception {
     long first = IdUtils.getRandomNonNegativeLong();
     long second = IdUtils.getRandomNonNegativeLong();
-    Assert.assertTrue(first >= 0);
-    Assert.assertTrue(second >= 0);
-    Assert.assertTrue(first != second);
+    assertTrue(first >= 0);
+    assertTrue(second >= 0);
+    assertTrue(first != second);
   }
 
   /**
@@ -38,7 +40,7 @@ public final class IdUtilsTest {
   public void createFileId() throws Exception {
     long containerId = 1;
     long fileId = IdUtils.createFileId(containerId);
-    Assert.assertNotEquals(-1, fileId);
+    assertNotEquals(-1, fileId);
   }
 
   /**
@@ -48,9 +50,9 @@ public final class IdUtilsTest {
   @Test
   public void createRpcId() throws Exception {
     String first = IdUtils.createRpcId();
-    Assert.assertTrue(!first.isEmpty());
+    assertTrue(!first.isEmpty());
     String second = IdUtils.createRpcId();
-    Assert.assertTrue(!second.isEmpty());
-    Assert.assertNotEquals(first, second);
+    assertTrue(!second.isEmpty());
+    assertNotEquals(first, second);
   }
 }

@@ -21,9 +21,11 @@ import alluxio.collections.IndexedSet;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Source;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.ConfigProperty;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaCommand;
@@ -38,9 +40,11 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.journal.NoopJournaled;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
+import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -54,9 +58,10 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
-import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -69,8 +74,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,7 +87,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The default meta master.
  */
 @NotThreadSafe
-public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, NoopJournaled {
+public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
@@ -139,6 +144,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
   /** The metadata daily backup. */
   private DailyMetadataBackup mDailyBackup;
 
+  /** Path level properties. */
+  private PathProperties mPathProperties;
+
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
    *
@@ -173,10 +181,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
     if (URIUtils.isLocalFilesystem(ServerConfiguration
         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
       mUfs = UnderFileSystem.Factory
-          .create("/", UnderFileSystemConfiguration.defaults());
+          .create("/", UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     } else {
       mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
+
+    mPathProperties = new PathProperties();
   }
 
   @Override
@@ -215,13 +225,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL),
-          ServerConfiguration.global()));
+          (int) ServerConfiguration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+          ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
           new LogConfigReportHeartbeatExecutor(),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
 
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
@@ -229,16 +239,15 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
         mDailyBackup.start();
       }
     } else {
-      boolean haEnabled = ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
-      if (haEnabled) {
+      if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingMetaMasterMasterClient metaMasterClient =
             new RetryHandlingMetaMasterMasterClient(MasterClientContext
                 .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
-            (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL),
-            ServerConfiguration.global()));
+            (int) ServerConfiguration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+            ServerConfiguration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
       }
@@ -255,14 +264,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
   }
 
   @Override
-  public BackupResponse backup(BackupOptions options) throws IOException {
-    String dir = options.getTargetDirectory();
-    if (dir == null) {
-      dir = ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    }
+  public BackupResponse backup(BackupPOptions options) throws IOException {
+    String dir = options.hasTargetDirectory() ? options.getTargetDirectory()
+        : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     UnderFileSystem ufs = mUfs;
-    if (options.isLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
-      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+    if ((options.getLocalFileSystem() || !options.hasTargetDirectory())
+            && !ufs.getUnderFSType().equals("local")) {
+      ufs = UnderFileSystem.Factory.create("/",
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
       LOG.info("Backing up to local filesystem in directory {}", dir);
     } else {
       LOG.info("Backing up to root UFS in directory {}", dir);
@@ -286,7 +295,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
         }
       } catch (Throwable t) {
         try {
-          ufs.deleteFile(backupFilePath);
+          ufs.deleteExistingFile(backupFilePath);
         } catch (Throwable t2) {
           LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
           t.addSuppressed(t2);
@@ -295,7 +304,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
       }
     }
     String rootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    if (options.isLocalFileSystem()) {
+    if (options.getLocalFileSystem()) {
       rootUfs = "file:///";
     }
     AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
@@ -305,28 +314,79 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
   }
 
   @Override
+  public String checkpoint() throws IOException {
+    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
+      mJournalSystem.checkpoint();
+    }
+    return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+        ServerConfiguration.global());
+  }
+
+  @Override
   public ConfigCheckReport getConfigCheckReport() {
     return mConfigChecker.getConfigCheckReport();
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration(GetConfigurationPOptions options) {
-    List<ConfigProperty> configInfoList = new ArrayList<>();
-    for (PropertyKey key : ServerConfiguration.keySet()) {
-      if (key.isBuiltIn()) {
-        String source = ServerConfiguration.getSource(key).toString();
-        String value = ServerConfiguration.getOrDefault(key, null,
-            ConfigurationValueOptions.defaults().useDisplayValue(true)
-                .useRawValue(options.getRawValue()));
-        ConfigProperty.Builder config =
-            ConfigProperty.newBuilder().setName(key.getName()).setSource(source);
-        if (value != null) {
-          config.setValue(value);
+  public Configuration getConfiguration(GetConfigurationPOptions options) {
+    // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
+    // consistent snapshot of the system's state at a certain time, the path configuration might
+    // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
+    // the properties.
+    Configuration.Builder builder = Configuration.newBuilder();
+
+    if (!options.getIgnoreClusterConf()) {
+      for (PropertyKey key : ServerConfiguration.keySet()) {
+        if (key.isBuiltIn()) {
+          Source source = ServerConfiguration.getSource(key);
+          String value = ServerConfiguration.getOrDefault(key, null,
+              ConfigurationValueOptions.defaults().useDisplayValue(true)
+                  .useRawValue(options.getRawValue()));
+          builder.addClusterProperty(key.getName(), value, source);
         }
-        configInfoList.add(config.build());
       }
+      // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+      // the following hash might not correspond to the above cluster configuration.
+      builder.setClusterConfHash(ServerConfiguration.hash());
     }
-    return configInfoList;
+
+    if (!options.getIgnorePathConf()) {
+      PathPropertiesView pathProperties = mPathProperties.snapshot();
+      pathProperties.getProperties().forEach((path, properties) ->
+          properties.forEach((key, value) ->
+              builder.addPathProperty(path, key, value)));
+      builder.setPathConfHash(pathProperties.getHash());
+    }
+
+    return builder.build();
+  }
+
+  @Override
+  public ConfigHash getConfigHash() {
+    return new ConfigHash(ServerConfiguration.hash(), mPathProperties.hash());
+  }
+
+  @Override
+  public void setPathConfiguration(String path, Map<PropertyKey, String> properties)
+      throws UnavailableException {
+    try (JournalContext ctx = createJournalContext()) {
+      mPathProperties.add(ctx, path, properties);
+    }
+  }
+
+  @Override
+  public void removePathConfiguration(String path, Set<String> keys)
+      throws UnavailableException {
+    try (JournalContext ctx = createJournalContext()) {
+      mPathProperties.remove(ctx, path, keys);
+    }
+  }
+
+  @Override
+  public void removePathConfiguration(String path) throws UnavailableException {
+    try (JournalContext ctx = createJournalContext()) {
+      mPathProperties.removeAll(ctx, path);
+    }
   }
 
   @Override
@@ -425,6 +485,26 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
     mMasterConfigStore.registerNewConf(master.getAddress(), options.getConfigsList());
 
     LOG.info("registerMaster(): master: {}", master);
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.META_MASTER;
+  }
+
+  @Override
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    return mPathProperties.getJournalEntryIterator();
+  }
+
+  @Override
+  public boolean processJournalEntry(Journal.JournalEntry entry) {
+    return mPathProperties.processJournalEntry(entry);
+  }
+
+  @Override
+  public void resetState() {
+    mPathProperties.resetState();
   }
 
   /**

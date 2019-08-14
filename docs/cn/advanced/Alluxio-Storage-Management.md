@@ -52,14 +52,7 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 因为Alluxio存储被设计成动态变化的，所以必须有一个机制在Alluxio存储已满时为新的数据腾出空间。这被称为回收。
 
-在Alluxio中有两种回收模式，异步（默认）和同步。你可以通过启用和禁用处理异步驱逐的空间预留器在这两者之间切换。
-例如，要关闭异步回收：
-
-```
-alluxio.worker.tieredstore.reserver.enabled=false
-```
-
-异步回收是默认的回收实现。它依赖于每个worker的周期性空间预留线程来回收数据。它等待worker存储利用率达到配置的高水位。然后它回收
+在Alluxio中使用异步回收。它依赖于每个worker的周期性空间预留线程来回收数据。它等待worker存储利用率达到配置的高水位。然后它回收
 基于回收策略的数据直到达到配置的低水位。例如，如果我们配置了相同的16 + 100 + 100 = 216GB的存储空间，我们可以将回收设置为200GB左右开始并在160GB左右停止：
 
 ```
@@ -67,8 +60,7 @@ alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9 # 216GB * 0.9 ~ 200GB
 alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160GB
 ```
 
-在写或读缓存高工作负载时，异步回收可以提高性能。
-
+与Alluxio2.0之前采用的同步回收相比，在写或读缓存高工作负载时异步回收可以提高性能。
 同步回收等待一个客户端请求比当前在worker上可用空间更多的空间，然后启动回收进程来释放足够的空间来满足这一要求。这导致了许多很小的回收尝试，使得效率较低但是使可用的Alluxio空间的利用最大化。
 
 ### 回收策略

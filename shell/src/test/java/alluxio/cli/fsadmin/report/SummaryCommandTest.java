@@ -15,7 +15,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.client.MetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;

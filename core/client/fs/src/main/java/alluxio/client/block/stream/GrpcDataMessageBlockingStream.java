@@ -16,6 +16,7 @@ import alluxio.grpc.DataMessage;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
+import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
@@ -31,32 +32,40 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStream<ReqT, ResT> {
-  private final DataMessageMarshaller<ResT> mMarshaller;
+  private final DataMessageMarshaller<ReqT> mRequestMarshaller;
+  private final DataMessageMarshaller<ResT> mResponseMarshaller;
 
   /**
    * @param rpcFunc the gRPC bi-directional stream stub function
    * @param bufferSize maximum number of incoming messages the buffer can hold
    * @param description description of this stream
-   * @param deserializer custom deserializer for the response
+   * @param requestMarshaller the marshaller for the request
+   * @param responseMarshaller the marshaller for the response
    */
   public GrpcDataMessageBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
-      int bufferSize, String description, DataMessageMarshaller<ResT> deserializer) {
+      int bufferSize, String description, DataMessageMarshaller<ReqT> requestMarshaller,
+      DataMessageMarshaller<ResT> responseMarshaller) {
     super((resObserver) -> {
       DataMessageClientResponseObserver<ReqT, ResT> newObserver =
-          new DataMessageClientResponseObserver<>(resObserver, deserializer);
+          new DataMessageClientResponseObserver<>(resObserver, requestMarshaller,
+              responseMarshaller);
       StreamObserver<ReqT> requestObserver = rpcFunc.apply(newObserver);
       return requestObserver;
     }, bufferSize, description);
-    mMarshaller = deserializer;
+    mRequestMarshaller = requestMarshaller;
+    mResponseMarshaller = responseMarshaller;
   }
 
   @Override
   public ResT receive(long timeoutMs) throws IOException {
+    if (mResponseMarshaller == null) {
+      return super.receive(timeoutMs);
+    }
     DataMessage<ResT, DataBuffer> message = receiveDataMessage(timeoutMs);
     if (message == null) {
       return null;
     }
-    return mMarshaller.combineData(message);
+    return mResponseMarshaller.combineData(message);
   }
 
   /**
@@ -70,16 +79,38 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
    * @throws IOException if any error occurs
    */
   public DataMessage<ResT, DataBuffer> receiveDataMessage(long timeoutMs) throws IOException {
+    Preconditions.checkNotNull(mResponseMarshaller,
+        "Cannot retrieve data message without a response marshaller.");
     ResT response = super.receive(timeoutMs);
     if (response == null) {
       return null;
     }
-    DataBuffer buffer = mMarshaller.pollBuffer(response);
+    DataBuffer buffer = mResponseMarshaller.pollBuffer(response);
     return new DataMessage<>(response, buffer);
+  }
+
+  /**
+   * Sends a request. Will wait until the stream is ready before sending or timeout if the
+   * given timeout is reached.
+   *
+   * @param message the request message with {@link DataBuffer attached}
+   * @param timeoutMs maximum wait time before throwing a {@link DeadlineExceededException}
+   * @throws IOException if any error occurs
+   */
+  public void sendDataMessage(DataMessage<ReqT, DataBuffer> message, long timeoutMs)
+      throws IOException {
+    if (mRequestMarshaller != null) {
+      mRequestMarshaller.offerBuffer(message.getBuffer(), message.getMessage());
+    }
+    super.send(message.getMessage(), timeoutMs);
   }
 
   @Override
   public void waitForComplete(long timeoutMs) throws IOException {
+    if (mResponseMarshaller == null) {
+      super.waitForComplete(timeoutMs);
+      return;
+    }
     DataMessage<ResT, DataBuffer> message;
     while (!isCanceled() && (message = receiveDataMessage(timeoutMs)) != null) {
       if (message.getBuffer() != null) {

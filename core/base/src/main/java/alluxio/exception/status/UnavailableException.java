@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that the service is currently unavailable. This is a most likely a transient
  * condition and may be corrected by retrying with a backoff.
@@ -26,14 +28,14 @@ public class UnavailableException extends AlluxioStatusException {
    * @param message the exception message
    */
   public UnavailableException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public UnavailableException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -41,6 +43,6 @@ public class UnavailableException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public UnavailableException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

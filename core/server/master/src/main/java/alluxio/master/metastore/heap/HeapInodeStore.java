@@ -18,8 +18,18 @@ import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOption;
+import alluxio.proto.meta.InodeMeta;
 
+import com.google.common.base.Preconditions;
+
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,11 +48,6 @@ public class HeapInodeStore implements InodeStore {
   // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
-
-  /**
-   * @param args inode store arguments
-   */
-  public HeapInodeStore(InodeStoreArgs args) {}
 
   @Override
   public void remove(Long inodeId) {
@@ -65,22 +70,17 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public long estimateSize() {
-    return mInodes.size();
-  }
-
-  @Override
-  public Optional<MutableInode<?>> getMutable(long id) {
+  public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
     return Optional.ofNullable(mInodes.get(id));
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId) {
+  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
     return children(inodeId).values();
   }
 
   @Override
-  public Iterable<? extends Inode> getChildren(Long inodeId) {
+  public Iterable<? extends Inode> getChildren(Long inodeId, ReadOption option) {
     return children(inodeId).values().stream()
         .map(this::get)
         .filter(Optional::isPresent)
@@ -90,19 +90,19 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Long> getChildId(Long inodeId, String child) {
+  public Optional<Long> getChildId(Long inodeId, String child, ReadOption option) {
     return Optional.ofNullable(children(inodeId).get(child));
   }
 
   @Override
-  public Optional<Inode> getChild(Long inodeId, String child) {
+  public Optional<Inode> getChild(Long inodeId, String child, ReadOption option) {
     return getChildId(inodeId, child)
         .flatMap(this::get)
         .map(Inode::wrap);
   }
 
   @Override
-  public boolean hasChildren(InodeDirectoryView dir) {
+  public boolean hasChildren(InodeDirectoryView dir, ReadOption option) {
     return !children(dir.getId()).isEmpty();
   }
 
@@ -124,5 +124,33 @@ public class HeapInodeStore implements InodeStore {
 
   private Map<String, Long> children(long id) {
     return mEdges.getOrDefault(id, Collections.emptyMap());
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    output = new CheckpointOutputStream(output, CheckpointType.INODE_PROTOS);
+    for (MutableInode<?> inode : mInodes.values()) {
+      if (Thread.interrupted()) {
+        throw new InterruptedException();
+      }
+      inode.toProto().writeDelimitedTo(output);
+    }
+  }
+
+  @Override
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+    Preconditions.checkState(input.getType() == CheckpointType.INODE_PROTOS,
+        "Unexpected checkpoint type in heap inode store: " + input.getType());
+    InodeMeta.Inode inodeProto;
+    while ((inodeProto = InodeMeta.Inode.parseDelimitedFrom(input)) != null) {
+      MutableInode<?> inode = MutableInode.fromProto(inodeProto);
+      mInodes.put(inode.getId(), inode);
+      mEdges.addInnerValue(inode.getParentId(), inode.getName(), inode.getId());
+    }
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.HEAP_INODE_STORE;
   }
 }

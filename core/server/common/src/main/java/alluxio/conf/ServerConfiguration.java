@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
@@ -340,14 +341,26 @@ public final class ServerConfiguration {
   }
 
   /**
-   * Loads cluster default values from the meta master.
+   * Loads cluster default values from the meta master if it's not loaded yet.
    *
    * @param address the master address
    */
-  public static synchronized void loadClusterDefaults(InetSocketAddress address)
+  public static synchronized void loadClusterDefaultsIfNotLoaded(InetSocketAddress address)
       throws AlluxioStatusException {
-    AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(address, global());
-    sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
+    if (sConf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
+        && !sConf.clusterDefaultsLoaded()) {
+      GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, sConf,
+          false, true);
+      AlluxioConfiguration conf = ConfigurationUtils.getClusterConf(response, sConf);
+      sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
+    }
+  }
+
+  /**
+   * @return hash of properties
+   */
+  public static String hash() {
+    return sConf.hash();
   }
 
   private ServerConfiguration() {} // prevent instantiation

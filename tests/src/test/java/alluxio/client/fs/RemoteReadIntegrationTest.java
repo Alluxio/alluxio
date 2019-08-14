@@ -33,6 +33,7 @@ import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.security.user.UserState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -90,7 +91,8 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+    UserState us = UserState.Factory.create(ServerConfiguration.global());
+    mFsContext = FileSystemContext.create(us.getSubject(), ServerConfiguration.global());
     mWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
         .setRecursive(true).build();
     mWriteUnderStore = CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)

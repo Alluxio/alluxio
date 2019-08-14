@@ -46,8 +46,9 @@ public final class Constants {
   public static final String MESOS_RESOURCE_DISK = "disk";
   public static final String MESOS_RESOURCE_PORTS = "ports";
 
-  public static final long SECOND_NANO = 1000000000L;
-  public static final int SECOND_MS = 1000;
+  public static final int MS_NANO = 1_000_000;
+  public static final long SECOND_NANO = 1_000_000_000L;
+  public static final int SECOND_MS = 1_000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
@@ -71,6 +72,8 @@ public final class Constants {
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
   public static final String HEADER_COS = "cos://";
+  public static final String HEADER_HTTP = "http://";
+  public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
 
   public static final int MAX_PORT = 65535;
@@ -88,6 +91,7 @@ public final class Constants {
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long JOURNAL_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
@@ -110,6 +114,7 @@ public final class Constants {
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
+  public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMaster";
   public static final String UFS_INPUT_STREAM_CACHE_EXPIRATION = "UfsInputStreamCacheExpiration";
 
   public static final int DEFAULT_REGISTRY_GET_TIMEOUT_MS = 60 * SECOND_MS;
@@ -188,13 +193,13 @@ public final class Constants {
 
   // Journal
   public static final String JOB_JOURNAL_NAME = "JobJournal";
-  public static final long JOURNAL_ENTRY_CHECKPOINT_VERSION = 0L;
-  public static final long COMPOUND_CHECKPOINT_VERSION = 1L;
 
   // Replication
   public static final int REPLICATION_MAX_INFINITY = -1;
 
   // Persistence
+  // The file should only be persisted after rename operation or persist CLI
+  public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
 

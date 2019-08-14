@@ -12,12 +12,11 @@
 package alluxio.security.authentication;
 
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.grpc.ChannelAuthenticationScheme;
 
 import io.grpc.BindableService;
-import io.grpc.ServerInterceptor;
 
-import javax.security.sasl.SaslServer;
-import java.util.List;
+import javax.security.sasl.SaslException;
 import java.util.UUID;
 
 /**
@@ -28,27 +27,40 @@ public interface AuthenticationServer extends BindableService {
    * Registers new user against given channel.
    *
    * @param channelId channel id
-   * @param authorizedUser authorized user name
-   * @param saslServer server that has been used for authentication
+   * @param userInfo authanticated user info
+   * @param saslDriver sasl server driver
    */
-  public void registerChannel(UUID channelId, String authorizedUser, SaslServer saslServer);
+  void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo,
+      SaslStreamServerDriver saslDriver);
 
   /**
    * @param channelId channel id
-   * @return user name associated with the given channel
+   * @return info of user that is authenticated with the given channel
    * @throws UnauthenticatedException if given channel is not registered
    */
-  public String getUserNameForChannel(UUID channelId) throws UnauthenticatedException;
+  AuthenticatedUserInfo getUserInfoForChannel(UUID channelId) throws UnauthenticatedException;
 
   /**
    * Unregisters given channel.
    *
    * @param channelId channel id
+   * @return {@code true} if channel was registered
    */
-  public void unregisterChannel(UUID channelId);
+  boolean unregisterChannel(UUID channelId);
 
   /**
-   * @return list of server-side interceptors that are required for configured authentication type
+   * Creates server-side Sasl handler for given scheme.
+   *
+   * @param scheme the authentication scheme
+   * @return the created {@link SaslServerHandler} instance
+   * @throws SaslException
+   * @throws UnauthenticatedException
    */
-  public List<ServerInterceptor> getInterceptors();
+  SaslServerHandler createSaslHandler(ChannelAuthenticationScheme scheme)
+      throws SaslException, UnauthenticatedException;
+
+  /**
+   * Closes the server, releases all authentication sessions.
+   */
+  void close();
 }

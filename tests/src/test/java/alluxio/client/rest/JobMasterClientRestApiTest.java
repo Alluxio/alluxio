@@ -21,7 +21,6 @@ import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.JobMasterClientRestServiceHandler;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -61,7 +60,6 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   @After
   public void after() throws Exception {
     mJobCluster.stop();
-    LoginUserTestUtils.resetLoginUser();
     ServerConfiguration.reset();
   }
 

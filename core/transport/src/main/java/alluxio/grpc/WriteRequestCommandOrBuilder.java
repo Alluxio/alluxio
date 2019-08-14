@@ -69,40 +69,63 @@ public interface WriteRequestCommandOrBuilder extends
   boolean getFlush();
 
   /**
+   * <pre>
+   * Cancel, close and error will be handled by standard gRPC stream APIs.
+   * </pre>
+   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
    */
   boolean hasCreateUfsFileOptions();
   /**
+   * <pre>
+   * Cancel, close and error will be handled by standard gRPC stream APIs.
+   * </pre>
+   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
    */
   alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions();
   /**
+   * <pre>
+   * Cancel, close and error will be handled by standard gRPC stream APIs.
+   * </pre>
+   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
    */
   alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder getCreateUfsFileOptionsOrBuilder();
 
   /**
-   * <pre>
-   * Cancel, close and error will be handled by standard gRPC stream APIs.
-   * </pre>
-   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
    */
   boolean hasCreateUfsBlockOptions();
   /**
-   * <pre>
-   * Cancel, close and error will be handled by standard gRPC stream APIs.
-   * </pre>
-   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
    */
   alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions();
   /**
-   * <pre>
-   * Cancel, close and error will be handled by standard gRPC stream APIs.
-   * </pre>
-   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
    */
   alluxio.proto.dataserver.Protocol.CreateUfsBlockOptionsOrBuilder getCreateUfsBlockOptionsOrBuilder();
+
+  /**
+   * <code>optional string medium_type = 8;</code>
+   */
+  boolean hasMediumType();
+  /**
+   * <code>optional string medium_type = 8;</code>
+   */
+  java.lang.String getMediumType();
+  /**
+   * <code>optional string medium_type = 8;</code>
+   */
+  com.google.protobuf.ByteString
+      getMediumTypeBytes();
+
+  /**
+   * <code>optional bool pin_on_create = 9;</code>
+   */
+  boolean hasPinOnCreate();
+  /**
+   * <code>optional bool pin_on_create = 9;</code>
+   */
+  boolean getPinOnCreate();
 }

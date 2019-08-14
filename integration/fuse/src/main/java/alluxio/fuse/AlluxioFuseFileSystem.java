@@ -12,6 +12,9 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -19,11 +22,17 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.master.MasterClientContext;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -43,6 +52,7 @@ import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+import ru.serce.jnrfuse.struct.Statvfs;
 import ru.serce.jnrfuse.struct.Timespec;
 
 import java.io.IOException;
@@ -50,7 +60,10 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -65,6 +78,19 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
+  /**
+   * df command will treat -1 as an unknown value.
+   */
+  @VisibleForTesting
+  public static final int UNKNOWN_INODES = -1;
+  /**
+   * Most FileSystems on linux limit the length of file name beyond 255 characters.
+   */
+  @VisibleForTesting
+  public static final int MAX_NAME_LENGTH = 255;
+
+  private static InstancedConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   /**
    * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
@@ -240,14 +266,21 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     final int flags = fi.flags.get();
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
+    if (uri.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to create {}, file name is longer than {} characters",
+          path, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
     try {
       if (mOpenFiles.size() >= MAX_OPEN_FILES) {
         LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})", path,
             MAX_OPEN_FILES);
         return -ErrorCodes.EMFILE();
       }
-
-      FileOutStream os = mFileSystem.createFile(uri);
+      FileOutStream os = mFileSystem.createFile(uri,
+          CreateFilePOptions.newBuilder()
+              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .build());
       synchronized (mOpenFiles) {
         mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, null, os));
         fi.fh.set(mNextOpenFileId);
@@ -389,9 +422,18 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int mkdir(String path, @mode_t long mode) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    final String name = turi.getName();
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
+    if (turi.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to create directory {}, directory name is longer than {} characters",
+          path, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
     try {
-      mFileSystem.createDirectory(turi);
+      mFileSystem.createDirectory(turi,
+          CreateDirectoryPOptions.newBuilder()
+              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .build());
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Failed to create directory {}, directory already exists", path);
       return -ErrorCodes.EEXIST();
@@ -596,8 +638,14 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rename(String oldPath, String newPath) {
     final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
     final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
+    final String name = newUri.getName();
     LOG.trace("rename({}, {}) [Alluxio: {}, {}]", oldPath, newPath, oldUri, newUri);
 
+    if (name.length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to rename {} to {}, name {} is longer than {} characters",
+          oldPath, newPath, name, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
     try {
       mFileSystem.rename(oldUri, newUri);
       synchronized (mOpenFiles) {
@@ -630,6 +678,55 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rmdir(String path) {
     LOG.trace("rmdir({})", path);
     return rmInternal(path);
+  }
+
+  /**
+   * Gets the filesystem statistics.
+   *
+   * @param path The FS path of the directory
+   * @param stbuf Statistics of a filesystem
+   * @return 0 on success, a negative value on error
+   */
+  @Override
+  public int statfs(String path, Statvfs stbuf) {
+    LOG.trace("statfs({})", path);
+    ClientContext ctx = ClientContext.create(sConf);
+
+    try (BlockMasterClient blockClient =
+             BlockMasterClient.Factory.create(MasterClientContext.newBuilder(ctx).build())) {
+      Set<BlockMasterInfo.BlockMasterInfoField> blockMasterInfoFilter =
+          new HashSet<>(Arrays.asList(
+              BlockMasterInfo.BlockMasterInfoField.CAPACITY_BYTES,
+              BlockMasterInfo.BlockMasterInfoField.FREE_BYTES,
+              BlockMasterInfo.BlockMasterInfoField.USED_BYTES));
+      BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
+
+      // although user may set different block size for different files,
+      // small block size can result more accurate compute.
+      long blockSize = 4 * Constants.KB;
+      // fs block size
+      // The size in bytes of the minimum unit of allocation on this file system
+      stbuf.f_bsize.set(blockSize);
+      // The preferred length of I/O requests for files on this file system.
+      stbuf.f_frsize.set(blockSize);
+      // total data blocks in fs
+      stbuf.f_blocks.set(blockMasterInfo.getCapacityBytes() / blockSize);
+      // free blocks in fs
+      long freeBlocks = blockMasterInfo.getFreeBytes() / blockSize;
+      stbuf.f_bfree.set(freeBlocks);
+      stbuf.f_bavail.set(freeBlocks);
+      // inode info in fs
+      // TODO(liuhongtong): support inode info
+      stbuf.f_files.set(UNKNOWN_INODES);
+      stbuf.f_ffree.set(UNKNOWN_INODES);
+      stbuf.f_favail.set(UNKNOWN_INODES);
+      // max file name length
+      stbuf.f_namemax.set(MAX_NAME_LENGTH);
+    } catch (IOException e) {
+      LOG.error("statfs({}) failed:", path, e);
+      return -ErrorCodes.EIO();
+    }
+    return 0;
   }
 
   /**

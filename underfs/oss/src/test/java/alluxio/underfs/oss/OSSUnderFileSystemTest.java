@@ -12,10 +12,9 @@
 package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.ConfigurationUtils;
 
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.ServiceException;
@@ -50,8 +49,7 @@ public class OSSUnderFileSystemTest {
     mClient = Mockito.mock(OSSClient.class);
 
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(),
-        new InstancedConfiguration(ConfigurationUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
   }
 
   /**

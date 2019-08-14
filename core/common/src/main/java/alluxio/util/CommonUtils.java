@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.Status;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
@@ -28,17 +27,23 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.io.Closer;
+import com.google.protobuf.ByteString;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +71,40 @@ public final class CommonUtils {
   private static final String ALPHANUM =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final Random RANDOM = new Random();
+
+  /**
+   * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
+   * interval of 2 seconds.
+   *
+   * @param stream the print stream to write to
+   * @return the thread
+   */
+  public static Thread createProgressThread(PrintStream stream) {
+    return createProgressThread(2 * Constants.SECOND_MS, stream);
+  }
+
+  /**
+   * Creates a thread which will write "." to the given print stream at the given interval. The
+   * created thread is not started by this method. The created thread will be a daemon thread
+   * and will halt when interrupted.
+   *
+   * @param intervalMs the time interval in milliseconds between writes
+   * @param stream the print stream to write to
+   * @return the thread
+   */
+  public static Thread createProgressThread(final long intervalMs, final PrintStream stream) {
+    Thread t = new Thread(() -> {
+      while (true) {
+        CommonUtils.sleepMs(intervalMs);
+        if (Thread.interrupted()) {
+          return;
+        }
+        stream.print(".");
+      }
+    });
+    t.setDaemon(true);
+    return t;
+  }
 
   /**
    * @return current time in milliseconds
@@ -402,12 +441,13 @@ public final class CommonUtils {
 
   /**
    * Gets the root cause of an exception.
+   * It stops at encountering gRPC's StatusRuntimeException.
    *
    * @param e the exception
    * @return the root cause
    */
   public static Throwable getRootCause(Throwable e) {
-    while (e.getCause() != null) {
+    while (e.getCause() != null && !(e.getCause() instanceof StatusRuntimeException)) {
       e = e.getCause();
     }
     return e;
@@ -566,7 +606,7 @@ public final class CommonUtils {
   public static void unwrapResponse(Protocol.Response response) throws AlluxioStatusException {
     Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
-      throw AlluxioStatusException.from(status, response.getMessage());
+      throw AlluxioStatusException.from(status.withDescription(response.getMessage()));
     }
   }
 
@@ -580,8 +620,8 @@ public final class CommonUtils {
       throws AlluxioStatusException {
     Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
-      throw AlluxioStatusException.from(status, String
-          .format("Channel to %s: %s", channel.remoteAddress(), response.getMessage()));
+      throw AlluxioStatusException.from(status.withDescription(
+          String.format("Channel to %s: %s", channel.remoteAddress(), response.getMessage())));
     }
   }
 
@@ -623,6 +663,32 @@ public final class CommonUtils {
 
     return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
         mins, secs);
+  }
+
+  /**
+   * @param input the input map
+   * @return a map using protobuf {@link ByteString} for values instead of {@code byte[]}
+   */
+  public static Map<String, ByteString> convertToByteString(Map<String, byte[]> input) {
+    if (input == null) {
+      return Collections.emptyMap();
+    }
+    Map<String, ByteString> output = new HashMap<>(input.size());
+    input.forEach((k, v) -> output.put(k, ByteString.copyFrom(v)));
+    return output;
+  }
+
+  /**
+   * @param input the input map
+   * @return a map using {@code byte[]} for values instead of protobuf {@link ByteString}
+   */
+  public static Map<String, byte[]> convertFromByteString(Map<String, ByteString> input) {
+    if (input == null) {
+      return Collections.emptyMap();
+    }
+    Map<String, byte[]> output = new HashMap<>(input.size());
+    input.forEach((k, v) -> output.put(k, v.toByteArray()));
+    return output;
   }
 
   private CommonUtils() {} // prevent instantiation

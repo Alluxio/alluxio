@@ -358,7 +358,7 @@ public final class FileSystemMasterClientServiceGrpc {
       fullMethodName = SERVICE_NAME + '/' + "ListStatus",
       requestType = alluxio.grpc.ListStatusPRequest.class,
       responseType = alluxio.grpc.ListStatusPResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+      methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
   public static io.grpc.MethodDescriptor<alluxio.grpc.ListStatusPRequest,
       alluxio.grpc.ListStatusPResponse> getListStatusMethod() {
     io.grpc.MethodDescriptor<alluxio.grpc.ListStatusPRequest, alluxio.grpc.ListStatusPResponse> getListStatusMethod;
@@ -367,7 +367,7 @@ public final class FileSystemMasterClientServiceGrpc {
         if ((getListStatusMethod = FileSystemMasterClientServiceGrpc.getListStatusMethod) == null) {
           FileSystemMasterClientServiceGrpc.getListStatusMethod = getListStatusMethod = 
               io.grpc.MethodDescriptor.<alluxio.grpc.ListStatusPRequest, alluxio.grpc.ListStatusPResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
               .setFullMethodName(generateFullMethodName(
                   "alluxio.grpc.file.FileSystemMasterClientService", "ListStatus"))
               .setSampledToLocalTracing(true)
@@ -671,6 +671,38 @@ public final class FileSystemMasterClientServiceGrpc {
      return getUnmountMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.UpdateMountPRequest,
+      alluxio.grpc.UpdateMountPResponse> getUpdateMountMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "UpdateMount",
+      requestType = alluxio.grpc.UpdateMountPRequest.class,
+      responseType = alluxio.grpc.UpdateMountPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.UpdateMountPRequest,
+      alluxio.grpc.UpdateMountPResponse> getUpdateMountMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.UpdateMountPRequest, alluxio.grpc.UpdateMountPResponse> getUpdateMountMethod;
+    if ((getUpdateMountMethod = FileSystemMasterClientServiceGrpc.getUpdateMountMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getUpdateMountMethod = FileSystemMasterClientServiceGrpc.getUpdateMountMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getUpdateMountMethod = getUpdateMountMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.UpdateMountPRequest, alluxio.grpc.UpdateMountPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "UpdateMount"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.UpdateMountPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.UpdateMountPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("UpdateMount"))
+                  .build();
+          }
+        }
+     }
+     return getUpdateMountMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.UpdateUfsModePRequest,
       alluxio.grpc.UpdateUfsModePResponse> getUpdateUfsModeMethod;
 
@@ -962,6 +994,17 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Updates an existing "mount point", changing its mount properties
+     * </pre>
+     */
+    public void updateMount(alluxio.grpc.UpdateMountPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.UpdateMountPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getUpdateMountMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Updates the ufs mode for a ufs path under one or more mount points.
      * </pre>
      */
@@ -1044,7 +1087,7 @@ public final class FileSystemMasterClientServiceGrpc {
                   this, METHODID_GET_STATUS)))
           .addMethod(
             getListStatusMethod(),
-            asyncUnaryCall(
+            asyncServerStreamingCall(
               new MethodHandlers<
                 alluxio.grpc.ListStatusPRequest,
                 alluxio.grpc.ListStatusPResponse>(
@@ -1112,6 +1155,13 @@ public final class FileSystemMasterClientServiceGrpc {
                 alluxio.grpc.UnmountPRequest,
                 alluxio.grpc.UnmountPResponse>(
                   this, METHODID_UNMOUNT)))
+          .addMethod(
+            getUpdateMountMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.UpdateMountPRequest,
+                alluxio.grpc.UpdateMountPResponse>(
+                  this, METHODID_UPDATE_MOUNT)))
           .addMethod(
             getUpdateUfsModeMethod(),
             asyncUnaryCall(
@@ -1275,7 +1325,7 @@ public final class FileSystemMasterClientServiceGrpc {
      */
     public void listStatus(alluxio.grpc.ListStatusPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.ListStatusPResponse> responseObserver) {
-      asyncUnaryCall(
+      asyncServerStreamingCall(
           getChannel().newCall(getListStatusMethod(), getCallOptions()), request, responseObserver);
     }
 
@@ -1388,6 +1438,18 @@ public final class FileSystemMasterClientServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.UnmountPResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getUnmountMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Updates an existing "mount point", changing its mount properties
+     * </pre>
+     */
+    public void updateMount(alluxio.grpc.UpdateMountPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.UpdateMountPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getUpdateMountMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -1543,8 +1605,9 @@ public final class FileSystemMasterClientServiceGrpc {
      * directory contents.
      * </pre>
      */
-    public alluxio.grpc.ListStatusPResponse listStatus(alluxio.grpc.ListStatusPRequest request) {
-      return blockingUnaryCall(
+    public java.util.Iterator<alluxio.grpc.ListStatusPResponse> listStatus(
+        alluxio.grpc.ListStatusPRequest request) {
+      return blockingServerStreamingCall(
           getChannel(), getListStatusMethod(), getCallOptions(), request);
     }
 
@@ -1648,6 +1711,17 @@ public final class FileSystemMasterClientServiceGrpc {
     public alluxio.grpc.UnmountPResponse unmount(alluxio.grpc.UnmountPRequest request) {
       return blockingUnaryCall(
           getChannel(), getUnmountMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Updates an existing "mount point", changing its mount properties
+     * </pre>
+     */
+    public alluxio.grpc.UpdateMountPResponse updateMount(alluxio.grpc.UpdateMountPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getUpdateMountMethod(), getCallOptions(), request);
     }
 
     /**
@@ -1807,20 +1881,6 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * If the path points to a file, the method returns a singleton with its file information.
-     * If the path points to a directory, the method returns a list with file information for the
-     * directory contents.
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.ListStatusPResponse> listStatus(
-        alluxio.grpc.ListStatusPRequest request) {
-      return futureUnaryCall(
-          getChannel().newCall(getListStatusMethod(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     **
      * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
      * path. The path should not exist and should not be nested under any existing mount point.
      * </pre>
@@ -1932,6 +1992,18 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Updates an existing "mount point", changing its mount properties
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.UpdateMountPResponse> updateMount(
+        alluxio.grpc.UpdateMountPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getUpdateMountMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Updates the ufs mode for a ufs path under one or more mount points.
      * </pre>
      */
@@ -1962,7 +2034,8 @@ public final class FileSystemMasterClientServiceGrpc {
   private static final int METHODID_START_SYNC = 17;
   private static final int METHODID_STOP_SYNC = 18;
   private static final int METHODID_UNMOUNT = 19;
-  private static final int METHODID_UPDATE_UFS_MODE = 20;
+  private static final int METHODID_UPDATE_MOUNT = 20;
+  private static final int METHODID_UPDATE_UFS_MODE = 21;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -2061,6 +2134,10 @@ public final class FileSystemMasterClientServiceGrpc {
           serviceImpl.unmount((alluxio.grpc.UnmountPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.UnmountPResponse>) responseObserver);
           break;
+        case METHODID_UPDATE_MOUNT:
+          serviceImpl.updateMount((alluxio.grpc.UpdateMountPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.UpdateMountPResponse>) responseObserver);
+          break;
         case METHODID_UPDATE_UFS_MODE:
           serviceImpl.updateUfsMode((alluxio.grpc.UpdateUfsModePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.UpdateUfsModePResponse>) responseObserver);
@@ -2146,6 +2223,7 @@ public final class FileSystemMasterClientServiceGrpc {
               .addMethod(getStartSyncMethod())
               .addMethod(getStopSyncMethod())
               .addMethod(getUnmountMethod())
+              .addMethod(getUpdateMountMethod())
               .addMethod(getUpdateUfsModeMethod())
               .build();
         }

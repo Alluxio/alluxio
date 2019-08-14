@@ -11,11 +11,14 @@
 
 package alluxio.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.util.ThreadFactoryUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -133,7 +136,7 @@ public final class DynamicResourcePoolTest {
     for (int i = 0; i < 3; i++) {
       Resource resource = pool.acquire();
       resourceList.add(resource);
-      Assert.assertEquals(i, resource.mInteger.intValue());
+      assertEquals(i, resource.mInteger.intValue());
     }
 
     for (Resource resource : resourceList) {
@@ -147,7 +150,7 @@ public final class DynamicResourcePoolTest {
     }
     // Make sure we are not creating new resources.
     for (int i = 0; i < 3; i++) {
-      Assert.assertTrue(resources.contains(i));
+      assertTrue(resources.contains(i));
     }
   }
 
@@ -162,15 +165,15 @@ public final class DynamicResourcePoolTest {
     try {
       Resource resource = pool.acquire();
       resourceList.add(resource);
-      Assert.assertEquals(0, resource.mInteger.intValue());
+      assertEquals(0, resource.mInteger.intValue());
 
       resource = pool.acquire(1, TimeUnit.SECONDS);
       resourceList.add(resource);
     } catch (TimeoutException e) {
       timeout = true;
     }
-    Assert.assertEquals(1, resourceList.size());
-    Assert.assertTrue(timeout);
+    assertEquals(1, resourceList.size());
+    assertTrue(timeout);
   }
 
   /**
@@ -180,14 +183,14 @@ public final class DynamicResourcePoolTest {
   public void UnhealthyResource() throws Exception {
     TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions());
     Resource resource = pool.acquire();
-    Assert.assertEquals(0, resource.mInteger.intValue());
+    assertEquals(0, resource.mInteger.intValue());
     resource.setInteger(Resource.INVALID_RESOURCE);
 
     pool.release(resource);
     resource = pool.acquire();
 
     // The 0-th resource is not acquired because it is unhealthy.
-    Assert.assertEquals(1, resource.mInteger.intValue());
+    assertEquals(1, resource.mInteger.intValue());
   }
 
   /**
@@ -210,7 +213,7 @@ public final class DynamicResourcePoolTest {
 
     for (int i = 0; i < 10; i++) {
       Resource resource = pool.acquire();
-      Assert.assertEquals(1, resource.mInteger.intValue());
+      assertEquals(1, resource.mInteger.intValue());
       pool.release(resource);
     }
   }
@@ -234,14 +237,14 @@ public final class DynamicResourcePoolTest {
     Thread.sleep(1000);
 
     // Resource 0 is gc-ed.
-    Assert.assertEquals(2, pool.acquire().mInteger.intValue());
+    assertEquals(2, pool.acquire().mInteger.intValue());
   }
 
   @Test
   public void multiClients() throws Exception {
     TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setMaxCapacity(1));
     final Resource resource1 = pool.acquire();
-    Assert.assertEquals(0, resource1.mInteger.intValue());
+    assertEquals(0, resource1.mInteger.intValue());
 
     class ReleaseThread extends Thread {
       private TestPool mPool;
@@ -267,7 +270,7 @@ public final class DynamicResourcePoolTest {
     ReleaseThread releaseThread = new ReleaseThread(pool, resource1);
     releaseThread.start();
     Resource resource2 = pool.acquire(2, TimeUnit.SECONDS);
-    Assert.assertEquals(0, resource2.mInteger.intValue());
+    assertEquals(0, resource2.mInteger.intValue());
   }
 
   /**
@@ -289,8 +292,8 @@ public final class DynamicResourcePoolTest {
     } catch (Exception ex) {
       timeout = true;
     }
-    Assert.assertTrue(timeout);
-    Assert.assertFalse(future.isDone());
+    assertTrue(timeout);
+    assertFalse(future.isDone());
     future.cancel(true);
   }
 }

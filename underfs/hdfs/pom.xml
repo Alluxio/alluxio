@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.1.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -63,8 +63,8 @@
       <id>ufs-hadoop-1</id>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
@@ -94,13 +94,8 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
@@ -111,32 +106,23 @@
       <id>ufs-hadoop-3</id>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs-client</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
     </profile>
 
     <profile>
-      <id>ufsContractTest</id>
-      <activation>
-        <property>
-          <name>testHdfsBaseDir</name>
-        </property>
-      </activation>
+      <id>hdfsAclandActiveSync</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
-              <testExcludes combine.self="override" />
+              <excludes combine.self="override" >
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
@@ -159,6 +145,7 @@
         </plugins>
       </build>
     </profile>
+
     <profile>
       <id>hdfsActiveSync</id>
       <build>
@@ -187,10 +174,6 @@
             <exclude>**/SupportedHdfsAclProvider.java</exclude>
             <exclude>**/SupportedHdfsActiveSyncProvider.java</exclude>
           </excludes>
-          <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified -->
-            <exclude>**/HdfsUnderFileSystemContractTest.java</exclude>
-          </testExcludes>
         </configuration>
       </plugin>
       <plugin>
@@ -201,7 +184,6 @@
         <groupId>com.coderplus.maven.plugins</groupId>
         <artifactId>copy-rename-maven-plugin</artifactId>
       </plugin>
-
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>templating-maven-plugin</artifactId>

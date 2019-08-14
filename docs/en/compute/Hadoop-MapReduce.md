@@ -17,7 +17,7 @@ easily run your MapReduce programs with files stored on Alluxio.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-downloaded from Alluxio [download page](http://www.alluxio.org/download).
+downloaded from Alluxio [download page](https://www.alluxio.io/download).
 Alternatively, advanced users can compile this client jar from the source code
 by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * In order to run map-reduce examples, we also recommend you download the
@@ -54,15 +54,16 @@ as the argument of `-libjars`. Hadoop will place the jar in the Hadoop Distribut
 available to all the nodes. For example, the following command adds the Alluxio client jar to the
 `-libjars` option:
 
-```bash
-$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
+```console
+$ ./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+  -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
 Sometimes, you also need to set the `HADOOP_CLASSPATH` environment variable to make Alluxio client
 jar available to the client JVM which is created when you run the `hadoop jar` command:
 
-```bash
-$  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+```console
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 Alternative ways are described in the [Advanced Setup](#advanced-setup)
@@ -71,24 +72,25 @@ Alternative ways are described in the [Advanced Setup](#advanced-setup)
 
 For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running:
 
-```bash
+```console
 $ cd $HADOOP_HOME
-$ bin/stop-all.sh
-$ bin/start-all.sh
+$ ./bin/stop-all.sh
+$ ./bin/start-all.sh
 ```
 
 Depending on the Hadoop version, you may need to replace `./bin` with `./sbin`.
 
 Start Alluxio locally:
 
-```bash
-$ bin/alluxio-start.sh local SudoMount
+```console
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
 
-```bash
-$ bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
+```console
+$ ./bin/alluxio fs mkdir /wordcount
+$ ./bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 ```
 
 This command will copy the `LICENSE` file into the Alluxio namespace with the path
@@ -96,22 +98,24 @@ This command will copy the `LICENSE` file into the Alluxio namespace with the pa
 
 Now we can run a MapReduce job (using Hadoop 2.7.3 as example) for wordcount.
 
-```bash
-$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
+```console
+$ ./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+  -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
+  alluxio://localhost:19998/wordcount/input.txt \
+  alluxio://localhost:19998/wordcount/output
 ```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory
 in Alluxio. You can see the resulting files by running:
 
-```bash
-$ bin/alluxio fs ls /wordcount/output
-$ bin/alluxio fs cat /wordcount/output/part-r-00000
+```console
+$ ./bin/alluxio fs ls /wordcount/output
+$ ./bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
-> Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper.
-
+> Tips：The previous wordcount example is also applicable to Alluxio in HA mode.
 Please follow the instructions in
-[HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
+[HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#configure-alluxio-clients-for-ha).
 
 ## Advanced Setup
 
@@ -136,22 +140,21 @@ when the jar is already on every node, then the `-libjars` command line option i
 
 Alluxio configuration parameters can be added to the Hadoop `core-site.xml` file to affect all MapReduce jobs.
 Let us use the setup of Hadoop to interact with the Alluxio service in HA Mode as an example.
-If you are running multiple Alluxio masters in with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181`, and `zkHost3:2181`,
-add the following two properties to the `core-site.xml` file of your Hadoop installation:
+
+When Alluxio is running in HA mode, add the HA mode client configuration in `core-site.xml` file of your Hadoop installation.
+For example, if the Alluxio is using internal leader election, add the `alluxio.master.rpc.addresses` property:
 
 ```xml
 <configuration>
   <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+    <name>alluxio.master.rpc.addresses</name>
+    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
   </property>
 </configuration>
 ```
+
+See [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters)
+for more details.
 
 ### Customize Alluxio User Properties for Individual MapReduce Jobs
 
@@ -159,11 +162,11 @@ Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `y
 and the properties will be propagated to all the tasks of this job.  For example, the following
 MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
 
-```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
--Dalluxio.user.file.writetype.default=CACHE_THROUGH \
--libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
-<INPUT FILES> <OUTPUT DIRECTORY>
+```console
+$ ./bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+  -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
+  -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
+  <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
 ## Troubleshooting
@@ -189,7 +192,7 @@ setup correctly for integrating with Alluxio. The MapReduce integration checker 
 
 When you have a running Hadoop cluster (or standalone), you can run the following command in the Alluxio project directory:
 
-```bash
+```console
 $ integration/checker/bin/alluxio-checker.sh mapreduce
 ```
 
@@ -219,13 +222,13 @@ configured correctly but the Alluxio client jar is not found on the classpath of
 
 You can append the client jar to `$HADOOP_CLASSPATH`:
 
-```bash
+```console
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 If the corresponding classpath has been set but exceptions still exist, users can check
 whether the path is valid by:
 
-```bash
+```console
 $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```

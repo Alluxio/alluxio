@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.CommonMetrics;
@@ -43,6 +42,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * This class forwards all calls to the {@link UnderFileSystem} interface to an internal
@@ -56,8 +56,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final String NAME_SEPARATOR = ":";
 
   private final UnderFileSystem mUnderFileSystem;
+  private final UnderFileSystemConfiguration mConf;
   private final String mPath;
-  private final AlluxioConfiguration mConfiguration;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
@@ -69,11 +69,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
-  UnderFileSystemWithLogging(String path, UnderFileSystem ufs, AlluxioConfiguration conf) {
+  UnderFileSystemWithLogging(String path, UnderFileSystem ufs, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
     mPath = path;
     mUnderFileSystem = ufs;
-    mConfiguration = conf;
+    mConf = conf;
   }
 
   @Override
@@ -171,6 +171,37 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public OutputStream createNonexistingFile(final String path) throws IOException {
+    return call(new UfsCallable<OutputStream>() {
+      @Override
+      public OutputStream call() throws IOException {
+        return mUnderFileSystem.createNonexistingFile(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("CreateNonexistingFile: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public OutputStream createNonexistingFile(final String path,
+      final CreateOptions options) throws IOException {
+    return call(new UfsCallable<OutputStream>() {
+      @Override
+      public OutputStream call() throws IOException {
+        return mUnderFileSystem.createNonexistingFile(path, options);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("CreateNonexistingFile: path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Override
   public boolean deleteDirectory(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
@@ -202,6 +233,37 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public boolean deleteExistingDirectory(final String path) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.deleteExistingDirectory(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("DeleteExistingDirectory: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public boolean deleteExistingDirectory(final String path, final DeleteOptions options)
+      throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.deleteExistingDirectory(path, options);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("DeleteExistingDirectory: path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Override
   public boolean deleteFile(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
@@ -212,6 +274,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("DeleteFile: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public boolean deleteExistingFile(final String path) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.deleteExistingFile(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("DeleteExistingFile: path=%s", path);
       }
     });
   }
@@ -278,6 +355,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public UfsDirectoryStatus getExistingDirectoryStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsDirectoryStatus>() {
+      @Override
+      public UfsDirectoryStatus call() throws IOException {
+        return mUnderFileSystem.getExistingDirectoryStatus(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetExistingDirectoryStatus: path=%s", path);
+      }
+    });
+  }
+
+  @Override
   public List<String> getFileLocations(final String path) throws IOException {
     return call(new UfsCallable<List<String>>() {
       @Override
@@ -319,6 +411,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("GetFileStatus: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public UfsFileStatus getExistingFileStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsFileStatus>() {
+      @Override
+      public UfsFileStatus call() throws IOException {
+        return mUnderFileSystem.getExistingFileStatus(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetExistingFileStatus: path=%s", path);
       }
     });
   }
@@ -379,6 +486,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public UfsStatus getExistingStatus(String path) throws IOException {
+    return call(new UfsCallable<UfsStatus>() {
+      @Override
+      public UfsStatus call() throws IOException {
+        return mUnderFileSystem.getExistingStatus(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetExistingStatus: path=%s", path);
+      }
+    });
+  }
+
+  @Override
   public String getUnderFSType() {
     return mUnderFileSystem.getUnderFSType();
   }
@@ -394,6 +516,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("IsDirectory: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public boolean isExistingDirectory(final String path) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.isExistingDirectory(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("IsExistingDirectory: path=%s", path);
       }
     });
   }
@@ -454,6 +591,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     });
   }
 
+  @Nullable
   private UfsStatus[] filterInvalidPaths(UfsStatus[] statuses, String listedPath) {
     // This is a temporary fix to prevent us from choking on paths containing '?'.
     if (statuses == null) {
@@ -542,6 +680,37 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public InputStream openExistingFile(final String path) throws IOException {
+    return call(new UfsCallable<InputStream>() {
+      @Override
+      public InputStream call() throws IOException {
+        return mUnderFileSystem.openExistingFile(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("OpenExistingFile: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public InputStream openExistingFile(final String path, final OpenOptions options)
+      throws IOException {
+    return call(new UfsCallable<InputStream>() {
+      @Override
+      public InputStream call() throws IOException {
+        return mUnderFileSystem.openExistingFile(path, options);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("OpenExistingFile: path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Override
   public boolean renameDirectory(final String src, final String dst) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
@@ -557,6 +726,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public boolean renameRenamableDirectory(final String src, final String dst) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.renameRenamableDirectory(src, dst);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("RenameRenamableDirectory: src=%s, dst=%s", src, dst);
+      }
+    });
+  }
+
+  @Override
   public boolean renameFile(final String src, final String dst) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
@@ -567,6 +751,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("RenameFile: src=%s, dst=%s", src, dst);
+      }
+    });
+  }
+
+  @Override
+  public boolean renameRenamableFile(final String src, final String dst) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.renameRenamableFile(src, dst);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("RenameRenamableFile: src=%s, dst=%s", src, dst);
       }
     });
   }
@@ -626,7 +825,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return mUnderFileSystem.supportsFlush();
   }
 
@@ -765,10 +964,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(mConfiguration)
-          && AuthenticatedClientUser.get(mConfiguration) != null) {
+      if (SecurityUtils.isAuthenticationEnabled(mConf)
+          && AuthenticatedClientUser.get(mConf) != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            AuthenticatedClientUser.get(mConfiguration).getName(), WorkerMetrics.TAG_UFS,
+            AuthenticatedClientUser.get(mConf).getName(), WorkerMetrics.TAG_UFS,
             MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }

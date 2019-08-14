@@ -113,4 +113,18 @@ public interface CommitBlockPRequestOrBuilder extends
    * <code>optional .alluxio.grpc.block.CommitBlockPOptions options = 6;</code>
    */
   alluxio.grpc.CommitBlockPOptionsOrBuilder getOptionsOrBuilder();
+
+  /**
+   * <code>optional string mediumType = 7;</code>
+   */
+  boolean hasMediumType();
+  /**
+   * <code>optional string mediumType = 7;</code>
+   */
+  java.lang.String getMediumType();
+  /**
+   * <code>optional string mediumType = 7;</code>
+   */
+  com.google.protobuf.ByteString
+      getMediumTypeBytes();
 }

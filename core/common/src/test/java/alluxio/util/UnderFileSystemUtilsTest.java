@@ -11,24 +11,25 @@
 
 package alluxio.util;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public final class UnderFileSystemUtilsTest {
 
   @Test
   public void getBucketName() throws Exception {
-    Assert.assertEquals("s3-bucket-name",
+    assertEquals("s3-bucket-name",
         UnderFileSystemUtils.getBucketName(new AlluxioURI("s3://s3-bucket-name/")));
-    Assert.assertEquals("s3a_bucket_name",
+    assertEquals("s3a_bucket_name",
         UnderFileSystemUtils.getBucketName(new AlluxioURI("s3a://s3a_bucket_name/")));
-    Assert.assertEquals("a.b.c",
+    assertEquals("a.b.c",
         UnderFileSystemUtils.getBucketName(new AlluxioURI("gs://a.b.c/folder/sub-folder/")));
-    Assert.assertEquals("container&",
+    assertEquals("container&",
         UnderFileSystemUtils.getBucketName(new AlluxioURI("swift://container&/folder/file")));
-    Assert.assertEquals("oss",
+    assertEquals("oss",
         UnderFileSystemUtils.getBucketName(new AlluxioURI("oss://oss/folder/.file")));
   }
 }

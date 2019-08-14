@@ -20,7 +20,7 @@ priority: 4
 
 安装Google Vagrant 插件:
 
-```bash
+```console
 $ vagrant plugin install vagrant-google
 $ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/google.box
 ```
@@ -35,13 +35,13 @@ $ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/
 
 进入 `deploy/vagrant` 目录下，运行:
 
-```bash
+```console
 $ sudo bash bin/install.sh
 ```
 
 除了上述方法，你还可以手动安装 [pip](https://pip.pypa.io/en/latest/installing/), 之后进入 `deploy/vagrant` 目录，运行:
 
-```bash
+```console
 $ sudo pip install -r pip-req.txt
 ```
 
@@ -57,7 +57,7 @@ $ sudo pip install -r pip-req.txt
 
 使用[gcloud sdk](http://console.cloud.google.com) 配置ssh密钥:
 
-```bash
+```console
 $ curl https://sdk.cloud.google.com | bash
 $ exec -l $SHELL
 $ gcloud init
@@ -66,7 +66,7 @@ $ gcloud compute config-ssh
 
 通过复制下面提供的模板来创建Vagrant GCE配置文件:
 
-```bash
+```console
 $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
 ```
 
@@ -76,14 +76,14 @@ $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
 
 为了使用访问密钥访问GCS，你需要在GCS控制台中的[互操作性设置](https://console.cloud.google.com/storage/settings)里面创建[开发者密钥](https://cloud.google.com/storage/docs/migrating#keys)，并将shell环境变量`GCS_ACCESS_KEY_ID`和`GCS_SECRET_ACCESS_KEY`进行如下设置：
 
-```bash
+```console
 $ export GCS_ACCESS_KEY_ID=<your access key>
 $ export GCS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
 现在你可以启动Alluxio集群了，通过在 `deploy/vagrant`目录下运行:
 
-```bash
+```console
 $ ./create <number of machines> google
 ```
 
@@ -95,7 +95,7 @@ $ ./create <number of machines> google
 
 命令 `./create <number of machines> google` 运行成功后, 在shell中会输出类似下面的两条语句:
 
-```bash
+```
 >>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI
 >>> visit default port of the web UI of what you deployed
 ```
@@ -105,7 +105,7 @@ Alluxio Web UI的默认端口为 **19999**.
 在访问Web UI之前, 需要配置防火墙以允许19999端口上的tcp传输。
 可以通过在 [Console](https://console.cloud.google.com) UI 上完成或者使用类似如下的gcloud命令，假设网络名是 'default'.
 
-```bash
+```console
 $ gcloud compute firewall-rules create alluxio-ui --allow tcp:19999
 ```
 
@@ -125,13 +125,13 @@ $ gcloud compute firewall-rules create alluxio-ui --allow tcp:19999
 
 通过ssh登陆一个节点，运行：
 
-```bash
+```console
 $ vagrant ssh <node name>
 ```
 
 例如，通过以下命令可以登陆 `AlluxioMaster`节点:
 
-```bash
+```console
 $ vagrant ssh AlluxioMaster
 ```
 
@@ -139,7 +139,7 @@ Alluxio安装在 `/alluxio`。
 
 在 `AlluxioMaster` 节点上，可以对Alluxio运行测试检测其健康状态:
 
-```bash
+```console
 $ /alluxio/bin/alluxio runTests
 ```
 
@@ -148,7 +148,7 @@ File System` 你应该能看到测试过程中写入到Alluxio的文件。
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
-```bash
+```console
 $ ssh AlluxioWorker1
 ```
 
@@ -156,7 +156,7 @@ $ ssh AlluxioWorker1
 
 在 `deploy/vagrant` 目录下运行：
 
-```bash
+```console
 $ ./destroy
 ```
 

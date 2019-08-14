@@ -34,7 +34,6 @@ import alluxio.web.ProxyWebServer;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
-import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.IOException;
@@ -107,7 +106,7 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(BUCKET_PARAM)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response createBucket(@PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
@@ -135,7 +134,7 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(BUCKET_PARAM)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response deleteBucket(@PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
@@ -169,7 +168,7 @@ public final class S3RestServiceHandler {
    */
   @GET
   @Path(BUCKET_PARAM)
-  @ReturnType("alluxio.proxy.s3.ListBucketResult")
+  //@ReturnType("alluxio.proxy.s3.ListBucketResult")
   // TODO(chaomin): consider supporting more request params like prefix and delimiter.
   public Response getBucket(@PathParam("bucket") final String bucket,
       @QueryParam("continuation-token") final String continuationToken,
@@ -212,7 +211,7 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(OBJECT_PARAM)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   @Consumes(MediaType.WILDCARD)
   public Response createObjectOrUploadPart(@HeaderParam("Content-MD5") final String contentMD5,
       @PathParam("bucket") final String bucket,
@@ -379,7 +378,7 @@ public final class S3RestServiceHandler {
    */
   @HEAD
   @Path(OBJECT_PARAM)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response getObjectMetadata(@PathParam("bucket") final String bucket,
       @PathParam("object") final String object) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
@@ -497,7 +496,7 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(OBJECT_PARAM)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response deleteObjectOrAbortMultipartUpload(@PathParam("bucket") final String bucket,
       @PathParam("object") final String object, @QueryParam("uploadId") final Long uploadId) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {

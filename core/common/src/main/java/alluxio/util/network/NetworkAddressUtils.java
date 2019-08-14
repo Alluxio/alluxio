@@ -18,7 +18,9 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
+import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -70,16 +72,18 @@ public final class NetworkAddressUtils {
    */
   public enum ServiceType {
     /**
-     * Job master Raft service (Netty).
+     * Job master Raft service (Netty). The bind and connect hosts are the same because the
+     * underlying Raft implementation doesn't differentiate between bind and connect hosts.
      */
     JOB_MASTER_RAFT("Alluxio Job Master Raft service", PropertyKey.JOB_MASTER_HOSTNAME,
-        PropertyKey.JOB_MASTER_BIND_HOST, PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT),
+        PropertyKey.JOB_MASTER_HOSTNAME, PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT),
 
     /**
-     * Master Raft service (Netty).
+     * Master Raft service (Netty). The bind and connect hosts are the same because the
+     * underlying Raft implementation doesn't differentiate between bind and connect hosts.
      */
     MASTER_RAFT("Alluxio Master Raft service", PropertyKey.MASTER_HOSTNAME,
-        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
+        PropertyKey.MASTER_HOSTNAME, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
 
     /**
      * Job master RPC service (gRPC).
@@ -96,7 +100,7 @@ public final class NetworkAddressUtils {
     /**
      * Job worker RPC service (gRPC).
      */
-    JOB_WORKER_RPC("Alluxio Job Manager Worker RPC service", PropertyKey.WORKER_HOSTNAME,
+    JOB_WORKER_RPC("Alluxio Job Manager Worker RPC service", PropertyKey.JOB_WORKER_HOSTNAME,
         PropertyKey.JOB_WORKER_BIND_HOST, PropertyKey.JOB_WORKER_RPC_PORT),
 
     /**
@@ -232,7 +236,8 @@ public final class NetworkAddressUtils {
    */
   public static InetSocketAddress getConnectAddress(ServiceType service,
       AlluxioConfiguration conf) {
-    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
+    return InetSocketAddress.createUnresolved(getConnectHost(service, conf),
+        getPort(service, conf));
   }
 
   /**
@@ -348,12 +353,13 @@ public final class NetworkAddressUtils {
    *
    * @param conf Alluxio configuration
    * @return the local hostname for the client
-   * @deprecated This should not be used anymore as the USER_HOSTNAME key is deprecated
    */
-  @Deprecated
   public static String getClientHostName(AlluxioConfiguration conf) {
     if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
       return conf.get(PropertyKey.USER_HOSTNAME);
+    }
+    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -393,6 +399,9 @@ public final class NetworkAddressUtils {
         break;
       default:
         break;
+    }
+    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -596,7 +605,7 @@ public final class NetworkAddressUtils {
     if (strArr.length != 2) {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
-    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+    return InetSocketAddress.createUnresolved(strArr[0], Integer.parseInt(strArr[1]));
   }
 
   /**
@@ -621,7 +630,7 @@ public final class NetworkAddressUtils {
   public static SocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress,
       AlluxioConfiguration conf) {
     SocketAddress address;
-    if (NettyUtils.isDomainSocketSupported(netAddress, conf)) {
+    if (NettyUtils.isDomainSocketAccessible(netAddress, conf)) {
       address = new DomainSocketAddress(netAddress.getDomainSocketPath());
     } else {
       String host = netAddress.getHost();
@@ -638,19 +647,27 @@ public final class NetworkAddressUtils {
    * @param address the network address to ping
    * @param serviceType the Alluxio service type
    * @param conf Alluxio configuration
+   * @param userState the UserState
    * @throws UnauthenticatedException If the user is not authenticated
    * @throws StatusRuntimeException If the host not reachable or does not serve the given service
    */
   public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType,
-      AlluxioConfiguration conf)
+      AlluxioConfiguration conf, UserState userState)
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf).build();
-    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
-    versionClient.getServiceVersion(
-        GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
-    channel.shutdown();
+    GrpcChannel channel =
+        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).disableAuthentication()
+            .setSubject(userState.getSubject()).build();
+    try {
+      ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+          ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+      versionClient.getServiceVersion(
+          GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
+    } catch (Throwable t) {
+      throw AlluxioStatusException.fromThrowable(t);
+    } finally {
+      channel.shutdown();
+    }
   }
 }

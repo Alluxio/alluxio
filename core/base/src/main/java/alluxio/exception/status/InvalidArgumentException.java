@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that a client specified an invalid argument. Note that this differs from
  * FailedPreconditionException. It indicates arguments that are problematic regardless of the state
@@ -24,14 +26,14 @@ public class InvalidArgumentException extends AlluxioStatusException {
    * @param message the exception message
    */
   public InvalidArgumentException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public InvalidArgumentException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -39,6 +41,6 @@ public class InvalidArgumentException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public InvalidArgumentException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

@@ -17,13 +17,17 @@ import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -38,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -106,12 +111,12 @@ public final class CachingInodeStore implements InodeStore, Closeable {
 
   /**
    * @param backingStore the backing inode store
-   * @param args inode store args
+   * @param lockManager inode lock manager
    */
-  public CachingInodeStore(InodeStore backingStore, InodeStoreArgs args) {
+  public CachingInodeStore(InodeStore backingStore, InodeLockManager lockManager) {
     mBackingStore = backingStore;
-    mLockManager = args.getLockManager();
-    AlluxioConfiguration conf = args.getConf();
+    mLockManager = lockManager;
+    AlluxioConfiguration conf = ServerConfiguration.global();
     int maxSize = conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE);
     Preconditions.checkState(maxSize > 0,
         "Maximum cache size %s must be positive, but is set to %s",
@@ -138,8 +143,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   }
 
   @Override
-  public Optional<MutableInode<?>> getMutable(long id) {
-    return mInodeCache.get(id);
+  public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
+    return mInodeCache.get(id, option);
   }
 
   @Override
@@ -178,32 +183,28 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   }
 
   @Override
-  public long estimateSize() {
-    return mBackingStore.estimateSize();
+  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
+    return () -> mListingCache.getChildIds(inodeId, option).iterator();
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId) {
-    return () -> mListingCache.getChildIds(inodeId).iterator();
+  public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
+    return mEdgeCache.get(new Edge(inodeId, name), option);
   }
 
   @Override
-  public Optional<Long> getChildId(Long inodeId, String name) {
-    return mEdgeCache.get(new Edge(inodeId, name));
+  public Optional<Inode> getChild(Long inodeId, String name, ReadOption option) {
+    return mEdgeCache.get(new Edge(inodeId, name), option).flatMap(this::get);
   }
 
   @Override
-  public Optional<Inode> getChild(Long inodeId, String name) {
-    return mEdgeCache.get(new Edge(inodeId, name)).flatMap(this::get);
-  }
-
-  @Override
-  public boolean hasChildren(InodeDirectoryView inode) {
+  public boolean hasChildren(InodeDirectoryView inode, ReadOption option) {
     Optional<Collection<Long>> cached = mListingCache.getCachedChildIds(inode.getId());
     if (cached.isPresent()) {
       return !cached.get().isEmpty();
     }
-    return !mEdgeCache.getChildIds(inode.getId()).isEmpty() || mBackingStore.hasChildren(inode);
+    return !mEdgeCache.getChildIds(inode.getId(), option).isEmpty()
+        || mBackingStore.hasChildren(inode);
   }
 
   @VisibleForTesting
@@ -221,14 +222,38 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   @Override
   public void close() {
     Closer closer = Closer.create();
+    // Close the backing store last so that cache eviction threads don't hit errors.
+    closer.register(mBackingStore);
     closer.register(mInodeCache);
     closer.register(mEdgeCache);
-    closer.register(mBackingStore);
     try {
       closer.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.CACHING_INODE_STORE;
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    LOG.info("Flushing inodes to backing store");
+    mInodeCache.flush();
+    mEdgeCache.flush();
+    LOG.info("Finished flushing inodes to backing store");
+    mBackingStore.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+    mInodeCache.clear();
+    mEdgeCache.clear();
+    mListingCache.clear();
+    mBackingStore.restoreFromCheckpoint(input);
+    mBackingStoreEmpty = false;
   }
 
   /**
@@ -250,7 +275,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       if (mBackingStoreEmpty) {
         return Optional.empty();
       }
-      return mBackingStore.getMutable(id);
+      return mBackingStore.getMutable(id, ReadOption.defaults());
     }
 
     @Override
@@ -270,32 +295,33 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     protected void flushEntries(List<Entry> entries) {
       mBackingStoreEmpty = false;
       boolean useBatch = entries.size() > 0 && mBackingStore.supportsBatchWrite();
-      WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null;
-      for (Entry entry : entries) {
-        Long inodeId = entry.mKey;
-        Optional<LockResource> lockOpt = mLockManager.tryLockInode(inodeId, LockMode.WRITE);
-        if (!lockOpt.isPresent()) {
-          continue;
-        }
-        try (LockResource lr = lockOpt.get()) {
-          if (entry.mValue == null) {
-            if (useBatch) {
-              batch.removeInode(inodeId);
-            } else {
-              mBackingStore.remove(inodeId);
-            }
-          } else {
-            if (useBatch) {
-              batch.writeInode(entry.mValue);
-            } else {
-              mBackingStore.writeInode(entry.mValue);
-            }
+      try (WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null) {
+        for (Entry entry : entries) {
+          Long inodeId = entry.mKey;
+          Optional<LockResource> lockOpt = mLockManager.tryLockInode(inodeId, LockMode.WRITE);
+          if (!lockOpt.isPresent()) {
+            continue;
           }
-          entry.mDirty = false;
+          try (LockResource lr = lockOpt.get()) {
+            if (entry.mValue == null) {
+              if (useBatch) {
+                batch.removeInode(inodeId);
+              } else {
+                mBackingStore.remove(inodeId);
+              }
+            } else {
+              if (useBatch) {
+                batch.writeInode(entry.mValue);
+              } else {
+                mBackingStore.writeInode(entry.mValue);
+              }
+            }
+            entry.mDirty = false;
+          }
         }
-      }
-      if (useBatch) {
-        batch.commit();
+        if (useBatch) {
+          batch.commit();
+        }
       }
     }
 
@@ -345,13 +371,14 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * 1. getChildIds will return all children that existed before getChildIds was invoked. If a
      * child is concurrently removed during the call to getChildIds, it is undefined whether it gets
      * found. 2. getChildIds will never return a child that was removed before getChildIds was
-     * invoked. If a child is concurently added during the call to getChildIds, it is undefined
+     * invoked. If a child is concurrently added during the call to getChildIds, it is undefined
      * whether it gets found.
      *
      * @param inodeId the inode to get the children for
+     * @param option the read options
      * @return the children
      */
-    public Map<String, Long> getChildIds(Long inodeId) {
+    public Map<String, Long> getChildIds(Long inodeId, ReadOption option) {
       if (mBackingStoreEmpty) {
         return mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap());
       }
@@ -369,7 +396,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       // Cannot use mBackingStore.getChildren because it only returns inodes cached in the backing
       // store, causing us to lose inodes stored only in the cache.
       mBackingStore.getChildIds(inodeId).forEach(childId -> {
-        CachingInodeStore.this.get(childId).map(inode -> {
+        CachingInodeStore.this.get(childId, option).map(inode -> {
           if (!unflushedDeletes.contains(inode.getName())) {
             childIds.put(inode.getName(), inode.getId());
           }
@@ -404,33 +431,34 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     protected void flushEntries(List<Entry> entries) {
       mBackingStoreEmpty = false;
       boolean useBatch = entries.size() > 0 && mBackingStore.supportsBatchWrite();
-      WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null;
-      for (Entry entry : entries) {
-        Edge edge = entry.mKey;
-        Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
-        if (!lockOpt.isPresent()) {
-          continue;
-        }
-        try (LockResource lr = lockOpt.get()) {
-          Long value = entry.mValue;
-          if (value == null) {
-            if (useBatch) {
-              batch.removeChild(edge.getId(), edge.getName());
-            } else {
-              mBackingStore.removeChild(edge.getId(), edge.getName());
-            }
-          } else {
-            if (useBatch) {
-              batch.addChild(edge.getId(), edge.getName(), value);
-            } else {
-              mBackingStore.addChild(edge.getId(), edge.getName(), value);
-            }
+      try (WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null) {
+        for (Entry entry : entries) {
+          Edge edge = entry.mKey;
+          Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
+          if (!lockOpt.isPresent()) {
+            continue;
           }
-          entry.mDirty = false;
+          try (LockResource lr = lockOpt.get()) {
+            Long value = entry.mValue;
+            if (value == null) {
+              if (useBatch) {
+                batch.removeChild(edge.getId(), edge.getName());
+              } else {
+                mBackingStore.removeChild(edge.getId(), edge.getName());
+              }
+            } else {
+              if (useBatch) {
+                batch.addChild(edge.getId(), edge.getName(), value);
+              } else {
+                mBackingStore.addChild(edge.getId(), edge.getName(), value);
+              }
+            }
+            entry.mDirty = false;
+          }
         }
-      }
-      if (useBatch) {
-        batch.commit();
+        if (useBatch) {
+          batch.commit();
+        }
       }
     }
 
@@ -634,9 +662,10 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * Gets all children of an inode, falling back on the edge cache if the listing isn't cached.
      *
      * @param inodeId the inode directory id
+     * @param option the read options
      * @return the ids of all children of the directory
      */
-    public Collection<Long> getChildIds(Long inodeId) {
+    public Collection<Long> getChildIds(Long inodeId, ReadOption option) {
       evictIfNecessary();
       AtomicBoolean createdNewEntry = new AtomicBoolean(false);
       ListingCacheEntry entry = mMap.compute(inodeId, (key, value) -> {
@@ -653,17 +682,24 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       if (entry != null && entry.mChildren != null) {
         return entry.mChildren.values();
       }
-      if (entry == null || !createdNewEntry.get()) {
+      if (entry == null || !createdNewEntry.get() || option.shouldSkipCache()) {
         // Skip caching if the cache is full or someone else is already caching.
-        return mEdgeCache.getChildIds(inodeId).values();
+        return mEdgeCache.getChildIds(inodeId, option).values();
       }
-      return loadChildren(inodeId, entry).values();
+      return loadChildren(inodeId, entry, option).values();
     }
 
-    private Map<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry) {
+    public void clear() {
+      mMap.clear();
+      mWeight.set(0);
+      mEvictionHead = mMap.entrySet().iterator();
+    }
+
+    private Map<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry,
+        ReadOption option) {
       evictIfNecessary();
       entry.mModified = false;
-      Map<String, Long> listing = mEdgeCache.getChildIds(inodeId);
+      Map<String, Long> listing = mEdgeCache.getChildIds(inodeId, option);
       mMap.computeIfPresent(inodeId, (key, value) -> {
         // Perform the update inside computeIfPresent to prevent concurrent modification to the
         // cache entry.

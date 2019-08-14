@@ -11,7 +11,8 @@
 
 package alluxio.master.block;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 /**
@@ -27,10 +28,9 @@ public final class BlockIdTest {
    */
   @Test
   public void createBlockIdWithMaxSequenceNumber() {
-    Assert.assertEquals(33554431L, BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()));
-    Assert.assertEquals(MAX_SEQUENCE_NUMBER,
-        BlockId.createBlockId(0, BlockId.getMaxSequenceNumber()));
-    Assert.assertEquals(4294967295L, BlockId.createBlockId(255, BlockId.getMaxSequenceNumber()));
+    assertEquals(33554431L, BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()));
+    assertEquals(MAX_SEQUENCE_NUMBER, BlockId.createBlockId(0, BlockId.getMaxSequenceNumber()));
+    assertEquals(4294967295L, BlockId.createBlockId(255, BlockId.getMaxSequenceNumber()));
   }
 
   /**
@@ -38,9 +38,9 @@ public final class BlockIdTest {
    */
   @Test
   public void createBlockId() {
-    Assert.assertEquals(16797216L, BlockId.createBlockId(1, 20000L));
-    Assert.assertEquals(20000L, BlockId.createBlockId(0, 20000L));
-    Assert.assertEquals(2071248101952L, BlockId.createBlockId(123456, 123456L));
+    assertEquals(16797216L, BlockId.createBlockId(1, 20000L));
+    assertEquals(20000L, BlockId.createBlockId(0, 20000L));
+    assertEquals(2071248101952L, BlockId.createBlockId(123456, 123456L));
   }
 
   /**
@@ -49,20 +49,20 @@ public final class BlockIdTest {
    */
   @Test
   public void getContainerIdAndSequenceNumber() {
-    Assert.assertEquals(1L, BlockId.getContainerId(33554431L));
-    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(33554431L));
-    Assert.assertEquals(255L, BlockId.getContainerId(4294967295L));
-    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(4294967295L));
-    Assert.assertEquals(123456L, BlockId.getContainerId(2071248101952L));
-    Assert.assertEquals(123456L, BlockId.getSequenceNumber(2071248101952L));
+    assertEquals(1L, BlockId.getContainerId(33554431L));
+    assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(33554431L));
+    assertEquals(255L, BlockId.getContainerId(4294967295L));
+    assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(4294967295L));
+    assertEquals(123456L, BlockId.getContainerId(2071248101952L));
+    assertEquals(123456L, BlockId.getSequenceNumber(2071248101952L));
   }
 
   @Test
   public void getFileId() {
-    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getFileId(1L));
-    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getFileId(20000L));
-    Assert.assertEquals(MAX_SEQUENCE_NUMBER * 2 + 1, BlockId.getFileId(2 * MAX_SEQUENCE_NUMBER));
-    Assert.assertEquals(2071264755711L, BlockId.getFileId(2071248101952L));
+    assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getFileId(1L));
+    assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getFileId(20000L));
+    assertEquals(MAX_SEQUENCE_NUMBER * 2 + 1, BlockId.getFileId(2 * MAX_SEQUENCE_NUMBER));
+    assertEquals(2071264755711L, BlockId.getFileId(2071248101952L));
   }
 
   /**
@@ -70,6 +70,6 @@ public final class BlockIdTest {
    */
   @Test
   public void getMaxSequenceNumber() {
-    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getMaxSequenceNumber());
+    assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getMaxSequenceNumber());
   }
 }

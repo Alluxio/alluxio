@@ -11,9 +11,10 @@
 
 package alluxio.underfs.options;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.test.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -32,7 +33,7 @@ public final class OpenOptionsTest {
   public void defaults() throws IOException {
     OpenOptions options = OpenOptions.defaults();
 
-    Assert.assertEquals(0, options.getOffset());
+    assertEquals(0, options.getOffset());
   }
 
   /**
@@ -45,7 +46,7 @@ public final class OpenOptionsTest {
     long[] offsets = {100, 110, 150, 200};
     for (long offset : offsets) {
       options.setOffset(offset);
-      Assert.assertEquals(offset, options.getOffset());
+      assertEquals(offset, options.getOffset());
     }
   }
 

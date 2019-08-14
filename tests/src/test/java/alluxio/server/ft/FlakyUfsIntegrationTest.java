@@ -62,6 +62,15 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
             return false;
           }
         }
+
+        @Override
+        public boolean deleteExistingFile(String path) throws IOException {
+          if (ThreadLocalRandom.current().nextBoolean()) {
+            return mUfs.deleteExistingFile(path);
+          } else {
+            return false;
+          }
+        }
       };
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =

@@ -72,6 +72,7 @@ public class FileInfoTest {
     Assert.assertEquals(a.getFileId(), b.getFileId());
     Assert.assertEquals(a.getGroup(), b.getGroup());
     Assert.assertEquals(a.getLastModificationTimeMs(), b.getLastModificationTimeMs());
+    Assert.assertEquals(a.getLastAccessTimeMs(), b.getLastAccessTimeMs());
     Assert.assertEquals(a.getLength(), b.getLength());
     Assert.assertEquals(a.getMode(), b.getMode());
     Assert.assertEquals(a.getName(), b.getName());
@@ -122,6 +123,7 @@ public class FileInfoTest {
     int inMemoryPercentage = random.nextInt();
     int inAlluxioPercentage = random.nextInt();
     long lastModificationTimeMs = random.nextLong();
+    long lastAccessTimeMs = random.nextLong();
     long ttl = random.nextLong();
     String userName = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String groupName = CommonUtils.randomAlphaNumString(random.nextInt(10));
@@ -133,6 +135,8 @@ public class FileInfoTest {
     for (int i = 0; i < numFileBlockInfos; i++) {
       fileBlocksInfos.add(FileBlockInfoTest.createRandom());
     }
+    int replicationMax = random.nextInt(10);
+    int replicationMin = random.nextInt(10);
 
     result.setBlockIds(blockIds);
     result.setBlockSizeBytes(blockSizeBytes);
@@ -145,9 +149,12 @@ public class FileInfoTest {
     result.setGroup(groupName);
     result.setInMemoryPercentage(inMemoryPercentage);
     result.setLastModificationTimeMs(lastModificationTimeMs);
+    result.setLastAccessTimeMs(lastAccessTimeMs);
     result.setLength(length);
     result.setMode(permission);
     result.setMountPoint(mountPoint);
+    result.setReplicationMax(replicationMax);
+    result.setReplicationMin(replicationMin);
     result.setName(name);
     result.setOwner(userName);
     result.setPath(path);

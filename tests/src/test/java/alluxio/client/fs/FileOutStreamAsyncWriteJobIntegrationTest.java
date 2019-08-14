@@ -12,22 +12,22 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
-import alluxio.security.authorization.Mode;
-import alluxio.testutils.PersistenceTestUtils;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.security.authorization.Mode;
 import alluxio.testutils.IntegrationTestUtils;
+import alluxio.testutils.PersistenceTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
@@ -45,7 +45,9 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final int LEN = 1024;
   private static final FileSystemMasterCommonPOptions COMMON_OPTIONS =
-      FileSystemMasterCommonPOptions.newBuilder().setTtl(12345678L).setTtlAction(TtlAction.DELETE)
+      FileSystemMasterCommonPOptions.newBuilder()
+          .setTtl(12345678L).setTtlAction(TtlAction.DELETE)
+          .setSyncIntervalMs(-1)
           .build();
 
   private static final SetAttributePOptions TEST_OPTIONS =

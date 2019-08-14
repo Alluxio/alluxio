@@ -14,6 +14,7 @@ package alluxio.worker.grpc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -24,6 +25,9 @@ import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.ByteArrayDataBuffer;
+import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
 import com.google.protobuf.ByteString;
@@ -39,7 +43,10 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Unit tests for {@link AbstractWriteHandler}.
@@ -51,6 +58,11 @@ public abstract class AbstractWriteHandlerTest {
   protected static final long TEST_MOUNT_ID = 10L;
   protected AbstractWriteHandler mWriteHandler;
   protected StreamObserver<WriteResponse> mResponseObserver;
+  protected AuthenticatedUserInfo mUserInfo = new AuthenticatedUserInfo();
+  protected List<WriteResponse> mResponses = new ArrayList<>();
+  protected boolean mResponseCompleted;
+  protected Throwable mError;
+
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
 
@@ -61,6 +73,7 @@ public abstract class AbstractWriteHandlerTest {
   public void writeEmptyFile() throws Exception {
     mWriteHandler.write(newWriteRequestCommand(0));
     mWriteHandler.onCompleted();
+    waitForResponses();
     checkComplete(mResponseObserver);
   }
 
@@ -77,6 +90,7 @@ public abstract class AbstractWriteHandlerTest {
     }
     // EOF.
     mWriteHandler.onCompleted();
+    waitForResponses();
     checkComplete(mResponseObserver);
     checkWriteData(checksum, len);
   }
@@ -95,6 +109,7 @@ public abstract class AbstractWriteHandlerTest {
     // Cancel.
     mWriteHandler.onCancel();
 
+    waitForResponses();
     checkComplete(mResponseObserver);
     // Our current implementation does not really abort the file when the write is cancelled.
     // The client issues another request to block worker to abort it.
@@ -116,6 +131,7 @@ public abstract class AbstractWriteHandlerTest {
     mWriteHandler.onCancel();
     mWriteHandler.onError(Status.CANCELLED.asRuntimeException());
 
+    waitForResponses();
     checkComplete(mResponseObserver);
     checkWriteData(checksum, len);
     verify(mResponseObserver, never()).onError(any(Throwable.class));
@@ -125,6 +141,7 @@ public abstract class AbstractWriteHandlerTest {
   public void writeInvalidOffsetFirstRequest() throws Exception {
     // The write request contains an invalid offset
     mWriteHandler.write(newWriteRequestCommand(1));
+    waitForResponses();
     checkErrorCode(mResponseObserver, Status.Code.INVALID_ARGUMENT);
   }
 
@@ -133,6 +150,7 @@ public abstract class AbstractWriteHandlerTest {
     mWriteHandler.write(newWriteRequestCommand(0));
     // The write request contains an invalid offset
     mWriteHandler.write(newWriteRequestCommand(1));
+    waitForResponses();
     checkErrorCode(mResponseObserver, Status.Code.INVALID_ARGUMENT);
   }
 
@@ -263,5 +281,32 @@ public abstract class AbstractWriteHandlerTest {
       ret += BufferUtils.byteToInt(buffer.getByte(i));
     }
     return ret;
+  }
+
+  /**
+   * Waits for response messages.
+   */
+  protected void waitForResponses()
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("response", () -> mResponseCompleted || mError != null,
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+  }
+
+  protected void setupResponseTrigger() {
+    doAnswer(args -> {
+      mResponseCompleted = true;
+      return null;
+    }).when(mResponseObserver).onCompleted();
+    doAnswer(args -> {
+      mResponseCompleted = true;
+      mError = args.getArgumentAt(0, Throwable.class);
+      return null;
+    }).when(mResponseObserver).onError(any(Throwable.class));
+    doAnswer((args) -> {
+      // make a copy of response data before it is released
+      mResponses.add(WriteResponse.parseFrom(
+          args.getArgumentAt(0, WriteResponse.class).toByteString()));
+      return null;
+    }).when(mResponseObserver).onNext(any(WriteResponse.class));
   }
 }

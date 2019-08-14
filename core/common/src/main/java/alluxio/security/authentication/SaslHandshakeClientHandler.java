@@ -11,12 +11,10 @@
 
 package alluxio.security.authentication;
 
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslMessage;
-import alluxio.security.authentication.plain.SaslHandshakeClientHandlerPlain;
 
-import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
+import java.util.UUID;
 
 /**
  * Interface for providing client-side handshake routines for a particular authentication scheme.
@@ -32,34 +30,9 @@ public interface SaslHandshakeClientHandler {
   public SaslMessage handleSaslMessage(SaslMessage message) throws SaslException;
 
   /**
-   * @param channelId channe for which the authentication is happening
+   * @param channelId channel for which the authentication is happening
    * @return the initial message for Sasl traffic to begin
    * @throws SaslException
    */
-  public SaslMessage getInitialMessage(String channelId) throws SaslException;
-
-  /**
-   * Factory for {@link SaslHandshakeClientHandler}.
-   */
-  class Factory {
-
-    // prevent instantiation
-    private Factory() {}
-
-    /**
-     * @param authType authentication type to use
-     * @return the generated {@link AuthenticationProvider}
-     * @throws UnauthenticatedException when unsupported authentication type is used
-     */
-    public static SaslHandshakeClientHandler create(AuthType authType, SaslClient saslClient)
-        throws UnauthenticatedException {
-      switch (authType) {
-        case SIMPLE:
-        case CUSTOM:
-          return new SaslHandshakeClientHandlerPlain(saslClient);
-        default:
-          throw new UnauthenticatedException("Unsupported AuthType: " + authType.getAuthName());
-      }
-    }
-  }
+  public SaslMessage getInitialMessage(UUID channelId) throws SaslException;
 }

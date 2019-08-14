@@ -11,6 +11,8 @@
 
 package alluxio.exception;
 
+import alluxio.Constants;
+
 import com.google.common.base.Preconditions;
 
 import java.text.MessageFormat;
@@ -188,6 +190,10 @@ public enum ExceptionMessage {
   INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
   INVALID_ARGS_SORT_FIELD("Invalid sort option `{0}` for --sort"),
   INVALID_ARG_TYPE("Arg {0} is not type {1}"),
+  INVALID_OPTION("Invalid option provided. Supported options: {0}"),
+  INVALID_OPTION_COUNT("Invalid option count. Expected: {0}, Found: {1}"),
+  INVALID_OPTION_VALUE("Invalid value provided for option: {0}. Supported values: {1}"),
+  INVALID_ADDRESS_VALUE("Invalid address provided."),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
@@ -204,6 +210,10 @@ public enum ExceptionMessage {
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration
+  UNABLE_TO_DETERMINE_MASTER_HOSTNAME("Cannot run {0}; Unable to determine {1} address. Please "
+      + "modify " + Constants.SITE_PROPERTIES + " to either set {2}, configure zookeeper with "
+      + "{3}=true and {4}=[comma-separated zookeeper master addresses], or utilize internal HA by "
+      + "setting {5}=[comma-separated alluxio {1} addresses]"),
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
@@ -225,10 +235,6 @@ public enum ExceptionMessage {
           + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
-  IMPERSONATION_NOT_CONFIGURED(
-      "User {0} is not configured for any impersonation. impersonationUser: {1}"),
-  IMPERSONATION_GROUPS_FAILED("Failed to get groups for impersonationUser {0}. user: {1}"),
-  IMPERSONATION_DENIED("User {0} is not configured to impersonate {1}"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
@@ -279,6 +285,7 @@ public enum ExceptionMessage {
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
+  PINNED_TO_MULTIPLE_MEDIUMTYPES("File {0} pinned to multiple medium types"),
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
@@ -299,9 +306,9 @@ public enum ExceptionMessage {
    * @return the formatted message
    */
   public String getMessage(Object... params) {
-    Preconditions.checkArgument(mMessage.getFormats().length == params.length,
-        "The message takes " + mMessage.getFormats().length + " arguments, but is given "
-            + params.length);
+    Preconditions.checkArgument(mMessage.getFormatsByArgumentIndex().length == params.length,
+        "The message takes " + mMessage.getFormatsByArgumentIndex().length + " arguments, but is "
+            + "given " + params.length);
     // MessageFormat is not thread-safe, so guard it
     synchronized (mMessage) {
       return mMessage.format(params);

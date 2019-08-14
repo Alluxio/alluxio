@@ -22,17 +22,16 @@ an external Zookeeper cluster for coordination, and relies on a UFS for persiste
 To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes, 
 such as HDFS or NFS.
 
-The embedded journal does its own coordination and persistent storage, but has a few limitations.
-
-First, `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
+The embedded journal does its own coordination and persistent storage, but has a few limitations:
+* `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
 compared to `n-1` for UFS journal. For example, With `3` masters, UFS journal can tolerate `2` failures, 
 while embedded journal can only tolerate `1`. However, UFS journal depends on Zookeeper, 
 which similarly only supports `floor(#zookeeper_nodes / 2)` failures.
 
-The other limitation is that embedded journal does not support dynamically changing master membership. 
+* embedded journal does not support dynamically changing master membership. 
 With UFS journal, replacing a master on `host1` with a new master on `host2` is as simple as starting a new master on `host2`, 
-then killing the master on `host1`. Changing the masters in an embedded journal cluster requires backing up the cluster, 
-shutting it down, and then starting up again with the new masters using the backup.
+then killing the master on `host1`. Changing the masters in an embedded journal cluster requires [backing up](#backing-up-the-journal) 
+the cluster, shutting it down, and then starting up again with the new masters using the backup.
 
 If a fast UFS and Zookeeper cluster are readily available and stable, it is recommended to use the UFS journal. 
 Otherwise, we recommend using the embedded journal.
@@ -68,12 +67,8 @@ alluxio.master.journal.folder=/opt/alluxio/journal
 
 The configuration specified below should be applied to both Alluxio servers and Alluxio clients.
 
-Set the journal type to "EMBEDDED":
-```
-alluxio.master.journal.type=EMBEDDED
-```
-
 Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
+
 ```
 alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
 ```
@@ -81,11 +76,11 @@ alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostnam
 ### Optional configuration
 
 * `alluxio.master.embedded.journal.port`: The port masters use for embedded journal communication. Default: `19200`.
-* `alluxio.master.port`: The port masters use for RPCs. Default: `19998`.
-* `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client 
-should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, 
-since Zookeeper already stores the master addresses. If this is not set, clients will look for masters using the hostnames 
-from `alluxio.master.embedded.journal.addresses` and the master rpc port.
+* `alluxio.master.rpc.port`: The port masters use for RPCs. Default: `19998`.
+* `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client should look for masters 
+when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses. 
+If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses` 
+and the master rpc port (Default:`19998`).
 
 ### Job service configuration
 
@@ -106,12 +101,12 @@ from `alluxio.master.embedded.journal.addresses` and the job master rpc port.
 Formatting the journal deletes all of its content and restores it to a fresh state.
 Before starting Alluxio for the first time, the journal must be formatted.
 
-```bash
+```console
 # This permanently deletes all Alluxio metadata, so be careful with this operation
-$ bin/alluxio formatMaster
+$ ./bin/alluxio formatMasters
 ```
 
-## Operations
+## Backing up the journal
 
 ### Manually backing up the journal
 
@@ -120,13 +115,13 @@ to a previous point in time. Generating a backup causes temporary service
 unavailability while the backup is written.
 
 To generate a backup, use the `fsadmin backup` CLI command.
-```bash
-$ bin/alluxio fsadmin backup
+```console
+$ ./bin/alluxio fsadmin backup
 ```
 
 By default, this will write a backup named
-`alluxio-journal-YYYY-MM-DD-timestamp.gz` to the "/alluxio_backups" directory of
-the root under storage system, e.g. hdfs://cluster/alluxio_backups. This default
+`alluxio-backup-YYYY-MM-DD-timestamp.gz` to the `/alluxio_backups` directory of
+the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
 backup directory can be configured by setting `alluxio.master.backup.directory`
 
 ```
@@ -165,10 +160,10 @@ To restore the Alluxio system from a journal backup, stop the system, format the
 journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
-```bash
-$ bin/alluxio-stop.sh masters
-$ bin/alluxio formatMaster
-$ bin/alluxio-start.sh -i <backup_uri> masters
+```console
+$ ./bin/alluxio-stop.sh masters
+$ ./bin/alluxio formatMasters
+$ ./bin/alluxio-start.sh -i <backup_uri> masters
 ```
 
 The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
@@ -210,6 +205,8 @@ setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setti
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
 
+#### Checkpointing on secondary master
+
 If HA mode is not an option, it is possible to run a master on the same node as a
 dedicated standby master. This second master exists only to write checkpoints, and
 will not serve client requests if the leading master dies. In this setup, both
@@ -217,9 +214,27 @@ masters have similar memory requirements since they both need to hold all Alluxi
 metadata in memory. To start a dedicated standby master for writing periodic checkpoints,
 run
 
-```bash
-$ bin/alluxio-start.sh secondary_master
+```console
+$ ./bin/alluxio-start.sh secondary_master
 ```
+
+#### Checkpointing on primary master
+
+Checkpointing requires a pause in master metadata changes and causes temporary service
+unavailability while the checkpoint is written. This operation may take hours depending on Alluxio namespace size. 
+Therefore, Alluxio primary master will not create checkpoints by default.
+
+Restarting the current primary master to transfer the leadership to another running master periodically 
+can help avoiding primary master journal logs from growing unbounded when Alluxio is running in HA mode.
+
+If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
+
+```console
+$ ./bin/alluxio fsadmin checkpoint
+```
+
+Similar to the `backup` command, `checkpoint` command should 
+be used on an off-peak time to avoid interfering with other users of the system.
 
 ### Recovering from journal issues
 
@@ -229,3 +244,14 @@ if the journal is accidentally deleted or its storage system becomes corrupted,
 Alluxio must be reformatted to recover. To avoid the need for full reformatting,
 we recommend taking regular journal backups at a time when the cluster is under low
 load. Then if something happens to the journal, you can recover from one of the backups.
+
+### Get human-readable journal
+
+Alluxio journal is serialized and not human-readable. The following command 
+is given to read the Alluxio journal and write it to a directory in a human-readable format.
+
+```console
+$ ./bin/alluxio readJournal 
+```
+
+Run `./bin/alluxio readJournal -help` for more detailed usage.

@@ -47,12 +47,13 @@ MOPT (Mount Option) is one of:
              set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
   NoMount is assumed if MOPT is not specified.
 
+-a         asynchronously start all processes. The script may exit before all
+           processes have been started.
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
 -i backup  a journal backup to restore the master from. The backup should be
            a URI path within the root under filesystem, e.g.
            hdfs://mycluster/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz.
--m         launch monitor process to ensure the target processes come up.
 -N         do not try to kill previous running processes before starting new ones.
 -w         wait for processes to end before returning.
 
@@ -65,14 +66,6 @@ ensure_dirs() {
     echo "ALLUXIO_LOGS_DIR: ${ALLUXIO_LOGS_DIR}"
     mkdir -p ${ALLUXIO_LOGS_DIR}
   fi
-}
-
-# returns 1 if "$1" contains "$2", 0 otherwise.
-contains() {
-  if [[ "$1" = *"$2"* ]]; then
-    return 1
-  fi
-  return 0
 }
 
 get_env() {
@@ -175,42 +168,29 @@ start_job_master() {
   fi
 
   if [[ ${ALLUXIO_MASTER_SECONDARY} != "true" ]]; then
-    if [[ -z ${ALLUXIO_JOB_MASTER_JAVA_OPTS} ]] ; then
-      ALLUXIO_JOB_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-    fi
-
     echo "Starting job master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${JAVA} -cp ${CLASSPATH} \
-     ${ALLUXIO_JOB_MASTER_JAVA_OPTS} \
-     alluxio.master.AlluxioJobMaster > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
+    (nohup ${BIN}/launch-process job_master > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
    fi
 }
 
 start_job_masters() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "job_master"
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "-a" "job_master"
 }
 
 start_job_worker() {
-  if [[ -z ${ALLUXIO_JOB_WORKER_JAVA_OPTS} ]] ; then
-    ALLUXIO_JOB_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  fi
-
   echo "Starting job worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup ${JAVA} -cp ${CLASSPATH} \
-   ${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
-   alluxio.worker.AlluxioJobWorker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
-  ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.job.worker.rpc.port=0 -Dalluxio.job.worker.web.port=0"
+  (nohup ${BIN}/launch-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+  ALLUXIO_JOB_WORKER_JAVA_OPTS=" -Dalluxio.job.worker.rpc.port=0 -Dalluxio.job.worker.web.port=0"
   local nworkers=${ALLUXIO_JOB_WORKER_COUNT:-1}
   for (( c = 1; c < ${nworkers}; c++ )); do
     echo "Starting job worker #$((c+1)) @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${JAVA} -cp ${CLASSPATH} \
-     ${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
-     alluxio.worker.AlluxioJobWorker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+    (ALLUXIO_JOB_WORKER_JAVA_OPTS=${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
+    nohup ${BIN}/launch-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
   done
 }
 
 start_job_workers() {
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "job_worker"
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "job_worker"
 }
 
 start_logserver() {
@@ -220,9 +200,8 @@ start_logserver() {
     fi
 
     echo "Starting logserver @ $(hostname -f)."
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_LOGSERVER_JAVA_OPTS} \
-     alluxio.logserver.AlluxioLogServer "${ALLUXIO_LOGSERVER_LOGS_DIR}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+    (ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR}" \
+    nohup ${BIN}/launch-process logserver > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
     # Wait for 1s before starting other Alluxio servers, otherwise may cause race condition
     # leading to connection errors.
     sleep 1
@@ -231,41 +210,21 @@ start_logserver() {
 start_master() {
   if [[ "$1" == "-f" ]]; then
     ${LAUNCHER} ${BIN}/alluxio format
+  elif [[ `${LAUNCHER} ${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type` == "EMBEDDED" ]]; then
+    JOURNAL_DIR=`${LAUNCHER} ${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.folder`
+    if [ -f "${JOURNAL_DIR}" ]; then
+      echo "Journal location ${JOURNAL_DIR} is a file not a directory. Please remove the file before retrying."
+    elif [ ! -e "${JOURNAL_DIR}" ]; then
+      ${LAUNCHER} ${BIN}/alluxio format
+    fi
   fi
 
   if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
-    if [[ -z ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} ]]; then
-      ALLUXIO_SECONDARY_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-    fi
-
-    # use a default Xmx value for the master
-    contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx"
-    if [[ $? -eq 0 ]]; then
-      ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
-    fi
-
     echo "Starting secondary master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} \
-     alluxio.master.AlluxioSecondaryMaster > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
+    (nohup ${BIN}/launch-process secondary_master > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
   else
-    if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-    fi
-    if [[ -n ${journal_backup} ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.backup=${journal_backup}"
-    fi
-
-    # use a default Xmx value for the master
-    contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx"
-    if [[ $? -eq 0 ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
-    fi
-
     echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_MASTER_JAVA_OPTS} \
-     alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
+    (JOURNAL_BACKUP="${journal_backup}" nohup ${BIN}/launch-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
   fi
 }
 
@@ -274,23 +233,17 @@ start_masters() {
   if [[ -n ${journal_backup} ]]; then
     start_opts="-i ${journal_backup}"
   fi
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" ${start_opts} "master" $1
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" ${start_opts} "-a" "master" $1
 }
 
 start_proxy() {
-  if [[ -z ${ALLUXIO_PROXY_JAVA_OPTS} ]]; then
-    ALLUXIO_PROXY_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  fi
-
   echo "Starting proxy @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup "${JAVA}" -cp ${CLASSPATH} \
-   ${ALLUXIO_PROXY_JAVA_OPTS} \
-   alluxio.proxy.AlluxioProxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
+  (nohup ${BIN}/launch-process proxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
 }
 
 start_proxies() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "proxy"
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "proxy"
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "-a" "proxy"
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "proxy"
 }
 
 start_worker() {
@@ -300,30 +253,13 @@ start_worker() {
     exit 1
   fi
 
-  if [[ -z ${ALLUXIO_WORKER_JAVA_OPTS} ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  fi
-
-  # use a default Xmx value for the worker
-  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx"
-  if [[ $? -eq 0 ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
-  fi
-
-  # use a default MaxDirectMemorySize value for the worker
-  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize"
-  if [[ $? -eq 0 ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
-  fi
-
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup "${JAVA}" -cp ${CLASSPATH} \
-   ${ALLUXIO_WORKER_JAVA_OPTS} \
-   alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
+  (ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_WORKER_JAVA_OPTS} \
+     nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
 }
 
 start_workers() {
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" $1
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "worker" $1
 }
 
 restart_worker() {
@@ -334,9 +270,7 @@ restart_worker() {
   RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_WORKER_JAVA_OPTS} \
-     alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
+    (nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
 }
 
@@ -388,8 +322,7 @@ start_monitor() {
       run="false"
     fi
   elif [[ "${action}" == "logserver" || "${action}" == "safe" ]]; then
-    echo -e "Error: Invalid Monitor ACTION: ${action}" >&2
-    exit 1
+    run="false"
   fi
   if [[ -z "${run}" ]]; then
     ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${action}" "${nodes}"
@@ -418,17 +351,17 @@ main() {
   # ensure log/data dirs
   ensure_dirs
 
-  while getopts "hNwmi:" o; do
+  while getopts "ahNwi:" o; do
     case "${o}" in
+      a)
+        async="true"
+        ;;
       h)
         echo -e "${USAGE}"
         exit 0
         ;;
       i)
         journal_backup=${OPTARG}
-        ;;
-      m)
-        monitor="true"
         ;;
       N)
         killonstart="no"
@@ -482,7 +415,7 @@ main() {
   fi
 
   MONITOR_NODES=
-  if [[ "${monitor}" ]]; then
+  if [[ ! "${async}" ]]; then
     case "${ACTION}" in
       restart_worker)
         MONITOR_NODES=$(get_offline_worker)
@@ -515,7 +448,33 @@ main() {
       start_proxies
       ;;
     local)
-      start_master "${FORMAT}"
+      local master_hostname=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS}\
+                              alluxio.master.hostname)
+      local is_master_set_and_local=false
+      if [[ -n ${master_hostname} ]]; then
+        local local_addresses=( "localhost" "127.0.0.1" $(hostname -s) $(hostname -f) )
+        if [[ $(uname -a) != Darwin* ]]; then
+          # Assuming Linux
+          local_addresses+=( $(hostname --ip-address) )
+        fi
+        for local_address in ${local_addresses[*]}
+        do
+           if [[ ${local_address} == ${master_hostname} ]]; then
+             is_master_set_and_local=true
+             break
+           fi
+        done
+      fi
+      if [[ ${is_master_set_and_local} != true ]]; then
+        echo "# The following line is auto-generated by command \"bin/alluxio-start.sh local\"" \
+          >> "${ALLUXIO_CONF_DIR}/alluxio-site.properties"
+        echo "alluxio.master.hostname=localhost" >> "${ALLUXIO_CONF_DIR}/alluxio-site.properties"
+      fi
+      if [[ "${FORMAT}" == "-f" ]]; then
+        ${LAUNCHER} ${BIN}/alluxio formatJournal
+        ${LAUNCHER} ${BIN}/alluxio formatWorker
+      fi
+      start_master
       ALLUXIO_MASTER_SECONDARY=true
       # We only start a secondary master when using a UFS journal.
       local journal_type=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} \
@@ -588,7 +547,7 @@ main() {
     wait
   fi
 
-  if [[ "${monitor}" ]]; then
+  if [[ ! "${async}" ]]; then
     start_monitor "${ACTION}" "${MONITOR_NODES}"
   fi
 }
