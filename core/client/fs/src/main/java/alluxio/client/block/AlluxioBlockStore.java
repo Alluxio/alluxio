@@ -169,23 +169,18 @@ public final class AlluxioBlockStore {
       info = masterClientResource.get().getBlockInfo(blockId);
     }
     List<BlockLocation> locations = info.getLocations();
-    List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
+    List<BlockWorkerInfo> blockWorkerInfo = getEligibleWorkers();
+    if (blockWorkerInfo.isEmpty()) {
+      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+    }
     // Initial target workers to read the block given the block locations.
     Set<WorkerNetAddress> workerPool;
     // Note that, it is possible that the blocks have been written as UFS blocks
     if (options.getStatus().isPersisted()
         || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED")) {
-      blockWorkerInfo = getEligibleWorkers();
-      if (blockWorkerInfo.isEmpty()) {
-        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-      }
       workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
     } else {
       if (locations.isEmpty()) {
-        blockWorkerInfo = getEligibleWorkers();
-        if (blockWorkerInfo.isEmpty()) {
-          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-        }
         throw new UnavailableException(
             ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
       }
