@@ -15,7 +15,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -26,9 +25,9 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
@@ -175,17 +174,20 @@ public final class AlluxioBlockStore {
     if (options.getStatus().isPersisted()
         || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED")) {
       blockWorkerInfo = getEligibleWorkers();
-      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
-      if (workerPool.isEmpty()) {
-        throw new UnavailableException(
-            "No Alluxio worker available. Check that your workers are still running");
+      if (blockWorkerInfo.isEmpty()) {
+        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
       }
+      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
     } else {
-      workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
-      if (workerPool.isEmpty()) {
-        throw new NotFoundException(
+      if (locations.isEmpty()) {
+        blockWorkerInfo = getEligibleWorkers();
+        if (blockWorkerInfo.isEmpty()) {
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
+        throw new UnavailableException(
             ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
       }
+      workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
     }
     // Workers to read the block, after considering failed workers.
     Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
@@ -302,6 +304,9 @@ public final class AlluxioBlockStore {
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     java.util.Set<BlockWorkerInfo> blockWorkers;
     blockWorkers = com.google.common.collect.Sets.newHashSet(getEligibleWorkers());
+    if (blockWorkers.isEmpty()) {
+      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+    }
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
     // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
     // "alluxio.user.file.replication.min"
