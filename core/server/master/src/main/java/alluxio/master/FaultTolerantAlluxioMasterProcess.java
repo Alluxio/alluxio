@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -138,10 +139,15 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     mJournalSystem.losePrimacy();
     if (mServingThread != null) {
       mServingThread.join(mServingThreadTimeoutMs);
+      // Crash if serving thread didn't exit.
       if (mServingThread.isAlive()) {
         ProcessUtils.fatalError(LOG,
             "Failed to stop serving thread after %dms. Serving thread stack trace:%n%s",
             mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
+      }
+      // Crash if underlying executor still has outstanding tasks.
+      if (!mExecutorService.awaitTermination(1, TimeUnit.MILLISECONDS)) {
+        ProcessUtils.fatalError(LOG, "There are still outstanding RPCs after stopping serving.");
       }
       mServingThread = null;
       stopMasters();

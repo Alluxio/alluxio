@@ -50,6 +50,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
@@ -102,6 +105,9 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The RPC server. */
   private TServer mThriftServer;
+
+  /** The ExecutorService for RPC server. */
+  protected ExecutorService mExecutorService;
 
   /** The start time for when the master started. */
   private final long mStartTimeMs = System.currentTimeMillis();
@@ -382,16 +388,22 @@ public class AlluxioMasterProcess implements MasterProcess {
     } catch (TTransportException e) {
       throw new RuntimeException(e);
     }
+    // create executor service for thrift.
+    // use thrift stop timeout as keep-alive.
+    int stopTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT);
+    mExecutorService = new ThreadPoolExecutor(mMinWorkerThreads,
+            mMaxWorkerThreads,
+            stopTimeoutMs,
+            TimeUnit.MILLISECONDS,
+            new SynchronousQueue());
     // create master thrift service with the multiplexed processor.
-    Args args = new TThreadPoolServer.Args(mRpcServerSocket)
-        .maxWorkerThreads(mMaxWorkerThreads)
-        .minWorkerThreads(mMinWorkerThreads)
+    Args args = new Args(mRpcServerSocket)
         .processor(processor)
         .transportFactory(transportFactory)
         .protocolFactory(ThriftUtils.createThriftProtocolFactory())
-        .stopTimeoutVal((int) TimeUnit.MILLISECONDS
-            .toSeconds(Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT)));
-    args.stopTimeoutUnit = TimeUnit.SECONDS;
+        .executorService(mExecutorService)
+        .stopTimeoutVal(stopTimeoutMs);
+    args.stopTimeoutUnit = TimeUnit.MILLISECONDS;
     mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
@@ -405,6 +417,22 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void stopServing() throws Exception {
     if (mThriftServer != null) {
+      //
+      // Calling shutdownNow() on executor service first in order to
+      // interrupt existing tasks. After calling ThriftServer's stop(), Thrift's serving thread
+      // will exit serving loop and call awaitTermination on the executor service.
+      // The reason we're calling shutdownNow() externally is that Thrift calls shutdown()
+      // on executor service, which doesn't interrupt outstanding tasks.
+      //
+      // Note-1: Interrupting the executor service before closing the server might cause
+      // {@link RejectedExecutionException} for a brief period if
+      // server was under heavy request load.
+      //
+      // Note-2: Don't reset mExecutor to `null` as it'll be used by
+      // {@link FaultTolerantAlluxioMasterProcess} to detect if there are outstanding tasks.
+      //
+      mExecutorService.shutdownNow();
+
       mThriftServer.stop();
       mThriftServer = null;
     }
