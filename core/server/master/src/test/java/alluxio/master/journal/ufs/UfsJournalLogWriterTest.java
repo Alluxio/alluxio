@@ -289,15 +289,18 @@ public final class UfsJournalLogWriterTest {
     nextSN = writeJournalEntries(writer, nextSN, 1);
     DataOutputStream badOut = createMockDataOutputStream(writer);
     Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut).flush();
+    nextSN = writeJournalEntries(writer, nextSN, 1);
     tryFlushAndExpectToFail(writer);
 
-    // Verify that current file is completed with current SN.
-    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-    Assert.assertNull(snapshot.getCurrentLog(mJournal));
-    Assert.assertEquals(2, snapshot.getLogs().size());
-    Assert.assertEquals(nextSN, snapshot.getLogs().get(1).getEnd());
-
+    // Retry the flush, expect it to rotate the log and start a new file
+    writer.flush();
+    // Complete the last log
     writer.close();
+
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertEquals(3, snapshot.getLogs().size());
+    Assert.assertEquals(nextSN - 1, snapshot.getLogs().get(2).getStart());
+    Assert.assertEquals(nextSN, snapshot.getLogs().get(2).getEnd());
   }
 
   /**
@@ -349,22 +352,58 @@ public final class UfsJournalLogWriterTest {
   }
 
   @Test
-  public void missingIncompleteJournalFile() throws Exception {
+  public void recoverWithNoJournalFiles() throws Exception {
     long startSN = 0x10;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, startSN);
+    // Put stream into a bad state
     long nextSN = writeJournalEntries(writer, startSN, 5);
     DataOutputStream badOut = createMockDataOutputStream(writer);
-    Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut)
-        .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
-    tryWriteAndExpectToFail(writer, nextSN);
+    Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut).flush();
+    tryFlushAndExpectToFail(writer);
+
+    // Delete the file
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    UfsJournalFile journalFile = snapshot.getLogs().get(0);
+    File file = new File(journalFile.getLocation().toString());
+    file.delete();
+
+    // Recover should fail since we deleted the file
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage("Cannot find any journal entry to recover from.");
+    writer.write(newEntry(nextSN));
+    writer.close();
+  }
+
+  @Test
+  public void recoverMissingJournalFiles() throws Exception {
+    long startSN = 0x10;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, startSN);
+    // Create a file
+    long nextSN = writeJournalEntries(writer, startSN, 5);
+    writer.close();
+
+    // Flush some entries to the next file
+    writer = new UfsJournalLogWriter(mJournal, nextSN);
+    nextSN = writeJournalEntries(writer, nextSN, 5);
+    writer.flush();
+
+    // Put the stream into a bad state
+    nextSN = writeJournalEntries(writer, nextSN, 5);
+    DataOutputStream badOut = createMockDataOutputStream(writer);
+    Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut).flush();
+    tryFlushAndExpectToFail(writer);
+
+    // Delete the current log
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
     File file = new File(journalFile.getLocation().toString());
     file.delete();
+
+    // Recover should fail since we deleted the current log
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(
         ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
-            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, 0, 0x10));
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, 0x15, 0x1A));
     writer.write(newEntry(nextSN));
     writer.close();
   }

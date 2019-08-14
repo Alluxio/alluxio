@@ -159,6 +159,9 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
 
     long lastPersistSeq = recoverLastPersistedJournalEntry();
+    if (lastPersistSeq == -1) {
+      throw new RuntimeException("Cannot find any journal entry to recover from.");
+    }
 
     createNewLogFile(lastPersistSeq + 1);
     if (!mEntriesToFlush.isEmpty()) {
@@ -186,6 +189,10 @@ final class UfsJournalLogWriter implements JournalWriter {
       }
       LOG.info("Finished writing unwritten journal entries from {} to {}.",
           lastPersistSeq + 1, retryEndSeq);
+      if (retryEndSeq != mNextSequenceNumber - 1) {
+        throw new RuntimeException("Failed to recover all entries to flush, expecting "
+            + (mNextSequenceNumber - 1) + " but only found entry " + retryEndSeq);
+      }
     }
     mNeedsRecovery = false;
   }
@@ -224,7 +231,9 @@ final class UfsJournalLogWriter implements JournalWriter {
       } catch (IOException e) {
         throw e;
       }
-      completeLog(currentLog, lastPersistSeq + 1);
+      if (lastPersistSeq != -1) { // If the current log is an empty file, do not complete with SN: 0
+        completeLog(currentLog, lastPersistSeq + 1);
+      }
     }
     // Search for and scan the latest COMPLETE journal and find out the sequence number of the
     // last persisted journal entry, in case no entry has been found in the INCOMPLETE journal.
@@ -235,10 +244,15 @@ final class UfsJournalLogWriter implements JournalWriter {
       // journalFiles[journalFiles.size()-1] is the latest complete journal file.
       List<UfsJournalFile> journalFiles = snapshot.getLogs();
       if (!journalFiles.isEmpty()) {
-        UfsJournalFile journal = journalFiles.get(journalFiles.size() - 1);
-        lastPersistSeq = journal.getEnd() - 1;
-        LOG.info("Found last persisted journal entry with seq {} in {}.",
-            lastPersistSeq, journal.getLocation().toString());
+        for (int i = journalFiles.size() - 1; i >= 0; i--) {
+          UfsJournalFile journal = journalFiles.get(i);
+          if (!journal.isIncompleteLog()) { // Do not consider incomplete logs (handled above)
+            lastPersistSeq = journal.getEnd() - 1;
+            LOG.info("Found last persisted journal entry with seq {} in {}.",
+                lastPersistSeq, journal.getLocation().toString());
+            break;
+          }
+        }
       }
     }
     return lastPersistSeq;
@@ -328,20 +342,10 @@ final class UfsJournalLogWriter implements JournalWriter {
       mEntriesToFlush.clear();
     } catch (IOJournalClosedException e) {
       throw e.toJournalClosedException();
-    } catch (IOException e) {
+    } catch (IOException e) { // On next operation, attempt to recover from a UFS failure
+      mNeedsRecovery = true;
       UfsJournalFile currentLog = mJournalOutputStream.currentLog();
-      // Try to close and complete the current file.
-      try {
-        closeAndCompleteCurrentStream();
-      } catch (IOException ioExc) {
-        // Journal file left in uncompleted state after flush failure.
-        LOG.error("Journal flush mitigation failure. Flush failure:{}. Mitigation failure:{}", e,
-            ioExc);
-        System.exit(-1);
-      } finally {
-        mRotateLogForNextWrite = true;
-        mJournalOutputStream = null;
-      }
+      mJournalOutputStream = null;
       throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
               currentLog, e.getMessage()), e);
@@ -356,26 +360,6 @@ final class UfsJournalLogWriter implements JournalWriter {
             mMaxLogSize);
       }
       mRotateLogForNextWrite = true;
-    }
-  }
-
-  /**
-   * Used to close the current stream during failure. If close fails, it tries to complete the
-   * underlying log file regardless.
-   */
-  private void closeAndCompleteCurrentStream() throws IOException {
-    // Try to close and complete the current file.
-    try {
-      mJournalOutputStream.close();
-    } catch (IOException ioExc) {
-      LOG.warn("Failed to close current journal output stream at: {}. Error: {}",
-          mJournalOutputStream.currentLog().getLocation(), ioExc);
-      // Couldn't close the output stream.
-      // Try to complete the file.
-      completeLog(mJournalOutputStream.currentLog(), mNextSequenceNumber);
-    } finally {
-      mRotateLogForNextWrite = true;
-      mJournalOutputStream = null;
     }
   }
 
