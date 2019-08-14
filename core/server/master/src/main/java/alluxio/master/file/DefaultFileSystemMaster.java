@@ -3416,14 +3416,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
-<<<<<<< HEAD
-            mUfsSyncPathCache.notifySyncedPath(mountPoint);
-
-||||||| parent of b880cef284... Improve sync cache to consider recursive sync of ancestors
-            mUfsSyncPathCache.notifySyncedPath(mountPoint);
-=======
             mUfsSyncPathCache.notifySyncedPath(mountPoint, syncDescendantType);
->>>>>>> b880cef284... Improve sync cache to consider recursive sync of ancestors
           }
         }
       } catch (InvalidPathException e) {

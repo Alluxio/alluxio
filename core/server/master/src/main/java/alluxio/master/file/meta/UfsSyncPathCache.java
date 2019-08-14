@@ -11,20 +11,12 @@
 
 package alluxio.master.file.meta;
 
-<<<<<<< HEAD
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-||||||| parent of b880cef284... Improve sync cache to consider recursive sync of ancestors
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
-=======
-import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
-import alluxio.file.options.DescendantType;
+import alluxio.master.file.options.DescendantType;
 import alluxio.util.io.PathUtils;
->>>>>>> b880cef284... Improve sync cache to consider recursive sync of ancestors
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

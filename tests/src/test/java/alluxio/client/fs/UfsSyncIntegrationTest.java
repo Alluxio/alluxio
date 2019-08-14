@@ -15,25 +15,16 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-<<<<<<< HEAD
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
-||||||| parent of b880cef284... Improve sync cache to consider recursive sync of ancestors
-import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
-=======
-import alluxio.ClientContext;
-import alluxio.Constants;
->>>>>>> b880cef284... Improve sync cache to consider recursive sync of ancestors
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-<<<<<<< HEAD
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -43,11 +34,6 @@ import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-||||||| parent of b880cef284... Improve sync cache to consider recursive sync of ancestors
-=======
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
->>>>>>> b880cef284... Improve sync cache to consider recursive sync of ancestors
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
@@ -643,16 +629,15 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     writeUfsFile(ufsPath(fileA), 1);
     writeUfsFile(ufsPath(fileB), 1);
 
-    FileSystemMasterCommonPOptions longinterval =
-        FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(Constants.HOUR_MS).build();
+    CommonOptions longInterval = CommonOptions.defaults().setSyncIntervalMs(Constants.HOUR_MS);
 
     // Should not exist, since no loading or syncing
-    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA)), ExistsPOptions.newBuilder()
-        .setCommonOptions(PSYNC_NEVER).build()));
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA)),
+        ExistsOptions.defaults().setCommonOptions(longInterval)));
 
     try {
       mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1")),
-          ListStatusPOptions.newBuilder().setCommonOptions(PSYNC_NEVER).build());
+          ListStatusOptions.defaults().setCommonOptions(SYNC_NEVER));
       Assert.fail("paths are not expected to exist without sync");
     } catch (FileDoesNotExistException e) {
       // expected, continue
@@ -660,20 +645,19 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // recursively sync the top dir
     List<URIStatus> paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1")),
-        ListStatusPOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).setRecursive(true)
-            .build());
+        ListStatusOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true));
     Assert.assertEquals(4, paths.size());
 
     // write a new UFS file
     writeUfsFile(ufsPath(fileNew), 1);
     // the new UFS file should not exist, since the sync interval is 1 hour, and an ancestor
     // already synced recently.
-    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileNew)), ExistsPOptions.newBuilder()
-        .setCommonOptions(longinterval).build()));
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileNew)),
+        ExistsOptions.defaults().setCommonOptions(longInterval)));
 
     // newly created file should not exist
     paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1/dir2/dir3")),
-        ListStatusPOptions.newBuilder().setCommonOptions(longinterval).build());
+        ListStatusOptions.defaults().setCommonOptions(longInterval));
     Assert.assertEquals(2, paths.size());
 
     // create a new UFS dir
@@ -681,16 +665,15 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     // newly created dir should not exist, since sync interval is long, and an ancestor is
     // already synced
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath("/dir1/dir2/dirNew")),
-        ExistsPOptions.newBuilder().setCommonOptions(longinterval).build()));
+        ExistsOptions.defaults().setCommonOptions(longInterval)));
     // newly created dir should not exist
     paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1/dir2")),
-        ListStatusPOptions.newBuilder().setCommonOptions(longinterval).build());
+        ListStatusOptions.defaults().setCommonOptions(longInterval));
     Assert.assertEquals(1, paths.size());
 
     // check the original path, and verify no new files/dirs are picked up from UFS
     paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1")),
-        ListStatusPOptions.newBuilder().setCommonOptions(longinterval).setRecursive(true)
-            .build());
+        ListStatusOptions.defaults().setCommonOptions(longInterval).setRecursive(true));
     Assert.assertEquals(4, paths.size());
   }
 
