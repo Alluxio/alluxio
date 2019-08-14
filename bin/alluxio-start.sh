@@ -202,6 +202,11 @@ start_master() {
       ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
     fi
 
+    # use a CMS garbage collector for the master
+    if ! [[ "${ALLUXIO_MASTER_JAVA_OPTS}" =~ (UseConcMarkSweepGC|UseSerialGC|UseG1GC|UseParallelGC|UseParallelOldGC|UseParNewGC) ]]; then
+      ALLUXIO_MASTER_JAVA_OPTS+=" -XX:+UseConcMarkSweepGC "
+    fi
+
     echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
     (nohup "${JAVA}" -cp ${CLASSPATH} \
      ${ALLUXIO_MASTER_JAVA_OPTS} \
