@@ -155,6 +155,7 @@
     <powermock.version>1.6.1</powermock.version>
     <prometheus.version>0.3.0</prometheus.version>
     <guava.version>27.0.1-jre</guava.version>
+    <parquet.version>1.10.0</parquet.version>
     <protobuf.version>3.5.1</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
@@ -501,6 +502,11 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
         <version>4.4.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.parquet</groupId>
+        <artifactId>parquet-avro</artifactId>
+        <version>${parquet.version}</version>
       </dependency>
       <dependency>
         <groupId>io.atomix.copycat.alluxio</groupId>
