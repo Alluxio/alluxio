@@ -35,7 +35,7 @@ public class GrpcExecutorsTest {
     AuthenticatedClientUser.remove();
   }
 
-  private void validateImpersonationInfo(ExecutorService executor) {
+  private void validateAuthenticatedClientUser(ExecutorService executor) {
     final User contextProxyUser = AuthenticatedClientUser.getOrNull();
     executor.execute(() -> {
       User workerProxyUser = AuthenticatedClientUser.getOrNull();
@@ -52,16 +52,16 @@ public class GrpcExecutorsTest {
 
   @Test
   public void impersonationPassedToBlockReader() {
-    validateImpersonationInfo(GrpcExecutors.BLOCK_READER_EXECUTOR);
+    validateAuthenticatedClientUser(GrpcExecutors.BLOCK_READER_EXECUTOR);
   }
 
   @Test
   public void impersonationPassedToBlockWriter() {
-    validateImpersonationInfo(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    validateAuthenticatedClientUser(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
 
   @Test
   public void impersonationPassedToAsyncCacheManager() {
-    validateImpersonationInfo(GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR);
+    validateAuthenticatedClientUser(GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR);
   }
 }
