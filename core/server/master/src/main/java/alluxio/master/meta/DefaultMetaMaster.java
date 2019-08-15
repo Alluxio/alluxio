@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
@@ -237,6 +238,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
             ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfs);
         mDailyBackup.start();
+      }
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
+        String latestVersion = UpdateCheck.getLatestVersion();
+        if (!latestVersion.equals(ProjectConstants.VERSION)) {
+          System.out.println("The latest version detected (" + latestVersion + ") is not the same"
+              + "as the current version. To upgrade visit https://www.alluxio.io/download/.");
+        }
       }
     } else {
       if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
