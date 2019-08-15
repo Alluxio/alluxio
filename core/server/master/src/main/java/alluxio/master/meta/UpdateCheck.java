@@ -62,7 +62,7 @@ public final class UpdateCheck {
    * @return a string representation of the user's environment in the format "key1:value1, key2:
    *         value2".
    */
-  private static String getEnvString() {
+  private static String getEnvString() throws IOException {
     Joiner joiner = Joiner.on(",");
     return joiner.join(
       "AlluxioVersion: " + ProjectConstants.VERSION,

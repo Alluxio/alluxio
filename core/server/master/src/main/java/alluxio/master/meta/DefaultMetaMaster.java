@@ -297,11 +297,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             String clusterID = java.util.UUID.randomUUID().toString();
             mState.applyAndJournal(context, clusterID);
             LOG.info("Created new cluster ID {}", clusterID);
-
-            String latestVersion = UpdateCheck.getLatestVersion();
-            if (!latestVersion.equals(ProjectConstants.VERSION)) {
-              System.out.println("The latest version (" + latestVersion + ") is not the same"
-                  + "as the current version. To upgrade visit https://www.alluxio.io/download/.");
+            try {
+              String latestVersion = UpdateCheck.getLatestVersion();
+              if (!latestVersion.equals(ProjectConstants.VERSION)) {
+                System.out.println("The latest version (" + latestVersion + ") is not the same"
+                    + "as the current version. To upgrade visit https://www.alluxio.io/download/.");
+              }
+            } catch (Exception e) {
+              LOG.debug("Unable to check for updates: {}", e.getMessage());
             }
           }
         } else {

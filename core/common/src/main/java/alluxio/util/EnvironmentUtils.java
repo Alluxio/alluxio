@@ -14,6 +14,9 @@ package alluxio.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -28,9 +31,8 @@ public final class EnvironmentUtils {
    *
    * @return true, if running on docker
    */
-  public static boolean isDocker() {
-    // TODO(adit): implement me
-    return true;
+  public static boolean isDocker() throws IOException {
+    return new File("/.dockerenv").exists();
   }
 
   /**
@@ -39,8 +41,7 @@ public final class EnvironmentUtils {
    * @return true, if running on k8s
    */
   public static boolean isKubernetes() {
-    // TODO(adit): implement me
-    return true;
+    return System.getenv("KUBERNETES_SERVICE_HOST") != null;
   }
 
   private EnvironmentUtils() {} // prevent instantiation
