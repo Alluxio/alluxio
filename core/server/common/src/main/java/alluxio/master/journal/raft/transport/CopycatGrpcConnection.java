@@ -100,7 +100,7 @@ public abstract class CopycatGrpcConnection
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
   public CopycatGrpcConnection(ConnectionOwner connectionOwner, ThreadContext context,
-                               long requestTimeoutMs) {
+      long requestTimeoutMs) {
     mConnectionOwner = connectionOwner;
     mContext = context;
     mRequestTimeoutMs = requestTimeoutMs;
@@ -154,8 +154,8 @@ public abstract class CopycatGrpcConnection
 
       // Create a contextual future for the request.
       CopycatGrpcConnection.ContextualFuture<U> future =
-              new CopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
-                      ThreadContext.currentContextOrThrow());
+          new CopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
+              ThreadContext.currentContextOrThrow());
 
       // Don't allow request if connection is closed.
       if (mClosed) {
@@ -171,10 +171,10 @@ public abstract class CopycatGrpcConnection
       // Serialize the request and send it over to target.
       try {
         mTargetObserver.onNext(CopycatMessage.newBuilder()
-                .setRequestHeader(CopycatRequestHeader.newBuilder().setRequestId(requestId))
-                .setMessage(UnsafeByteOperations
-                        .unsafeWrap(future.getContext().serializer().writeObject(request).array()))
-                .build());
+            .setRequestHeader(CopycatRequestHeader.newBuilder().setRequestId(requestId))
+            .setMessage(UnsafeByteOperations
+                .unsafeWrap(future.getContext().serializer().writeObject(request).array()))
+            .build());
       } catch (Exception e) {
         future.completeExceptionally(e);
         return future;

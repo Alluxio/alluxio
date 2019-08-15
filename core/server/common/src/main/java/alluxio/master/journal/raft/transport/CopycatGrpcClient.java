@@ -63,21 +63,25 @@ public class CopycatGrpcClient implements Client {
 
   @Override
   public CompletableFuture<Connection> connect(Address address) {
-    return ThreadContext.currentContextOrThrow().execute(() -> {
+    LOG.debug("Copycat transport client connecting to: {}", address);
+    final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
+    // Future for this connection.
+    final CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
+    // Spawn gRPC connection building on a common pool.
+    final CompletableFuture<Connection> buildFuture = CompletableFuture.supplyAsync(() -> {
       try {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
-                .newBuilder(new GrpcServerAddress(address.host(), address.socketAddress()), mConf)
-                .setSubject(mUserState.getSubject()).build();
+            .newBuilder(new GrpcServerAddress(address.host(), address.socketAddress()), mConf)
+            .setSubject(mUserState.getSubject()).build();
 
         // Create stub for receiving stream from server.
         CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =
             CopycatMessageServerGrpc.newStub(channel);
 
         // Create client connection that is bound to remote server stream.
-        CopycatGrpcConnection clientConnection =
-            new CopycatGrpcClientConnection(ThreadContext.currentContextOrThrow(), channel,
-                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+        CopycatGrpcConnection clientConnection = new CopycatGrpcClientConnection(threadContext,
+            channel, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
         LOG.debug("Created copycat connection for target: {}", address);
@@ -87,6 +91,18 @@ public class CopycatGrpcClient implements Client {
         throw new RuntimeException(e);
       }
     });
+    // When connection is build, complete the connection future with it on a catalyst thread context
+    // for setting up the connection.
+    buildFuture.whenComplete((result, error) -> {
+      threadContext.execute(() -> {
+        if (error == null) {
+          connectionFuture.complete(result);
+        } else {
+          connectionFuture.completeExceptionally(error);
+        }
+      });
+    });
+    return connectionFuture;
   }
 
   @Override
@@ -94,8 +110,8 @@ public class CopycatGrpcClient implements Client {
     LOG.debug("Closing copycat transport client with {} connections.", mConnections.size());
     // Close created connections.
     List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
-    for (Connection connectionPair : mConnections) {
-      connectionCloseFutures.add(connectionPair.close());
+    for (Connection connection : mConnections) {
+      connectionCloseFutures.add(connection.close());
     }
     mConnections.clear();
     return CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0]));

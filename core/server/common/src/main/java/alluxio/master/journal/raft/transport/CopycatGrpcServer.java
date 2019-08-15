@@ -51,6 +51,8 @@ public class CopycatGrpcServer implements Server {
   private GrpcServer mGrpcServer;
   /** Bind address for underlying server. */
   private Address mActiveAddress;
+  /** Listen future. */
+  private CompletableFuture<Void> mListenFuture;
 
   /** List of all connections created by this server. */
   private final List<Connection> mConnections;
@@ -71,13 +73,14 @@ public class CopycatGrpcServer implements Server {
   @Override
   public synchronized CompletableFuture<Void> listen(Address address,
       Consumer<Connection> listener) {
-    // Return completion if already listening.
-    if (mActiveAddress != null) {
-      return CompletableFuture.completedFuture(null);
+    // Return existing future if building currently.
+    if (mListenFuture != null && !mListenFuture.isCompletedExceptionally()) {
+      return mListenFuture;
     }
 
     LOG.debug("Copycat transport server binding to: {}", address);
-    return ThreadContext.currentContextOrThrow().execute(() -> {
+    final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
+    mListenFuture = CompletableFuture.runAsync(() -> {
       // Listener that notifies both this server instance and given listener.
       Consumer<Connection> forkListener = (connection) -> {
         addNewConnection(connection);
@@ -85,25 +88,25 @@ public class CopycatGrpcServer implements Server {
       };
 
       // Create gRPC server.
-      mGrpcServer =
-          GrpcServerBuilder.forAddress(address.host(), address.socketAddress(), mConf, mUserState)
-              .addService(new GrpcService(new CopycatMessageServiceClientHandler(forkListener,
-                  ThreadContext.currentContextOrThrow(),
-                  mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
-              .build();
+      mGrpcServer = GrpcServerBuilder
+          .forAddress(address.host(), address.socketAddress(), mConf, mUserState)
+          .addService(new GrpcService(new CopycatMessageServiceClientHandler(forkListener,
+              threadContext, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
+          .build();
 
       try {
         mGrpcServer.start();
         mActiveAddress = address;
 
         LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
-        return null;
       } catch (IOException e) {
         mGrpcServer = null;
         LOG.debug("Failed to create gRPC server for copycat transport at: {}.", address, e);
         throw new RuntimeException(e);
       }
     });
+
+    return mListenFuture;
   }
 
   @Override
