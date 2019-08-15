@@ -250,7 +250,8 @@ public final class ZOrderCommand extends AbstractFileSystemCommand {
         .build();
   }
 
-  private static ParquetWriter<Record> createParquetWriter(File output, Schema schema) throws IOException {
+  private static ParquetWriter<Record> createParquetWriter(File output, Schema schema)
+      throws IOException {
     return AvroParquetWriter.<Record>builder(new Path(output.getAbsolutePath()))
         .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
         .withConf(CONF)
