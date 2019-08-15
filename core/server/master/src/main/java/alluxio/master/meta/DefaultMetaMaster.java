@@ -148,6 +148,58 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Path level properties. */
   private PathProperties mPathProperties;
 
+  /** Persisted state for MetaMaster. */
+  private State mState;
+
+  /**
+   * Journaled state for MetaMaster.
+   */
+  @NotThreadSafe
+  public static final class State implements alluxio.master.journal.Journaled {
+    /** A unique ID to identify the cluster. */
+    private String mClusterID;
+
+    /**
+     * @return the cluster ID
+     */
+    public String getClusterID() {
+      return mClusterID;
+    }
+
+    @Override
+    public CheckpointName getCheckpointName() {
+      return CheckpointName.CLUSTER_ID;
+    }
+
+    @Override
+    public boolean processJournalEntry(Journal.JournalEntry entry) {
+      if (entry.hasClusterId()) {
+        mClusterID = entry.getClusterId();
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * @param ctx the journal context
+     * @param entry the clusterID journal entry
+     */
+    public void applyAndJournal(java.util.function.Supplier<JournalContext> ctx, String entry) {
+      applyAndJournal(ctx, Journal.JournalEntry.newBuilder().setClusterId(entry).build());
+    }
+
+    @Override
+    public void resetState() {
+      mClusterID = null;
+    }
+
+    @Override
+    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+      return java.util.Collections
+          .singleton(Journal.JournalEntry.newBuilder().setClusterId(mClusterID).build()).iterator();
+    }
+  }
+
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
    *
@@ -240,10 +292,20 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         mDailyBackup.start();
       }
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
-        String latestVersion = UpdateCheck.getLatestVersion();
-        if (!latestVersion.equals(ProjectConstants.VERSION)) {
-          System.out.println("The latest version detected (" + latestVersion + ") is not the same"
-              + "as the current version. To upgrade visit https://www.alluxio.io/download/.");
+        if (mState.getClusterID() == null) {
+          try (JournalContext context = createJournalContext()) {
+            String clusterID = java.util.UUID.randomUUID().toString();
+            mState.applyAndJournal(context, clusterID);
+            LOG.info("Created new cluster ID {}", clusterID);
+
+            String latestVersion = UpdateCheck.getLatestVersion();
+            if (!latestVersion.equals(ProjectConstants.VERSION)) {
+              System.out.println("The latest version (" + latestVersion + ") is not the same"
+                  + "as the current version. To upgrade visit https://www.alluxio.io/download/.");
+            }
+          }
+        } else {
+          LOG.info("Detected existing cluster ID {}", mState.getClusterID());
         }
       }
     } else {
@@ -501,17 +563,24 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public String getClusterID() {
+    return mState.getClusterID();
+  }
+
+  @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return mPathProperties.getJournalEntryIterator();
+    return com.google.common.collect.Iterators.concat(mPathProperties.getJournalEntryIterator(),
+        mState.getJournalEntryIterator());
   }
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
-    return mPathProperties.processJournalEntry(entry);
+    return mState.processJournalEntry(entry) || mPathProperties.processJournalEntry(entry);
   }
 
   @Override
   public void resetState() {
+    mState.resetState();
     mPathProperties.resetState();
   }
 

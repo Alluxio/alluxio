@@ -67,6 +67,7 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setAsyncPersistRequest(AsyncPersistRequestEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockContainerIdGenerator(BlockContainerIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockInfo(BlockInfoEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setClusterId("CLUSTER_UUID").build(),
       JournalEntry.newBuilder().setCompleteFile(CompleteFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteBlock(DeleteBlockEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteFile(DeleteFileEntry.getDefaultInstance()).build(),
