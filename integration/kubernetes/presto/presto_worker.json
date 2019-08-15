@@ -1,0 +1,164 @@
+{
+  "kind": "ReplicaSet",
+  "apiVersion": "extensions/v1beta1",
+  "metadata": {
+    "name": "presto-worker-presto-alluxio-54d579c9d4",
+    "namespace": "default",
+    "selfLink": "/apis/extensions/v1beta1/namespaces/default/replicasets/presto-worker-presto-alluxio-54d579c9d4",
+    "uid": "a20f71e6-bede-11e9-9a2f-0800271db096",
+    "resourceVersion": "15094",
+    "generation": 1,
+    "creationTimestamp": "2019-08-14T21:58:22Z",
+    "labels": {
+      "helm-chart": "presto-0.1.0",
+      "helm-release": "presto-alluxio-99u5jplkjzgwlkml9tf6f1pxy",
+      "instance": "presto-alluxio",
+      "managed-by": "Tiller",
+      "pod-template-hash": "54d579c9d4",
+      "role": "worker"
+    },
+    "annotations": {
+      "deployment.kubernetes.io/desired-replicas": "3",
+      "deployment.kubernetes.io/max-replicas": "4",
+      "deployment.kubernetes.io/revision": "1"
+    },
+    "ownerReferences": [
+      {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "name": "presto-worker-presto-alluxio",
+        "uid": "a1fce970-bede-11e9-9a2f-0800271db096",
+        "controller": true,
+        "blockOwnerDeletion": true
+      }
+    ]
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "helm-chart": "presto-0.1.0",
+        "helm-release": "presto-alluxio-99u5jplkjzgwlkml9tf6f1pxy",
+        "instance": "presto-alluxio",
+        "managed-by": "Tiller",
+        "pod-template-hash": "54d579c9d4",
+        "role": "worker"
+      }
+    },
+    "template": {
+      "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+          "helm-chart": "presto-0.1.0",
+          "helm-release": "presto-alluxio-99u5jplkjzgwlkml9tf6f1pxy",
+          "instance": "presto-alluxio",
+          "managed-by": "Tiller",
+          "pod-template-hash": "54d579c9d4",
+          "role": "worker"
+        },
+        "annotations": {
+          "checksum/catalog": "09648ec64e309a874d425430608771a9d2374652413e977fca6e57fd61c4e91f",
+          "checksum/config": "921d1167b1213e91c8834b8015425f2cdeb2e4adc8e947d0c31b150a397cfc00"
+        }
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "presto-config-volume",
+            "configMap": {
+              "name": "presto-config-presto-alluxio",
+              "defaultMode": 420
+            }
+          },
+          {
+            "name": "presto-catalogs-volume",
+            "configMap": {
+              "name": "presto-catalog-presto-alluxio",
+              "defaultMode": 420
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "presto-worker",
+            "image": "presto-alluxio:312-e.1.k8s-0.7-2.0.0",
+            "command": [
+              "entrypoint.sh"
+            ],
+            "args": [
+              "$(POD_ID)",
+              "worker"
+            ],
+            "ports": [
+              {
+                "containerPort": 8080,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+              {
+                "name": "POD_ID",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.uid"
+                  }
+                }
+              }
+            ],
+            "resources": {},
+            "volumeMounts": [
+              {
+                "name": "presto-config-volume",
+                "mountPath": "/var/lib/presto/data/etc-origin"
+              },
+              {
+                "name": "presto-catalogs-volume",
+                "mountPath": "/var/lib/presto/data/catalog-origin"
+              }
+            ],
+            "livenessProbe": {
+              "exec": {
+                "command": [
+                  "presto-probe"
+                ]
+              },
+              "initialDelaySeconds": 300,
+              "timeoutSeconds": 15,
+              "periodSeconds": 300,
+              "successThreshold": 1,
+              "failureThreshold": 1
+            },
+            "readinessProbe": {
+              "exec": {
+                "command": [
+                  "presto-probe"
+                ]
+              },
+              "initialDelaySeconds": 5,
+              "timeoutSeconds": 15,
+              "periodSeconds": 5,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 7200,
+        "dnsPolicy": "ClusterFirst",
+        "securityContext": {},
+        "schedulerName": "default-scheduler"
+      }
+    }
+  },
+  "status": {
+    "replicas": 3,
+    "fullyLabeledReplicas": 3,
+    "readyReplicas": 3,
+    "availableReplicas": 3,
+    "observedGeneration": 1
+  }
+}

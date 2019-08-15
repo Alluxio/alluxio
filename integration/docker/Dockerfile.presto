@@ -23,6 +23,3 @@ RUN cd /opt && \
 
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
-COPY entrypoint_presto.sh /usr/local/bin/entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
