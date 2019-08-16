@@ -59,19 +59,6 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(alluxio.grpc.FieldSchema.PARSER, extensionRegistry));
             break;
           }
-          case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-              parameters_ = com.google.protobuf.MapField.newMapField(
-                  ParametersDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000002;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-            parameters__ = input.readMessage(
-                ParametersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            parameters_.getMutableMap().put(
-                parameters__.getKey(), parameters__.getValue());
-            break;
-          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -92,17 +79,6 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Schema_descriptor;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 2:
-        return internalGetParameters();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
-    }
-  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Schema_fieldAccessorTable
@@ -145,88 +121,18 @@ private static final long serialVersionUID = 0L;
     return cols_.get(index);
   }
 
-  public static final int PARAMETERS_FIELD_NUMBER = 2;
-  private static final class ParametersDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, java.lang.String> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, java.lang.String>newDefaultInstance(
-                alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Schema_ParametersEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "");
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, java.lang.String> parameters_;
-  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-  internalGetParameters() {
-    if (parameters_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          ParametersDefaultEntryHolder.defaultEntry);
-    }
-    return parameters_;
-  }
-
-  public int getParametersCount() {
-    return internalGetParameters().getMap().size();
-  }
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-
-  public boolean containsParameters(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetParameters().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getParametersMap()} instead.
-   */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, java.lang.String> getParameters() {
-    return getParametersMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-
-  public java.util.Map<java.lang.String, java.lang.String> getParametersMap() {
-    return internalGetParameters().getMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-
-  public java.lang.String getParametersOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetParameters().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-
-  public java.lang.String getParametersOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetParameters().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
-  }
-
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    for (int i = 0; i < getColsCount(); i++) {
+      if (!getCols(i).isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -236,12 +142,6 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < cols_.size(); i++) {
       output.writeMessage(1, cols_.get(i));
     }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetParameters(),
-        ParametersDefaultEntryHolder.defaultEntry,
-        2);
     unknownFields.writeTo(output);
   }
 
@@ -253,16 +153,6 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < cols_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, cols_.get(i));
-    }
-    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-         : internalGetParameters().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-      parameters__ = ParametersDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, parameters__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -282,8 +172,6 @@ private static final long serialVersionUID = 0L;
     boolean result = true;
     result = result && getColsList()
         .equals(other.getColsList());
-    result = result && internalGetParameters().equals(
-        other.internalGetParameters());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -298,10 +186,6 @@ private static final long serialVersionUID = 0L;
     if (getColsCount() > 0) {
       hash = (37 * hash) + COLS_FIELD_NUMBER;
       hash = (53 * hash) + getColsList().hashCode();
-    }
-    if (!internalGetParameters().getMap().isEmpty()) {
-      hash = (37 * hash) + PARAMETERS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetParameters().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -408,28 +292,6 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Schema_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 2:
-          return internalGetParameters();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 2:
-          return internalGetMutableParameters();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Schema_fieldAccessorTable
@@ -461,7 +323,6 @@ private static final long serialVersionUID = 0L;
       } else {
         colsBuilder_.clear();
       }
-      internalGetMutableParameters().clear();
       return this;
     }
 
@@ -494,8 +355,6 @@ private static final long serialVersionUID = 0L;
       } else {
         result.cols_ = colsBuilder_.build();
       }
-      result.parameters_ = internalGetParameters();
-      result.parameters_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -563,14 +422,17 @@ private static final long serialVersionUID = 0L;
           }
         }
       }
-      internalGetMutableParameters().mergeFrom(
-          other.internalGetParameters());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
     }
 
     public final boolean isInitialized() {
+      for (int i = 0; i < getColsCount(); i++) {
+        if (!getCols(i).isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -831,129 +693,6 @@ private static final long serialVersionUID = 0L;
         cols_ = null;
       }
       return colsBuilder_;
-    }
-
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> parameters_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetParameters() {
-      if (parameters_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            ParametersDefaultEntryHolder.defaultEntry);
-      }
-      return parameters_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetMutableParameters() {
-      onChanged();;
-      if (parameters_ == null) {
-        parameters_ = com.google.protobuf.MapField.newMapField(
-            ParametersDefaultEntryHolder.defaultEntry);
-      }
-      if (!parameters_.isMutable()) {
-        parameters_ = parameters_.copy();
-      }
-      return parameters_;
-    }
-
-    public int getParametersCount() {
-      return internalGetParameters().getMap().size();
-    }
-    /**
-     * <code>map&lt;string, string&gt; parameters = 2;</code>
-     */
-
-    public boolean containsParameters(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetParameters().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getParametersMap()} instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getParameters() {
-      return getParametersMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; parameters = 2;</code>
-     */
-
-    public java.util.Map<java.lang.String, java.lang.String> getParametersMap() {
-      return internalGetParameters().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; parameters = 2;</code>
-     */
-
-    public java.lang.String getParametersOrDefault(
-        java.lang.String key,
-        java.lang.String defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetParameters().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; parameters = 2;</code>
-     */
-
-    public java.lang.String getParametersOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetParameters().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public Builder clearParameters() {
-      internalGetMutableParameters().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <code>map&lt;string, string&gt; parameters = 2;</code>
-     */
-
-    public Builder removeParameters(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableParameters().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String>
-    getMutableParameters() {
-      return internalGetMutableParameters().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; parameters = 2;</code>
-     */
-    public Builder putParameters(
-        java.lang.String key,
-        java.lang.String value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableParameters().getMutableMap()
-          .put(key, value);
-      return this;
-    }
-    /**
-     * <code>map&lt;string, string&gt; parameters = 2;</code>
-     */
-
-    public Builder putAllParameters(
-        java.util.Map<java.lang.String, java.lang.String> values) {
-      internalGetMutableParameters().getMutableMap()
-          .putAll(values);
-      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

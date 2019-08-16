@@ -8,44 +8,47 @@ public interface FieldSchemaOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string name = 1;</code>
+   * <code>optional uint32 id = 1;</code>
+   */
+  boolean hasId();
+  /**
+   * <code>optional uint32 id = 1;</code>
+   */
+  int getId();
+
+  /**
+   * <code>optional string name = 2;</code>
    */
   boolean hasName();
   /**
-   * <code>optional string name = 1;</code>
+   * <code>optional string name = 2;</code>
    */
   java.lang.String getName();
   /**
-   * <code>optional string name = 1;</code>
+   * <code>optional string name = 2;</code>
    */
   com.google.protobuf.ByteString
       getNameBytes();
 
   /**
-   * <code>optional string type = 2;</code>
+   * <code>optional .alluxio.grpc.Type type = 3;</code>
    */
   boolean hasType();
   /**
-   * <code>optional string type = 2;</code>
+   * <code>optional .alluxio.grpc.Type type = 3;</code>
    */
-  java.lang.String getType();
+  alluxio.grpc.Type getType();
   /**
-   * <code>optional string type = 2;</code>
+   * <code>optional .alluxio.grpc.Type type = 3;</code>
    */
-  com.google.protobuf.ByteString
-      getTypeBytes();
+  alluxio.grpc.TypeOrBuilder getTypeOrBuilder();
 
   /**
-   * <code>optional string comment = 3;</code>
+   * <code>optional bool optional = 4;</code>
    */
-  boolean hasComment();
+  boolean hasOptional();
   /**
-   * <code>optional string comment = 3;</code>
+   * <code>optional bool optional = 4;</code>
    */
-  java.lang.String getComment();
-  /**
-   * <code>optional string comment = 3;</code>
-   */
-  com.google.protobuf.ByteString
-      getCommentBytes();
+  boolean getOptional();
 }

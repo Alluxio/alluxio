@@ -191,6 +191,38 @@ public final class CatalogMasterClientServiceGrpc {
      return getCreateTableMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CreateDatabasePRequest,
+      alluxio.grpc.CreateDatabasePResponse> getCreateDatabaseMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CreateDatabase",
+      requestType = alluxio.grpc.CreateDatabasePRequest.class,
+      responseType = alluxio.grpc.CreateDatabasePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.CreateDatabasePRequest,
+      alluxio.grpc.CreateDatabasePResponse> getCreateDatabaseMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.CreateDatabasePRequest, alluxio.grpc.CreateDatabasePResponse> getCreateDatabaseMethod;
+    if ((getCreateDatabaseMethod = CatalogMasterClientServiceGrpc.getCreateDatabaseMethod) == null) {
+      synchronized (CatalogMasterClientServiceGrpc.class) {
+        if ((getCreateDatabaseMethod = CatalogMasterClientServiceGrpc.getCreateDatabaseMethod) == null) {
+          CatalogMasterClientServiceGrpc.getCreateDatabaseMethod = getCreateDatabaseMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.CreateDatabasePRequest, alluxio.grpc.CreateDatabasePResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.CatalogMasterClientService", "CreateDatabase"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.CreateDatabasePRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.CreateDatabasePResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("CreateDatabase"))
+                  .build();
+          }
+        }
+     }
+     return getCreateDatabaseMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -277,6 +309,17 @@ public final class CatalogMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getCreateTableMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Create a new database in the metastore
+     * </pre>
+     */
+    public void createDatabase(alluxio.grpc.CreateDatabasePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CreateDatabasePResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getCreateDatabaseMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -314,6 +357,13 @@ public final class CatalogMasterClientServiceGrpc {
                 alluxio.grpc.CreateTablePRequest,
                 alluxio.grpc.CreateTablePResponse>(
                   this, METHODID_CREATE_TABLE)))
+          .addMethod(
+            getCreateDatabaseMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.CreateDatabasePRequest,
+                alluxio.grpc.CreateDatabasePResponse>(
+                  this, METHODID_CREATE_DATABASE)))
           .build();
     }
   }
@@ -399,6 +449,18 @@ public final class CatalogMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getCreateTableMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Create a new database in the metastore
+     * </pre>
+     */
+    public void createDatabase(alluxio.grpc.CreateDatabasePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CreateDatabasePResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getCreateDatabaseMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -476,6 +538,17 @@ public final class CatalogMasterClientServiceGrpc {
     public alluxio.grpc.CreateTablePResponse createTable(alluxio.grpc.CreateTablePRequest request) {
       return blockingUnaryCall(
           getChannel(), getCreateTableMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Create a new database in the metastore
+     * </pre>
+     */
+    public alluxio.grpc.CreateDatabasePResponse createDatabase(alluxio.grpc.CreateDatabasePRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getCreateDatabaseMethod(), getCallOptions(), request);
     }
   }
 
@@ -560,6 +633,18 @@ public final class CatalogMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getCreateTableMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Create a new database in the metastore
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CreateDatabasePResponse> createDatabase(
+        alluxio.grpc.CreateDatabasePRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getCreateDatabaseMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_ALL_DATABASES = 0;
@@ -567,6 +652,7 @@ public final class CatalogMasterClientServiceGrpc {
   private static final int METHODID_GET_TABLE = 2;
   private static final int METHODID_LOAD_TABLE = 3;
   private static final int METHODID_CREATE_TABLE = 4;
+  private static final int METHODID_CREATE_DATABASE = 5;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -604,6 +690,10 @@ public final class CatalogMasterClientServiceGrpc {
         case METHODID_CREATE_TABLE:
           serviceImpl.createTable((alluxio.grpc.CreateTablePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.CreateTablePResponse>) responseObserver);
+          break;
+        case METHODID_CREATE_DATABASE:
+          serviceImpl.createDatabase((alluxio.grpc.CreateDatabasePRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.CreateDatabasePResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -671,6 +761,7 @@ public final class CatalogMasterClientServiceGrpc {
               .addMethod(getGetTableMethod())
               .addMethod(getLoadTableMethod())
               .addMethod(getCreateTableMethod())
+              .addMethod(getCreateDatabaseMethod())
               .build();
         }
       }

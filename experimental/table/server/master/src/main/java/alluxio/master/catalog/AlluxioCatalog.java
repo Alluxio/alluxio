@@ -35,15 +35,17 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 // TODO: (yuzhu) journal the state of the catalog
 public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, Tables {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioCatalog.class);
 
-  private final Map<String, Database> mDatabases = new HashMap<>();
+  private final Set<String> mDatabases = new HashSet<>();
   private final Map<String, Map<String, Table>> mDbToTables = new HashMap<>();
 
   private final FileSystem mFileSystem ;
@@ -55,6 +57,21 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
 
   @Override
   public void close() throws IOException {
+  }
+
+  public boolean createDatabase(String dbName) {
+    boolean newDb = !mDatabases.contains(dbName);
+    mDatabases.add(dbName);
+    mDbToTables.compute(dbName, (key, tableList) -> {
+      Map<String, Table> returnMap;
+      if (tableList == null) {
+        returnMap = new HashMap<>();
+      } else {
+        returnMap = tableList;
+      }
+      return returnMap;
+    } );
+    return newDb;
   }
 
   @Override
@@ -70,7 +87,7 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
     return table;
   }
 
-  private Table getTable(TableIdentifier id) {
+  public Table getTable(TableIdentifier id) {
     Preconditions.checkArgument(id.namespace().levels().length >= 1,
         "Missing database in table identifier: %s", id);
     String dbName = id.namespace().level(0);
@@ -100,8 +117,7 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
     Preconditions.checkNotNull(table, "table can not be null");
     String dbName = id.namespace().level(0);
     String tableName = id.name();
-    mDatabases.computeIfAbsent(dbName, name -> new Database(name, name,
-        this.defaultWarehouseLocation(id), null ));
+    mDatabases.add(dbName);
     mDbToTables.compute(dbName, (key, tableList) -> {
       Map<String, Table> returnMap;
       if (tableList == null) {
@@ -203,11 +219,7 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
   }
 
   public List<String> getAllDatabases() {
-    return new ArrayList<>(mDatabases.keySet());
-  }
-
-  public Database getDatabase(String dbName) {
-    return mDatabases.get(dbName);
+    return new ArrayList<>(mDatabases);
   }
 
   public List<String> getAllTables(String databaseName) {

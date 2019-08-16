@@ -16,9 +16,9 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private FieldSchema() {
+    id_ = 0;
     name_ = "";
-    type_ = "";
-    comment_ = "";
+    optional_ = false;
   }
 
   @java.lang.Override
@@ -52,22 +52,33 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 10: {
-            com.google.protobuf.ByteString bs = input.readBytes();
+          case 8: {
             bitField0_ |= 0x00000001;
-            name_ = bs;
+            id_ = input.readUInt32();
             break;
           }
           case 18: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
-            type_ = bs;
+            name_ = bs;
             break;
           }
           case 26: {
-            com.google.protobuf.ByteString bs = input.readBytes();
+            alluxio.grpc.Type.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000004) == 0x00000004)) {
+              subBuilder = type_.toBuilder();
+            }
+            type_ = input.readMessage(alluxio.grpc.Type.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(type_);
+              type_ = subBuilder.buildPartial();
+            }
             bitField0_ |= 0x00000004;
-            comment_ = bs;
+            break;
+          }
+          case 32: {
+            bitField0_ |= 0x00000008;
+            optional_ = input.readBool();
             break;
           }
         }
@@ -95,16 +106,31 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int NAME_FIELD_NUMBER = 1;
-  private volatile java.lang.Object name_;
+  public static final int ID_FIELD_NUMBER = 1;
+  private int id_;
   /**
-   * <code>optional string name = 1;</code>
+   * <code>optional uint32 id = 1;</code>
    */
-  public boolean hasName() {
+  public boolean hasId() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string name = 1;</code>
+   * <code>optional uint32 id = 1;</code>
+   */
+  public int getId() {
+    return id_;
+  }
+
+  public static final int NAME_FIELD_NUMBER = 2;
+  private volatile java.lang.Object name_;
+  /**
+   * <code>optional string name = 2;</code>
+   */
+  public boolean hasName() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional string name = 2;</code>
    */
   public java.lang.String getName() {
     java.lang.Object ref = name_;
@@ -121,7 +147,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string name = 1;</code>
+   * <code>optional string name = 2;</code>
    */
   public com.google.protobuf.ByteString
       getNameBytes() {
@@ -137,88 +163,40 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int TYPE_FIELD_NUMBER = 2;
-  private volatile java.lang.Object type_;
+  public static final int TYPE_FIELD_NUMBER = 3;
+  private alluxio.grpc.Type type_;
   /**
-   * <code>optional string type = 2;</code>
+   * <code>optional .alluxio.grpc.Type type = 3;</code>
    */
   public boolean hasType() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
-  }
-  /**
-   * <code>optional string type = 2;</code>
-   */
-  public java.lang.String getType() {
-    java.lang.Object ref = type_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        type_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string type = 2;</code>
-   */
-  public com.google.protobuf.ByteString
-      getTypeBytes() {
-    java.lang.Object ref = type_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      type_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int COMMENT_FIELD_NUMBER = 3;
-  private volatile java.lang.Object comment_;
-  /**
-   * <code>optional string comment = 3;</code>
-   */
-  public boolean hasComment() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional string comment = 3;</code>
+   * <code>optional .alluxio.grpc.Type type = 3;</code>
    */
-  public java.lang.String getComment() {
-    java.lang.Object ref = comment_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        comment_ = s;
-      }
-      return s;
-    }
+  public alluxio.grpc.Type getType() {
+    return type_ == null ? alluxio.grpc.Type.getDefaultInstance() : type_;
   }
   /**
-   * <code>optional string comment = 3;</code>
+   * <code>optional .alluxio.grpc.Type type = 3;</code>
    */
-  public com.google.protobuf.ByteString
-      getCommentBytes() {
-    java.lang.Object ref = comment_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      comment_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
+  public alluxio.grpc.TypeOrBuilder getTypeOrBuilder() {
+    return type_ == null ? alluxio.grpc.Type.getDefaultInstance() : type_;
+  }
+
+  public static final int OPTIONAL_FIELD_NUMBER = 4;
+  private boolean optional_;
+  /**
+   * <code>optional bool optional = 4;</code>
+   */
+  public boolean hasOptional() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional bool optional = 4;</code>
+   */
+  public boolean getOptional() {
+    return optional_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -227,6 +205,12 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (hasType()) {
+      if (!getType().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -234,13 +218,16 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, name_);
+      output.writeUInt32(1, id_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, type_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, comment_);
+      output.writeMessage(3, getType());
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      output.writeBool(4, optional_);
     }
     unknownFields.writeTo(output);
   }
@@ -251,13 +238,19 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, name_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeUInt32Size(1, id_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, type_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, comment_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(3, getType());
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(4, optional_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -275,6 +268,11 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.FieldSchema other = (alluxio.grpc.FieldSchema) obj;
 
     boolean result = true;
+    result = result && (hasId() == other.hasId());
+    if (hasId()) {
+      result = result && (getId()
+          == other.getId());
+    }
     result = result && (hasName() == other.hasName());
     if (hasName()) {
       result = result && getName()
@@ -285,10 +283,10 @@ private static final long serialVersionUID = 0L;
       result = result && getType()
           .equals(other.getType());
     }
-    result = result && (hasComment() == other.hasComment());
-    if (hasComment()) {
-      result = result && getComment()
-          .equals(other.getComment());
+    result = result && (hasOptional() == other.hasOptional());
+    if (hasOptional()) {
+      result = result && (getOptional()
+          == other.getOptional());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -301,6 +299,10 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    if (hasId()) {
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId();
+    }
     if (hasName()) {
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
@@ -309,9 +311,10 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
       hash = (53 * hash) + getType().hashCode();
     }
-    if (hasComment()) {
-      hash = (37 * hash) + COMMENT_FIELD_NUMBER;
-      hash = (53 * hash) + getComment().hashCode();
+    if (hasOptional()) {
+      hash = (37 * hash) + OPTIONAL_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getOptional());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -438,16 +441,23 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getTypeFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      name_ = "";
+      id_ = 0;
       bitField0_ = (bitField0_ & ~0x00000001);
-      type_ = "";
+      name_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
-      comment_ = "";
+      if (typeBuilder_ == null) {
+        type_ = null;
+      } else {
+        typeBuilder_.clear();
+      }
       bitField0_ = (bitField0_ & ~0x00000004);
+      optional_ = false;
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -475,15 +485,23 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.name_ = name_;
+      result.id_ = id_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.type_ = type_;
+      result.name_ = name_;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000004;
       }
-      result.comment_ = comment_;
+      if (typeBuilder_ == null) {
+        result.type_ = type_;
+      } else {
+        result.type_ = typeBuilder_.build();
+      }
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.optional_ = optional_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -526,20 +544,19 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.FieldSchema other) {
       if (other == alluxio.grpc.FieldSchema.getDefaultInstance()) return this;
+      if (other.hasId()) {
+        setId(other.getId());
+      }
       if (other.hasName()) {
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000002;
         name_ = other.name_;
         onChanged();
       }
       if (other.hasType()) {
-        bitField0_ |= 0x00000002;
-        type_ = other.type_;
-        onChanged();
+        mergeType(other.getType());
       }
-      if (other.hasComment()) {
-        bitField0_ |= 0x00000004;
-        comment_ = other.comment_;
-        onChanged();
+      if (other.hasOptional()) {
+        setOptional(other.getOptional());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -547,6 +564,11 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      if (hasType()) {
+        if (!getType().isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -569,15 +591,47 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object name_ = "";
+    private int id_ ;
     /**
-     * <code>optional string name = 1;</code>
+     * <code>optional uint32 id = 1;</code>
      */
-    public boolean hasName() {
+    public boolean hasId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string name = 1;</code>
+     * <code>optional uint32 id = 1;</code>
+     */
+    public int getId() {
+      return id_;
+    }
+    /**
+     * <code>optional uint32 id = 1;</code>
+     */
+    public Builder setId(int value) {
+      bitField0_ |= 0x00000001;
+      id_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional uint32 id = 1;</code>
+     */
+    public Builder clearId() {
+      bitField0_ = (bitField0_ & ~0x00000001);
+      id_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object name_ = "";
+    /**
+     * <code>optional string name = 2;</code>
+     */
+    public boolean hasName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string name = 2;</code>
      */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
@@ -594,7 +648,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string name = 1;</code>
+     * <code>optional string name = 2;</code>
      */
     public com.google.protobuf.ByteString
         getNameBytes() {
@@ -610,189 +664,187 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string name = 1;</code>
+     * <code>optional string name = 2;</code>
      */
     public Builder setName(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000001;
+  bitField0_ |= 0x00000002;
       name_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string name = 1;</code>
+     * <code>optional string name = 2;</code>
      */
     public Builder clearName() {
-      bitField0_ = (bitField0_ & ~0x00000001);
+      bitField0_ = (bitField0_ & ~0x00000002);
       name_ = getDefaultInstance().getName();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string name = 1;</code>
+     * <code>optional string name = 2;</code>
      */
     public Builder setNameBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000001;
+  bitField0_ |= 0x00000002;
       name_ = value;
       onChanged();
       return this;
     }
 
-    private java.lang.Object type_ = "";
+    private alluxio.grpc.Type type_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.Type, alluxio.grpc.Type.Builder, alluxio.grpc.TypeOrBuilder> typeBuilder_;
     /**
-     * <code>optional string type = 2;</code>
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
      */
     public boolean hasType() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional string type = 2;</code>
-     */
-    public java.lang.String getType() {
-      java.lang.Object ref = type_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          type_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>optional string type = 2;</code>
-     */
-    public com.google.protobuf.ByteString
-        getTypeBytes() {
-      java.lang.Object ref = type_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        type_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string type = 2;</code>
-     */
-    public Builder setType(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-      type_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string type = 2;</code>
-     */
-    public Builder clearType() {
-      bitField0_ = (bitField0_ & ~0x00000002);
-      type_ = getDefaultInstance().getType();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string type = 2;</code>
-     */
-    public Builder setTypeBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-      type_ = value;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object comment_ = "";
-    /**
-     * <code>optional string comment = 3;</code>
-     */
-    public boolean hasComment() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string comment = 3;</code>
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
      */
-    public java.lang.String getComment() {
-      java.lang.Object ref = comment_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          comment_ = s;
+    public alluxio.grpc.Type getType() {
+      if (typeBuilder_ == null) {
+        return type_ == null ? alluxio.grpc.Type.getDefaultInstance() : type_;
+      } else {
+        return typeBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     */
+    public Builder setType(alluxio.grpc.Type value) {
+      if (typeBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
         }
-        return s;
+        type_ = value;
+        onChanged();
       } else {
-        return (java.lang.String) ref;
+        typeBuilder_.setMessage(value);
       }
-    }
-    /**
-     * <code>optional string comment = 3;</code>
-     */
-    public com.google.protobuf.ByteString
-        getCommentBytes() {
-      java.lang.Object ref = comment_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        comment_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string comment = 3;</code>
-     */
-    public Builder setComment(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-      comment_ = value;
-      onChanged();
+      bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional string comment = 3;</code>
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
      */
-    public Builder clearComment() {
+    public Builder setType(
+        alluxio.grpc.Type.Builder builderForValue) {
+      if (typeBuilder_ == null) {
+        type_ = builderForValue.build();
+        onChanged();
+      } else {
+        typeBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000004;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     */
+    public Builder mergeType(alluxio.grpc.Type value) {
+      if (typeBuilder_ == null) {
+        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+            type_ != null &&
+            type_ != alluxio.grpc.Type.getDefaultInstance()) {
+          type_ =
+            alluxio.grpc.Type.newBuilder(type_).mergeFrom(value).buildPartial();
+        } else {
+          type_ = value;
+        }
+        onChanged();
+      } else {
+        typeBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000004;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     */
+    public Builder clearType() {
+      if (typeBuilder_ == null) {
+        type_ = null;
+        onChanged();
+      } else {
+        typeBuilder_.clear();
+      }
       bitField0_ = (bitField0_ & ~0x00000004);
-      comment_ = getDefaultInstance().getComment();
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     */
+    public alluxio.grpc.Type.Builder getTypeBuilder() {
+      bitField0_ |= 0x00000004;
+      onChanged();
+      return getTypeFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     */
+    public alluxio.grpc.TypeOrBuilder getTypeOrBuilder() {
+      if (typeBuilder_ != null) {
+        return typeBuilder_.getMessageOrBuilder();
+      } else {
+        return type_ == null ?
+            alluxio.grpc.Type.getDefaultInstance() : type_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.Type, alluxio.grpc.Type.Builder, alluxio.grpc.TypeOrBuilder> 
+        getTypeFieldBuilder() {
+      if (typeBuilder_ == null) {
+        typeBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.Type, alluxio.grpc.Type.Builder, alluxio.grpc.TypeOrBuilder>(
+                getType(),
+                getParentForChildren(),
+                isClean());
+        type_ = null;
+      }
+      return typeBuilder_;
+    }
+
+    private boolean optional_ ;
+    /**
+     * <code>optional bool optional = 4;</code>
+     */
+    public boolean hasOptional() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool optional = 4;</code>
+     */
+    public boolean getOptional() {
+      return optional_;
+    }
+    /**
+     * <code>optional bool optional = 4;</code>
+     */
+    public Builder setOptional(boolean value) {
+      bitField0_ |= 0x00000008;
+      optional_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string comment = 3;</code>
+     * <code>optional bool optional = 4;</code>
      */
-    public Builder setCommentBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-      comment_ = value;
+    public Builder clearOptional() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      optional_ = false;
       onChanged();
       return this;
     }

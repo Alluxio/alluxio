@@ -30,38 +30,4 @@ public interface SchemaOrBuilder extends
    */
   alluxio.grpc.FieldSchemaOrBuilder getColsOrBuilder(
       int index);
-
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-  int getParametersCount();
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-  boolean containsParameters(
-      java.lang.String key);
-  /**
-   * Use {@link #getParametersMap()} instead.
-   */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, java.lang.String>
-  getParameters();
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-  java.util.Map<java.lang.String, java.lang.String>
-  getParametersMap();
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-
-  java.lang.String getParametersOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue);
-  /**
-   * <code>map&lt;string, string&gt; parameters = 2;</code>
-   */
-
-  java.lang.String getParametersOrThrow(
-      java.lang.String key);
 }

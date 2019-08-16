@@ -14,9 +14,18 @@ package alluxio.master.catalog;
 import alluxio.RpcUtils;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 
+import alluxio.grpc.CreateDatabasePRequest;
+import alluxio.grpc.CreateDatabasePResponse;
+import alluxio.grpc.CreateTablePRequest;
+import alluxio.grpc.CreateTablePResponse;
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllDatabasesPResponse;
 
+import alluxio.grpc.GetAllTablesPRequest;
+import alluxio.grpc.GetAllTablesPResponse;
+import alluxio.grpc.GetTablePRequest;
+import alluxio.grpc.GetTablePResponse;
+import alluxio.grpc.TableInfo;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -46,7 +55,38 @@ public class CatalogMasterClientServiceHandler
   public void getAllDatabases(GetAllDatabasesPRequest request,
       StreamObserver<GetAllDatabasesPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> GetAllDatabasesPResponse.newBuilder()
-        .addAllDatabase(mCatalogMaster.getAllDatabases()).build(), "getAllDatabase", "", responseObserver);
+        .addAllDatabase(mCatalogMaster.getAllDatabases()).build(),
+        "getAllDatabases", "", responseObserver);
   }
-  
+
+  @Override
+  public void getAllTables(GetAllTablesPRequest request,
+      StreamObserver<GetAllTablesPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetAllTablesPResponse.newBuilder()
+        .addAllTable(mCatalogMaster.getAllTables(request.getDatabase())).build(),
+        "getAllTables", "", responseObserver);
+  }
+
+  @Override
+  public void getTable(GetTablePRequest request,
+      StreamObserver<GetTablePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetTablePResponse.newBuilder()
+            .setTableInfo(mCatalogMaster.getTable(request.getDbName(), request.getTableName()))
+            .build(), "getTable", "", responseObserver);
+  }
+
+  @Override
+  public void createTable(CreateTablePRequest request,
+      StreamObserver<CreateTablePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> CreateTablePResponse.newBuilder()
+        .setSuccess(mCatalogMaster.createTable(request.getDbName(), request.getTableName()
+            , request.getSchema())).build(), "createTable", "", responseObserver);
+  }
+
+  @Override
+  public void createDatabase(CreateDatabasePRequest request,
+      StreamObserver<CreateDatabasePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> CreateDatabasePResponse.newBuilder()
+        .setSuccess(mCatalogMaster.createDatabase(request.getDbName())).build(), "createDatabase", "", responseObserver);
+  }
 }

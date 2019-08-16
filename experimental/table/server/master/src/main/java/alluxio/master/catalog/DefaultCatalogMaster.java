@@ -17,7 +17,9 @@ import alluxio.clock.SystemClock;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.experimental.Constants;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.Schema;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.TableInfo;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -27,7 +29,8 @@ import alluxio.util.executor.ExecutorServiceFactories;
 
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.iceberg.Table;
+import org.apache.iceberg.catalog.TableIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,21 +66,27 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public Database getDatabase(String dbName) {
-    return mCatalog.getDatabase(dbName);
-  }
-
-  @Override
   public List<String> getAllTables(String databaseName) {
     return mCatalog.getAllTables(databaseName);
   }
 
   @Override
-  public void createDatabase(Database database) {
+  public boolean createDatabase(String database) {
+    return mCatalog.createDatabase(database);
   }
 
   @Override
-  public void createTable(Table table) {
+  public boolean createTable(String dbName, String tableName, Schema schema) {
+    TableIdentifier id = TableIdentifier.of(dbName, tableName);
+    Table table  = mCatalog.createTable(id, ProtoUtils.fromProto(schema));
+    return (table != null);
+  }
+
+  @Override
+  public TableInfo getTable(String dbName, String tableName) {
+    org.apache.iceberg.Table table = mCatalog.getTable(TableIdentifier.of(dbName, tableName));
+    return TableInfo.newBuilder().setDbName(dbName).setTableName(tableName)
+        .setBaseLocation(table.location()).build();
   }
 
   @Override

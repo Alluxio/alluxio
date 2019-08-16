@@ -11,6 +11,8 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.Schema;
+import alluxio.grpc.TableInfo;
 import alluxio.master.Master;
 //TODO(yuzhu): replace these classes with our own version of Database and Table classes
 
@@ -32,15 +34,6 @@ public interface CatalogMaster extends Master {
   List<String> getAllDatabases();
 
   /**
-   * Get a database object.
-   *
-   * @param dbName  database name
-   *
-   * @return a database object
-   */
-  Database getDatabase(String dbName);
-
-  /**
    * Get a listing of all tables in a database.
    *
    * @param databaseName database name
@@ -52,23 +45,25 @@ public interface CatalogMaster extends Master {
   /**
    * Create a database.
    *
-   * @param database a database object
+   * @param database a database name
    *
    */
-  void createDatabase(Database database);
+  boolean createDatabase(String dbName);
 
   /**
    * Create a table.
    *
-   * @param table a table object
+   * @param dbName database name
+   * @param tableName table name
+   * @param schema schema
    *
    */
-  void createTable(Table table);
+  boolean createTable(String dbName, String tableName, Schema schema);
 
   /**
    * Get a table.
    */
-  Table getTable(String databaseName, String tableName);
+  TableInfo getTable(String databaseName, String tableName);
 
   /**
    * Get the schema of a table.
