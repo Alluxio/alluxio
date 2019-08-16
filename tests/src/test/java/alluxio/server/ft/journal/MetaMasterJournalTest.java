@@ -11,11 +11,14 @@
 
 package alluxio.server.ft.journal;
 
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.meta.DefaultMetaMaster;
 import alluxio.master.meta.MetaMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -44,6 +47,7 @@ public class MetaMasterJournalTest {
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(MetaMaster.class);
     String clusterID = metaMaster.getClusterID();
     assertNotNull(clusterID);
+    assertNotEquals(clusterID, DefaultMetaMaster.INVALID_CLUSTER_ID);
     mCluster.stopMasters();
     mCluster.startMasters();
     AlluxioMasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();

@@ -24,7 +24,7 @@ message JournalEntry {
   optional AsyncPersistRequestEntry async_persist_request = 16;
   optional BlockContainerIdGeneratorEntry block_container_id_generator = 3;
   optional BlockInfoEntry block_info = 4;
-  optional string cluster_id = 42;
+  optional ClusterInfoEntry cluster_info = 42;
   optional CompleteFileEntry complete_file = 5;
   optional DeleteBlockEntry delete_block = 29;
   optional DeleteFileEntry delete_file = 6;

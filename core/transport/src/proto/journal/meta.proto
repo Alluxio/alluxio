@@ -14,3 +14,8 @@ message PathPropertiesEntry {
 message RemovePathPropertiesEntry {
   optional string path = 1;
 }
+
+// next available id: 2
+message ClusterInfoEntry {
+  optional string cluster_id = 1;
+}

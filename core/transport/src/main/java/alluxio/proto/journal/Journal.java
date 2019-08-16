@@ -106,18 +106,17 @@ public final class Journal {
     alluxio.proto.journal.Block.BlockInfoEntryOrBuilder getBlockInfoOrBuilder();
 
     /**
-     * <code>optional string cluster_id = 42;</code>
+     * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
      */
-    boolean hasClusterId();
+    boolean hasClusterInfo();
     /**
-     * <code>optional string cluster_id = 42;</code>
+     * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
      */
-    java.lang.String getClusterId();
+    alluxio.proto.journal.Meta.ClusterInfoEntry getClusterInfo();
     /**
-     * <code>optional string cluster_id = 42;</code>
+     * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
      */
-    com.google.protobuf.ByteString
-        getClusterIdBytes();
+    alluxio.proto.journal.Meta.ClusterInfoEntryOrBuilder getClusterInfoOrBuilder();
 
     /**
      * <code>optional .alluxio.proto.journal.CompleteFileEntry complete_file = 5;</code>
@@ -446,7 +445,6 @@ public final class Journal {
     }
     private JournalEntry() {
       sequenceNumber_ = 0L;
-      clusterId_ = "";
       journalEntries_ = java.util.Collections.emptyList();
     }
 
@@ -834,9 +832,16 @@ public final class Journal {
               break;
             }
             case 338: {
-              com.google.protobuf.ByteString bs = input.readBytes();
+              alluxio.proto.journal.Meta.ClusterInfoEntry.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000080) == 0x00000080)) {
+                subBuilder = clusterInfo_.toBuilder();
+              }
+              clusterInfo_ = input.readMessage(alluxio.proto.journal.Meta.ClusterInfoEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(clusterInfo_);
+                clusterInfo_ = subBuilder.buildPartial();
+              }
               bitField0_ |= 0x00000080;
-              clusterId_ = bs;
               break;
             }
           }
@@ -1008,46 +1013,25 @@ public final class Journal {
       return blockInfo_ == null ? alluxio.proto.journal.Block.BlockInfoEntry.getDefaultInstance() : blockInfo_;
     }
 
-    public static final int CLUSTER_ID_FIELD_NUMBER = 42;
-    private volatile java.lang.Object clusterId_;
+    public static final int CLUSTER_INFO_FIELD_NUMBER = 42;
+    private alluxio.proto.journal.Meta.ClusterInfoEntry clusterInfo_;
     /**
-     * <code>optional string cluster_id = 42;</code>
+     * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
      */
-    public boolean hasClusterId() {
+    public boolean hasClusterInfo() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     /**
-     * <code>optional string cluster_id = 42;</code>
+     * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
      */
-    public java.lang.String getClusterId() {
-      java.lang.Object ref = clusterId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          clusterId_ = s;
-        }
-        return s;
-      }
+    public alluxio.proto.journal.Meta.ClusterInfoEntry getClusterInfo() {
+      return clusterInfo_ == null ? alluxio.proto.journal.Meta.ClusterInfoEntry.getDefaultInstance() : clusterInfo_;
     }
     /**
-     * <code>optional string cluster_id = 42;</code>
+     * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
      */
-    public com.google.protobuf.ByteString
-        getClusterIdBytes() {
-      java.lang.Object ref = clusterId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        clusterId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public alluxio.proto.journal.Meta.ClusterInfoEntryOrBuilder getClusterInfoOrBuilder() {
+      return clusterInfo_ == null ? alluxio.proto.journal.Meta.ClusterInfoEntry.getDefaultInstance() : clusterInfo_;
     }
 
     public static final int COMPLETE_FILE_FIELD_NUMBER = 5;
@@ -1627,7 +1611,7 @@ public final class Journal {
         output.writeMessage(41, getRemovePathProperties());
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 42, clusterId_);
+        output.writeMessage(42, getClusterInfo());
       }
       unknownFields.writeTo(output);
     }
@@ -1750,7 +1734,8 @@ public final class Journal {
           .computeMessageSize(41, getRemovePathProperties());
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(42, clusterId_);
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(42, getClusterInfo());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1803,10 +1788,10 @@ public final class Journal {
         result = result && getBlockInfo()
             .equals(other.getBlockInfo());
       }
-      result = result && (hasClusterId() == other.hasClusterId());
-      if (hasClusterId()) {
-        result = result && getClusterId()
-            .equals(other.getClusterId());
+      result = result && (hasClusterInfo() == other.hasClusterInfo());
+      if (hasClusterInfo()) {
+        result = result && getClusterInfo()
+            .equals(other.getClusterInfo());
       }
       result = result && (hasCompleteFile() == other.hasCompleteFile());
       if (hasCompleteFile()) {
@@ -1950,9 +1935,9 @@ public final class Journal {
         hash = (37 * hash) + BLOCK_INFO_FIELD_NUMBER;
         hash = (53 * hash) + getBlockInfo().hashCode();
       }
-      if (hasClusterId()) {
-        hash = (37 * hash) + CLUSTER_ID_FIELD_NUMBER;
-        hash = (53 * hash) + getClusterId().hashCode();
+      if (hasClusterInfo()) {
+        hash = (37 * hash) + CLUSTER_INFO_FIELD_NUMBER;
+        hash = (53 * hash) + getClusterInfo().hashCode();
       }
       if (hasCompleteFile()) {
         hash = (37 * hash) + COMPLETE_FILE_FIELD_NUMBER;
@@ -2173,6 +2158,7 @@ public final class Journal {
           getAsyncPersistRequestFieldBuilder();
           getBlockContainerIdGeneratorFieldBuilder();
           getBlockInfoFieldBuilder();
+          getClusterInfoFieldBuilder();
           getCompleteFileFieldBuilder();
           getDeleteBlockFieldBuilder();
           getDeleteFileFieldBuilder();
@@ -2236,7 +2222,11 @@ public final class Journal {
           blockInfoBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000040);
-        clusterId_ = "";
+        if (clusterInfoBuilder_ == null) {
+          clusterInfo_ = null;
+        } else {
+          clusterInfoBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000080);
         if (completeFileBuilder_ == null) {
           completeFile_ = null;
@@ -2443,7 +2433,11 @@ public final class Journal {
         if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
           to_bitField0_ |= 0x00000080;
         }
-        result.clusterId_ = clusterId_;
+        if (clusterInfoBuilder_ == null) {
+          result.clusterInfo_ = clusterInfo_;
+        } else {
+          result.clusterInfo_ = clusterInfoBuilder_.build();
+        }
         if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
           to_bitField0_ |= 0x00000100;
         }
@@ -2676,10 +2670,8 @@ public final class Journal {
         if (other.hasBlockInfo()) {
           mergeBlockInfo(other.getBlockInfo());
         }
-        if (other.hasClusterId()) {
-          bitField0_ |= 0x00000080;
-          clusterId_ = other.clusterId_;
-          onChanged();
+        if (other.hasClusterInfo()) {
+          mergeClusterInfo(other.getClusterInfo());
         }
         if (other.hasCompleteFile()) {
           mergeCompleteFile(other.getCompleteFile());
@@ -3535,80 +3527,122 @@ public final class Journal {
         return blockInfoBuilder_;
       }
 
-      private java.lang.Object clusterId_ = "";
+      private alluxio.proto.journal.Meta.ClusterInfoEntry clusterInfo_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          alluxio.proto.journal.Meta.ClusterInfoEntry, alluxio.proto.journal.Meta.ClusterInfoEntry.Builder, alluxio.proto.journal.Meta.ClusterInfoEntryOrBuilder> clusterInfoBuilder_;
       /**
-       * <code>optional string cluster_id = 42;</code>
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
        */
-      public boolean hasClusterId() {
+      public boolean hasClusterInfo() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
       /**
-       * <code>optional string cluster_id = 42;</code>
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
        */
-      public java.lang.String getClusterId() {
-        java.lang.Object ref = clusterId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            clusterId_ = s;
+      public alluxio.proto.journal.Meta.ClusterInfoEntry getClusterInfo() {
+        if (clusterInfoBuilder_ == null) {
+          return clusterInfo_ == null ? alluxio.proto.journal.Meta.ClusterInfoEntry.getDefaultInstance() : clusterInfo_;
+        } else {
+          return clusterInfoBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
+       */
+      public Builder setClusterInfo(alluxio.proto.journal.Meta.ClusterInfoEntry value) {
+        if (clusterInfoBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
           }
-          return s;
+          clusterInfo_ = value;
+          onChanged();
         } else {
-          return (java.lang.String) ref;
+          clusterInfoBuilder_.setMessage(value);
         }
-      }
-      /**
-       * <code>optional string cluster_id = 42;</code>
-       */
-      public com.google.protobuf.ByteString
-          getClusterIdBytes() {
-        java.lang.Object ref = clusterId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          clusterId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string cluster_id = 42;</code>
-       */
-      public Builder setClusterId(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000080;
-        clusterId_ = value;
-        onChanged();
+        bitField0_ |= 0x00000080;
         return this;
       }
       /**
-       * <code>optional string cluster_id = 42;</code>
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
        */
-      public Builder clearClusterId() {
+      public Builder setClusterInfo(
+          alluxio.proto.journal.Meta.ClusterInfoEntry.Builder builderForValue) {
+        if (clusterInfoBuilder_ == null) {
+          clusterInfo_ = builderForValue.build();
+          onChanged();
+        } else {
+          clusterInfoBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
+       */
+      public Builder mergeClusterInfo(alluxio.proto.journal.Meta.ClusterInfoEntry value) {
+        if (clusterInfoBuilder_ == null) {
+          if (((bitField0_ & 0x00000080) == 0x00000080) &&
+              clusterInfo_ != null &&
+              clusterInfo_ != alluxio.proto.journal.Meta.ClusterInfoEntry.getDefaultInstance()) {
+            clusterInfo_ =
+              alluxio.proto.journal.Meta.ClusterInfoEntry.newBuilder(clusterInfo_).mergeFrom(value).buildPartial();
+          } else {
+            clusterInfo_ = value;
+          }
+          onChanged();
+        } else {
+          clusterInfoBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
+       */
+      public Builder clearClusterInfo() {
+        if (clusterInfoBuilder_ == null) {
+          clusterInfo_ = null;
+          onChanged();
+        } else {
+          clusterInfoBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000080);
-        clusterId_ = getDefaultInstance().getClusterId();
-        onChanged();
         return this;
       }
       /**
-       * <code>optional string cluster_id = 42;</code>
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
        */
-      public Builder setClusterIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000080;
-        clusterId_ = value;
+      public alluxio.proto.journal.Meta.ClusterInfoEntry.Builder getClusterInfoBuilder() {
+        bitField0_ |= 0x00000080;
         onChanged();
-        return this;
+        return getClusterInfoFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
+       */
+      public alluxio.proto.journal.Meta.ClusterInfoEntryOrBuilder getClusterInfoOrBuilder() {
+        if (clusterInfoBuilder_ != null) {
+          return clusterInfoBuilder_.getMessageOrBuilder();
+        } else {
+          return clusterInfo_ == null ?
+              alluxio.proto.journal.Meta.ClusterInfoEntry.getDefaultInstance() : clusterInfo_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.ClusterInfoEntry cluster_info = 42;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          alluxio.proto.journal.Meta.ClusterInfoEntry, alluxio.proto.journal.Meta.ClusterInfoEntry.Builder, alluxio.proto.journal.Meta.ClusterInfoEntryOrBuilder> 
+          getClusterInfoFieldBuilder() {
+        if (clusterInfoBuilder_ == null) {
+          clusterInfoBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              alluxio.proto.journal.Meta.ClusterInfoEntry, alluxio.proto.journal.Meta.ClusterInfoEntry.Builder, alluxio.proto.journal.Meta.ClusterInfoEntryOrBuilder>(
+                  getClusterInfo(),
+                  getParentForChildren(),
+                  isClean());
+          clusterInfo_ = null;
+        }
+        return clusterInfoBuilder_;
       }
 
       private alluxio.proto.journal.File.CompleteFileEntry completeFile_ = null;
@@ -6366,7 +6400,7 @@ public final class Journal {
       "\n\033proto/journal/journal.proto\022\025alluxio.p" +
       "roto.journal\032\031proto/journal/block.proto\032" +
       "\030proto/journal/file.proto\032\030proto/journal" +
-      "/meta.proto\"\227\017\n\014JournalEntry\022\027\n\017sequence" +
+      "/meta.proto\"\302\017\n\014JournalEntry\022\027\n\017sequence" +
       "_number\030\001 \001(\003\022E\n\021active_sync_tx_id\030\" \001(\013" +
       "2*.alluxio.proto.journal.ActiveSyncTxIdE" +
       "ntry\022@\n\016add_sync_point\030  \001(\0132(.alluxio.p" +
@@ -6378,44 +6412,45 @@ public final class Journal {
       "_generator\030\003 \001(\01325.alluxio.proto.journal" +
       ".BlockContainerIdGeneratorEntry\0229\n\nblock" +
       "_info\030\004 \001(\0132%.alluxio.proto.journal.Bloc" +
-      "kInfoEntry\022\022\n\ncluster_id\030* \001(\t\022?\n\rcomple" +
-      "te_file\030\005 \001(\0132(.alluxio.proto.journal.Co" +
-      "mpleteFileEntry\022=\n\014delete_block\030\035 \001(\0132\'." +
-      "alluxio.proto.journal.DeleteBlockEntry\022;" +
-      "\n\013delete_file\030\006 \001(\0132&.alluxio.proto.jour" +
-      "nal.DeleteFileEntry\022H\n\022delete_mount_poin" +
-      "t\030\010 \001(\0132,.alluxio.proto.journal.DeleteMo" +
-      "untPointEntry\022C\n\017inode_directory\030\t \001(\0132*" +
-      ".alluxio.proto.journal.InodeDirectoryEnt" +
-      "ry\022[\n\034inode_directory_id_generator\030\n \001(\013" +
-      "25.alluxio.proto.journal.InodeDirectoryI" +
-      "dGeneratorEntry\0229\n\ninode_file\030\013 \001(\0132%.al" +
-      "luxio.proto.journal.InodeFileEntry\022[\n\034in" +
-      "ode_last_modification_time\030\014 \001(\01325.allux" +
-      "io.proto.journal.InodeLastModificationTi" +
-      "meEntry\0227\n\tnew_block\030& \001(\0132$.alluxio.pro" +
-      "to.journal.NewBlockEntry\022C\n\017path_propert" +
-      "ies\030( \001(\0132*.alluxio.proto.journal.PathPr" +
-      "opertiesEntry\022G\n\021persist_directory\030\017 \001(\013" +
-      "2,.alluxio.proto.journal.PersistDirector" +
-      "yEntry\022P\n\026remove_path_properties\030) \001(\01320" +
-      ".alluxio.proto.journal.RemovePathPropert" +
-      "iesEntry\022F\n\021remove_sync_point\030! \001(\0132+.al" +
-      "luxio.proto.journal.RemoveSyncPointEntry" +
-      "\0222\n\006rename\030\023 \001(\0132\".alluxio.proto.journal" +
-      ".RenameEntry\0223\n\007set_acl\030\037 \001(\0132\".alluxio." +
-      "proto.journal.SetAclEntry\022?\n\rset_attribu" +
-      "te\030\033 \001(\0132(.alluxio.proto.journal.SetAttr" +
-      "ibuteEntry\022B\n\017update_ufs_mode\030\036 \001(\0132).al" +
-      "luxio.proto.journal.UpdateUfsModeEntry\022=" +
-      "\n\014update_inode\030# \001(\0132\'.alluxio.proto.jou" +
-      "rnal.UpdateInodeEntry\022P\n\026update_inode_di" +
-      "rectory\030$ \001(\01320.alluxio.proto.journal.Up" +
-      "dateInodeDirectoryEntry\022F\n\021update_inode_" +
-      "file\030% \001(\0132+.alluxio.proto.journal.Updat" +
-      "eInodeFileEntry\022<\n\017journal_entries\030\' \003(\013" +
-      "2#.alluxio.proto.journal.JournalEntryB\027\n" +
-      "\025alluxio.proto.journal"
+      "kInfoEntry\022=\n\014cluster_info\030* \001(\0132\'.allux" +
+      "io.proto.journal.ClusterInfoEntry\022?\n\rcom" +
+      "plete_file\030\005 \001(\0132(.alluxio.proto.journal" +
+      ".CompleteFileEntry\022=\n\014delete_block\030\035 \001(\013" +
+      "2\'.alluxio.proto.journal.DeleteBlockEntr" +
+      "y\022;\n\013delete_file\030\006 \001(\0132&.alluxio.proto.j" +
+      "ournal.DeleteFileEntry\022H\n\022delete_mount_p" +
+      "oint\030\010 \001(\0132,.alluxio.proto.journal.Delet" +
+      "eMountPointEntry\022C\n\017inode_directory\030\t \001(" +
+      "\0132*.alluxio.proto.journal.InodeDirectory" +
+      "Entry\022[\n\034inode_directory_id_generator\030\n " +
+      "\001(\01325.alluxio.proto.journal.InodeDirecto" +
+      "ryIdGeneratorEntry\0229\n\ninode_file\030\013 \001(\0132%" +
+      ".alluxio.proto.journal.InodeFileEntry\022[\n" +
+      "\034inode_last_modification_time\030\014 \001(\01325.al" +
+      "luxio.proto.journal.InodeLastModificatio" +
+      "nTimeEntry\0227\n\tnew_block\030& \001(\0132$.alluxio." +
+      "proto.journal.NewBlockEntry\022C\n\017path_prop" +
+      "erties\030( \001(\0132*.alluxio.proto.journal.Pat" +
+      "hPropertiesEntry\022G\n\021persist_directory\030\017 " +
+      "\001(\0132,.alluxio.proto.journal.PersistDirec" +
+      "toryEntry\022P\n\026remove_path_properties\030) \001(" +
+      "\01320.alluxio.proto.journal.RemovePathProp" +
+      "ertiesEntry\022F\n\021remove_sync_point\030! \001(\0132+" +
+      ".alluxio.proto.journal.RemoveSyncPointEn" +
+      "try\0222\n\006rename\030\023 \001(\0132\".alluxio.proto.jour" +
+      "nal.RenameEntry\0223\n\007set_acl\030\037 \001(\0132\".allux" +
+      "io.proto.journal.SetAclEntry\022?\n\rset_attr" +
+      "ibute\030\033 \001(\0132(.alluxio.proto.journal.SetA" +
+      "ttributeEntry\022B\n\017update_ufs_mode\030\036 \001(\0132)" +
+      ".alluxio.proto.journal.UpdateUfsModeEntr" +
+      "y\022=\n\014update_inode\030# \001(\0132\'.alluxio.proto." +
+      "journal.UpdateInodeEntry\022P\n\026update_inode" +
+      "_directory\030$ \001(\01320.alluxio.proto.journal" +
+      ".UpdateInodeDirectoryEntry\022F\n\021update_ino" +
+      "de_file\030% \001(\0132+.alluxio.proto.journal.Up" +
+      "dateInodeFileEntry\022<\n\017journal_entries\030\' " +
+      "\003(\0132#.alluxio.proto.journal.JournalEntry" +
+      "B\027\n\025alluxio.proto.journal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -6437,7 +6472,7 @@ public final class Journal {
     internal_static_alluxio_proto_journal_JournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_JournalEntry_descriptor,
-        new java.lang.String[] { "SequenceNumber", "ActiveSyncTxId", "AddSyncPoint", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "ClusterId", "CompleteFile", "DeleteBlock", "DeleteFile", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "NewBlock", "PathProperties", "PersistDirectory", "RemovePathProperties", "RemoveSyncPoint", "Rename", "SetAcl", "SetAttribute", "UpdateUfsMode", "UpdateInode", "UpdateInodeDirectory", "UpdateInodeFile", "JournalEntries", });
+        new java.lang.String[] { "SequenceNumber", "ActiveSyncTxId", "AddSyncPoint", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "ClusterInfo", "CompleteFile", "DeleteBlock", "DeleteFile", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "NewBlock", "PathProperties", "PersistDirectory", "RemovePathProperties", "RemoveSyncPoint", "Rename", "SetAcl", "SetAttribute", "UpdateUfsMode", "UpdateInode", "UpdateInodeDirectory", "UpdateInodeFile", "JournalEntries", });
     alluxio.proto.journal.Block.getDescriptor();
     alluxio.proto.journal.File.getDescriptor();
     alluxio.proto.journal.Meta.getDescriptor();

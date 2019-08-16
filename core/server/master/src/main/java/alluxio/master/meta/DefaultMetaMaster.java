@@ -46,6 +46,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Meta;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -152,13 +153,16 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Persisted state for MetaMaster. */
   private State mState;
 
+  /** Value to be used for the cluster ID when not assigned. */
+  public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
+
   /**
    * Journaled state for MetaMaster.
    */
   @NotThreadSafe
   public static final class State implements alluxio.master.journal.Journaled {
     /** A unique ID to identify the cluster. */
-    private String mClusterID;
+    private String mClusterID = INVALID_CLUSTER_ID;
 
     /**
      * @return the cluster ID
@@ -169,13 +173,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     @Override
     public CheckpointName getCheckpointName() {
-      return CheckpointName.CLUSTER_ID;
+      return CheckpointName.CLUSTER_INFO;
     }
 
     @Override
     public boolean processJournalEntry(Journal.JournalEntry entry) {
-      if (entry.hasClusterId()) {
-        mClusterID = entry.getClusterId();
+      if (entry.hasClusterInfo()) {
+        mClusterID = entry.getClusterInfo().getClusterId();
         return true;
       }
       return false;
@@ -183,24 +187,28 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     /**
      * @param ctx the journal context
-     * @param entry the clusterID journal entry
+     * @param clusterId the clusterId journal clusterId
      */
-    public void applyAndJournal(java.util.function.Supplier<JournalContext> ctx, String entry) {
-      applyAndJournal(ctx, Journal.JournalEntry.newBuilder().setClusterId(entry).build());
+    public void applyAndJournal(java.util.function.Supplier<JournalContext> ctx, String clusterId) {
+      applyAndJournal(ctx,
+          Journal.JournalEntry.newBuilder()
+              .setClusterInfo(Meta.ClusterInfoEntry.newBuilder().setClusterId(clusterId).build())
+              .build());
     }
 
     @Override
     public void resetState() {
-      mClusterID = null;
+      mClusterID = INVALID_CLUSTER_ID;
     }
 
     @Override
     public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-      if (mClusterID == null) {
+      if (mClusterID == INVALID_CLUSTER_ID) {
         return Collections.emptyIterator();
       }
-      return java.util.Collections
-          .singleton(Journal.JournalEntry.newBuilder().setClusterId(mClusterID).build()).iterator();
+      return Collections.singleton(Journal.JournalEntry.newBuilder()
+          .setClusterInfo(Meta.ClusterInfoEntry.newBuilder().setClusterId(mClusterID).build())
+          .build()).iterator();
     }
   }
 
@@ -287,8 +295,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
-          new LogConfigReportHeartbeatExecutor(),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
+              new LogConfigReportHeartbeatExecutor(),
+              (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
 
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
@@ -296,24 +304,25 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfs);
         mDailyBackup.start();
       }
+      if (mState.getClusterID() == INVALID_CLUSTER_ID) {
+        try (JournalContext context = createJournalContext()) {
+          String clusterID = java.util.UUID.randomUUID().toString();
+          mState.applyAndJournal(context, clusterID);
+          LOG.info("Created new cluster ID {}", clusterID);
+        }
+      } else {
+        LOG.info("Detected existing cluster ID {}", mState.getClusterID());
+      }
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
-        if (mState.getClusterID() == null) {
-          try (JournalContext context = createJournalContext()) {
-            String clusterID = java.util.UUID.randomUUID().toString();
-            mState.applyAndJournal(context, clusterID);
-            LOG.info("Created new cluster ID {}", clusterID);
-            try {
-              String latestVersion = UpdateCheck.getLatestVersion(clusterID);
-              if (!latestVersion.equals(ProjectConstants.VERSION)) {
-                System.out.println("The latest version (" + latestVersion + ") is not the same"
-                    + "as the current version. To upgrade visit https://www.alluxio.io/download/.");
-              }
-            } catch (Exception e) {
-              LOG.debug("Unable to check for updates: {}", e.getMessage());
-            }
+        try {
+          String latestVersion = UpdateCheck.getLatestVersion(mState.getClusterID());
+          if (!latestVersion.equals(ProjectConstants.VERSION)) {
+            System.out.println("The latest version (" + latestVersion + ") is not the same"
+                + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
+                + "visit https://www.alluxio.io/download/.");
           }
-        } else {
-          LOG.info("Detected existing cluster ID {}", mState.getClusterID());
+        } catch (Exception e) {
+          LOG.debug("Unable to check for updates: {}", e.getMessage());
         }
       }
     } else {
