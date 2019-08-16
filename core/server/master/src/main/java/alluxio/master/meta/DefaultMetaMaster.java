@@ -203,7 +203,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     @Override
     public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-      if (mClusterID == INVALID_CLUSTER_ID) {
+      if (mClusterID.equals(INVALID_CLUSTER_ID)) {
         return Collections.emptyIterator();
       }
       return Collections.singleton(Journal.JournalEntry.newBuilder()
