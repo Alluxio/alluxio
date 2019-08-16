@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
@@ -51,9 +52,14 @@ public class CopycatGrpcServer implements Server {
   private GrpcServer mGrpcServer;
   /** Bind address for underlying server. */
   private Address mActiveAddress;
+  /** Listen future. */
+  private CompletableFuture<Void> mListenFuture;
 
   /** List of all connections created by this server. */
   private final List<Connection> mConnections;
+
+  /** Executor for building server listener. */
+  private final ExecutorService mExecutor;
 
   /**
    * Creates copycat transport server that can be used to accept connections from remote copycat
@@ -61,23 +67,27 @@ public class CopycatGrpcServer implements Server {
    *
    * @param conf Alluxio configuration
    * @param userState authentication user
+   * @param executor transport executor
    */
-  public CopycatGrpcServer(AlluxioConfiguration conf, UserState userState) {
+  public CopycatGrpcServer(AlluxioConfiguration conf, UserState userState,
+      ExecutorService executor) {
     mConf = conf;
     mUserState = userState;
+    mExecutor = executor;
     mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
   @Override
   public synchronized CompletableFuture<Void> listen(Address address,
       Consumer<Connection> listener) {
-    // Return completion if already listening.
-    if (mActiveAddress != null) {
-      return CompletableFuture.completedFuture(null);
+    // Return existing future if building currently.
+    if (mListenFuture != null && !mListenFuture.isCompletedExceptionally()) {
+      return mListenFuture;
     }
 
     LOG.debug("Copycat transport server binding to: {}", address);
-    return ThreadContext.currentContextOrThrow().execute(() -> {
+    final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
+    mListenFuture = CompletableFuture.runAsync(() -> {
       // Listener that notifies both this server instance and given listener.
       Consumer<Connection> forkListener = (connection) -> {
         addNewConnection(connection);
@@ -87,9 +97,9 @@ public class CopycatGrpcServer implements Server {
       // Create gRPC server.
       mGrpcServer =
           GrpcServerBuilder.forAddress(address.host(), address.socketAddress(), mConf, mUserState)
-              .addService(new GrpcService(new CopycatMessageServiceClientHandler(forkListener,
-                  ThreadContext.currentContextOrThrow(),
-                  mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
+              .addService(new GrpcService(
+                  new CopycatMessageServiceClientHandler(forkListener, threadContext, mExecutor,
+                      mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
               .build();
 
       try {
@@ -97,13 +107,14 @@ public class CopycatGrpcServer implements Server {
         mActiveAddress = address;
 
         LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
-        return null;
       } catch (IOException e) {
         mGrpcServer = null;
         LOG.debug("Failed to create gRPC server for copycat transport at: {}.", address, e);
         throw new RuntimeException(e);
       }
-    });
+    }, mExecutor);
+
+    return mListenFuture;
   }
 
   @Override

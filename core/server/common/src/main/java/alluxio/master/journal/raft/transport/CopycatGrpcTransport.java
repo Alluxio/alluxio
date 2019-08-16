@@ -13,6 +13,7 @@ package alluxio.master.journal.raft.transport;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.user.UserState;
+import alluxio.util.ThreadFactoryUtils;
 
 import io.atomix.catalyst.transport.Client;
 import io.atomix.catalyst.transport.Server;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Copycat {@link Transport} implementation that uses Alluxio gRPC.
@@ -44,6 +47,9 @@ public class CopycatGrpcTransport implements Transport {
   private final List<CopycatGrpcClient> mClients;
   /** List of created servers. */
   private final List<CopycatGrpcServer> mServers;
+
+  /** Executor that is used by clients/servers for building connections. */
+  private final ExecutorService mExecutor;
 
   /** Whether the transport is closed. */
   private boolean mClosed;
@@ -75,6 +81,8 @@ public class CopycatGrpcTransport implements Transport {
 
     mClients = new LinkedList<>();
     mServers = new LinkedList<>();
+    mExecutor = Executors
+        .newCachedThreadPool(ThreadFactoryUtils.build("copycat-transport-worker-%d", true));
   }
 
   @Override
@@ -82,7 +90,7 @@ public class CopycatGrpcTransport implements Transport {
     if (mClosed) {
       throw new RuntimeException("Transport closed");
     }
-    CopycatGrpcClient client = new CopycatGrpcClient(mClientConf, mClientUser);
+    CopycatGrpcClient client = new CopycatGrpcClient(mClientConf, mClientUser, mExecutor);
     mClients.add(client);
     return client;
   }
@@ -92,7 +100,7 @@ public class CopycatGrpcTransport implements Transport {
     if (mClosed) {
       throw new RuntimeException("Transport closed");
     }
-    CopycatGrpcServer server = new CopycatGrpcServer(mServerConf, mServerUser);
+    CopycatGrpcServer server = new CopycatGrpcServer(mServerConf, mServerUser, mExecutor);
     mServers.add(server);
     return server;
   }
@@ -125,6 +133,9 @@ public class CopycatGrpcTransport implements Transport {
       } catch (Exception e) {
         LOG.warn("Failed to close copycat transport servers.", e);
       }
+
+      // Shut down transport executor.
+      mExecutor.shutdownNow();
     }
   }
 }

@@ -19,6 +19,7 @@ import io.atomix.catalyst.transport.Connection;
 import io.grpc.stub.StreamObserver;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
@@ -34,16 +35,20 @@ public class CopycatMessageServiceClientHandler
   private final ThreadContext mContext;
   /** Request timeout value for new connections. */
   private final long mRequestTimeoutMs;
+  /** Executor for building server connections. */
+  private final ExecutorService mExecutor;
 
   /**
    * @param listener listener for incoming connections
    * @param context copycat thread context
+   * @param executor transport executor
    * @param requestTimeoutMs request timeout value for new connections
    */
   public CopycatMessageServiceClientHandler(Consumer<Connection> listener, ThreadContext context,
-      long requestTimeoutMs) {
+      ExecutorService executor, long requestTimeoutMs) {
     mListener = listener;
     mContext = context;
+    mExecutor = executor;
     mRequestTimeoutMs = requestTimeoutMs;
   }
 
@@ -56,7 +61,7 @@ public class CopycatMessageServiceClientHandler
   public StreamObserver<CopycatMessage> connect(StreamObserver<CopycatMessage> responseObserver) {
     // Create server connection that is bound to given client stream.
     CopycatGrpcConnection clientConnection =
-        new CopycatGrpcServerConnection(mContext, mRequestTimeoutMs);
+        new CopycatGrpcServerConnection(mContext, mExecutor, mRequestTimeoutMs);
     clientConnection.setTargetObserver(responseObserver);
 
     // Update copycat with new connection.
