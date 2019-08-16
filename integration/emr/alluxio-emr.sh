@@ -300,13 +300,14 @@ main() {
 
   # Download files provided by "-f" to /opt/alluxio/conf
   IFS=" " read -ra files_to_be_downloaded <<< "${files_list}"
-  for file in "${files_to_be_downloaded[@]}"; do
-    local filename="$(basename ${file})"
-    download_file "${file}"
-    sudo mv "${filename}" "${ALLUXIO_HOME}/conf/${filename}"
-  done
-  sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}/conf"
-
+  if [ "${#files_to_be_downloaded[@]}" -gt "0" ]; then
+    for file in "${files_to_be_downloaded[@]}"; do
+      local filename="$(basename ${file})"
+      download_file "${file}"
+      sudo mv "${filename}" "${ALLUXIO_HOME}/conf/${filename}"
+    done
+    sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}/conf"
+  fi
   # Add newline to alluxio-site.properties in case the provided file doesn't end in newline
   doas alluxio "echo >> ${ALLUXIO_SITE_PROPERTIES}"
 
