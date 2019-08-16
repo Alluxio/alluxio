@@ -311,23 +311,24 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           mState.applyAndJournal(context, clusterID);
           LOG.info("Created new cluster ID {}", clusterID);
         }
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
+          try {
+            String latestVersion = UpdateCheck.getLatestVersion(mState.getClusterID(),
+                ServerConfiguration
+                    .getMs(PropertyKey.MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT),
+                ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_CONNECT_TIMEOUT),
+                ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_SOCKET_TIMEOUT));
+            if (!latestVersion.equals(ProjectConstants.VERSION)) {
+              System.out.println("The latest version (" + latestVersion + ") is not the same"
+                  + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
+                  + "visit https://www.alluxio.io/download/.");
+            }
+          } catch (Exception e) {
+            LOG.debug("Unable to check for updates: {}", e.getMessage());
+          }
+        }
       } else {
         LOG.info("Detected existing cluster ID {}", mState.getClusterID());
-      }
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
-        try {
-          String latestVersion = UpdateCheck.getLatestVersion(mState.getClusterID(),
-              ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT),
-              ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_CONNECT_TIMEOUT),
-              ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_SOCKET_TIMEOUT));
-          if (!latestVersion.equals(ProjectConstants.VERSION)) {
-            System.out.println("The latest version (" + latestVersion + ") is not the same"
-                + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
-                + "visit https://www.alluxio.io/download/.");
-          }
-        } catch (Exception e) {
-          LOG.debug("Unable to check for updates: {}", e.getMessage());
-        }
       }
     } else {
       if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
