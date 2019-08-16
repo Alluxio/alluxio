@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,7 @@ public final class EnvironmentUtils {
    *
    * @return true, if running on docker
    */
+  @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
   public static boolean isDocker() throws IOException {
     return new File("/.dockerenv").exists();
   }
