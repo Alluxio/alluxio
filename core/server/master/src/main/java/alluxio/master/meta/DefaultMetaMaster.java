@@ -240,6 +240,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     mPathProperties = new PathProperties();
+    mState = new State();
   }
 
   @Override
