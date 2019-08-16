@@ -67,9 +67,12 @@ public final class UfsSyncPathCache {
   /**
    * @param path the path to check
    * @param intervalMs the sync interval, in ms
+   * @param checkRecursive whether to check parent directory syncTime recursively
    * @return true if a sync should occur for the path and interval setting, false otherwise
+   * @throws InvalidPathException
    */
-  public boolean shouldSyncPath(String path, long intervalMs) {
+  public boolean shouldSyncPath(String path, long intervalMs, boolean checkRecursive)
+      throws InvalidPathException {
     if (intervalMs < 0) {
       // Never sync.
       return false;
@@ -79,23 +82,25 @@ public final class UfsSyncPathCache {
       return true;
     }
 
+    if (checkRecursive) {
+      return syncCheckRecursive(path, intervalMs);
+    }
+    SyncTime lastSync = mCache.getIfPresent(path);
+    return lastSync != null
+            && (System.currentTimeMillis() - lastSync.getLastSyncMs()) >= intervalMs;
+  }
+
+  private boolean syncCheckRecursive(String path, long intervalMs) throws InvalidPathException {
     // sync should be done on this path, but check path itself and all ancestors to determine
     // if a recursive sync had been performed (to avoid a sync again).
     int parentLevel = 0;
     String currPath = path;
     SyncTimeLevel timeLevel = new SyncTimeLevel();
     adjustSyncTimeLevel(timeLevel, mCache.getIfPresent(currPath), parentLevel);
-    try {
-      while (!PathUtils.isRoot(currPath)) {
-        currPath = PathUtils.getParent(currPath);
-        adjustSyncTimeLevel(timeLevel, mCache.getIfPresent(currPath), ++parentLevel);
-      }
-    } catch (InvalidPathException e) {
-      // this is not expected, but the sync should be triggered just in case.
-      LOG.debug("Failed to get parent of ({}), for checking sync for ({})", currPath, path);
-      return true;
+    while (!PathUtils.isRoot(currPath)) {
+      currPath = PathUtils.getParent(currPath);
+      adjustSyncTimeLevel(timeLevel, mCache.getIfPresent(currPath), ++parentLevel);
     }
-
     return shouldSyncInternal(timeLevel, intervalMs);
   }
 
