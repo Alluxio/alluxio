@@ -17,7 +17,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.meta.DefaultMetaMaster;
 import alluxio.master.meta.MetaMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
