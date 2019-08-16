@@ -120,7 +120,7 @@ launch_master() {
   fi
   # use a default MetaspaceSize value for the master
   res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "XX:MetaspaceSize")"
-  if [[ $? -eq 0 ]]; then
+  if [[ "${res}" -eq "0" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
   fi
 
@@ -132,7 +132,7 @@ launch_master() {
 launch_secondary_master() {
   # use a default Xmx value for the master
   local res="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx")"
-  if [[ $? -eq 0 ]]; then
+  if [[ "${res}" -eq "0" ]]; then
     ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
   launch_process "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" \
@@ -149,13 +149,13 @@ launch_job_master() {
 launch_worker() {
   # use a default Xmx value for the worker
   local res="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx")"
-  if [[ $? -eq 0 ]]; then
+  if [[ "${res}" -eq "0" ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
   fi
 
   # use a default MaxDirectMemorySize value for the worker
   res="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize")"
-  if [[ $? -eq 0 ]]; then
+  if [[ "${res}" -eq "0" ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
   fi
 
@@ -189,7 +189,7 @@ launch_logserver() {
 
 # Launch the desired process
 main() {
-  if [[ "$#" -gt "2" || "${#}" -eq "0" ]]; then
+  if [[ "${#}" -gt "2" || "${#}" -eq "0" ]]; then
     print_help 1
   fi
 
