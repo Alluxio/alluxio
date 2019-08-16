@@ -1820,10 +1820,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT =
+      new Builder(Name.MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Connection request timeout for the update availability check.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_UPDATE_CHECK_CONNECT_TIMEOUT =
+      new Builder(Name.MASTER_UPDATE_CHECK_CONNECT_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Connect timeout for the update availability check.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
       new Builder(Name.MASTER_UPDATE_CHECK_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to check for update availability.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_UPDATE_CHECK_SOCKET_TIMEOUT =
+      new Builder(Name.MASTER_UPDATE_CHECK_SOCKET_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Socket timeout for the update availability check.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -3979,8 +4000,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
         "alluxio.master.ufs.path.cache.threads";
+    public static final String MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT =
+        "alluxio.master.update.check.connection.request.timeout";
     public static final String MASTER_UPDATE_CHECK_ENABLED =
         "alluxio.master.update.check.enabled";
+    public static final String MASTER_UPDATE_CHECK_CONNECT_TIMEOUT =
+        "alluxio.master.update.check.connect.timeout";
+    public static final String MASTER_UPDATE_CHECK_SOCKET_TIMEOUT =
+        "alluxio.master.update.check.socket.timeout";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";

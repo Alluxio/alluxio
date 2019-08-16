@@ -17,6 +17,7 @@ import alluxio.util.EnvironmentUtils;
 import com.google.common.base.Joiner;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -34,9 +35,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UpdateCheck {
   /**
    * @param clusterID the cluster ID
+   * @param connectionRequestTimeout the connection request timeout for the HTTP request in ms
+   * @param connectTimeout the connect timeout for the HTTP request in ms
+   * @param socketTimeout the socket timeout for the HTTP request in ms
    * @return the latest Alluxio version string
    */
-  public static String getLatestVersion(String clusterID) throws IOException {
+  public static String getLatestVersion(String clusterID, long connectionRequestTimeout,
+      long connectTimeout, long socketTimeout) throws IOException {
     // Create the GET request.
     Joiner joiner = Joiner.on("/");
     String path = joiner.join("v0", "version");
@@ -47,7 +52,14 @@ public final class UpdateCheck {
     post.setHeader("Authorization", "Basic " + ProjectConstants.UPDATE_CHECK_AUTH_STRING);
 
     // Fire off the version check request.
-    HttpClient client = HttpClientBuilder.create().build();
+    HttpClient client = HttpClientBuilder.create()
+        .setDefaultRequestConfig(
+            RequestConfig.custom()
+                .setConnectionRequestTimeout((int) connectionRequestTimeout)
+                .setConnectTimeout((int) connectTimeout)
+                .setSocketTimeout((int) socketTimeout)
+                .build())
+        .build();
     HttpResponse response = client.execute(post);
 
     // Check the response code.
