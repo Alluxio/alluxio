@@ -106,7 +106,6 @@ public final class UIFileInfo {
   private final Map<String, Long> mSizeOnTier = new HashMap<>();
   private final List<Long> mBlockIds = new ArrayList<>();
 
-
   /**
    * Creates a new instance of {@link alluxio.util.webui.UIFileInfo}.
    *
@@ -394,9 +393,11 @@ public final class UIFileInfo {
   }
 
   /**
-   * Get BlockId List
+   * Gets BlockId List.
    *
    * @return the BlockId List in worker node
    */
-  public List<Long> getBlockIds() { return mBlockIds; }
+  public List<Long> getBlockIds() {
+    return mBlockIds;
+  }
 }
