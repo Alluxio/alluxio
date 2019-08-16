@@ -10,7 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-set -e
+set -x
 
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
@@ -34,12 +34,15 @@ unless you know what you are doing.
     -h                Print this help text to stdout
 "
 
-# returns 1 if "$1" contains "$2", 0 otherwise.
+# echos 1 if "$1" contains "$2", 0 otherwise.
+#
+# Usage example: local result="$(contains "my string" "my")"
+#                + result="1"
 contains() {
   if [[ "$1" = *"$2"* ]]; then
-    return 1
+    echo "1"
   fi
-  return 0
+  echo "0"
 }
 
 # Sets environment variables by sourcing ${ALLUXIO_HOME}/libexec/alluxio-config.sh
@@ -111,12 +114,12 @@ launch_master() {
   fi
 
   # use a default Xmx value for the master
-  contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx"
-  if [[ $? -eq 0 ]]; then
+  local res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx")"
+  if [[ "${res}" -eq "0" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
   # use a default MetaspaceSize value for the master
-  contains "${ALLUXIO_MASTER_JAVA_OPTS}" "XX:MetaspaceSize"
+  res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "XX:MetaspaceSize")"
   if [[ $? -eq 0 ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
   fi
@@ -128,7 +131,7 @@ launch_master() {
 # Launch a secondary master process
 launch_secondary_master() {
   # use a default Xmx value for the master
-  contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx"
+  local res="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx")"
   if [[ $? -eq 0 ]]; then
     ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
@@ -145,13 +148,13 @@ launch_job_master() {
 # Launch a worker process
 launch_worker() {
   # use a default Xmx value for the worker
-  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx"
+  local res="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx")"
   if [[ $? -eq 0 ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
   fi
 
   # use a default MaxDirectMemorySize value for the worker
-  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize"
+  res="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize")"
   if [[ $? -eq 0 ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
   fi
