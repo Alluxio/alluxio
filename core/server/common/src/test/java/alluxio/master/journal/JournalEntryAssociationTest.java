@@ -39,7 +39,6 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.proto.journal.Meta;
 import alluxio.proto.journal.Meta.ClusterInfoEntry;
 import alluxio.proto.journal.Meta.PathPropertiesEntry;
 import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
