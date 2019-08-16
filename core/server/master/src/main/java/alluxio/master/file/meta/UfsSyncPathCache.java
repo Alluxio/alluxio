@@ -86,8 +86,10 @@ public final class UfsSyncPathCache {
       return syncCheckRecursive(path, intervalMs);
     }
     SyncTime lastSync = mCache.getIfPresent(path);
-    return lastSync != null
-            && (System.currentTimeMillis() - lastSync.getLastSyncMs()) >= intervalMs;
+    if (lastSync == null) {
+      return true;
+    }
+    return (System.currentTimeMillis() - lastSync.getLastSyncMs()) >= intervalMs;
   }
 
   private boolean syncCheckRecursive(String path, long intervalMs) throws InvalidPathException {
