@@ -75,6 +75,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -195,6 +196,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     @Override
     public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+      if (mClusterID == null) {
+        return Collections.emptyIterator();
+      }
       return java.util.Collections
           .singleton(Journal.JournalEntry.newBuilder().setClusterId(mClusterID).build()).iterator();
     }
