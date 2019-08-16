@@ -299,7 +299,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             mState.applyAndJournal(context, clusterID);
             LOG.info("Created new cluster ID {}", clusterID);
             try {
-              String latestVersion = UpdateCheck.getLatestVersion();
+              String latestVersion = UpdateCheck.getLatestVersion(clusterID);
               if (!latestVersion.equals(ProjectConstants.VERSION)) {
                 System.out.println("The latest version (" + latestVersion + ") is not the same"
                     + "as the current version. To upgrade visit https://www.alluxio.io/download/.");
