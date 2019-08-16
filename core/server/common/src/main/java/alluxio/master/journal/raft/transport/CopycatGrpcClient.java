@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Copycat transport {@link Client} implementation that uses Alluxio gRPC.
@@ -49,15 +50,21 @@ public class CopycatGrpcClient implements Client {
   /** Created connections. */
   private final List<Connection> mConnections;
 
+  /** Executor for building client connections. */
+  private final ExecutorService mExecutor;
+
   /**
    * Creates copycat transport client that can be used to connect to remote copycat servers.
    *
    * @param conf Alluxio configuration
    * @param userState authentication user
+   * @param executor transport executor
    */
-  public CopycatGrpcClient(AlluxioConfiguration conf, UserState userState) {
+  public CopycatGrpcClient(AlluxioConfiguration conf, UserState userState,
+      ExecutorService executor) {
     mConf = conf;
     mUserState = userState;
+    mExecutor = executor;
     mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
@@ -81,7 +88,7 @@ public class CopycatGrpcClient implements Client {
 
         // Create client connection that is bound to remote server stream.
         CopycatGrpcConnection clientConnection = new CopycatGrpcClientConnection(threadContext,
-            channel, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+            mExecutor, channel, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
         LOG.debug("Created copycat connection for target: {}", address);
@@ -90,7 +97,7 @@ public class CopycatGrpcClient implements Client {
       } catch (Throwable e) {
         throw new RuntimeException(e);
       }
-    });
+    }, mExecutor);
     // When connection is build, complete the connection future with it on a catalyst thread context
     // for setting up the connection.
     buildFuture.whenComplete((result, error) -> {

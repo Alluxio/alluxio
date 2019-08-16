@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
@@ -57,16 +58,22 @@ public class CopycatGrpcServer implements Server {
   /** List of all connections created by this server. */
   private final List<Connection> mConnections;
 
+  /** Executor for building server listener. */
+  private final ExecutorService mExecutor;
+
   /**
    * Creates copycat transport server that can be used to accept connections from remote copycat
    * clients.
    *
    * @param conf Alluxio configuration
    * @param userState authentication user
+   * @param executor transport executor
    */
-  public CopycatGrpcServer(AlluxioConfiguration conf, UserState userState) {
+  public CopycatGrpcServer(AlluxioConfiguration conf, UserState userState,
+      ExecutorService executor) {
     mConf = conf;
     mUserState = userState;
+    mExecutor = executor;
     mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
@@ -88,11 +95,12 @@ public class CopycatGrpcServer implements Server {
       };
 
       // Create gRPC server.
-      mGrpcServer = GrpcServerBuilder
-          .forAddress(address.host(), address.socketAddress(), mConf, mUserState)
-          .addService(new GrpcService(new CopycatMessageServiceClientHandler(forkListener,
-              threadContext, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
-          .build();
+      mGrpcServer =
+          GrpcServerBuilder.forAddress(address.host(), address.socketAddress(), mConf, mUserState)
+              .addService(new GrpcService(
+                  new CopycatMessageServiceClientHandler(forkListener, threadContext, mExecutor,
+                      mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
+              .build();
 
       try {
         mGrpcServer.start();
@@ -104,7 +112,7 @@ public class CopycatGrpcServer implements Server {
         LOG.debug("Failed to create gRPC server for copycat transport at: {}.", address, e);
         throw new RuntimeException(e);
       }
-    });
+    }, mExecutor);
 
     return mListenFuture;
   }
