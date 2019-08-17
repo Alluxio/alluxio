@@ -166,12 +166,14 @@ install_alluxio() {
   # Unpack and inflate the release tar
   # TODO logic for different compression formats, s3 URIs, git URIs, etc.
   sudo cp "${release}" /opt/
-  sudo tar -xvf "/opt/${release}" -C /opt/
+  sudo tar -xpvf "/opt/${release}" -C /opt/
   sudo rm -R "/opt/${release}"
   sudo mv "/opt/${release_unzip}" "${ALLUXIO_HOME}"
   sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}"
   rm "${release}"
 
+  # Add ${ALLUXIO_HOME}/bin to PATH for all users
+  echo "export PATH=$PATH:${ALLUXIO_HOME}/bin" | sudo tee /etc/profile.d/alluxio.sh
 }
 
 # Puts a shutdown hook under the EMR defined
@@ -261,8 +263,7 @@ main() {
   fi
 
   # Create user
-  sudo groupadd alluxio -g 600
-  sudo useradd alluxio -u 600 -g 600
+  id -u alluxio &>/dev/null || sudo useradd alluxio
 
   if [[ ! -d "/opt/alluxio" ]]; then
     install_alluxio "${alluxio_tarball}"
