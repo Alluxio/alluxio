@@ -1820,31 +1820,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT =
-      new Builder(Name.MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT)
-          .setDefaultValue("60sec")
-          .setDescription("Connection request timeout for the update availability check.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_UPDATE_CHECK_CONNECT_TIMEOUT =
-      new Builder(Name.MASTER_UPDATE_CHECK_CONNECT_TIMEOUT)
-          .setDefaultValue("60sec")
-          .setDescription("Connect timeout for the update availability check.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
       new Builder(Name.MASTER_UPDATE_CHECK_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to check for update availability.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_UPDATE_CHECK_SOCKET_TIMEOUT =
-      new Builder(Name.MASTER_UPDATE_CHECK_SOCKET_TIMEOUT)
-          .setDefaultValue("60sec")
-          .setDescription("Socket timeout for the update availability check.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();

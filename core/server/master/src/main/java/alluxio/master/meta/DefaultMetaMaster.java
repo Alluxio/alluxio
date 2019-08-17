@@ -52,6 +52,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
@@ -314,10 +315,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
           try {
             String latestVersion = UpdateCheck.getLatestVersion(mState.getClusterID(),
-                ServerConfiguration
-                    .getMs(PropertyKey.MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT),
-                ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_CONNECT_TIMEOUT),
-                ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_SOCKET_TIMEOUT));
+                FormatUtils.parseTimeSize("60sec"),
+                FormatUtils.parseTimeSize("60sec"),
+                FormatUtils.parseTimeSize("60sec")
+            );
             if (!latestVersion.equals(ProjectConstants.VERSION)) {
               System.out.println("The latest version (" + latestVersion + ") is not the same"
                   + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
