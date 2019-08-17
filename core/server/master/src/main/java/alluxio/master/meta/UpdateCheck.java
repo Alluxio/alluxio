@@ -48,7 +48,7 @@ public final class UpdateCheck {
     String url = new URL(new URL(ProjectConstants.UPDATE_CHECK_HOST), path).toString();
 
     HttpGet post = new HttpGet(url);
-    post.setHeader("User-Agent", getEnvString(clusterID));
+    post.setHeader("User-Agent", getUserAgentString(clusterID));
     post.setHeader("Authorization", "Basic " + ProjectConstants.UPDATE_CHECK_AUTH_STRING);
 
     // Fire off the version check request.
@@ -76,7 +76,7 @@ public final class UpdateCheck {
    * @return a string representation of the user's environment in the format "key1:value1, key2:
    *         value2".
    */
-  private static String getEnvString(String clusterID) throws IOException {
+  private static String getUserAgentString(String clusterID) throws IOException {
     Joiner joiner = Joiner.on(",");
     return joiner.join(
         "ClusterID:" + clusterID,

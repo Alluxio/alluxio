@@ -11,12 +11,11 @@
 
 package alluxio.util;
 
+import alluxio.util.io.FileUtils;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,8 +32,8 @@ public final class EnvironmentUtils {
    * @return true, if running on docker
    */
   @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public static boolean isDocker() throws IOException {
-    return new File("/.dockerenv").exists();
+  public static boolean isDocker() {
+    return FileUtils.exists("/.dockerenv");
   }
 
   /**
