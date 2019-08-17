@@ -314,13 +314,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
           try {
-            String latestVersion = UpdateCheck.getLatestVersion(mState.getClusterID(),
-                FormatUtils.parseTimeSize("60sec"),
-                FormatUtils.parseTimeSize("60sec"),
-                FormatUtils.parseTimeSize("60sec")
-            );
+            String latestVersion =
+                UpdateCheck.getLatestVersion(mState.getClusterID(), 3000, 3000, 3000);
             if (!latestVersion.equals(ProjectConstants.VERSION)) {
-              System.out.println("The latest version (" + latestVersion + ") is not the same"
+              System.out.println("The latest version (" + latestVersion + ") is not the same "
                   + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
                   + "visit https://www.alluxio.io/download/.");
             }
