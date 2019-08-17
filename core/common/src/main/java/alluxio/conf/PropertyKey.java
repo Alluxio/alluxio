@@ -3979,14 +3979,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
         "alluxio.master.ufs.path.cache.threads";
-    public static final String MASTER_UPDATE_CHECK_CONNECTION_REQUEST_TIMEOUT =
-        "alluxio.master.update.check.connection.request.timeout";
     public static final String MASTER_UPDATE_CHECK_ENABLED =
         "alluxio.master.update.check.enabled";
-    public static final String MASTER_UPDATE_CHECK_CONNECT_TIMEOUT =
-        "alluxio.master.update.check.connect.timeout";
-    public static final String MASTER_UPDATE_CHECK_SOCKET_TIMEOUT =
-        "alluxio.master.update.check.socket.timeout";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
