@@ -19,7 +19,6 @@ import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.Schema;
 import alluxio.grpc.ServiceType;
-import alluxio.grpc.TableInfo;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -90,10 +89,8 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public TableInfo getTable(String dbName, String tableName) {
-    org.apache.iceberg.Table table = mCatalog.getTable(TableIdentifier.of(dbName, tableName));
-    return TableInfo.newBuilder().setDbName(dbName).setTableName(tableName)
-        .setBaseLocation(table.location()).build();
+  public Table getTable(String dbName, String tableName) {
+    return mCatalog.getTable(TableIdentifier.of(dbName, tableName));
   }
 
   @Override

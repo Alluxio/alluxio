@@ -11,48 +11,29 @@
 
 package alluxio.client.catalog;
 
-import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.experimental.ProtoUtils;
-import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.worker.file.FileSystemMasterClient;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecordBuilder;
-import org.apache.iceberg.DataFile;
-import org.apache.iceberg.DataFiles;
-import org.apache.iceberg.FileFormat;
 import org.apache.iceberg.Schema;
-import org.apache.iceberg.Table;
-import org.apache.iceberg.avro.Avro;
-import org.apache.iceberg.avro.AvroSchemaUtil;
-import org.apache.iceberg.io.FileAppender;
-import org.apache.iceberg.parquet.Parquet;
 import org.apache.iceberg.types.Types;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
-import static org.apache.iceberg.Files.localOutput;
 
 /**
  * Integration tests for the Catalog Master Client.

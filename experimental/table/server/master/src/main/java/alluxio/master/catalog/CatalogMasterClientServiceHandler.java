@@ -72,9 +72,18 @@ public class CatalogMasterClientServiceHandler
   @Override
   public void getTable(GetTablePRequest request,
       StreamObserver<GetTablePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetTablePResponse.newBuilder()
-            .setTableInfo(mCatalogMaster.getTable(request.getDbName(), request.getTableName()))
-            .build(), "getTable", "", responseObserver);
+    RpcUtils.call(LOG, () -> {
+      Table table = mCatalogMaster.getTable(request.getDbName(), request.getTableName());
+      TableInfo info;
+      if (table != null) {
+        info = TableInfo.newBuilder().setDbName(request.getDbName()).setTableName(request.getTableName())
+            .setBaseLocation(table.location()).setSchema(ProtoUtils.toProto(table.schema())).build();
+        return GetTablePResponse.newBuilder()
+            .setTableInfo(info)
+            .build();
+      }
+      return GetTablePResponse.getDefaultInstance();
+    }, "getTable", "", responseObserver);
   }
 
   @Override
@@ -90,10 +99,10 @@ public class CatalogMasterClientServiceHandler
         return CreateTablePResponse.newBuilder()
             .setTableInfo(info)
             .setSuccess(true).build();
+      } else {
+        return CreateTablePResponse.newBuilder()
+            .setSuccess(false).build();
       }
-      return CreateTablePResponse.newBuilder()
-          .setSuccess(false).build();
-
     }, "createTable", "", responseObserver);
   }
 

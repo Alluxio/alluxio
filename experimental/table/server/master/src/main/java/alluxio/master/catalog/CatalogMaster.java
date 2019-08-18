@@ -12,7 +12,6 @@
 package alluxio.master.catalog;
 
 import alluxio.grpc.Schema;
-import alluxio.grpc.TableInfo;
 import alluxio.master.Master;
 //TODO(yuzhu): replace these classes with our own version of Database and Table classes
 
@@ -60,5 +59,6 @@ public interface CatalogMaster extends Master {
   /**
    * Get a table.
    */
-  TableInfo getTable(String databaseName, String tableName);
+  Table getTable(String databaseName, String tableName);
+
 }
