@@ -344,7 +344,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey METADATA_PATH =
       new Builder(Name.METADATA_PATH)
-          .setDefaultValue("alluxio://catalog-metadata/")
+          .setDefaultValue("catalog-metadata")
           .setDescription("The file path of the catalog metadata.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)

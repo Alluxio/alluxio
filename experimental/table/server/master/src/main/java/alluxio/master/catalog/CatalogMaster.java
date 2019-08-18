@@ -16,9 +16,7 @@ import alluxio.grpc.TableInfo;
 import alluxio.master.Master;
 //TODO(yuzhu): replace these classes with our own version of Database and Table classes
 
-import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.iceberg.Table;
 
 import java.util.List;
 
@@ -52,13 +50,12 @@ public interface CatalogMaster extends Master {
 
   /**
    * Create a table.
-   *
-   * @param dbName database name
+   *  @param dbName database name
    * @param tableName table name
    * @param schema schema
    *
    */
-  boolean createTable(String dbName, String tableName, Schema schema);
+  Table createTable(String dbName, String tableName, Schema schema);
 
   /**
    * Get a table.

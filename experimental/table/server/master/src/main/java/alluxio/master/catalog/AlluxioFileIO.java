@@ -14,6 +14,7 @@ package alluxio.master.catalog;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.underfs.UnderFileSystem;
 import org.apache.iceberg.exceptions.RuntimeIOException;
 import org.apache.iceberg.io.FileIO;
 import org.apache.iceberg.io.InputFile;
@@ -25,8 +26,8 @@ import java.io.IOException;
 
 public class AlluxioFileIO implements FileIO {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFileIO.class);
-  private final FileSystem mFileSystem;
-  public AlluxioFileIO(FileSystem fs) {
+  private final UnderFileSystem mFileSystem;
+  public AlluxioFileIO(UnderFileSystem fs) {
     mFileSystem = fs;
   }
 
@@ -43,11 +44,9 @@ public class AlluxioFileIO implements FileIO {
   @Override
   public void deleteFile(String path) {
     try {
-      mFileSystem.delete(new AlluxioURI(path));
+      mFileSystem.deleteFile(path);
     } catch (IOException e) {
       throw new RuntimeIOException(e, "unable to delete %s", path);
-    } catch (AlluxioException e) {
-      e.printStackTrace();
     }
   }
 }

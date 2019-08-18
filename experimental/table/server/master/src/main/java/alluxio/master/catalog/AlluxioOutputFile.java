@@ -3,6 +3,7 @@ package alluxio.master.catalog;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 
+import alluxio.underfs.UnderFileSystem;
 import org.apache.iceberg.io.InputFile;
 import org.apache.iceberg.io.OutputFile;
 import org.apache.iceberg.io.PositionOutputStream;
@@ -11,14 +12,14 @@ import org.apache.iceberg.io.PositionOutputStream;
  * {@link OutputFile} implementation using the Alluxio API.
  */
 public class AlluxioOutputFile implements OutputFile {
-  public static OutputFile fromPath(FileSystem fs, String path) {
-    return new AlluxioOutputFile(new AlluxioURI(path), fs);
+  public static OutputFile fromPath(UnderFileSystem fs, String path) {
+    return new AlluxioOutputFile(path, fs);
   }
 
-  private final AlluxioURI mPath;
-  private final FileSystem mFileSystem;
+  private final String mPath;
+  private final UnderFileSystem mFileSystem;
 
-  private AlluxioOutputFile(AlluxioURI path, FileSystem fs) {
+  private AlluxioOutputFile(String path, UnderFileSystem fs) {
     mPath = path;
     mFileSystem = fs;
   }
@@ -26,7 +27,7 @@ public class AlluxioOutputFile implements OutputFile {
   @Override
   public PositionOutputStream create() {
     try {
-      return AlluxioStreams.wrap(mFileSystem.createFile(mPath));
+      return AlluxioStreams.wrap(mFileSystem.createNonexistingFile(mPath));
     } catch (Exception e) {
       throw new RuntimeException("Failed to create file:" + mPath, e);
     }
@@ -35,25 +36,24 @@ public class AlluxioOutputFile implements OutputFile {
   @Override
   public PositionOutputStream createOrOverwrite() {
     try {
-      mFileSystem.delete(mPath);
-      return AlluxioStreams.wrap(mFileSystem.createFile(mPath));
+      return AlluxioStreams.wrap(mFileSystem.create(mPath));
     } catch (Exception e) {
       throw new RuntimeException("Failed to create file:" + mPath, e);
     }
   }
 
-  public AlluxioURI getPath() {
+  public String getPath() {
     return mPath;
   }
 
   @Override
   public String location() {
-    return mPath.toString();
+    return mPath;
   }
 
   @Override
   public InputFile toInputFile() {
-    return AlluxioInputFile.fromPath(mFileSystem, mPath.toString());
+    return AlluxioInputFile.fromPath(mFileSystem, mPath);
   }
 
   @Override

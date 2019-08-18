@@ -13,6 +13,7 @@ package alluxio.client.catalog;
 
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
 
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
@@ -102,7 +103,7 @@ public interface CatalogMasterClient extends Client {
    *
    * @throws AlluxioStatusException
    */
-  Table createTable(String dbName, String tableName, Schema schema) throws AlluxioStatusException;
+  TableInfo createTable(String dbName, String tableName, Schema schema) throws AlluxioStatusException;
 
   /**
    * Get table column statistics with given database name,

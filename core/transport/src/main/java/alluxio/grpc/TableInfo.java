@@ -88,6 +88,19 @@ private static final long serialVersionUID = 0L;
             version_ = input.readUInt32();
             break;
           }
+          case 50: {
+            alluxio.grpc.Schema.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000020) == 0x00000020)) {
+              subBuilder = schema_.toBuilder();
+            }
+            schema_ = input.readMessage(alluxio.grpc.Schema.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(schema_);
+              schema_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000020;
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -270,12 +283,39 @@ private static final long serialVersionUID = 0L;
     return version_;
   }
 
+  public static final int SCHEMA_FIELD_NUMBER = 6;
+  private alluxio.grpc.Schema schema_;
+  /**
+   * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+   */
+  public boolean hasSchema() {
+    return ((bitField0_ & 0x00000020) == 0x00000020);
+  }
+  /**
+   * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+   */
+  public alluxio.grpc.Schema getSchema() {
+    return schema_ == null ? alluxio.grpc.Schema.getDefaultInstance() : schema_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+   */
+  public alluxio.grpc.SchemaOrBuilder getSchemaOrBuilder() {
+    return schema_ == null ? alluxio.grpc.Schema.getDefaultInstance() : schema_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (hasSchema()) {
+      if (!getSchema().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -296,6 +336,9 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       output.writeUInt32(5, version_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      output.writeMessage(6, getSchema());
     }
     unknownFields.writeTo(output);
   }
@@ -321,6 +364,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.CodedOutputStream
         .computeUInt32Size(5, version_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(6, getSchema());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -362,6 +409,11 @@ private static final long serialVersionUID = 0L;
       result = result && (getVersion()
           == other.getVersion());
     }
+    result = result && (hasSchema() == other.hasSchema());
+    if (hasSchema()) {
+      result = result && getSchema()
+          .equals(other.getSchema());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -392,6 +444,10 @@ private static final long serialVersionUID = 0L;
     if (hasVersion()) {
       hash = (37 * hash) + VERSION_FIELD_NUMBER;
       hash = (53 * hash) + getVersion();
+    }
+    if (hasSchema()) {
+      hash = (37 * hash) + SCHEMA_FIELD_NUMBER;
+      hash = (53 * hash) + getSchema().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -518,6 +574,7 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getSchemaFieldBuilder();
       }
     }
     public Builder clear() {
@@ -532,6 +589,12 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000008);
       version_ = 0;
       bitField0_ = (bitField0_ & ~0x00000010);
+      if (schemaBuilder_ == null) {
+        schema_ = null;
+      } else {
+        schemaBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
 
@@ -576,6 +639,14 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000010;
       }
       result.version_ = version_;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000020;
+      }
+      if (schemaBuilder_ == null) {
+        result.schema_ = schema_;
+      } else {
+        result.schema_ = schemaBuilder_.build();
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -639,12 +710,20 @@ private static final long serialVersionUID = 0L;
       if (other.hasVersion()) {
         setVersion(other.getVersion());
       }
+      if (other.hasSchema()) {
+        mergeSchema(other.getSchema());
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
     }
 
     public final boolean isInitialized() {
+      if (hasSchema()) {
+        if (!getSchema().isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -961,6 +1040,124 @@ private static final long serialVersionUID = 0L;
       version_ = 0;
       onChanged();
       return this;
+    }
+
+    private alluxio.grpc.Schema schema_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.Schema, alluxio.grpc.Schema.Builder, alluxio.grpc.SchemaOrBuilder> schemaBuilder_;
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    public boolean hasSchema() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    public alluxio.grpc.Schema getSchema() {
+      if (schemaBuilder_ == null) {
+        return schema_ == null ? alluxio.grpc.Schema.getDefaultInstance() : schema_;
+      } else {
+        return schemaBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    public Builder setSchema(alluxio.grpc.Schema value) {
+      if (schemaBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        schema_ = value;
+        onChanged();
+      } else {
+        schemaBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000020;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    public Builder setSchema(
+        alluxio.grpc.Schema.Builder builderForValue) {
+      if (schemaBuilder_ == null) {
+        schema_ = builderForValue.build();
+        onChanged();
+      } else {
+        schemaBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000020;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    public Builder mergeSchema(alluxio.grpc.Schema value) {
+      if (schemaBuilder_ == null) {
+        if (((bitField0_ & 0x00000020) == 0x00000020) &&
+            schema_ != null &&
+            schema_ != alluxio.grpc.Schema.getDefaultInstance()) {
+          schema_ =
+            alluxio.grpc.Schema.newBuilder(schema_).mergeFrom(value).buildPartial();
+        } else {
+          schema_ = value;
+        }
+        onChanged();
+      } else {
+        schemaBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000020;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    public Builder clearSchema() {
+      if (schemaBuilder_ == null) {
+        schema_ = null;
+        onChanged();
+      } else {
+        schemaBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000020);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    public alluxio.grpc.Schema.Builder getSchemaBuilder() {
+      bitField0_ |= 0x00000020;
+      onChanged();
+      return getSchemaFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    public alluxio.grpc.SchemaOrBuilder getSchemaOrBuilder() {
+      if (schemaBuilder_ != null) {
+        return schemaBuilder_.getMessageOrBuilder();
+      } else {
+        return schema_ == null ?
+            alluxio.grpc.Schema.getDefaultInstance() : schema_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.Schema, alluxio.grpc.Schema.Builder, alluxio.grpc.SchemaOrBuilder> 
+        getSchemaFieldBuilder() {
+      if (schemaBuilder_ == null) {
+        schemaBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.Schema, alluxio.grpc.Schema.Builder, alluxio.grpc.SchemaOrBuilder>(
+                getSchema(),
+                getParentForChildren(),
+                isClean());
+        schema_ = null;
+      }
+      return schemaBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

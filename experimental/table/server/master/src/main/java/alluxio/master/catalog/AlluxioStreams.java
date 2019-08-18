@@ -13,6 +13,7 @@ package alluxio.master.catalog;
 
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
+import alluxio.underfs.SeekableUnderFileInputStream;
 import com.google.common.base.Joiner;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +21,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import jdk.internal.util.xml.impl.Input;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.iceberg.io.DelegatingInputStream;
 import org.apache.iceberg.io.DelegatingOutputStream;
@@ -45,8 +47,8 @@ class AlluxioStreams {
    * @param stream an Alluxio FileInStream
    * @return a SeekableInputStream
    */
-  static SeekableInputStream wrap(FileInStream stream) {
-    return new AlluxioSeekableInputStream(stream);
+  static SeekableInputStream wrap(SeekableUnderFileInputStream stream) {
+    return new AlluxioSeekableUFSInputStream(stream);
   }
 
   /**
@@ -56,21 +58,92 @@ class AlluxioStreams {
    * @param stream a Alluxio FileOutStream
    * @return a PositionOutputStream
    */
-  static PositionOutputStream wrap(FileOutStream stream) {
+  static PositionOutputStream wrap(OutputStream stream) {
     return new AlluxioPositionOutputStream(stream);
+  }
+
+  public static SeekableInputStream wrap(InputStream input) {
+    return new AlluxioSeekableInputStream(input);
+  }
+
+  private static class AlluxioSeekableInputStream extends SeekableInputStream
+      implements DelegatingInputStream {
+    private final InputStream stream;
+    private final StackTraceElement[] createStack;
+    private boolean closed;
+    private long pos;
+
+    AlluxioSeekableInputStream(InputStream stream) {
+      pos = 0;
+      this.stream = stream;
+      this.createStack = Thread.currentThread().getStackTrace();
+      this.closed = false;
+    }
+
+    @Override
+    public InputStream getDelegate() {
+      return stream;
+    }
+
+    @Override
+    public void close() throws IOException {
+      stream.close();
+      this.closed = true;
+    }
+
+    @Override
+    public long getPos() throws IOException {
+      return pos;
+    }
+
+    @Override
+    public void seek(long newPos) throws IOException {
+      if (pos >= newPos) {
+        stream.reset();
+        stream.skip(newPos);
+      } else {
+        stream.skip(newPos - pos);
+      }
+      pos = newPos;
+    }
+
+    @Override
+    public int read() throws IOException {
+      pos++;
+      return stream.read();
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+      int read = stream.read(b, off, len);
+      pos += read;
+      return read;
+    }
+
+    @SuppressWarnings("checkstyle:NoFinalizer")
+    @Override
+    protected void finalize() throws Throwable {
+      super.finalize();
+      if (!closed) {
+        close(); // releasing resources is more important than printing the warning
+        String trace = Joiner.on("\n\t").join(
+            Arrays.copyOfRange(createStack, 1, createStack.length));
+        LOG.warn("Unclosed input mStream created by:\n\t{}", trace);
+      }
+    }
   }
 
   /**
    * SeekableInputStream implementation for FSDataInputStream that implements ByteBufferReadable in
    * Alluxio
    */
-  private static class AlluxioSeekableInputStream extends SeekableInputStream
+  private static class AlluxioSeekableUFSInputStream extends SeekableInputStream
       implements DelegatingInputStream {
-    private final FileInStream stream;
+    private final SeekableUnderFileInputStream stream;
     private final StackTraceElement[] createStack;
     private boolean closed;
 
-    AlluxioSeekableInputStream(FileInStream stream) {
+    AlluxioSeekableUFSInputStream(SeekableUnderFileInputStream stream) {
       this.stream = stream;
       this.createStack = Thread.currentThread().getStackTrace();
       this.closed = false;
@@ -129,7 +202,7 @@ class AlluxioStreams {
     private boolean mClosed;
     private long mPosition;
 
-    AlluxioPositionOutputStream(FileOutStream stream){
+    AlluxioPositionOutputStream(OutputStream stream){
       mStream = stream;
       mCreateStack = Thread.currentThread().getStackTrace();
       mClosed = false;

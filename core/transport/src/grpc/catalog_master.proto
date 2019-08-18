@@ -62,6 +62,7 @@ message TableInfo {
     optional TableType type = 3;
     optional string base_location = 4;
     optional uint32 version = 5;
+    optional Schema schema = 6;
 }
 
 message GetAllDatabasesPRequest {

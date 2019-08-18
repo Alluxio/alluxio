@@ -12,6 +12,7 @@
 package alluxio.master.catalog;
 
 import alluxio.RpcUtils;
+import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 
 import alluxio.grpc.CreateDatabasePRequest;
@@ -28,6 +29,7 @@ import alluxio.grpc.GetTablePResponse;
 import alluxio.grpc.TableInfo;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
+import org.apache.iceberg.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,9 +80,21 @@ public class CatalogMasterClientServiceHandler
   @Override
   public void createTable(CreateTablePRequest request,
       StreamObserver<CreateTablePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> CreateTablePResponse.newBuilder()
-        .setSuccess(mCatalogMaster.createTable(request.getDbName(), request.getTableName()
-            , request.getSchema())).build(), "createTable", "", responseObserver);
+    RpcUtils.call(LOG, () -> {
+      Table table = mCatalogMaster.createTable(request.getDbName(), request.getTableName()
+          , request.getSchema());
+      TableInfo info;
+      if (table != null) {
+        info = TableInfo.newBuilder().setDbName(request.getDbName()).setTableName(request.getTableName())
+            .setBaseLocation(table.location()).setSchema(ProtoUtils.toProto(table.schema())).build();
+        return CreateTablePResponse.newBuilder()
+            .setTableInfo(info)
+            .setSuccess(true).build();
+      }
+      return CreateTablePResponse.newBuilder()
+          .setSuccess(false).build();
+
+    }, "createTable", "", responseObserver);
   }
 
   @Override

@@ -13,6 +13,7 @@ package alluxio.client.catalog;
 
 import alluxio.AbstractMasterClient;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.experimental.ProtoUtils;
 import alluxio.Constants;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.CreateDatabasePRequest;
@@ -27,9 +28,12 @@ import alluxio.master.MasterClientContext;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.iceberg.BaseTable;
 import org.apache.iceberg.Schema;
 import org.apache.iceberg.Table;
+import org.apache.iceberg.TableOperations;
 import org.apache.iceberg.Tables;
+import org.apache.iceberg.exceptions.NoSuchTableException;
 import org.apache.iceberg.hadoop.HadoopTables;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -108,16 +112,12 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public Table createTable(String dbName, String tableName, Schema schema) throws AlluxioStatusException {
+  public TableInfo createTable(String dbName, String tableName, Schema schema) throws AlluxioStatusException {
     TableInfo info = retryRPC(() -> mClient.createTable(
         CreateTablePRequest.newBuilder().setDbName(dbName)
-            .setTableName(tableName).build()).getTableInfo());
-    if (info == null) {
-      return null;
-    }
-    Tables hadoopTables = new HadoopTables();
-    org.apache.iceberg.Table table = hadoopTables.load(info.getBaseLocation());
-    return table;
+            .setTableName(tableName)
+            .setSchema(ProtoUtils.toProto(schema)).build()).getTableInfo());
+    return info;
   }
 
   @Override

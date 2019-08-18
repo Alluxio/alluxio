@@ -12,13 +12,18 @@
 package alluxio.master.catalog;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.underfs.SeekableUnderFileInputStream;
+import alluxio.underfs.UnderFileSystem;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.iceberg.exceptions.RuntimeIOException;
 import org.apache.iceberg.io.InputFile;
 import org.apache.iceberg.io.SeekableInputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,29 +34,26 @@ import org.slf4j.LoggerFactory;
 public class AlluxioInputFile implements InputFile {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioInputFile.class);
 
-  private final FileSystem mFileSystem;
-  private final AlluxioURI mPath;
+  private final UnderFileSystem mFileSystem;
+  private final String mPath;
   private Long mLength;
 
-  public static InputFile fromPath(FileSystem fs, String path) {
+  public static InputFile fromPath(UnderFileSystem fs, String path) {
     return new AlluxioInputFile(fs, path);
   }
 
-  private AlluxioInputFile(FileSystem fs, String path) {
+  private AlluxioInputFile(UnderFileSystem fs, String path) {
     mFileSystem = fs;
-    mPath = new AlluxioURI(path);
+    mPath = path;
   }
 
   @Override
   public long getLength() {
     if (mLength == null) {
       try {
-        mLength = mFileSystem.getStatus(mPath).getLength();
+        mLength = mFileSystem.getFileStatus(mPath).getContentLength();
       } catch (IOException e) {
         LOG.debug("IOException encountered trying to get length for file {} \n {}", mPath, e);
-        return 0;
-      } catch (AlluxioException e) {
-        LOG.debug("AlluxioException encountered trying to get length for file {} \n {}", mPath, e);
         return 0;
       }
     }
@@ -60,23 +62,24 @@ public class AlluxioInputFile implements InputFile {
 
   @Override
   public SeekableInputStream newStream() {
-    SeekableInputStream stream;
-
     try {
-      stream = AlluxioStreams.wrap(mFileSystem.openFile(mPath));
+      InputStream input = mFileSystem.open(mPath);
+      if (mFileSystem.isSeekable() && input instanceof SeekableUnderFileInputStream) {
+        return AlluxioStreams.wrap((SeekableUnderFileInputStream)input);
+      } else if (input.markSupported()) {
+
+        return AlluxioStreams.wrap(input);
+      } else {
+        throw new RuntimeIOException("Filesystem is not seekable");
+      }
     } catch (IOException e) {
       throw new RuntimeIOException(e, "Failed to get file system for path: %s", mPath);
-    } catch (AlluxioException e) {
-      LOG.debug("AlluxioException encountered trying to get length for file {} \n {}", mPath, e);
-      throw new RuntimeException(e);
     }
-
-    return stream;
   }
 
   @Override
   public String location() {
-    return mPath.toString();
+    return mPath;
   }
 
   @Override
@@ -90,6 +93,6 @@ public class AlluxioInputFile implements InputFile {
 
   @Override
   public String toString() {
-    return mPath.toString();
+    return mPath;
   }
 }

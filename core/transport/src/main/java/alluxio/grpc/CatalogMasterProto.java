@@ -125,48 +125,49 @@ public final class CatalogMasterProto {
       "escription\030\002 \001(\t\022\020\n\010location\030\003 \001(\t\0228\n\tpa" +
       "rameter\030\004 \003(\0132%.alluxio.grpc.Database.Pa" +
       "rameterEntry\0320\n\016ParameterEntry\022\013\n\003key\030\001 " +
-      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\177\n\tTableInfo\022\022\n\nt" +
-      "able_name\030\001 \001(\t\022\017\n\007db_name\030\002 \001(\t\022%\n\004type" +
-      "\030\003 \001(\0162\027.alluxio.grpc.TableType\022\025\n\rbase_" +
-      "location\030\004 \001(\t\022\017\n\007version\030\005 \001(\r\"\031\n\027GetAl" +
-      "lDatabasesPRequest\",\n\030GetAllDatabasesPRe" +
-      "sponse\022\020\n\010database\030\001 \003(\t\"(\n\024GetAllTables" +
-      "PRequest\022\020\n\010database\030\001 \001(\t\"&\n\025GetAllTabl" +
-      "esPResponse\022\r\n\005table\030\001 \003(\t\"7\n\020GetTablePR" +
-      "equest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 " +
-      "\001(\t\"@\n\021GetTablePResponse\022+\n\ntable_info\030\001" +
-      " \001(\0132\027.alluxio.grpc.TableInfo\"O\n\021LoadTab" +
-      "lePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_nam" +
-      "e\030\002 \001(\t\022\025\n\rdata_location\030\003 \001(\t\"`\n\023Create" +
-      "TablePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_" +
-      "name\030\002 \001(\t\022$\n\006schema\030\003 \001(\0132\024.alluxio.grp" +
-      "c.Schema\"%\n\022LoadTablePResponse\022\017\n\007succes" +
-      "s\030\001 \001(\010\"T\n\024CreateTablePResponse\022\017\n\007succe" +
-      "ss\030\001 \001(\010\022+\n\ntable_info\030\002 \001(\0132\027.alluxio.g" +
-      "rpc.TableInfo\")\n\026CreateDatabasePRequest\022" +
-      "\017\n\007db_name\030\001 \001(\t\"*\n\027CreateDatabasePRespo" +
-      "nse\022\017\n\007success\030\001 \001(\010*\304\001\n\013FieldTypeId\022\013\n\007" +
-      "BOOLEAN\020\000\022\013\n\007INTEGER\020\001\022\010\n\004LONG\020\002\022\t\n\005FLOA" +
-      "T\020\003\022\n\n\006DOUBLE\020\004\022\010\n\004DATE\020\005\022\010\n\004TIME\020\006\022\r\n\tT" +
-      "IMESTAMP\020\007\022\n\n\006STRING\020\010\022\010\n\004UUID\020\t\022\t\n\005FIXE" +
-      "D\020\n\022\n\n\006BINARY\020\013\022\013\n\007DECIMAL\020\014\022\n\n\006STRUCT\020\r" +
-      "\022\010\n\004LIST\020\016\022\007\n\003MAP\020\017*%\n\tTableType\022\n\n\006NATI" +
-      "VE\020\000\022\014\n\010IMPORTED\020\0012\251\004\n\032CatalogMasterClie" +
-      "ntService\022`\n\017GetAllDatabases\022%.alluxio.g" +
-      "rpc.GetAllDatabasesPRequest\032&.alluxio.gr" +
-      "pc.GetAllDatabasesPResponse\022W\n\014GetAllTab" +
-      "les\022\".alluxio.grpc.GetAllTablesPRequest\032" +
-      "#.alluxio.grpc.GetAllTablesPResponse\022K\n\010" +
-      "GetTable\022\036.alluxio.grpc.GetTablePRequest" +
-      "\032\037.alluxio.grpc.GetTablePResponse\022N\n\tLoa" +
-      "dTable\022\037.alluxio.grpc.LoadTablePRequest\032" +
-      " .alluxio.grpc.LoadTablePResponse\022T\n\013Cre" +
-      "ateTable\022!.alluxio.grpc.CreateTablePRequ" +
-      "est\032\".alluxio.grpc.CreateTablePResponse\022" +
-      "]\n\016CreateDatabase\022$.alluxio.grpc.CreateD" +
-      "atabasePRequest\032%.alluxio.grpc.CreateDat" +
-      "abasePResponseB$\n\014alluxio.grpcB\022CatalogM" +
-      "asterProtoP\001"
+      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\245\001\n\tTableInfo\022\022\n\n" +
+      "table_name\030\001 \001(\t\022\017\n\007db_name\030\002 \001(\t\022%\n\004typ" +
+      "e\030\003 \001(\0162\027.alluxio.grpc.TableType\022\025\n\rbase" +
+      "_location\030\004 \001(\t\022\017\n\007version\030\005 \001(\r\022$\n\006sche" +
+      "ma\030\006 \001(\0132\024.alluxio.grpc.Schema\"\031\n\027GetAll" +
+      "DatabasesPRequest\",\n\030GetAllDatabasesPRes" +
+      "ponse\022\020\n\010database\030\001 \003(\t\"(\n\024GetAllTablesP" +
+      "Request\022\020\n\010database\030\001 \001(\t\"&\n\025GetAllTable" +
+      "sPResponse\022\r\n\005table\030\001 \003(\t\"7\n\020GetTablePRe" +
+      "quest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001" +
+      "(\t\"@\n\021GetTablePResponse\022+\n\ntable_info\030\001 " +
+      "\001(\0132\027.alluxio.grpc.TableInfo\"O\n\021LoadTabl" +
+      "ePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name" +
+      "\030\002 \001(\t\022\025\n\rdata_location\030\003 \001(\t\"`\n\023CreateT" +
+      "ablePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_n" +
+      "ame\030\002 \001(\t\022$\n\006schema\030\003 \001(\0132\024.alluxio.grpc" +
+      ".Schema\"%\n\022LoadTablePResponse\022\017\n\007success" +
+      "\030\001 \001(\010\"T\n\024CreateTablePResponse\022\017\n\007succes" +
+      "s\030\001 \001(\010\022+\n\ntable_info\030\002 \001(\0132\027.alluxio.gr" +
+      "pc.TableInfo\")\n\026CreateDatabasePRequest\022\017" +
+      "\n\007db_name\030\001 \001(\t\"*\n\027CreateDatabasePRespon" +
+      "se\022\017\n\007success\030\001 \001(\010*\304\001\n\013FieldTypeId\022\013\n\007B" +
+      "OOLEAN\020\000\022\013\n\007INTEGER\020\001\022\010\n\004LONG\020\002\022\t\n\005FLOAT" +
+      "\020\003\022\n\n\006DOUBLE\020\004\022\010\n\004DATE\020\005\022\010\n\004TIME\020\006\022\r\n\tTI" +
+      "MESTAMP\020\007\022\n\n\006STRING\020\010\022\010\n\004UUID\020\t\022\t\n\005FIXED" +
+      "\020\n\022\n\n\006BINARY\020\013\022\013\n\007DECIMAL\020\014\022\n\n\006STRUCT\020\r\022" +
+      "\010\n\004LIST\020\016\022\007\n\003MAP\020\017*%\n\tTableType\022\n\n\006NATIV" +
+      "E\020\000\022\014\n\010IMPORTED\020\0012\251\004\n\032CatalogMasterClien" +
+      "tService\022`\n\017GetAllDatabases\022%.alluxio.gr" +
+      "pc.GetAllDatabasesPRequest\032&.alluxio.grp" +
+      "c.GetAllDatabasesPResponse\022W\n\014GetAllTabl" +
+      "es\022\".alluxio.grpc.GetAllTablesPRequest\032#" +
+      ".alluxio.grpc.GetAllTablesPResponse\022K\n\010G" +
+      "etTable\022\036.alluxio.grpc.GetTablePRequest\032" +
+      "\037.alluxio.grpc.GetTablePResponse\022N\n\tLoad" +
+      "Table\022\037.alluxio.grpc.LoadTablePRequest\032 " +
+      ".alluxio.grpc.LoadTablePResponse\022T\n\013Crea" +
+      "teTable\022!.alluxio.grpc.CreateTablePReque" +
+      "st\032\".alluxio.grpc.CreateTablePResponse\022]" +
+      "\n\016CreateDatabase\022$.alluxio.grpc.CreateDa" +
+      "tabasePRequest\032%.alluxio.grpc.CreateData" +
+      "basePResponseB$\n\014alluxio.grpcB\022CatalogMa" +
+      "sterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -216,7 +217,7 @@ public final class CatalogMasterProto {
     internal_static_alluxio_grpc_TableInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_TableInfo_descriptor,
-        new java.lang.String[] { "TableName", "DbName", "Type", "BaseLocation", "Version", });
+        new java.lang.String[] { "TableName", "DbName", "Type", "BaseLocation", "Version", "Schema", });
     internal_static_alluxio_grpc_GetAllDatabasesPRequest_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_grpc_GetAllDatabasesPRequest_fieldAccessorTable = new

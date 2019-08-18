@@ -16,20 +16,43 @@ import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.MountPointInfo;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecordBuilder;
+import org.apache.iceberg.DataFile;
+import org.apache.iceberg.DataFiles;
+import org.apache.iceberg.FileFormat;
+import org.apache.iceberg.Schema;
+import org.apache.iceberg.Table;
+import org.apache.iceberg.avro.Avro;
+import org.apache.iceberg.avro.AvroSchemaUtil;
+import org.apache.iceberg.io.FileAppender;
+import org.apache.iceberg.parquet.Parquet;
+import org.apache.iceberg.types.Types;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.apache.iceberg.Files.localOutput;
 
 /**
  * Integration tests for the Catalog Master Client.
@@ -42,9 +65,6 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
   private FileSystem mFileSystem = null;
   private FileSystemMasterClient mFSMasterClient;
   private CatalogMasterClient mCatalogMasterClient;
-  private SetAttributePOptions mSetPinned;
-  private SetAttributePOptions mUnsetPinned;
-  private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
   @Before
   public final void before() throws Exception {
@@ -53,7 +73,7 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
     mCatalogMasterClient = new RetryHandlingCatalogMasterClient(context);
     mFSMasterClient = new FileSystemMasterClient(context);
-    mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
+
   }
 
   @After
@@ -67,10 +87,19 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
    */
   @Test
   public void tableOps() throws Exception {
-    Assert.assertEquals(0, mFSMasterClient.getPinList().size());
+    Map<String, MountPointInfo> test = mFileSystem.getMountTable();
     List<String> dbs = mCatalogMasterClient.getAllDatabases();
-
     Assert.assertEquals( 0, dbs.size());
+    mCatalogMasterClient.createDatabase("test1");
+    dbs = mCatalogMasterClient.getAllDatabases();
+    Assert.assertEquals( 1, dbs.size());
+    Assert.assertEquals(dbs.get(0), "test1");
+    Schema schema = new Schema(Types.NestedField.optional(0, "id", Types.IntegerType.get()));
+
+    TableInfo table = mCatalogMasterClient.createTable("test1", "table1", schema);
+    Assert.assertEquals(test.get("/").getUfsUri() +"/catalog-metadata/test1.db/table1", table.getBaseLocation());
+    Assert.assertEquals(1, table.getSchema().getColsCount());
+    Assert.assertEquals(Types.IntegerType.get(), ProtoUtils.fromProto(table.getSchema()).findField(0).type());
   }
 
 }

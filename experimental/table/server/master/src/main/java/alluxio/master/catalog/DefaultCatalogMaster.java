@@ -13,6 +13,9 @@ package alluxio.master.catalog;
 
 import alluxio.clock.SystemClock;
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.Schema;
 import alluxio.grpc.ServiceType;
@@ -21,10 +24,11 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
-import alluxio.util.ConfigurationUtils;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.iceberg.Table;
 import org.apache.iceberg.catalog.TableIdentifier;
 import org.slf4j.Logger;
@@ -43,6 +47,8 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultCatalogMaster.class);
   private final AlluxioCatalog mCatalog;
 
+  private final UnderFileSystem mUfs;
+
   /**
    * Constructor for DefaultCatalogMaster.
    *
@@ -51,10 +57,14 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   public DefaultCatalogMaster(CoreMasterContext context) {
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.CATALOG_MASTER_NAME));
-    // FileSystemContext fsContext =
-    //    FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
-    //
-    mCatalog = new AlluxioCatalog();
+    if (URIUtils.isLocalFilesystem(ServerConfiguration
+        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
+      mUfs = UnderFileSystem.Factory
+          .create("/", UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+    } else {
+      mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+    }
+    mCatalog = new AlluxioCatalog(mUfs);
   }
 
   @Override
@@ -73,10 +83,10 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public boolean createTable(String dbName, String tableName, Schema schema) {
+  public Table createTable(String dbName, String tableName, Schema schema) {
     TableIdentifier id = TableIdentifier.of(dbName, tableName);
     Table table  = mCatalog.createTable(id, ProtoUtils.fromProto(schema));
-    return (table != null);
+    return table;
   }
 
   @Override

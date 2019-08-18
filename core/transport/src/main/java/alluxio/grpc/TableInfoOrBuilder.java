@@ -66,4 +66,17 @@ public interface TableInfoOrBuilder extends
    * <code>optional uint32 version = 5;</code>
    */
   int getVersion();
+
+  /**
+   * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+   */
+  boolean hasSchema();
+  /**
+   * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+   */
+  alluxio.grpc.Schema getSchema();
+  /**
+   * <code>optional .alluxio.grpc.Schema schema = 6;</code>
+   */
+  alluxio.grpc.SchemaOrBuilder getSchemaOrBuilder();
 }

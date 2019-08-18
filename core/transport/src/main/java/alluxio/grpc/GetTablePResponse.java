@@ -114,6 +114,12 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (hasTableInfo()) {
+      if (!getTableInfo().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -390,6 +396,11 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      if (hasTableInfo()) {
+        if (!getTableInfo().isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 

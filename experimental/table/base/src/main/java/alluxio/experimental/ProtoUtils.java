@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.catalog;
+package alluxio.experimental;
 
 import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FieldTypeId;
@@ -20,8 +20,7 @@ import com.google.common.collect.ImmutableBiMap;
 import org.apache.iceberg.types.Type;
 import org.apache.iceberg.types.Types;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 public final class ProtoUtils {
@@ -54,12 +53,6 @@ public final class ProtoUtils {
                 .setOptional(col.isOptional())
                 .build();
       } else { // col is a nested type
-        List<FieldSchema> protoFields = new ArrayList<>();
-        // col is a nested type
-        List<Types.NestedField> fields = col.type().asNestedType().fields();
-        for (Types.NestedField field: fields) {
-            protoFields.add(toProto(field));
-        }
         return FieldSchema.newBuilder().setName(col.name())
             .setType(alluxio.grpc.Type.newBuilder()
                 .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
@@ -121,7 +114,7 @@ public final class ProtoUtils {
           }
           return mapType;
         default:
-          return null;
+          return Types.StructType.of(Collections.emptyList());
       }
     }
 

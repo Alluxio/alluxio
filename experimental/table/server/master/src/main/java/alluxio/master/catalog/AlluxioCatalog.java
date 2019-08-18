@@ -14,6 +14,8 @@ package alluxio.master.catalog;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -48,15 +50,11 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
   private final Set<String> mDatabases = new HashSet<>();
   private final Map<String, Map<String, Table>> mDbToTables = new HashMap<>();
 
-  private FileSystem mFileSystem = null;
+  private UnderFileSystem mUfs = null;
 
-  public AlluxioCatalog() {
+  public AlluxioCatalog(UnderFileSystem fs) {
     super();
-  }
-
-  public AlluxioCatalog(FileSystem fs) {
-    super();
-    mFileSystem = fs;
+    mUfs = fs;
   }
 
   @Override
@@ -156,12 +154,13 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
         "Missing database in table identifier: %s", identifier);
     String tableName = identifier.name();
     String dbName = identifier.namespace().level(0);
-    return new AlluxioTableOperations(mFileSystem, dbName, tableName);
+    return new AlluxioTableOperations(mUfs, dbName, tableName);
   }
 
   @Override
   protected String defaultWarehouseLocation(TableIdentifier tableIdentifier) {
-    String pathPrefix = ServerConfiguration.get(PropertyKey.METADATA_PATH);
+    String pathPrefix = PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
+        ServerConfiguration.get(PropertyKey.METADATA_PATH));
     return String.format("%s/%s.db/%s", pathPrefix, tableIdentifier.namespace().levels()[0],
         tableIdentifier.name());
   }
@@ -192,7 +191,7 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
   @Override
   public Table create(Schema schema, PartitionSpec spec, Map<String, String> properties, String location) {
     Preconditions.checkNotNull(schema, "A table schema is required");
-    TableOperations ops = new AlluxioTableOperations(mFileSystem, location);
+    TableOperations ops = new AlluxioTableOperations(mUfs, location);
     if (ops.current() != null) {
       throw new AlreadyExistsException("Table already exists at location: " + location, new Object[0]);
     } else {
@@ -212,7 +211,7 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
   public Table loadAs(String location, TableIdentifier identifier) {
     Preconditions.checkArgument(identifier.namespace().levels().length == 1,
         "Missing database in table identifier: %s", identifier);
-    TableOperations ops = new AlluxioTableOperations(mFileSystem, location,
+    TableOperations ops = new AlluxioTableOperations(mUfs, location,
         identifier.namespace().level(0), identifier.name());
 
     if (ops.current() == null) {
