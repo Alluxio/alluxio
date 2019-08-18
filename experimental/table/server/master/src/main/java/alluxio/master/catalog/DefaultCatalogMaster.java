@@ -11,11 +11,8 @@
 
 package alluxio.master.catalog;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.clock.SystemClock;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.experimental.Constants;
+import alluxio.Constants;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.Schema;
 import alluxio.grpc.ServiceType;
@@ -27,7 +24,6 @@ import alluxio.proto.journal.Journal;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.iceberg.Table;
 import org.apache.iceberg.catalog.TableIdentifier;
@@ -55,9 +51,10 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   public DefaultCatalogMaster(CoreMasterContext context) {
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.CATALOG_MASTER_NAME));
-    FileSystemContext fsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
-    mCatalog = new AlluxioCatalog(FileSystem.Factory.create(fsContext));
+    // FileSystemContext fsContext =
+    //    FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    //
+    mCatalog = new AlluxioCatalog();
   }
 
   @Override
@@ -87,11 +84,6 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
     org.apache.iceberg.Table table = mCatalog.getTable(TableIdentifier.of(dbName, tableName));
     return TableInfo.newBuilder().setDbName(dbName).setTableName(tableName)
         .setBaseLocation(table.location()).build();
-  }
-
-  @Override
-  public List<FieldSchema> getFields(String databaseName, String tableName) {
-    return null;
   }
 
   @Override

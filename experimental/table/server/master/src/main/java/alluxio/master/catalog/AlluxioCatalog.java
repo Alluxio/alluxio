@@ -48,7 +48,11 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
   private final Set<String> mDatabases = new HashSet<>();
   private final Map<String, Map<String, Table>> mDbToTables = new HashMap<>();
 
-  private final FileSystem mFileSystem ;
+  private FileSystem mFileSystem = null;
+
+  public AlluxioCatalog() {
+    super();
+  }
 
   public AlluxioCatalog(FileSystem fs) {
     super();

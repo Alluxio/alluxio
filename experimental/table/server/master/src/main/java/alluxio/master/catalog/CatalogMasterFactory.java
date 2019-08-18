@@ -11,12 +11,11 @@
 
 package alluxio.master.catalog;
 
-import alluxio.experimental.Constants;
+import alluxio.Constants;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 
-import alluxio.master.file.FileSystemMaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

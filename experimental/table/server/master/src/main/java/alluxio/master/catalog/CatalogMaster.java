@@ -64,15 +64,4 @@ public interface CatalogMaster extends Master {
    * Get a table.
    */
   TableInfo getTable(String databaseName, String tableName);
-
-  /**
-   * Get the schema of a table.
-   *
-   * @param databaseName the name of a database
-   * @param tableName the name of a table
-   *
-   * @return a list of field schemas
-   *
-   */
-  List<FieldSchema> getFields(String databaseName, String tableName);
 }
