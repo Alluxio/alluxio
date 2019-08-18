@@ -13,6 +13,7 @@ package alluxio.client.catalog;
 
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.FileStatistics;
 import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
 
@@ -115,7 +116,7 @@ public interface CatalogMasterClient extends Client {
    * @return list of column statistics
    * @throws AlluxioStatusException
    */
-  List<ColumnStatisticsObj> getTableColumnStatistics(
+  Map<String, FileStatistics> getTableColumnStatistics(
           String databaseName,
           String tableName,
           List<String> columnNames) throws AlluxioStatusException;
@@ -175,4 +176,14 @@ public interface CatalogMasterClient extends Client {
           String tableName,
           List<String> partitionNames,
           List<String> columnNames) throws AlluxioStatusException;
+
+
+  /**
+   * Get a list of datafiles associated with a table
+   * @param dbName database name
+   * @param tableName table name
+   * @return a list of data files
+   * @throws AlluxioStatusException
+   */
+  List<String> getDataFiles (String dbName, String tableName) throws AlluxioStatusException;
 }

@@ -18,8 +18,11 @@ import alluxio.Constants;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.CreateDatabasePRequest;
 import alluxio.grpc.CreateTablePRequest;
+import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllTablesPRequest;
+import alluxio.grpc.GetDataFilesPRequest;
+import alluxio.grpc.GetStatisticsPRequest;
 import alluxio.grpc.GetTablePRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.TableInfo;
@@ -113,19 +116,28 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
 
   @Override
   public TableInfo createTable(String dbName, String tableName, Schema schema) throws AlluxioStatusException {
-    TableInfo info = retryRPC(() -> mClient.createTable(
+    return retryRPC(() -> mClient.createTable(
         CreateTablePRequest.newBuilder().setDbName(dbName)
             .setTableName(tableName)
             .setSchema(ProtoUtils.toProto(schema)).build()).getTableInfo());
-    return info;
   }
 
   @Override
-  public List<ColumnStatisticsObj> getTableColumnStatistics(
+  public Map<String, FileStatistics> getTableColumnStatistics(
           String databaseName,
           String tableName,
           List<String> columnNames) throws AlluxioStatusException {
-    return null;
+    return retryRPC(() -> mClient.getStatistics(
+        GetStatisticsPRequest.newBuilder().setDbName(databaseName)
+            .setTableName(tableName).build()).getStatisticsMap());
+  }
+
+  @Override
+  public List<String> getDataFiles(String dbName, String tableName)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getDataFiles(
+        GetDataFilesPRequest.newBuilder().setDbName(dbName)
+            .setTableName(tableName).build()).getDataFileList());
   }
 
   @Override

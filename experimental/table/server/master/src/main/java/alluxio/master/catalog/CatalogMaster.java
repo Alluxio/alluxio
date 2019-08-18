@@ -11,6 +11,7 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.FileStatistics;
 import alluxio.grpc.Schema;
 import alluxio.master.Master;
 //TODO(yuzhu): replace these classes with our own version of Database and Table classes
@@ -18,6 +19,7 @@ import alluxio.master.Master;
 import org.apache.iceberg.Table;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface of the catalog master that manages the catalog metadata.
@@ -61,4 +63,11 @@ public interface CatalogMaster extends Master {
    */
   Table getTable(String databaseName, String tableName);
 
+  /**
+   * Get statistics on the table
+   */
+
+  Map<String, FileStatistics> getStatistics(String databaseName, String tableName);
+
+  List<String> getDataFiles(String dbName, String tableName);
 }

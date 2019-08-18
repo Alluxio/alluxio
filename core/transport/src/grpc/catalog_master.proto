@@ -118,6 +118,31 @@ message CreateDatabasePResponse {
     optional bool success = 1;
 }
 
+message GetDataFilesPRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+}
+
+message GetDataFilesPResponse {
+    repeated string data_file = 1;
+}
+
+message GetStatisticsPRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+}
+
+message ColumnStatistics {
+    optional uint64 record_count = 1;
+}
+
+message FileStatistics {
+    map<uint32, ColumnStatistics> column = 1;
+}
+message GetStatisticsPResponse {
+    map<string, FileStatistics> statistics = 1;
+}
+
 /**
  * This interface contains catalog master service endpoints for Alluxio clients.
  */
@@ -152,4 +177,8 @@ service CatalogMasterClientService {
      * Create a new database in the metastore
      */
     rpc CreateDatabase(CreateDatabasePRequest) returns (CreateDatabasePResponse);
+
+    rpc GetDataFiles(GetDataFilesPRequest) returns (GetDataFilesPResponse);
+
+    rpc GetStatistics(GetStatisticsPRequest) returns (GetStatisticsPResponse);
 }

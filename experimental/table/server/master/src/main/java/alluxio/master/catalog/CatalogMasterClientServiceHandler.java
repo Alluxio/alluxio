@@ -24,6 +24,10 @@ import alluxio.grpc.GetAllDatabasesPResponse;
 
 import alluxio.grpc.GetAllTablesPRequest;
 import alluxio.grpc.GetAllTablesPResponse;
+import alluxio.grpc.GetDataFilesPRequest;
+import alluxio.grpc.GetDataFilesPResponse;
+import alluxio.grpc.GetStatisticsPRequest;
+import alluxio.grpc.GetStatisticsPResponse;
 import alluxio.grpc.GetTablePRequest;
 import alluxio.grpc.GetTablePResponse;
 import alluxio.grpc.TableInfo;
@@ -112,4 +116,21 @@ public class CatalogMasterClientServiceHandler
     RpcUtils.call(LOG, () -> CreateDatabasePResponse.newBuilder()
         .setSuccess(mCatalogMaster.createDatabase(request.getDbName())).build(), "createDatabase", "", responseObserver);
   }
+
+  @Override
+  public void getStatistics(GetStatisticsPRequest request,
+      StreamObserver<GetStatisticsPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetStatisticsPResponse.newBuilder()
+        .putAllStatistics(mCatalogMaster.getStatistics(request.getDbName(), request.getTableName())).build(),
+        "getStatistics", "", responseObserver);
+  }
+
+  @Override
+  public void getDataFiles (GetDataFilesPRequest request,
+      StreamObserver<GetDataFilesPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetDataFilesPResponse.newBuilder()
+            .addAllDataFile(mCatalogMaster.getDataFiles(request.getDbName(), request.getTableName())).build(),
+        "getStatistics", "", responseObserver);
+  }
+
 }

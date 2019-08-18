@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.experimental.ProtoUtils;
+import alluxio.grpc.ColumnStatistics;
+import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.Schema;
 import alluxio.grpc.ServiceType;
@@ -28,12 +30,14 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import org.apache.iceberg.FileScanTask;
 import org.apache.iceberg.Table;
 import org.apache.iceberg.catalog.TableIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -91,6 +95,34 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   @Override
   public Table getTable(String dbName, String tableName) {
     return mCatalog.getTable(TableIdentifier.of(dbName, tableName));
+  }
+
+  @Override
+  public Map<String, FileStatistics> getStatistics(String dbName, String tableName) {
+    Table table = getTable(dbName, tableName);
+    Map<String, FileStatistics> map = new HashMap<>();
+    for (FileScanTask task : table.newScan().planFiles()) {
+      Map<Integer, Long> columnValueCount = task.file().valueCounts();
+      Map<Integer, ColumnStatistics> statisticsMap = new HashMap<>();
+      for (Map.Entry<Integer, Long> entry : columnValueCount.entrySet()) {
+        statisticsMap.put(entry.getKey(),
+            ColumnStatistics.newBuilder().setRecordCount(entry.getValue()).build());
+      }
+      map.put(task.file().path().toString(),
+          FileStatistics.newBuilder().putAllColumn(statisticsMap).build());
+    }
+    return map;
+  }
+
+  @Override
+  public List<String> getDataFiles(String dbName, String tableName) {
+    Table table = getTable(dbName, tableName);
+    List<String> list = new ArrayList<>();
+    for (FileScanTask task : table.newScan().planFiles()) {
+
+      list.add(task.file().path().toString());
+    }
+    return list;
   }
 
   @Override

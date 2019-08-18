@@ -223,6 +223,70 @@ public final class CatalogMasterClientServiceGrpc {
      return getCreateDatabaseMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetDataFilesPRequest,
+      alluxio.grpc.GetDataFilesPResponse> getGetDataFilesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetDataFiles",
+      requestType = alluxio.grpc.GetDataFilesPRequest.class,
+      responseType = alluxio.grpc.GetDataFilesPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetDataFilesPRequest,
+      alluxio.grpc.GetDataFilesPResponse> getGetDataFilesMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetDataFilesPRequest, alluxio.grpc.GetDataFilesPResponse> getGetDataFilesMethod;
+    if ((getGetDataFilesMethod = CatalogMasterClientServiceGrpc.getGetDataFilesMethod) == null) {
+      synchronized (CatalogMasterClientServiceGrpc.class) {
+        if ((getGetDataFilesMethod = CatalogMasterClientServiceGrpc.getGetDataFilesMethod) == null) {
+          CatalogMasterClientServiceGrpc.getGetDataFilesMethod = getGetDataFilesMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetDataFilesPRequest, alluxio.grpc.GetDataFilesPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.CatalogMasterClientService", "GetDataFiles"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetDataFilesPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetDataFilesPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("GetDataFiles"))
+                  .build();
+          }
+        }
+     }
+     return getGetDataFilesMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetStatisticsPRequest,
+      alluxio.grpc.GetStatisticsPResponse> getGetStatisticsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetStatistics",
+      requestType = alluxio.grpc.GetStatisticsPRequest.class,
+      responseType = alluxio.grpc.GetStatisticsPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetStatisticsPRequest,
+      alluxio.grpc.GetStatisticsPResponse> getGetStatisticsMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetStatisticsPRequest, alluxio.grpc.GetStatisticsPResponse> getGetStatisticsMethod;
+    if ((getGetStatisticsMethod = CatalogMasterClientServiceGrpc.getGetStatisticsMethod) == null) {
+      synchronized (CatalogMasterClientServiceGrpc.class) {
+        if ((getGetStatisticsMethod = CatalogMasterClientServiceGrpc.getGetStatisticsMethod) == null) {
+          CatalogMasterClientServiceGrpc.getGetStatisticsMethod = getGetStatisticsMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetStatisticsPRequest, alluxio.grpc.GetStatisticsPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.CatalogMasterClientService", "GetStatistics"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetStatisticsPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetStatisticsPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("GetStatistics"))
+                  .build();
+          }
+        }
+     }
+     return getGetStatisticsMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -320,6 +384,20 @@ public final class CatalogMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getCreateDatabaseMethod(), responseObserver);
     }
 
+    /**
+     */
+    public void getDataFiles(alluxio.grpc.GetDataFilesPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetDataFilesPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetDataFilesMethod(), responseObserver);
+    }
+
+    /**
+     */
+    public void getStatistics(alluxio.grpc.GetStatisticsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetStatisticsPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetStatisticsMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -364,6 +442,20 @@ public final class CatalogMasterClientServiceGrpc {
                 alluxio.grpc.CreateDatabasePRequest,
                 alluxio.grpc.CreateDatabasePResponse>(
                   this, METHODID_CREATE_DATABASE)))
+          .addMethod(
+            getGetDataFilesMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetDataFilesPRequest,
+                alluxio.grpc.GetDataFilesPResponse>(
+                  this, METHODID_GET_DATA_FILES)))
+          .addMethod(
+            getGetStatisticsMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetStatisticsPRequest,
+                alluxio.grpc.GetStatisticsPResponse>(
+                  this, METHODID_GET_STATISTICS)))
           .build();
     }
   }
@@ -461,6 +553,22 @@ public final class CatalogMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getCreateDatabaseMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void getDataFiles(alluxio.grpc.GetDataFilesPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetDataFilesPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetDataFilesMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void getStatistics(alluxio.grpc.GetStatisticsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetStatisticsPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetStatisticsMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -549,6 +657,20 @@ public final class CatalogMasterClientServiceGrpc {
     public alluxio.grpc.CreateDatabasePResponse createDatabase(alluxio.grpc.CreateDatabasePRequest request) {
       return blockingUnaryCall(
           getChannel(), getCreateDatabaseMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public alluxio.grpc.GetDataFilesPResponse getDataFiles(alluxio.grpc.GetDataFilesPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetDataFilesMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public alluxio.grpc.GetStatisticsPResponse getStatistics(alluxio.grpc.GetStatisticsPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetStatisticsMethod(), getCallOptions(), request);
     }
   }
 
@@ -645,6 +767,22 @@ public final class CatalogMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getCreateDatabaseMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetDataFilesPResponse> getDataFiles(
+        alluxio.grpc.GetDataFilesPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetDataFilesMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetStatisticsPResponse> getStatistics(
+        alluxio.grpc.GetStatisticsPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetStatisticsMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_ALL_DATABASES = 0;
@@ -653,6 +791,8 @@ public final class CatalogMasterClientServiceGrpc {
   private static final int METHODID_LOAD_TABLE = 3;
   private static final int METHODID_CREATE_TABLE = 4;
   private static final int METHODID_CREATE_DATABASE = 5;
+  private static final int METHODID_GET_DATA_FILES = 6;
+  private static final int METHODID_GET_STATISTICS = 7;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -694,6 +834,14 @@ public final class CatalogMasterClientServiceGrpc {
         case METHODID_CREATE_DATABASE:
           serviceImpl.createDatabase((alluxio.grpc.CreateDatabasePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.CreateDatabasePResponse>) responseObserver);
+          break;
+        case METHODID_GET_DATA_FILES:
+          serviceImpl.getDataFiles((alluxio.grpc.GetDataFilesPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetDataFilesPResponse>) responseObserver);
+          break;
+        case METHODID_GET_STATISTICS:
+          serviceImpl.getStatistics((alluxio.grpc.GetStatisticsPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetStatisticsPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -762,6 +910,8 @@ public final class CatalogMasterClientServiceGrpc {
               .addMethod(getLoadTableMethod())
               .addMethod(getCreateTableMethod())
               .addMethod(getCreateDatabaseMethod())
+              .addMethod(getGetDataFilesMethod())
+              .addMethod(getGetStatisticsMethod())
               .build();
         }
       }
