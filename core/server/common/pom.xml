@@ -47,10 +47,6 @@
       <artifactId>copycat-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.atomix.catalyst</groupId>
-      <artifactId>catalyst-netty</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
     </dependency>

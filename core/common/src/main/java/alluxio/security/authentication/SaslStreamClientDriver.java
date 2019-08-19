@@ -111,8 +111,20 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
 
   @Override
   public void onError(Throwable throwable) {
-    LOG.warn("Received error on client driver for channel: {}. Error: {}", mChannelId, throwable);
+    // Fail handshake if still active.
     mHandshakeFuture.setException(throwable);
+
+    String errorMsg = String.format("Received error on client driver for channel: %s. Error: %s",
+        mChannelId, throwable);
+
+    // UNAVAILABLE is quite common while cluster is booting up.
+    // Tracing it as warning will pollute logs as onError() will be called per connection retry.
+    if (throwable instanceof StatusRuntimeException
+        && ((StatusRuntimeException) throwable).getStatus().getCode() == Status.Code.UNAVAILABLE) {
+      LOG.debug(errorMsg);
+    } else {
+      LOG.warn(errorMsg);
+    }
   }
 
   @Override

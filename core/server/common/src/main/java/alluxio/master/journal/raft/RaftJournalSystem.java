@@ -25,7 +25,9 @@ import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.raft.transport.CopycatGrpcTransport;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -33,7 +35,6 @@ import alluxio.util.io.FileUtils;
 import com.google.common.base.Preconditions;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.netty.NettyTransport;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.copycat.client.RecoveryStrategies;
 import io.atomix.copycat.server.CopycatServer;
@@ -215,7 +216,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withHeartbeatInterval(Duration.ofMillis(mConf.getHeartbeatIntervalMs()))
         .withSnapshotAllowed(mSnapshotAllowed)
         .withSerializer(createSerializer())
-        .withTransport(new NettyTransport())
+        .withTransport(
+            new CopycatGrpcTransport(ServerConfiguration.global(), ServerUserState.global()))
         // Copycat wants a supplier that will generate *new* state machines. We can't handle
         // generating a new state machine here, so we will throw an exception if copycat tries to
         // call the supplier more than once.
@@ -245,6 +247,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withRecoveryStrategy(RecoveryStrategies.RECOVER)
         .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
             Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
+        .withTransport(
+            new CopycatGrpcTransport(ServerConfiguration.global(), ServerUserState.global()))
+        .withSerializer(createSerializer())
         .build();
   }
 
@@ -341,9 +346,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void checkpoint() throws IOException {
     try {
+      long start = System.currentTimeMillis();
       mSnapshotAllowed.set(true);
       CopycatClient client = createAndConnectClient();
-      long start = System.currentTimeMillis();
       LOG.info("Submitting empty journal entry to trigger snapshot");
       // New snapshot requires new segments (segment size is controlled by
       // {@link PropertyKey#MASTER_JOURNAL_LOG_SIZE_BYTES_MAX}).
@@ -498,7 +503,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void stopInternal() throws InterruptedException, IOException {
     LOG.info("Shutting down raft journal");
-    mRaftJournalWriter.close();
+    if (mRaftJournalWriter != null) {
+      mRaftJournalWriter.close();
+    }
     try {
       mServer.shutdown().get(ServerConfiguration
           .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);

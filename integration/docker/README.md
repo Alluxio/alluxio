@@ -45,7 +45,7 @@ There are a couple extra arguments required to run the docker image with FUSE su
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master \
---cap-add SYS_ADMIN --device /dev/fuse alluxio-fuse [master|worker|proxy]
+--cap-add SYS_ADMIN --device /dev/fuse alluxio-fuse fuse --fuse-opts=allow_other
 ```
 
 Note: running FUSE in docker requires adding

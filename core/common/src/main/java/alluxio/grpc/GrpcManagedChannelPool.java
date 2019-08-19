@@ -222,10 +222,9 @@ public class GrpcManagedChannelPool {
    */
   private ManagedChannel createManagedChannel(ChannelKey channelKey) {
     NettyChannelBuilder channelBuilder;
-    // Use constructor that resolves address if given an unresolved inet address.
-    if (channelKey.mAddress instanceof InetSocketAddress
-        && ((InetSocketAddress) channelKey.mAddress).isUnresolved()) {
+    if (channelKey.mAddress instanceof InetSocketAddress) {
       InetSocketAddress inetServerAddress = (InetSocketAddress) channelKey.mAddress;
+      // This constructor delays DNS lookup to detect changes
       channelBuilder = NettyChannelBuilder.forAddress(inetServerAddress.getHostName(),
           inetServerAddress.getPort());
     } else {

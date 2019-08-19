@@ -21,6 +21,7 @@ import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
@@ -30,11 +31,13 @@ import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
 
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Function;
 
 /**
  * Tests for ls command.
@@ -291,6 +294,52 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
+   * Tests ls command with sort by access time option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+  public void lsWithSortByAccessTime() throws IOException, AlluxioException {
+    String oldFileRecentlyAccessed = "/testRoot/testFileRecent";
+    String oldFileName = "/testRoot/testFile";
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
+
+    FileSystemTestUtils.loadFile(mFileSystem, oldFileRecentlyAccessed);
+    mFsShell.run("ls", "--sort", "lastAccessTime", "/testRoot");
+    checkOutput(
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName,
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed);
+  }
+
+  /**
+   * Tests ls command with sort by creation time option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+  public void lsWithSortByCreationTime() throws IOException, AlluxioException {
+    String oldFileRecentlyAccessed = "/testRoot/testFileRecent";
+    String oldFileName = "/testRoot/testFile";
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils
+        .createByteFile(mFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
+
+    FileSystemTestUtils.loadFile(mFileSystem, oldFileRecentlyAccessed);
+    mFsShell.run("ls", "--sort", "creationTime", "/testRoot");
+    checkOutput(
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed,
+        "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName);
+  }
+
+  /**
    * Tests ls command with sort by size option.
    */
   @Test
@@ -366,6 +415,71 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
         "            100   NOT_PERSISTED .+ .+ 100% /testRoot/testLongFile",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileZ",
         "             50   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA");
+  }
+
+  private String getDisplayTime(long timestamp) {
+    String formatString = ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
+    return CommonUtils.convertMsToDate(timestamp, formatString);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"
+      })
+  public void lsWithCreationTime() throws Exception {
+    checkLsWithTimestamp("creationTime", URIStatus::getCreationTimeMs);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"
+      })
+  public void lsWithModificationTime() throws Exception {
+    checkLsWithTimestamp("lastModificationTime", URIStatus::getLastModificationTimeMs);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
+          PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"
+      })
+  public void lsWithAccessTime() throws Exception {
+    checkLsWithTimestamp("lastAccessTime", URIStatus::getLastAccessTimeMs);
+  }
+
+  private void checkLsWithTimestamp(String parameter, Function<URIStatus, Long> timestampFunc)
+      throws Exception {
+    createFiles("test_user_ls");
+    String testDir = "/testRoot/testDir";
+    String testFileA = "/testRoot/testFileA";
+    String testFileC = "/testRoot/testFileC";
+    mFileSystem.listStatus(new AlluxioURI(testDir));
+    FileSystemTestUtils.loadFile(mFileSystem, testFileA);
+    FileSystemTestUtils.loadFile(mFileSystem, testFileC);
+    mFsShell.run("ls", "--timestamp", parameter, "/testRoot");
+    long time1 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testDir)));
+    long time2 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testFileA)));
+    long time3 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testFileC)));
+    // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
+    checkOutput(
+        "drwxr-xr-x  test_user_ls   test_user_ls                 1   NOT_PERSISTED " +  getDisplayTime(time1) + "  DIR /testRoot/testDir",
+        "-rw-r--r--  test_user_ls   test_user_ls                10   NOT_PERSISTED " +  getDisplayTime(time2) + " 100% /testRoot/testFileA",
+        "-rw-r--r--  test_user_ls   test_user_ls                30       PERSISTED " +  getDisplayTime(time3) + " 100% /testRoot/testFileC");
+    // CHECKSTYLE.ON: LineLengthExceed
   }
 
   @Test

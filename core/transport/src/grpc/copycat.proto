@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "CopycatProto";
+
+package alluxio.grpc.copycat;
+
+message CopycatRequestHeader {
+    optional int64 requestId = 1;
+}
+message CopycatResponseHeader {
+    optional int64 requestId = 1;
+    optional bool failed = 2;
+}
+message CopycatMessage {
+    optional CopycatRequestHeader requestHeader = 1;
+    optional CopycatResponseHeader responseHeader = 2;
+    optional bytes message = 3;
+}
+
+// The copycat message server service.
+service CopycatMessageServer {
+    rpc connect (stream CopycatMessage) returns (stream CopycatMessage);
+}

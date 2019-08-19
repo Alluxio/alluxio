@@ -23,10 +23,15 @@ public interface JournalSink {
    *
    * @param entry the entry to append
    */
-  void append(JournalEntry entry);
+  default void append(JournalEntry entry) {}
 
   /**
    * Signals the sink that the journal is flushed.
    */
-  void flush();
+  default void flush() {}
+
+  /**
+   * Signals the sink that the journal is about to shutdown.
+   */
+  default void beforeShutdown() {}
 }

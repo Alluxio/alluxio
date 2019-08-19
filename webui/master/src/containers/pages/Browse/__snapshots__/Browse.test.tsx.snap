@@ -1086,7 +1086,7 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
               color="secondary"
               outline={true}
               tag={[Function]}
-              to="/browse?path=/&offset=0"
+              to="/browse?path=/"
             >
               Root
             </Button>
@@ -1127,7 +1127,7 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
             <Button
               color="secondary"
               tag={[Function]}
-              to="/browse?path=%2F&offset=0"
+              to="/browse?path=%2F"
             >
               Go
             </Button>

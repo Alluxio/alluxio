@@ -498,6 +498,21 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * Updates internal master list with an external address.
+   *
+   * This API is to provide support when this cluster is joined by external masters.
+   * Calling this API with an external master address will make this cluster aware of it
+   * when creating clients/contexts etc.
+   *
+   * @param externalMasterAddress external master address
+   */
+  public synchronized void addExternalMasterAddress(MasterNetAddress externalMasterAddress) {
+    mMasterAddresses.add(externalMasterAddress);
+    // Reset current context to cause reinstantiation with new addresses.
+    mFilesystemContext = null;
+  }
+
+  /**
    * Updates the cluster's deploy mode.
    *
    * @param mode the mode to set

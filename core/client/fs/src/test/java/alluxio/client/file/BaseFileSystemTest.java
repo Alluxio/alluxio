@@ -30,6 +30,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.TestLoggerRule;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -411,12 +412,11 @@ public final class BaseFileSystemTest {
   public void openFile() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
-    GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
-        .toBuilder().mergeFrom(getStatusOptions).build())).thenReturn(status);
+    GetStatusPOptions getStatusOptions = getOpenOptions(GetStatusPOptions.getDefaultInstance());
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions))
+        .thenReturn(status);
     mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
-    verify(mFileSystemMasterClient).getStatus(file,
-        FileSystemOptions.getStatusDefaults(mConf).toBuilder().mergeFrom(getStatusOptions).build());
+    verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -427,9 +427,9 @@ public final class BaseFileSystemTest {
   @Test
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
-        .toBuilder().mergeFrom(getStatusOptions).build())).thenThrow(EXCEPTION);
+    GetStatusPOptions getStatusOptions = getOpenOptions(GetStatusPOptions.getDefaultInstance());
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions))
+        .thenThrow(EXCEPTION);
     try {
       mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -623,6 +623,12 @@ public final class BaseFileSystemTest {
     assertBadAuthority("a:0,b:0,c:0", "Should fail on non-zk authority");
     assertBadAuthority("zk@a:0", "Should fail on zk authority with different addresses");
     assertBadAuthority("zk@a:0,b:0,c:1", "Should fail on zk authority with different addresses");
+  }
+
+  private GetStatusPOptions getOpenOptions(GetStatusPOptions getStatusOptions) {
+    return FileSystemOptions.getStatusDefaults(mConf)
+        .toBuilder().setAccessMode(Bits.READ).setUpdateTimestamps(true)
+        .mergeFrom(getStatusOptions).build();
   }
 
   private void assertBadAuthority(String authority, String failureMessage) throws Exception {

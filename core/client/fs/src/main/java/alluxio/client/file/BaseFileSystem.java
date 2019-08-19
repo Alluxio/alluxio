@@ -37,6 +37,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -411,7 +412,11 @@ public class BaseFileSystem implements FileSystem {
     checkUri(path);
     return rpc(client -> {
       AlluxioConfiguration conf = mFsContext.getPathConf(path);
-      URIStatus status = client.getStatus(path, FileSystemOptions.getStatusDefaults(conf));
+      URIStatus status = client.getStatus(path,
+          FileSystemOptions.getStatusDefaults(conf).toBuilder()
+              .setAccessMode(Bits.READ)
+              .setUpdateTimestamps(options.getUpdateLastAccessTime())
+              .build());
       if (status.isFolder()) {
         throw new FileDoesNotExistException(
             ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));

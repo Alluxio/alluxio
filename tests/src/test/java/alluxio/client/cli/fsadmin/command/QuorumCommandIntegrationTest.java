@@ -114,6 +114,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       }, WaitForOptions.defaults().setTimeoutMs(2
           * (int) ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)));
     }
+    mCluster.notifySuccess();
   }
 
   @Test
@@ -151,7 +152,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         } catch (Exception e) {
           return false;
         }
-      }, WaitForOptions.defaults().setTimeoutMs(2
+      }, WaitForOptions.defaults().setTimeoutMs(6
           * (int) ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)));
 
       // Remove unavailable masters using shell.
@@ -178,6 +179,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       // Verify cluster is reachable.
       Assert.assertTrue(mCluster.getFileSystemClient().exists(testDir));
     }
+    mCluster.notifySuccess();
   }
 
   @Test
@@ -245,6 +247,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       output = mOutput.toString().trim();
       Assert.assertEquals(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage(), output);
     }
+    mCluster.notifySuccess();
   }
 
   private String lastLine(String output) {

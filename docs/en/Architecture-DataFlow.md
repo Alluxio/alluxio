@@ -289,10 +289,23 @@ any future reads of the data can be served from local memory directly.
 ### Write back to UFS (`ASYNC_THROUGH`)
 
 Alluxio provides a write type of `ASYNC_THROUGH`. With `ASYNC_THROUGH`,
-data is written synchronously to an Alluxio worker and asynchronously to the
-under storage system. `ASYNC_THROUGH` can provide data write at memory speed
-while still persisting the data.
+data is written synchronously to an Alluxio worker first, and persisted to the
+under storage in the background. `ASYNC_THROUGH` can provide data write at a speed
+close to `MUST_CACHE`, while still being able to persist the data. Since Alluxio 2.0,
+`ASYNC_THROUGH` is the default write type.
 
 <p align="center">
 <img src="{{ '/img/dataflow-async-through.gif' | relativize_url }}" alt="ASYNC_THROUGH data flow"/>
 </p>
+
+To provide fault tolerance, one important property working with `ASYNC_THROUGH` is
+`alluxio.user.file.replication.durable`. This property sets a target replication level of new data
+in Alluxio after write completes but before the data is persisted to the under storage, with a
+default value 1. Alluxio will maintain the target replication level of the file before the
+background persist process completes, and reclaim the space in Alluxio afterwards.
+
+### Write to UFS Only (`THROUGH`)
+
+With `THROUGH`, data is written to under storage synchronously without being cached to Alluxio
+workers. This write type ensures that data will be persisted after the write completes, but the
+speed is limited by the under storage throughput.

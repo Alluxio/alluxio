@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -147,6 +148,9 @@ public class MetricsStore {
         double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
         Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
             metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
+        for (Map.Entry<String, String> tag : metric.getTags().entrySet()) {
+          newMetric.addTag(tag.getKey(), tag.getValue());
+        }
         metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
         newMetrics.add(newMetric);
       } else {
