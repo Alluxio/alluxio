@@ -18,7 +18,4 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class Constants {
-  public static final String CATALOG_MASTER_NAME = "CatalogMaster";
-  public static final String CATALOG_MASTER_CLIENT_SERVICE_NAME = "CatalogMasterClient";
-  public static final long CATALOG_MSTER_CLIENT_SERVICE_VERSION = 1;
 }

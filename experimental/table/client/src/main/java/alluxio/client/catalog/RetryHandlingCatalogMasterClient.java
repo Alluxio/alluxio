@@ -13,16 +13,28 @@ package alluxio.client.catalog;
 
 import alluxio.AbstractMasterClient;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.experimental.Constants;
+import alluxio.experimental.ProtoUtils;
+import alluxio.Constants;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
+import alluxio.grpc.CreateDatabasePRequest;
+import alluxio.grpc.CreateTablePRequest;
+import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GetAllDatabasesPRequest;
+import alluxio.grpc.GetAllTablesPRequest;
+import alluxio.grpc.GetDataFilesPRequest;
+import alluxio.grpc.GetStatisticsPRequest;
+import alluxio.grpc.GetTablePRequest;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
 
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Partition;
-import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.iceberg.Schema;
+import org.apache.iceberg.Table;
+import org.apache.iceberg.Tables;
+import org.apache.iceberg.hadoop.HadoopTables;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
@@ -47,7 +59,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
 
   @Override
   protected ServiceType getRemoteServiceType() {
-    return ServiceType.BLOCK_MASTER_CLIENT_SERVICE;
+    return ServiceType.CATALOG_MASTER_CLIENT_SERVICE;
   }
 
   @Override
@@ -78,26 +90,51 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
 
   @Override
   public List<String> getAllTables(String databaseName) throws AlluxioStatusException {
-    return null;
+    return retryRPC(() -> mClient.getAllTables(
+        GetAllTablesPRequest.newBuilder().setDatabase(databaseName).build()).getTableList());
   }
 
   @Override
   public Table getTable(String databaseName, String tableName) throws AlluxioStatusException {
-    return null;
+    TableInfo info = retryRPC(() -> mClient.getTable(
+        GetTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName).build())
+        .getTableInfo());
+    Tables hadoopTables = new HadoopTables();
+    org.apache.iceberg.Table table = hadoopTables.load(info.getBaseLocation());
+    return table;
   }
 
   @Override
-  public void createDatabase(Database database) throws AlluxioStatusException {}
+  public boolean createDatabase(String dbName) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.createDatabase(
+        CreateDatabasePRequest.newBuilder().setDbName(dbName).build()).getSuccess());
+  }
 
   @Override
-  public void createTable(Table table) throws AlluxioStatusException {}
+  public TableInfo createTable(String dbName, String tableName, Schema schema)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.createTable(
+        CreateTablePRequest.newBuilder().setDbName(dbName)
+            .setTableName(tableName)
+            .setSchema(ProtoUtils.toProto(schema)).build()).getTableInfo());
+  }
 
   @Override
-  public List<ColumnStatisticsObj> getTableColumnStatistics(
+  public Map<String, FileStatistics> getTableColumnStatistics(
           String databaseName,
           String tableName,
           List<String> columnNames) throws AlluxioStatusException {
-    return null;
+    return retryRPC(() -> mClient.getStatistics(
+        GetStatisticsPRequest.newBuilder().setDbName(databaseName)
+            .setTableName(tableName).build()).getStatisticsMap());
+  }
+
+  @Override
+  public List<String> getDataFiles(String dbName, String tableName)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getDataFiles(
+        GetDataFilesPRequest.newBuilder().setDbName(dbName)
+            .setTableName(tableName).build()).getDataFileList());
   }
 
   @Override

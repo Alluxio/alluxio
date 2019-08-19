@@ -11,14 +11,15 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.FileStatistics;
+import alluxio.grpc.Schema;
 import alluxio.master.Master;
 //TODO(yuzhu): replace these classes with our own version of Database and Table classes
 
-import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.iceberg.Table;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface of the catalog master that manages the catalog metadata.
@@ -32,15 +33,6 @@ public interface CatalogMaster extends Master {
   List<String> getAllDatabases();
 
   /**
-   * Get a database object.
-   *
-   * @param dbName  database name
-   *
-   * @return a database object
-   */
-  Database getDatabase(String dbName);
-
-  /**
    * Get a listing of all tables in a database.
    *
    * @param databaseName database name
@@ -52,27 +44,49 @@ public interface CatalogMaster extends Master {
   /**
    * Create a database.
    *
-   * @param database a database object
+   * @param dbName a database name
+   * @return true if creation is successful
    *
    */
-  void createDatabase(Database database);
+  boolean createDatabase(String dbName);
 
   /**
    * Create a table.
-   *
-   * @param table a table object
+   *  @param dbName database name
+   * @param tableName table name
+   * @param schema schema
+   * @return a Table object
    *
    */
-  void createTable(Table table);
+  Table createTable(String dbName, String tableName, Schema schema);
 
   /**
-   * Get the schema of a table.
+   * Get a table.
    *
-   * @param databaseName the name of a database
-   * @param tableName the name of a table
+   * @param databaseName database name
+   * @param tableName table name
    *
-   * @return a list of field schemas
-   *
+   * @return a Table object
    */
-  List<FieldSchema> getFields(String databaseName, String tableName);
+  Table getTable(String databaseName, String tableName);
+
+  /**
+   * Get statistics on the table.
+   *
+   * @param databaseName database name
+   * @param tableName table name
+   *
+   * @return a map containing data files paths mapped to file statistics
+   */
+  Map<String, FileStatistics> getStatistics(String databaseName, String tableName);
+
+  /**
+   * Get the list of datafiles on the table.
+   *
+   * @param databaseName database name
+   * @param tableName table name
+   *
+   * @return a list containing the data files paths
+   */
+  List<String> getDataFiles(String databaseName, String tableName);
 }

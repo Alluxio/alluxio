@@ -4,21 +4,20 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.FieldSchema}
+ * Protobuf type {@code alluxio.grpc.CreateTablePRequest}
  */
-public  final class FieldSchema extends
+public  final class CreateTablePRequest extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.FieldSchema)
-    FieldSchemaOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.CreateTablePRequest)
+    CreateTablePRequestOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use FieldSchema.newBuilder() to construct.
-  private FieldSchema(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use CreateTablePRequest.newBuilder() to construct.
+  private CreateTablePRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private FieldSchema() {
-    id_ = 0;
-    name_ = "";
-    optional_ = false;
+  private CreateTablePRequest() {
+    dbName_ = "";
+    tableName_ = "";
   }
 
   @java.lang.Override
@@ -26,7 +25,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private FieldSchema(
+  private CreateTablePRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -52,33 +51,29 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 8: {
+          case 10: {
+            com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
-            id_ = input.readUInt32();
+            dbName_ = bs;
             break;
           }
           case 18: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
-            name_ = bs;
+            tableName_ = bs;
             break;
           }
           case 26: {
-            alluxio.grpc.Type.Builder subBuilder = null;
+            alluxio.grpc.Schema.Builder subBuilder = null;
             if (((bitField0_ & 0x00000004) == 0x00000004)) {
-              subBuilder = type_.toBuilder();
+              subBuilder = schema_.toBuilder();
             }
-            type_ = input.readMessage(alluxio.grpc.Type.PARSER, extensionRegistry);
+            schema_ = input.readMessage(alluxio.grpc.Schema.PARSER, extensionRegistry);
             if (subBuilder != null) {
-              subBuilder.mergeFrom(type_);
-              type_ = subBuilder.buildPartial();
+              subBuilder.mergeFrom(schema_);
+              schema_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000004;
-            break;
-          }
-          case 32: {
-            bitField0_ |= 0x00000008;
-            optional_ = input.readBool();
             break;
           }
         }
@@ -95,45 +90,30 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FieldSchema_descriptor;
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateTablePRequest_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FieldSchema_fieldAccessorTable
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateTablePRequest_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.FieldSchema.class, alluxio.grpc.FieldSchema.Builder.class);
+            alluxio.grpc.CreateTablePRequest.class, alluxio.grpc.CreateTablePRequest.Builder.class);
   }
 
   private int bitField0_;
-  public static final int ID_FIELD_NUMBER = 1;
-  private int id_;
+  public static final int DB_NAME_FIELD_NUMBER = 1;
+  private volatile java.lang.Object dbName_;
   /**
-   * <code>optional uint32 id = 1;</code>
+   * <code>optional string db_name = 1;</code>
    */
-  public boolean hasId() {
+  public boolean hasDbName() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional uint32 id = 1;</code>
+   * <code>optional string db_name = 1;</code>
    */
-  public int getId() {
-    return id_;
-  }
-
-  public static final int NAME_FIELD_NUMBER = 2;
-  private volatile java.lang.Object name_;
-  /**
-   * <code>optional string name = 2;</code>
-   */
-  public boolean hasName() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
-  }
-  /**
-   * <code>optional string name = 2;</code>
-   */
-  public java.lang.String getName() {
-    java.lang.Object ref = name_;
+  public java.lang.String getDbName() {
+    java.lang.Object ref = dbName_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -141,62 +121,89 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        name_ = s;
+        dbName_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string name = 2;</code>
+   * <code>optional string db_name = 1;</code>
    */
   public com.google.protobuf.ByteString
-      getNameBytes() {
-    java.lang.Object ref = name_;
+      getDbNameBytes() {
+    java.lang.Object ref = dbName_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      name_ = b;
+      dbName_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
     }
   }
 
-  public static final int TYPE_FIELD_NUMBER = 3;
-  private alluxio.grpc.Type type_;
+  public static final int TABLE_NAME_FIELD_NUMBER = 2;
+  private volatile java.lang.Object tableName_;
   /**
-   * <code>optional .alluxio.grpc.Type type = 3;</code>
+   * <code>optional string table_name = 2;</code>
    */
-  public boolean hasType() {
+  public boolean hasTableName() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional string table_name = 2;</code>
+   */
+  public java.lang.String getTableName() {
+    java.lang.Object ref = tableName_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        tableName_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string table_name = 2;</code>
+   */
+  public com.google.protobuf.ByteString
+      getTableNameBytes() {
+    java.lang.Object ref = tableName_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      tableName_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int SCHEMA_FIELD_NUMBER = 3;
+  private alluxio.grpc.Schema schema_;
+  /**
+   * <code>optional .alluxio.grpc.Schema schema = 3;</code>
+   */
+  public boolean hasSchema() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional .alluxio.grpc.Type type = 3;</code>
+   * <code>optional .alluxio.grpc.Schema schema = 3;</code>
    */
-  public alluxio.grpc.Type getType() {
-    return type_ == null ? alluxio.grpc.Type.getDefaultInstance() : type_;
+  public alluxio.grpc.Schema getSchema() {
+    return schema_ == null ? alluxio.grpc.Schema.getDefaultInstance() : schema_;
   }
   /**
-   * <code>optional .alluxio.grpc.Type type = 3;</code>
+   * <code>optional .alluxio.grpc.Schema schema = 3;</code>
    */
-  public alluxio.grpc.TypeOrBuilder getTypeOrBuilder() {
-    return type_ == null ? alluxio.grpc.Type.getDefaultInstance() : type_;
-  }
-
-  public static final int OPTIONAL_FIELD_NUMBER = 4;
-  private boolean optional_;
-  /**
-   * <code>optional bool optional = 4;</code>
-   */
-  public boolean hasOptional() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
-  }
-  /**
-   * <code>optional bool optional = 4;</code>
-   */
-  public boolean getOptional() {
-    return optional_;
+  public alluxio.grpc.SchemaOrBuilder getSchemaOrBuilder() {
+    return schema_ == null ? alluxio.grpc.Schema.getDefaultInstance() : schema_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -205,8 +212,8 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
-    if (hasType()) {
-      if (!getType().isInitialized()) {
+    if (hasSchema()) {
+      if (!getSchema().isInitialized()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -218,16 +225,13 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeUInt32(1, id_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      output.writeMessage(3, getType());
-    }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      output.writeBool(4, optional_);
+      output.writeMessage(3, getSchema());
     }
     unknownFields.writeTo(output);
   }
@@ -238,19 +242,14 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeUInt32Size(1, id_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getType());
-    }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(4, optional_);
+        .computeMessageSize(3, getSchema());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -262,31 +261,26 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.FieldSchema)) {
+    if (!(obj instanceof alluxio.grpc.CreateTablePRequest)) {
       return super.equals(obj);
     }
-    alluxio.grpc.FieldSchema other = (alluxio.grpc.FieldSchema) obj;
+    alluxio.grpc.CreateTablePRequest other = (alluxio.grpc.CreateTablePRequest) obj;
 
     boolean result = true;
-    result = result && (hasId() == other.hasId());
-    if (hasId()) {
-      result = result && (getId()
-          == other.getId());
+    result = result && (hasDbName() == other.hasDbName());
+    if (hasDbName()) {
+      result = result && getDbName()
+          .equals(other.getDbName());
     }
-    result = result && (hasName() == other.hasName());
-    if (hasName()) {
-      result = result && getName()
-          .equals(other.getName());
+    result = result && (hasTableName() == other.hasTableName());
+    if (hasTableName()) {
+      result = result && getTableName()
+          .equals(other.getTableName());
     }
-    result = result && (hasType() == other.hasType());
-    if (hasType()) {
-      result = result && getType()
-          .equals(other.getType());
-    }
-    result = result && (hasOptional() == other.hasOptional());
-    if (hasOptional()) {
-      result = result && (getOptional()
-          == other.getOptional());
+    result = result && (hasSchema() == other.hasSchema());
+    if (hasSchema()) {
+      result = result && getSchema()
+          .equals(other.getSchema());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -299,91 +293,86 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasId()) {
-      hash = (37 * hash) + ID_FIELD_NUMBER;
-      hash = (53 * hash) + getId();
+    if (hasDbName()) {
+      hash = (37 * hash) + DB_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getDbName().hashCode();
     }
-    if (hasName()) {
-      hash = (37 * hash) + NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getName().hashCode();
+    if (hasTableName()) {
+      hash = (37 * hash) + TABLE_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getTableName().hashCode();
     }
-    if (hasType()) {
-      hash = (37 * hash) + TYPE_FIELD_NUMBER;
-      hash = (53 * hash) + getType().hashCode();
-    }
-    if (hasOptional()) {
-      hash = (37 * hash) + OPTIONAL_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getOptional());
+    if (hasSchema()) {
+      hash = (37 * hash) + SCHEMA_FIELD_NUMBER;
+      hash = (53 * hash) + getSchema().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.FieldSchema parseFrom(
+  public static alluxio.grpc.CreateTablePRequest parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(
+  public static alluxio.grpc.CreateTablePRequest parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(
+  public static alluxio.grpc.CreateTablePRequest parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(
+  public static alluxio.grpc.CreateTablePRequest parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(byte[] data)
+  public static alluxio.grpc.CreateTablePRequest parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(
+  public static alluxio.grpc.CreateTablePRequest parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.CreateTablePRequest parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(
+  public static alluxio.grpc.CreateTablePRequest parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FieldSchema parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.CreateTablePRequest parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FieldSchema parseDelimitedFrom(
+  public static alluxio.grpc.CreateTablePRequest parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(
+  public static alluxio.grpc.CreateTablePRequest parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FieldSchema parseFrom(
+  public static alluxio.grpc.CreateTablePRequest parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -395,7 +384,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.FieldSchema prototype) {
+  public static Builder newBuilder(alluxio.grpc.CreateTablePRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -410,25 +399,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.FieldSchema}
+   * Protobuf type {@code alluxio.grpc.CreateTablePRequest}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.FieldSchema)
-      alluxio.grpc.FieldSchemaOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.CreateTablePRequest)
+      alluxio.grpc.CreateTablePRequestOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FieldSchema_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateTablePRequest_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FieldSchema_fieldAccessorTable
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateTablePRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.FieldSchema.class, alluxio.grpc.FieldSchema.Builder.class);
+              alluxio.grpc.CreateTablePRequest.class, alluxio.grpc.CreateTablePRequest.Builder.class);
     }
 
-    // Construct using alluxio.grpc.FieldSchema.newBuilder()
+    // Construct using alluxio.grpc.CreateTablePRequest.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -441,67 +430,61 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getTypeFieldBuilder();
+        getSchemaFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      id_ = 0;
+      dbName_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      name_ = "";
+      tableName_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
-      if (typeBuilder_ == null) {
-        type_ = null;
+      if (schemaBuilder_ == null) {
+        schema_ = null;
       } else {
-        typeBuilder_.clear();
+        schemaBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000004);
-      optional_ = false;
-      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FieldSchema_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateTablePRequest_descriptor;
     }
 
-    public alluxio.grpc.FieldSchema getDefaultInstanceForType() {
-      return alluxio.grpc.FieldSchema.getDefaultInstance();
+    public alluxio.grpc.CreateTablePRequest getDefaultInstanceForType() {
+      return alluxio.grpc.CreateTablePRequest.getDefaultInstance();
     }
 
-    public alluxio.grpc.FieldSchema build() {
-      alluxio.grpc.FieldSchema result = buildPartial();
+    public alluxio.grpc.CreateTablePRequest build() {
+      alluxio.grpc.CreateTablePRequest result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.FieldSchema buildPartial() {
-      alluxio.grpc.FieldSchema result = new alluxio.grpc.FieldSchema(this);
+    public alluxio.grpc.CreateTablePRequest buildPartial() {
+      alluxio.grpc.CreateTablePRequest result = new alluxio.grpc.CreateTablePRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.id_ = id_;
+      result.dbName_ = dbName_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.name_ = name_;
+      result.tableName_ = tableName_;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000004;
       }
-      if (typeBuilder_ == null) {
-        result.type_ = type_;
+      if (schemaBuilder_ == null) {
+        result.schema_ = schema_;
       } else {
-        result.type_ = typeBuilder_.build();
+        result.schema_ = schemaBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-        to_bitField0_ |= 0x00000008;
-      }
-      result.optional_ = optional_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -534,29 +517,28 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.FieldSchema) {
-        return mergeFrom((alluxio.grpc.FieldSchema)other);
+      if (other instanceof alluxio.grpc.CreateTablePRequest) {
+        return mergeFrom((alluxio.grpc.CreateTablePRequest)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.FieldSchema other) {
-      if (other == alluxio.grpc.FieldSchema.getDefaultInstance()) return this;
-      if (other.hasId()) {
-        setId(other.getId());
-      }
-      if (other.hasName()) {
-        bitField0_ |= 0x00000002;
-        name_ = other.name_;
+    public Builder mergeFrom(alluxio.grpc.CreateTablePRequest other) {
+      if (other == alluxio.grpc.CreateTablePRequest.getDefaultInstance()) return this;
+      if (other.hasDbName()) {
+        bitField0_ |= 0x00000001;
+        dbName_ = other.dbName_;
         onChanged();
       }
-      if (other.hasType()) {
-        mergeType(other.getType());
+      if (other.hasTableName()) {
+        bitField0_ |= 0x00000002;
+        tableName_ = other.tableName_;
+        onChanged();
       }
-      if (other.hasOptional()) {
-        setOptional(other.getOptional());
+      if (other.hasSchema()) {
+        mergeSchema(other.getSchema());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -564,8 +546,8 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
-      if (hasType()) {
-        if (!getType().isInitialized()) {
+      if (hasSchema()) {
+        if (!getSchema().isInitialized()) {
           return false;
         }
       }
@@ -576,11 +558,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.FieldSchema parsedMessage = null;
+      alluxio.grpc.CreateTablePRequest parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.FieldSchema) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.CreateTablePRequest) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -591,56 +573,24 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private int id_ ;
+    private java.lang.Object dbName_ = "";
     /**
-     * <code>optional uint32 id = 1;</code>
+     * <code>optional string db_name = 1;</code>
      */
-    public boolean hasId() {
+    public boolean hasDbName() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional uint32 id = 1;</code>
+     * <code>optional string db_name = 1;</code>
      */
-    public int getId() {
-      return id_;
-    }
-    /**
-     * <code>optional uint32 id = 1;</code>
-     */
-    public Builder setId(int value) {
-      bitField0_ |= 0x00000001;
-      id_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional uint32 id = 1;</code>
-     */
-    public Builder clearId() {
-      bitField0_ = (bitField0_ & ~0x00000001);
-      id_ = 0;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object name_ = "";
-    /**
-     * <code>optional string name = 2;</code>
-     */
-    public boolean hasName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional string name = 2;</code>
-     */
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
+    public java.lang.String getDbName() {
+      java.lang.Object ref = dbName_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          name_ = s;
+          dbName_ = s;
         }
         return s;
       } else {
@@ -648,205 +598,249 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string name = 2;</code>
+     * <code>optional string db_name = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
+        getDbNameBytes() {
+      java.lang.Object ref = dbName_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        name_ = b;
+        dbName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string name = 2;</code>
+     * <code>optional string db_name = 1;</code>
      */
-    public Builder setName(
+    public Builder setDbName(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      dbName_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string db_name = 1;</code>
+     */
+    public Builder clearDbName() {
+      bitField0_ = (bitField0_ & ~0x00000001);
+      dbName_ = getDefaultInstance().getDbName();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string db_name = 1;</code>
+     */
+    public Builder setDbNameBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      dbName_ = value;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object tableName_ = "";
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    public boolean hasTableName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    public java.lang.String getTableName() {
+      java.lang.Object ref = tableName_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          tableName_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getTableNameBytes() {
+      java.lang.Object ref = tableName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        tableName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    public Builder setTableName(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
-      name_ = value;
+      tableName_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string name = 2;</code>
+     * <code>optional string table_name = 2;</code>
      */
-    public Builder clearName() {
+    public Builder clearTableName() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      name_ = getDefaultInstance().getName();
+      tableName_ = getDefaultInstance().getTableName();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string name = 2;</code>
+     * <code>optional string table_name = 2;</code>
      */
-    public Builder setNameBytes(
+    public Builder setTableNameBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
-      name_ = value;
+      tableName_ = value;
       onChanged();
       return this;
     }
 
-    private alluxio.grpc.Type type_ = null;
+    private alluxio.grpc.Schema schema_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.Type, alluxio.grpc.Type.Builder, alluxio.grpc.TypeOrBuilder> typeBuilder_;
+        alluxio.grpc.Schema, alluxio.grpc.Schema.Builder, alluxio.grpc.SchemaOrBuilder> schemaBuilder_;
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
-    public boolean hasType() {
+    public boolean hasSchema() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
-    public alluxio.grpc.Type getType() {
-      if (typeBuilder_ == null) {
-        return type_ == null ? alluxio.grpc.Type.getDefaultInstance() : type_;
+    public alluxio.grpc.Schema getSchema() {
+      if (schemaBuilder_ == null) {
+        return schema_ == null ? alluxio.grpc.Schema.getDefaultInstance() : schema_;
       } else {
-        return typeBuilder_.getMessage();
+        return schemaBuilder_.getMessage();
       }
     }
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
-    public Builder setType(alluxio.grpc.Type value) {
-      if (typeBuilder_ == null) {
+    public Builder setSchema(alluxio.grpc.Schema value) {
+      if (schemaBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        type_ = value;
+        schema_ = value;
         onChanged();
       } else {
-        typeBuilder_.setMessage(value);
+        schemaBuilder_.setMessage(value);
       }
       bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
-    public Builder setType(
-        alluxio.grpc.Type.Builder builderForValue) {
-      if (typeBuilder_ == null) {
-        type_ = builderForValue.build();
+    public Builder setSchema(
+        alluxio.grpc.Schema.Builder builderForValue) {
+      if (schemaBuilder_ == null) {
+        schema_ = builderForValue.build();
         onChanged();
       } else {
-        typeBuilder_.setMessage(builderForValue.build());
+        schemaBuilder_.setMessage(builderForValue.build());
       }
       bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
-    public Builder mergeType(alluxio.grpc.Type value) {
-      if (typeBuilder_ == null) {
+    public Builder mergeSchema(alluxio.grpc.Schema value) {
+      if (schemaBuilder_ == null) {
         if (((bitField0_ & 0x00000004) == 0x00000004) &&
-            type_ != null &&
-            type_ != alluxio.grpc.Type.getDefaultInstance()) {
-          type_ =
-            alluxio.grpc.Type.newBuilder(type_).mergeFrom(value).buildPartial();
+            schema_ != null &&
+            schema_ != alluxio.grpc.Schema.getDefaultInstance()) {
+          schema_ =
+            alluxio.grpc.Schema.newBuilder(schema_).mergeFrom(value).buildPartial();
         } else {
-          type_ = value;
+          schema_ = value;
         }
         onChanged();
       } else {
-        typeBuilder_.mergeFrom(value);
+        schemaBuilder_.mergeFrom(value);
       }
       bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
-    public Builder clearType() {
-      if (typeBuilder_ == null) {
-        type_ = null;
+    public Builder clearSchema() {
+      if (schemaBuilder_ == null) {
+        schema_ = null;
         onChanged();
       } else {
-        typeBuilder_.clear();
+        schemaBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
-    public alluxio.grpc.Type.Builder getTypeBuilder() {
+    public alluxio.grpc.Schema.Builder getSchemaBuilder() {
       bitField0_ |= 0x00000004;
       onChanged();
-      return getTypeFieldBuilder().getBuilder();
+      return getSchemaFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
-    public alluxio.grpc.TypeOrBuilder getTypeOrBuilder() {
-      if (typeBuilder_ != null) {
-        return typeBuilder_.getMessageOrBuilder();
+    public alluxio.grpc.SchemaOrBuilder getSchemaOrBuilder() {
+      if (schemaBuilder_ != null) {
+        return schemaBuilder_.getMessageOrBuilder();
       } else {
-        return type_ == null ?
-            alluxio.grpc.Type.getDefaultInstance() : type_;
+        return schema_ == null ?
+            alluxio.grpc.Schema.getDefaultInstance() : schema_;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.Type type = 3;</code>
+     * <code>optional .alluxio.grpc.Schema schema = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.Type, alluxio.grpc.Type.Builder, alluxio.grpc.TypeOrBuilder> 
-        getTypeFieldBuilder() {
-      if (typeBuilder_ == null) {
-        typeBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            alluxio.grpc.Type, alluxio.grpc.Type.Builder, alluxio.grpc.TypeOrBuilder>(
-                getType(),
+        alluxio.grpc.Schema, alluxio.grpc.Schema.Builder, alluxio.grpc.SchemaOrBuilder> 
+        getSchemaFieldBuilder() {
+      if (schemaBuilder_ == null) {
+        schemaBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.Schema, alluxio.grpc.Schema.Builder, alluxio.grpc.SchemaOrBuilder>(
+                getSchema(),
                 getParentForChildren(),
                 isClean());
-        type_ = null;
+        schema_ = null;
       }
-      return typeBuilder_;
-    }
-
-    private boolean optional_ ;
-    /**
-     * <code>optional bool optional = 4;</code>
-     */
-    public boolean hasOptional() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional bool optional = 4;</code>
-     */
-    public boolean getOptional() {
-      return optional_;
-    }
-    /**
-     * <code>optional bool optional = 4;</code>
-     */
-    public Builder setOptional(boolean value) {
-      bitField0_ |= 0x00000008;
-      optional_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional bool optional = 4;</code>
-     */
-    public Builder clearOptional() {
-      bitField0_ = (bitField0_ & ~0x00000008);
-      optional_ = false;
-      onChanged();
-      return this;
+      return schemaBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -859,39 +853,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.FieldSchema)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.CreateTablePRequest)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.FieldSchema)
-  private static final alluxio.grpc.FieldSchema DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.CreateTablePRequest)
+  private static final alluxio.grpc.CreateTablePRequest DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.FieldSchema();
+    DEFAULT_INSTANCE = new alluxio.grpc.CreateTablePRequest();
   }
 
-  public static alluxio.grpc.FieldSchema getDefaultInstance() {
+  public static alluxio.grpc.CreateTablePRequest getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<FieldSchema>
-      PARSER = new com.google.protobuf.AbstractParser<FieldSchema>() {
-    public FieldSchema parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<CreateTablePRequest>
+      PARSER = new com.google.protobuf.AbstractParser<CreateTablePRequest>() {
+    public CreateTablePRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new FieldSchema(input, extensionRegistry);
+      return new CreateTablePRequest(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<FieldSchema> parser() {
+  public static com.google.protobuf.Parser<CreateTablePRequest> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<FieldSchema> getParserForType() {
+  public com.google.protobuf.Parser<CreateTablePRequest> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.FieldSchema getDefaultInstanceForType() {
+  public alluxio.grpc.CreateTablePRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

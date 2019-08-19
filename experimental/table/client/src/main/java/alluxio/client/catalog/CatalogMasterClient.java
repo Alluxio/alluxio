@@ -13,12 +13,15 @@ package alluxio.client.catalog;
 
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.FileStatistics;
+import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
 
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.iceberg.Schema;
+import org.apache.iceberg.Table;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
@@ -87,18 +90,23 @@ public interface CatalogMasterClient extends Client {
   /**
    * Create database with given schema.
    *
-   * @param database database metadata
+   * @param databaseName database name
+   * @return true if database created successfully
    * @throws AlluxioStatusException
    */
-  void createDatabase(Database database) throws AlluxioStatusException;
+  boolean createDatabase(String databaseName) throws AlluxioStatusException;
 
   /**
    * Create table with given schema.
    *
-   * @param table table metadata
+   * @param dbName database name
+   * @param tableName table name
+   * @param schema database schema
+   * @return table info object
    * @throws AlluxioStatusException
    */
-  void createTable(Table table) throws AlluxioStatusException;
+  TableInfo createTable(String dbName, String tableName, Schema schema)
+      throws AlluxioStatusException;
 
   /**
    * Get table column statistics with given database name,
@@ -110,7 +118,7 @@ public interface CatalogMasterClient extends Client {
    * @return list of column statistics
    * @throws AlluxioStatusException
    */
-  List<ColumnStatisticsObj> getTableColumnStatistics(
+  Map<String, FileStatistics> getTableColumnStatistics(
           String databaseName,
           String tableName,
           List<String> columnNames) throws AlluxioStatusException;
@@ -170,4 +178,14 @@ public interface CatalogMasterClient extends Client {
           String tableName,
           List<String> partitionNames,
           List<String> columnNames) throws AlluxioStatusException;
+
+  /**
+   * Get a list of datafiles associated with a table.
+   *
+   * @param dbName database name
+   * @param tableName table name
+   * @return a list of data files
+   * @throws AlluxioStatusException
+   */
+  List<String> getDataFiles(String dbName, String tableName) throws AlluxioStatusException;
 }

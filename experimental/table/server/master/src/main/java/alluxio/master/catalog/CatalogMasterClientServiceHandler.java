@@ -12,13 +12,27 @@
 package alluxio.master.catalog;
 
 import alluxio.RpcUtils;
+import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
-
+import alluxio.grpc.CreateDatabasePRequest;
+import alluxio.grpc.CreateDatabasePResponse;
+import alluxio.grpc.CreateTablePRequest;
+import alluxio.grpc.CreateTablePResponse;
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllDatabasesPResponse;
+import alluxio.grpc.GetAllTablesPRequest;
+import alluxio.grpc.GetAllTablesPResponse;
+import alluxio.grpc.GetDataFilesPRequest;
+import alluxio.grpc.GetDataFilesPResponse;
+import alluxio.grpc.GetStatisticsPRequest;
+import alluxio.grpc.GetStatisticsPResponse;
+import alluxio.grpc.GetTablePRequest;
+import alluxio.grpc.GetTablePResponse;
+import alluxio.grpc.TableInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
+import org.apache.iceberg.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +59,82 @@ public class CatalogMasterClientServiceHandler
   @Override
   public void getAllDatabases(GetAllDatabasesPRequest request,
       StreamObserver<GetAllDatabasesPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetAllDatabasesPResponse>) () -> {
+    RpcUtils.call(LOG, () -> GetAllDatabasesPResponse.newBuilder()
+        .addAllDatabase(mCatalogMaster.getAllDatabases()).build(),
+        "getAllDatabases", "", responseObserver);
+  }
 
-      return GetAllDatabasesPResponse.newBuilder()
-          .addAllDatabase(mCatalogMaster.getAllDatabases()).build();
-    }, "getAllDatabase", "", responseObserver);
+  @Override
+  public void getAllTables(GetAllTablesPRequest request,
+      StreamObserver<GetAllTablesPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetAllTablesPResponse.newBuilder()
+        .addAllTable(mCatalogMaster.getAllTables(request.getDatabase())).build(),
+        "getAllTables", "", responseObserver);
+  }
+
+  @Override
+  public void getTable(GetTablePRequest request,
+      StreamObserver<GetTablePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      Table table = mCatalogMaster.getTable(request.getDbName(), request.getTableName());
+      TableInfo info;
+      if (table != null) {
+        info = TableInfo.newBuilder().setDbName(request.getDbName())
+            .setTableName(request.getTableName())
+            .setBaseLocation(table.location())
+            .setSchema(ProtoUtils.toProto(table.schema()))
+            .build();
+        return GetTablePResponse.newBuilder()
+            .setTableInfo(info)
+            .build();
+      }
+      return GetTablePResponse.getDefaultInstance();
+    }, "getTable", "", responseObserver);
+  }
+
+  @Override
+  public void createTable(CreateTablePRequest request,
+      StreamObserver<CreateTablePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      Table table = mCatalogMaster.createTable(request.getDbName(), request.getTableName(),
+          request.getSchema());
+      TableInfo info;
+      if (table != null) {
+        info = TableInfo.newBuilder().setDbName(request.getDbName())
+            .setTableName(request.getTableName())
+            .setBaseLocation(table.location()).setSchema(ProtoUtils.toProto(table.schema()))
+            .build();
+        return CreateTablePResponse.newBuilder()
+            .setTableInfo(info)
+            .setSuccess(true).build();
+      } else {
+        return CreateTablePResponse.newBuilder()
+            .setSuccess(false).build();
+      }
+    }, "createTable", "", responseObserver);
+  }
+
+  @Override
+  public void createDatabase(CreateDatabasePRequest request,
+      StreamObserver<CreateDatabasePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> CreateDatabasePResponse.newBuilder()
+        .setSuccess(mCatalogMaster.createDatabase(request.getDbName())).build(),
+        "createDatabase", "", responseObserver);
+  }
+
+  @Override
+  public void getStatistics(GetStatisticsPRequest request,
+      StreamObserver<GetStatisticsPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetStatisticsPResponse.newBuilder()
+        .putAllStatistics(mCatalogMaster.getStatistics(request.getDbName(),
+            request.getTableName())).build(), "getStatistics", "", responseObserver);
+  }
+
+  @Override
+  public void getDataFiles(GetDataFilesPRequest request,
+      StreamObserver<GetDataFilesPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetDataFilesPResponse.newBuilder()
+            .addAllDataFile(mCatalogMaster.getDataFiles(request.getDbName(),
+                request.getTableName())).build(), "getStatistics", "", responseObserver);
   }
 }
