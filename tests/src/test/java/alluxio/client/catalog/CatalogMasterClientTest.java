@@ -54,7 +54,6 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
     mCatalogMasterClient = new RetryHandlingCatalogMasterClient(context);
     mFSMasterClient = new FileSystemMasterClient(context);
-
   }
 
   @After
@@ -64,23 +63,24 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
   }
 
   /**
-   * Tests catalog service table metadata operation
+   * Tests catalog service table metadata operation.
    */
   @Test
   public void tableOps() throws Exception {
     Map<String, MountPointInfo> test = mFileSystem.getMountTable();
     List<String> dbs = mCatalogMasterClient.getAllDatabases();
-    Assert.assertEquals( 0, dbs.size());
+    Assert.assertEquals(0, dbs.size());
     mCatalogMasterClient.createDatabase("test1");
     dbs = mCatalogMasterClient.getAllDatabases();
-    Assert.assertEquals( 1, dbs.size());
+    Assert.assertEquals(1, dbs.size());
     Assert.assertEquals(dbs.get(0), "test1");
     Schema schema = new Schema(Types.NestedField.optional(0, "id", Types.IntegerType.get()));
 
     TableInfo table = mCatalogMasterClient.createTable("test1", "table1", schema);
-    Assert.assertEquals(test.get("/").getUfsUri() +"/catalog-metadata/test1.db/table1", table.getBaseLocation());
+    Assert.assertEquals(test.get("/").getUfsUri() + "/catalog-metadata/test1.db/table1",
+        table.getBaseLocation());
     Assert.assertEquals(1, table.getSchema().getColsCount());
-    Assert.assertEquals(Types.IntegerType.get(), ProtoUtils.fromProto(table.getSchema()).findField(0).type());
+    Assert.assertEquals(Types.IntegerType.get(),
+        ProtoUtils.fromProto(table.getSchema()).findField(0).type());
   }
-
 }

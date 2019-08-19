@@ -11,21 +11,18 @@
 
 package alluxio.master.catalog;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
-import org.apache.hadoop.fs.FSDataInputStream;
+
 import org.apache.iceberg.exceptions.RuntimeIOException;
 import org.apache.iceberg.io.InputFile;
 import org.apache.iceberg.io.SeekableInputStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * {@link InputFile} implementation using the Alluxio {@link FileSystem} API.
@@ -38,6 +35,13 @@ public class AlluxioInputFile implements InputFile {
   private final String mPath;
   private Long mLength;
 
+  /**
+   * create an inputFile from filesystem and path.
+   *
+   * @param fs filesystem
+   * @param path path
+   * @return an input file
+   */
   public static InputFile fromPath(UnderFileSystem fs, String path) {
     return new AlluxioInputFile(fs, path);
   }
@@ -65,7 +69,7 @@ public class AlluxioInputFile implements InputFile {
     try {
       InputStream input = mFileSystem.open(mPath);
       if (mFileSystem.isSeekable() && input instanceof SeekableUnderFileInputStream) {
-        return AlluxioStreams.wrap((SeekableUnderFileInputStream)input);
+        return AlluxioStreams.wrap((SeekableUnderFileInputStream) input);
       } else if (input.markSupported()) {
 
         return AlluxioStreams.wrap(input);

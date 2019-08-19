@@ -11,14 +11,13 @@
 
 package alluxio.master.catalog;
 
-import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.iceberg.BaseMetastoreCatalog;
 import org.apache.iceberg.BaseTable;
 import org.apache.iceberg.PartitionSpec;
@@ -43,7 +42,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// TODO: (yuzhu) journal the state of the catalog
+// TODO(yuzhu): journal the state of the catalog
+
+/**
+ * Class representing an Alluxio catalog service.
+ *
+ */
 public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, Tables {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioCatalog.class);
 
@@ -52,6 +56,11 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
 
   private UnderFileSystem mUfs = null;
 
+  /**
+   * Constructor for alluxio catalog.
+   *
+   * @param fs file system
+   */
   public AlluxioCatalog(UnderFileSystem fs) {
     super();
     mUfs = fs;
@@ -61,6 +70,12 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
   public void close() throws IOException {
   }
 
+  /**
+   * create a database.
+   *
+   * @param dbName database name
+   * @return true if database successfully created
+   */
   public boolean createDatabase(String dbName) {
     boolean newDb = !mDatabases.contains(dbName);
     mDatabases.add(dbName);
@@ -72,7 +87,7 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
         returnMap = tableList;
       }
       return returnMap;
-    } );
+    });
     return newDb;
   }
 
@@ -89,6 +104,12 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
     return table;
   }
 
+  /**
+   * Get a table object based on the identifier.
+   *
+   * @param id identifer of the table
+   * @return a table object
+   */
   public Table getTable(TableIdentifier id) {
     Preconditions.checkArgument(id.namespace().levels().length >= 1,
         "Missing database in table identifier: %s", id);
@@ -129,9 +150,9 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
       }
       returnMap.put(tableName, table);
       return returnMap;
-    } );
-
+    });
   }
+
   @Override
   public Table loadTable(TableIdentifier identifier) {
     Preconditions.checkArgument(identifier.namespace().levels().length >= 1,
@@ -159,7 +180,8 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
 
   @Override
   protected String defaultWarehouseLocation(TableIdentifier tableIdentifier) {
-    String pathPrefix = PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
+    String pathPrefix = PathUtils.concatPath(ServerConfiguration.get(
+        PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
         ServerConfiguration.get(PropertyKey.METADATA_PATH));
     return String.format("%s/%s.db/%s", pathPrefix, tableIdentifier.namespace().levels()[0],
         tableIdentifier.name());
@@ -189,15 +211,17 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
   }
 
   @Override
-  public Table create(Schema schema, PartitionSpec spec, Map<String, String> properties, String location) {
+  public Table create(Schema schema, PartitionSpec spec, Map<String,
+      String> properties, String location) {
     Preconditions.checkNotNull(schema, "A table schema is required");
     TableOperations ops = new AlluxioTableOperations(mUfs, location);
     if (ops.current() != null) {
-      throw new AlreadyExistsException("Table already exists at location: " + location, new Object[0]);
+      throw new AlreadyExistsException("Table already exists at location: " + location);
     } else {
       Map<String, String> tableProps = properties == null ? ImmutableMap.of() : properties;
       PartitionSpec partitionSpec = spec == null ? PartitionSpec.unpartitioned() : spec;
-      TableMetadata metadata = TableMetadata.newTableMetadata(ops, schema, partitionSpec, location, tableProps);
+      TableMetadata metadata = TableMetadata.newTableMetadata(ops, schema, partitionSpec,
+          location, tableProps);
       ops.commit(null, metadata);
       return new BaseTable(ops, location);
     }
@@ -208,6 +232,13 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
     return loadAs(location, TableIdentifier.of("PathTable", location));
   }
 
+  /**
+   * Load a table from a specific location.
+   *
+   * @param location data file location of the table
+   * @param identifier identifier of the table
+   * @return a table object
+   */
   public Table loadAs(String location, TableIdentifier identifier) {
     Preconditions.checkArgument(identifier.namespace().levels().length == 1,
         "Missing database in table identifier: %s", identifier);
@@ -221,10 +252,21 @@ public class AlluxioCatalog extends BaseMetastoreCatalog implements Closeable, T
     }
   }
 
+  /**
+   * Get all databases.
+   *
+   * @return a list of all database names
+   */
   public List<String> getAllDatabases() {
     return new ArrayList<>(mDatabases);
   }
 
+  /**
+   * Get a list of tables in a database.
+   *
+   * @param databaseName database name
+   * @return a list of table names in the database
+   */
   public List<String> getAllTables(String databaseName) {
     Map<String, Table> tables = mDbToTables.getOrDefault(databaseName, new HashMap<>());
     return tables.keySet().stream().map(Object::toString)

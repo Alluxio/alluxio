@@ -48,8 +48,8 @@ import java.util.Map;
  */
 public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultCatalogMaster.class);
-  private final AlluxioCatalog mCatalog;
 
+  private final AlluxioCatalog mCatalog;
   private final UnderFileSystem mUfs;
 
   /**

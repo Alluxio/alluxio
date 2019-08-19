@@ -11,10 +11,8 @@
 
 package alluxio.master.catalog;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
+
 import org.apache.iceberg.exceptions.RuntimeIOException;
 import org.apache.iceberg.io.FileIO;
 import org.apache.iceberg.io.InputFile;
@@ -24,9 +22,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+/**
+ * Alluxio File IO class.
+ */
 public class AlluxioFileIO implements FileIO {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFileIO.class);
   private final UnderFileSystem mFileSystem;
+
+  /**
+   * Constructor for AlluxioFileIO.
+   *
+   * @param fs ufs handle
+   */
   public AlluxioFileIO(UnderFileSystem fs) {
     mFileSystem = fs;
   }

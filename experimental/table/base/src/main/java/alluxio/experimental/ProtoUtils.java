@@ -14,6 +14,7 @@ package alluxio.experimental;
 import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FieldTypeId;
 import alluxio.grpc.Schema;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
@@ -23,6 +24,9 @@ import org.apache.iceberg.types.Types;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+/**
+ * Protobuf related utils.
+ */
 public final class ProtoUtils {
   static final BiMap<Type.TypeID, FieldTypeId> TYPE_ID_TYPE_MAP =
       ImmutableBiMap.<Type.TypeID, FieldTypeId>builder()
@@ -45,24 +49,24 @@ public final class ProtoUtils {
       .build();
 
   private static FieldSchema toProto(Types.NestedField col) {
-      if (col.type().isPrimitiveType()) {
-        return FieldSchema.newBuilder().setName(col.name())
-                .setType(alluxio.grpc.Type.newBuilder()
-                    .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
-                    .setPrimitiveField(col.type().toString()).build())
-                .setOptional(col.isOptional())
-                .build();
-      } else { // col is a nested type
-        return FieldSchema.newBuilder().setName(col.name())
-            .setType(alluxio.grpc.Type.newBuilder()
-                .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
-                .addAllNestedFields(
-                    col.type().asNestedType().fields()
-                        .stream().map(ProtoUtils::toProto)
-                        .collect(Collectors.toList())).build())
-            .setOptional(col.isOptional())
-            .build();
-      }
+    if (col.type().isPrimitiveType()) {
+      return FieldSchema.newBuilder().setName(col.name())
+              .setType(alluxio.grpc.Type.newBuilder()
+                  .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
+                  .setPrimitiveField(col.type().toString()).build())
+              .setOptional(col.isOptional())
+              .build();
+    } else { // col is a nested type
+      return FieldSchema.newBuilder().setName(col.name())
+          .setType(alluxio.grpc.Type.newBuilder()
+              .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
+              .addAllNestedFields(
+                  col.type().asNestedType().fields()
+                      .stream().map(ProtoUtils::toProto)
+                      .collect(Collectors.toList())).build())
+          .setOptional(col.isOptional())
+          .build();
+    }
   }
 
   /**
@@ -71,12 +75,12 @@ public final class ProtoUtils {
    */
   public static Schema toProto(org.apache.iceberg.Schema schema) {
     Schema.Builder builder = Schema.newBuilder();
-    return builder.addAllCols(schema.columns().stream().map(ProtoUtils::toProto).collect(Collectors.toList()))
-        .build();
+    return builder.addAllCols(schema.columns().stream()
+        .map(ProtoUtils::toProto).collect(Collectors.toList())).build();
   }
 
   private static Type fromProto(alluxio.grpc.Type type) {
-    // TODO: replace with a method to detect if a type is a complex type or a primitive type
+    // TODO(david): replace with a method to detect if a type is a complex type or a primitive type
     if (type.getType().getNumber() < FieldTypeId.STRUCT_VALUE) {
       // primitive type
       return Types.fromPrimitiveString(type.getPrimitiveField());
@@ -117,7 +121,6 @@ public final class ProtoUtils {
           return Types.StructType.of(Collections.emptyList());
       }
     }
-
   }
 
   private static Types.NestedField fromProto(FieldSchema field) {
@@ -128,20 +131,16 @@ public final class ProtoUtils {
     } else {
       icebergField = Types.NestedField.required(field.getId(), field.getName(),
           fromProto(field.getType()));
-
     }
     return icebergField;
   }
 
-
   /**
-   * @param schema
+   * @param schema schema
    * @return the protocol buffer version of schema
    */
   public static org.apache.iceberg.Schema fromProto(Schema schema) {
     return new org.apache.iceberg.Schema(schema.getColsList().stream()
         .map(ProtoUtils::fromProto).collect(Collectors.toList()));
   }
-
-
 }

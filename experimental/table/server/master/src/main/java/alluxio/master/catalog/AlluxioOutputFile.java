@@ -1,9 +1,7 @@
 package alluxio.master.catalog;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-
 import alluxio.underfs.UnderFileSystem;
+
 import org.apache.iceberg.io.InputFile;
 import org.apache.iceberg.io.OutputFile;
 import org.apache.iceberg.io.PositionOutputStream;
@@ -12,6 +10,13 @@ import org.apache.iceberg.io.PositionOutputStream;
  * {@link OutputFile} implementation using the Alluxio API.
  */
 public class AlluxioOutputFile implements OutputFile {
+  /**
+   * Conctruct an outputfile from path.
+   *
+   * @param fs underlying filesystem
+   * @param path file path
+   * @return an output file
+   */
   public static OutputFile fromPath(UnderFileSystem fs, String path) {
     return new AlluxioOutputFile(path, fs);
   }
@@ -42,6 +47,11 @@ public class AlluxioOutputFile implements OutputFile {
     }
   }
 
+  /**
+   * get the path of the output file.
+   *
+   * @return the path
+   */
   public String getPath() {
     return mPath;
   }

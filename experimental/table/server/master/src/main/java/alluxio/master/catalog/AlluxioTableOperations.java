@@ -11,16 +11,12 @@
 
 package alluxio.master.catalog;
 
-import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
+
 import com.google.common.base.Preconditions;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.iceberg.LocationProviders;
 import org.apache.iceberg.TableMetadata;
 import org.apache.iceberg.TableMetadataParser;
@@ -31,7 +27,6 @@ import org.apache.iceberg.exceptions.RuntimeIOException;
 import org.apache.iceberg.exceptions.ValidationException;
 import org.apache.iceberg.io.FileIO;
 import org.apache.iceberg.io.LocationProvider;
-import org.apache.iceberg.io.OutputFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,15 +37,18 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+/**
+ * Alluxio Table operations.
+ */
 public class AlluxioTableOperations implements TableOperations {
-  enum TableSource
-  {
+  enum TableSource {
     NATIVE,
     IMPORTED
   }
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioTableOperations.class);
 
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioTableOperations.class);
   public static final String IMPORTED_DB_NAME = "Imported";
+
   private final String mDatabase;
   private final String mTableName;
   private final TableSource mSource;
@@ -64,6 +62,12 @@ public class AlluxioTableOperations implements TableOperations {
 
   private final UnderFileSystem mFileSystem;
 
+  /**
+   * Constructor for AlluxioTableOperation.
+   *
+   * @param fs underlying filesystem
+   * @param location path
+   */
   public AlluxioTableOperations(UnderFileSystem fs, String location) {
     mSource = TableSource.IMPORTED;
     mLocation = location;
@@ -72,17 +76,34 @@ public class AlluxioTableOperations implements TableOperations {
     mFileSystem = fs;
   }
 
+  /**
+   * Constructor for AlluxioTableOperation.
+   *
+   * @param fs underlying filesystem
+   * @param dbName database name
+   * @param tableName table name
+   */
   public AlluxioTableOperations(UnderFileSystem fs, String dbName, String tableName) {
     mSource = TableSource.NATIVE;
     mDatabase = dbName;
     mTableName = tableName;
-    mLocation = PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
+    mLocation = PathUtils.concatPath(
+        ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
         ServerConfiguration.get(PropertyKey.METADATA_PATH),
         dbName, tableName);
     mFileSystem = fs;
   }
 
-  public AlluxioTableOperations(UnderFileSystem fs, String location, String dbName, String tableName) {
+  /**
+   * Constructor for AlluxioTableOperation.
+   *
+   * @param fs underlying filesystem
+   * @param location base location for the table metadata
+   * @param dbName database name
+   * @param tableName table name
+   */
+  public AlluxioTableOperations(UnderFileSystem fs, String location,
+      String dbName, String tableName) {
     mSource = TableSource.IMPORTED;
     mLocation = location;
     mDatabase = dbName;
@@ -107,7 +128,8 @@ public class AlluxioTableOperations implements TableOperations {
   }
 
   private String metadataFilePath(int metadataVersion, TableMetadataParser.Codec codec) {
-    return metadataPath("v" + metadataVersion + TableMetadataParser.getFileExtension(codec));
+    return metadataPath("v" + metadataVersion
+        + TableMetadataParser.getFileExtension(codec));
   }
 
   private String getMetadataFile(int metadataVersion) throws IOException {
@@ -154,16 +176,15 @@ public class AlluxioTableOperations implements TableOperations {
         metadataFile = nextMetadataFile;
         nextMetadataFile = getMetadataFile(ver + 1);
       }
-
       mVersion = ver;
 
-      TableMetadata newMetadata = TableMetadataParser.read(this, io().newInputFile(metadataFile.toString()));
+      TableMetadata newMetadata = TableMetadataParser.read(this, io().newInputFile(metadataFile));
       String newUUID = newMetadata.uuid();
       if (mCurrentMetadata != null) {
         Preconditions.checkState(newUUID == null || newUUID.equals(mCurrentMetadata.uuid()),
-            "Table UUID does not match: current=%s != refreshed=%s", mCurrentMetadata.uuid(), newUUID);
+            "Table UUID does not match: current=%s != refreshed=%s",
+            mCurrentMetadata.uuid(), newUUID);
       }
-
       mCurrentMetadata = newMetadata;
       mShouldRefresh = false;
       return mCurrentMetadata;
@@ -172,35 +193,20 @@ public class AlluxioTableOperations implements TableOperations {
     }
   }
 
-  private String newTableMetadataFilePath(TableMetadata meta, int newVersion) {
-    String codecName = meta.property(
-        TableProperties.METADATA_COMPRESSION, TableProperties.METADATA_COMPRESSION_DEFAULT);
-    String fileExtension = TableMetadataParser.getFileExtension(codecName);
-    return metadataFileLocation(String.format("%05d-%s%s", newVersion, UUID.randomUUID(), fileExtension));
-  }
-
-  protected String writeNewMetadata(TableMetadata metadata, int newVersion) {
-    String newTableMetadataFilePath = newTableMetadataFilePath(metadata, newVersion);
-    OutputFile newMetadataLocation = io().newOutputFile(newTableMetadataFilePath);
-
-    // write the new metadata
-    TableMetadataParser.write(metadata, newMetadataLocation);
-
-    return newTableMetadataFilePath;
-  }
-
   @Override
   public void commit(TableMetadata base, TableMetadata metadata) {
     // if the metadata is already out of date, reject it
     if (base != current()) {
-      throw new CommitFailedException("Cannot commit: stale table metadata for %s.%s", mDatabase, mTableName);
+      throw new CommitFailedException("Cannot commit: stale table metadata for %s.%s",
+          mDatabase, mTableName);
     }
 
     // if the metadata is not changed, return early
     if (base == metadata) {
       LOG.info("Nothing to commit.");
       return;
-    }String codecName = metadata.property(
+    }
+    String codecName = metadata.property(
         TableProperties.METADATA_COMPRESSION, TableProperties.METADATA_COMPRESSION_DEFAULT);
     TableMetadataParser.Codec codec = TableMetadataParser.Codec.fromName(codecName);
     String fileExtension = TableMetadataParser.getFileExtension(codec);
@@ -209,7 +215,6 @@ public class AlluxioTableOperations implements TableOperations {
 
     int nextVersion = (mVersion != null ? mVersion : 0) + 1;
     String finalMetadataFile = metadataFilePath(nextVersion, codec);
-
 
     try {
       if (mFileSystem.exists(finalMetadataFile)) {
@@ -232,7 +237,7 @@ public class AlluxioTableOperations implements TableOperations {
 
   private void writeVersionHint(int versionToWrite) {
     String versionHintFile = versionHintFile();
-    // TODO: overwrite has to be on
+    // TODO(yuzhu): make sure create does overwrite as well
     try (OutputStream out = mFileSystem.create(versionHintFile)) {
       out.write(String.valueOf(versionToWrite).getBytes(StandardCharsets.UTF_8));
     } catch (IOException e) {
@@ -243,8 +248,8 @@ public class AlluxioTableOperations implements TableOperations {
   /**
    * Deletes the file from the file system. Any RuntimeException will be caught and returned.
    *
-   * @param path the file to be deleted.
-   * @return RuntimeException caught, if any. null otherwise.
+   * @param path the file to be deleted
+   * @return RuntimeException caught, if any. null otherwise
    */
   private RuntimeException tryDelete(String path) {
     try {
@@ -254,7 +259,6 @@ public class AlluxioTableOperations implements TableOperations {
       return re;
     }
   }
-
 
   private void renameToFinal(UnderFileSystem fs, String src, String dst) {
     try {
@@ -285,6 +289,7 @@ public class AlluxioTableOperations implements TableOperations {
     }
     return mDefaultFileIo;
   }
+
   @Override
   public String metadataFileLocation(String fileName) {
     return metadataPath(fileName);

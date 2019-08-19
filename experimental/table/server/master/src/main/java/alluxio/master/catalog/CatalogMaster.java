@@ -44,7 +44,8 @@ public interface CatalogMaster extends Master {
   /**
    * Create a database.
    *
-   * @param database a database name
+   * @param dbName a database name
+   * @return true if creation is successful
    *
    */
   boolean createDatabase(String dbName);
@@ -54,20 +55,38 @@ public interface CatalogMaster extends Master {
    *  @param dbName database name
    * @param tableName table name
    * @param schema schema
+   * @return a Table object
    *
    */
   Table createTable(String dbName, String tableName, Schema schema);
 
   /**
    * Get a table.
+   *
+   * @param databaseName database name
+   * @param tableName table name
+   *
+   * @return a Table object
    */
   Table getTable(String databaseName, String tableName);
 
   /**
-   * Get statistics on the table
+   * Get statistics on the table.
+   *
+   * @param databaseName database name
+   * @param tableName table name
+   *
+   * @return a map containing data files paths mapped to file statistics
    */
-
   Map<String, FileStatistics> getStatistics(String databaseName, String tableName);
 
-  List<String> getDataFiles(String dbName, String tableName);
+  /**
+   * Get the list of datafiles on the table.
+   *
+   * @param databaseName database name
+   * @param tableName table name
+   *
+   * @return a list containing the data files paths
+   */
+  List<String> getDataFiles(String databaseName, String tableName);
 }
