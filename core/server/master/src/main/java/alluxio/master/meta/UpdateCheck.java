@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.ProjectConstants;
 import alluxio.util.EnvironmentUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -76,14 +77,14 @@ public final class UpdateCheck {
    * @return a string representation of the user's environment in the format "key1:value1, key2:
    *         value2".
    */
-  private static String getUserAgentString(String clusterID) throws IOException {
-    Joiner joiner = Joiner.on(",");
-    return joiner.join(
-        "ClusterID:" + clusterID,
-        "AlluxioVersion:" + ProjectConstants.VERSION,
-        "IsDocker:" + EnvironmentUtils.isDocker(),
-        "IsKubernetes:" + EnvironmentUtils.isKubernetes()
+  @VisibleForTesting
+  public static String getUserAgentString(String clusterID) throws IOException {
+    Joiner joiner = Joiner.on("; ").skipNulls();
+    String sysInfo = joiner.join(
+        EnvironmentUtils.isDocker() ? "docker" : null,
+        EnvironmentUtils.isKubernetes() ? "kubernetes" : null
     );
+    return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
   }
 
   private UpdateCheck() {} // prevent instantiation

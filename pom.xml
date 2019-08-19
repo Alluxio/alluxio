@@ -165,8 +165,6 @@
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
     <update.check.enabled>false</update.check.enabled>
-    <update.check.host>https://diagnostics.alluxio.io</update.check.host>
-    <update.check.auth.string>YWxsdXhpbzp0YWNoeW9u</update.check.auth.string>
   </properties>
 
   <modules>
