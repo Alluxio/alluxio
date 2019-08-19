@@ -389,21 +389,21 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       switch (type) {
         case SPACE_TOTAL:
           //#ifdef HADOOP1
-          space = ((DistributedFileSystem) hdfs).getDiskStatus().getCapacity();
+//          space = ((DistributedFileSystem) hdfs).getDiskStatus().getCapacity();
           //#else
           space = hdfs.getStatus().getCapacity();
           //#endif
           break;
         case SPACE_USED:
           //#ifdef HADOOP1
-          space = ((DistributedFileSystem) hdfs).getDiskStatus().getDfsUsed();
+//          space = ((DistributedFileSystem) hdfs).getDiskStatus().getDfsUsed();
           //#else
           space = hdfs.getStatus().getUsed();
           //#endif
           break;
         case SPACE_FREE:
           //#ifdef HADOOP1
-          space = ((DistributedFileSystem) hdfs).getDiskStatus().getRemaining();
+//          space = ((DistributedFileSystem) hdfs).getDiskStatus().getRemaining();
           //#else
           space = hdfs.getStatus().getRemaining();
           //#endif
@@ -554,7 +554,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
-    FileSystem hdfs = getFs();
+      FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     DistributedFileSystem dfs = null;
     if (hdfs instanceof DistributedFileSystem) {
