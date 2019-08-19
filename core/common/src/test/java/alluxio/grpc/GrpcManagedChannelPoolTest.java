@@ -50,8 +50,8 @@ public final class GrpcManagedChannelPoolTest {
 
   @Test
   public void testEqualKeys() throws Exception {
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
+    GrpcChannelKey key1 = GrpcChannelKey.create(sConf);
+    GrpcChannelKey key2 = GrpcChannelKey.create(sConf);
 
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
@@ -79,8 +79,8 @@ public final class GrpcManagedChannelPoolTest {
   @Test
   public void testUnhealthyChannelRecreation() throws Exception {
 
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
+    GrpcChannelKey key1 = GrpcChannelKey.create(sConf);
+    GrpcChannelKey key2 = GrpcChannelKey.create(sConf);
 
     // Not creating the coresponding server will ensure, the channels will never
     // be ready.
@@ -102,8 +102,8 @@ public final class GrpcManagedChannelPoolTest {
 
   @Test
   public void testEqualKeysComplex() throws Exception {
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
+    GrpcChannelKey key1 = GrpcChannelKey.create(sConf);
+    GrpcChannelKey key2 = GrpcChannelKey.create(sConf);
 
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
@@ -142,8 +142,8 @@ public final class GrpcManagedChannelPoolTest {
 
   @Test
   public void testNotEqualKeys() throws Exception {
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
+    GrpcChannelKey key1 = GrpcChannelKey.create(sConf);
+    GrpcChannelKey key2 = GrpcChannelKey.create(sConf);
 
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
@@ -174,10 +174,10 @@ public final class GrpcManagedChannelPoolTest {
 
   @Test
   public void testEqualKeysNoPooling() throws Exception {
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf)
-        .setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy.DISABLED);
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf)
-        .setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy.DISABLED);
+    GrpcChannelKey key1 = GrpcChannelKey.create(sConf)
+        .setPoolingStrategy(GrpcChannelKey.PoolingStrategy.DISABLED);
+    GrpcChannelKey key2 = GrpcChannelKey.create(sConf)
+        .setPoolingStrategy(GrpcChannelKey.PoolingStrategy.DISABLED);
 
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 

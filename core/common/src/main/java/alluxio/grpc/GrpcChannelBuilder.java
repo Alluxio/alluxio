@@ -29,11 +29,8 @@ import javax.security.auth.Subject;
  * building.
  */
 public final class GrpcChannelBuilder {
-  /** Key for acquiring the underlying managed channel. */
-  private GrpcManagedChannelPool.ChannelKey mChannelKey;
-
-  /** gRPC Server address. */
-  private GrpcServerAddress mServerAddress;
+  /** gRPC channel key. */
+  private GrpcChannelKey mChannelKey;
 
   /** Whether to use mParentSubject as authentication user. */
   private boolean mUseSubject;
@@ -51,11 +48,10 @@ public final class GrpcChannelBuilder {
   private AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
-    mServerAddress = address;
     mConfiguration = conf;
-    mChannelKey = GrpcManagedChannelPool.ChannelKey.create(conf);
+    mChannelKey = GrpcChannelKey.create(conf);
     // Set default overrides for the channel.
-    mChannelKey.setAddress(address.getSocketAddress());
+    mChannelKey.setServerAddress(address);
     mChannelKey.setMaxInboundMessageSize(
         (int) mConfiguration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
     mUseSubject = true;
@@ -187,7 +183,7 @@ public final class GrpcChannelBuilder {
    * @param strategy the pooling strategy
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public GrpcChannelBuilder setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy strategy) {
+  public GrpcChannelBuilder setPoolingStrategy(GrpcChannelKey.PoolingStrategy strategy) {
     mChannelKey.setPoolingStrategy(strategy);
     return this;
   }
@@ -209,15 +205,16 @@ public final class GrpcChannelBuilder {
         // Create channel authenticator based on provided content.
         ChannelAuthenticator channelAuthenticator;
         if (mUseSubject) {
-          channelAuthenticator = new ChannelAuthenticator(mParentSubject, mConfiguration);
+          channelAuthenticator =
+              new ChannelAuthenticator(mChannelKey, mParentSubject, mConfiguration);
         } else {
-          channelAuthenticator = new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
-              mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
-              mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT));
+          channelAuthenticator =
+              new ChannelAuthenticator(mChannelKey, mUserName, mPassword, mImpersonationUser,
+                  mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
+                  mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT));
         }
         // Return a wrapper over authenticated channel.
-        return new GrpcChannel(mChannelKey,
-            channelAuthenticator.authenticate(mServerAddress, underlyingChannel),
+        return new GrpcChannel(mChannelKey, channelAuthenticator.authenticate(underlyingChannel),
             mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
       } else {
         // Return a wrapper over original channel.

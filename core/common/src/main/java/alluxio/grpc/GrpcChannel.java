@@ -13,6 +13,7 @@ package alluxio.grpc;
 
 import alluxio.security.authentication.AuthenticatedChannel;
 
+import com.google.common.base.MoreObjects;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -31,7 +32,7 @@ import java.util.function.Supplier;
  * {@link GrpcServer}.
  */
 public final class GrpcChannel extends Channel {
-  private final GrpcManagedChannelPool.ChannelKey mChannelKey;
+  private final GrpcChannelKey mChannelKey;
   private Supplier<Boolean> mChannelHealthState;
   private Channel mChannel;
   private Runnable mAuthCloseCallback;
@@ -46,7 +47,7 @@ public final class GrpcChannel extends Channel {
    * @param channel the grpc channel to wrap
    * @param shutdownTimeoutMs shutdown timeout in milliseconds
    */
-  public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel,
+  public GrpcChannel(GrpcChannelKey channelKey, Channel channel,
       long shutdownTimeoutMs) {
     mChannelKey = channelKey;
     mChannelHealthState = () -> mChannelHealthy;
@@ -62,7 +63,7 @@ public final class GrpcChannel extends Channel {
    * @param channel the authenticated grpc channel
    * @param shutdownTimeoutMs shutdown timeout in milliseconds
    */
-  public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, AuthenticatedChannel channel,
+  public GrpcChannel(GrpcChannelKey channelKey, AuthenticatedChannel channel,
       long shutdownTimeoutMs) {
     this(channelKey, (Channel) channel, shutdownTimeoutMs);
     // Update the channel health supplier for authenticated channel.
@@ -119,6 +120,15 @@ public final class GrpcChannel extends Channel {
    */
   public boolean isHealthy() {
     return mChannelHealthState.get();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ChannelKey", mChannelKey)
+        .add("ChannelHealthy", mChannelHealthy)
+        .add("ChannelReleased", mChannelReleased)
+        .toString();
   }
 
   /**

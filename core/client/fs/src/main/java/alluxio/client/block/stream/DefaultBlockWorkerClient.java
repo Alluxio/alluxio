@@ -22,7 +22,7 @@ import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcManagedChannelPool;
+import alluxio.grpc.GrpcChannelKey;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.MoveBlockRequest;
@@ -82,11 +82,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       // Disables channel pooling for data streaming to achieve better throughput.
       // Channel is still reused due to client pooling.
       mStreamingChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
+          GrpcChannelKey.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
       mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
       // Uses default pooling strategy for RPC calls for better scalability.
       mRpcChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
+          GrpcChannelKey.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
     } catch (StatusRuntimeException e) {
       throw AlluxioStatusException.fromStatusRuntimeException(e);
     }
@@ -198,7 +198,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   private GrpcChannel buildChannel(Subject subject, GrpcServerAddress address,
-      GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
+      GrpcChannelKey.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
       EventLoopGroup workerGroup)
       throws AlluxioStatusException {
     return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)

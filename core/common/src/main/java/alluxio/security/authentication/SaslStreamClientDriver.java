@@ -15,6 +15,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnknownException;
+import alluxio.grpc.GrpcChannelKey;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.LogUtils;
 
@@ -25,7 +26,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -59,8 +59,8 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   private SettableFuture<Boolean> mHandshakeFuture;
   /** Current authenticated state. */
   private AtomicBoolean mAuthenticated;
-  /** Channel Id that has started the authentication. */
-  private UUID mChannelId;
+  /** Channel key. */
+  private GrpcChannelKey mChannelKey;
 
   private final long mGrpcAuthTimeoutMs;
 
@@ -69,14 +69,14 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    *
    * @param handshakeClient client handshake handler
    * @param authenticated boolean reference to receive authentication state changes
-   * @param channelId channel Id for authentication
+   * @param channelKey channel key
    * @param grpcAuthTimeoutMs authentication timeout in milliseconds
    */
   public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient,
-      AtomicBoolean authenticated, UUID channelId, long grpcAuthTimeoutMs) {
+      AtomicBoolean authenticated, GrpcChannelKey channelKey, long grpcAuthTimeoutMs) {
     mSaslHandshakeClientHandler = handshakeClient;
     mHandshakeFuture = SettableFuture.create();
-    mChannelId = channelId;
+    mChannelKey = channelKey;
     mGrpcAuthTimeoutMs = grpcAuthTimeoutMs;
     mAuthenticated = authenticated;
   }
@@ -93,7 +93,8 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   @Override
   public void onNext(SaslMessage saslMessage) {
     try {
-      LOG.debug("SaslClientDriver received message: {} for channel: {}", saslMessage, mChannelId);
+      LOG.debug("SaslClientDriver received message: {} for channel: {}", saslMessage,
+          mChannelKey.toStringShort());
       SaslMessage response = mSaslHandshakeClientHandler.handleSaslMessage(saslMessage);
       if (response != null) {
         mRequestObserver.onNext(response);
@@ -103,7 +104,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       }
     } catch (Exception e) {
       LOG.debug("Exception while handling SASL message: {} for channel: {}. Error: {}", saslMessage,
-          mChannelId, e);
+          mChannelKey.toStringShort(), e);
       mHandshakeFuture.setException(e);
       mRequestObserver.onError(e);
     }
@@ -115,7 +116,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
     mHandshakeFuture.setException(throwable);
 
     String errorMsg = String.format("Received error on client driver for channel: %s. Error: %s",
-        mChannelId, throwable);
+        mChannelKey.toStringShort(), throwable);
 
     // UNAVAILABLE is quite common while cluster is booting up.
     // Tracing it as warning will pollute logs as onError() will be called per connection retry.
@@ -129,7 +130,8 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
 
   @Override
   public void onCompleted() {
-    LOG.debug("Client authentication closed by server for channel: {}", mChannelId);
+    LOG.debug("Client authentication closed by server for channel: {}",
+        mChannelKey.toStringShort());
     // Server completes the stream when authenticated session is terminated/revoked.
     mAuthenticated.set(false);
   }
@@ -140,9 +142,10 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    */
   public void start() throws AlluxioStatusException {
     try {
-      LOG.debug("Starting SASL handshake for channel: {}", mChannelId);
+      LOG.debug("Starting SASL handshake for channel: {}", mChannelKey.toStringShort());
       // Send the server initial message.
-      mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(mChannelId));
+      mRequestObserver
+          .onNext(mSaslHandshakeClientHandler.getInitialMessage(mChannelKey.getChannelId()));
       // Wait until authentication status changes.
       mAuthenticated.set(mHandshakeFuture.get(mGrpcAuthTimeoutMs, TimeUnit.MILLISECONDS));
     } catch (SaslException se) {
@@ -170,7 +173,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    * Stops authenticated session with the server by releasing the long poll.
    */
   public void stop() {
-    LOG.debug("Closing client driver for channel: {}", mChannelId);
+    LOG.debug("Closing client driver for channel: {}", mChannelKey.toStringShort());
     try {
       if (mAuthenticated.get()) {
         mRequestObserver.onCompleted();
