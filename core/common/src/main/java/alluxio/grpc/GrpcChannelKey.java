@@ -15,6 +15,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 
 import com.google.common.base.MoreObjects;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -36,6 +37,7 @@ public class GrpcChannelKey {
   private static final Random RANDOM = new Random();
 
   @IdentityField
+  @SuppressFBWarnings(value = "URF_UNREAD_FIELD")
   Long mPoolKey = 0L;
   @IdentityField
   private GrpcServerAddress mServerAddress;
