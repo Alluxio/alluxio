@@ -99,6 +99,7 @@ public final class GrpcChannel extends Channel {
     if (mAuthCloseCallback != null) {
       // Stop authenticated session with server.
       mAuthCloseCallback.run();
+      mAuthCloseCallback = null;
     }
     if (!mChannelReleased) {
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
