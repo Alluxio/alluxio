@@ -40,9 +40,9 @@ unless you know what you are doing.
 #                + result="1"
 contains() {
   if [[ "$1" = *"$2"* ]]; then
-    echo "1"
+    printf "1"
   fi
-  echo "0"
+  printf "0"
 }
 
 # Sets environment variables by sourcing ${ALLUXIO_HOME}/libexec/alluxio-config.sh
