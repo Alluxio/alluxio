@@ -14,6 +14,7 @@ package alluxio.master.journal.raft.transport;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.security.user.UserState;
@@ -95,12 +96,13 @@ public class CopycatGrpcServer implements Server {
       };
 
       // Create gRPC server.
-      mGrpcServer =
-          GrpcServerBuilder.forAddress(address.host(), address.socketAddress(), mConf, mUserState)
-              .addService(new GrpcService(
-                  new CopycatMessageServiceClientHandler(forkListener, threadContext, mExecutor,
-                      mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
-              .build();
+      mGrpcServer = GrpcServerBuilder
+          .forAddress(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf,
+              mUserState)
+          .addService(
+              new GrpcService(new CopycatMessageServiceClientHandler(forkListener, threadContext,
+                  mExecutor, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
+          .build();
 
       try {
         mGrpcServer.start();

@@ -215,7 +215,7 @@ public abstract class AbstractClient implements Client {
         LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-            .newBuilder(new GrpcServerAddress(mAddress), mContext.getClusterConf())
+            .newBuilder(GrpcServerAddress.create(mAddress), mContext.getClusterConf())
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host

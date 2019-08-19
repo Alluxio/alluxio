@@ -79,7 +79,7 @@ public class CopycatGrpcClient implements Client {
       try {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
-            .newBuilder(new GrpcServerAddress(address.host(), address.socketAddress()), mConf)
+            .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
             .setSubject(mUserState.getSubject()).build();
 
         // Create stub for receiving stream from server.

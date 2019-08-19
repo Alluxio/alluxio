@@ -465,7 +465,7 @@ public final class FileSystemContext implements Closeable {
       final WorkerNetAddress workerNetAddress, final Subject subject) throws IOException {
     SocketAddress address =
         NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getClusterConf());
-    GrpcServerAddress serverAddress = new GrpcServerAddress(workerNetAddress.getHost(), address);
+    GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
     ClientPoolKey key = new ClientPoolKey(address,
         AuthenticationUserUtils.getImpersonationUser(subject, getClusterConf()));
     return mBlockWorkerClientPool.computeIfAbsent(key,
