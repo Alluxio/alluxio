@@ -3757,7 +3757,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try {
         mSyncManager.startSyncPostJournal(uri);
       } catch (Throwable e) {
-        LOG.warn("Start sync failed because {}", ExceptionUtils.getStackTrace(e));
+        LOG.warn("Start sync failed on {}", uri, e);
         // revert state;
         RemoveSyncPointEntry removeSyncPoint =
             File.RemoveSyncPointEntry.newBuilder()
@@ -3809,7 +3809,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         long mountId = resolution.getMountId();
         mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
       } catch (Throwable e) {
-        LOG.warn("Stop sync failed because {}", ExceptionUtils.getStackTrace(e));
+        LOG.warn("Stop sync failed on {}", uri, e);
         // revert state;
         AddSyncPointEntry addSyncPoint =
             File.AddSyncPointEntry.newBuilder()
