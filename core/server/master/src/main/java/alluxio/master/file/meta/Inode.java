@@ -69,6 +69,11 @@ public abstract class Inode implements InodeView {
   }
 
   @Override
+  public long getLastAccessTimeMs() {
+    return mDelegate.getLastAccessTimeMs();
+  }
+
+  @Override
   public String getName() {
     return mDelegate.getName();
   }

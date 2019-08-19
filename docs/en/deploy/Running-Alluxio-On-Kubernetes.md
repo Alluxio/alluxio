@@ -84,20 +84,58 @@ Once the helm repository is available, Alluxio prepare the Alluxio configuration
 ```console
 $ cat << EOF > config.yaml
 properties:
-  alluxio.mount.table.root.ufs: "<under_storage_address>"
+  alluxio.master.mount.table.root.ufs: "<under_storage_address>"
 EOF
 ```
 Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
-For example, is using Amazon S3 as the under store, add properties as:
+For example:
+- If using Amazon S3 as the under store, add these properties:
 ```console
 $ cat << EOF > config.yaml
 properties:
-  alluxio.mount.table.root.ufs: "s3a://<bucket>"
+  alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
   aws.accessKeyId: "<accessKey>"
   aws.secretKey: "<secretKey>"
 EOF
 ```
+- If using HDFS as the under store, first create secrets for any configuration required by an HDFS
+client. These are mounted under `/secrets`.
+```console
+$ kubectl create secret generic alluxio-hdfs-config --from-file=./core-site.xml --from-file=./hdfs-site.xml
+```
+Then mount these secrets to the Alluxio master and worker containers as follows:
+```console
+$ cat << EOF > config.yaml
+properties:
+  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+EOF
+```
+Note: Multiple secrets can be mounted by adding more rows to the configuration such as:
+```console
+$ cat << EOF > config.yaml
+...
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+    alluxio-ceph-config: cephConfig
+    ...
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+    alluxio-ceph-config: cephConfig
+    ...
+EOF
+```
 
+Install
+```console
+helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
+```
 #### Using `kubectl`
 
 Define environment variables in `alluxio.properties`. Copy the properties template at
@@ -120,8 +158,6 @@ Create a ConfigMap.
 ```console
 $ kubectl create -f alluxio-configMap.yaml
 ```
-
-### Deploy
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the **Docker image**, and CPU and memory requirements for pods.
@@ -170,13 +206,15 @@ $ ./bin/alluxio runTests
 
 ### Uninstall
 
-If using `helm`, uninstall Alluxio as follows:
+#### Using `helm`
+
+Uninstall Alluxio as follows:
 ```console
-$ helm list # Identify release name
-$ helm delete <release-name>
+$ helm delete alluxio
 ```
 
-If using `kubectl`, uninstall Alluxio as follows:
+#### Using `kubectl`
+Uninstall Alluxio as follows:
 ```console
 $ kubectl delete -f alluxio-worker.yaml
 $ kubectl delete -f alluxio-master.yaml
@@ -299,13 +337,13 @@ To disable short-circuit operations, set the property `alluxio.user.short.circui
 
 ##### Hostname Introspection
 
-Short-circuit operations between the Alluxio client and enabled by default worker are enabled if the client
-hostname matches the worker hostname.
+Short-circuit operations between the Alluxio client and worker are enabled if the client hostname
+matches the worker hostname.
 This may not be true if the client is running as part of a container with virtual networking.
 In such a scenario, set the following property to use filesystem inspection to enable short-circuit
-and **make sure the client container mounts the directory specified as the domain socket path**.
-Short-circuit writes are then enabled if the worker UUID is located on the
-client filesystem.
+operations and **make sure the client container mounts the directory specified as the domain socket
+path**.
+Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
 
 > Note: This property should be set on all workers
 
@@ -320,16 +358,22 @@ The domain socket is a volume which should be mounted on:
 - All Alluxio workers
 - All application containers which intend to read/write through Alluxio
 
-The exact path of the domain socket is defined in the helm chart at
+The exact path of the domain socket on the host is defined in the helm chart at
 `${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/values.yml`.
-By default this value is `/tmp/alluxio-domain`.
+On the worker the path where the domain socket is mounted can be found within
+`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/alluxio-worker.yml`
 
 As part of the Alluxio worker pod creation, a directory
 is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
+The workers then mount `/tmp/alluxio-domain` to `/opt/domain` within the
+container.
 
 ```properties
-alluxio.worker.data.server.domain.socket.address=/tmp/alluxio-domain
+alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
+
+Compute application containers **must** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
 
 #### Verify
 

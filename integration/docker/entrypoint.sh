@@ -13,6 +13,7 @@
 set -e
 
 NO_FORMAT='--no-format'
+FUSE_OPTS='--fuse-opts'
 
 function printUsage {
   echo "Usage: COMMAND [COMMAND_OPTIONS]"
@@ -25,7 +26,7 @@ function printUsage {
   echo -e " job-master                   \t Start Alluxio job master"
   echo -e " job-worker                   \t Start Alluxio job worker"
   echo -e " proxy                        \t Start Alluxio proxy"
-  echo -e " fuse                         \t Start Alluxio fuse"
+  echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
 }
 
 if [[ $# -lt 1 ]]; then
@@ -76,6 +77,12 @@ function writeConf {
 
 writeConf
 
+function disableDNSCache {
+  echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
+}
+
+disableDNSCache
+
 function formatMasterIfSpecified {
   if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
     printUsage
@@ -94,6 +101,22 @@ function formatWorkerIfSpecified {
   if [[ ${options} != ${NO_FORMAT} ]]; then
     bin/alluxio formatWorker
   fi
+}
+
+function mountAlluxioRootFSWithFuseOption {
+  local fuseOptions=""
+  if [[ -n ${options} ]]; then
+    if [[ ! ${options} =~ ${FUSE_OPTS}=* ]] || [[ ! -n ${options#*=} ]]; then
+      printUsage
+      exit 1
+    fi
+    fuseOptions="-o ${options#*=}"
+  fi
+
+  # Unmount first if cleanup failed and ignore error
+  ! integration/fuse/bin/alluxio-fuse unmount /alluxio-fuse
+  integration/fuse/bin/alluxio-fuse mount ${fuseOptions} /alluxio-fuse /
+  tail -f /opt/alluxio/logs/fuse.log
 }
 
 case ${service,,} in
@@ -127,10 +150,7 @@ case ${service,,} in
     integration/docker/bin/alluxio-proxy.sh
     ;;
   fuse)
-    # Unmount first if cleanup failed and ignore error
-    ! integration/fuse/bin/alluxio-fuse unmount /alluxio-fuse
-    integration/fuse/bin/alluxio-fuse mount -o allow_other /alluxio-fuse /
-    tail -f /opt/alluxio/logs/fuse.log
+    mountAlluxioRootFSWithFuseOption
     ;;
   *)
     printUsage

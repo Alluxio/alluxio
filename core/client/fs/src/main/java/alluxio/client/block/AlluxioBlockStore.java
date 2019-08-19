@@ -28,7 +28,6 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
@@ -177,17 +176,20 @@ public final class AlluxioBlockStore {
     if (options.getStatus().isPersisted()
         || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED")) {
       blockWorkerInfo = getEligibleWorkers();
-      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
-      if (workerPool.isEmpty()) {
-        throw new UnavailableException(
-            "No Alluxio worker available. Check that your workers are still running");
+      if (blockWorkerInfo.isEmpty()) {
+        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
       }
+      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
     } else {
-      workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
-      if (workerPool.isEmpty()) {
-        throw new NotFoundException(
+      if (locations.isEmpty()) {
+        blockWorkerInfo = getEligibleWorkers();
+        if (blockWorkerInfo.isEmpty()) {
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
+        throw new UnavailableException(
             ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
       }
+      workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
     }
     // Workers to read the block, after considering failed workers.
     Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
@@ -314,6 +316,9 @@ public final class AlluxioBlockStore {
     if (initialReplicas <= 1) {
       address = locationPolicy.getWorker(workerOptions);
       if (address == null) {
+        if (getEligibleWorkers().isEmpty()) {
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
         throw new UnavailableException(
             ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
       }

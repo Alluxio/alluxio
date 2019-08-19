@@ -55,6 +55,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   protected long mTtl;
   protected TtlAction mTtlAction;
   private long mLastModificationTimeMs;
+  private long mLastAccessTimeMs;
   private String mName;
   private long mParentId;
   private PersistenceState mPersistenceState;
@@ -72,6 +73,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mLastModificationTimeMs = mCreationTimeMs;
+    mLastAccessTimeMs = mCreationTimeMs;
     mName = null;
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
@@ -110,6 +112,11 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   @Override
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
+  }
+
+  @Override
+  public long getLastAccessTimeMs() {
+    return mLastAccessTimeMs;
   }
 
   @Override
@@ -328,6 +335,29 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   /**
+   * @param lastAccessTimeMs the last access time to use
+   * @return the updated object
+   */
+  public T setLastAccessTimeMs(long lastAccessTimeMs) {
+    return setLastAccessTimeMs(lastAccessTimeMs, false);
+  }
+
+  /**
+   * @param lastAccessTimeMs the last access time to use
+   * @param override if true, sets the value regardless of the previous last access time,
+   *                 should be set to true for journal replay
+   * @return the updated object
+   */
+  public T setLastAccessTimeMs(long lastAccessTimeMs, boolean override) {
+    synchronized (this) {
+      if (override || mLastAccessTimeMs < lastAccessTimeMs) {
+        mLastAccessTimeMs = lastAccessTimeMs;
+      }
+      return getThis();
+    }
+  }
+
+  /**
    * @param name the name to use
    * @return the updated object
    */
@@ -537,6 +567,10 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setLastModificationTimeMs(entry.getLastModificationTimeMs(),
           entry.getOverwriteModificationTime());
     }
+    if (entry.hasLastAccessTimeMs()) {
+      setLastAccessTimeMs(entry.getLastAccessTimeMs(),
+          entry.getOverwriteAccessTime());
+    }
     if (entry.hasMode()) {
       setMode((short) entry.getMode());
     }
@@ -611,6 +645,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .add("directory", mDirectory)
         .add("persistenceState", mPersistenceState)
         .add("lastModificationTimeMs", mLastModificationTimeMs)
+        .add("lastAccessTimeMs", mLastAccessTimeMs)
         .add("owner", mAcl.getOwningUser())
         .add("group", mAcl.getOwningGroup())
         .add("permission", mAcl.getMode())
@@ -627,6 +662,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setTtl(getTtl())
         .setTtlAction(getTtlAction())
         .setLastModifiedMs(getLastModificationTimeMs())
+        .setLastAccessedMs(getLastAccessTimeMs())
         .setName(getName())
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())

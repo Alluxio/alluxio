@@ -165,7 +165,7 @@ main() {
   # Download user-specified site properties file to
   # ${ALLUXIO_HOME/conf/alluxio-site.properties}. Must be named
   # "alluxio-site.properties"
-  if [ ! -z "${site_properties_uri}" ]; then
+  if [[ ! -z "${site_properties_uri}" ]]; then
     download_file ${site_properties_uri}
     mv ./alluxio-site.properties /tmp/alluxio-site.properties
     sudo chown alluxio:alluxio /tmp/alluxio-site.properties
@@ -175,13 +175,15 @@ main() {
     sudo rm /tmp/alluxio-site.properties
   fi
 
-  # Inject user defined properties from args
-  IFS="${property_delimiter}" read -ra conf <<< "${delimited_properties}"
-  for property in "${conf[@]}"; do
-    local key=${property%%"="*}
-    local value=${property#*"="}
-    append_alluxio_property "${key}" "${value}"
-  done
+  if [[ ! -z "${delimited_properties}" ]]; then
+    # Inject user defined properties from args
+    IFS="${property_delimiter}" read -ra conf <<< "${delimited_properties}"
+    for property in "${conf[@]}"; do
+      local key=${property%%"="*}
+      local value=${property#*"="}
+      append_alluxio_property "${key}" "${value}"
+    done
+  fi
 
   local mem_size=$(get_default_mem_size)
 

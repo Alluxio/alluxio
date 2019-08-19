@@ -338,4 +338,13 @@ public interface FileInfoOrBuilder extends
    * <code>optional int32 replicationMin = 30;</code>
    */
   int getReplicationMin();
+
+  /**
+   * <code>optional int64 lastAccessTimeMs = 31;</code>
+   */
+  boolean hasLastAccessTimeMs();
+  /**
+   * <code>optional int64 lastAccessTimeMs = 31;</code>
+   */
+  long getLastAccessTimeMs();
 }

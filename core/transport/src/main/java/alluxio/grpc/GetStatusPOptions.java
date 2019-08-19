@@ -17,6 +17,8 @@ private static final long serialVersionUID = 0L;
   }
   private GetStatusPOptions() {
     loadMetadataType_ = 0;
+    accessMode_ = 1;
+    updateTimestamps_ = true;
   }
 
   @java.lang.Override
@@ -72,6 +74,22 @@ private static final long serialVersionUID = 0L;
               commonOptions_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000002;
+            break;
+          }
+          case 24: {
+            int rawValue = input.readEnum();
+            alluxio.grpc.Bits value = alluxio.grpc.Bits.valueOf(rawValue);
+            if (value == null) {
+              unknownFields.mergeVarintField(3, rawValue);
+            } else {
+              bitField0_ |= 0x00000004;
+              accessMode_ = rawValue;
+            }
+            break;
+          }
+          case 32: {
+            bitField0_ |= 0x00000008;
+            updateTimestamps_ = input.readBool();
             break;
           }
         }
@@ -136,6 +154,37 @@ private static final long serialVersionUID = 0L;
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
 
+  public static final int ACCESSMODE_FIELD_NUMBER = 3;
+  private int accessMode_;
+  /**
+   * <code>optional .alluxio.grpc.Bits accessMode = 3;</code>
+   */
+  public boolean hasAccessMode() {
+    return ((bitField0_ & 0x00000004) == 0x00000004);
+  }
+  /**
+   * <code>optional .alluxio.grpc.Bits accessMode = 3;</code>
+   */
+  public alluxio.grpc.Bits getAccessMode() {
+    alluxio.grpc.Bits result = alluxio.grpc.Bits.valueOf(accessMode_);
+    return result == null ? alluxio.grpc.Bits.NONE : result;
+  }
+
+  public static final int UPDATETIMESTAMPS_FIELD_NUMBER = 4;
+  private boolean updateTimestamps_;
+  /**
+   * <code>optional bool updateTimestamps = 4 [default = true];</code>
+   */
+  public boolean hasUpdateTimestamps() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional bool updateTimestamps = 4 [default = true];</code>
+   */
+  public boolean getUpdateTimestamps() {
+    return updateTimestamps_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -154,6 +203,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       output.writeMessage(2, getCommonOptions());
     }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      output.writeEnum(3, accessMode_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      output.writeBool(4, updateTimestamps_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -169,6 +224,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, getCommonOptions());
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(3, accessMode_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(4, updateTimestamps_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -195,6 +258,15 @@ private static final long serialVersionUID = 0L;
       result = result && getCommonOptions()
           .equals(other.getCommonOptions());
     }
+    result = result && (hasAccessMode() == other.hasAccessMode());
+    if (hasAccessMode()) {
+      result = result && accessMode_ == other.accessMode_;
+    }
+    result = result && (hasUpdateTimestamps() == other.hasUpdateTimestamps());
+    if (hasUpdateTimestamps()) {
+      result = result && (getUpdateTimestamps()
+          == other.getUpdateTimestamps());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -213,6 +285,15 @@ private static final long serialVersionUID = 0L;
     if (hasCommonOptions()) {
       hash = (37 * hash) + COMMONOPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getCommonOptions().hashCode();
+    }
+    if (hasAccessMode()) {
+      hash = (37 * hash) + ACCESSMODE_FIELD_NUMBER;
+      hash = (53 * hash) + accessMode_;
+    }
+    if (hasUpdateTimestamps()) {
+      hash = (37 * hash) + UPDATETIMESTAMPS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getUpdateTimestamps());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -352,6 +433,10 @@ private static final long serialVersionUID = 0L;
         commonOptionsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000002);
+      accessMode_ = 1;
+      bitField0_ = (bitField0_ & ~0x00000004);
+      updateTimestamps_ = true;
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -388,6 +473,14 @@ private static final long serialVersionUID = 0L;
       } else {
         result.commonOptions_ = commonOptionsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.accessMode_ = accessMode_;
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.updateTimestamps_ = updateTimestamps_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -435,6 +528,12 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasCommonOptions()) {
         mergeCommonOptions(other.getCommonOptions());
+      }
+      if (other.hasAccessMode()) {
+        setAccessMode(other.getAccessMode());
+      }
+      if (other.hasUpdateTimestamps()) {
+        setUpdateTimestamps(other.getUpdateTimestamps());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -616,6 +715,74 @@ private static final long serialVersionUID = 0L;
         commonOptions_ = null;
       }
       return commonOptionsBuilder_;
+    }
+
+    private int accessMode_ = 1;
+    /**
+     * <code>optional .alluxio.grpc.Bits accessMode = 3;</code>
+     */
+    public boolean hasAccessMode() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional .alluxio.grpc.Bits accessMode = 3;</code>
+     */
+    public alluxio.grpc.Bits getAccessMode() {
+      alluxio.grpc.Bits result = alluxio.grpc.Bits.valueOf(accessMode_);
+      return result == null ? alluxio.grpc.Bits.NONE : result;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Bits accessMode = 3;</code>
+     */
+    public Builder setAccessMode(alluxio.grpc.Bits value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      bitField0_ |= 0x00000004;
+      accessMode_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Bits accessMode = 3;</code>
+     */
+    public Builder clearAccessMode() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      accessMode_ = 1;
+      onChanged();
+      return this;
+    }
+
+    private boolean updateTimestamps_ = true;
+    /**
+     * <code>optional bool updateTimestamps = 4 [default = true];</code>
+     */
+    public boolean hasUpdateTimestamps() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool updateTimestamps = 4 [default = true];</code>
+     */
+    public boolean getUpdateTimestamps() {
+      return updateTimestamps_;
+    }
+    /**
+     * <code>optional bool updateTimestamps = 4 [default = true];</code>
+     */
+    public Builder setUpdateTimestamps(boolean value) {
+      bitField0_ |= 0x00000008;
+      updateTimestamps_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool updateTimestamps = 4 [default = true];</code>
+     */
+    public Builder clearUpdateTimestamps() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      updateTimestamps_ = true;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
