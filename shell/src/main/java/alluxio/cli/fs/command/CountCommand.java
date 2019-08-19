@@ -12,16 +12,22 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -81,20 +87,5 @@ public final class CountCommand extends AbstractFileSystemCommand {
       rtn[2] += toAdd[2];
     }
     return rtn;
-  }
-
-  @Override
-  public String getUsage() {
-    return "count <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays the number of files and directories matching the specified prefix.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

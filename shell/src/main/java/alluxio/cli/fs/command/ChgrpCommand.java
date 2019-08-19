@@ -12,18 +12,24 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Changes the group of a file or directory specified by args.
@@ -93,21 +99,5 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "chgrp [-R] <group> <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Changes the group of a file or directory specified by args."
-        + " Specify -R to change the group recursively.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

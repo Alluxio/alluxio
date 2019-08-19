@@ -22,6 +22,8 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.zookeeper.server.ServerConfig;
 import org.slf4j.Logger;
@@ -44,7 +46,7 @@ public final class ConfigurationDocGenerator {
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
 
   //CLI Variables
-  private static final String CLI_YML_DIR = "docs/_data/table/en/cli";
+  private static final String CLI_YML_DIR = "docs/_data/table/en/cli/fs";
 
   private ConfigurationDocGenerator() {} // prevent instantiation
 
@@ -205,34 +207,43 @@ public final class ConfigurationDocGenerator {
     }
   }
 
-  public static void writeCliYMLFile(Map<String, Command> commands, String filePath)
+  public static void writeCommandDocs(Map<String, Command> commands, String filePath)
       throws IOException {
     if (commands.size() == 0) {
       return;
     }
-
     FileWriter fileWriter;
     Closer closer = Closer.create();
-
     Set<Map.Entry<String, Command>> st = commands.entrySet();
-
-    fileWriter = new FileWriter(PathUtils.concatPath(filePath, commands.get("cp").getCommandName() + ".yml"));
-    closer.register(fileWriter);
-    fileWriter.append(StringEscapeUtils.escapeHtml(commands.get("cp").getCommandName()));
 
     try {
       for (Map.Entry<String, Command> mt : st) {
-
+        fileWriter = new FileWriter(PathUtils.concatPath(filePath, mt.getValue().getCommandName() + ".yml"));
+        closer.register(fileWriter);
+        fileWriter.append(mt.getValue().getDocumentation());
+        if (!mt.getValue().getOptions().getOptions().isEmpty()) {
+          fileWriter.append("Options: |\n");
+        }
+        for (Option commandOpt:mt.getValue().getOptions().getOptions()){
+          if (commandOpt.getOpt() == null){
+            fileWriter.append("  - `--"+ commandOpt.getLongOpt()+ "` ");
+          }
+            else{ fileWriter.append("  - `-"+ commandOpt.getOpt()+ "` "); }
+          fileWriter.append(commandOpt.getDescription() + "\n");
+        }
+        fileWriter.append("Examples: |\n  ");
+        fileWriter.append(mt.getValue().getExample());
       }
 
-      LOG.info("Command CSV files were created successfully.");
+      LOG.info("Command YML files were created successfully.");
     } catch(Exception e){
         throw closer.rethrow(e);
       } finally{
         try {
           closer.close();
         } catch (IOException e) {
-          LOG.error("Error while flushing/closing Command CSV FileWriter", e);
+          LOG.error("Error while flushing/closing YML files for documentation of commands "
+                  + "FileWriter", e);
         }
       }
     }
@@ -245,8 +256,10 @@ public final class ConfigurationDocGenerator {
   public static void main(String[] args) throws IOException {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     defaultKeys.removeIf(key -> key.isHidden());
-    String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
-        .get(PropertyKey.HOME);
+    InstancedConfiguration c = new InstancedConfiguration(ConfigurationUtils.defaults());
+    c.set(PropertyKey.HOME, System.getProperty("user.dir"));
+    String homeDir = c.get(PropertyKey.HOME);
+
     // generate CSV files
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath);
@@ -258,6 +271,6 @@ public final class ConfigurationDocGenerator {
     Closer mCloser = Closer.create();
     Map<String, Command> commands = FileSystemShellUtils.loadCommands(mCloser.register(FileSystemContext.create(ServerConfiguration.global())));
     filePath = PathUtils.concatPath(homeDir, CLI_YML_DIR);
-    writeCliYMLFile(commands, filePath);
+    writeCommandDocs(commands, filePath);
   }
 }

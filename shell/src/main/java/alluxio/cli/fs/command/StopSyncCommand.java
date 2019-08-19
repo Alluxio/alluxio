@@ -12,14 +12,19 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * This class represents a stop sync command.
@@ -53,21 +58,6 @@ public class StopSyncCommand extends AbstractFileSystemCommand {
     AlluxioURI path = new AlluxioURI(args[0]);
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "stopSync <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Stops the automatic syncing process of the specified path). ";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

@@ -11,15 +11,21 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -52,20 +58,5 @@ public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
     long capacityBytes = alluxioBlockStore.getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "getCapacityBytes";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Gets the capacity of the Alluxio file system.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

@@ -122,6 +122,11 @@ public final class StatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     String arg = cl.getArgs()[0];

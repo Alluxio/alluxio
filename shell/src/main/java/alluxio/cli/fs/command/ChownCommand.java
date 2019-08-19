@@ -12,18 +12,24 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -129,21 +135,5 @@ public final class ChownCommand extends AbstractFileSystemCommand {
     }
     System.out.println("Failed to parse " + args[0] + " as user or user:group");
     return -1;
-  }
-
-  @Override
-  public String getUsage() {
-    return "chown [-R] <owner>[:<group>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Changes the owner of a file or directory specified by args."
-        + " Specify -R to change the owner recursively.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

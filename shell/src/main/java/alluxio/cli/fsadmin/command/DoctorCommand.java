@@ -120,6 +120,11 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
     return description();
   }
 
+  @Override
+  public String getExample(){
+    return null;
+  }
+
   /**
    * @return the description for the doctor command
    */

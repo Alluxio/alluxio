@@ -1,0 +1,5 @@
+name: getSyncPathList
+usage: getSyncPathList
+description: |
+  The `getSyncPathList` command gets all the paths that are under active syncing right now.
+example:

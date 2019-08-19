@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
@@ -21,12 +22,16 @@ import alluxio.grpc.FreePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Throwables;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -94,22 +99,6 @@ public final class FreeCommand extends AbstractFileSystemCommand {
       throw new RuntimeException(e);
     }
     System.out.println(path + " was successfully freed from memory.");
-  }
-
-  @Override
-  public String getUsage() {
-    return "free [-f] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Frees the space occupied by a file or a directory in Alluxio."
-        + " Specify -f to force freeing pinned files in the directory.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

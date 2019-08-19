@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
@@ -22,13 +23,17 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -99,22 +104,6 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
-  }
-
-  @Override
-  public String getUsage() {
-    return "persist [-p|--parallelism <#>] [-t|--timeout <milliseconds>] "
-        + "[-w|--wait <milliseconds>] <path> [<path> ...]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Persists files or directories currently stored only in Alluxio to the UnderFileSystem.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

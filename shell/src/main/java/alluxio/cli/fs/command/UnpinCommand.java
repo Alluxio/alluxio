@@ -12,14 +12,19 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -56,21 +61,6 @@ public final class UnpinCommand extends AbstractFileSystemCommand {
     AlluxioURI path = new AlluxioURI(args[0]);
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "unpin <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Unpins the given file or folder from memory (works recursively for a directory).";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

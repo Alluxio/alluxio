@@ -12,17 +12,22 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -165,20 +170,5 @@ public final class TestCommand extends AbstractFileSystemCommand {
     } catch (AlluxioException | IOException e) {
       return 1;
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "test [-d|-f|-e|-s|-z] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Test a property of a path, returning 0 if the property is true, or 1 otherwise.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

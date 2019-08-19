@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -18,9 +19,14 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -66,21 +72,5 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
       System.out.println("Failed to find all master addresses");
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "masterInfo";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints information regarding master fault tolerance such as leader address, list of "
-        + "master addresses, and the configured Zookeeper address.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

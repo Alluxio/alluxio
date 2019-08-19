@@ -1,0 +1,20 @@
+name: setTtl
+usage: setTtl [--action delete|free] <path> <time to live>
+description: |
+  The `setTtl` command sets the time-to-live of a file or a directory, in milliseconds.
+    If set TTL is run on a directory, the same TTL attributes is set on all its children.
+    If a directory’s TTL expires, all its children will also expire.
+
+    Action parameter `--action` will indicate the action to perform once the file or directory expires.
+    The default action, `delete`, deletes the file or directory from both Alluxio and the under storage system,
+    whereas the action `free` frees the file from Alluxio even if pinned.
+example: |
+  For example, `setTtl` with action `delete` cleans up files the administrator knows are unnecessary
+    after a period of time, or with action `free` just remove the contents from Alluxio
+    to make room for more space in Alluxio.
+    ```console
+    # After 1 day, delete the file in Alluxio and UFS
+    $ ./bin/alluxio fs setTtl /data/good-for-one-day 86400000
+    # After 1 day, free the file from Alluxio
+    $ ./bin/alluxio fs setTtl --action free /data/good-for-one-day 86400000
+    ```

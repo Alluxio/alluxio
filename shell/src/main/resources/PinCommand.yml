@@ -1,0 +1,13 @@
+name: pin
+usage: pin <path> media1 media2 media3 ...
+description: |
+  The `pin` command marks a file or folder as pinned in Alluxio.
+    This is a metadata operation and will not cause any data to be loaded into Alluxio.
+    If a file is pinned, any blocks belonging to the file will never be evicted from an Alluxio worker.
+    If there are too many pinned files, Alluxio workers may run low on storage space, preventing
+    other files from being cached.
+example: |
+  For example, `pin` can be used to manually ensure performance if the administrator understands the workloads well.
+    ```console
+    $ ./bin/alluxio fs pin /data/today
+    ```

@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -20,11 +21,15 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.FormatUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -175,21 +180,6 @@ public final class DuCommand extends AbstractFileSystemCommand {
     System.out.println(inMemMessage.isEmpty()
         ? String.format(SHORT_INFO_FORMAT, sizeMessage, inAlluxioMessage, path)
         : String.format(LONG_INFO_FORMAT, sizeMessage, inAlluxioMessage, inMemMessage, path));
-  }
-
-  @Override
-  public String getUsage() {
-    return "du [-h|-s|--memory] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays the total size and the in Alluxio size of the specified file or directory.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

@@ -49,6 +49,10 @@ public final class CommandTest {
     }
 
     @Override
+    public String getExample() {
+      return "Examples"; }
+
+    @Override
     public void validateArgs(CommandLine cl) throws InvalidArgumentException {
       CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     }
@@ -58,6 +62,8 @@ public final class CommandTest {
       return "usage";
     }
 
+//    @Override
+//    public String getDocumentation() { return "documentation"; }
     @Override
     public String getDocumentation() { return "documentation"; }
 

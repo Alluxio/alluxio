@@ -101,7 +101,7 @@ alluxio.worker.tieredstore.block.locks:
 alluxio.worker.tieredstore.level0.alias:
   'The alias of the top storage tier on this worker. It must match one of the global storage tiers from the master configuration. We disable placing an alias lower in the global hierarchy before an alias with a higher position on the worker hierarchy. So by default, SSD cannot come before MEM on any worker.'
 alluxio.worker.tieredstore.level0.dirs.mediumtype:
-  'A list of media types (e.g., "MEM,SSD,SSD") for each storage directory on the top storage tier specified by alluxio.worker.tieredstore.level0.dirs.path.'
+  'A list of media types (e.g., &quot;MEM,SSD,SSD&quot;) for each storage directory on the top storage tier specified by alluxio.worker.tieredstore.level0.dirs.path.'
 alluxio.worker.tieredstore.level0.dirs.path:
   'The path of storage directory for the top storage tier. Note for MacOS the value should be `/Volumes/`.'
 alluxio.worker.tieredstore.level0.dirs.quota:
@@ -113,7 +113,7 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio:
 alluxio.worker.tieredstore.level1.alias:
   'The alias of the second storage tier on this worker.'
 alluxio.worker.tieredstore.level1.dirs.mediumtype:
-  'A list of media types (e.g., "MEM,SSD,SSD") for each storage directory on the second storage tier specified by alluxio.worker.tieredstore.level1.dirs.path.'
+  'A list of media types (e.g., &quot;MEM,SSD,SSD&quot;) for each storage directory on the second storage tier specified by alluxio.worker.tieredstore.level1.dirs.path.'
 alluxio.worker.tieredstore.level1.dirs.path:
   'The path of storage directory for the second storage tier.'
 alluxio.worker.tieredstore.level1.dirs.quota:
@@ -125,7 +125,7 @@ alluxio.worker.tieredstore.level1.watermark.low.ratio:
 alluxio.worker.tieredstore.level2.alias:
   'The alias of the third storage tier on this worker.'
 alluxio.worker.tieredstore.level2.dirs.mediumtype:
-  'A list of media types (e.g., "MEM,SSD,SSD") for each storage directory on the third storage tier specified by alluxio.worker.tieredstore.level2.dirs.path.'
+  'A list of media types (e.g., &quot;MEM,SSD,SSD&quot;) for each storage directory on the third storage tier specified by alluxio.worker.tieredstore.level2.dirs.path.'
 alluxio.worker.tieredstore.level2.dirs.path:
   'The path of storage directory for the third storage tier.'
 alluxio.worker.tieredstore.level2.dirs.quota:

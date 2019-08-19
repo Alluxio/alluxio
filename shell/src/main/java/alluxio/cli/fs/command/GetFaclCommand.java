@@ -12,15 +12,20 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -64,21 +69,6 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "getfacl <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays the access control lists (ACLs) for a path.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

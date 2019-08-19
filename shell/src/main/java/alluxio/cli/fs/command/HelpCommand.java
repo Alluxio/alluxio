@@ -12,18 +12,23 @@
 package alluxio.cli.fs.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import jline.TerminalFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -96,22 +101,6 @@ public final class HelpCommand extends AbstractFileSystemCommand {
       }
       return 0;
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "help [<command>]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints help message for the given command. "
-        + "If there isn't given command, prints help messages for all supported commands.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

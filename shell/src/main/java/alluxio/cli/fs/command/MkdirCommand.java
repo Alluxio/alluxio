@@ -12,15 +12,20 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateDirectoryPOptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -57,21 +62,6 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
       System.out.println("Successfully created directory " + inputPath);
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "mkdir <path1> [path2] ... [pathn]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Creates the specified directories, including any parent directories that are required.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

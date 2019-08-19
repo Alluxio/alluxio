@@ -1,0 +1,10 @@
+name: test
+usage: test [-d|-f|-e|-s|-z] <path>
+description: |
+  The `test` command tests a property of a path, returning `0` if the property is true or `1` otherwise.
+example: |
+  Examples:
+    ```console
+    $ ./bin/alluxio fs test -d /someDir
+    $ echo $?
+    ```

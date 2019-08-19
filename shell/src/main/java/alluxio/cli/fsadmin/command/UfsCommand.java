@@ -113,4 +113,9 @@ public final class UfsCommand extends AbstractFsAdminCommand {
   public String getDocumentation() {
     return null;
   }
+
+  @Override
+  public String getExample(){
+    return null;
+  }
 }

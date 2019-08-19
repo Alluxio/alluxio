@@ -13,17 +13,24 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.Command;
+import alluxio.cli.CommandReader;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ConfigurationUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -70,6 +77,11 @@ public abstract class AbstractFileSystemCommand implements Command {
   protected void processHeader(CommandLine cl) throws IOException {
   }
 
+  protected URL getCommandFile(Class c){
+    return c.getClassLoader().getResource(String.format("%s.yml", c.getSimpleName()));
+
+  }
+
   /**
    * Runs the command for a particular URI that may contain wildcard in its path.
    *
@@ -98,5 +110,46 @@ public abstract class AbstractFileSystemCommand implements Command {
     if (errorMessages.size() != 0) {
       throw new IOException(Joiner.on('\n').join(errorMessages));
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return getDocs("usage");
+  }
+
+  @Override
+  public String getDescription() {
+    return getDocs("desc");
+  }
+
+  @Override
+  public String getExample(){
+    return getDocs("exs"); }
+
+  @Override
+  public String getDocumentation() {
+    return "Name: "+ getCommandName() + "\nUsage: "+ getUsage() + "\nDescription: |\n  " + getDescription() + "\n";
+  }
+
+  protected String getDocs(String option){
+    ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+    objectMapper.findAndRegisterModules();
+    URL u = getCommandFile(this.getClass());
+    try {
+      CommandReader command = objectMapper.readValue(new File(u.getFile()), CommandReader.class);
+      if (option.equals("desc")) { return command.getDescription(); }
+      else if (option.equals("usage")) {
+        return command.getUsage();
+      }
+      else if (option.equals("name")) {
+        return  getCommandName();
+      }
+      else if (option.equals("exs")) {
+        return command.getExample();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }

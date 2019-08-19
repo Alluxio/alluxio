@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -25,11 +26,15 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -44,23 +49,23 @@ import java.util.concurrent.Executors;
 public class CheckConsistencyCommand extends AbstractFileSystemCommand {
 
   private static final Option REPAIR_OPTION =
-      Option.builder("r")
-          .required(false)
-          .hasArg(false)
-          .desc("repair inconsistent files")
-          .build();
+          Option.builder("r")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("repair inconsistent files")
+                  .build();
 
   private static final Option THREADS_OPTION =
-      Option.builder("t")
-          .longOpt("threads")
-          .required(false)
-          .hasArg(true)
-          .desc("Number of threads used when repairing consistency. Defaults to <number of cores>"
-              + " * 2. This option has no effect if -r is not specified")
-          .build();
+          Option.builder("t")
+                  .longOpt("threads")
+                  .required(false)
+                  .hasArg(true)
+                  .desc("Number of threads used when repairing consistency. Defaults to <number of cores>"
+                          + " * 2. This option has no effect if -r is not specified")
+                  .build();
 
   private static final String PARSE_THREADS_FAILURE_FMT = "The threads option must be a positive "
-      + "integer but was \"%s\"";
+          + "integer but was \"%s\"";
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -71,12 +76,12 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
 
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
-      throws AlluxioException, IOException {
+          throws AlluxioException, IOException {
     int threads;
     try {
       threads = cl.hasOption(THREADS_OPTION.getOpt())
-          ? Integer.parseInt(cl.getOptionValue(THREADS_OPTION.getOpt())) :
-          Runtime.getRuntime().availableProcessors() * 2;
+              ? Integer.parseInt(cl.getOptionValue(THREADS_OPTION.getOpt())) :
+              Runtime.getRuntime().availableProcessors() * 2;
       if (threads < 1) {
         throw new IOException(String.format(PARSE_THREADS_FAILURE_FMT, THREADS_OPTION.getOpt()));
       }
@@ -118,9 +123,9 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    * @return a list of inconsistent files and directories
    */
   List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
-      throws IOException {
+          throws IOException {
     try (CloseableResource<FileSystemMasterClient> client =
-        mFsContext.acquireMasterClientResource()) {
+                 mFsContext.acquireMasterClientResource()) {
       return client.get().checkConsistency(path, options);
     }
   }
@@ -129,16 +134,16 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    * Checks the inconsistent files and directories which exist in Alluxio but don't exist in the
    * under storage, repairs the inconsistent paths by deleting them if repairConsistency is true.
    *
-   * @param path the specified path to be checked
+   * @param path              the specified path to be checked
    * @param repairConsistency whether to repair the consistency or not
    * @throws AlluxioException
    * @throws IOException
    */
   private void runConsistencyCheck(AlluxioURI path, boolean repairConsistency, int repairThreads)
-      throws AlluxioException, IOException {
+          throws AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
-        checkConsistency(path, FileSystemOptions.checkConsistencyDefaults(
-            mFsContext.getPathConf(path)));
+            checkConsistency(path, FileSystemOptions.checkConsistencyDefaults(
+                    mFsContext.getPathConf(path)));
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;
@@ -152,7 +157,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
     } else {
       Collections.sort(inconsistentUris);
       System.out.println(String.format("%s has: %d inconsistent files. Repairing with %d threads.",
-          path, inconsistentUris.size(), repairThreads));
+              path, inconsistentUris.size(), repairThreads));
       ConcurrentHashSet<AlluxioURI> inconsistentDirs = new ConcurrentHashSet<>();
 
       ExecutorService svc = Executors.newFixedThreadPool(repairThreads);
@@ -187,7 +192,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
         completionService.submit(() -> {
           try {
             DeletePOptions deleteOptions =
-                DeletePOptions.newBuilder().setAlluxioOnly(true).setRecursive(true).build();
+                    DeletePOptions.newBuilder().setAlluxioOnly(true).setRecursive(true).build();
             System.out.println("repairing path: " + uri);
             mFileSystem.delete(uri, deleteOptions);
             mFileSystem.exists(uri);
@@ -204,7 +209,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   }
 
   private void waitForTasks(CompletionService svc, int nTasks, Collection<Exception> exceptions)
-      throws IOException {
+          throws IOException {
     for (int i = 0; i < nTasks; i++) {
       try {
         svc.take();
@@ -217,25 +222,5 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
       AggregateException e = new AggregateException(exceptions);
       throw new IOException("Failed to successfully repair all paths", e);
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "checkConsistency [-r] [-t|--threads <threads>] <Alluxio path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Checks the consistency of a persisted file or directory in Alluxio. Any files or "
-        + "directories which only exist in Alluxio or do not match the metadata of files in the "
-        + "under storage will be returned. An administrator should then reconcile the  "
-        + "differences. Specify -r to repair the inconsistent files. Use -t or --threads to "
-        + "specify the number of threads that should be used when repairing. Defaults to "
-        + "2*<number of CPU cores>";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

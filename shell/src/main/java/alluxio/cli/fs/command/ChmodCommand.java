@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -20,12 +21,17 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Changes the permission of a file or directory specified by args.
@@ -97,21 +103,5 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
     AlluxioURI path = new AlluxioURI(args[1]);
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "chmod [-R] <mode> <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Changes the permission of a file or directory specified by args."
-        + " Specify -R to change the permission recursively.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

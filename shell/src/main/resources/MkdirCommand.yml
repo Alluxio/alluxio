@@ -1,0 +1,14 @@
+name: mkdir
+usage: mkdir <path1> [path2] ... [pathn]
+description: |
+  The `mkdir` command creates a new directory in Alluxio space.
+    It is recursive and will create any nonexistent parent directories. Note that the created directory
+    will not be created in the under storage system until a file in the directory is persisted to the underlying
+    storage. Using mkdir on an invalid or existing path will fail.
+example: |
+  For example, `mkdir` can be used by an admin to set up the basic folder structures.
+    ```console
+    $ ./bin/alluxio fs mkdir /users
+    $ ./bin/alluxio fs mkdir /users/Alice
+    $ ./bin/alluxio fs mkdir /users/Bob
+    ```

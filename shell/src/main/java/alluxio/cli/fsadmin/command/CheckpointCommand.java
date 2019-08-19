@@ -70,6 +70,11 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
   }
 
   @Override
+  public String getExample(){
+    return null;
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }

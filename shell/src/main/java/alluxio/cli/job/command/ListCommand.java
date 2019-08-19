@@ -81,4 +81,9 @@ public final class ListCommand extends AbstractFileSystemCommand {
     return "Prints the IDs of the most recent jobs, running and finished,"
         + " in the history up to the capacity set in alluxio.job.master.job.capacity";
   }
+
+  @Override
+  public String getDocumentation() {
+    return null;
+  }
 }

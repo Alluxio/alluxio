@@ -1,0 +1,9 @@
+name: head
+usage: head [-c <bytes>] <path>
+description: |
+  The `head` command prints the first 1 KB of data in a file to the console.
+example: |
+  Using the `-c [bytes]` option will print the first n bytes of data to the console.
+    ```console
+    $ ./bin/alluxio fs head -c 2048 /output/part-00000
+    ```

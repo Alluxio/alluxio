@@ -1,0 +1,13 @@
+name: masterInfo
+usage: masterInfo
+description: |
+  The `masterInfo` command prints information regarding master fault tolerance such as leader address,
+    list of master addresses, and the configured Zookeeper address. If Alluxio is running in single master mode,
+    masterInfo prints the master address. If Alluxio is running in fault tolerance mode, the leader address,
+    list of master addresses and the configured Zookeeper address is printed.
+example: |
+  For example, `masterInfo` can be used to print information regarding master fault tolerance.
+    ```console
+    $ ./bin/alluxio fs masterInfo
+    ```
+

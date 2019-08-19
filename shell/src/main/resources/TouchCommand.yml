@@ -1,0 +1,10 @@
+name: touch
+usage: touch <path>
+description: |
+  The `touch` command creates a 0-byte file.
+    Files created with `touch` cannot be overwritten and are mostly useful as flags.
+example: |
+  For example, `touch` can be used to create a file signifying the completion of analysis on a directory.
+    ```console
+    $ ./bin/alluxio fs touch /data/yesterday/_DONE_
+    ```

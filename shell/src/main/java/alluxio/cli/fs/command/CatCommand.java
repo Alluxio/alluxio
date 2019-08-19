@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
@@ -22,9 +23,13 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -64,24 +69,25 @@ public final class CatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getUsage() {
-    return "cat <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints the file's contents to the console.";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 
-  @Override
-  public String getDocumentation() {
-    return null;
-  }
+//  @Override
+//  public String getUsage() {
+//    return getDocs("usage");
+//  }
+//
+//  @Override
+//  public String getDescription() {
+//    return getDocs("desc");
+//  }
+//
+//
+//  @Override
+//  public String getDocumentation() {
+//    return "Name: "+ getCommandName() + "\nUsage: "+ getUsage() + "\nDescription: |\n  " + getDescription() + "\n";
+//  }
 
   @Override
   public int run(CommandLine cl) throws IOException {

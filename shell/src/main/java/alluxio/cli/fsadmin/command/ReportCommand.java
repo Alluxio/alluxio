@@ -188,6 +188,11 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     return description();
   }
 
+  @Override
+  public String getExample(){
+    return null;
+  }
+
   /**
    * @return the description for the report command
    */

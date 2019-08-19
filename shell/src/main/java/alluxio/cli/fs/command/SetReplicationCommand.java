@@ -12,17 +12,22 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -112,23 +117,5 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
     }
     setReplication(path, replicationMax, replicationMin, recursive);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "setReplication [-R] [--max <num> | --min <num>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Sets the minimum/maximum number of replicas for the file or directory at given path. "
-        + "Specify '-1' as the argument of '--max' option to indicate no limit of the maximum "
-        + "number of replicas. If 'path' is a directory and '-R' is specified, it will recursively "
-        + "set all files in this directory.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

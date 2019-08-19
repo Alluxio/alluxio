@@ -94,6 +94,11 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
   }
 
   @Override
+  public String getExample(){
+    return null;
+  }
+
+  @Override
   public Options getOptions() {
     return new Options()
         .addOption(HELP_OPTION);

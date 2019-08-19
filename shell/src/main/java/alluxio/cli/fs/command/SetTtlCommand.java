@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
@@ -20,11 +21,15 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.TtlAction;
 import alluxio.util.CommonUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -96,23 +101,5 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "setTtl [--action delete|free] <path> <time to live>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Sets a new TTL value for the file at path, "
-        + "performing an action, delete(default)/free after TTL expiry. "
-        + "The TTL to set can be in one of the unit: ms, millisecond, s, second, m, min, minute, "
-        + "h, hour, d, day, default to ms";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

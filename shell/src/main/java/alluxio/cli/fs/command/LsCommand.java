@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -25,11 +26,15 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -327,24 +332,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays information for all files and directories directly under the specified path, "
-        + "including permission, owner, group, size (bytes for files or the number of children "
-        + "for directories, persistence state, last modified time, the percentage of content"
-        + " already in Alluxio and the path in order.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

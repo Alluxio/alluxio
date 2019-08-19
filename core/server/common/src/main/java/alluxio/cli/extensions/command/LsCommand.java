@@ -60,6 +60,16 @@ public final class LsCommand implements Command {
   }
 
   @Override
+  public String getDocumentation() {
+    return null;
+  }
+
+  @Override
+  public String getExample() {
+    return null;
+  }
+
+  @Override
   public int run(CommandLine cl) {
     for (File extension : ExtensionUtils
         .listExtensions(ServerConfiguration.get(PropertyKey.EXTENSIONS_DIR))) {

@@ -12,15 +12,20 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -79,22 +84,6 @@ public final class PinCommand extends AbstractFileSystemCommand {
 
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "pin <path> media1 media2 media3 ...";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Pins the given file or directory in memory (works recursively for directories). "
-      + "Pinned files are never evicted from memory, unless TTL is set.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

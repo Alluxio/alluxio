@@ -11,15 +11,20 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.SyncPointInfo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -61,21 +66,6 @@ public class GetSyncPathListCommand extends AbstractFileSystemCommand{
       }
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "getSyncPathList";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Gets all the paths that are under active syncing right now.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

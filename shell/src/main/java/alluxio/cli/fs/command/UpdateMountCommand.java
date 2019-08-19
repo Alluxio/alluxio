@@ -12,17 +12,22 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.MountPOptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -96,21 +101,6 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
     mFileSystem.updateMount(alluxioPath, optionsBuilder.build());
     System.out.println("Updated mount point options at " + alluxioPath);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Updates options for a mount point while keeping the Alluxio metadata under the path.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

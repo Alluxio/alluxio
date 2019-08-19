@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
@@ -23,10 +24,15 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -85,20 +91,5 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
     try (FileInStream fis = mFileSystem.openFile(filePath, options)) {
       return DigestUtils.md5Hex(fis);
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "checksum <Alluxio path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Calculates the md5 checksum of a file in the Alluxio filesystem.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

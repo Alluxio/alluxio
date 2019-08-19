@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobGrpcClientUtils;
@@ -20,9 +21,13 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.migrate.MigrateConfig;
 import alluxio.util.CommonUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -71,21 +76,4 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     System.out.println("Moved " + srcPath + " to " + dstPath);
     return 0;
   }
-
-  @Override
-  public String getUsage() {
-    return "distributedMv <src> <dst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Moves a file or directory in parallel at file level.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
-  }
-
-
 }

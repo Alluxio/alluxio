@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.CommandReader;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -31,6 +32,8 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.util.io.PathUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
@@ -48,6 +51,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -74,40 +78,40 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private static final int COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT = 64 * Constants.MB;
 
   private static final Option RECURSIVE_OPTION =
-      Option.builder("R")
-          .required(false)
-          .hasArg(false)
-          .desc("copy files in subdirectories recursively")
-          .build();
+          Option.builder("R")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("copy files in subdirectories recursively")
+                  .build();
   public static final Option THREAD_OPTION =
-      Option.builder()
-          .longOpt("thread")
-          .required(false)
-          .hasArg(true)
-          .numberOfArgs(1)
-          .argName("threads")
-          .type(Number.class)
-          .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
-          .build();
+          Option.builder()
+                  .longOpt("thread")
+                  .required(false)
+                  .hasArg(true)
+                  .numberOfArgs(1)
+                  .argName("threads")
+                  .type(Number.class)
+                  .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
+                  .build();
   public static final Option BUFFER_SIZE_OPTION =
-      Option.builder()
-          .longOpt("buffersize")
-          .required(false)
-          .hasArg(true)
-          .numberOfArgs(1)
-          .argName("buffer size")
-          .type(Number.class)
-          .desc("Read buffer size in bytes, "
-              + "default is 8MB when copying from local, "
-              + "and 64MB when copying to local")
-          .build();
+          Option.builder()
+                  .longOpt("buffersize")
+                  .required(false)
+                  .hasArg(true)
+                  .numberOfArgs(1)
+                  .argName("buffer size")
+                  .type(Number.class)
+                  .desc("Read buffer size in bytes, "
+                          + "default is 8MB when copying from local, "
+                          + "and 64MB when copying to local")
+                  .build();
   private static final Option PRESERVE_OPTION =
-      Option.builder("p")
-          .longOpt("preserve")
-          .required(false)
-          .desc("Preserve file permission attributes when copying files. "
-              + "All ownership, permissions and ACLs will be preserved")
-          .build();
+          Option.builder("p")
+                  .longOpt("preserve")
+                  .required(false)
+                  .desc("Preserve file permission attributes when copying files. "
+                          + "All ownership, permissions and ACLs will be preserved")
+                  .build();
 
   private int mCopyFromLocalBufferSize = COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT;
   private int mCopyToLocalBufferSize = COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT;
@@ -159,10 +163,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
      * @param path the path to delete on shutdown when it's empty, otherwise can be {@code null}
      */
     public CopyThreadPoolExecutor(int threads, PrintStream stdout, PrintStream stderr,
-        FileSystem fileSystem, AlluxioURI path) {
+                                  FileSystem fileSystem, AlluxioURI path) {
       mPool = new ThreadPoolExecutor(threads, threads,
-          1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads * 2),
-          new ThreadPoolExecutor.CallerRunsPolicy());
+              1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads * 2),
+              new ThreadPoolExecutor.CallerRunsPolicy());
       mMessages = new LinkedBlockingQueue<>();
       mExceptions = new ConcurrentLinkedQueue<>();
       mStdout = stdout;
@@ -181,7 +185,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
               mStderr.println(messageAndCause(e));
             } else {
               LOG.error("Unsupported message type " + message.getClass()
-                  + " in message queue of copy thread pool");
+                      + " in message queue of copy thread pool");
             }
           } catch (InterruptedException e) {
             break;
@@ -256,9 +260,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
 
       try {
         if (mPath != null
-            && mFileSystem.exists(mPath)
-            && mFileSystem.getStatus(mPath).isFolder()
-            && mFileSystem.listStatus(mPath).isEmpty()) {
+                && mFileSystem.exists(mPath)
+                && mFileSystem.getStatus(mPath).isFolder()
+                && mFileSystem.listStatus(mPath).isEmpty()) {
           mFileSystem.delete(mPath);
         }
       } catch (Exception e) {
@@ -306,7 +310,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     if (cl.hasOption(BUFFER_SIZE_OPTION.getLongOpt())) {
       try {
         int bufSize = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getLongOpt()))
-            .intValue();
+                .intValue();
         if (bufSize < 0) {
           throw new InvalidArgumentException(BUFFER_SIZE_OPTION.getLongOpt() + " must be > 0");
         }
@@ -314,7 +318,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         mCopyToLocalBufferSize = bufSize;
       } catch (ParseException e) {
         throw new InvalidArgumentException("Failed to parse option "
-            + BUFFER_SIZE_OPTION.getLongOpt() + " into an integer", e);
+                + BUFFER_SIZE_OPTION.getLongOpt() + " into an integer", e);
       }
     }
     if (cl.hasOption(THREAD_OPTION.getLongOpt())) {
@@ -325,7 +329,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         }
       } catch (ParseException e) {
         throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getLongOpt()
-            + " into an integer", e);
+                + " into an integer", e);
       }
     }
     if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
@@ -336,8 +340,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION)
-        .addOption(THREAD_OPTION)
-        .addOption(PRESERVE_OPTION);
+            .addOption(THREAD_OPTION)
+            .addOption(PRESERVE_OPTION);
   }
 
   @Override
@@ -346,7 +350,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
     if ((dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))
-        && isFile(srcPath.getScheme())) {
+            && isFile(srcPath.getScheme())) {
       List<AlluxioURI> srcPaths = new ArrayList<>();
       if (srcPath.containsWildcard()) {
         List<File> srcFiles = FileSystemShellUtils.getFiles(srcPath.getPath());
@@ -355,7 +359,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         }
         for (File srcFile : srcFiles) {
           srcPaths.add(
-              new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()));
+                  new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()));
         }
       } else {
         File src = new File(srcPath.getPath());
@@ -375,7 +379,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         copyFromLocalFile(srcPaths.get(0), dstPath);
       } else {
         CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThread, System.out, System.err,
-            mFileSystem, mFileSystem.exists(dstPath) ? null : dstPath);
+                mFileSystem, mFileSystem.exists(dstPath) ? null : dstPath);
         try {
           createDstDir(dstPath);
           for (AlluxioURI src : srcPaths) {
@@ -391,7 +395,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       }
       System.out.println(String.format(COPY_SUCCEED_MESSAGE, srcPath, dstPath));
     } else if ((srcPath.getScheme() == null || isAlluxio(srcPath.getScheme()))
-        && isFile(dstPath.getScheme())) {
+            && isFile(dstPath.getScheme())) {
       List<AlluxioURI> srcPaths = FileSystemShellUtils.getAlluxioURIs(mFileSystem, srcPath);
       if (srcPaths.size() == 0) {
         throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
@@ -402,11 +406,11 @@ public final class CpCommand extends AbstractFileSystemCommand {
         copyToLocal(srcPath, dstPath);
       }
     } else if ((srcPath.getScheme() == null || isAlluxio(srcPath.getScheme()))
-        && (dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))) {
+            && (dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))) {
       List<AlluxioURI> srcPaths = FileSystemShellUtils.getAlluxioURIs(mFileSystem, srcPath);
       if (srcPaths.size() == 0) {
         throw new FileDoesNotExistException(
-            ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
+                ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
       }
       if (srcPath.containsWildcard()) {
         copyWildcard(srcPaths, dstPath, cl.hasOption(RECURSIVE_OPTION.getOpt()));
@@ -415,7 +419,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       }
     } else {
       throw new InvalidPathException(
-          "Schemes must be either file or alluxio, and at most one file scheme is allowed.");
+              "Schemes must be either file or alluxio, and at most one file scheme is allowed.");
     }
     return 0;
   }
@@ -429,7 +433,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param recursive indicates whether directories should be copied recursively
    */
   private void copyWildcard(List<AlluxioURI> srcPaths, AlluxioURI dstPath, boolean recursive)
-      throws AlluxioException, IOException {
+          throws AlluxioException, IOException {
     URIStatus dstStatus = null;
     try {
       dstStatus = mFileSystem.getStatus(dstPath);
@@ -448,7 +452,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     for (AlluxioURI srcPath : srcPaths) {
       try {
         copy(srcPath, new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-            PathUtils.concatPath(dstPath.getPath(), srcPath.getName())), recursive);
+                PathUtils.concatPath(dstPath.getPath(), srcPath.getName())), recursive);
       } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
       }
@@ -466,7 +470,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param recursive indicates whether directories should be copied recursively
    */
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean recursive)
-      throws AlluxioException, IOException {
+          throws AlluxioException, IOException {
     URIStatus srcStatus = mFileSystem.getStatus(srcPath);
 
     URIStatus dstStatus = null;
@@ -484,7 +488,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     } else {
       if (!recursive) {
         throw new IOException(
-            srcPath.getPath() + " is a directory, to copy it please use \"cp -R <src> <dst>\"");
+                srcPath.getPath() + " is a directory, to copy it please use \"command -R <src> <dst>\"");
       }
 
       List<URIStatus> statuses;
@@ -513,8 +517,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
       for (URIStatus status : statuses) {
         try {
           copy(new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
-              new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-                  PathUtils.concatPath(dstPath.getPath(), status.getName())), recursive);
+                  new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
+                          PathUtils.concatPath(dstPath.getPath(), status.getName())), recursive);
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }
@@ -533,7 +537,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param dstPath the destination path in the Alluxio filesystem
    */
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
-      throws AlluxioException, IOException {
+          throws AlluxioException, IOException {
     try (Closer closer = Closer.create()) {
       FileInStream is = closer.register(mFileSystem.openFile(srcPath));
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath));
@@ -555,14 +559,14 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param dstPath the destination path in the Alluxio filesystem
    */
   private void preserveAttributes(AlluxioURI srcPath, AlluxioURI dstPath)
-      throws IOException, AlluxioException {
+          throws IOException, AlluxioException {
     if (mPreservePermissions) {
       URIStatus srcStatus = mFileSystem.getStatus(srcPath);
       mFileSystem.setAttribute(dstPath, SetAttributePOptions.newBuilder()
-          .setOwner(srcStatus.getOwner())
-          .setGroup(srcStatus.getGroup())
-          .setMode(new Mode((short) srcStatus.getMode()).toProto())
-          .build());
+              .setOwner(srcStatus.getOwner())
+              .setGroup(srcStatus.getGroup())
+              .setMode(new Mode((short) srcStatus.getMode()).toProto())
+              .build());
       mFileSystem.setAcl(dstPath, SetAclAction.REPLACE, srcStatus.getAcl().getEntries());
     }
   }
@@ -587,7 +591,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   private void copyFromLocalFile(AlluxioURI srcPath, AlluxioURI dstPath)
-      throws AlluxioException, IOException {
+          throws AlluxioException, IOException {
     File src = new File(srcPath.getPath());
     if (src.isDirectory()) {
       throw new IOException("Source " + src.getAbsolutePath() + " is not a file.");
@@ -630,7 +634,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @throws InterruptedException when failed to send messages to the pool
    */
   private void asyncCopyLocalPath(CopyThreadPoolExecutor pool, AlluxioURI srcPath,
-      AlluxioURI dstPath) throws InterruptedException {
+                                  AlluxioURI dstPath) throws InterruptedException {
     File src = new File(srcPath.getPath());
     if (!src.isDirectory()) {
       pool.submit(() -> {
@@ -652,14 +656,14 @@ public final class CpCommand extends AbstractFileSystemCommand {
       File[] fileList = src.listFiles();
       if (fileList == null) {
         pool.fail(srcPath, dstPath,
-            new IOException(String.format("Failed to list directory %s.", src)));
+                new IOException(String.format("Failed to list directory %s.", src)));
         return;
       }
       for (File srcFile : fileList) {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
         asyncCopyLocalPath(pool,
-              new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
-              newURI);
+                new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
+                newURI);
       }
     }
   }
@@ -672,7 +676,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param dstPath the {@link AlluxioURI} of the destination directory in the local filesystem
    */
   private void copyWildcardToLocal(List<AlluxioURI> srcPaths, AlluxioURI dstPath)
-      throws AlluxioException, IOException {
+          throws AlluxioException, IOException {
     File dstFile = new File(dstPath.getPath());
     if (dstFile.exists() && !dstFile.isDirectory()) {
       throw new InvalidPathException(ExceptionMessage.DESTINATION_CANNOT_BE_FILE.getMessage());
@@ -689,7 +693,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       try {
         File dstSubFile = new File(dstFile.getAbsoluteFile(), srcPath.getName());
         copyToLocal(srcPath,
-            new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), dstSubFile.getPath()));
+                new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), dstSubFile.getPath()));
       } catch (IOException e) {
         errorMessages.add(e.getMessage());
       }
@@ -706,7 +710,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param dstPath the {@link AlluxioURI} of the destination in the local filesystem
    */
   private void copyToLocal(AlluxioURI srcPath, AlluxioURI dstPath) throws AlluxioException,
-      IOException {
+          IOException {
     URIStatus srcStatus = mFileSystem.getStatus(srcPath);
     File dstFile = new File(dstPath.getPath());
     if (srcStatus.isFolder()) {
@@ -731,8 +735,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
         try {
           File subDstFile = new File(dstFile.getAbsolutePath(), status.getName());
           copyToLocal(
-              new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
-              new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), subDstFile.getPath()));
+                  new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
+                  new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), subDstFile.getPath()));
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }
@@ -754,10 +758,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param dstPath The {@link AlluxioURI} of the destination in the local filesystem
    */
   private void copyFileToLocal(AlluxioURI srcPath, AlluxioURI dstPath)
-      throws AlluxioException, IOException {
+          throws AlluxioException, IOException {
     File dstFile = new File(dstPath.getPath());
     String randomSuffix =
-        String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
+            String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
     File outputFile;
     if (dstFile.isDirectory()) {
       outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(), srcPath.getName()));
@@ -777,42 +781,13 @@ public final class CpCommand extends AbstractFileSystemCommand {
       }
       if (!tmpDst.renameTo(outputFile)) {
         throw new IOException(
-            "Failed to rename " + tmpDst.getPath() + " to destination " + outputFile.getPath());
+                "Failed to rename " + tmpDst.getPath() + " to destination " + outputFile.getPath());
       }
       System.out.println("Copied " + srcPath + " to " + "file://" + outputFile.getPath());
     } finally {
       tmpDst.delete();
     }
   }
-
-  @Override
-  public String getUsage() {
-    return "cp "
-        + "[-R] "
-        + "[--buffersize <bytes>] "
-        + "<src> <dst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Copies a file or a directory in the Alluxio filesystem or between local filesystem "
-        + "and Alluxio filesystem. The -R flag is needed to copy directories in the Alluxio "
-        + "filesystem. Local Path with schema \"file\".";
-  }
-
-  @Override
-  public String getDocumentation() {
-    String docs;
-    docs = getCommandName() + ":\n Usage: <src> <dst> \n"
-            + "Copies a file or a directory in the Alluxio filesystem or between local filesystem \"\n"
-            + "and Alluxio filesystem. Schemes can be used to indicate which UFS to copy to and no"
-            + "scheme indicates the Alluxio file system."
-            + "\n Options: \n"
-            +"[-R] copies entire subtree at source to destination directory"
-            +"[--buffersize <bytes>]";
-    return docs;
-  }
-
   private static boolean isAlluxio(String scheme) {
     return Constants.SCHEME.equals(scheme);
   }

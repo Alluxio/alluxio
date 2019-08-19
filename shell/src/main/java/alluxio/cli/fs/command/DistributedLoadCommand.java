@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -21,11 +22,15 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.load.LoadConfig;
 import alluxio.util.CommonUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -110,20 +115,5 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       }
     }
     System.out.println(filePath + " loaded");
-  }
-
-  @Override
-  public String getUsage() {
-    return "distributedLoad [--replication <num>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Loads a file or directory in Alluxio space, making it resident in memory.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 }

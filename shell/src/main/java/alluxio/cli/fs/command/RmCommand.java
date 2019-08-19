@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -20,11 +21,15 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.DeletePOptions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -109,23 +114,6 @@ public final class RmCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "rm [-R] [-U] [--alluxioOnly] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Removes the specified file. Specify -R to remove file or directory recursively."
-        + " Specify -U to remove directories without checking UFS contents are in sync."
-        + " Specify -alluxioOnly to remove data and metadata from alluxio space only.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

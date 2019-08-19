@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.activation.CommandInfo;
+
 /**
  * An interface for all the commands that can be run from a shell.
  */
@@ -113,4 +115,10 @@ public interface Command {
    * @return the documentation of the command
    */
   String getDocumentation();
+
+  /**
+   *
+   * @return code examples of the command
+   */
+  String getExample();
 }
