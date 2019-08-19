@@ -24,7 +24,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -56,13 +55,14 @@ public final class GrpcManagedChannelPoolTest {
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
     UserState us = UserState.Factory.create(sConf);
-    GrpcServer server1 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
+    GrpcServer server1 = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
 
-    SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
+    GrpcServerAddress address =
+        GrpcServerAddress.create(new InetSocketAddress("localhost", server1.getBindPort()));
 
-    key1.setAddress(address);
-    key2.setAddress(address);
+    key1.setServerAddress(address);
+    key2.setServerAddress(address);
 
     ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
         HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
@@ -84,10 +84,10 @@ public final class GrpcManagedChannelPoolTest {
 
     // Not creating the coresponding server will ensure, the channels will never
     // be ready.
-    SocketAddress address = new InetSocketAddress("localhost", 1);
+    GrpcServerAddress address = GrpcServerAddress.create(new InetSocketAddress("localhost", 1));
 
-    key1.setAddress(address);
-    key2.setAddress(address);
+    key1.setServerAddress(address);
+    key2.setServerAddress(address);
 
     ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
         HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
@@ -108,13 +108,14 @@ public final class GrpcManagedChannelPoolTest {
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
     UserState us = UserState.Factory.create(sConf);
-    GrpcServer server1 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
+    GrpcServer server1 = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
 
-    SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
+    GrpcServerAddress address =
+        GrpcServerAddress.create(new InetSocketAddress("localhost", server1.getBindPort()));
 
-    key1.setAddress(address);
-    key2.setAddress(address);
+    key1.setServerAddress(address);
+    key2.setServerAddress(address);
 
     key1.setFlowControlWindow(100);
     key2.setFlowControlWindow(100);
@@ -148,16 +149,18 @@ public final class GrpcManagedChannelPoolTest {
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
     UserState us = UserState.Factory.create(sConf);
-    GrpcServer server1 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
-    GrpcServer server2 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
+    GrpcServer server1 = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
+    GrpcServer server2 = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
 
-    SocketAddress address1 = new InetSocketAddress("localhost", server1.getBindPort());
-    SocketAddress address2 = new InetSocketAddress("localhost", server2.getBindPort());
+    GrpcServerAddress address1 =
+        GrpcServerAddress.create(new InetSocketAddress("localhost", server1.getBindPort()));
+    GrpcServerAddress address2 =
+        GrpcServerAddress.create(new InetSocketAddress("localhost", server2.getBindPort()));
 
-    key1.setAddress(address1);
-    key2.setAddress(address2);
+    key1.setServerAddress(address1);
+    key2.setServerAddress(address2);
 
     ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
         HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
@@ -182,13 +185,14 @@ public final class GrpcManagedChannelPoolTest {
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
     UserState us = UserState.Factory.create(sConf);
-    GrpcServer server1 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
+    GrpcServer server1 = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
 
-    SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
+    GrpcServerAddress address =
+        GrpcServerAddress.create(new InetSocketAddress("localhost", server1.getBindPort()));
 
-    key1.setAddress(address);
-    key2.setAddress(address);
+    key1.setServerAddress(address);
+    key2.setServerAddress(address);
 
     ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
         HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
