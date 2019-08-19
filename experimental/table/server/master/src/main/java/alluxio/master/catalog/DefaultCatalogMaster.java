@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -164,11 +165,11 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
 
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return null;
+    return Collections.emptyIterator();
   }
 
   @Override
   public CheckpointName getCheckpointName() {
-    return null;
+    return CheckpointName.CATALOG_SERVICE_MASTER;
   }
 }
