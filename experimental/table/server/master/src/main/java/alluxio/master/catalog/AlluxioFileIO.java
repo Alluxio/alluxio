@@ -26,6 +26,7 @@ import java.io.IOException;
  * Alluxio File IO class.
  */
 public class AlluxioFileIO implements FileIO {
+  private static final long serialVersionUID = 1507823472921089708L; 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFileIO.class);
   private final UnderFileSystem mFileSystem;
 
