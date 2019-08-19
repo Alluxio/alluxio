@@ -34,10 +34,16 @@ unless you know what you are doing.
     -h                Print this help text to stdout
 "
 
-# echos 1 if "$1" contains "$2", 0 otherwise.
+# prints "1" if "$1" contains "$2", "0" otherwise.
 #
 # Usage example: local result="$(contains "my string" "my")"
 #                + result="1"
+#
+# This function uses printf instead of echo because echo, by default, will add
+# a newline to its output. This would force the callers of the function to
+# strip newlines or force echo to not add newlines. Instead of using "-n" with
+# echo, printf is used as a safer and more portable alternative because the "-n"
+# argument is not in the UNIX standard.
 contains() {
   if [[ "$1" = *"$2"* ]]; then
     printf "1"
