@@ -80,7 +80,7 @@ public class CopycatGrpcClient implements Client {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
-            .setSubject(mUserState.getSubject()).build();
+            .setClientType("CopycatClient").setSubject(mUserState.getSubject()).build();
 
         // Create stub for receiving stream from server.
         CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =

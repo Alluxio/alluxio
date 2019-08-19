@@ -71,6 +71,17 @@ public final class GrpcChannelBuilder {
   }
 
   /**
+   * Sets human readable name for the channel's client.
+   *
+   * @param clientType client type
+   * @return the updated {@link GrpcChannelBuilder} instance
+   */
+  public GrpcChannelBuilder setClientType(String clientType) {
+    mChannelKey.setClientType(clientType);
+    return this;
+  }
+
+  /**
    * Sets {@link Subject} for authentication.
    *
    * @param subject the subject

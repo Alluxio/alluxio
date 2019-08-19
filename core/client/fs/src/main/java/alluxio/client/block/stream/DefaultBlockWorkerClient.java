@@ -214,6 +214,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
             (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
         .setFlowControlWindow(
             (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
+        .setClientType("DefaultBlockWorkerClient")
         .build();
   }
 }

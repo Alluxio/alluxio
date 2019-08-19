@@ -479,7 +479,7 @@ public final class ConfigurationUtils {
       LOG.debug("Alluxio client (version {}) is trying to load configuration from meta master {}",
           RuntimeConstants.VERSION, address);
       channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
-          .disableAuthentication().build();
+          .setClientType("ConfigurationUtils").disableAuthentication().build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       GetConfigurationPResponse response = client.getConfiguration(
