@@ -311,7 +311,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           mState.applyAndJournal(context, clusterID);
           LOG.info("Created new cluster ID {}", clusterID);
         }
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
+        if (Boolean.valueOf(ProjectConstants.UPDATE_CHECK_ENABLED)
+            && ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
           try {
             String latestVersion =
                 UpdateCheck.getLatestVersion(mState.getClusterID(), 3000, 3000, 3000);
