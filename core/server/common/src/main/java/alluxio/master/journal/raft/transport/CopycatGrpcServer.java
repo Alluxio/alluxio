@@ -51,8 +51,6 @@ public class CopycatGrpcServer implements Server {
 
   /** Underlying gRPC server. */
   private GrpcServer mGrpcServer;
-  /** Bind address for underlying server. */
-  private Address mActiveAddress;
   /** Listen future. */
   private CompletableFuture<Void> mListenFuture;
 
@@ -106,7 +104,6 @@ public class CopycatGrpcServer implements Server {
 
       try {
         mGrpcServer.start();
-        mActiveAddress = address;
 
         LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
       } catch (IOException e) {
@@ -125,7 +122,7 @@ public class CopycatGrpcServer implements Server {
       return CompletableFuture.completedFuture(null);
     }
 
-    LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
+    LOG.debug("Closing copycat transport server: {}", mGrpcServer);
     // Close created connections.
     List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
     for (Connection connection : mConnections) {
@@ -140,7 +137,7 @@ public class CopycatGrpcServer implements Server {
           try {
             mGrpcServer.shutdown();
           } catch (Exception e) {
-            LOG.warn("Failed to close gRPC server for copycat transport at:{}", mActiveAddress);
+            LOG.warn("Failed to close copycat transport server: {}", mGrpcServer);
           } finally {
             mGrpcServer = null;
           }
