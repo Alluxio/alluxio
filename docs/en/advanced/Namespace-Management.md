@@ -288,7 +288,8 @@ hello
 
 ### Metadata Active Sync for HDFS
 In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space and the UFS when the UFS is HDFS.
-The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master.
+The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master. 
+Because Active Sync feature depends on HDFS events, this feature is only available for the HDFS version later than 2.6.1. 
 
 To enable active sync on a directory, issue the following Alluxio command.
 
