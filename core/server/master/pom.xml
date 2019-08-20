@@ -124,6 +124,10 @@
       <artifactId>guava-testlib</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+    </dependency>
 
     <!-- Internal test dependencies -->
     <dependency>

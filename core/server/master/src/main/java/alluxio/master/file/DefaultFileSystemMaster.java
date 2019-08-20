@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.Server;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
@@ -107,6 +108,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.meta.UpdateCheck;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -538,6 +540,22 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               ModeUtils.applyDirectoryUMask(Mode.createFullAccess(),
                   ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
               context);
+        }
+        // Note(Adit): This belongs to MetaMaster in master branch. To allow for Alluxio version
+        // rollback within a patch release, we piggy-back on the inode root entry (instead of a new
+        // journal entry for MetaMaster).
+        if (Boolean.valueOf(ProjectConstants.UPDATE_CHECK_ENABLED)
+            && ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
+          try {
+            String latestVersion = UpdateCheck.getLatestVersion(3000, 3000, 3000);
+            if (!latestVersion.equals(ProjectConstants.VERSION)) {
+              System.out.println("The latest version (" + latestVersion + ") is not the same "
+                  + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
+                  + "visit https://www.alluxio.io/download/.");
+            }
+          } catch (Exception e) {
+            LOG.debug("Unable to check for updates: {}", e.getMessage());
+          }
         }
       } else {
         // For backwards-compatibility:
