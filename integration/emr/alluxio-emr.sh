@@ -324,6 +324,9 @@ main() {
 
   local mem_size=$(get_default_mem_size)
 
+  # Query S3 for canonical ID of user and strip out the quotes
+  local canonical_id="$(aws s3api list-buckets --query "Owner.ID" | sed "s/\"//g")"
+
   # Append default configs to site properties if the user hasn't set them
   # already
   append_alluxio_property alluxio.master.hostname "${master}"
@@ -337,6 +340,7 @@ main() {
   append_alluxio_property alluxio.worker.tieredstore.level0.dirs.path "/mnt/ramdisk"
   append_alluxio_property alluxio.worker.tieredstore.levels "1"
   append_alluxio_property alluxio.security.authorization.permission.enabled "false"
+  append_alluxio_property alluxio.underfs.s3.owner.id.to.username.mapping "${canonical_id}=hadoop"
 
   # Alluxio can't rely on SSH to start services (i.e. no alluxio-start.sh all)
   if [[ ${is_master} = "true" ]]
