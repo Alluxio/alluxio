@@ -179,8 +179,9 @@ public final class UfsJournalCheckpointThread extends Thread {
                 JournalUtils
                     .handleJournalReplayFailure(LOG, null, "%s: Unrecognized journal entry: %s",
                         mMaster.getName(), entry);
+              } else {
+                JournalUtils.sinkAppend(mJournalSinks, entry);
               }
-              JournalUtils.sinkAppend(mJournalSinks, entry);
             } catch (Throwable t) {
               JournalUtils.handleJournalReplayFailure(LOG, t,
                   "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);
