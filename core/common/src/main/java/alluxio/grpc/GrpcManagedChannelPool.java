@@ -102,7 +102,7 @@ public class GrpcManagedChannelPool {
       managedChannel.shutdownNow();
     }
     Verify.verify(managedChannel.isShutdown());
-    LOG.debug("Shut down managed channel. GrpcChannelKey: {}", channelKey);
+    LOG.debug("Shut down managed channel. ChannelKey: {}", channelKey);
   }
 
   private boolean waitForChannelReady(ManagedChannel managedChannel, long healthCheckTimeoutMs) {
@@ -148,7 +148,7 @@ public class GrpcManagedChannelPool {
         managedChannelRef = mChannels.get(channelKey);
         if (waitForChannelReady(managedChannelRef.get(),
             healthCheckTimeoutMs)) {
-          LOG.debug("Acquiring an existing managed channel. GrpcChannelKey: {}. Ref-count: {}",
+          LOG.debug("Acquiring an existing managed channel. ChannelKey: {}. Ref-count: {}",
               channelKey, managedChannelRef.getRefCount());
           return managedChannelRef.reference();
         } else {
@@ -164,12 +164,12 @@ public class GrpcManagedChannelPool {
           && mChannels.get(channelKey) == managedChannelRef) {
         existingRefCount = managedChannelRef.getRefCount();
         LOG.debug("Shutting down an existing unhealthy managed channel. "
-            + "GrpcChannelKey: {}. Existing Ref-count: {}", channelKey, existingRefCount);
+            + "ChannelKey: {}. Existing Ref-count: {}", channelKey, existingRefCount);
         shutdownManagedChannel(channelKey, shutdownTimeoutMs);
         mChannels.remove(channelKey);
       }
       if (!mChannels.containsKey(channelKey)) {
-        LOG.debug("Creating a new managed channel. GrpcChannelKey: {}. Ref-count:{}",
+        LOG.debug("Creating a new managed channel. ChannelKey: {}. Ref-count:{}",
             channelKey, existingRefCount);
         mChannels.put(channelKey,
             new ManagedChannelReference(createManagedChannel(channelKey), existingRefCount));
