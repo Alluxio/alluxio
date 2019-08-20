@@ -336,6 +336,7 @@ main() {
   append_alluxio_property alluxio.worker.tieredstore.level0.alias "MEM"
   append_alluxio_property alluxio.worker.tieredstore.level0.dirs.path "/mnt/ramdisk"
   append_alluxio_property alluxio.worker.tieredstore.levels "1"
+  append_alluxio_property alluxio.security.authorization.permission.enabled "false"
 
   # Alluxio can't rely on SSH to start services (i.e. no alluxio-start.sh all)
   if [[ ${is_master} = "true" ]]
