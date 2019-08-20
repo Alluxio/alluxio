@@ -329,6 +329,8 @@ main() {
 
   # Append default configs to site properties if the user hasn't set them
   # already
+  doas alluxio "echo '# BEGIN AUTO-GENERATED PROPERTIES' >> ${ALLUXIO_SITE_PROPERTIES}"
+  doas alluxio "echo '# Override these by specifying an alluxio-site.properties file, or delimited args within the EMR bootstrap' >> ${ALLUXIO_SITE_PROPERTIES}"
   append_alluxio_property alluxio.master.hostname "${master}"
   append_alluxio_property alluxio.master.journal.type "UFS"
   append_alluxio_property alluxio.master.mount.table.root.ufs "${root_ufs_uri}"
@@ -341,6 +343,7 @@ main() {
   append_alluxio_property alluxio.worker.tieredstore.levels "1"
   append_alluxio_property alluxio.security.authorization.permission.enabled "false"
   append_alluxio_property alluxio.underfs.s3.owner.id.to.username.mapping "${canonical_id}=hadoop"
+  doas alluxio "echo '# END AUTO-GENERATED PROPERTIES' >> ${ALLUXIO_SITE_PROPERTIES}"
 
   # Alluxio can't rely on SSH to start services (i.e. no alluxio-start.sh all)
   if [[ ${is_master} = "true" ]]
