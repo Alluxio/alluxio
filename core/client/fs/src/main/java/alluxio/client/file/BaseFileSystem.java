@@ -549,9 +549,6 @@ public class BaseFileSystem implements FileSystem {
         case Constants.SCHEME:
           LOG.warn(warnMsg, Constants.SCHEME);
           break;
-        case Constants.SCHEME_FT:
-          LOG.warn(warnMsg, Constants.SCHEME_FT);
-          break;
         default:
           throw new IllegalArgumentException(
               String.format("Scheme %s:// in AlluxioURI is invalid. Schemes in filesystem"

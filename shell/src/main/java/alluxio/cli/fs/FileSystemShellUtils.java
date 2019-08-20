@@ -49,7 +49,7 @@ public final class FileSystemShellUtils {
   private FileSystemShellUtils() {} // prevent instantiation
 
   /**
-   * Removes {@link Constants#HEADER} / {@link Constants#HEADER_FT} and hostname:port information
+   * Removes {@link Constants#HEADER} and hostname:port information
    * from a path, leaving only the local file path.
    *
    * @param path the path to obtain the local path from
@@ -61,15 +61,13 @@ public final class FileSystemShellUtils {
     path = validatePath(path, alluxioConf);
     if (path.startsWith(Constants.HEADER)) {
       path = path.substring(Constants.HEADER.length());
-    } else if (path.startsWith(Constants.HEADER_FT)) {
-      path = path.substring(Constants.HEADER_FT.length());
     }
     return path.substring(path.indexOf(AlluxioURI.SEPARATOR));
   }
 
   /**
-   * Validates the path, verifying that it contains the {@link Constants#HEADER} or
-   * {@link Constants#HEADER_FT} and a hostname:port specified.
+   * Validates the path, verifying that it contains the {@link Constants#HEADER} and a
+   * hostname:port specified.
    *
    * @param path the path to be verified
    * @param alluxioConf Alluxio configuration
@@ -79,19 +77,16 @@ public final class FileSystemShellUtils {
    */
   public static String validatePath(String path, AlluxioConfiguration alluxioConf)
       throws IOException {
-    if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
+    if (path.startsWith(Constants.HEADER)) {
       if (!path.contains(":")) {
         throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER
-            + "host:port/ ," + Constants.HEADER_FT + "host:port/" + " , or /file");
+            + "host:port/ , or /file");
       } else {
         return path;
       }
     } else {
       String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, alluxioConf);
-      int port =  alluxioConf.getInt(PropertyKey.MASTER_RPC_PORT);
-      if (alluxioConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
-      }
+      int port = alluxioConf.getInt(PropertyKey.MASTER_RPC_PORT);
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);
     }
   }
