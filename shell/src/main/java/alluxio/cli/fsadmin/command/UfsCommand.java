@@ -98,24 +98,4 @@ public final class UfsCommand extends AbstractFsAdminCommand {
     System.out.println("No attribute to update");
     return 0;
   }
-
-  @Override
-  public String getUsage() {
-    return "ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Update attributes for a ufs path.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
-  }
-
-  @Override
-  public String getExample(){
-    return null;
-  }
 }

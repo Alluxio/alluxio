@@ -8,5 +8,5 @@ description: |
 example: |
   For example, `copyFromLocal` can be used as a quick way to inject data into the system for processing.
     ```console
-    $ ./bin/alluxio fs cat /output/part-00000
+    $ ./bin/alluxio fs copyFromLocal /local/data /input
     ```

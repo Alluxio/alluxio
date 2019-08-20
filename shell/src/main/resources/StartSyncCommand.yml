@@ -2,6 +2,9 @@ name: startSync
 usage: startSync <path>
 description: |
   The `startSync` command starts the automatic syncing process of the specified path.
-example:
+example: |
+  ```console
+    $ ./bin/alluxio fs startSync /path/file
+    ```
 
 

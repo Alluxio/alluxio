@@ -13,6 +13,8 @@ package alluxio.cli;
 
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;
+import alluxio.cli.fsadmin.FileSystemAdminShell;
+import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -46,7 +48,8 @@ public final class ConfigurationDocGenerator {
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
 
   //CLI Variables
-  private static final String CLI_YML_DIR = "docs/_data/table/en/cli/fs";
+  private static final String FS_YML_DIR = "docs/_data/table/en/cli/fs";
+  private static final String FSADMIN_YML_DIR = "docs/_data/table/en/cli/fsadmin";
 
   private ConfigurationDocGenerator() {} // prevent instantiation
 
@@ -269,8 +272,13 @@ public final class ConfigurationDocGenerator {
 
     //For Alluxio Commands
     Closer mCloser = Closer.create();
-    Map<String, Command> commands = FileSystemShellUtils.loadCommands(mCloser.register(FileSystemContext.create(ServerConfiguration.global())));
-    filePath = PathUtils.concatPath(homeDir, CLI_YML_DIR);
-    writeCommandDocs(commands, filePath);
+    Map<String, Command> fsCommands = FileSystemShellUtils.loadCommands(mCloser.register(FileSystemContext.create(ServerConfiguration.global())));
+    filePath = PathUtils.concatPath(homeDir, FS_YML_DIR);
+    writeCommandDocs(fsCommands, filePath);
+
+    Map<String, Command> fsadminCommands = new FileSystemAdminShell(ServerConfiguration.global()).loadCommands();
+    filePath = PathUtils.concatPath(homeDir,FSADMIN_YML_DIR);
+    writeCommandDocs(fsadminCommands,filePath);
+
   }
 }

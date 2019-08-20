@@ -6,5 +6,6 @@ example: |
   Examples:
     ```console
     $ ./bin/alluxio fs test -d /someDir
-    $ echo $?
+
+    $./bin/alluxio fs test -f /LICENSE
     ```

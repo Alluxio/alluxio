@@ -63,7 +63,6 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-
     if (cl.hasOption(HELP_OPTION_NAME)) {
       System.out.println(getUsage());
       System.out.println(getDescription());
@@ -102,27 +101,12 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
     return 0;
   }
 
-  @Override
-  public String getUsage() {
-    return usage();
-  }
-
   /**
    * @return the usage for the doctor command
    */
   @VisibleForTesting
   public static String usage() {
     return "doctor [category]";
-  }
-
-  @Override
-  public String getDescription() {
-    return description();
-  }
-
-  @Override
-  public String getExample(){
-    return null;
   }
 
   /**
@@ -136,11 +120,6 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
         + "[category] can be one of the following:\n"
         + "    configuration    server-side configuration errors/warnings\n"
         + "    storage          worker lost storage warnings\n";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

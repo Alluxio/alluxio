@@ -7,5 +7,5 @@ description: |
 example: |
   For example, `chown` can be used as a quick way to change the owner of file.
     ```console
-    $ ./bin/alluxio fs cat /output/part-00000
+    $ ./bin/alluxio fs chmod 755 /input/file1
     ```

@@ -2,4 +2,7 @@ name: distributedLoad
 usage: distributedLoad [--replication <num>] <path>
 description: |
   The `distributedLoad` command loads a file or directory in Alluxio space, making it resident in memory.
-example:
+example: |
+  ```console
+    $ ./bin/alluxio fs distributedLoad /file1
+    ```

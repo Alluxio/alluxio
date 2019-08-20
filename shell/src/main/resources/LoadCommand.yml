@@ -13,4 +13,6 @@ example: |
     and the application running on Alluxio needs to use the output of those systems.
     ```console
     $ ./bin/alluxio fs loadMetadata /hdfs/data/2015/logs-1.txt
+
+    $ ./bin/alluxio fs loadMetadata --local /tmp/file3/examples.txt
     ```

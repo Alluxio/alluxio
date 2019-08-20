@@ -12,13 +12,21 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.CommandReader;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.MetaMasterConfigClient;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URL;
+import java.util.Map;
 
 /**
  * Base class for fsadmin commands. It provides access to clients for talking to fs master, block
@@ -41,5 +49,57 @@ public abstract class AbstractFsAdminCommand implements Command {
     mMasterJournalMasterClient = context.getJournalMasterClientForMaster();
     mJobMasterJournalMasterClient = context.getJournalMasterClientForJobMaster();
     mPrintStream = context.getPrintStream();
+  }
+
+  protected URL getCommandFile(Class c){
+    return c.getClassLoader().getResource(String.format("%s.yml", c.getSimpleName()));
+  }
+
+  @Override
+  public String getUsage() {
+    return getDocs().getUsage();
+  }
+
+  @Override
+  public String getDescription() {
+    return getDocs().getDescription();
+  }
+
+  @Override
+  public String getExample()
+  {
+    return getDocs().getExample();
+  }
+
+  public String getSubCmd(){
+    return getDocs().getSubCommands();
+  }
+
+  @Override
+  public String getDocumentation() {
+    if (getSubCmd() != null){
+      return "Name: "+ getCommandName() +
+              "\nUsage: "+ getUsage() +
+              "\nDescription: |\n  " + getDescription() +
+              "\nSubCommands: |\n  " + getSubCmd() + "\n";
+    }
+    else {
+      return "Name: "+ getCommandName() +
+              "\nUsage: "+ getUsage() +
+              "\nDescription: |\n  " + getDescription();
+    }
+  }
+
+  protected CommandReader getDocs(){
+    ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+    objectMapper.findAndRegisterModules();
+    URL u = getCommandFile(this.getClass());
+    try {
+      CommandReader command = objectMapper.readValue(new File(u.getFile()), CommandReader.class);
+      return command;
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }

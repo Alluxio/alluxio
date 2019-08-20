@@ -16,7 +16,7 @@ priority: 0
 ---
 #### {{cmd.Name}} 
   
-Usages: `{{cmd.Usage}}`
+Usage: `{{cmd.Usage}}`
   
 {{cmd.Description}}
 
@@ -27,4 +27,31 @@ Options:
 
 {{cmd.Examples}}
   
+{% endfor %}
+
+
+## Fsadmin Commands
+
+{% assign sorted_admin = site.data.table.en.cli.fsadmin | sort %}
+{% for item in sorted_admin %}
+{% assign adminCmd = item[1] %}
+
+---
+#### {{adminCmd.Name}} 
+  
+Usage: `{{adminCmd.Usage}}`
+  
+{{adminCmd.Description}}
+
+{% if adminCmd.Options %}
+Options:
+{{adminCmd.Options}}
+{% endif %}
+
+{% if adminCmd.SubCommands %}
+SubCommands:
+{{adminCmd.SubCommands}}
+{% endif %}
+
+{{adminCmd.Examples}} 
 {% endfor %}

@@ -77,7 +77,7 @@ public final class FileSystemAdminShell extends AbstractShell {
   }
 
   @Override
-  protected Map<String, Command> loadCommands() {
+  public Map<String, Command> loadCommands() {
     ClientContext ctx = ClientContext.create(mConfiguration);
     MasterClientContext masterConfig = MasterClientContext.newBuilder(ctx).build();
     JobMasterClientContext jobMasterConfig = JobMasterClientContext.newBuilder(ctx).build();

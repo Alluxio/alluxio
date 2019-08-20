@@ -1,0 +1,27 @@
+name: pathConf
+usage: pathConf [add] [show] [list] [remove]
+description: |
+  Manage `path` level configuration, see sub-commands' descriptions for more details.
+example: |
+  ```console
+    $ ./bin/alluxio fsadmin pathConf list
+
+    /a
+    /b
+
+    $ ./bin/allixio fsadmin pathConf show /a/b
+    property1=value1
+
+    $ ./bin/alluxio fsadmin pathConf add --property property1=value1 --property property2=value2 /tmp
+
+    $ ./bin/alluxio fsadmin pathConf remove --keys property1,property2 /tmp
+    ```
+subCommands: |
+  - `list`: List paths that have path level configuration.
+      - Usage: `list`
+    - `show`: Shows path level configurations.
+      - Usage: `show [-all] <path>`
+    - `add`: Adds properties to the path level configurations. Only client scope properties can be added.
+      - Usage: `add [--property <key=value>] [--property <key=value>] <path>`
+    - `remove`: Removes all or specific properties from path's path level configurations.
+      - Usage: `remove [--keys <key1,key2,key3>] <path>`

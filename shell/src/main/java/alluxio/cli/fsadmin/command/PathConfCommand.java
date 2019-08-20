@@ -66,35 +66,11 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
     return "pathConf";
   }
 
-  @Override
-  public String getUsage() {
-    StringBuilder usage = new StringBuilder(getCommandName());
-    for (String cmd : SUB_COMMANDS.keySet()) {
-      usage.append(" [").append(cmd).append("]");
-    }
-    return usage.toString();
-  }
-
   /**
    * @return command's description
    */
   @VisibleForTesting
   public static String description() {
     return "Manage path level configuration, see sub-commands' descriptions for more details.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
-  }
-
-  @Override
-  public String getDescription() {
-    return description();
-  }
-
-  @Override
-  public String getExample(){
-    return null;
   }
 }

@@ -170,27 +170,12 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         .addOption(SPECIFIED_OPTION);
   }
 
-  @Override
-  public String getUsage() {
-    return usage();
-  }
-
   /**
    * @return the usage for the report command
    */
   @VisibleForTesting
   public static String usage() {
     return "report [category] [category args]";
-  }
-
-  @Override
-  public String getDescription() {
-    return description();
-  }
-
-  @Override
-  public String getExample(){
-    return null;
   }
 
   /**
@@ -206,11 +191,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
         + "    ufs              under storage system information\n";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
   }
 
   @Override

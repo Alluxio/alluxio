@@ -11,4 +11,6 @@ example: |
   For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
     ```console
     $ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
+
+    $ ./bin/alluxio fs setfacl -b /testdir/testfile
     ```

@@ -8,4 +8,9 @@ description: |
     minimal replication level and `--max` for the maximal replication. Specify `-1` as the argument of
     `--max` option to indicate no limit of the maximum number of replicas. If the specified path is a directory
     and `-R` is specified, it will recursively set all files in this directory.
-example:
+example: |
+  ```console
+    $ ./bin/alluxio fs setReplication -R /file3
+
+    ./bin/alluxio fs setReplication --max 4 /file3
+    ```

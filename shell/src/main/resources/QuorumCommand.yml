@@ -1,0 +1,20 @@
+name: quorum
+usage: quorum [remove] [info]
+description: |
+  Manage embedded journal quorum configuration.
+    See sub-commands' descriptions for more details.
+example: |
+  ```console
+    $ ./bin/alluxio fsadmin quorum info -domain MASTER
+    Journal domain	: MASTER
+    Quorum size	: 1
+    STATE		SERVER ADDRESS
+    AVAILABLE	 localhost:19200
+
+    $ ./bin/alluxio fsadmin quorum remove -domain MASTER -address LocalHost:19200
+    ```
+subCommands: |
+  - `remove` Removes a server from embedded journal quorum.
+      - Usage: `remove -domain <MASTER|JOB_MASTER> -address <HostName:Port>`
+    - `info` Shows quorum information for embedded journal.
+      - Usage: `info -domain <[MASTER, JOB_MASTER]>`

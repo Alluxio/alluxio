@@ -77,11 +77,6 @@ public abstract class AbstractFileSystemCommand implements Command {
   protected void processHeader(CommandLine cl) throws IOException {
   }
 
-  protected URL getCommandFile(Class c){
-    return c.getClassLoader().getResource(String.format("%s.yml", c.getSimpleName()));
-
-  }
-
   /**
    * Runs the command for a particular URI that may contain wildcard in its path.
    *
@@ -112,41 +107,37 @@ public abstract class AbstractFileSystemCommand implements Command {
     }
   }
 
+  protected URL getCommandFile(Class c){
+    return c.getClassLoader().getResource(String.format("%s.yml", c.getSimpleName()));
+  }
+
   @Override
   public String getUsage() {
-    return getDocs("usage");
+    return getDocs().getUsage();
   }
 
   @Override
   public String getDescription() {
-    return getDocs("desc");
+    return getDocs().getDescription();
   }
 
   @Override
   public String getExample(){
-    return getDocs("exs"); }
+    return getDocs().getExample();
+  }
 
   @Override
   public String getDocumentation() {
     return "Name: "+ getCommandName() + "\nUsage: "+ getUsage() + "\nDescription: |\n  " + getDescription() + "\n";
   }
 
-  protected String getDocs(String option){
+  protected CommandReader getDocs(){
     ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
     objectMapper.findAndRegisterModules();
     URL u = getCommandFile(this.getClass());
     try {
       CommandReader command = objectMapper.readValue(new File(u.getFile()), CommandReader.class);
-      if (option.equals("desc")) { return command.getDescription(); }
-      else if (option.equals("usage")) {
-        return command.getUsage();
-      }
-      else if (option.equals("name")) {
-        return  getCommandName();
-      }
-      else if (option.equals("exs")) {
-        return command.getExample();
-      }
+      return command;
     } catch (IOException e) {
       e.printStackTrace();
     }

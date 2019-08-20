@@ -23,4 +23,6 @@ example: |
     # Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
     $ aws s3 rm s3://data-bucket/somedata
     $ ./bin/alluxio fs ls -f /s3/data
+
+    $ ./bin/alluxio fs ls -Rf /
     ```

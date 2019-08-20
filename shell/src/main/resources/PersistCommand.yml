@@ -13,4 +13,6 @@ example: |
   For example, `persist` can be used after filtering a series of temporary files for the ones containing useful data.
     ```console
     $ ./bin/alluxio fs persist /tmp/experimental-logs-2.txt
+
+    $ ./bin/alluxio fs persist -w 300 /tmp/exampleFile.txt
     ```

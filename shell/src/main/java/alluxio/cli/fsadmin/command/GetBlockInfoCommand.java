@@ -79,26 +79,6 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getUsage() {
-    return "getBlockInfo [blockId]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "get the block information and file path of a specified block id.";
-  }
-
-  @Override
-  public String getDocumentation() {
-    return null;
-  }
-
-  @Override
-  public String getExample(){
-    return null;
-  }
-
-  @Override
   public Options getOptions() {
     return new Options()
         .addOption(HELP_OPTION);
