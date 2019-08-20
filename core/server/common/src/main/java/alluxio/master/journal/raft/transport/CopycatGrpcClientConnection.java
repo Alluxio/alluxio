@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 /**
  * {@link CopycatGrpcConnection} implementation for client.
@@ -34,12 +35,13 @@ public class CopycatGrpcClientConnection extends CopycatGrpcConnection {
    * Note: {@link #setTargetObserver} should be called explicitly before using the connection.
    *
    * @param context copycat thread context
+   * @param executor transport executor
    * @param channel underlying gRPC channel
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public CopycatGrpcClientConnection(ThreadContext context, GrpcChannel channel,
-      long requestTimeoutMs) {
-    super(ConnectionOwner.CLIENT, context, requestTimeoutMs);
+  public CopycatGrpcClientConnection(ThreadContext context, ExecutorService executor,
+      GrpcChannel channel, long requestTimeoutMs) {
+    super(ConnectionOwner.CLIENT, context, executor, requestTimeoutMs);
     mChannel = channel;
   }
 

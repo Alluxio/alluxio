@@ -1,0 +1,298 @@
+#!/usr/bin/env bash
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+set -e
+
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+
+USAGE="Usage: launch-process <process name> [-c]
+
+launch-process launches one of the Alluxio processes in the foreground. By
+default it will only log to the configured log file. To configure the process,
+add configuration properties in alluxio-site.properties or environment
+variables in conf/alluxio-env.sh.
+
+Note that this script does not verify Alluxio configuration before starting.
+It simply populates the necessary environment variables and launches the
+desired process in the foreground. It is recommended to use alluxio-start.sh
+unless you know what you are doing.
+
+    <process name>    One of: master, secondary_master, job_master, worker,
+                      job_worker, proxy, logserver
+
+    -c                Provide this flag to also log directly to stdout
+
+    -h                Print this help text to stdout
+"
+
+# prints "1" if "$1" contains "$2", "0" otherwise.
+#
+# Usage example: local result="$(contains "my string" "my")"
+#                + result="1"
+#
+# This function uses printf instead of echo because echo, by default, will add
+# a newline to its output. This would force the callers of the function to
+# strip newlines or force echo to not add newlines. Instead of using "-n" with
+# echo, printf is used as a safer and more portable alternative because the "-n"
+# argument is not in the UNIX standard.
+contains() {
+  if [[ "$1" = *"$2"* ]]; then
+    printf "1"
+  fi
+  printf "0"
+}
+
+# Sets environment variables by sourcing ${ALLUXIO_HOME}/libexec/alluxio-config.sh
+# or the value of ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+#
+# The variables that should be set after running this function:
+# - ALLUXIO_JAVA_OPTS
+# - ALLUXIO_MASTER_JAVA_OPTS
+# - ALLUXIO_SECONDARY_MASTER_JAVA_OPTS
+# - ALLUXIO JOB_MASTER_JAVA_OPTS
+# - ALLUXIO_WORKER_JAVA_OPTS
+# - ALLUXIO_JOB_WORKER_JAVA_OPTS
+# - ALLUXIO_PROXY_JAVA_OPTS
+# - ALLUXIO_LOGSERVER_JAVA_OPTS
+
+# If any of these variables are not set after running this function, then the
+# rest of this script may not function properly.
+#
+# Environment Variables:
+#     ALLUXIO_LIBEXEC_DIR: (Optional) Set this value if you want to use a
+#                          libexec directory other than the one located in
+#                          ${ALLUXIO_HOME}.
+get_env() {
+  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
+  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+}
+
+# print the help text for this script
+#
+# Arguments:
+#         1: The exit code
+print_help() {
+  if [[ "${1}" -ne "0" ]]; then
+    echo -e "${USAGE}" >&2
+  else
+    echo -e "${USAGE}"
+  fi
+
+  exit ${1}
+}
+
+
+# Launches an Alluxio process
+#
+# Arguments:
+#         1: any java opts to pass to the process
+#         2: the main class to launch
+#         3.... Additional arguments to the java program
+launch_process() {
+  local java_opts
+  local main_class
+
+  java_opts=${1}
+  main_class=${2}
+
+  exec ${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${java_opts} "${main_class}" ${@:3}
+}
+
+# Launch a master process
+#
+# Environment Variables:
+#     JOURNAL_BACKUP: (Optional) A location of a journal backup. If set, the
+#                     master will read the value of this variable as a journal
+#                     backup.
+launch_master() {
+  if [[ -n ${JOURNAL_BACKUP} ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.backup=${JOURNAL_BACKUP}"
+  fi
+
+  # use a default Xmx value for the master
+  local res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx")"
+  if [[ "${res}" -eq "0" ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
+  fi
+  # use a default MetaspaceSize value for the master
+  res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "XX:MetaspaceSize")"
+  if [[ "${res}" -eq "0" ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
+  fi
+
+  launch_process "${ALLUXIO_MASTER_JAVA_OPTS}" \
+                 "alluxio.master.AlluxioMaster"
+}
+
+# Launch a secondary master process
+launch_secondary_master() {
+  # use a default Xmx value for the master
+  local res="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx")"
+  if [[ "${res}" -eq "0" ]]; then
+    ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
+  fi
+  launch_process "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" \
+                 "alluxio.master.AlluxioSecondaryMaster"
+}
+
+# Launch a job master process
+launch_job_master() {
+  launch_process "${ALLUXIO_JOB_MASTER_JAVA_OPTS}" \
+                 "alluxio.master.AlluxioJobMaster"
+}
+
+# Launch a worker process
+launch_worker() {
+  # use a default Xmx value for the worker
+  local res="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx")"
+  if [[ "${res}" -eq "0" ]]; then
+    ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
+  fi
+
+  # use a default MaxDirectMemorySize value for the worker
+  res="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize")"
+  if [[ "${res}" -eq "0" ]]; then
+    ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
+  fi
+
+  launch_process "${ALLUXIO_WORKER_JAVA_OPTS}" \
+                 "alluxio.worker.AlluxioWorker"
+}
+
+# Launch a job worker process
+launch_job_worker() {
+  launch_process "${ALLUXIO_JOB_WORKER_JAVA_OPTS}" \
+                 "alluxio.worker.AlluxioJobWorker"
+}
+
+# Launch a proxy process
+launch_proxy() {
+  launch_process "${ALLUXIO_PROXY_JAVA_OPTS}" \
+                 "alluxio.proxy.AlluxioProxy"
+}
+
+# Launch a logserver process
+#
+# Environment Variables:
+#     ALLUXIO_LOGSERVER_LOGS_DIR: This is a mandatory variable. The
+#                                 directory where the logserver will
+#                                 store logs.
+launch_logserver() {
+  launch_process "${ALLUXIO_LOGSERVER_JAVA_OPTS}" \
+                 "alluxio.logserver.AlluxioLogServer" \
+                 "${ALLUXIO_LOGSERVER_LOGS_DIR}"
+}
+
+# Launch the desired process
+main() {
+  if [[ "${#}" -gt "2" || "${#}" -eq "0" ]]; then
+    print_help 1
+  fi
+
+  local logger_var_name
+  local logger_var_value
+  local console_logging_enabled
+  local process
+
+  process=${1}
+  shift
+
+  while getopts "hc" o; do
+    case "${o}" in
+      h)
+        print_help 0
+        ;;
+      c)
+        console_logging_enabled="true"
+        ;;
+      *)
+        print_help 1
+        ;;
+    esac
+  done
+
+  case "${process}" in
+    master)
+      logger_var_name="ALLUXIO_MASTER_LOGGER"
+      logger_var_value="MASTER_LOGGER"
+      ;;
+    secondary_master)
+      logger_var_name="ALLUXIO_SECONDARY_MASTER_LOGGER"
+      logger_var_value="SECONDARY_MASTER_LOGGER"
+      ;;
+    job_master)
+      logger_var_name="ALLUXIO_JOB_MASTER_LOGGER"
+      logger_var_value="JOB_MASTER_LOGGER"
+      ;;
+    worker)
+      logger_var_name="ALLUXIO_WORKER_LOGGER"
+      logger_var_value="WORKER_LOGGER"
+      ;;
+    job_worker)
+      logger_var_name="ALLUXIO_JOB_WORKER_LOGGER"
+      logger_var_value="JOB_WORKER_LOGGER"
+      ;;
+    logserver)
+      logger_var_name="ALLUXIO_LOGSERVER_LOGGER"
+      logger_var_value="LOGSERVER_LOGGER"
+      ;;
+    proxy)
+      logger_var_name="ALLUXIO_PROXY_LOGGER"
+      logger_var_value="PROXY_LOGGER"
+      ;;
+    *)
+      print_help 1
+      ;;
+  esac
+
+  if [[ "${console_logging_enabled}" == "true" ]]; then
+    local tmp_val=${logger_var_value}
+    logger_var_value="Console,"
+    logger_var_value+="${tmp_val}"
+  fi
+
+  # Set the logging variable equal to the appropriate value
+  eval ${logger_var_name}="${logger_var_value}"
+
+  #  This call should set all ALLUXIO_*_JAVA_OPTS variables
+  get_env
+
+  case "${process}" in
+    master)
+      launch_master
+      ;;
+    secondary_master)
+      launch_secondary_master
+      ;;
+    job_master)
+      launch_job_master
+      ;;
+    worker)
+      launch_worker
+      ;;
+    job_worker)
+      launch_job_worker
+      ;;
+    logserver)
+      launch_logserver
+      ;;
+    proxy)
+      launch_proxy
+      ;;
+    *)
+      print_help 1
+      ;;
+  esac
+}
+
+main $@

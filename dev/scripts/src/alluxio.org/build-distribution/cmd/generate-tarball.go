@@ -174,6 +174,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"bin/alluxio-start.sh",
 		"bin/alluxio-stop.sh",
 		"bin/alluxio-workers.sh",
+		"bin/launch-process",
 		fmt.Sprintf("client/alluxio-%v-client.jar", version),
 		"conf/alluxio-env.sh.template",
 		"conf/alluxio-site.properties.template",

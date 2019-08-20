@@ -3353,7 +3353,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
                     .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                         .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))));
 
-            mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
+            mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
           } catch (Exception e) {
             // This may be expected. For example, when creating a new file, the UFS file is not
             // expected to exist.
@@ -3371,7 +3371,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
-            mUfsSyncPathCache.notifySyncedPath(mountPoint);
+            mUfsSyncPathCache.notifySyncedPath(mountPoint, syncDescendantType);
           }
         }
       } catch (InvalidPathException e) {
@@ -3386,7 +3386,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     if (pathsToLoad.isEmpty()) {
-      mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
+      mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
     }
     return true;
   }
@@ -4015,6 +4015,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
       // Process persist requests.
       for (long fileId : mPersistRequests.keySet()) {
+        // Throw if interrupted.
+        if (Thread.interrupted()) {
+          throw new InterruptedException("PersistenceScheduler interrupted.");
+        }
         boolean remove = true;
         alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
         if (timer == null) {
@@ -4196,6 +4200,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       boolean queueEmpty = mPersistCheckerPool.getQueue().isEmpty();
       // Check the progress of persist jobs.
       for (long fileId : mPersistJobs.keySet()) {
+        // Throw if interrupted.
+        if (Thread.interrupted()) {
+          throw new InterruptedException("PersistenceChecker interrupted.");
+        }
         final PersistJob job = mPersistJobs.get(fileId);
         if (job == null) {
           // This could happen if a key is removed from mPersistJobs while we are iterating.

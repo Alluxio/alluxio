@@ -25,6 +25,10 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
+        fsGroup: {{ .Values.fsGroup }}
       containers:
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
