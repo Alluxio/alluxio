@@ -16,6 +16,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticationServer;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import io.grpc.Server;
 
 import java.io.IOException;
@@ -118,7 +119,9 @@ public final class GrpcServer {
 
   @Override
   public String toString() {
-    // Netty server impl prints out its bind address.
-    return mServer.toString();
+    return MoreObjects.toStringHelper(this)
+        .add("Server", mServer)
+        .add("AuthServerType", mAuthServer.getClass().getSimpleName())
+        .toString();
   }
 }
