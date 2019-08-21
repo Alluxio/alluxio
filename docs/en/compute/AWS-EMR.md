@@ -71,7 +71,7 @@ $ aws emr create-cluster \
 --bootstrap-actions \
 Path=s3://bucket/path/to/alluxio-emr.sh,\
 Args=[<download-url>,<root-ufs-uri>,<optional-path-to-site-properties>,<optional-additional-delimited-properties>,<optional-property-delimiter>] \
---configurations file://${ALLUXIO_HOME}/integration/emr/alluxio-emr.json \
+--configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
 --ec2-attributes KeyName=<ec2-keypair-name>
 ```
 4. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to
@@ -107,7 +107,7 @@ Args=[http://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSIO
 s3://alluxio-test/emr/mount/,\
 s3://alluxio-test/alluxio/conf/alluxio-site.properties,\
 alluxio.underfs.s3.owner.id.to.username.mapping=f1234123412341234123412341234123412341234123412341234123412341234=hadoop] \
---configurations file://${ALLUXIO_HOME}/integration/emr/alluxio-emr.json \
+--configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
 --ec2-attributes KeyName=admin-key
 ```
 
