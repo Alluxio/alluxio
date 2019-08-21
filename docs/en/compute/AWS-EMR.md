@@ -40,7 +40,7 @@ To begin with, [download an Alluxio release](https://www.alluxio.io/download) an
 ```bash
 aws emr create-default-roles
 ```
-2. Download `alluxio-emr.sh` from [our github](https://github.com/Alluxio/alluxio/tree/master/integration/emr/) and
+2. Download `alluxio-emr.sh` from the [alluxio public S3 bucket](https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.sh) and
 upload the script to your S3 bucket.
 3. The input arguments for the bootstrap script are in the order below:
     - The URI from where to download the Alluxio Release `.tar.gz` file. This can be an `http://`
@@ -60,7 +60,7 @@ aws emr create-cluster \
 --bootstrap-actions \
 Path=s3://bucket/path/to/alluxio-emr.sh,\
 Args=[<download-url>,<root-ufs-uri>,<additional-properties>] \
---configurations file://${ALLUXIO_HOME}/integration/emr/alluxio-emr.json \
+--configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
 --ec2-attributes KeyName=<ec2-keypair-name>
 ```
 4. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to see the cluster
@@ -91,7 +91,7 @@ Path=s3://alluxio-test/emr/bootstrap-actions/alluxio-emr.sh,\
 Args=[http://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz,\
 s3://alluxio-test/emr/mount/,\
 alluxio.underfs.s3.owner.id.to.username.mapping=f1234123412341234123412341234123412341234123412341234123412341234=hadoop] \
---configurations file://${ALLUXIO_HOME}/integration/emr/alluxio-emr.json \
+--configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
 --ec2-attributes KeyName=admin-key
 ```
 
