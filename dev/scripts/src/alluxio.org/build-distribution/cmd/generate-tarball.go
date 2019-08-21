@@ -197,6 +197,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/emr/alluxio-emr.sh",
 		"integration/emr/alluxio-emr.json",
 		"integration/fuse/bin/alluxio-fuse",
+		"integration/kubernetes/alluxio-configMap.yaml.template",
 		"integration/kubernetes/alluxio-fuse.yaml.template",
 		"integration/kubernetes/alluxio-fuse-client.yaml.template",
 		"integration/kubernetes/alluxio-journal-volume.yaml.template",
