@@ -43,6 +43,7 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GrpcService;
@@ -1367,9 +1368,119 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // Scheme-less URIs are regarded as Alluxio URI.
     if (uri.getScheme() == null || uri.getScheme().equals(Constants.SCHEME)) {
       return uri;
-    } else {
-      // Reverse lookup mount table to find mount point that contains the path.
+    }
+
+    // Reverse lookup mount table to find mount point that contains the path.
+    try {
       return mMountTable.reverseLookup(uriStr);
+    } catch (InvalidPathException e) {
+      // Throw if auto-mount is not requested.
+      if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_AUTO_MOUNT_ENABLED)) {
+        throw e;
+      }
+    }
+
+    // Reverse lookup failed and auto-mount is requested.
+    try {
+      autoMountUfsForUri(uri);
+    } catch (Exception e) {
+      LOG.warn(String.format("Failed to auto-mount ufs for URI: %s", uri), e);
+      if (e instanceof InvalidPathException) {
+        // Don't throw as this could be thrown due to ufs having been mounted concurrently.
+      } else {
+        throw new InvalidPathException(
+            String.format("Failed to translate and auto-mount path: %s", uriStr), e);
+      }
+    }
+    // Try translating the URI after auto-mount.
+    return mMountTable.reverseLookup(uriStr);
+  }
+
+  /**
+   * Attempts to mount given UFS Uri into designated auto-mount directory.
+   *
+   * Mount attempt will start from the mounting lowest path component, and go to higher path
+   * components if mounting fails due to access control violation.
+   *
+   * TODO(ggezer) Have fine-grained locking on mount paths instead of marking synchronized.
+   *
+   * @param ufsUri ufs Uri for auto-mount
+   * @throws AlluxioException
+   * @throws IOException
+   */
+  private synchronized void autoMountUfsForUri(AlluxioURI ufsUri)
+      throws AlluxioException, IOException {
+    // Generate lowest Alluxio mount root for given path.
+    String alluxioMountRoot =
+        PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_AUTO_MOUNT_ROOT),
+            ufsUri.getScheme(), ufsUri.getAuthority());
+    // Read default options for auto-mounted UFSes.
+    boolean mountReadonly = ServerConfiguration.getBoolean(PropertyKey.MASTER_AUTO_MOUNT_READONLY);
+    boolean mountShared = ServerConfiguration.getBoolean(PropertyKey.MASTER_AUTO_MOUNT_SHARED);
+    // Try mounting UFS to Alluxio starting from the ufs root.
+    int pathComponentIndex = 0;
+    String currentPathComponent;
+    // Used to keep track of first directory that is created for this auto-mount call.
+    // It'll be deleted recursively if this mount fails.
+    AlluxioURI firstCreatedParent = null;
+    try {
+      /**
+       * In order to optimize auto-mount count, mount attempt is started from UFS root
+       * for the given URI. If mount fails for due to "access control" or "mount prefix/postfix"
+       * conditions, then the next path component is tried.
+       *
+       * For example:
+       * auto-mounting "/a/b/c/d" when mount-table already has an entry for "/a/x"
+       * will result in mounting at "/a/b/c"
+       *
+       * auto-mounting "/a/b/c/d" when server don't have access to "/a"
+       * will result in mounting at "/a/b"
+       */
+      while ((currentPathComponent = ufsUri.getLeadingPath(pathComponentIndex++)) != null) {
+        // Generate current Alluxio mount root.
+        AlluxioURI currentAlluxioRootUri =
+            new AlluxioURI(PathUtils.concatPath(alluxioMountRoot, currentPathComponent));
+        // Generate current UFS mount root.
+        AlluxioURI currentUfsRootUri =
+            new AlluxioURI(ufsUri.getScheme(), ufsUri.getAuthority(), currentPathComponent);
+        try {
+          // Ensure Alluxio parent path exist before mounting.
+          AlluxioURI currentRootParentUri = currentAlluxioRootUri.getParent();
+          if (!mInodeTree.inodePathExists(currentRootParentUri)) {
+            if (firstCreatedParent == null) {
+              // Track first created dir while preparing to mount.
+              firstCreatedParent = currentRootParentUri;
+            }
+            createDirectory(currentAlluxioRootUri.getParent(), CreateDirectoryContext
+                .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+          }
+          // Mount current lowest path of UFS to Alluxio.
+          mount(currentAlluxioRootUri, currentUfsRootUri, MountContext.mergeFrom(
+              MountPOptions.newBuilder().setReadOnly(mountReadonly).setShared(mountShared)));
+          LOG.info("Auto-mounted UFS path: {} to Alluxio path: {}", currentAlluxioRootUri,
+              currentUfsRootUri);
+          return;
+        } catch (AccessControlException | InvalidPathException e) {
+          LOG.warn(
+              String.format("Failed to auto-mount UFS path: %s to Alluxio path: %s due to error: ",
+                  currentAlluxioRootUri, currentUfsRootUri), e);
+          continue;
+        }
+      }
+      // Could not mount any sub-path.
+      throw new IOException(String.format("Failed to auto-mount path: %s", ufsUri));
+    } catch (Exception e) {
+      // Cleanup before failing.
+      if (firstCreatedParent != null) {
+        try {
+          delete(firstCreatedParent,
+              DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+        } catch (IOException e1) {
+          LOG.warn(
+              String.format("Failed to clean-up created directory root: %s", firstCreatedParent),
+              e1);
+        }
+      }
     }
   }
 

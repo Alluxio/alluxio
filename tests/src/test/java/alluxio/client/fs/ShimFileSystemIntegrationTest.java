@@ -11,11 +11,13 @@
 
 package alluxio.client.fs;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -25,6 +27,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.uri.Authority;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -35,6 +38,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.util.List;
 
 public class ShimFileSystemIntegrationTest {
@@ -225,5 +229,47 @@ public class ShimFileSystemIntegrationTest {
     mShimFileSystem.createFile(foreignUri,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).setRecursive(true).build())
         .close();
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.MASTER_AUTO_MOUNT_ENABLED, "true",
+      PropertyKey.Name.MASTER_AUTO_MOUNT_READONLY, "false"})
+  public void autoMountCreateFile() throws Exception {
+    // Un-mounted foreign root.
+    String foreignRoot = new AlluxioURI("file", Authority.fromString(null),
+        AlluxioTestDirectory.createTemporaryDirectory("autoMountUfs").getAbsolutePath()).toString();
+    // Create a foreign URI.
+    AlluxioURI foreignUri = new AlluxioURI(PathUtils.concatPath(foreignRoot, PathUtils.uniqPath()));
+
+    // Get mount table size before calling auto-mount invoking createFile.
+    int mountCount = mFileSystem.getMountTable().size();
+
+    // Create the file with unmounted foreign URI via shim-fs.
+    mShimFileSystem.createFile(foreignUri,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).setRecursive(true).build())
+        .close();
+    Assert.assertNotNull(mShimFileSystem.getStatus(foreignUri));
+    // Validate that UFS is auto-mounted.
+    Assert.assertEquals(mountCount + 1, mFileSystem.getMountTable().size());
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_AUTO_MOUNT_ENABLED, "true"})
+  public void autoMountGetFile() throws Exception {
+    // Un-mounted foreign root.
+    String foreignRoot = new AlluxioURI("file", Authority.fromString(null),
+        AlluxioTestDirectory.createTemporaryDirectory("autoMountUfs").getAbsolutePath()).toString();
+    // Create a foreign file under un-mounted root.
+    AlluxioURI foreignUri = new AlluxioURI(PathUtils.concatPath(foreignRoot, "testfile"));
+    Assert.assertTrue(new File(foreignUri.getPath()).createNewFile());
+
+    // Get mount table size before calling auto-mount invoking getStatus.
+    int mountCount = mFileSystem.getMountTable().size();
+
+    Assert.assertNotNull(mShimFileSystem.getStatus(foreignUri));
+    // Validate that UFS is auto-mounted.
+    Assert.assertEquals(mountCount + 1, mFileSystem.getMountTable().size());
   }
 }
