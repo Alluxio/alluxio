@@ -61,11 +61,7 @@ aws emr create-cluster \
 Path=s3://bucket/path/to/alluxio-emr.sh,\
 <<<<<<< HEAD
 Args=[<download-url>,<root-ufs-uri>,<additional-properties>] \
---configurations file://${ALLUXIO_HOME}/integration/emr/alluxio-emr.json \
-=======
-Args=[<download-url>,<root-ufs-uri>,<optional-path-to-site-properties>,<optional-additional-delimited-properties>,<optional-property-delimiter>] \
 --configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
->>>>>>> 71d07462ac... Remove Alluxio EMR scripts
 --ec2-attributes KeyName=<ec2-keypair-name>
 ```
 4. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to see the cluster
