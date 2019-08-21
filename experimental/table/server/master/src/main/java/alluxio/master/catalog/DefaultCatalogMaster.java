@@ -11,12 +11,10 @@
 
 package alluxio.master.catalog;
 
-import alluxio.clock.SystemClock;
 import alluxio.Constants;
+import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.experimental.ProtoUtils;
-import alluxio.grpc.ColumnStatistics;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.Schema;
@@ -30,9 +28,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import org.apache.iceberg.FileScanTask;
-import org.apache.iceberg.Table;
-import org.apache.iceberg.catalog.TableIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,62 +63,46 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
     } else {
       mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
-    mCatalog = new AlluxioCatalog(mUfs);
+    mCatalog = new AlluxioCatalog();
   }
 
   @Override
-  public List<String> getAllDatabases() {
+  public List<String> getAllDatabases() throws IOException {
     return mCatalog.getAllDatabases();
   }
 
   @Override
-  public List<String> getAllTables(String databaseName) {
+  public List<String> getAllTables(String databaseName) throws IOException {
     return mCatalog.getAllTables(databaseName);
   }
 
   @Override
-  public boolean createDatabase(String database) {
-    return mCatalog.createDatabase(database);
+  public boolean createDatabase(String database) throws IOException {
+    // TODO(gpang): update api
+    return mCatalog.createDatabase("hive", database);
   }
 
   @Override
-  public Table createTable(String dbName, String tableName, Schema schema) {
-    TableIdentifier id = TableIdentifier.of(dbName, tableName);
-    Table table  = mCatalog.createTable(id, ProtoUtils.fromProto(schema));
-    return table;
+  public Table createTable(String dbName, String tableName, Schema schema) throws IOException {
+    return mCatalog.createTable(dbName, tableName, schema);
   }
 
   @Override
-  public Table getTable(String dbName, String tableName) {
-    return mCatalog.getTable(TableIdentifier.of(dbName, tableName));
+  public Table getTable(String dbName, String tableName) throws IOException {
+    return mCatalog.getTable(dbName, tableName);
   }
 
   @Override
-  public Map<String, FileStatistics> getStatistics(String dbName, String tableName) {
-    Table table = getTable(dbName, tableName);
-    Map<String, FileStatistics> map = new HashMap<>();
-    for (FileScanTask task : table.newScan().planFiles()) {
-      Map<Integer, Long> columnValueCount = task.file().valueCounts();
-      Map<Integer, ColumnStatistics> statisticsMap = new HashMap<>();
-      for (Map.Entry<Integer, Long> entry : columnValueCount.entrySet()) {
-        statisticsMap.put(entry.getKey(),
-            ColumnStatistics.newBuilder().setRecordCount(entry.getValue()).build());
-      }
-      map.put(task.file().path().toString(),
-          FileStatistics.newBuilder().putAllColumn(statisticsMap).build());
-    }
-    return map;
+  public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
+      throws IOException {
+    // TODO(gpang): revisit api
+    return mCatalog.getStatistics(dbName, tableName);
   }
 
   @Override
-  public List<String> getDataFiles(String dbName, String tableName) {
-    Table table = getTable(dbName, tableName);
-    List<String> list = new ArrayList<>();
-    for (FileScanTask task : table.newScan().planFiles()) {
-
-      list.add(task.file().path().toString());
-    }
-    return list;
+  public List<String> getDataFiles(String dbName, String tableName) throws IOException {
+    // TODO(gpang): revisit api
+    return new ArrayList<>(mCatalog.getStatistics(dbName, tableName).keySet());
   }
 
   @Override

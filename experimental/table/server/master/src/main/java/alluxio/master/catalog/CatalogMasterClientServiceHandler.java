@@ -12,7 +12,6 @@
 package alluxio.master.catalog;
 
 import alluxio.RpcUtils;
-import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.CreateDatabasePRequest;
 import alluxio.grpc.CreateDatabasePResponse;
@@ -32,7 +31,6 @@ import alluxio.grpc.TableInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
-import org.apache.iceberg.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,8 +79,8 @@ public class CatalogMasterClientServiceHandler
       if (table != null) {
         info = TableInfo.newBuilder().setDbName(request.getDbName())
             .setTableName(request.getTableName())
-            .setBaseLocation(table.location())
-            .setSchema(ProtoUtils.toProto(table.schema()))
+            .setBaseLocation(table.getBaseLocation())
+            .setSchema(table.getSchema())
             .build();
         return GetTablePResponse.newBuilder()
             .setTableInfo(info)
@@ -102,7 +100,7 @@ public class CatalogMasterClientServiceHandler
       if (table != null) {
         info = TableInfo.newBuilder().setDbName(request.getDbName())
             .setTableName(request.getTableName())
-            .setBaseLocation(table.location()).setSchema(ProtoUtils.toProto(table.schema()))
+            .setBaseLocation(table.getBaseLocation()).setSchema(table.getSchema())
             .build();
         return CreateTablePResponse.newBuilder()
             .setTableInfo(info)

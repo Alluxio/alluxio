@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.catalog;
+package alluxio.table.under.hive;
 
 import alluxio.client.file.FileSystem;
 import alluxio.underfs.SeekableUnderFileInputStream;

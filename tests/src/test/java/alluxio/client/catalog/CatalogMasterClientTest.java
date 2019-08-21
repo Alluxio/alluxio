@@ -25,12 +25,10 @@ import alluxio.worker.file.FileSystemMasterClient;
 
 import org.apache.iceberg.Schema;
 import org.apache.iceberg.types.Types;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
@@ -62,10 +60,10 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
     mCatalogMasterClient.close();
   }
 
+  // TODO(gpang): re-enable later
   /**
    * Tests catalog service table metadata operation.
    */
-  @Test
   public void tableOps() throws Exception {
     Map<String, MountPointInfo> test = mFileSystem.getMountTable();
     List<String> dbs = mCatalogMasterClient.getAllDatabases();
