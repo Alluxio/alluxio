@@ -24,8 +24,8 @@
 
   <modules>
     <module>base</module>
-    <module>server</module>
     <module>client</module>
+    <module>server</module>
   </modules>
 
   <properties>

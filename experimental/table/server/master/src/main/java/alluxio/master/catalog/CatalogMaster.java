@@ -14,10 +14,8 @@ package alluxio.master.catalog;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.Schema;
 import alluxio.master.Master;
-//TODO(yuzhu): replace these classes with our own version of Database and Table classes
 
-import org.apache.iceberg.Table;
-
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +28,7 @@ public interface CatalogMaster extends Master {
    *
    * @return a list of database
    */
-  List<String> getAllDatabases();
+  List<String> getAllDatabases() throws IOException;
 
   /**
    * Get a listing of all tables in a database.
@@ -39,16 +37,15 @@ public interface CatalogMaster extends Master {
    *
    * @return a list of tables
    */
-  List<String> getAllTables(String databaseName);
+  List<String> getAllTables(String databaseName) throws IOException;
 
   /**
    * Create a database.
    *
    * @param dbName a database name
    * @return true if creation is successful
-   *
    */
-  boolean createDatabase(String dbName);
+  boolean createDatabase(String dbName) throws IOException;
 
   /**
    * Create a table.
@@ -56,9 +53,8 @@ public interface CatalogMaster extends Master {
    * @param tableName table name
    * @param schema schema
    * @return a Table object
-   *
    */
-  Table createTable(String dbName, String tableName, Schema schema);
+  Table createTable(String dbName, String tableName, Schema schema) throws IOException;
 
   /**
    * Get a table.
@@ -68,7 +64,7 @@ public interface CatalogMaster extends Master {
    *
    * @return a Table object
    */
-  Table getTable(String databaseName, String tableName);
+  Table getTable(String databaseName, String tableName) throws IOException;
 
   /**
    * Get statistics on the table.
@@ -78,7 +74,8 @@ public interface CatalogMaster extends Master {
    *
    * @return a map containing data files paths mapped to file statistics
    */
-  Map<String, FileStatistics> getStatistics(String databaseName, String tableName);
+  Map<String, FileStatistics> getStatistics(String databaseName, String tableName)
+      throws IOException;
 
   /**
    * Get the list of datafiles on the table.
@@ -88,5 +85,5 @@ public interface CatalogMaster extends Master {
    *
    * @return a list containing the data files paths
    */
-  List<String> getDataFiles(String databaseName, String tableName);
+  List<String> getDataFiles(String databaseName, String tableName) throws IOException;
 }
