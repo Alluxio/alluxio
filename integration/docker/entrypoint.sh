@@ -77,12 +77,6 @@ function writeConf {
 
 writeConf
 
-function disableDNSCache {
-  echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
-}
-
-disableDNSCache
-
 function formatMasterIfSpecified {
   if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
     printUsage
