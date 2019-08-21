@@ -28,7 +28,7 @@ import java.util.Iterator;
 public interface NoopJournaled extends Journaled {
   @Override
   default boolean processJournalEntry(JournalEntry entry) {
-    return false;
+    return true;
   }
 
   @Override

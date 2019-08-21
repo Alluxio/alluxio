@@ -413,8 +413,13 @@ public class UfsJournal implements Journal {
           case LOG:
             JournalEntry entry = journalReader.getEntry();
             try {
-              mMaster.processJournalEntry(entry);
-              JournalUtils.sinkAppend(mJournalSinks, entry);
+              if (!mMaster.processJournalEntry(entry)) {
+                JournalUtils
+                    .handleJournalReplayFailure(LOG, null, "%s: Unrecognized journal entry: %s",
+                        mMaster.getName(), entry);
+              } else {
+                JournalUtils.sinkAppend(mJournalSinks, entry);
+              }
             }  catch (Throwable t) {
               JournalUtils.handleJournalReplayFailure(LOG, t,
                     "%s: Failed to process journal entry %s", mMaster.getName(), entry);
