@@ -202,7 +202,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-master.yaml.template",
 		"integration/kubernetes/alluxio-worker.yaml.template",
-		"integration/kubernetes/conf/alluxio.properties.template",
 		"integration/mesos/bin/alluxio-env-mesos.sh",
 		"integration/mesos/bin/alluxio-mesos-start.sh",
 		"integration/mesos/bin/alluxio-master-mesos.sh",
