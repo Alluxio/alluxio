@@ -27,4 +27,43 @@ RUN cd /opt && \
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
 
+<<<<<<< HEAD
+||||||| parent of 2614112c91... Disable DNS cache at docker build instead of entrypoint
+# if Alluxio user, group, gid, and uid aren't root|0
+# then create the alluxio user and set file permissions accordingly
+RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
+    && [ ${ALLUXIO_GROUP} != "root" ] \
+    && [ ${ALLUXIO_UID} -ne 0 ] \
+    && [ ${ALLUXIO_GID} -ne 0 ]; then \
+      addgroup -g ${ALLUXIO_GID} -S ${ALLUXIO_GROUP} && \
+      adduser -u ${ALLUXIO_UID} -S ${ALLUXIO_USERNAME} -G ${ALLUXIO_GROUP} && \
+      usermod -a -G root ${ALLUXIO_USERNAME} && \
+      mkdir -p /journal && \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /opt/* /journal && \
+      chmod -R g=u /opt/* /journal; \
+    fi
+
+USER ${ALLUXIO_UID}
+
+=======
+# if Alluxio user, group, gid, and uid aren't root|0
+# then create the alluxio user and set file permissions accordingly
+RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
+    && [ ${ALLUXIO_GROUP} != "root" ] \
+    && [ ${ALLUXIO_UID} -ne 0 ] \
+    && [ ${ALLUXIO_GID} -ne 0 ]; then \
+      addgroup -g ${ALLUXIO_GID} -S ${ALLUXIO_GROUP} && \
+      adduser -u ${ALLUXIO_UID} -S ${ALLUXIO_USERNAME} -G ${ALLUXIO_GROUP} && \
+      usermod -a -G root ${ALLUXIO_USERNAME} && \
+      mkdir -p /journal && \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /opt/* /journal && \
+      chmod -R g=u /opt/* /journal; \
+    fi
+
+# disable JVM DNS cache
+RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
+
+USER ${ALLUXIO_UID}
+
+>>>>>>> 2614112c91... Disable DNS cache at docker build instead of entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
