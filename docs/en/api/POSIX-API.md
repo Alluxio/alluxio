@@ -49,7 +49,7 @@ to mount Alluxio, point a shell to your `$ALLUXIO_HOME` and run:
 $ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
 ```
 
-This will spawn a background user-space java process (alluxio-fuse) that will mount the Alluxio path
+This will spawn a background user-space java process (AlluxioFuse) that will mount the Alluxio path
 specified at `alluxio_path` to the local file system on the specified `mount_point`.
 
 For example, the following command will mount the Alluxio path `/people` to the folder `/mnt/people`
