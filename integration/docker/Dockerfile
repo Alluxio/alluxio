@@ -45,6 +45,9 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
       chmod -R g=u /opt/* /journal; \
     fi
 
+# disable JVM DNS cache
+RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
+
 USER ${ALLUXIO_UID}
 
 ENTRYPOINT ["/entrypoint.sh"]
