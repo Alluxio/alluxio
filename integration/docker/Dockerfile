@@ -27,4 +27,7 @@ RUN cd /opt && \
 COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
 
+# disable JVM DNS cache
+RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
+
 ENTRYPOINT ["/entrypoint.sh"]
