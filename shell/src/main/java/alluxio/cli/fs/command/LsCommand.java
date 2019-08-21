@@ -233,11 +233,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "ls";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options()
         .addOption(FORCE_OPTION)

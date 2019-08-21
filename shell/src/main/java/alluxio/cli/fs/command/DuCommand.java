@@ -79,11 +79,6 @@ public final class DuCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "du";
-  }
-
-  @Override
   protected void processHeader(CommandLine cl) {
     printInfo("File Size", "In Alluxio",
         cl.hasOption(MEMORY_OPTION_NAME) ? "In Memory" : "", "Path");

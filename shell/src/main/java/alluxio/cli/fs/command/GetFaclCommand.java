@@ -42,11 +42,6 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "getfacl";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);

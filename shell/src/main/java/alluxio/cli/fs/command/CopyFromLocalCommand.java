@@ -64,11 +64,6 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "copyFromLocal";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(CpCommand.THREAD_OPTION)
         .addOption(CpCommand.BUFFER_SIZE_OPTION);

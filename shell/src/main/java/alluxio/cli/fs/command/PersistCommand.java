@@ -91,11 +91,6 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "persist";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(PARALLELISM_OPTION).addOption(TIMEOUT_OPTION)
         .addOption(WAIT_OPTION);

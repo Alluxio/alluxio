@@ -59,11 +59,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "load";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options()
         .addOption(LOCAL_OPTION);

@@ -53,11 +53,6 @@ public final class StatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "stat";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(
         Option.builder("f")

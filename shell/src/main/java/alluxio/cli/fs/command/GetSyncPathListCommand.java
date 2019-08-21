@@ -41,11 +41,6 @@ public class GetSyncPathListCommand extends AbstractFileSystemCommand{
   }
 
   @Override
-  public String getCommandName() {
-    return "getSyncPathList";
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     List<SyncPointInfo> files = mFileSystem.getSyncPathList();
     System.out.println("The following paths are under active sync");

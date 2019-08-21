@@ -300,11 +300,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "cp";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
     if (cl.hasOption(BUFFER_SIZE_OPTION.getLongOpt())) {

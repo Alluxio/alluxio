@@ -61,11 +61,6 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "setTtl";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
     String operation = cl.getOptionValue(TTL_ACTION);

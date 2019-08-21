@@ -88,12 +88,6 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
   public SetFaclCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
-
-  @Override
-  public String getCommandName() {
-    return "setfacl";
-  }
-
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION).addOption(SET_OPTION).addOption(MODIFY_OPTION)

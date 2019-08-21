@@ -39,12 +39,7 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
    */
   public UnmountCommand(FileSystemContext fsContext) {
     super(fsContext);
-  }
-
-  @Override
-  public String getCommandName() {
-    return "unmount";
-  }
+  };
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {

@@ -52,11 +52,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "distributedLoad";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(Option.builder()
         .longOpt(REPLICATION)

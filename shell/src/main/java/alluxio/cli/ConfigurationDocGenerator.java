@@ -217,15 +217,14 @@ public final class ConfigurationDocGenerator {
     }
     FileWriter fileWriter;
     Closer closer = Closer.create();
-    Set<Map.Entry<String, Command>> st = commands.entrySet();
 
     try {
-      for (Map.Entry<String, Command> mt : st) {
+      for (Map.Entry<String, Command> mt : commands.entrySet()) {
         fileWriter = new FileWriter(PathUtils.concatPath(filePath, mt.getValue().getCommandName() + ".yml"));
         closer.register(fileWriter);
         fileWriter.append(mt.getValue().getDocumentation());
         if (!mt.getValue().getOptions().getOptions().isEmpty()) {
-          fileWriter.append("Options: |\n");
+          fileWriter.append("options: |\n");
         }
         for (Option commandOpt:mt.getValue().getOptions().getOptions()){
           if (commandOpt.getOpt() == null){
@@ -234,7 +233,7 @@ public final class ConfigurationDocGenerator {
             else{ fileWriter.append("  - `-"+ commandOpt.getOpt()+ "` "); }
           fileWriter.append(commandOpt.getDescription() + "\n");
         }
-        fileWriter.append("Examples: |\n  ");
+        fileWriter.append("example: |\n  ");
         fileWriter.append(mt.getValue().getExample());
       }
 

@@ -14,18 +14,18 @@ priority: 0
 {% assign cmd = item[1] %}
 
 ---
-#### {{cmd.Name}} 
+#### {{cmd.name}} 
   
-Usage: `{{cmd.Usage}}`
+Usage: `{{cmd.usage}}`
   
-{{cmd.Description}}
+{{cmd.description}}
 
-{% if cmd.Options %}
+{% if cmd.options %}
 Options:
-{{cmd.Options}}
+{{cmd.options}}
 {% endif %}
 
-{{cmd.Examples}}
+{{cmd.example}}
   
 {% endfor %}
 
@@ -37,21 +37,21 @@ Options:
 {% assign adminCmd = item[1] %}
 
 ---
-#### {{adminCmd.Name}} 
+#### {{adminCmd.name}} 
   
-Usage: `{{adminCmd.Usage}}`
+Usage: `{{adminCmd.usage}}`
   
-{{adminCmd.Description}}
+{{adminCmd.description}}
 
-{% if adminCmd.Options %}
+{% if adminCmd.options %}
 Options:
-{{adminCmd.Options}}
+{{adminCmd.options}}
 {% endif %}
 
-{% if adminCmd.SubCommands %}
+{% if adminCmd.subCommands %}
 SubCommands:
-{{adminCmd.SubCommands}}
+{{adminCmd.subCommands}}
 {% endif %}
 
-{{adminCmd.Examples}} 
+{{adminCmd.example}} 
 {% endfor %}

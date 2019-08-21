@@ -112,6 +112,11 @@ public abstract class AbstractFileSystemCommand implements Command {
   }
 
   @Override
+  public String getCommandName() {
+    return getDocs().getName();
+  }
+
+  @Override
   public String getUsage() {
     return getDocs().getUsage();
   }
@@ -128,7 +133,7 @@ public abstract class AbstractFileSystemCommand implements Command {
 
   @Override
   public String getDocumentation() {
-    return "Name: "+ getCommandName() + "\nUsage: "+ getUsage() + "\nDescription: |\n  " + getDescription() + "\n";
+    return "name: "+ getCommandName() + "\nusage: "+ getUsage() + "\ndescription: |\n  " + getDescription() + "\n";
   }
 
   protected CommandReader getDocs(){

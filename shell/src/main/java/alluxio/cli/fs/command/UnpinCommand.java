@@ -44,11 +44,6 @@ public final class UnpinCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "unpin";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     FileSystemCommandUtils.setPinned(mFileSystem, path, false, Collections.emptyList());

@@ -1,4 +1,4 @@
-name: checkConsictency
+name: checkConsistency
 usage: checkConsistency [-r] [-t|--threads <threads>] <Alluxio path>
 description: |
   The `checkConsistency` command compares Alluxio and under storage metadata for a given path.

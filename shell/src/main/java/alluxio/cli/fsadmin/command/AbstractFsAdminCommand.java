@@ -66,8 +66,7 @@ public abstract class AbstractFsAdminCommand implements Command {
   }
 
   @Override
-  public String getExample()
-  {
+  public String getExample() {
     return getDocs().getExample();
   }
 
@@ -78,15 +77,15 @@ public abstract class AbstractFsAdminCommand implements Command {
   @Override
   public String getDocumentation() {
     if (getSubCmd() != null){
-      return "Name: "+ getCommandName() +
-              "\nUsage: "+ getUsage() +
-              "\nDescription: |\n  " + getDescription() +
-              "\nSubCommands: |\n  " + getSubCmd() + "\n";
+      return "name: "+ getCommandName() +
+              "\nusage: "+ getUsage() +
+              "\ndescription: |\n  " + getDescription() +
+              "\nsubCommands: |\n  " + getSubCmd() + "\n";
     }
     else {
-      return "Name: "+ getCommandName() +
-              "\nUsage: "+ getUsage() +
-              "\nDescription: |\n  " + getDescription();
+      return "name: "+ getCommandName() +
+              "\nusage: "+ getUsage() +
+              "\ndescription: |\n  " + getDescription()+ "\n";
     }
   }
 
@@ -95,6 +94,7 @@ public abstract class AbstractFsAdminCommand implements Command {
     objectMapper.findAndRegisterModules();
     URL u = getCommandFile(this.getClass());
     try {
+//      System.out.println(new File(u.getFile()).getPath());
       CommandReader command = objectMapper.readValue(new File(u.getFile()), CommandReader.class);
       return command;
     } catch (IOException e) {

@@ -46,11 +46,6 @@ public final class CatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "cat";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
@@ -72,22 +67,6 @@ public final class CatCommand extends AbstractFileSystemCommand {
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
-
-//  @Override
-//  public String getUsage() {
-//    return getDocs("usage");
-//  }
-//
-//  @Override
-//  public String getDescription() {
-//    return getDocs("desc");
-//  }
-//
-//
-//  @Override
-//  public String getDocumentation() {
-//    return "Name: "+ getCommandName() + "\nUsage: "+ getUsage() + "\nDescription: |\n  " + getDescription() + "\n";
-//  }
 
   @Override
   public int run(CommandLine cl) throws IOException {

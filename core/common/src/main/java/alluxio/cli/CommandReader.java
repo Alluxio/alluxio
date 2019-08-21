@@ -6,6 +6,7 @@ public class CommandReader {
     private String Description = null;
     private String Example = null;
     private  String SubCommands = null;
+    private String Options = null;
 
     public void setName(String name) {
         this.Name = name;
@@ -40,5 +41,12 @@ public class CommandReader {
     }
     public String getSubCommands(){
         return this.SubCommands;
+    }
+
+    public void setOptions(String options) {
+        this.Options = options;
+    }
+    public String getOptions(){
+        return this.Options;
     }
 }

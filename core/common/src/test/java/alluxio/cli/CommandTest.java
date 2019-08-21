@@ -62,8 +62,6 @@ public final class CommandTest {
       return "usage";
     }
 
-//    @Override
-//    public String getDocumentation() { return "documentation"; }
     @Override
     public String getDocumentation() { return "documentation"; }
 

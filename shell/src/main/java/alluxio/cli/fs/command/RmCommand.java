@@ -68,12 +68,6 @@ public final class RmCommand extends AbstractFileSystemCommand {
   public RmCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
-
-  @Override
-  public String getCommandName() {
-    return "rm";
-  }
-
   @Override
   public Options getOptions() {
     return new Options()

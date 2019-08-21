@@ -57,11 +57,6 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "setReplication";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION).addOption(MAX_OPTION)
         .addOption(MIN_OPTION);
