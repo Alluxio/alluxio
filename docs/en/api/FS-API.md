@@ -274,8 +274,8 @@ an extra hop. For optimal performance, it is recommended to run the proxy server
 worker on each compute node.
 
 ### Install Python Client Library
-```bash
-pip install alluxio
+```console
+$ pip install alluxio
 ```
 
 ### Example Usage
@@ -394,8 +394,8 @@ an extra hop. For optimal performance, it is recommended to run the proxy server
 worker on each compute node.
 
 ### Install Go Client Library
-```bash
-go get -d github.com/Alluxio/alluxio-go
+```console
+$ go get -d github.com/Alluxio/alluxio-go
 ```
 
 ### Example Usage

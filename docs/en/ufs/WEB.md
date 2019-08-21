@@ -25,8 +25,8 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 the following environment variable assignment needs to be added to
@@ -54,8 +54,9 @@ An WEB location can be mounted at a nested directory in the Alluxio namespace to
 For example, the following command mounts a directory inside an WEB directory into Alluxio directory
 `/web`:
 
-```bash 
-./bin/alluxio fs mount --option alluxio.underfs.web.connnection.timeout=<WEB_CONNECTION_TIMEOUT> \
+```console 
+$ ./bin/alluxio fs mount \
+  --option alluxio.underfs.web.connnection.timeout=<WEB_CONNECTION_TIMEOUT> \
   --option alluxio.underfs.web.header.last.modified=<WEB_HEADER_LAST_MODIFIED> \
   --option alluxio.underfs.web.parent.names=<WEB_PARENT_NAMES> \
   --option alluxio.underfs.web.titles=<WEB_TITLES> \
@@ -66,9 +67,9 @@ For example, the following command mounts a directory inside an WEB directory in
 
 Run the following command to start Alluxio filesystem.
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 To verify that Alluxio is running, you can visit
@@ -76,8 +77,8 @@ To verify that Alluxio is running, you can visit
 
 Visit your WEB volume by running the following command:
 
-```bash
-./bin/alluxio fs ls /
+```console
+$ ./bin/alluxio fs ls /
 ```
 
 After waiting for a while, you can see the following result:
@@ -97,6 +98,6 @@ dr--r-----                                              0       PERSISTED 05-21-
 
 Stop Alluxio by running:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```

@@ -31,8 +31,9 @@ Alluxio shell users can put JVM system properties `-Dproperty=value` after the `
 before the subcommand to specify Alluxio user properties from the command line.
 For example, the following Alluxio shell command sets the write type to `CACHE_THROUGH` when copying files to Alluxio:
 
-```bash
-./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
+```console
+$ ./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
+  copyFromLocal README.md /README.md
 ```
 
 Note that, as a part of Alluxio deployment, the Alluxio shell will also take the configuration in
@@ -75,8 +76,8 @@ Alluxio admins can create and customize the properties file `alluxio-site.proper
 configure an Alluxio masters or workers.
 If this file does not exist, it can be created from the template file under `${ALLUXIO_HOME}/conf`:
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio master
@@ -104,17 +105,18 @@ For example, to setup the following:
 - enable Java remote debugging at port 7001
 run the following commands before startingthe master process:
 
-```bash
-export ALLUXIO_MASTER_HOSTNAME="localhost"
-export ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="hdfs://localhost:9000"
-export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
+```console
+$ export ALLUXIO_MASTER_HOSTNAME="localhost"
+$ export ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="hdfs://localhost:9000"
+$ export ALLUXIO_MASTER_JAVA_OPTS=\
+"$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y, suspend=n,address=7001"
 ```
 
 Users can either set these variables through the shell or in `conf/alluxio-env.sh`.
 If this file does not exist yet, create one by copying the template:
 
-```bash
-cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+```console
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
 ### Cluster Defaults
@@ -189,22 +191,17 @@ its [default property value]({{ '/en/reference/Properties-List.html' | relativiz
 To check the value of a specific configuration property and the source of its value,
 users can run the following command:
 
-```bash
-./bin/alluxio getConf alluxio.worker.rpc.port
-```
-```
+```console
+$ ./bin/alluxio getConf alluxio.worker.rpc.port
 29998
-./bin/alluxio getConf --source alluxio.worker.rpc.port
+$ ./bin/alluxio getConf --source alluxio.worker.rpc.port
 DEFAULT
 ```
 
 To list all of the configuration properties with sources:
 
-```bash
-./bin/alluxio getConf --source
-```
-
-```
+```console
+$ ./bin/alluxio getConf --source
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
 ...
@@ -216,11 +213,8 @@ Note that with the `--master` option, `getConf` will query the
 master which requires the master process to be running.
 Otherwise, without `--master` option, this command only checks the local configuration.
 
-```bash
-./bin/alluxio getConf --master --source
-```
-
-```
+```console
+$ ./bin/alluxio getConf --master --source
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
 ...
@@ -237,8 +231,8 @@ The web UI shows the result of the server configuration check.
 
 Users can also run the `fsadmin doctor` command to get the same results.
 
-```bash
-./bin/alluxio fsadmin doctor configuration
+```console
+$ ./bin/alluxio fsadmin doctor configuration
 ```
 
 Configuration warnings can also be found in the master logs.

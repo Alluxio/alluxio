@@ -28,12 +28,12 @@ This tutorial walks through a basic Alluxio setup on Kubernetes.
 
 Extract the Kubernetes specifications required to deploy Alluxio from the Docker image.
 
-```bash
-id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
-docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
-docker rm -v $id 1>/dev/null
-tar -xvf kubernetes.tar
-cd kubernetes
+```console
+$ id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
+$ docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
+$ docker rm -v $id 1>/dev/null
+$ tar -xvf kubernetes.tar
+$ cd kubernetes
 ```
 
 ### Provision a Persistent Volume
@@ -47,8 +47,8 @@ configuration is not supported on Kubernetes.
 Create the persistent volume spec from the template. The access mode `ReadWriteMany` is used to allow
 multiple Alluxio master nodes to access the shared volume.
 
-```bash
-cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
+```console
+$ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
 
 Note: the spec provided uses a `hostPath` volume for demonstration on a single-node deployment. For a
@@ -56,8 +56,8 @@ multi-node cluster, you may choose to use NFS, AWSElasticBlockStore, GCEPersiste
 persistent volume plugins.
 
 Create the persistent volume.
-```bash
-kubectl create -f alluxio-journal-volume.yaml
+```console
+$ kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ### Deploy Alluxio
@@ -69,35 +69,73 @@ is not available or the deployment needs additional customization.
 
 ***Pre-requisites:*** A helm repo with the Alluxio helm chart must be available. To prepare a local helm
 repository, follow instructions as follows:
-```bash
-helm init
-helm package helm/alluxio/
-mkdir -p helm/charts/
-cp alluxio-{{site.ALLUXIO_VERSION_STRING}}.tgz helm/charts/
-helm repo index helm/charts/
-helm serve --repo-path helm/charts
-helm repo add alluxio-local http://127.0.0.1:8879
-helm repo update alluxio-local
+```console
+$ helm init
+$ helm package helm/alluxio/
+$ mkdir -p helm/charts/
+$ cp alluxio-{{site.ALLUXIO_VERSION_STRING}}.tgz helm/charts/
+$ helm repo index helm/charts/
+$ helm serve --repo-path helm/charts
+$ helm repo add alluxio-local http://127.0.0.1:8879
+$ helm repo update alluxio-local
 ```
 
 Once the helm repository is available, Alluxio prepare the Alluxio configuration:
-```bash
-cat << EOF > config.yaml
+```console
+$ cat << EOF > config.yaml
 properties:
-  alluxio.mount.table.root.ufs: "<under_storage_address>"
+  alluxio.master.mount.table.root.ufs: "<under_storage_address>"
 EOF
 ```
 Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
-For example, is using Amazon S3 as the under store, add properties as:
-```bash
-cat << EOF > config.yaml
+For example:
+- If using Amazon S3 as the under store, add these properties:
+```console
+$ cat << EOF > config.yaml
 properties:
-  alluxio.mount.table.root.ufs: "s3a://<bucket>"
+  alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
   aws.accessKeyId: "<accessKey>"
   aws.secretKey: "<secretKey>"
 EOF
 ```
+- If using HDFS as the under store, first create secrets for any configuration required by an HDFS
+client. These are mounted under `/secrets`.
+```console
+$ kubectl create secret generic alluxio-hdfs-config --from-file=./core-site.xml --from-file=./hdfs-site.xml
+```
+Then mount these secrets to the Alluxio master and worker containers as follows:
+```console
+$ cat << EOF > config.yaml
+properties:
+  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+EOF
+```
+Note: Multiple secrets can be mounted by adding more rows to the configuration such as:
+```console
+$ cat << EOF > config.yaml
+...
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+    alluxio-ceph-config: cephConfig
+    ...
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+    alluxio-ceph-config: cephConfig
+    ...
+EOF
+```
 
+Install
+```console
+helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
+```
 #### Using `kubectl`
 
 Define environment variables in `alluxio.properties`. Copy the properties template at
@@ -112,79 +150,81 @@ ALLUXIO_JAVA_OPTS=-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
 
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
-```bash
-cp alluxio-configMap.yaml.template alluxio-configMap.yaml
+```console
+$ cp alluxio-configMap.yaml.template alluxio-configMap.yaml
 ```
 
 Create a ConfigMap.
-```bash
-kubectl create -f alluxio-configMap.yaml
+```console
+$ kubectl create -f alluxio-configMap.yaml
 ```
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the **Docker image**, and CPU and memory requirements for pods.
-```bash
-cp alluxio-master.yaml.template alluxio-master.yaml
-cp alluxio-worker.yaml.template alluxio-worker.yaml
+```console
+$ cp alluxio-master.yaml.template alluxio-master.yaml
+$ cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
 Note: Please make sure that the version of the Kubernetes specification matches the version of the
 Alluxio Docker image being used.
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
-```bash
-kubectl create -f alluxio-master.yaml
-kubectl create -f alluxio-worker.yaml
+```console
+$ kubectl create -f alluxio-master.yaml
+$ kubectl create -f alluxio-worker.yaml
 ```
 
 Verify status of the Alluxio deployment.
-```bash
-kubectl get pods
+```console
+$ kubectl get pods
 ```
 
 If using peristent volumes for Alluxio master, the status of the volume should change to `CLAIMED`.
-```bash
-kubectl get pv alluxio-journal-volume
+```console
+$ kubectl get pv alluxio-journal-volume
 ```
 
 ### Access the Web UI
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
-```bash
-kubectl port-forward alluxio-master-0 19999:19999
+```console
+$ kubectl port-forward alluxio-master-0 19999:19999
 ```
 
 ### Verify
 
 Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
-```bash
-kubectl exec -ti alluxio-master-0 /bin/bash
+```console
+$ kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 From the master pod, execute the following:
-```bash
-cd /opt/alluxio
-./bin/alluxio runTests
+```console
+$ cd /opt/alluxio
+$ ./bin/alluxio runTests
 ```
 
 ### Uninstall
 
-If using `helm`, uninstall Alluxio as follows:
-```bash
-helm list # Identify release name
-helm delete <release-name>
+#### Using `helm`
+
+Uninstall Alluxio as follows:
+```console
+$ helm delete alluxio
 ```
 
-If using `kubectl`, uninstall Alluxio as follows:
-```bash
-kubectl delete -f alluxio-worker.yaml
-kubectl delete -f alluxio-master.yaml
-kubectl delete configmaps alluxio-config
+#### Using `kubectl`
+Uninstall Alluxio as follows:
+```console
+$ kubectl delete -f alluxio-worker.yaml
+$ kubectl delete -f alluxio-master.yaml
+$ kubectl delete configmaps alluxio-config
 ```
 
 Execute the following to remove the persistent volume storing the Alluxio journal. Note: Alluxio metadata
 will be lost.
-```bash
-kubectl delete -f alluxio-journal-volume.yaml
+```console
+$ kubectl delete -f alluxio-journal-volume.yaml
 ```
 
 ## Advanced Setup
@@ -196,9 +236,9 @@ connect to it. For applications using the [POSIX API]({{ '/en/api/POSIX-API.html
 application containers can simply mount the Alluxio FileSystem.
 
 In order to use the POSIX API, first deploy the Alluxio FUSE daemon.
-```bash
-cp alluxio-fuse.yaml.template alluxio-fuse.yaml
-kubectl create -f alluxio-fuse.yaml
+```console
+$ cp alluxio-fuse.yaml.template alluxio-fuse.yaml
+$ kubectl create -f alluxio-fuse.yaml
 ```
 Note:
 - The container running the Alluxio FUSE daemon must have the `securityContext.privileged=true` with
@@ -209,9 +249,9 @@ any Docker image.
 
 Verify that a container can simply mount the Alluxio FileSystem without any custom binaries or
 capabilities using a `hostPath` mount of location `/alluxio-fuse`:
-```bash
-cp alluxio-fuse-client.yaml.template alluxio-fuse-client.yaml
-kubectl create -f alluxio-fuse-client.yaml
+```console
+$ cp alluxio-fuse-client.yaml.template alluxio-fuse-client.yaml
+$ kubectl create -f alluxio-fuse-client.yaml
 ```
 
 If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
@@ -223,20 +263,20 @@ across multiple containers.
 
 Alluxio workers use host networking with the physical host IP as the hostname. Check the cluster
 firewall if an error such as the following is encountered:
-```bash
+```
 Caused by: io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Host is unreachable: <host>/<IP>:29999
 ```
 
 - Check that `<host>` matches the physical host address and is not a virtual container hostname.
 Ping from a remote client to check the address is resolvable.
-```bash
-ping <host>
+```console
+$ ping <host>
 ```
 - Verify that a client can connect to the workers on the ports specified in the worker
 deployment specification. The default ports are `[29998, 29999, 29996, 30001, 30002, 30003]`.
 Check access to the given port from a remote client using a network utility such as `ncat`:
-```bash
-nc -zv <IP> 29999
+```console
+$ nc -zv <IP> 29999
 ```
 
 ### Enable Debug Logging
@@ -245,14 +285,14 @@ To change the log level for Alluxio servers (master and workers), use the CLI co
 follows:
 
 Access the Alluxio CLI from the master pod.
-```bash
-kubectl exec -ti alluxio-master-0 /bin/bash
+```console
+$ kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 From the master pod, execute the following:
-```bash
-cd /opt/alluxio
-./bin/alluxio logLevel --level DEBUG --logName alluxio
+```console
+$ cd /opt/alluxio
+$ ./bin/alluxio logLevel --level DEBUG --logName alluxio
 ```
 
 ### Accessing Logs
@@ -262,43 +302,80 @@ Alluxio worker and job worker run as separate containers of a worker pod. Logs c
 the individual containers as follows.
 
 Master:
-```bash
-kubectl logs -f alluxio-master-0 -c alluxio-master
+```console
+$ kubectl logs -f alluxio-master-0 -c alluxio-master
 ```
 
 Worker:
-```bash
-kubectl logs -f alluxio-worker-<id> -c alluxio-worker
+```console
+$ kubectl logs -f alluxio-worker-<id> -c alluxio-worker
 ```
 
 Job Master:
-```bash
-kubectl logs -f alluxio-master-0 -c alluxio-job-master
+```console
+$ kubectl logs -f alluxio-master-0 -c alluxio-job-master
 ```
 
 Job Worker:
-```bash
-kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
+```console
+$ kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
 ```
 
 ### Short-circuit Access
 
 Short-circuit access enables clients to perform read and write operations directly against the
-worker bypassing the networking interface. As part of the Alluxio worker pod creation, a directory
-is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
+worker bypassing the networking interface.
+For performance-critical applications it is recommended to enable short-circuit operations
+against Alluxio because it can increase a client's read and write throughput when co-located with
+an Alluxio worker.
 
-To disable this feature, set the property `alluxio.user.short.circuit.enabled=false`. By default,
-short-circuit operations between the Alluxio client and worker are enabled if the client hostname
-matches the worker hostname. This may not be true if the client is running as part of a container
-with virtual networking. In such a scenario, set the following property to use filesystem inspection
-to enable short-circuit and make sure the client container mounts the directory specified as the
-domain socket address. Short-circuit writes are then enabled if the worker UUID is located on the
-client filesystem.
+#### Properties to Enable Short-Circuit Operations
+
+This feature is enabled by default, however requires extra configuration to work properly in
+Kubernetes environments.
+To disable short-circuit operations, set the property `alluxio.user.short.circuit.enabled=false`.
+
+##### Hostname Introspection
+
+Short-circuit operations between the Alluxio client and worker are enabled if the client hostname
+matches the worker hostname.
+This may not be true if the client is running as part of a container with virtual networking.
+In such a scenario, set the following property to use filesystem inspection to enable short-circuit
+operations and **make sure the client container mounts the directory specified as the domain socket
+path**.
+Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
+
+> Note: This property should be set on all workers
 
 ```properties
 alluxio.worker.data.server.domain.socket.as.uuid=true
+```
+
+##### Domain Socket Path
+
+The domain socket is a volume which should be mounted on:
+
+- All Alluxio workers
+- All application containers which intend to read/write through Alluxio
+
+The exact path of the domain socket on the host is defined in the helm chart at
+`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/values.yml`.
+On the worker the path where the domain socket is mounted can be found within
+`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/alluxio-worker.yml`
+
+As part of the Alluxio worker pod creation, a directory
+is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
+The workers then mount `/tmp/alluxio-domain` to `/opt/domain` within the
+container.
+
+```properties
 alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
+
+Compute application containers **must** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
+
+#### Verify
 
 To verify short-circuit reads and writes monitor the metrics displayed under:
 1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`

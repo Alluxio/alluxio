@@ -36,8 +36,8 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Configure Alluxio to use GCS as its root under storage system. The first modification is to
@@ -77,17 +77,20 @@ alluxio.master.hostname=localhost
 ```
 
 Then, mount GCS:
-```bash
-./bin/alluxio fs mount --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> /gcs gs://GCS_BUCKET/GCS_DIRECTORY
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> \
+  --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> \
+  /gcs gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 
 ## Running Alluxio Locally with GCS
 
 Start up Alluxio locally to see that everything works.
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local SudoMount
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -95,8 +98,8 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 Visit your GCS directory `GCS_BUCKET/GCS_DIRECTORY` to verify the files
@@ -108,8 +111,8 @@ GCS_BUCKET/GCS_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
 
 To stop Alluxio, you can run:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup

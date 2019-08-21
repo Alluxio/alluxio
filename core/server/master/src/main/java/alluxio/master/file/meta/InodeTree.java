@@ -293,6 +293,15 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   /**
+   * @param inodeId id of inode to be updated
+   * @param accessTime the new access time
+   * @return the applied inode entry
+   */
+  public UpdateInodeEntry updateInodeAccessTimeNoJournal(long inodeId, long accessTime) {
+    return mState.applyInodeAccessTime(inodeId, accessTime);
+  }
+
+  /**
    * @param context journal context supplier
    * @param entry an entry representing a rename operation
    */
@@ -669,7 +678,8 @@ public class InodeTree implements DelegatingJournaled {
         if (updatedLastModified < context.getOperationTimeMs()) {
           UpdateInodeEntry.Builder updateInodeEntry = UpdateInodeEntry.newBuilder()
               .setId(currentId)
-              .setLastModificationTimeMs(context.getOperationTimeMs());
+              .setLastModificationTimeMs(context.getOperationTimeMs())
+              .setLastAccessTimeMs(context.getOperationTimeMs());
           if (context.getXAttr() != null) {
             updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
           }
@@ -765,9 +775,10 @@ public class InodeTree implements DelegatingJournaled {
               .setGroup(context.getGroup())
               .setMode(context.getMode().toShort());
 
-          Long lastModificationTime = context.getOperationTimeMs();
-          if (lastModificationTime != null) {
-            newDir.setLastModificationTimeMs(lastModificationTime, true);
+          Long operationTimeMs = context.getOperationTimeMs();
+          if (operationTimeMs != null) {
+            newDir.setLastModificationTimeMs(operationTimeMs, true);
+            newDir.setLastAccessTimeMs(operationTimeMs, true);
           }
           newDir.setPersistenceState(PersistenceState.PERSISTED);
         } else {
@@ -895,6 +906,7 @@ public class InodeTree implements DelegatingJournaled {
     }
     return true;
   }
+
   /**
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.
@@ -1117,6 +1129,8 @@ public class InodeTree implements DelegatingJournaled {
       Long lastModificationTime = status.getLastModifiedTime();
       if (lastModificationTime != null) {
         dir.setLastModificationTimeMs(lastModificationTime, true);
+        // TODO(feng): update last access time from UFS
+        dir.setLastAccessTimeMs(lastModificationTime, true);
       }
     });
     dir.setPersistenceState(PersistenceState.PERSISTED);

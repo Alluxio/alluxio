@@ -17,7 +17,7 @@ as Alluxio's under storage system.
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio server binaries to each of
 these machines. You can either
-[download the precompiled binaries directly](http://www.alluxio.io/download)
+[download the precompiled binaries directly](https://www.alluxio.io/download)
 with the correct Hadoop version (recommended), or
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 (for advanced users).
@@ -27,19 +27,19 @@ work with Apache Hadoop HDFS of version `2.2.0`. To work with Hadoop distributio
 versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 
-```bash
-mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
+```console
+$ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
 ```
 
 Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2` (enabled by default),
 `hadoop-3` for the major Hadoop versions 1.x, 2.x and 3.x. If you want to build Alluxio with a specific
 Hadoop release version, you can also specify the version in the command. For example,
 
-```bash
+```console
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
-mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
+$ mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
-mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
+$ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
 Please visit the
@@ -56,8 +56,8 @@ To configure Alluxio to use HDFS as under storage, you will need to modify the c
 file `conf/alluxio-site.properties`.
 If the file does not exist, create the configuration file from the template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode
@@ -77,15 +77,15 @@ alluxio.master.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
 Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
 exists. Start the Alluxio servers:
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 If your ramdisk is not mounted, the format command can fail. This is likely because this is the first time you are running Alluxio, you may need to start Alluxio with the `SudoMount` option.
 
-```bash
-bin/alluxio-start.sh local SudoMount
+```console
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
@@ -93,8 +93,8 @@ This will start one Alluxio master and one Alluxio worker locally. You can see t
 
 Run a simple example program:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 If the test fails with permission errors, make sure that the current user (`${USER}`) has
@@ -109,8 +109,8 @@ files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 
 Stop Alluxio by running:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
@@ -213,7 +213,7 @@ You can check the existence of this client by going to the `lib` directory under
 
 If you have built Alluxio from source, you can build additional client jar files by running `mvn` command under the `underfs` directory in the Alluxio source tree. For example, issuing the following command would build the client jar for the 2.8.0 version.
 
-```bash
+```console
 $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true \
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
@@ -224,13 +224,13 @@ When using the mount Alluxio shell command, one can pass through the mount optio
 
 For example, the following commands mount two HDFS deployments—one is HDFS 1.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs12` and `/mnt/hdfs27`.
 
-```bash
-./bin/alluxio fs mount \
---option alluxio.underfs.version=1.2 \
-/mnt/hdfs12 hdfs://namenode1:8020/
-./bin/alluxio fs mount \
---option alluxio.underfs.version=2.7 \
-/mnt/hdfs27 hdfs://namenode2:8020/
+```console
+$ ./bin/alluxio fs mount \
+  --option alluxio.underfs.version=1.2 \
+  /mnt/hdfs12 hdfs://namenode1:8020/
+$ ./bin/alluxio fs mount \
+  --option alluxio.underfs.version=2.7 \
+  /mnt/hdfs27 hdfs://namenode2:8020/
 ```
 
 #### Using Site Properties

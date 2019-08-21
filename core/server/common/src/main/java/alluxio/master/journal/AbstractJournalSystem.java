@@ -54,6 +54,7 @@ public abstract class AbstractJournalSystem implements JournalSystem {
   @Override
   public synchronized void stop() throws InterruptedException, IOException {
     Preconditions.checkState(mRunning, "Journal is not running");
+    mAllJournalSinks.forEach(JournalSink::beforeShutdown);
     mRunning = false;
     stopInternal();
   }

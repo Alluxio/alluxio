@@ -343,6 +343,8 @@ public final class AlluxioWorkerRestServiceHandler {
                 uiFileInfo
                     .addBlock(blockMeta.getBlockLocation().tierAlias(), blockId, blockSize, -1);
               }
+            }
+            if (uiFileInfo.getBlockIds().isEmpty()) {
               uiFileInfos.add(uiFileInfo);
             }
           } catch (Exception e) {

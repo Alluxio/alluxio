@@ -71,8 +71,8 @@ will be formatted to what you want
 [checkstyle](http://checkstyle.sourceforge.net) before sending a pull-request to verify no new
 warnings are introduced:
 
-```bash
-mvn checkstyle:checkstyle
+```console
+$ mvn checkstyle:checkstyle
 ```
 
 ## Logging Conventions
@@ -700,7 +700,7 @@ locally. A common setting that may need to be set is `ulimit`.
 
 In order to increase the number of files and processes allowed on MacOS, run the following
 
-```bash
+```console
 $ sudo launchctl limit maxfiles 32768 32768
 $ sudo launchctl limit maxproc 32768 32768
 ```

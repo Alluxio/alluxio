@@ -40,24 +40,24 @@ On MacOS, download the [osxfuse dmg file](https://github.com/osxfuse/osxfuse/rel
 
 Create a folder at the root in Alluxio: 
 
-```bash
-./bin/alluxio fs mkdir /training-data
+```console
+$ ./bin/alluxio fs mkdir /training-data
 ```
 
 Create a folder `/mnt/fuse`, change its owner to the current user (`$(whoami)`), 
 and change its permissions to allow read and write:
 
-```bash
-sudo mkdir -p /mnt/fuse
-sudo chown $(whoami) /mnt/fuse
-chmod 755 /mnt/fuse
+```console
+$ sudo mkdir -p /mnt/fuse
+$ sudo chown $(whoami) /mnt/fuse
+$ chmod 755 /mnt/fuse
 ```
 
 Run the Alluxio-FUSE shell to mount Alluxio folder `training-data` to the local empty folder
 just created:
 
-```bash
-./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
+```console
+$ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 The above CLI spawns a background user-space java process (`AlluxioFuse`) that mounts the Alluxio path specified at `/training-data` 
@@ -66,8 +66,8 @@ for details about how to mount Alluxio-FUSE and set up fuse related options.
 
 Check the status of the FUSE process with:
 
-```bash
-./integration/fuse/bin/alluxio-fuse stat
+```console
+$ ./integration/fuse/bin/alluxio-fuse stat
 ```
 
 The mounted folder `/mnt/fuse` is ready for the deep learning frameworks to use, which would treat the Alluxio
@@ -85,8 +85,9 @@ local `/mnt/fuse/`.
 Suppose the ImageNet data is stored in a S3 bucket `s3://alluxio-tensorflow-imagenet/`.
 Run the following command to mount this S3 bucket to Alluxio path `/training-data/imagenet`:
 
-```bash
-./bin/alluxio fs mount /training-data/imagenet/ s3://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+```console
+$ ./bin/alluxio fs mount /training-data/imagenet/ s3://alluxio-tensorflow-imagenet/ \
+  --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
 ```
 
 Note this command takes options to pass the S3 credentials of the bucket. These credentials
@@ -94,10 +95,10 @@ are associated with the mounting point so that the future accesses will not requ
 
 If the data is not in a remote data storage, you can copy it to Alluxio namespace:
 
-```bash
-wget http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
-./bin/alluxio fs mkdir /training-data/imagenet 
-./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /training-data/imagenet 
+```console
+$ wget http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
+$ ./bin/alluxio fs mkdir /training-data/imagenet 
+$ ./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /training-data/imagenet 
 ```
 
 Suppose the ImageNet data is stored in an S3 bucket `s3://alluxio-tensorflow-imagenet/`, 
@@ -119,9 +120,9 @@ ls -l /mnt/fuse/imagenet/
 Download the [image recognition script](https://raw.githubusercontent.com/tensorflow/models/master/tutorials/image/imagenet/classify_image.py)
 and run it with the local folder which holds the training data.
 
-```bash
-curl -o classify_image.py -L https://raw.githubusercontent.com/tensorflow/models/master/tutorials/image/imagenet/classify_image.py
-python classify_image.py --model_dir /mnt/fuse/imagenet/
+```console
+$ curl -o classify_image.py -L https://raw.githubusercontent.com/tensorflow/models/master/tutorials/image/imagenet/classify_image.py
+$ python classify_image.py --model_dir /mnt/fuse/imagenet/
 ```
 
 This will use the input data in `/mnt/fuse/imagenet/inception-2015-12-05.tgz` to recognize images,  write some intermediate data to `/mnt/fuse/imagenet` 
@@ -140,11 +141,11 @@ earthstar (score = 0.00117)
 Mount the ImageNet data stored in an S3 bucket into path `/training-data/imagenet`,
 assuming the data is at the S3 path `s3://alluxio-tensorflow-imagenet/`.
 
-```bash
-./bin/alluxio fs mount /training-data/imagenet/ \
-s3://alluxio-tensorflow-imagenet/ \
---option aws.accessKeyID=<ACCESS_KEY_ID> \
---option aws.secretKey=<SECRET_KEY>
+```console
+$ ./bin/alluxio fs mount /training-data/imagenet/ \
+  s3://alluxio-tensorflow-imagenet/ \
+  --option aws.accessKeyID=<ACCESS_KEY_ID> \
+  --option aws.secretKey=<SECRET_KEY>
 ```
 
 To access the training data in S3 via Alluxio, with the Alluxio POSIX API,

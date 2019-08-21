@@ -18,6 +18,7 @@ public final class ClientMetrics {
   /** Total number of bytes short-circuit read from local storage. */
   public static final String BYTES_READ_LOCAL = "BytesReadLocal";
   public static final String BYTES_READ_LOCAL_THROUGHPUT = "BytesReadLocalThroughput";
+  public static final String BYTES_WRITTEN_UFS = "BytesWrittenUfs";
 
   private ClientMetrics() {} // prevent instantiation
 }

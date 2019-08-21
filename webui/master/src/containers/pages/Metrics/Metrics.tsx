@@ -82,16 +82,22 @@ export class Metrics extends React.Component<AllProps> {
               <Table hover={true}>
                 <tbody>
                 <tr>
+                  <th>Local Alluxio (Domain Socket) Read</th>
+                  <td>{data.totalBytesReadDomainSocket}</td>
+                  <th>Local Alluxio (Domain Socket) Write</th>
+                  <td>{data.totalBytesWrittenDomainSocket}</td>
+                </tr>
+                <tr>
+                  <th>Local Alluxio (Short-circuit) Read</th>
+                  <td>{'N/A'}</td>
+                  <th>Local Alluxio (Short-circuit) Write</th>
+                  <td>{'N/A'}</td>
+                </tr>
+                <tr>
                   <th>Remote Alluxio Read</th>
                   <td>{data.totalBytesReadRemote}</td>
                   <th>Remote Alluxio Write</th>
                   <td>{data.totalBytesWrittenAlluxio}</td>
-                </tr>
-                <tr>
-                  <th>Domain Socket Alluxio Read</th>
-                  <td>{data.totalBytesReadDomainSocket}</td>
-                  <th>Domain Socket Alluxio Write</th>
-                  <td>{data.totalBytesWrittenDomainSocket}</td>
                 </tr>
                 <tr>
                   <th>Under Filesystem Read</th>
@@ -107,16 +113,22 @@ export class Metrics extends React.Component<AllProps> {
               <Table hover={true}>
                 <tbody>
                 <tr>
+                  <th>Local Alluxio (Domain Socket) Read</th>
+                  <td>{data.totalBytesReadDomainSocketThroughput}</td>
+                  <th>Local Alluxio (Domain Socket) Write</th>
+                  <td>{data.totalBytesWrittenDomainSocketThroughput}</td>
+                </tr>
+                <tr>
+                  <th>Local Alluxio (Short-circuit) Read</th>
+                  <td>{'N/A'}</td>
+                  <th>Local Alluxio (Short-circuit) Write</th>
+                  <td>{'N/A'}</td>
+                </tr>
+                <tr>
                   <th>Remote Alluxio Read</th>
                   <td>{data.totalBytesReadRemoteThroughput}</td>
                   <th>Remote Alluxio Write</th>
                   <td>{data.totalBytesWrittenAlluxioThroughput}</td>
-                </tr>
-                <tr>
-                  <th>Domain Socket Alluxio Read</th>
-                  <td>{data.totalBytesReadDomainSocketThroughput}</td>
-                  <th>Domain Socket Alluxio Write</th>
-                  <td>{data.totalBytesWrittenDomainSocketThroughput}</td>
                 </tr>
                 <tr>
                   <th>Under Filesystem Read</th>

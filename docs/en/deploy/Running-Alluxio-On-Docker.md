@@ -29,51 +29,51 @@ UI in your browser.
 
 To set up Docker after provisioning the instance, run
 
-```bash
-sudo yum install -y docker
-sudo service docker start
+```console
+$ sudo yum install -y docker
+$ sudo service docker start
 # Add the current user to the docker group
-sudo usermod -a -G docker $(id -u -n)
+$ sudo usermod -a -G docker $(id -u -n)
 # Log out and log back in again to pick up the group changes
-exit
+$ exit
 ```
 
 ## Prepare network and UFS volume
 
 Create a network for connecting Alluxio containers, and create a volume for storing ufs data.
 
-```bash
-docker network create alluxio_nw
-docker volume create ufs
+```console
+$ docker network create alluxio_nw
+$ docker volume create ufs
 ```
 
 ## Launch Alluxio
 
 The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store Alluxio data.
 
-```bash
+```console
 # Launch the Alluxio master
-docker run -d \
-           -p 19999:19999 \
-           --net=alluxio_nw \
-           --name=alluxio-master \
-           -v ufs:/opt/alluxio/underFSStorage \
-           alluxio/alluxio master
+$ docker run -d \
+  -p 19999:19999 \
+  --net=alluxio_nw \
+  --name=alluxio-master \
+  -v ufs:/opt/alluxio/underFSStorage \
+  alluxio/alluxio master
 # Launch the Alluxio worker
-docker run -d \
-           --net=alluxio_nw \
-           --name=alluxio-worker \
-           --shm-size=1G \
-           -v ufs:/opt/alluxio/underFSStorage \
-           -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=alluxio-master" \
-           alluxio/alluxio worker
+$ docker run -d \
+  --net=alluxio_nw \
+  --name=alluxio-worker \
+  --shm-size=1G \
+  -v ufs:/opt/alluxio/underFSStorage \
+  -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=alluxio-master" \
+  alluxio/alluxio worker
 ```
 
 ## Verify the Cluster
 
 To verify that the services came up, check `docker ps`. You should see something like
-```bash
-docker ps
+```console
+$ docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                      NAMES
 1fef7c714d25        alluxio/alluxio     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio-worker
 27f92f702ac2        alluxio/alluxio     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio-master
@@ -87,15 +87,15 @@ Visit `instance-hostname:19999` to view the Alluxio web UI. You should see one w
 
 To run tests, enter the worker container
 
-```bash
-docker exec -it alluxio-worker /bin/bash
+```console
+$ docker exec -it alluxio-worker /bin/bash
 ```
 
 Run the tests
 
-```bash
-cd /opt/alluxio
-./bin/alluxio runTests
+```console
+$ cd /opt/alluxio
+$ ./bin/alluxio runTests
 ```
 
 Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
@@ -126,8 +126,8 @@ when the image starts. If you aren't seeing a property take effect, make sure th
 `conf/alluxio-env.sh` within the container is spelled correctly. You can check the
 contents with
 
-```bash
-docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
+```console
+$ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 ```
 
 ### Run in High-Availability Mode
@@ -143,20 +143,20 @@ Alluxio uses internal leader election by default.
 
 Provide the master embedded journal addresses and set the hostname of the current master:
 
-```bash
+```console
 $ docker run -d \
-             ...
-             -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 -Dalluxio.master.hostname=master-hostname-1" \
-             alluxio master
+  ...
+  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 -Dalluxio.master.hostname=master-hostname-1" \
+  alluxio master
 ```
 
 Set the master rpc addresses for all the workers so that they can query the master nodes find out the leader master.
 
-```bash
+```console
 $ docker run -d \
-             ...
-             -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998" \
-             alluxio worker
+  ...
+  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998" \
+  alluxio worker
 ```
 
 #### Zookeeper-based leader election
@@ -166,21 +166,21 @@ that all masters have access to, usually either NFS or HDFS.
 
 Point them to a shared journal and set their Zookeeper configuration.
 
-```bash
-docker run -d \
-           ...
-           -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
-           alluxio master
+```console
+$ docker run -d \
+  ...
+  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
+  alluxio master
 ```
 
 Set the same Zookeeper configuration for workers so that they can query Zookeeper
 to discover the current leader.
 
-```bash
-docker run -d \
-           ...
-           -e ALLUXIO_JAVA_OPTS="-Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
-           alluxio worker
+```console
+$ docker run -d \
+  ...
+  -e ALLUXIO_JAVA_OPTS="-Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
+  alluxio worker
 ```
 
 ### Enable short-circuit reads and writes
@@ -193,9 +193,9 @@ read and write using [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_
 
 On worker host machines, create a directory for the shared domain socket.
 
-```bash
-mkdir /tmp/domain
-chmod a+w /tmp/domain
+```console
+$ mkdir /tmp/domain
+$ chmod a+w /tmp/domain
 ```
 
 When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
@@ -203,12 +203,12 @@ to share the domain socket directory. Also set domain socket properties by passi
 `alluxio.worker.data.server.domain.socket.address=/opt/domain` and
 `alluxio.worker.data.server.domain.socket.as.uuid=true` when launching worker containers.
 
-```bash
-docker run -d \
-           ...
-           -v /tmp/domain:/opt/domain \
-           -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true" \
-           alluxio worker
+```console
+$ docker run -d \
+  ...
+  -v /tmp/domain:/opt/domain \
+  -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true" \
+  alluxio worker
 ```
 
 ### Relaunch Alluxio Servers
@@ -227,12 +227,12 @@ Launch the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capab
 capability. This runs the FUSE daemon on a client node that needs to access Alluxio using the POSIX
 API with a mount accessible at `/alluxio-fuse`.
 
-```bash
-docker run -e \
-           ...
-           --cap-add SYS_ADMIN
-           --device /dev/fuse
-           alluxio-fuse fuse
+```console
+$ docker run -e \
+  ... \
+  --cap-add SYS_ADMIN \
+  --device /dev/fuse \
+  alluxio-fuse fuse \
 ```
 
 ## Troubleshooting

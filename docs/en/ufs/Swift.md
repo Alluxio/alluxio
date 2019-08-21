@@ -28,8 +28,8 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Modify `conf/alluxio-site.properties` to include:
@@ -62,11 +62,14 @@ value of `<swift-use-public>`  to `false`.
 An Swift location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
 
-```bash
-$ ./bin/alluxio fs mount --option fs.swift.user=<SWIFT_USER> --option fs.swift.tenant=<SWIFT_TENANT> \
---option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
---option fs.swift.auth.method=<AUTH_METHOD> \
-/mnt/swift swift://<BUCKET>/<FOLDER>
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.swift.user=<SWIFT_USER> \
+  --option fs.swift.tenant=<SWIFT_TENANT> \
+  --option fs.swift.password=<SWIFT_PASSWORD> \
+  --option fs.swift.auth.url=<AUTH_URL> \
+  --option fs.swift.auth.method=<AUTH_METHOD> \
+  /mnt/swift swift://<BUCKET>/<FOLDER>
 ```
 
 ## Options for Swift Object Storage
@@ -80,9 +83,9 @@ be deployed.
 
 Start an Alluxio cluster:
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -90,8 +93,8 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 Visit your Swift bucket to verify the files and directories created
@@ -103,8 +106,8 @@ by Alluxio exist. For this test, you should see files named like:
 
 To stop Alluxio, you can run:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Running functional tests
@@ -113,11 +116,13 @@ The following command can be used to test if the given Swift credentials are val
 Developers can also use it to run functional tests against a Swift endpoint 
 to validate the contract between Alluxio and Swift.
 
-```bash
-./bin/alluxio runUfsTests --path swift://<bucket> \
-    -Dfs.swift.user=<SWIFT_USER> -Dfs.swift.tenant=<SWIFT_TENANT> -Dfs.swift.password=<SWIFT_PASSWORD> \
-    -Dfs.swift.auth.url=<AUTH_URL>\
-    -Dfs.swift.auth.method=<AUTH_METHOD> 
+```console
+$ ./bin/alluxio runUfsTests --path swift://<bucket> \
+  -Dfs.swift.user=<SWIFT_USER> \
+  -Dfs.swift.tenant=<SWIFT_TENANT> \
+  -Dfs.swift.password=<SWIFT_PASSWORD> \
+  -Dfs.swift.auth.url=<AUTH_URL> \
+  -Dfs.swift.auth.method=<AUTH_METHOD> 
 ```
 
 ## Advanced Setup

@@ -23,6 +23,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.client.journal.JournalMasterClient;
+import alluxio.client.journal.RetryHandlingJournalMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.PropertyKey;
@@ -363,6 +365,18 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * @return a journal master client for alluxio master
+   */
+  public synchronized JournalMasterClient getJournalMasterClientForMaster() {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to create a journal master client, but state was %s", mState);
+
+    return new RetryHandlingJournalMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+            .setMasterInquireClient(getMasterInquireClient()).build());
+  }
+
+  /**
    * @return clients for communicating with the cluster
    */
   public synchronized Clients getClients() {
@@ -481,6 +495,21 @@ public final class MultiProcessCluster {
    */
   public synchronized void updateMasterConf(PropertyKey key, @Nullable String value) {
     mMasters.forEach(master -> master.updateConf(key, value));
+  }
+
+  /**
+   * Updates internal master list with an external address.
+   *
+   * This API is to provide support when this cluster is joined by external masters.
+   * Calling this API with an external master address will make this cluster aware of it
+   * when creating clients/contexts etc.
+   *
+   * @param externalMasterAddress external master address
+   */
+  public synchronized void addExternalMasterAddress(MasterNetAddress externalMasterAddress) {
+    mMasterAddresses.add(externalMasterAddress);
+    // Reset current context to cause reinstantiation with new addresses.
+    mFilesystemContext = null;
   }
 
   /**

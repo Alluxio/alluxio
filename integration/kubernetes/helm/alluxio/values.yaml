@@ -13,6 +13,10 @@ image: alluxio/alluxio
 imageTag: "2.1.0-SNAPSHOT"
 imagePullPolicy: IfNotPresent
 
+user: 0
+group: 0
+fsGroup: 0
+
 resources:
   master:
     replicaCount: 1
@@ -66,3 +70,10 @@ volumes:
 #   alluxio.master.mount.table.root.ufs: ""
 #   aws.accessKeyId: ""
 #   aws.secretKey: ""
+#
+# Secrets Example: (<name>:<mount path under /secrets/>):
+# secrets:
+#   master:
+#     alluxio-hdfs-config: hdfsConfig
+#   worker:
+#     alluxio-hdfs-config: hdfsConfig

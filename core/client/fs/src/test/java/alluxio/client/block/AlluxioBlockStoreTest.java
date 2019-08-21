@@ -32,7 +32,6 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.NotFoundException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
@@ -158,6 +157,7 @@ public final class AlluxioBlockStoreTest {
   @Before
   public void before() throws Exception {
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Lists.newArrayList(new WorkerInfo()));
     mWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
 
     mClientContext = ClientContext.create(sConf);
@@ -321,7 +321,7 @@ public final class AlluxioBlockStoreTest {
     when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
 
     mException.expect(UnavailableException.class);
-    mException.expectMessage("No Alluxio worker available");
+    mException.expectMessage(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     mBlockStore.getInStream(BLOCK_ID, options).getAddress();
   }
 
@@ -332,9 +332,8 @@ public final class AlluxioBlockStoreTest {
     InStreamOptions options =
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
-    when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
 
-    mException.expect(NotFoundException.class);
+    mException.expect(UnavailableException.class);
     mException.expectMessage("unavailable in both Alluxio and UFS");
     mBlockStore.getInStream(BLOCK_ID, options).getAddress();
   }

@@ -22,8 +22,8 @@ Alluxio通过[统一命名空间]({{ '/cn/advanced/Namespace-Management.html' | 
 ### 根目录安装
 您需要修改`conf/alluxio-site.properties`配置Alluxio，以使用WEB作为其底层存储系统。如果该配置文件不存在，请从模板创建该配置文件。
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 将以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中，实际上，我们可以支持http://及https://协议.
@@ -51,8 +51,8 @@ alluxio.underfs.web.titles=<WEB_TITLES>
 WEB可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 
 [Mount 命令]({{ '/cn/basic/Command-Line-Interface.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将WEB容器内部的目录挂载到Alluxio的`/web`目录
 
-```bash 
-./bin/alluxio fs mount --option alluxio.underfs.web.connnection.timeout=<WEB_CONNECTION_TIMEOUT> \
+```console
+$ ./bin/alluxio fs mount --option alluxio.underfs.web.connnection.timeout=<WEB_CONNECTION_TIMEOUT> \
   --option alluxio.underfs.web.header.last.modified=<WEB_HEADER_LAST_MODIFIED> \
   --option alluxio.underfs.web.parent.names=<WEB_PARENT_NAMES> \
   --option alluxio.underfs.web.titles=<WEB_TITLES> \
@@ -63,17 +63,17 @@ WEB可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多�
 
 简单地运行以下命令来启动Alluxio文件系统：
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 要验证Alluxio是否正在运行，你可以访问**[http://localhost:19999](http://localhost:19999)**，或者查看`logs`下的日志。
 
 运行成功后，访问你的WEB volume查看目录列表，执行以下命令：
 
-```bash
-./bin/alluxio fs ls /
+```console
+$ ./bin/alluxio fs ls /
 ```
 
 等待片刻, 你可以看到如下结果
@@ -93,6 +93,6 @@ dr--r-----                                              0       PERSISTED 05-21-
 
 你可以在任何时间运行以下命令停止Alluxio：
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```

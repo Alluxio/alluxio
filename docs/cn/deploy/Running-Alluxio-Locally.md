@@ -32,16 +32,16 @@ priority: 1
 > 当前服务器上之前保存的Alluxio文件系统的所有数据和元数据都会被清除。
 > 但是，底层数据不会改变。
 
-```bash
-./bin/alluxio format
+```console
+$ ./bin/alluxio format
 ```
 
 # 第1步：本地启动Alluxio文件系统
 
 简单运行如下的命令来启动Alluxio文件系统。
 
-```bash
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio-start.sh local
 ```
 
 > 注意：用户在linux系统下运行上述命令需要输入密码来获取sudo权限,
@@ -54,14 +54,14 @@ priority: 1
 
 运行一个更全面的系统完整性检查：
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 可以在任意时刻执行以下命令以关闭Alluxio:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 
@@ -84,8 +84,8 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 
 然后在不需要请求root权限的情况下启动Alluxio，使用上述的目录作为存储器：
 
-```bash
-./bin/alluxio-start.sh local NoMount
+```console
+$ ./bin/alluxio-start.sh local NoMount
 ```
 
 另外，用户可以使用Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)存储数据，
@@ -99,8 +99,8 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 
 其次是：
 
-```bash
-./bin/alluxio-start.sh local NoMount
+```console
+$ ./bin/alluxio-start.sh local NoMount
 ```
 
 ## 我怎样避免通过输入密码运行sudo命令？
