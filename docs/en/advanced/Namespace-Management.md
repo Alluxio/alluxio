@@ -291,6 +291,7 @@ In version 2.0, we introduced a new feature for maintaining synchronization betw
 The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master. 
 Because active sync feature depends on HDFS events, this feature is only available when the UFS HDFS versions is later than 2.6.1.
 Be sure to specify a value for `alluxio.underfs.version` in your configuration file. It defaults to 2.2, which does not support HDFS events.
+Please refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html?#supported-hdfs-versions' | relativize_url }}) for a list of supported Hdfs versions.
 
 To enable active sync on a directory, issue the following Alluxio command.
 
