@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
@@ -45,6 +46,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Meta;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -74,6 +76,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -147,6 +150,68 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Path level properties. */
   private PathProperties mPathProperties;
 
+  /** Persisted state for MetaMaster. */
+  private State mState;
+
+  /** Value to be used for the cluster ID when not assigned. */
+  public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
+
+  /**
+   * Journaled state for MetaMaster.
+   */
+  @NotThreadSafe
+  public static final class State implements alluxio.master.journal.Journaled {
+    /** A unique ID to identify the cluster. */
+    private String mClusterID = INVALID_CLUSTER_ID;
+
+    /**
+     * @return the cluster ID
+     */
+    public String getClusterID() {
+      return mClusterID;
+    }
+
+    @Override
+    public CheckpointName getCheckpointName() {
+      return CheckpointName.CLUSTER_INFO;
+    }
+
+    @Override
+    public boolean processJournalEntry(Journal.JournalEntry entry) {
+      if (entry.hasClusterInfo()) {
+        mClusterID = entry.getClusterInfo().getClusterId();
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * @param ctx the journal context
+     * @param clusterId the clusterId journal clusterId
+     */
+    public void applyAndJournal(java.util.function.Supplier<JournalContext> ctx, String clusterId) {
+      applyAndJournal(ctx,
+          Journal.JournalEntry.newBuilder()
+              .setClusterInfo(Meta.ClusterInfoEntry.newBuilder().setClusterId(clusterId).build())
+              .build());
+    }
+
+    @Override
+    public void resetState() {
+      mClusterID = INVALID_CLUSTER_ID;
+    }
+
+    @Override
+    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+      if (mClusterID.equals(INVALID_CLUSTER_ID)) {
+        return Collections.emptyIterator();
+      }
+      return Collections.singleton(Journal.JournalEntry.newBuilder()
+          .setClusterInfo(Meta.ClusterInfoEntry.newBuilder().setClusterId(mClusterID).build())
+          .build()).iterator();
+    }
+  }
+
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
    *
@@ -187,6 +252,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     mPathProperties = new PathProperties();
+    mState = new State();
   }
 
   @Override
@@ -229,14 +295,38 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
-          new LogConfigReportHeartbeatExecutor(),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
+              new LogConfigReportHeartbeatExecutor(),
+              (int) ServerConfiguration
+                  .getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
 
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
             ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfs);
         mDailyBackup.start();
+      }
+      if (mState.getClusterID() == INVALID_CLUSTER_ID) {
+        try (JournalContext context = createJournalContext()) {
+          String clusterID = java.util.UUID.randomUUID().toString();
+          mState.applyAndJournal(context, clusterID);
+          LOG.info("Created new cluster ID {}", clusterID);
+        }
+        if (Boolean.valueOf(ProjectConstants.UPDATE_CHECK_ENABLED)
+            && ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
+          try {
+            String latestVersion =
+                UpdateCheck.getLatestVersion(mState.getClusterID(), 3000, 3000, 3000);
+            if (!ProjectConstants.VERSION.equals(latestVersion))) {
+              System.out.println("The latest version (" + latestVersion + ") is not the same "
+                  + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
+                  + "visit https://www.alluxio.io/download/.");
+            }
+          } catch (Exception e) {
+            LOG.debug("Unable to check for updates: {}", e.getMessage());
+          }
+        }
+      } else {
+        LOG.info("Detected existing cluster ID {}", mState.getClusterID());
       }
     } else {
       if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
@@ -493,17 +583,24 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public String getClusterID() {
+    return mState.getClusterID();
+  }
+
+  @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return mPathProperties.getJournalEntryIterator();
+    return com.google.common.collect.Iterators.concat(mPathProperties.getJournalEntryIterator(),
+        mState.getJournalEntryIterator());
   }
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
-    return mPathProperties.processJournalEntry(entry);
+    return mState.processJournalEntry(entry) || mPathProperties.processJournalEntry(entry);
   }
 
   @Override
   public void resetState() {
+    mState.resetState();
     mPathProperties.resetState();
   }
 

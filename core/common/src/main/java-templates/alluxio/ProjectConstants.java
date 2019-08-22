@@ -19,6 +19,12 @@ public final class ProjectConstants {
   public static final String VERSION = "${project.version}";
   /* Hadoop version, specified in maven property. **/
   public static final String HADOOP_VERSION = "${hadoop.version}";
+  /* Whether update check is enabled. **/
+  public static final String UPDATE_CHECK_ENABLED = "${update.check.enabled}";
+  /* Update check host. **/
+  public static final String UPDATE_CHECK_HOST = "${update.check.host}";
+  /* Update check auth string. **/
+  public static final String UPDATE_CHECK_AUTH_STRING = "${update.check.auth.string}";
 
   private ProjectConstants() {} // prevent instantiation
 }

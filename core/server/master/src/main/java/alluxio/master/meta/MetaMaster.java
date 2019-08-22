@@ -45,6 +45,11 @@ public interface MetaMaster extends Master {
   BackupResponse backup(BackupPOptions options) throws IOException;
 
   /**
+   * @return the cluster ID
+   */
+  String getClusterID();
+
+  /**
    * @return the server-side configuration checker report
    */
   ConfigCheckReport getConfigCheckReport();
