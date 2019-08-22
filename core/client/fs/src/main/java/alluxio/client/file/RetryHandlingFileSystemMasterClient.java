@@ -284,20 +284,23 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized void startSync(final AlluxioURI path) throws AlluxioStatusException {
     retryRPC(
-        () -> mClient.startSync(StartSyncPRequest.newBuilder().setPath(path.getPath()).build()),
+        () -> mClient
+            .startSync(StartSyncPRequest.newBuilder().setPath(getTransportPath(path)).build()),
         "StartSync");
   }
 
   @Override
   public synchronized void stopSync(final AlluxioURI path) throws AlluxioStatusException {
-    retryRPC(() -> mClient.stopSync(StopSyncPRequest.newBuilder().setPath(path.getPath()).build()),
+    retryRPC(
+        () -> mClient
+            .stopSync(StopSyncPRequest.newBuilder().setPath(getTransportPath(path)).build()),
         "StopSync");
   }
 
   @Override
   public void unmount(final AlluxioURI alluxioPath) throws AlluxioStatusException {
     retryRPC(() -> mClient
-        .unmount(UnmountPRequest.newBuilder().setAlluxioPath(alluxioPath.toString())
+        .unmount(UnmountPRequest.newBuilder().setAlluxioPath(getTransportPath(alluxioPath))
             .setOptions(UnmountPOptions.newBuilder().build()).build()),
         "Unmount");
   }
