@@ -68,9 +68,10 @@ public final class UfsSyncPathCache {
   /**
    * @param path the path to check
    * @param intervalMs the sync interval, in ms
+   * @param isGetFileInfo the operate is from getFileInfo or not
    * @return true if a sync should occur for the path and interval setting, false otherwise
    */
-  public boolean shouldSyncPath(String path, long intervalMs) {
+  public boolean shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
     if (intervalMs < 0) {
       // Never sync.
       return false;
@@ -89,12 +90,14 @@ public final class UfsSyncPathCache {
 
     // sync should be done on this path, but check all ancestors to determine if a recursive sync
     // had been performed (to avoid a sync again).
+    int parentLevel = 0;
     String currPath = path;
     while (!currPath.equals(AlluxioURI.SEPARATOR)) {
       try {
         currPath = PathUtils.getParent(currPath);
+        parentLevel++;
         lastSync = mCache.getIfPresent(currPath);
-        if (!shouldSyncInternal(lastSync, intervalMs, true)) {
+        if (!shouldSyncInternal(lastSync, intervalMs, parentLevel > 1 || !isGetFileInfo)) {
           // Sync is not necessary because an ancestor was already recursively synced
           return false;
         }
