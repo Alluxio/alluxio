@@ -4586,7 +4586,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
         ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-    boolean shouldSync = mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval, directParentRecursive);
+    boolean shouldSync =
+        mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval, directParentRecursive);
     return new LockingScheme(path, desiredLockMode, shouldSync);
   }
 
