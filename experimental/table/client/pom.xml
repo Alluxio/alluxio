@@ -32,10 +32,6 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -44,24 +40,8 @@
       <artifactId>protobuf-java</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-core</artifactId>
-    </dependency>
-    <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-stub</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>
@@ -79,9 +59,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.github.apache</groupId>
-      <artifactId>incubator-iceberg</artifactId>
-      <version>master-SNAPSHOT</version>
+      <groupId>com.github.apache.incubator-iceberg</groupId>
+      <artifactId>iceberg-api</artifactId>
     </dependency>
     <!-- Internal dependencies -->
     <dependency>

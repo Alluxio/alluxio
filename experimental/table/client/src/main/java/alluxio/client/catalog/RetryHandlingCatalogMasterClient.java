@@ -32,9 +32,6 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.iceberg.Schema;
-import org.apache.iceberg.Table;
-import org.apache.iceberg.Tables;
-import org.apache.iceberg.hadoop.HadoopTables;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
@@ -95,13 +92,10 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public Table getTable(String databaseName, String tableName) throws AlluxioStatusException {
-    TableInfo info = retryRPC(() -> mClient.getTable(
+  public TableInfo getTable(String databaseName, String tableName) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getTable(
         GetTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName).build())
         .getTableInfo());
-    Tables hadoopTables = new HadoopTables();
-    org.apache.iceberg.Table table = hadoopTables.load(info.getBaseLocation());
-    return table;
   }
 
   @Override

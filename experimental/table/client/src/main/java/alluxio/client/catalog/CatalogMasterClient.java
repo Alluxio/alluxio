@@ -21,7 +21,6 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.iceberg.Schema;
-import org.apache.iceberg.Table;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
@@ -85,7 +84,7 @@ public interface CatalogMasterClient extends Client {
    * @return table metadata
    * @throws AlluxioStatusException
    */
-  Table getTable(String databaseName, String tableName) throws AlluxioStatusException;
+  TableInfo getTable(String databaseName, String tableName) throws AlluxioStatusException;
 
   /**
    * Create database with given schema.
