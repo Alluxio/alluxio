@@ -49,7 +49,8 @@ func init() {
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
 			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
 	cmdSingle.Flags.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
-	cmdSingle.Flags.BoolVar(&skipUIFlag, "skip-ui", false, `set this flag to skip building the webui`)
+	cmdSingle.Flags.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
+		"but the generated tarball will have no Alluxio WebUI although REST services will still be available."))
 }
 
 func single(_ *cmdline.Env, _ []string) error {
@@ -303,10 +304,12 @@ func generateTarball(hadoopClients []string) error {
 	// Compile ufs modules for the main build
 	buildModules(srcPath, "underfs", "hdfs", ufsModulesFlag, version, ufsModules, mvnArgs)
 
-	tarball := strings.Replace(targetFlag, versionMarker, version, 1)
+	versionString := version
 	if skipUIFlag {
-		tarball = strings.Replace(tarball, version, version+"-noUI", 1)
+		versionString = versionString + "-noUI"
 	}
+	tarball := strings.Replace(targetFlag, versionMarker, versionString, 1)
+
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
 	dstDir = strings.TrimSuffix(dstDir, "-bin")
 	dstPath := filepath.Join(cwd, dstDir)
