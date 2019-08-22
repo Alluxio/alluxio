@@ -313,8 +313,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   /**
    * Gets the path that will be transported to master.
-   * Scheme-less URIs are assumed to be Alluxio paths,
-   * and getPath() is used to avoid string conversion.
    *
    * @param uri uri
    * @return transport path
@@ -323,6 +321,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     if (uri.hasScheme()) {
       return uri.toString();
     } else {
+      // Scheme-less URIs are assumed to be Alluxio paths
+      // and getPath() is used to avoid string conversion.
       return uri.getPath();
     }
   }
