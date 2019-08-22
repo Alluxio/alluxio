@@ -738,7 +738,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     Metrics.GET_FILE_INFO_OPS.inc();
     long opTimeMs = System.currentTimeMillis();
     LockingScheme lockingScheme =
-        createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
+        createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ, false);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
@@ -4577,11 +4577,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
       LockPattern desiredLockMode) {
+    return createLockingScheme(path, options, desiredLockMode, true);
+  }
+
+  private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
+      LockPattern desiredLockMode, boolean directParentRecursive) {
     // If client options didn't specify the interval, fallback to whatever the server has
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
         ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-    boolean shouldSync = mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval);
+    boolean shouldSync = mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval, directParentRecursive);
     return new LockingScheme(path, desiredLockMode, shouldSync);
   }
 
