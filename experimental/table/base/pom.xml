@@ -21,12 +21,10 @@
         <groupId>org.alluxio</groupId>
         <artifactId>alluxio-core-transport</artifactId>
         <version>${project.version}</version>
-        <scope>compile</scope>
       </dependency>
       <dependency>
-        <groupId>com.github.apache</groupId>
-        <artifactId>incubator-iceberg</artifactId>
-        <version>master-SNAPSHOT</version>
+        <groupId>com.github.apache.incubator-iceberg</groupId>
+        <artifactId>iceberg-api</artifactId>
       </dependency>
     </dependencies>
   <parent>
