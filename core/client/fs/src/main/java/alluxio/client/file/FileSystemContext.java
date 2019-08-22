@@ -393,7 +393,7 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return {@code true} if URI validation is enabled
    */
-  public boolean getUriValidationEnabled() {
+  public synchronized boolean getUriValidationEnabled() {
     return mUriValidationEnabled;
   }
 
