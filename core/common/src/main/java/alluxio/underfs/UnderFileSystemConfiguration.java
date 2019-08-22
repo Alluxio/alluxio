@@ -45,11 +45,14 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mShared;
 
   /**
+   * Defaults will not include credential properties.
+   *
    * @param alluxioConf Alluxio configuration
    * @return ufs configuration from a given alluxio configuration
    */
   public static UnderFileSystemConfiguration defaults(AlluxioConfiguration alluxioConf) {
-    return new UnderFileSystemConfiguration(alluxioConf.copyProperties());
+    // TODO(jiacheng): Does this need credential fields?
+    return new UnderFileSystemConfiguration(alluxioConf.copyPropertiesIncludeCredentials());
   }
 
   /**
@@ -68,7 +71,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     Map<String, String> map = new HashMap<>();
     keySet().forEach(key -> {
       if (getSource(key) == Source.MOUNT_OPTION) {
-        map.put(key.getName(), get(key));
+        map.put(key.getName(), key.isCredential() ? getCredential(key) : get(key));
       }
     });
     return map;
@@ -112,7 +115,8 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
    * @return the updated configuration object
    */
   public UnderFileSystemConfiguration createMountSpecificConf(Map<String, String> mountConf) {
-    UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(mProperties.copy());
+    UnderFileSystemConfiguration ufsConf =
+            new UnderFileSystemConfiguration(mProperties.copyIncludeCredentials());
     ufsConf.mProperties.merge(mountConf, Source.MOUNT_OPTION);
     ufsConf.mReadOnly = mReadOnly;
     ufsConf.mShared = mShared;
@@ -127,7 +131,9 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   public Map<String, String> toUserPropertyMap(ConfigurationValueOptions options) {
     Map<String, String> map = new HashMap<>();
     // Cannot use Collectors.toMap because we support null keys.
-    userKeySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, options)));
+    // Credential properties will be masked.
+    userKeySet().forEach(key -> map.put(key.getName(),
+            key.isCredential() ? getCredential(key, options) : getOrDefault(key, null, options)));
     return map;
   }
 }

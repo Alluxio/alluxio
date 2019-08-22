@@ -23,7 +23,9 @@ import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -38,6 +40,9 @@ public class AlluxioPropertiesTest {
   private AlluxioProperties mProperties = new AlluxioProperties();
   private PropertyKey mKeyWithValue;
   private PropertyKey mKeyWithoutValue;
+
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() {
@@ -57,6 +62,26 @@ public class AlluxioPropertiesTest {
     assertEquals(null, mProperties.get(mKeyWithoutValue));
     mProperties.put(mKeyWithoutValue, "newValue1", Source.RUNTIME);
     assertEquals("newValue1", mProperties.get(mKeyWithoutValue));
+  }
+
+  @Test
+  public void getCredentialWrongGetterException() {
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage("is a credential field");
+    mProperties.get(PropertyKey.S3A_ACCESS_KEY);
+  }
+
+  @Test
+  public void getCredential() {
+    mProperties.put(PropertyKey.S3A_ACCESS_KEY, "foo", Source.CLUSTER_DEFAULT);
+    assertEquals("foo", mProperties.getCredential(PropertyKey.S3A_ACCESS_KEY));
+  }
+
+  @Test
+  public void getWrongGetterException() {
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage("is not a credential field");
+    mProperties.getCredential(mKeyWithoutValue);
   }
 
   @Test
@@ -91,6 +116,13 @@ public class AlluxioPropertiesTest {
   }
 
   @Test
+  public void removeCredentialField() {
+    mProperties.put(PropertyKey.S3A_ACCESS_KEY, "foo", Source.CLUSTER_DEFAULT);
+    mProperties.remove(PropertyKey.S3A_ACCESS_KEY);
+    assertEquals(null, mProperties.getCredential(PropertyKey.S3A_ACCESS_KEY));
+  }
+
+  @Test
   public void isSet() {
     assertTrue(mProperties.isSet(mKeyWithValue));
     assertFalse(mProperties.isSet(mKeyWithoutValue));
@@ -98,6 +130,13 @@ public class AlluxioPropertiesTest {
     mProperties.put(mKeyWithoutValue, "value", Source.RUNTIME);
     assertTrue(mProperties.isSet(mKeyWithValue));
     assertTrue(mProperties.isSet(mKeyWithoutValue));
+  }
+
+  @Test
+  public void isSetCredentialField() {
+    assertFalse(mProperties.isSet(PropertyKey.S3A_ACCESS_KEY));
+    mProperties.put(PropertyKey.S3A_ACCESS_KEY, "foo", Source.RUNTIME);
+    assertTrue(mProperties.isSet(PropertyKey.S3A_ACCESS_KEY));
   }
 
   @Test
@@ -109,6 +148,14 @@ public class AlluxioPropertiesTest {
     mProperties.put(mKeyWithValue, "value", Source.RUNTIME);
     expected.add(Maps.immutableEntry(mKeyWithValue, "value"));
     assertThat(mProperties.entrySet(), is(expected));
+  }
+
+  @Test
+  public void entrySetWithCredentialProperties() {
+    mProperties.put(PropertyKey.S3A_ACCESS_KEY, "foo", Source.CLUSTER_DEFAULT);
+    Map.Entry<? extends PropertyKey, String> expectedEntry =
+            Maps.immutableEntry(PropertyKey.S3A_ACCESS_KEY, "foo");
+    assertTrue(mProperties.entrySet().contains(expectedEntry));
   }
 
   @Test
@@ -156,6 +203,18 @@ public class AlluxioPropertiesTest {
     assertEquals("value1", mProperties.get(mKeyWithValue));
     assertEquals("value2", mProperties.get(mKeyWithoutValue));
     assertEquals("value3", mProperties.get(newKey));
+  }
+
+  @Test
+  public void mergeCredentialProperties() {
+    Properties credProp = new Properties();
+    credProp.put(PropertyKey.S3A_ACCESS_KEY, "foo");
+    credProp.put("aws.secretKey", "bar");
+    mProperties.merge(credProp, Source.MOUNT_OPTION);
+    assertEquals(Source.MOUNT_OPTION, mProperties.getSource(PropertyKey.S3A_ACCESS_KEY));
+    assertEquals(Source.MOUNT_OPTION, mProperties.getSource(PropertyKey.S3A_SECRET_KEY));
+    assertEquals("foo", mProperties.getCredential(PropertyKey.S3A_ACCESS_KEY));
+    assertEquals("bar", mProperties.getCredential(PropertyKey.S3A_SECRET_KEY));
   }
 
   @Test

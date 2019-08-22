@@ -74,7 +74,6 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to Kodo", PropertyKey.KODO_DOWNLOAD_HOST);
     Preconditions.checkArgument(conf.isSet(PropertyKey.KODO_ENDPOINT),
         "Property %s is required to connect to Kodo", PropertyKey.KODO_ENDPOINT);
-    // TODO(jiacheng): is KODO_ACCESS_KEY a credential?
     String accessKey = conf.getCredential(PropertyKey.KODO_ACCESS_KEY);
     String secretKey = conf.getCredential(PropertyKey.KODO_SECRET_KEY);
     String endPoint = conf.get(PropertyKey.KODO_ENDPOINT);

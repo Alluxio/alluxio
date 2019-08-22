@@ -24,10 +24,10 @@ import java.util.Set;
  */
 @PublicApi
 public interface AlluxioConfiguration {
-
   /**
    * Gets the value for the given key in the {@link Properties}; if this key is not found, a
    * RuntimeException is thrown.
+   * If the key is a credential property, a RuntimeException will be thrown.
    *
    * @param key the key to get the value for
    * @return the value for the given key
@@ -37,6 +37,7 @@ public interface AlluxioConfiguration {
   /**
    * Gets the value for the given key in the {@link Properties}; if this key is not found, a
    * RuntimeException is thrown.
+   * If the key is a credential property, a {@link RuntimeException} will be thrown.
    *
    * @param key the key to get the value for
    * @param options options for getting configuration value
@@ -45,10 +46,32 @@ public interface AlluxioConfiguration {
   String get(PropertyKey key, ConfigurationValueOptions options);
 
   /**
+   * Gets the value for the given credential key in the {@link Properties}.
+   * If this key is not found, a {@link RuntimeException} is thrown.
+   * If the key is not a credential property, a {@link RuntimeException} will be thrown.
+   *
+   * @param key the credential key to get the value for
+   * @return the value for the given key
+   */
+  String getCredential(PropertyKey key);
+
+  /**
+   * Gets the value for the given key in the {@link Properties}; if this key is not found, a
+   * RuntimeException is thrown.
+   * If the key is not a credential property, a {@link RuntimeException} will be thrown.
+   *
+   * @param key the credential key to get the value for
+   * @param options options for getting configuration value
+   * @return the value for the given key
+   */
+  String getCredential(PropertyKey key, ConfigurationValueOptions options);
+
+  /**
    * @param key the key to get the value for
    * @param defaultValue the value to return if no value is set for the specified key
    * @return the value
    */
+  // TODO(jiacheng): This is annoying
   default String getOrDefault(PropertyKey key, String defaultValue) {
     return isSet(key) ? get(key) : defaultValue;
   }
@@ -59,8 +82,14 @@ public interface AlluxioConfiguration {
    * @param options options for getting configuration value
    * @return the value
    */
+  // TODO(jiacheng): Check the usage or this method
   default String getOrDefault(PropertyKey key, String defaultValue,
       ConfigurationValueOptions options) {
+    if (key.isCredential()) {
+      // TODO(jiacheng): Add ExceptionMessage
+      // TODO(jiacheng): modify the test
+      throw new RuntimeException(key.toString() + " is a credential field");
+    }
     return isSet(key) ? get(key, options) : defaultValue;
   }
 
@@ -193,10 +222,19 @@ public interface AlluxioConfiguration {
 
   /**
    * Gets a copy of the {@link AlluxioProperties} which back the {@link AlluxioConfiguration}.
+   * The value for credential properties will not be returned.
    *
    * @return A copy of AlluxioProperties representing the configuration
    */
   AlluxioProperties copyProperties();
+
+  /**
+   * Gets a copy of the {@link AlluxioProperties} which back the {@link AlluxioConfiguration}.
+   * The value for credential properties will be included.
+   *
+   * @return A copy of AlluxioProperties representing the configuration
+   */
+  AlluxioProperties copyPropertiesIncludeCredentials();
 
   /**
    * @param key the property key

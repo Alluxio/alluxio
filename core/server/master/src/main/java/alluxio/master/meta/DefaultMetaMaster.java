@@ -400,6 +400,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       for (PropertyKey key : ServerConfiguration.keySet()) {
         if (key.isBuiltIn()) {
           Source source = ServerConfiguration.getSource(key);
+          // TODO(jiacheng): double check how this should be updated
           String value = ServerConfiguration.getOrDefault(key, null,
               ConfigurationValueOptions.defaults().useDisplayValue(true)
                   .useRawValue(options.getRawValue()));

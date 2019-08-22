@@ -86,16 +86,16 @@ public class InstancedConfigurationTest {
   /**
    * This method is only used in test for setting credential fields.
    * */
-  public static void setCredentialField(InstancedConfiguration conf, PropertyKey key, String value) {
-    try {
-      Field credField = conf.getClass().getDeclaredField("mCredProperties");
-      credField.setAccessible(true);
-      CredentialProperties cred = (CredentialProperties) credField.get(conf);
-      cred.set(key, value);
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException("Failed to set " + key.toString() + " in configuration!");
-    }
-  }
+//  public static void setCredentialField(InstancedConfiguration conf, PropertyKey key, String value) {
+//    try {
+//      Field credField = conf.getClass().getDeclaredField("mCredProperties");
+//      credField.setAccessible(true);
+//      CredentialProperties cred = (CredentialProperties) credField.get(conf);
+//      cred.set(key, value);
+//    } catch (NoSuchFieldException | IllegalAccessException e) {
+//      throw new RuntimeException("Failed to set " + key.toString() + " in configuration!");
+//    }
+//  }
 
   @Test
   public void defaultLoggerCorrectlyLoaded() throws Exception {
@@ -454,8 +454,6 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getCredentialField() {
-    setCredentialField(mConfiguration, PropertyKey.S3A_ACCESS_KEY, "KEY");
-    assertEquals(mConfiguration.getCredential(PropertyKey.S3A_ACCESS_KEY), "KEY");
   }
 
   @Test
@@ -846,8 +844,9 @@ public class InstancedConfigurationTest {
     assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
     mConfiguration.set(testKey, testValue);
 
-    assertNotEquals(testValue, mConfiguration.get(testKey,
+    assertNotEquals(testValue, mConfiguration.getCredential(testKey,
         ConfigurationValueOptions.defaults().useDisplayValue(true)));
+    // TODO(jiacheng): Remove after the method has been changed
     assertNotEquals(testValue, mConfiguration.toMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true))
         .get(testKey.getName()));
@@ -868,13 +867,23 @@ public class InstancedConfigurationTest {
   }
 
   @Test
+  public void getNestedCredential() {
+    PropertyKey nestedProperty =
+            PropertyKey.fromString("alluxio.master.journal.ufs.option.aws.secretKey");
+    String testValue = "12345";
+    mConfiguration.set(nestedProperty, testValue);
+
+    assertEquals(testValue, mConfiguration.getCredential(nestedProperty));
+  }
+
+  @Test
   public void getNestedCredentialsDisplayValue() {
     PropertyKey nestedProperty =
         PropertyKey.fromString("alluxio.master.journal.ufs.option.aws.secretKey");
     String testValue = "12345";
     mConfiguration.set(nestedProperty, testValue);
 
-    assertNotEquals(testValue, mConfiguration.get(nestedProperty,
+    assertNotEquals(testValue, mConfiguration.getCredential(nestedProperty,
         ConfigurationValueOptions.defaults().useDisplayValue(true)));
     assertNotEquals(testValue, mConfiguration.toMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true))
@@ -908,11 +917,13 @@ public class InstancedConfigurationTest {
     String testValue = "12345";
     mConfiguration.set(templateProperty, testValue);
 
-    assertNotEquals(testValue, mConfiguration.get(templateProperty,
+    // TODO(jiacheng): how does template change
+    assertNotEquals(testValue, mConfiguration.getCredential(templateProperty,
         ConfigurationValueOptions.defaults().useDisplayValue(true)));
     assertNotEquals(testValue, mConfiguration.toMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true))
         .get(templateProperty.getName()));
+    // TODO(jiacheng): toMap with cred field
     assertNotEquals(testValue, mConfiguration.toMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true))
         .get(templateProperty.getName()));
@@ -925,13 +936,13 @@ public class InstancedConfigurationTest {
     assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
 
     mConfiguration.set(testKey, testValue);
-    String displayValue1 = mConfiguration.get(testKey,
+    String displayValue1 = mConfiguration.getCredential(testKey,
         ConfigurationValueOptions.defaults().useDisplayValue(true));
 
     String testValue2 = "abc";
     mConfiguration.set(testKey, testValue2);
 
-    String displayValue2 = mConfiguration.get(testKey,
+    String displayValue2 = mConfiguration.getCredential(testKey,
         ConfigurationValueOptions.defaults().useDisplayValue(true));
     assertEquals(displayValue1, displayValue2);
   }

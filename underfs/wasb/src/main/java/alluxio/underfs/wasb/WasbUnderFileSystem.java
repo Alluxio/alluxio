@@ -46,12 +46,11 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    */
   public static Configuration createConfiguration(UnderFileSystemConfiguration conf) {
     Configuration wasbConf = HdfsUnderFileSystem.createConfiguration(conf);
-    // TODO(jiacheng): update how this is done
+    // toMap() will not return credential property values
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
       if (PropertyKey.Template.UNDERFS_AZURE_ACCOUNT_KEY.matches(key)) {
-        String value = entry.getValue();
-        wasbConf.set(key, value);
+        wasbConf.set(key, conf.getCredential(PropertyKey.fromString(key)));
       }
     }
     wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");

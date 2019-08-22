@@ -13,7 +13,6 @@ package alluxio.conf;
 
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.collections.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -60,15 +59,20 @@ public class AlluxioProperties {
   /** Map of property sources. */
   private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
 
-  private Hash mHash = new Hash(() -> keySet().stream()
-      .filter(key -> get(key) != null)
-      .sorted(Comparator.comparing(PropertyKey::getName))
-      .map(key -> String.format("%s:%s:%s", key.getName(), get(key), getSource(key)).getBytes()));
+  private final CredentialProperties mCredProps;
+
+  private Hash mHash = new Hash(() -> entrySet().stream()
+          .filter(entry -> entry.getValue() != null)
+          .sorted(Comparator.comparing(entry -> entry.getKey().getName()))
+          .map(entry -> String.format("%s:%s:%s", entry.getKey().getName(), entry.getValue(),
+                  getSource(entry.getKey())).getBytes()));
 
   /**
    * Constructs a new instance of Alluxio properties.
    */
-  public AlluxioProperties() {}
+  public AlluxioProperties() {
+    mCredProps = new DefaultCredentialProperties();
+  }
 
   /**
    * @param alluxioProperties properties to copy
@@ -76,14 +80,35 @@ public class AlluxioProperties {
   public AlluxioProperties(AlluxioProperties alluxioProperties) {
     mUserProps.putAll(alluxioProperties.mUserProps);
     mSources.putAll(alluxioProperties.mSources);
+    mCredProps = new DefaultCredentialProperties(alluxioProperties.mCredProps);
   }
 
   /**
+   * @param alluxioProperties properties to copy
+   * @param includeCredentials whether the credential properties should be included
+   */
+  public AlluxioProperties(AlluxioProperties alluxioProperties, boolean includeCredentials) {
+    mUserProps.putAll(alluxioProperties.mUserProps);
+    mSources.putAll(alluxioProperties.mSources);
+    if (includeCredentials) {
+      mCredProps = new DefaultCredentialProperties(alluxioProperties.mCredProps);
+    } else {
+      mCredProps = new DefaultCredentialProperties();
+    }
+  }
+
+  /**
+   * If the key is a credential property, a {@link RuntimeException} will be thrown.
+   *
    * @param key the key to query
    * @return the value, or null if the key has no value set
    */
   @Nullable
   public String get(PropertyKey key) {
+    if (key.isCredential()) {
+      // TODO(jiacheng): Add a field in ExceptionMessage
+      throw new RuntimeException(key.toString() + " is a credential field!");
+    }
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).orElse(null);
     }
@@ -92,11 +117,31 @@ public class AlluxioProperties {
   }
 
   /**
+   * If the key is not a credential property, a {@link RuntimeException} will be thrown.
+   *
+   * @param key the key to query
+   * @return the value, or null if the key has no value set
+   */
+  @Nullable
+  public String getCredential(PropertyKey key) {
+    if (!key.isCredential()) {
+      // TODO(jiacheng): Add a field in ExceptionMessage
+      throw new RuntimeException(key.toString() + " is not a credential field!");
+    }
+    if (!mCredProps.containsKey(key)) {
+      // Return null to keep aligned with get()
+      return null;
+    }
+    return mCredProps.get(key);
+  }
+
+  /**
    * Clears all existing user-specified properties.
    */
   public void clear() {
     mUserProps.clear();
     mSources.clear();
+    mCredProps.clear();
   }
 
   /**
@@ -106,11 +151,20 @@ public class AlluxioProperties {
    * @param value value to put
    * @param source the source of this value for the key
    */
+  // TODO(jiacheng): Can this be refactored?
   public void put(PropertyKey key, String value, Source source) {
-    if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
-      mUserProps.put(key, Optional.ofNullable(value));
-      mSources.put(key, source);
-      mHash.markOutdated();
+    if (key.isCredential()) {
+      if (!mCredProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
+        mCredProps.put(key, value);
+        mSources.put(key, source);
+        mHash.markOutdated();
+      }
+    } else {
+      if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
+        mUserProps.put(key, Optional.ofNullable(value));
+        mSources.put(key, source);
+        mHash.markOutdated();
+      }
     }
   }
 
@@ -159,15 +213,24 @@ public class AlluxioProperties {
 
   /**
    * Remove the value set for key.
+   * Noop if the key does not exist.
    *
    * @param key key to remove
    */
+  // TODO(jiacheng): Can this be refactored?
   public void remove(PropertyKey key) {
-    // remove is a nop if the key doesn't already exist
-    if (mUserProps.containsKey(key)) {
-      mUserProps.remove(key);
-      mSources.remove(key);
-      mHash.markOutdated();
+    if (key.isCredential()) {
+      if (mCredProps.containsKey(key)) {
+        mCredProps.remove(key);
+        mSources.remove(key);
+        mHash.markOutdated();
+      }
+    } else {
+      if (mUserProps.containsKey(key)) {
+        mUserProps.remove(key);
+        mSources.remove(key);
+        mHash.markOutdated();
+      }
     }
   }
 
@@ -191,9 +254,16 @@ public class AlluxioProperties {
    *         default value for the key
    */
   public boolean isSetByUser(PropertyKey key) {
-    if (mUserProps.containsKey(key)) {
-      Optional<String> val = mUserProps.get(key);
-      return val.isPresent();
+    if (key.isCredential()) {
+      if (mCredProps.containsKey(key)) {
+        // Credential fields are not Optional
+        return true;
+      }
+    } else {
+      if (mUserProps.containsKey(key)) {
+        Optional<String> val = mUserProps.get(key);
+        return val.isPresent();
+      }
     }
     return false;
   }
@@ -202,7 +272,10 @@ public class AlluxioProperties {
    * @return the entry set of all Alluxio property key and value pairs (value can be null)
    */
   public Set<Map.Entry<PropertyKey, String>> entrySet() {
-    return keySet().stream().map(key -> Maps.immutableEntry(key, get(key))).collect(toSet());
+    return keySet().stream().map(key -> Maps.immutableEntry(key,
+            key.isCredential() ? (mCredProps.containsKey(key) ? getCredential(key) : null)
+                    : get(key)))
+            .collect(toSet());
   }
 
   /**
@@ -211,6 +284,7 @@ public class AlluxioProperties {
   public Set<PropertyKey> keySet() {
     Set<PropertyKey> keySet = new HashSet<>(PropertyKey.defaultKeys());
     keySet.addAll(mUserProps.keySet());
+    keySet.addAll(mCredProps.keySet());
     return Collections.unmodifiableSet(keySet);
   }
 
@@ -218,7 +292,9 @@ public class AlluxioProperties {
    * @return the key set of user set properties
    */
   public Set<PropertyKey> userKeySet() {
-    return Collections.unmodifiableSet(mUserProps.keySet());
+    Set<PropertyKey> keySet = new HashSet<>(mUserProps.keySet());
+    keySet.addAll(mCredProps.keySet());
+    return Collections.unmodifiableSet(keySet);
   }
 
   /**
@@ -234,11 +310,22 @@ public class AlluxioProperties {
 
   /**
    * Makes a copy of the backing properties and returns them in a new object.
+   * The values of credential properties will not be included.
    *
    * @return a copy of the current properties
    */
   public AlluxioProperties copy() {
-    return new AlluxioProperties(this);
+    return new AlluxioProperties(this, false);
+  }
+
+  /**
+   * Makes a copy of the backing properties and returns them in a new object.
+   * The credential properties will be included.
+   *
+   * @return a copy of the current properties
+   */
+  public AlluxioProperties copyIncludeCredentials() {
+    return new AlluxioProperties(this, true);
   }
 
   /**

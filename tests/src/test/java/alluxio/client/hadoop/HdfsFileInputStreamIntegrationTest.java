@@ -81,7 +81,6 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   }
 
   private void createUfsInStream(ReadType readType) throws Exception {
-    // TODO(jiacheng): adapt to the new API
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.copyProperties());
     conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     FileSystem fs = FileSystem.Factory.create(conf);

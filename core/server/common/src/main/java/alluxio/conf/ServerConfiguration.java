@@ -71,12 +71,12 @@ public final class ServerConfiguration {
   }
 
   /**
-   * Create and return a copy of all properties.
+   * Create and return a copy of all properties including credentials.
    *
    * @return a copy of properties
    */
   public static AlluxioProperties copyProperties() {
-    return new AlluxioProperties(sConf.copyProperties());
+    return new AlluxioProperties(sConf.copyPropertiesIncludeCredentials());
   }
 
   /**
@@ -130,7 +130,7 @@ public final class ServerConfiguration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    return sConf.get(key);
+    return key.isCredential() ? sConf.getCredential(key) : sConf.get(key);
   }
 
   /**
@@ -142,7 +142,7 @@ public final class ServerConfiguration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key, ConfigurationValueOptions options) {
-    return sConf.get(key, options);
+    return key.isCredential() ? sConf.getCredential(key, options) : sConf.get(key, options);
   }
 
   /**
@@ -352,8 +352,8 @@ public final class ServerConfiguration {
       GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, sConf,
           false, true);
       AlluxioConfiguration conf = ConfigurationUtils.getClusterConf(response, sConf);
-      // TODO(jiacheng): default includes credentials?
-      sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
+      sConf = new InstancedConfiguration(conf.copyPropertiesIncludeCredentials(),
+              conf.clusterDefaultsLoaded());
     }
   }
 

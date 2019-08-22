@@ -187,6 +187,7 @@ public final class GetConf {
         if (key.isBuiltIn()) {
           ConfigProperty.Builder config = ConfigProperty.newBuilder().setName(key.getName())
               .setSource(alluxioConf.getSource(key).toString());
+          // TODO(jiacheng): This should not work for credential fields
           String val = alluxioConf.getOrDefault(key, null,
               ConfigurationValueOptions.defaults().useDisplayValue(true));
           if (val != null) {

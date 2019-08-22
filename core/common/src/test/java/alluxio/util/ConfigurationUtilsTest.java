@@ -144,16 +144,6 @@ public final class ConfigurationUtilsTest {
         ConfigurationUtils.getJobMasterHostNotConfiguredMessage("test service 2"));
   }
 
-  @Test
-  public void splitCredFields() {
-    AlluxioConfiguration conf = createConf(Collections.emptyMap());
-    Pair<AlluxioProperties, CredentialProperties> pair =
-            ConfigurationUtils.splitCredentialProperties(conf.copyProperties());
-    AlluxioProperties normalProperties = pair.getFirst();
-    CredentialProperties credProperties = pair.getSecond();
-
-  }
-
   private AlluxioConfiguration createConf(Map<PropertyKey, String> properties) {
     AlluxioProperties props = ConfigurationUtils.defaults();
     for (PropertyKey key : properties.keySet()) {

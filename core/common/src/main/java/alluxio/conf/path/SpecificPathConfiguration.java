@@ -49,6 +49,8 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
    */
   private final AlluxioURI mPath;
 
+  private static final String CREDENTIAL_MASK = "******";
+
   /**
    * Constructs a new instance with the specified references without copying the underlying
    * properties.
@@ -76,6 +78,16 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   @Override
   public String get(PropertyKey key, ConfigurationValueOptions options) {
     return conf(key).get(key, options);
+  }
+
+  @Override
+  public String getCredential(PropertyKey key) {
+    return conf(key).getCredential(key);
+  }
+
+  @Override
+  public String getCredential(PropertyKey key, ConfigurationValueOptions options) {
+    return conf(key).getCredential(key, options);
   }
 
   @Override
@@ -169,6 +181,17 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public AlluxioProperties copyPropertiesIncludeCredentials() {
+    AlluxioProperties properties = mClusterConf.copyPropertiesIncludeCredentials();
+    for (PropertyKey key : keySet()) {
+      mPathConf.getConfiguration(mPath, key).ifPresent(
+          config -> properties.put(key,
+            key.isCredential() ? config.getCredential(key) : config.get(key), Source.PATH_DEFAULT));
+    }
+    return properties;
+  }
+
+  @Override
   public Source getSource(PropertyKey key) {
     return conf(key).getSource(key);
   }
@@ -178,13 +201,15 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
     Map<String, String> map = new HashMap<>();
     // Cannot use Collectors.toMap because we support null keys.
     keySet().forEach(key ->
-        map.put(key.getName(), conf(key).getOrDefault(key, null, opts)));
+            map.put(key.getName(),
+                    key.isCredential() ? (opts.shouldUseDisplayValue() ? CREDENTIAL_MASK : null)
+                            : getOrDefault(key, null, opts)));
     return map;
   }
 
   @Override
   public void validate() {
-    new InstancedConfiguration(copyProperties()).validate();
+    new InstancedConfiguration(copyPropertiesIncludeCredentials()).validate();
   }
 
   @Override

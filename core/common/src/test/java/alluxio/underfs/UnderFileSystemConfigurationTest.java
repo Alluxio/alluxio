@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Closeable;
+import java.util.Map;
 import java.util.Random;
 
 public final class UnderFileSystemConfigurationTest {
@@ -49,13 +50,13 @@ public final class UnderFileSystemConfigurationTest {
           .defaults(ConfigurationTestUtils.defaults()).setReadOnly(readOnly).setShared(shared);
       assertEquals(readOnly, conf.isReadOnly());
       assertEquals(shared, conf.isShared());
-      assertEquals("bar", mConfiguration.get(PropertyKey.S3A_ACCESS_KEY));
+      assertEquals("bar", mConfiguration.getCredential(PropertyKey.S3A_ACCESS_KEY));
       conf = UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
           .setReadOnly(readOnly).setShared(shared)
           .createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
       assertEquals(readOnly, conf.isReadOnly());
       assertEquals(shared, conf.isShared());
-      assertEquals("foo", conf.get(PropertyKey.S3A_ACCESS_KEY));
+      assertEquals("foo", conf.getCredential(PropertyKey.S3A_ACCESS_KEY));
     }
   }
 
@@ -83,7 +84,7 @@ public final class UnderFileSystemConfigurationTest {
               .setReadOnly(readOnly)
               .setShared(shared);
       try {
-        conf.get(PropertyKey.S3A_ACCESS_KEY);
+        conf.getCredential(PropertyKey.S3A_ACCESS_KEY);
         fail("this key should not exist");
       } catch (Exception e) {
         // expect to pass
@@ -93,7 +94,7 @@ public final class UnderFileSystemConfigurationTest {
               "foo"));
       assertEquals(readOnly, conf2.isReadOnly());
       assertEquals(shared, conf2.isShared());
-      assertEquals("foo", conf2.get(PropertyKey.S3A_ACCESS_KEY));
+      assertEquals("foo", conf2.getCredential(PropertyKey.S3A_ACCESS_KEY));
     }
   }
 
@@ -143,11 +144,11 @@ public final class UnderFileSystemConfigurationTest {
     UnderFileSystemConfiguration conf2 =
         conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(),
             "foo"));
-    assertEquals("foo", conf2.get(PropertyKey.S3A_ACCESS_KEY));
+    assertEquals("foo", conf2.getCredential(PropertyKey.S3A_ACCESS_KEY));
     assertEquals(1, conf2.getMountSpecificConf().size());
     conf2 = conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_SECRET_KEY.toString(),
         "bar"));
-    assertEquals("bar", conf2.get(PropertyKey.S3A_SECRET_KEY));
+    assertEquals("bar", conf2.getCredential(PropertyKey.S3A_SECRET_KEY));
     assertFalse(conf2.isSet(PropertyKey.S3A_ACCESS_KEY));
     assertEquals(1, conf2.getMountSpecificConf().size());
     assertEquals(0, conf.getMountSpecificConf().size());

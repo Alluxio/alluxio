@@ -19,7 +19,6 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
-import alluxio.conf.CredentialConfiguration;
 import alluxio.conf.CredentialProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -371,7 +370,8 @@ public final class ConfigurationUtils {
       ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())
           .setSource(conf.getSource(key).toString());
       if (conf.isSet(key)) {
-        configProp.setValue(conf.get(key, useRawDisplayValue));
+        configProp.setValue(key.isCredential() ? conf.getCredential(key, useRawDisplayValue)
+                : conf.get(key, useRawDisplayValue));
       }
       configs.add(configProp.build());
     }
@@ -455,6 +455,8 @@ public final class ConfigurationUtils {
    * both in the new and current configuration, the one from the new configuration wins if
    * its priority is higher or equal than the existing one.
    *
+   * Credential property values are not included.
+   *
    * @param conf the base configuration
    * @param properties the source {@link Properties} to be merged
    * @param source the source of the the properties (e.g., system property, default and etc)
@@ -462,7 +464,6 @@ public final class ConfigurationUtils {
    */
   public static AlluxioConfiguration merge(AlluxioConfiguration conf, Map<?, ?> properties,
       Source source) {
-    // TODO(jiacheng): adapt to the new API
     AlluxioProperties props = conf.copyProperties();
     props.merge(properties, source);
     return new InstancedConfiguration(props);
@@ -543,6 +544,7 @@ public final class ConfigurationUtils {
    * @param conf the existing configuration
    * @return the merged configuration
    */
+  // TODO(jiacheng): This is the method used by client to get cluster conf. Remove credentials.
   public static AlluxioConfiguration getClusterConf(GetConfigurationPResponse response,
       AlluxioConfiguration conf) {
     String clientVersion = conf.get(PropertyKey.VERSION);
@@ -559,8 +561,8 @@ public final class ConfigurationUtils {
       clusterProps.remove(PropertyKey.VERSION);
     }
     // Merge conf returned by master as the cluster default into conf object
-    // TODO(jiacheng): adapt to the new API
-    AlluxioProperties props = conf.copyProperties();
+    AlluxioProperties props;
+    props = conf.copyProperties();
     props.merge(clusterProps, Source.CLUSTER_DEFAULT);
     // Use the constructor to set cluster defaults as being loaded.
     InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);

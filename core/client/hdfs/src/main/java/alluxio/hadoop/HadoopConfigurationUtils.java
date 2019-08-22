@@ -75,7 +75,6 @@ public final class HadoopConfigurationUtils {
       org.apache.hadoop.conf.Configuration source, AlluxioConfiguration alluxioConf) {
     org.apache.hadoop.conf.Configuration mergedConf = new org.apache.hadoop.conf.Configuration();
     source.forEach((Map.Entry<String, String> e) -> mergedConf.set(e.getKey(), e.getValue()));
-    // TODO(jiacheng): adapt to the new API
     alluxioConf.copyProperties().forEach((PropertyKey pk, String val) -> {
       if (val != null) {
         mergedConf.set(pk.getName(), val);

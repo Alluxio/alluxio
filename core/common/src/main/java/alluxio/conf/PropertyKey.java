@@ -5067,6 +5067,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     return mDisplayType;
   }
 
+  /**
+   * @return whether this property is a credential
+   */
+  public boolean isCredential() {
+    return getDisplayType().equals(DisplayType.CREDENTIALS);
+  }
+
   private static final DeprecatedKeyChecker DEPRECATED_CHECKER = new DeprecatedKeyChecker();
 
   /**
