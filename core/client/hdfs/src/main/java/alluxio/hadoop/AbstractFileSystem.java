@@ -106,10 +106,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance.
-   *
    */
-  AbstractFileSystem() {
-  }
+  AbstractFileSystem() {}
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
