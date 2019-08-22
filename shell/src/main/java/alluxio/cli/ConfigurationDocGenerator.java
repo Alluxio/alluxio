@@ -210,6 +210,7 @@ public final class ConfigurationDocGenerator {
     }
   }
 
+  @VisibleForTesting
   public static void writeCommandDocs(Map<String, Command> commands, String filePath)
       throws IOException {
     if (commands.size() == 0) {
@@ -258,9 +259,8 @@ public final class ConfigurationDocGenerator {
   public static void main(String[] args) throws IOException {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     defaultKeys.removeIf(key -> key.isHidden());
-    InstancedConfiguration c = new InstancedConfiguration(ConfigurationUtils.defaults());
-    c.set(PropertyKey.HOME, System.getProperty("user.dir"));
-    String homeDir = c.get(PropertyKey.HOME);
+    String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
+            .get(PropertyKey.HOME);
 
     // generate CSV files
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
@@ -269,15 +269,15 @@ public final class ConfigurationDocGenerator {
     filePath = PathUtils.concatPath(homeDir, YML_FILE_DIR);
     writeYMLFile(defaultKeys, filePath);
 
-    //For Alluxio Commands
+    //Generate docs for Alluxio fs Commands
     Closer mCloser = Closer.create();
     Map<String, Command> fsCommands = FileSystemShellUtils.loadCommands(mCloser.register(FileSystemContext.create(ServerConfiguration.global())));
     filePath = PathUtils.concatPath(homeDir, FS_YML_DIR);
     writeCommandDocs(fsCommands, filePath);
 
+    //Generate docs for Alluxio fsadmin Commands
     Map<String, Command> fsadminCommands = new FileSystemAdminShell(ServerConfiguration.global()).loadCommands();
     filePath = PathUtils.concatPath(homeDir,FSADMIN_YML_DIR);
     writeCommandDocs(fsadminCommands,filePath);
-
   }
 }

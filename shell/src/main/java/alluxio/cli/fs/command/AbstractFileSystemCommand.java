@@ -133,10 +133,10 @@ public abstract class AbstractFileSystemCommand implements Command {
 
   @Override
   public String getDocumentation() {
-    return "name: "+ getCommandName() + "\nusage: "+ getUsage() + "\ndescription: |\n  " + getDescription() + "\n";
+    return getDocs().toString();
   }
 
-  protected CommandReader getDocs(){
+  private CommandReader getDocs(){
     ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
     objectMapper.findAndRegisterModules();
     URL u = getCommandFile(this.getClass());
@@ -144,8 +144,7 @@ public abstract class AbstractFileSystemCommand implements Command {
       CommandReader command = objectMapper.readValue(new File(u.getFile()), CommandReader.class);
       return command;
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new RuntimeException("Couldn't get fs command docs", e);
     }
-    return null;
   }
 }

@@ -28,16 +28,12 @@ public class fsadminUnitTest {
 
     @Test
     public void checkDocs() throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-        objectMapper.findAndRegisterModules();
-        URL u;
         for(Map.Entry<String, Command> cmd : commands.entrySet()){
-            u = cmd.getValue().getClass().getClassLoader().getResource(String.format("%s.yml", cmd.getValue().getClass().getSimpleName()));
-            CommandReader command = objectMapper.readValue(new File(u.getFile()), CommandReader.class);
-            Assert.assertNotNull(command.getName());
-            Assert.assertNotNull(command.getUsage());
-            Assert.assertNotNull(command.getDescription());
-            Assert.assertNotNull(command.getExample());
+            Command c = cmd.getValue();
+            Assert.assertNotNull(c.getCommandName());
+            Assert.assertNotNull(c.getUsage());
+            Assert.assertNotNull(c.getDescription());
+            Assert.assertNotNull(c.getExample());
         }
     }
 }

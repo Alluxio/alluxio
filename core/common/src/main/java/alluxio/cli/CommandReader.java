@@ -49,4 +49,11 @@ public class CommandReader {
     public String getOptions(){
         return this.Options;
     }
+
+    @Override
+    public String toString(){
+        return "name: "+ getName() +
+                "\nusage: "+ getUsage() +
+                "\ndescription: |\n  " + getDescription();
+    }
 }

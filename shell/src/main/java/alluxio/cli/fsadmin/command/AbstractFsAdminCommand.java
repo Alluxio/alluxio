@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
-import java.util.Map;
 
 /**
  * Base class for fsadmin commands. It provides access to clients for talking to fs master, block
@@ -40,6 +39,8 @@ public abstract class AbstractFsAdminCommand implements Command {
   protected final PrintStream mPrintStream;
   protected final JournalMasterClient mMasterJournalMasterClient;
   protected final JournalMasterClient mJobMasterJournalMasterClient;
+
+  private final static ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
   protected AbstractFsAdminCommand(Context context) {
     mFsClient = context.getFsClient();
@@ -70,36 +71,28 @@ public abstract class AbstractFsAdminCommand implements Command {
     return getDocs().getExample();
   }
 
-  public String getSubCmd(){
+  private String getSubCmd(){
     return getDocs().getSubCommands();
   }
 
   @Override
   public String getDocumentation() {
     if (getSubCmd() != null){
-      return "name: "+ getCommandName() +
-              "\nusage: "+ getUsage() +
-              "\ndescription: |\n  " + getDescription() +
+      return getDocs().toString() +
               "\nsubCommands: |\n  " + getSubCmd() + "\n";
     }
     else {
-      return "name: "+ getCommandName() +
-              "\nusage: "+ getUsage() +
-              "\ndescription: |\n  " + getDescription()+ "\n";
+      return getDocs().toString()+ "\n";
     }
   }
 
-  protected CommandReader getDocs(){
-    ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+  private CommandReader getDocs(){
     objectMapper.findAndRegisterModules();
     URL u = getCommandFile(this.getClass());
     try {
-//      System.out.println(new File(u.getFile()).getPath());
-      CommandReader command = objectMapper.readValue(new File(u.getFile()), CommandReader.class);
-      return command;
+      return objectMapper.readValue(new File(u.getFile()), CommandReader.class);
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new RuntimeException("Could not get fsadmin command docs", e);
     }
-    return null;
   }
 }
