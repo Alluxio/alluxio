@@ -70,12 +70,12 @@ public class MasterTestUtils {
   }
 
   /**
-   * Creates a new leader {@link FileSystemMaster} from journal along with its dependencies, and
-   * returns the master registry containing that master.
+   * Creates a new leader {@link FileSystemMaster} from a copy of the journal along with its
+   * dependencies, and returns the master registry containing that master.
    *
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  public static MasterRegistry createSnapshotLeaderFileSystemMasterFromJournal() throws Exception {
+  public static MasterRegistry createLeaderFileSystemMasterFromJournalCopy() throws Exception {
     String masterJournal = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     String tempDir = Files.createTempDir().getAbsolutePath();
     FileUtils.copyDirectory(new File(masterJournal), new File(tempDir));
