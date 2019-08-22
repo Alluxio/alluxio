@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -176,7 +177,7 @@ public class BackupManager {
 
       // Executor for applying backup.
       CompletionService<Boolean> completionService = new ExecutorCompletionService<>(
-          Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("master-backup-%d", true)));
+          Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("master-backup-%d", true)));
 
       // List of active tasks.
       Set<Future<?>> activeTasks = new HashSet<>();
@@ -193,6 +194,13 @@ public class BackupManager {
 
       // Shows how many entries have been applied.
       AtomicLong appliedEntryCount = new AtomicLong(0);
+
+      // Progress executor
+      ScheduledExecutorService traceExecutor = Executors.newScheduledThreadPool(1,
+          ThreadFactoryUtils.build("master-backup-tracer-%d", true));
+      traceExecutor.scheduleAtFixedRate(() -> {
+        LOG.info("{} entries from backup applied so far...", appliedEntryCount.get());
+      }, 30, 30, TimeUnit.SECONDS);
 
       // Create backup reader task.
       activeTasks.add(completionService.submit(() -> {
@@ -250,6 +258,7 @@ public class BackupManager {
                 }
                 Master master = mastersByName.get(JournalEntryAssociation.getMasterForEntry(entry));
                 master.applyAndJournal(masterJCMap.get(master), entry);
+                appliedEntryCount.incrementAndGet();
               }
             } finally {
               // Close journal contexts to ensure applied entries are flushed,
@@ -268,7 +277,11 @@ public class BackupManager {
       }));
 
       // Wait until backup tasks are completed.
-      safeWaitTasks(activeTasks, completionService);
+      try {
+        safeWaitTasks(activeTasks, completionService);
+      } finally {
+        traceExecutor.shutdownNow();
+      }
 
       LOG.info("Restored {} entries from backup", appliedEntryCount.get());
     }
