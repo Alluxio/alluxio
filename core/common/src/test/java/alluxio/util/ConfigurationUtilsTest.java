@@ -14,10 +14,8 @@ package alluxio.util;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.Constants;
-import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
-import alluxio.conf.CredentialProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;

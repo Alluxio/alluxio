@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Closeable;
-import java.util.Map;
 import java.util.Random;
 
 public final class UnderFileSystemConfigurationTest {

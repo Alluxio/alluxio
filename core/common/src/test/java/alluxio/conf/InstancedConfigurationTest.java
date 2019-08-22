@@ -27,10 +27,8 @@ import alluxio.TestLoggerRule;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.util.ConfigurationUtils;
 
-import alluxio.wire.Property;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.UnhandledException;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -44,7 +42,6 @@ import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -82,20 +79,6 @@ public class InstancedConfigurationTest {
   public static void after() {
     ConfigurationUtils.reloadProperties();
   }
-
-  /**
-   * This method is only used in test for setting credential fields.
-   * */
-//  public static void setCredentialField(InstancedConfiguration conf, PropertyKey key, String value) {
-//    try {
-//      Field credField = conf.getClass().getDeclaredField("mCredProperties");
-//      credField.setAccessible(true);
-//      CredentialProperties cred = (CredentialProperties) credField.get(conf);
-//      cred.set(key, value);
-//    } catch (NoSuchFieldException | IllegalAccessException e) {
-//      throw new RuntimeException("Failed to set " + key.toString() + " in configuration!");
-//    }
-//  }
 
   @Test
   public void defaultLoggerCorrectlyLoaded() throws Exception {
