@@ -164,6 +164,7 @@
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
+    <update.check.enabled>false</update.check.enabled>
   </properties>
 
   <modules>
