@@ -71,7 +71,7 @@ public class ShimFileSystem extends AbstractFileSystem {
   }
 
   @Override
-  // Gets the full path to send to Alluxio.
+  // Gets the full path to use when contacting Alluxio server.
   protected String getAlluxioPath(Path path) {
     return path.toString();
   }

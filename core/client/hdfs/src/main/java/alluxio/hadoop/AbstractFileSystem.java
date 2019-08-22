@@ -28,7 +28,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -36,17 +35,14 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
-import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.SingleMasterAuthority;
-import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.fs.BlockLocation;
@@ -526,17 +522,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @throws IOException
    * @throws IllegalArgumentException
    */
-  protected void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException {
-    Preconditions.checkArgument(fsUri.getScheme().equals(getScheme()),
-        PreconditionMessage.URI_SCHEME_MISMATCH.toString(), fsUri.getScheme(), getScheme());
-
-    Authority auth = Authority.fromString(fsUri.getAuthority());
-    // Do not allow {@link UnknownAuthority} for alluxio:// scheme.
-    if (auth instanceof UnknownAuthority) {
-      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
-          + "configured with the authority from %s", auth, fsUri));
-    }
-  }
+  protected abstract void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException;
 
   /**
    * Merges the URI configuration with the Hadoop and Alluxio configuration, returning an
