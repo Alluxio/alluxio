@@ -13,9 +13,14 @@ package alluxio.hadoop;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 
+import org.apache.hadoop.fs.Path;
+
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * An Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
@@ -32,7 +37,7 @@ public class ShimFileSystem extends AbstractFileSystem {
    * Constructs a new {@link ShimFileSystem}.
    */
   public ShimFileSystem() {
-    super(true);
+    super();
   }
 
   /**
@@ -42,7 +47,7 @@ public class ShimFileSystem extends AbstractFileSystem {
    * @param fileSystem handler to file system
    */
   public ShimFileSystem(alluxio.client.file.FileSystem fileSystem) {
-    super(fileSystem, true);
+    super(fileSystem);
   }
 
   @Override
@@ -57,11 +62,28 @@ public class ShimFileSystem extends AbstractFileSystem {
     // Below constant will basically hide ShimFileSystem from dynamic loading as
     // it maps to a bogus scheme.
     //
-    return Constants.SHIM_SCHEME;
+    return Constants.NO_SCHEME;
   }
 
   @Override
   protected boolean isZookeeperMode() {
     return mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+  }
+
+  @Override
+  // Gets the full path to send to Alluxio.
+  protected String getAlluxioPath(Path path) {
+    return path.toString();
+  }
+
+  @Override
+  // Gets UFS path as native FS path.
+  protected Path getFsPath(URIStatus fileStatus) {
+    return new Path(fileStatus.getUfsPath());
+  }
+
+  @Override
+  protected void validateFsUri(URI fsUri) throws IOException {
+    // No validation for ShimFS.
   }
 }

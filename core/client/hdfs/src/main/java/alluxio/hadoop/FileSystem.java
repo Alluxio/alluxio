@@ -30,7 +30,7 @@ public final class FileSystem extends AbstractFileSystem {
    * Constructs a new {@link FileSystem}.
    */
   public FileSystem() {
-    super(false);
+    super();
   }
 
   /**
@@ -40,7 +40,7 @@ public final class FileSystem extends AbstractFileSystem {
    * @param fileSystem handler to file system
    */
   public FileSystem(alluxio.client.file.FileSystem fileSystem) {
-    super(fileSystem, false);
+    super(fileSystem);
   }
 
   @Override
