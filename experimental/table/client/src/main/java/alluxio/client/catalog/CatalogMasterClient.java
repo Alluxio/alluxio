@@ -85,7 +85,7 @@ public interface CatalogMasterClient extends Client {
    * @return table metadata
    * @throws AlluxioStatusException
    */
-  Table getTable(String databaseName, String tableName) throws AlluxioStatusException;
+  TableInfo getTable(String databaseName, String tableName) throws AlluxioStatusException;
 
   /**
    * Create database with given schema.
