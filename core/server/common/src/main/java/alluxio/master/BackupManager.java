@@ -80,8 +80,9 @@ public class BackupManager {
    * Writes a backup to the specified stream.
    *
    * @param os the stream to write to
+   * @param entryCount will receive total entry count that are backed up
    */
-  public void backup(OutputStream os) throws IOException {
+  public void backup(OutputStream os, AtomicLong entryCount) throws IOException {
     // Create gZIP compressed stream as back-up stream.
     GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(os);
 
@@ -100,8 +101,6 @@ public class BackupManager {
     LinkedBlockingQueue<JournalEntry> journalEntryQueue = new LinkedBlockingQueue<>(
         ServerConfiguration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
 
-    // Shows how many entries have been written.
-    AtomicLong writtenEntryCount = new AtomicLong(0);
     // Whether buffering is still active.
     AtomicBoolean bufferingActive = new AtomicBoolean(true);
 
@@ -145,7 +144,7 @@ public class BackupManager {
               return true;
             }
             journalEntry.writeDelimitedTo(zipStream);
-            writtenEntryCount.incrementAndGet();
+            entryCount.incrementAndGet();
           }
           pendingEntries.clear();
         }
@@ -162,7 +161,7 @@ public class BackupManager {
 
     // finish() instead of close() since close would close os, which is owned by the caller.
     zipStream.finish();
-    LOG.info("Created backup with {} entries", writtenEntryCount.get());
+    LOG.info("Created backup with {} entries", entryCount.get());
   }
 
   /**

@@ -21,8 +21,8 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.BackupResponse;
 
+import alluxio.wire.BackupResponse;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,10 +111,11 @@ public final class DailyMetadataBackup {
       BackupResponse resp = mMetaMaster.backup(BackupPOptions.newBuilder()
           .setTargetDirectory(mBackupDir).setLocalFileSystem(mIsLocal).build());
       if (mIsLocal) {
-        LOG.info("Successfully backed up journal to {} on master {}",
-            resp.getBackupUri(), resp.getHostname());
+        LOG.info("Successfully backed up journal to {} on master {} with {} entries.",
+            resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());
       } else {
-        LOG.info("Successfully backed up journal to {}", resp.getBackupUri());
+        LOG.info("Successfully backed up journal to {} with {} entries.",
+            resp.getBackupUri(), resp.getEntryCount());
       }
     } catch (Throwable t) {
       LOG.error("Failed to execute daily backup at {}", mBackupDir, t);
