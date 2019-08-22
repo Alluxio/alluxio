@@ -72,6 +72,8 @@ all the dependencies. Subsequent builds, however, will be much faster.
 Once Alluxio is built, you can validate and start it with:
 
 ```console
+$ # Alluxio uses ./underFSStorage for under file system storage by default
+$ mkdir ./underFSStorage 
 $ ./bin/alluxio validateEnv local
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local SudoMount
