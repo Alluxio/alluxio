@@ -56,7 +56,7 @@ public class DefaultCredentialProperties implements CredentialProperties {
   }
 
   /**
-   * Clears all the credential properties
+   * Clears all the credential properties.
    * */
   @Override
   public void clear() {
