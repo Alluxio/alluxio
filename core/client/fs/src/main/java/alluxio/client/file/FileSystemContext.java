@@ -179,7 +179,6 @@ public final class FileSystemContext implements Closeable {
   public static FileSystemContext create(ClientContext clientContext) {
     FileSystemContext ctx = new FileSystemContext();
     ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf()));
-    ctx.mUriValidationEnabled = clientContext.getUriValidationEnabled();
     return ctx;
   }
 
@@ -235,6 +234,7 @@ public final class FileSystemContext implements Closeable {
     if (mMetricsEnabled) {
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
+    mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
   /**
