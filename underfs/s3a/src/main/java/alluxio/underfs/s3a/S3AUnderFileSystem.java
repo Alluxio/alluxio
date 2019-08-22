@@ -124,7 +124,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     if (conf.isSet(PropertyKey.S3A_ACCESS_KEY)
         && conf.isSet(PropertyKey.S3A_SECRET_KEY)) {
       return new AWSStaticCredentialsProvider(new BasicAWSCredentials(
-          conf.getCredential(PropertyKey.S3A_ACCESS_KEY), conf.getCredential(PropertyKey.S3A_SECRET_KEY)));
+          conf.getCredential(PropertyKey.S3A_ACCESS_KEY),
+              conf.getCredential(PropertyKey.S3A_SECRET_KEY)));
     }
     // Checks, in order, env variables, system properties, profile file, and instance profile.
     return new DefaultAWSCredentialsProviderChain();
