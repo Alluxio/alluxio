@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>2.0.1-SNAPSHOT</version>
+  <version>2.0.1</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -30,7 +30,7 @@
     <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
     <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
     <url>scm:git:git@github.com:alluxio/alluxio.git</url>
-    <tag>HEAD</tag>
+    <tag>v2.0.1</tag>
   </scm>
   <developers>
     <developer>
