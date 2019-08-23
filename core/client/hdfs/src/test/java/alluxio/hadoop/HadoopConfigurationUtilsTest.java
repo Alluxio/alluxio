@@ -57,7 +57,8 @@ public final class HadoopConfigurationUtilsTest {
   @Test
   public void mergeHadoopConfiguration() {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
-    hadoopConfig.set(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM.toString(), TEST_UNDERFS_S3_SIGNER_ALGORITHM);
+    hadoopConfig.set(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM.toString(),
+            TEST_UNDERFS_S3_SIGNER_ALGORITHM);
     hadoopConfig.set(TEST_ALLUXIO_PROPERTY, TEST_ALLUXIO_VALUE);
     hadoopConfig.setBoolean(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
     hadoopConfig.set(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
@@ -65,8 +66,10 @@ public final class HadoopConfigurationUtilsTest {
 
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
-    mConf = HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, mConf.copyProperties());
-    assertEquals(TEST_UNDERFS_S3_SIGNER_ALGORITHM, mConf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
+    mConf = HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig,
+            mConf.copyProperties());
+    assertEquals(TEST_UNDERFS_S3_SIGNER_ALGORITHM,
+            mConf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     assertEquals(Source.RUNTIME, mConf.getSource(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     assertTrue(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:port1,host2:port2;host3:port3",
