@@ -40,6 +40,11 @@
     <dependencies>
       <dependency>
         <groupId>org.apache.hive</groupId>
+        <artifactId>hive-exec</artifactId>
+        <version>${hive-metastore.verison}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hive</groupId>
         <artifactId>hive-metastore</artifactId>
         <version>${hive-metastore.verison}</version>
       </dependency>
