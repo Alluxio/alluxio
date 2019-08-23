@@ -84,14 +84,14 @@ public class ShimFileSystem extends AbstractFileSystem {
   }
 
   @Override
-  // Gets the full path to use when contacting Alluxio server.
   protected AlluxioURI getAlluxioPath(Path path) {
+    // Sends the full path to Alluxio for master side resolution.
     return new AlluxioURI(path.toString());
   }
-
+  
   @Override
-  // Gets UFS path as native FS path.
   protected Path getFsPath(String fsUri, URIStatus fileStatus) {
+    // ShimFS doesn't expose internal Alluxio path.
     return new Path(fileStatus.getUfsPath());
   }
 }

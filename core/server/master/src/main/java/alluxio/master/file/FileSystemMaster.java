@@ -222,7 +222,7 @@ public interface FileSystemMaster extends Master {
    *
    * @param uriStr uri
    * @return URI in Alluxio namespace
-   * @throws InvalidPathException
+   * @throws InvalidPathException if foreign URI not found in Alluxio
    */
   AlluxioURI translateUri(String uriStr) throws InvalidPathException;
 
