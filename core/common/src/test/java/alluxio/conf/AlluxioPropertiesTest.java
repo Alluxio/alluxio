@@ -36,7 +36,6 @@ import java.util.Set;
  * Unit tests for the {@link AlluxioProperties} class.
  */
 public class AlluxioPropertiesTest {
-
   private AlluxioProperties mProperties = new AlluxioProperties();
   private PropertyKey mKeyWithValue;
   private PropertyKey mKeyWithoutValue;
@@ -106,6 +105,12 @@ public class AlluxioPropertiesTest {
     assertEquals("valueSamePriority", mProperties.get(mKeyWithValue));
     mProperties.put(mKeyWithValue, "valueHigherPriority", Source.RUNTIME);
     assertEquals("valueHigherPriority", mProperties.get(mKeyWithValue));
+  }
+
+  @Test
+  public void putCredential() {
+    mProperties.put(PropertyKey.S3A_SECRET_KEY, "foo", Source.MOUNT_OPTION);
+    assertEquals("foo", mProperties.getCredential(PropertyKey.S3A_SECRET_KEY));
   }
 
   @Test
