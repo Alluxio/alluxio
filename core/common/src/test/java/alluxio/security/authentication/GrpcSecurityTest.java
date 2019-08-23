@@ -219,7 +219,7 @@ public class GrpcSecurityTest {
   }
 
   private GrpcServerAddress getServerConnectAddress(GrpcServer server) {
-    return new GrpcServerAddress(new InetSocketAddress(
+    return GrpcServerAddress.create(new InetSocketAddress(
         NetworkAddressUtils.getLocalHostName(
             (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
         server.getBindPort()));
@@ -230,8 +230,8 @@ public class GrpcSecurityTest {
     InetSocketAddress bindAddress = new InetSocketAddress(NetworkAddressUtils.getLocalHostName(
         (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0);
     UserState us = UserState.Factory.create(mConfiguration);
-    GrpcServerBuilder serverBuilder =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, mConfiguration, us);
+    GrpcServerBuilder serverBuilder = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), mConfiguration, us);
     return serverBuilder.build();
   }
 
