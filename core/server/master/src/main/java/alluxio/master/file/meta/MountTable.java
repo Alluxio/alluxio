@@ -388,9 +388,9 @@ public final class MountTable implements DelegatingJournaled {
    * @return Alluxio URI for given foreign path
    * @throws InvalidPathException
    */
-  public AlluxioURI translate(String foreignUriStr) throws InvalidPathException {
+  public AlluxioURI reverseLookup(String foreignUriStr) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
-      LOG.debug("Translating foreign URI {}", foreignUriStr);
+      LOG.debug("Doing a reverse-lookup on foreign URI {}", foreignUriStr);
       // Enumerate existing mount points to find a mount point that owns
       // given uri.
       for (Map.Entry<String, MountInfo> mountEntry : mState.getMountTable().entrySet()) {

@@ -1369,7 +1369,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       return uri;
     } else {
       // Reverse lookup mount table to find mount point that contains the path.
-      return mMountTable.translate(uriStr);
+      return mMountTable.reverseLookup(uriStr);
     }
   }
 

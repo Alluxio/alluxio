@@ -392,38 +392,38 @@ public final class MountTableTest {
   }
 
   /**
-   * Tests {@link MountTable#translate(String)}.
+   * Tests {@link MountTable#reverseLookup(String)}.
    */
   @Test
-  public void translateKnownUri() throws Exception {
+  public void reverseLookupKnownUri() throws Exception {
     String mountPath = "/mnt/foo";
     String ufsPath = "ufs-1://authority/root";
     addMount(mountPath, ufsPath, 2);
-    // Test successful translation.
+    // Test successful reverse-lookup.
     String testFile = PathUtils.uniqPath();
     String testFileUfsPath = PathUtils.concatPath(ufsPath, testFile);
     String testFileAlluxioPath = PathUtils.concatPath(mountPath, testFile);
-    Assert.assertEquals(testFileAlluxioPath, mMountTable.translate(testFileUfsPath).getPath());
+    Assert.assertEquals(testFileAlluxioPath, mMountTable.reverseLookup(testFileUfsPath).getPath());
   }
 
   /**
-   * Tests {@link MountTable#translate(String)}.
+   * Tests {@link MountTable#reverseLookup(String)}.
    */
   @Test
-  public void translateUnknownUri() throws Exception {
-    // Test unknown translation.
+  public void reverseLookupUnknownUri() throws Exception {
+    // Test unknown reverse-lookup.
     String unmountedUfsPath = "ufs-unknown://authority/root";
     String testFileUfsPath = PathUtils.concatPath(unmountedUfsPath, PathUtils.uniqPath());
-    boolean translateFailed = false;
+    boolean lookupFailed = false;
     try {
-      mMountTable.translate(testFileUfsPath);
+      mMountTable.reverseLookup(testFileUfsPath);
     } catch (InvalidPathException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.FOREIGN_URI_NOT_MOUNTED.getMessage(testFileUfsPath),
           e.getMessage());
-      translateFailed = true;
+      lookupFailed = true;
     }
-    Assert.assertTrue(translateFailed);
+    Assert.assertTrue(lookupFailed);
   }
 
   private void addMount(String alluxio, String ufs, long id) throws Exception {
