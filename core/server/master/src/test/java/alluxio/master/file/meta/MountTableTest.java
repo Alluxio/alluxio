@@ -395,7 +395,7 @@ public final class MountTableTest {
    * Tests {@link MountTable#translate(String)}.
    */
   @Test
-  public void translate() throws Exception {
+  public void translateKnownUri() throws Exception {
     String mountPath = "/mnt/foo";
     String ufsPath = "ufs-1://authority/root";
     addMount(mountPath, ufsPath, 2);
@@ -404,10 +404,16 @@ public final class MountTableTest {
     String testFileUfsPath = PathUtils.concatPath(ufsPath, testFile);
     String testFileAlluxioPath = PathUtils.concatPath(mountPath, testFile);
     Assert.assertEquals(testFileAlluxioPath, mMountTable.translate(testFileUfsPath).getPath());
+  }
 
+  /**
+   * Tests {@link MountTable#translate(String)}.
+   */
+  @Test
+  public void translateUnknownUri() throws Exception {
     // Test unknown translation.
     String unmountedUfsPath = "ufs-unknown://authority/root";
-    testFileUfsPath = PathUtils.concatPath(unmountedUfsPath, testFile);
+    String testFileUfsPath = PathUtils.concatPath(unmountedUfsPath, PathUtils.uniqPath());
     boolean translateFailed = false;
     try {
       mMountTable.translate(testFileUfsPath);
@@ -422,7 +428,7 @@ public final class MountTableTest {
 
   private void addMount(String alluxio, String ufs, long id) throws Exception {
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI(alluxio), new AlluxioURI(ufs), id,
-        MountContext.defaults().getOptions().build());
+            MountContext.defaults().getOptions().build());
   }
 
   private boolean deleteMount(String path) {
