@@ -13,6 +13,7 @@ package alluxio.table.common;
 
 import alluxio.grpc.FileStatistics;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -29,13 +30,13 @@ public interface UnderDatabase {
   /**
    * @return a list of table names
    */
-  List<String> getTableNames();
+  List<String> getTableNames() throws IOException;
 
   /**
    * @param tableName the table name
    * @return the {@link UdbTable} for the specified table name
    */
-  UdbTable getTable(String tableName);
+  UdbTable getTable(String tableName) throws IOException;
 
   // TODO(gpang): change API
   /**
@@ -43,5 +44,5 @@ public interface UnderDatabase {
    * @param tableName the table name
    * @return the statistics for the corresponding table
    */
-  Map<String, FileStatistics> getStatistics(String dbName, String tableName);
+  Map<String, FileStatistics> getStatistics(String dbName, String tableName) throws IOException;
 }

@@ -13,7 +13,6 @@ package alluxio.table.under.hive;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.FileStatistics;
 import alluxio.table.common.UdbTable;
 import alluxio.table.common.UnderDatabase;
@@ -21,9 +20,13 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 
-import org.apache.iceberg.Table;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.ql.metadata.Hive;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.iceberg.catalog.TableIdentifier;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -34,22 +37,42 @@ public class HiveDatabase implements UnderDatabase {
   private static final String DEFAULT_DB_NAME = "default";
 
   private final HiveDataCatalog mCatalog;
-  private final UnderFileSystem mUfs;
+  private final Hive mHive;
+
+  private HiveDatabase(HiveDataCatalog catalog, Hive hive) {
+    mCatalog = catalog;
+    mHive = hive;
+  }
 
   /**
    * Creates an instance of the Hive database UDB.
+   *
+   * @param configuration the configuration
+   * @return the new instance
    */
-  public HiveDatabase() {
+  public static HiveDatabase create(Map<String, String> configuration) throws IOException {
+    UnderFileSystem ufs;
     if (URIUtils.isLocalFilesystem(ServerConfiguration
         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
-      mUfs = UnderFileSystem.Factory
+      ufs = UnderFileSystem.Factory
           .create("/", UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     } else {
-      mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+      ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
-    mCatalog = new HiveDataCatalog(mUfs);
+    HiveDataCatalog catalog = new HiveDataCatalog(ufs);
     // TODO(gpang): get rid of creating db
-    mCatalog.createDatabase(DEFAULT_DB_NAME);
+    catalog.createDatabase(DEFAULT_DB_NAME);
+
+    Hive hive;
+    try {
+      HiveConf conf = new HiveConf();
+      // TODO(gpang): use configuration keys passed in
+      conf.set("hive.metastore.uris", "thrift://localhost:9083");
+      hive = Hive.get(conf);
+    } catch (HiveException e) {
+      throw new IOException("Failed to create hive client: " + e.getMessage(), e);
+    }
+    return new HiveDatabase(catalog, hive);
   }
 
   @Override
@@ -58,18 +81,29 @@ public class HiveDatabase implements UnderDatabase {
   }
 
   @Override
-  public List<String> getTableNames() {
-    return mCatalog.getAllTables(DEFAULT_DB_NAME);
+  public List<String> getTableNames() throws IOException {
+    try {
+      return mHive.getAllTables(DEFAULT_DB_NAME);
+    } catch (HiveException e) {
+      throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
+    }
   }
 
   @Override
-  public UdbTable getTable(String tableName) {
-    Table table = mCatalog.getTable(TableIdentifier.of(DEFAULT_DB_NAME, tableName));
-    return new HiveTable(tableName, ProtoUtils.toProto(table.schema()), table.location(), null);
+  public UdbTable getTable(String tableName) throws IOException {
+    try {
+      Table table = mHive.getTable(DEFAULT_DB_NAME, tableName);
+      return new HiveTable(tableName, HiveUtils.toProto(table.getAllCols()),
+          table.getDataLocation().toString(), null);
+    } catch (HiveException e) {
+      throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
+    }
   }
 
   @Override
-  public Map<String, FileStatistics> getStatistics(String dbName, String tableName) {
+  public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
+      throws IOException {
+    mCatalog.getTable(TableIdentifier.of(DEFAULT_DB_NAME, tableName));
     return null;
   }
 }

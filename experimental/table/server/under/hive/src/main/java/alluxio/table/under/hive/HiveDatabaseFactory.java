@@ -14,6 +14,7 @@ package alluxio.table.under.hive;
 import alluxio.table.common.UnderDatabase;
 import alluxio.table.common.UnderDatabaseFactory;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -28,7 +29,7 @@ public class HiveDatabaseFactory implements UnderDatabaseFactory {
   }
 
   @Override
-  public UnderDatabase create(Map<String, String> configuration) {
-    return new HiveDatabase();
+  public UnderDatabase create(Map<String, String> configuration) throws IOException {
+    return HiveDatabase.create(configuration);
   }
 }

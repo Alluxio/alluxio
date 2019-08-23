@@ -11,6 +11,7 @@
 
 package alluxio.table.common;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -27,5 +28,5 @@ public interface UnderDatabaseFactory {
    * @param configuration configuration values
    * @return a new instance of the under database
    */
-  UnderDatabase create(Map<String, String> configuration);
+  UnderDatabase create(Map<String, String> configuration) throws IOException;
 }

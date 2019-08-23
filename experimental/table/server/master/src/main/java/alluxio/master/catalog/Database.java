@@ -114,7 +114,7 @@ public class Database {
   /**
    * Syncs the metadata from the under db.
    */
-  public void sync() {
+  public void sync() throws IOException {
     for (String tableName : mUdb.getTableNames()) {
       // TODO(gpang): concurrency control
       Table table = mTables.get(tableName);
