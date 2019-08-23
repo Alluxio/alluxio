@@ -77,7 +77,9 @@ public class MasterTestUtils {
    */
   public static MasterRegistry createLeaderFileSystemMasterFromJournalCopy() throws Exception {
     String masterJournal = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    String tempDir = Files.createTempDir().getAbsolutePath();
+    File tmpDirFile = Files.createTempDir();
+    tmpDirFile.deleteOnExit();
+    String tempDir = tmpDirFile.getAbsolutePath();
     FileUtils.copyDirectory(new File(masterJournal), new File(tempDir));
     return createFileSystemMasterFromJournal(true, null, tempDir);
   }
