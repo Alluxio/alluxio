@@ -11,6 +11,8 @@
 
 package alluxio.grpc;
 
+import com.google.common.base.MoreObjects;
+
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
@@ -23,21 +25,26 @@ public class GrpcServerAddress {
   /** Target host name. */
   private String mHostName;
 
+  private GrpcServerAddress(String hostName, SocketAddress socketAddress) {
+    mHostName = hostName;
+    mSocketAddress = socketAddress;
+  }
+
   /**
    * @param socketAddress physical address
+   * @return created server address instance
    */
-  public GrpcServerAddress(InetSocketAddress socketAddress) {
-    mHostName = socketAddress.getHostName();
-    mSocketAddress = socketAddress;
+  public static GrpcServerAddress create(InetSocketAddress socketAddress) {
+    return new GrpcServerAddress(socketAddress.getHostName(), socketAddress);
   }
 
   /**
    * @param hostName target host name
    * @param socketAddress physical address
+   * @return created server address instance
    */
-  public GrpcServerAddress(String hostName, SocketAddress socketAddress) {
-    mHostName = hostName;
-    mSocketAddress = socketAddress;
+  public static GrpcServerAddress create(String hostName, SocketAddress socketAddress) {
+    return new GrpcServerAddress(hostName, socketAddress);
   }
 
   /**
@@ -48,9 +55,17 @@ public class GrpcServerAddress {
   }
 
   /**
-   * @return the host name
+   * @return the socket address
    */
   public SocketAddress getSocketAddress() {
     return mSocketAddress;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("HostName", mHostName)
+        .add("SocketAddress", mSocketAddress)
+        .toString();
   }
 }

@@ -15,6 +15,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcSerializationUtils;
@@ -113,8 +114,9 @@ public final class GrpcDataServer implements DataServer {
 
   private GrpcServerBuilder createServerBuilder(String hostName,
       SocketAddress bindAddress, ChannelType type) {
-    GrpcServerBuilder builder = GrpcServerBuilder
-        .forAddress(hostName, bindAddress, ServerConfiguration.global(), ServerUserState.global());
+    GrpcServerBuilder builder =
+        GrpcServerBuilder.forAddress(GrpcServerAddress.create(hostName, bindAddress),
+            ServerConfiguration.global(), ServerUserState.global());
     int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
 
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.

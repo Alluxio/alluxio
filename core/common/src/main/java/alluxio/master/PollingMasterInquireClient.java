@@ -112,8 +112,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
     GrpcChannel channel =
-        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), mConfiguration)
-            .setSubject(mUserState.getSubject()).build();
+        GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), mConfiguration)
+            .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient").build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     ServiceType serviceType
