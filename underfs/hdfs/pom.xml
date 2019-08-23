@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>2.0.1</version>
+    <version>2.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -26,7 +26,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
     <!-- Decouple hadoop versions between north and south bound -->
-    <ufs.hadoop.version>2.2.0</ufs.hadoop.version>
+    <ufs.hadoop.version>2.2.1-SNAPSHOT</ufs.hadoop.version>
     <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
   </properties>
 
