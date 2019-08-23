@@ -64,6 +64,23 @@ public final class FileSystem extends AbstractFileSystem {
   }
 
   @Override
+  protected void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException {
+    Preconditions.checkArgument(fsUri.getScheme().equals(getScheme()),
+            PreconditionMessage.URI_SCHEME_MISMATCH.toString(), fsUri.getScheme(), getScheme());
+
+    Authority auth = Authority.fromString(fsUri.getAuthority());
+    if (auth instanceof UnknownAuthority) {
+      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
+              + "configured with the authority from %s", auth, fsUri));
+    }
+  }
+
+  @Override
+  protected String getFsScheme(URI fsUri) {
+    return getScheme();
+  }
+
+  @Override
   protected AlluxioURI getAlluxioPath(Path path) {
     return new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
   }
@@ -71,17 +88,5 @@ public final class FileSystem extends AbstractFileSystem {
   @Override
   protected Path getFsPath(String fsUriHeader, URIStatus fileStatus) {
     return new Path(fsUriHeader + fileStatus.getPath());
-  }
-
-  @Override
-  protected void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException {
-    Preconditions.checkArgument(fsUri.getScheme().equals(getScheme()),
-        PreconditionMessage.URI_SCHEME_MISMATCH.toString(), fsUri.getScheme(), getScheme());
-
-    Authority auth = Authority.fromString(fsUri.getAuthority());
-    if (auth instanceof UnknownAuthority) {
-      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
-          + "configured with the authority from %s", auth, fsUri));
-    }
   }
 }

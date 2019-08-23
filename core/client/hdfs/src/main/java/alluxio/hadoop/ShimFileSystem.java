@@ -72,6 +72,18 @@ public class ShimFileSystem extends AbstractFileSystem {
   }
 
   @Override
+  protected void validateFsUri(URI fsUri) throws IOException {
+    // No validation for ShimFS.
+  }
+
+  @Override
+  protected String getFsScheme(URI fsUri) {
+    // ShimFS does not know its scheme until FS URI is supplied.
+    // Use base URI's scheme.
+    return fsUri.getScheme();
+  }
+
+  @Override
   // Gets the full path to use when contacting Alluxio server.
   protected AlluxioURI getAlluxioPath(Path path) {
     return new AlluxioURI(path.toString());
@@ -81,10 +93,5 @@ public class ShimFileSystem extends AbstractFileSystem {
   // Gets UFS path as native FS path.
   protected Path getFsPath(String fsUri, URIStatus fileStatus) {
     return new Path(fileStatus.getUfsPath());
-  }
-
-  @Override
-  protected void validateFsUri(URI fsUri) throws IOException {
-    // No validation for ShimFS.
   }
 }

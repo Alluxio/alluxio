@@ -470,13 +470,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     // HDFS doesn't allow the authority to be empty; it must be "/" instead.
     String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
-    // Use URI's scheme for shim mode.
-    String scheme = getScheme();
-    // Extract the scheme from URI if FS implementation is not bound to a scheme.
-    if (scheme.equals(Constants.NO_SCHEME)) {
-      scheme = uri.getScheme();
-    }
-    mAlluxioHeader = scheme + "://" + authority;
+    mAlluxioHeader = getFsScheme(uri) + "://" + authority;
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
@@ -753,6 +747,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @throws IllegalArgumentException
    */
   protected abstract void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException;
+
+  /**
+   * Used to get FS scheme.
+   *
+   * @param fsUri file system base URI
+   * @return file system scheme
+   */
+  protected abstract String getFsScheme(URI fsUri);
 
   /**
    * Used to convert hadoop path to Alluxio path.
