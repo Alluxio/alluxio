@@ -80,6 +80,10 @@ spec:
           volumeMounts:
             - name: alluxio-journal
               mountPath: /journal
+            {{- if .Values.volumes.master.metastore }}
+            - name: alluxio-metastore
+              mountPath: {{ .Values.volumes.master.metastore.mountPath }}
+            {{- end }}
             {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
             {{- range $key, $val := .Values.secrets.master }}
@@ -133,4 +137,10 @@ spec:
             defaultMode: 256
         {{- end }}
         {{- end }}
+        {{- end }}
+        {{- if .Values.volumes.master.metastore }}
+        - name: alluxio-metastore
+          emptyDir:
+            medium: {{ .Values.volumes.master.metastore.medium }}
+            sizeLimit: {{ .Values.volumes.master.metastore.size | quote }}
         {{- end }}
