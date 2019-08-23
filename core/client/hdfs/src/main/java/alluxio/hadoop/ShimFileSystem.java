@@ -11,6 +11,7 @@
 
 package alluxio.hadoop;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.URIStatus;
@@ -72,13 +73,13 @@ public class ShimFileSystem extends AbstractFileSystem {
 
   @Override
   // Gets the full path to use when contacting Alluxio server.
-  protected String getAlluxioPath(Path path) {
-    return path.toString();
+  protected AlluxioURI getAlluxioPath(Path path) {
+    return new AlluxioURI(path.toString());
   }
 
   @Override
   // Gets UFS path as native FS path.
-  protected Path getFsPath(URIStatus fileStatus) {
+  protected Path getFsPath(String fsUri, URIStatus fileStatus) {
     return new Path(fileStatus.getUfsPath());
   }
 

@@ -11,7 +11,9 @@
 
 package alluxio.hadoop;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.exception.PreconditionMessage;
@@ -19,6 +21,7 @@ import alluxio.uri.Authority;
 import alluxio.uri.UnknownAuthority;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.fs.Path;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -58,6 +61,16 @@ public final class FileSystem extends AbstractFileSystem {
   @Override
   protected boolean isZookeeperMode() {
     return mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+  }
+
+  @Override
+  protected AlluxioURI getAlluxioPath(Path path) {
+    return new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+  }
+
+  @Override
+  protected Path getFsPath(String fsUriHeader, URIStatus fileStatus) {
+    return new Path(fsUriHeader + fileStatus.getPath());
   }
 
   @Override
