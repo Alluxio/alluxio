@@ -219,6 +219,7 @@ public interface FileSystemMaster extends Master {
   /**
    * Translates given URI to an Alluxio URI.
    * If given URI does not contain a scheme, then it is regarded as Alluxio URI.
+   * For other cases it will go through a reverse lookup against mount table.
    *
    * @param uriStr uri
    * @return URI in Alluxio namespace
