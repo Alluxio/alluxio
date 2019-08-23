@@ -207,7 +207,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   private MasterRegistry createFileSystemMasterFromJournal() throws Exception {
-    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    return MasterTestUtils.createLeaderFileSystemMasterFromJournalCopy();
   }
 
   // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
