@@ -47,7 +47,7 @@ public class AlluxioShimFileSystem extends DelegateToFileSystem {
    */
   AlluxioShimFileSystem(final URI uri, final Configuration conf)
       throws IOException, URISyntaxException {
-    super(uri, new FileSystem(), conf, Constants.SCHEME, false);
+    super(uri, new ShimFileSystem(), conf, Constants.NO_SCHEME, false);
   }
 
   @Override
