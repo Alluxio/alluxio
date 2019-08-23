@@ -88,7 +88,7 @@ public class ShimFileSystem extends AbstractFileSystem {
     // Sends the full path to Alluxio for master side resolution.
     return new AlluxioURI(path.toString());
   }
-  
+
   @Override
   protected Path getFsPath(String fsUri, URIStatus fileStatus) {
     // ShimFS doesn't expose internal Alluxio path.
