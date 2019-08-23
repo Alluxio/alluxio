@@ -10,7 +10,7 @@ priority: 9
 
 ## General Requirements
 
-There are base requirements for cluster nodes:
+Listed below are the generic requirements to run Alluxio in local or cluster mode:
 
 * Cluster nodes should be running one of the following supported operating systems:
   * MacOS 10.10 or later
@@ -23,7 +23,7 @@ There are base requirements for cluster nodes:
 * Allow the following ports and protocols:
   * Inbound TCP 22 - ssh as a user to install Alluxio components across specified nodes.
 
-## Master Requirements
+### Master Requirements
 
 There are Alluxio-specific requirements for cluster nodes running the master process.
 
@@ -41,7 +41,7 @@ will increase these requirements.
   * Inbound TCP 20002 - The Alluxio job master's default web UI port
   * Inbound TCP 20003 - The Alluxio job master's default port for internal leader election
 
-## Worker Requirements
+### Worker Requirements
 
 There are Alluxio-specific requirements for cluster nodes running the worker process:
 
@@ -52,28 +52,36 @@ There are Alluxio-specific requirements for cluster nodes running the worker pro
   * Inbound TCP 29999 - The Alluxio worker's default RPC and data transfer port
   * Inbound TCP 30000 - The Alluxio worker's default web UI port. Accessible at `http://<worker-hostname>:30000` in your browser
   * Inbound TCP 30001 - The Alluxio job worker's default RPC port
-  * Inbound TCP 30003 - The Alluxio job worker's default web UI port.  Accessible at `http://<worker-hostname>:30003` in your browser
+  * Inbound TCP 30003 - The Alluxio job worker's default web UI port. Accessible at `http://<worker-hostname>:30003` in your browser
 
-### RAMFS
+#### Worker Cache
 
-When Alluxio workers store blocks in memory, they use a [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt).
-If not pre-mounted, sudo privileges are required for mounting a RAMFS on Linux when using the Alluxio startup scripts.
-Alternatively, if sudo provilegs are restricted, pre-mount a RAMFS location on Alluxio worker nodes.
+Alluxio Workers need to be configured with storage to use as the caching layere. By default, they set up a
+[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) but this can be modified to use
+a different storage volume. By providing a different directory in `alluxio.worker.tieredstore.level%d.dirs.path`, users 
+can setup Alluxio to use a different directory backed by a different storage medium. For users looking to get started 
+with the defaults, run the command `./bin/alluxio-mount.sh SudoMount workers` with any sudo privileged account. This
+should be run after setting `alluxio.worker.memory.size` in the alluxio-site.properties file and adding all workers to 
+the `conf/workers` file.
 
 ```console
-$ mkdir -p ${TIER_PATH}
-$ mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
+$ ./bin/alluxio-mount.sh SudoMount workers
 ```
 
-## Proxy Requirements
+### Proxy Requirements
 
-There are Alluxio-specific requirements for cluster nodes running the proxy process:
+The proxy process provides a REST based client:
 
 * minimum 1 GB memory
 * Allow the following ports and protocols:
   * Inbound TCP 39999 - Used by clients to access the proxy.
 
-## Remote Logging Server Requirements
+## Additional Requirements
+
+Alluxio can also aggregate logs into a remote server to view in a unified place. Below are the port and resource
+requirements for the Logging Server.
+ 
+### Remote Logging Server Requirements
 
 There are Alluxio-specific requirements for running the remote logging server:
 
