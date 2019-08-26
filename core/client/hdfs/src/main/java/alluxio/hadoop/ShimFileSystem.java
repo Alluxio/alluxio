@@ -13,14 +13,10 @@ package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.annotation.PublicApi;
-import alluxio.exception.PreconditionMessage;
-import alluxio.uri.Authority;
-import alluxio.uri.UnknownAuthority;
 
-import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.Path;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -32,30 +28,42 @@ import java.net.URI;
  * interface. Any program working with Hadoop HDFS can work with Alluxio transparently. Note that
  * the performance of using this API may not be as efficient as the performance of using the Alluxio
  * native API defined in {@link alluxio.client.file.FileSystem}, which this API is built on top of.
+ *
+ * ShimFileSystem supports working with arbitrary schemes that are supported by Alluxio.
  */
 @PublicApi
 @NotThreadSafe
-public final class FileSystem extends AbstractFileSystem {
+public class ShimFileSystem extends AbstractFileSystem {
   /**
-   * Constructs a new {@link FileSystem}.
+   * Constructs a new {@link ShimFileSystem}.
    */
-  public FileSystem() {
+  public ShimFileSystem() {
     super();
   }
 
   /**
-   * Constructs a new {@link FileSystem} instance with a
-   * specified {@link alluxio.client.file.FileSystem} handler for tests.
+   * Constructs a new {@link ShimFileSystem} instance with a specified
+   * {@link alluxio.client.file.FileSystem} handler for tests.
    *
    * @param fileSystem handler to file system
    */
-  public FileSystem(alluxio.client.file.FileSystem fileSystem) {
+  public ShimFileSystem(alluxio.client.file.FileSystem fileSystem) {
     super(fileSystem);
   }
 
   @Override
   public String getScheme() {
-    return Constants.SCHEME;
+    //
+    // {@link #getScheme()} will be used in hadoop 2.x for dynamically loading
+    // filesystems based on scheme. This limits capability of ShimFileSystem
+    // as it's intended to be a forwarder for arbitrary schemes.
+    //
+    // Hadoop currently gives configuration priority over dynamic loading, so
+    // whatever scheme is configured for ShimFileSystem will be attached with a shim.
+    // Below constant will basically hide ShimFileSystem from dynamic loading as
+    // it maps to a bogus scheme.
+    //
+    return Constants.NO_SCHEME;
   }
 
   @Override
@@ -64,29 +72,26 @@ public final class FileSystem extends AbstractFileSystem {
   }
 
   @Override
-  protected void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException {
-    Preconditions.checkArgument(fsUri.getScheme().equals(getScheme()),
-            PreconditionMessage.URI_SCHEME_MISMATCH.toString(), fsUri.getScheme(), getScheme());
-
-    Authority auth = Authority.fromString(fsUri.getAuthority());
-    if (auth instanceof UnknownAuthority) {
-      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
-              + "configured with the authority from %s", auth, fsUri));
-    }
+  protected void validateFsUri(URI fsUri) throws IOException {
+    // No validation for ShimFS.
   }
 
   @Override
   protected String getFsScheme(URI fsUri) {
-    return getScheme();
+    // ShimFS does not know its scheme until FS URI is supplied.
+    // Use base URI's scheme.
+    return fsUri.getScheme();
   }
 
   @Override
   protected AlluxioURI getAlluxioPath(Path path) {
-    return new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    // Sends the full path to Alluxio for master side resolution.
+    return new AlluxioURI(path.toString());
   }
 
   @Override
-  protected Path getFsPath(String fsUriHeader, URIStatus fileStatus) {
-    return new Path(fsUriHeader + fileStatus.getPath());
+  protected Path getFsPath(String fsUri, URIStatus fileStatus) {
+    // ShimFS doesn't expose internal Alluxio path.
+    return new Path(fileStatus.getUfsPath());
   }
 }

@@ -542,6 +542,10 @@ public class BaseFileSystem implements FileSystem {
    */
   private void checkUri(AlluxioURI uri) {
     Preconditions.checkNotNull(uri, "uri");
+    if (!mFsContext.getUriValidationEnabled()) {
+      return;
+    }
+
     if (uri.hasScheme()) {
       String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
           + " the Alluxio Filesystem client.";
