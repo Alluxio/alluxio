@@ -33,6 +33,13 @@ alluxio-emr.sh is a script which can be used to bootstrap an AWS EMR cluster
 with Alluxio. It can download and install Alluxio as well as add properties
 specified as arguments to the script.
 
+By default, if the environment this script executes in does not already contain
+an Alluxio install at /opt/alluxio then it will download, untar, and configure
+the environment at /opt/alluxio. If an install already exists at /opt/alluxio,
+nothing will be installed over it, even if -d is specified.
+
+If a different Alluxio version is desired, see the -d option.
+
   <root-ufs-uri>    (Required) The URI of the root UFS in the Alluxio
                     namespace.
 
@@ -44,19 +51,17 @@ specified as arguments to the script.
                     or mission critical use cases where the backup is relied
                     upon to restore cluster state after a previous shutdown.
 
-  -d                An s3:// or https:// URI which points to an Alluxio
-                    tarball. If this argument isn't specified, it is assumed
-                    that Alluxio is already installed under /opt/alluxio.
-                    Otherwise this script will download and untar the given
-                    tarball and install Alluxio at /opt/alluxio if an Alluxio
-                    installation doesn't already exist at that location.
+  -d                An s3:// or http(s):// URI which points to an Alluxio
+                    tarball. This script will download and untar the
+                    Alluxio tarball and install Alluxio at /opt/alluxio if an
+                    Alluxio installation doesn't already exist at that location.
 
-  -f                An s3:// or https:// URI to any remote file. This property
+  -f                An s3:// or http(s):// URI to any remote file. This property
                     can be specified multiple times. Any file specified through
                     this property will be downloaded and stored with the same
                     name to /opt/alluxio/conf/
 
-  -i                An s3:// or https:// URI which represent the URI of a
+  -i                An s3:// or http(s):// URI which represents the URI of a
                     previous Alluxio journal backup. If supplied, the backup
                     will be downloaded, and upon Alluxio startup, the Alluxio
                     master will read and restore the backup.
