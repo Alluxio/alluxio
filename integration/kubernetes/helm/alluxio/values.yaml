@@ -60,6 +60,9 @@ volumes:
     journal:
       storageClass: "standard"
       size: 1Gi
+    metastore:
+      medium: ""
+      size: 1Gi
   worker:
     domainHostPath: "/tmp/alluxio-domain"
     ramdisk:
@@ -77,3 +80,10 @@ volumes:
 #     alluxio-hdfs-config: hdfsConfig
 #   worker:
 #     alluxio-hdfs-config: hdfsConfig
+# Metastore Example:
+# volumes:
+#   master:
+#     metastore:
+#       medium: ""
+#       size: 1Gi
+#       mountPath: /metastore

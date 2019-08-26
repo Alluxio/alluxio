@@ -50,4 +50,7 @@ RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.securi
 
 USER ${ALLUXIO_UID}
 
+# add the following for native libraries needed by rocksdb
+ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
+
 ENTRYPOINT ["/entrypoint.sh"]
