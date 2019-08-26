@@ -1,59 +1,127 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli;
 
+/**
+ * command object for reading yaml files.
+ */
 public class CommandReader {
-    private String Name = null;
-    private  String Usage = null;
-    private String Description = null;
-    private String Example = null;
-    private  String SubCommands = null;
-    private String Options = null;
+  private String mName = null;
+  private  String mUsage = null;
+  private String mDescription = null;
+  private String mExample = null;
+  private  String mSubCommands = null;
+  private String[] mOptions = null;
 
-    public void setName(String name) {
-        this.Name = name;
-    }
-    public String getName() {
-        return this.Name;
-    }
+  /**
+   *
+   * @param name of command
+   */
+  public void setName(String name) {
+    mName = name;
+  }
 
-    public void setUsage(String Usage) {
-        this.Usage = Usage;
-    }
-    public String getUsage() {
-        return this.Usage;
-    }
+  /**
+   *
+   * @return command name
+   */
+  public String getName() {
+    return this.mName;
+  }
 
-    public void setDescription(String Description) {
-        this.Description = Description;
-    }
-    public String getDescription() {
-        return this.Description;
-    }
+  /**
+   *
+   * @param Usage of command
+   */
+  public void setUsage(String Usage) {
+    mUsage = Usage;
+  }
 
-    public void setExample(String Example) {
-        this.Example = Example;
-    }
-    public  String getExample(){
-        return this.Example;
-    }
+  /**
+   *
+   * @return command usage
+   */
+  public String getUsage() {
+    return this.mUsage;
+  }
 
-    public void setSubCommands(String subCommands) {
-        this.SubCommands = subCommands;
-    }
-    public String getSubCommands(){
-        return this.SubCommands;
-    }
+  /**
+   *
+   * @param Description of command
+   */
+  public void setDescription(String Description) {
+    mDescription = Description;
+  }
 
-    public void setOptions(String options) {
-        this.Options = options;
-    }
-    public String getOptions(){
-        return this.Options;
-    }
+  /**
+   *
+   * @return command description
+   */
+  public String getDescription() {
+    return this.mDescription;
+  }
 
-    @Override
-    public String toString(){
-        return "name: "+ getName() +
-                "\nusage: "+ getUsage() +
-                "\ndescription: |\n  " + getDescription();
-    }
+  /**
+   *
+   * @param Example of command
+   */
+  public void setExample(String Example) {
+    mExample = Example;
+  }
+
+  /**
+   *
+   * @return example command
+   */
+  public  String getExample() {
+    return this.mExample;
+  }
+
+  /**
+   *
+   * @param subCommands of command
+   */
+  public void setSubCommands(String subCommands) {
+    mSubCommands = subCommands;
+  }
+
+  /**
+   *
+   * @return command subcommands
+   */
+  public String getSubCommands() {
+    return this.mSubCommands;
+  }
+
+  /**
+   *
+   * @param options of command
+   */
+  public void setOptions(String[] options) {
+    mOptions = options;
+  }
+
+  /**
+  *
+  * @return command options
+  */
+  public String[] getOptions() {
+    return this.mOptions;
+  }
+
+  @Override
+  public String toString() {
+    return "name: " + getName()
+            + "\nusage: " + getUsage()
+            + "\ndescription: |\n  " + getDescription();
+  }
 }

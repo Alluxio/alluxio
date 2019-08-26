@@ -23,6 +23,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.File;
+
 /**
  * Unit tests for {@link Command}.
  */
@@ -35,8 +37,7 @@ public final class CommandTest {
 
   private final class TestCommand implements Command {
 
-    public TestCommand() {
-    }
+    public TestCommand() {}
 
     @Override
     public String getCommandName() {
@@ -50,7 +51,8 @@ public final class CommandTest {
 
     @Override
     public String getExample() {
-      return "Examples"; }
+      return "Examples";
+    }
 
     @Override
     public void validateArgs(CommandLine cl) throws InvalidArgumentException {
@@ -63,7 +65,13 @@ public final class CommandTest {
     }
 
     @Override
-    public String getDocumentation() { return "documentation"; }
+    public String getDocumentation() {
+      return "documentation";
+    }
+
+    @Override
+    public void writeDocumentation(File file){
+    }
 
     @Override
     public int run(CommandLine cl) {

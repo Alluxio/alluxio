@@ -4,7 +4,7 @@ description: |
   The `updateMount` command updates options for a mount point while keeping the Alluxio metadata under the path.
 example: |
   ```console
-    $ ./bin/alluxio fs upadateMount /s3/data
+  $ ./bin/alluxio fs upadateMount /s3/data
 
-    $ ./bin/alluxio fs upadateMount --readonly /s3/data
-    ```
+  $ ./bin/alluxio fs upadateMount --readonly /s3/data
+  ```

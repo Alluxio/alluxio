@@ -2,9 +2,9 @@ name: tail
 usage: tail [-c <bytes>] <path>
 description: |
   The `tail` command outputs the last 1 KB of data in a file to the console.
-    Using the `-c [bytes]` option will print the last n bytes of data to the console.
+  Using the `-c [bytes]` option will print the last n bytes of data to the console.
 example: |
   For example, `tail` can be used to verify the output of a job is in the expected format or contains expected values.
-    ```console
-    $ ./bin/alluxio fs tail /output/part-00000
-    ```
+  ```console
+  $ ./bin/alluxio fs tail /output/part-00000
+  ```

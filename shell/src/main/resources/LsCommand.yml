@@ -2,27 +2,27 @@ name: ls
 usage: ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path>
 description: |
   The `ls` command lists all the immediate children in a directory and displays the file size,
-    last modification time, and in memory status of the files. Using `ls` on a file will only display
-    the information for that specific file.
+  last modification time, and in memory status of the files. Using `ls` on a file will only display
+  the information for that specific file.
 
-    The `ls` command will also load the metadata for any file or immediate children of a directory from the
-    under storage system to Alluxio namespace if it does not exist in Alluxio. `ls` queries the under storage system
-    for any file or directory matching the given path and creates a mirror of the file in Alluxio backed by that file.
-    Only the metadata, such as the file name and size, are loaded this way and no data transfer occurs.
+  The `ls` command will also load the metadata for any file or immediate children of a directory from the
+  under storage system to Alluxio namespace if it does not exist in Alluxio. `ls` queries the under storage system
+  for any file or directory matching the given path and creates a mirror of the file in Alluxio backed by that file.
+  Only the metadata, such as the file name and size, are loaded this way and no data transfer occurs.
 example: |
   For example, ls can be used to browse the file system.
-    ```console
-    $ ./bin/alluxio fs mount /s3/data s3://data-bucket/
-    # Loads metadata for all immediate children of /s3/data and lists them.
-    $ ./bin/alluxio fs ls /s3/data/
+  ```console
+  $ ./bin/alluxio fs mount /s3/data s3://data-bucket/
+  # Loads metadata for all immediate children of /s3/data and lists them.
+  $ ./bin/alluxio fs ls /s3/data/
 
-    # Forces loading metadata.
-    $ aws s3 cp /tmp/somedata s3://data-bucket/somedata
-    $ ./bin/alluxio fs ls -f /s3/data
+  # Forces loading metadata.
+  $ aws s3 cp /tmp/somedata s3://data-bucket/somedata
+  $ ./bin/alluxio fs ls -f /s3/data
 
-    # Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
-    $ aws s3 rm s3://data-bucket/somedata
-    $ ./bin/alluxio fs ls -f /s3/data
+  # Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
+  $ aws s3 rm s3://data-bucket/somedata
+  $ ./bin/alluxio fs ls -f /s3/data
 
-    $ ./bin/alluxio fs ls -Rf /
-    ```
+  $ ./bin/alluxio fs ls -Rf /
+  ```

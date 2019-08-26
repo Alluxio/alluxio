@@ -2,10 +2,10 @@ name: unsetTtl
 usage: unsetTtl <path>
 description: |
   The `unsetTtl` command will remove the TTL attributes of a file or directory in Alluxio.
-    This is a metadata operation and will not evict or store blocks in Alluxio. The TTL of a
-    file can later be reset with `setTtl.`
+  This is a metadata operation and will not evict or store blocks in Alluxio. The TTL of a
+  file can later be reset with `setTtl.`
 example: |
   For example, `unsetTtl` can be used if a regularly managed file requires manual management.
-    ```console
-    $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
-    ```
+  ```console
+  $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
+  ```

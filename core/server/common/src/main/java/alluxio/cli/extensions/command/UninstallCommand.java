@@ -26,6 +26,7 @@ import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,9 +66,12 @@ public final class UninstallCommand implements Command {
   }
 
   @Override
-  public String getExample(){
+  public String getExample() {
     return null;
   }
+
+  @Override
+  public void writeDocumentation(File file){}
 
   @Override
   public int run(CommandLine cl) {

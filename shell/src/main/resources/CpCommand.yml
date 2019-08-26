@@ -3,9 +3,9 @@ usage: cp [-R] [--buffersize] <bytes> <src> <dst>
 description: |
   The `cp` command copies a file or directory in the Alluxio file system or between the local file system and Alluxio file system.
 
-    Scheme `file` indicates the local file system whereas scheme `alluxio` or no scheme indicates the Alluxio file system.
+  Scheme `file` indicates the local file system whereas scheme `alluxio` or no scheme indicates the Alluxio file system.
 example: |
   For example, `cp` can be used to copy files between under storage systems.
-    ```console
-    $ ./bin/alluxio fs cp /hdfs/file1 /s3/
-    ```
+  ```console
+  $ ./bin/alluxio fs cp /hdfs/file1 /s3/
+  ```

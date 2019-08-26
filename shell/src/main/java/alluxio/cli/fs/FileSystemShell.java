@@ -82,6 +82,7 @@ public final class FileSystemShell extends AbstractShell {
     return "fs";
   }
 
+  //Allows commands to be loaded to generate documentation
   @Override
   public Map<String, Command> loadCommands() {
     return FileSystemShellUtils

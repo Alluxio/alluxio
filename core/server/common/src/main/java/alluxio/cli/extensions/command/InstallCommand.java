@@ -65,9 +65,12 @@ public final class InstallCommand implements Command {
   }
 
   @Override
-  public String getExample(){
+  public String getExample() {
     return null;
   }
+
+  @Override
+  public void writeDocumentation(File file){}
 
   @Override
   public int run(CommandLine cl) {

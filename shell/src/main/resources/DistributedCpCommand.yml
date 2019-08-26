@@ -4,5 +4,5 @@ description: |
   The `distributedCp` command copies a file or directory in parallel at file level.
 example: |
   ```console
-    $ ./bin/alluxio fs distributedCp /hdfs/file1 /s3/
-    ```
+  $ ./bin/alluxio fs distributedCp /hdfs/file1 /s3/
+  ```

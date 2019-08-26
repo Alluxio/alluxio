@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.CommandReader;
 import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -20,16 +19,12 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.MountPOptions;
 import alluxio.wire.MountPointInfo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 

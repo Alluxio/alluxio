@@ -2,12 +2,12 @@ name: mv
 usage: mv <src> <dst>
 description: |
   The `mv` command moves a file or directory to another path in Alluxio.
-    The destination path must not exist or be a directory. If it is a directory,
-    the file or directory will be placed as a child of the directory.
-    `mv` is purely a metadata operation and does not affect the data blocks of the file.
-    `mv` cannot be done between mount points of different under storage systems.
+  The destination path must not exist or be a directory. If it is a directory,
+  the file or directory will be placed as a child of the directory.
+  `mv` is purely a metadata operation and does not affect the data blocks of the file.
+  `mv` cannot be done between mount points of different under storage systems.
 example: |
   For example, `mv` can be used to re-organize your files.
-    ```console
-    $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
-    ```
+  ```console
+  $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
+  ```

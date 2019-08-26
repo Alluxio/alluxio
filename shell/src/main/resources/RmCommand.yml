@@ -2,11 +2,11 @@ name: rm
 usage: rm [-R] [-U] [--alluxioOnly] <path>
 description: |
   The `rm` command removes a file from Alluxio space and the under storage system.
-    The file will be unavailable immediately after this command returns, but the actual data may be deleted a while later.
+  The file will be unavailable immediately after this command returns, but the actual data may be deleted a while later.
 example: |
   ```console
-    # Remove a file from Alluxio space and the under storage system
-    $ ./bin/alluxio fs rm /tmp/unused-file
-    # Remove a file from Alluxio space only
-    $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
-    ```
+  # Remove a file from Alluxio space and the under storage system
+  $ ./bin/alluxio fs rm /tmp/unused-file
+  # Remove a file from Alluxio space only
+  $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
+  ```

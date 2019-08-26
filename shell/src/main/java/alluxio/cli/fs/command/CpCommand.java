@@ -14,7 +14,6 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
-import alluxio.cli.CommandReader;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -32,8 +31,6 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.util.io.PathUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
@@ -51,7 +48,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -91,7 +87,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
                   .numberOfArgs(1)
                   .argName("threads")
                   .type(Number.class)
-                  .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
+                  .desc("Number of threads used to copy files in parallel,"
+                          + "default value is CPU cores * 2")
                   .build();
   public static final Option BUFFER_SIZE_OPTION =
           Option.builder()
@@ -483,7 +480,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     } else {
       if (!recursive) {
         throw new IOException(
-                srcPath.getPath() + " is a directory, to copy it please use \"command -R <src> <dst>\"");
+                srcPath.getPath() + " is a directory, to copy it please use"
+                        + "\"command -R <src> <dst>\"");
       }
 
       List<URIStatus> statuses;
@@ -731,7 +729,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
           File subDstFile = new File(dstFile.getAbsolutePath(), status.getName());
           copyToLocal(
                   new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
-                  new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), subDstFile.getPath()));
+                  new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
+                          subDstFile.getPath()));
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }
@@ -783,6 +782,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       tmpDst.delete();
     }
   }
+
   private static boolean isAlluxio(String scheme) {
     return Constants.SCHEME.equals(scheme);
   }

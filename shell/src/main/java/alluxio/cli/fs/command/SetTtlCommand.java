@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
@@ -21,15 +20,11 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.TtlAction;
 import alluxio.util.CommonUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 

@@ -14,19 +14,18 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.Command;
 import alluxio.cli.CommandReader;
-import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ConfigurationUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +33,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -47,6 +47,7 @@ public abstract class AbstractFileSystemCommand implements Command {
   protected FileSystem mFileSystem;
   protected FileSystemContext mFsContext;
 
+  private static final ObjectMapper OBJECTMAPPER = new ObjectMapper(new YAMLFactory());
   // The FilesystemContext contains configuration information and is also used to instantiate a
   // filesystem client, if null - load default properties
   protected AbstractFileSystemCommand(@Nullable FileSystemContext fsContext) {
@@ -107,7 +108,7 @@ public abstract class AbstractFileSystemCommand implements Command {
     }
   }
 
-  protected URL getCommandFile(Class c){
+  protected URL getCommandFile(Class c) {
     return c.getClassLoader().getResource(String.format("%s.yml", c.getSimpleName()));
   }
 
@@ -127,7 +128,7 @@ public abstract class AbstractFileSystemCommand implements Command {
   }
 
   @Override
-  public String getExample(){
+  public String getExample() {
     return getDocs().getExample();
   }
 
@@ -136,15 +137,36 @@ public abstract class AbstractFileSystemCommand implements Command {
     return getDocs().toString();
   }
 
-  private CommandReader getDocs(){
-    ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-    objectMapper.findAndRegisterModules();
+  private CommandReader getDocs() {
+    OBJECTMAPPER.findAndRegisterModules();
     URL u = getCommandFile(this.getClass());
     try {
-      CommandReader command = objectMapper.readValue(new File(u.getFile()), CommandReader.class);
-      return command;
+      CommandReader reader = OBJECTMAPPER.readValue(new File(u.getFile()), CommandReader.class);
+      reader.setOptions(setOptions());
+      return reader;
     } catch (IOException e) {
-      throw new RuntimeException("Couldn't get fs command docs", e);
+      throw new RuntimeException("Could not get fsadmin command docs", e);
     }
   }
+
+  @Override
+  public void writeDocumentation(File file) throws IOException {
+    OBJECTMAPPER.writeValue(file, getDocs());
+  }
+
+  private String[] setOptions() {
+    int n = 0;
+    String[] opt = new String[this.getOptions().getOptions().size()];
+    for (Option commandOpt:this.getOptions().getOptions()) {
+      if (commandOpt.getOpt() == null) {
+        opt[n] = "`--" + commandOpt.getLongOpt() + "` ";
+      } else {
+        opt[n] = "`-" + commandOpt.getOpt() + "` ";
+      }
+      opt[n] += commandOpt.getDescription();
+      n++;
+    }
+    return opt;
+  }
 }
+

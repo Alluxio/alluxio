@@ -2,10 +2,10 @@ name: unpin
 usage: unpin <path>
 description: |
   The `unpin` command unmarks a file or directory in Alluxio as pinned.
-    This is a metadata operation and will not evict or delete any data blocks.
-    Once a file is unpinned, its data blocks can be evicted from the various Alluxio workers containing the block.
+  This is a metadata operation and will not evict or delete any data blocks.
+  Once a file is unpinned, its data blocks can be evicted from the various Alluxio workers containing the block.
 example: |
   For example, `unpin` can be used when the administrator knows there is a change in the data access pattern.
-    ```console
-    $ ./bin/alluxio fs unpin /data/yesterday/join-table
-    ```
+  ```console
+  $ ./bin/alluxio fs unpin /data/yesterday/join-table
+  ```

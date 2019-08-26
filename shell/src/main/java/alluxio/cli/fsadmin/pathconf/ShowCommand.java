@@ -154,7 +154,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getExample(){
+  public String getExample() {
     return null;
   }
 }

@@ -2,10 +2,10 @@ name: chmod
 usage: chmod [-R] <mode> <path>
 description: |
   The `chmod` command changes the permission of file or directory in Alluxio.
-    Currently, octal mode is supported: the numerical format accepts three octal
-    digits which refer to permissions for the file owner, the group and other users.
+  Currently, octal mode is supported: the numerical format accepts three octal
+  digits which refer to permissions for the file owner, the group and other users.
 example: |
   For example, `chown` can be used as a quick way to change the owner of file.
-    ```console
-    $ ./bin/alluxio fs chmod 755 /input/file1
-    ```
+  ```console
+  $ ./bin/alluxio fs chmod 755 /input/file1
+  ```

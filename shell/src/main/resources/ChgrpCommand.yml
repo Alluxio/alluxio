@@ -2,11 +2,11 @@ name: chgrp
 usage: chgrp [-R] <group> <path>
 description: |
   The `chgrp` command changes the group of the file or directory in Alluxio.
-    Alluxio supports file authorization with Posix file permission. Group is an authorizable
-    entity in Posix file permissions model. The file owner or super user can execute this command
-    to change the group of the file or directory.
+   Alluxio supports file authorization with Posix file permission. Group is an authorizable
+   entity in Posix file permissions model. The file owner or super user can execute this command
+   to change the group of the file or directory.
 example: |
   For example, `chgrp` can be used as a quick way to change the group of file.
-    ```console
-      $ ./bin/alluxio fs chgrp alluxio-group-new /input/file1
-    ```
+  ```console
+  $ ./bin/alluxio fs chgrp alluxio-group-new /input/file1
+  ```

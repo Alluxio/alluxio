@@ -104,7 +104,7 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getExample(){
+  public String getExample() {
     return null;
   }
 

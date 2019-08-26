@@ -4,5 +4,6 @@ description: |
   The `leader` command prints the current Alluxio leading master hostname.
 example: |
   ```console
-    $ ./bin/alluxio fs leader
-    ```
+  $ ./bin/alluxio fs leader
+  localhost
+  ```

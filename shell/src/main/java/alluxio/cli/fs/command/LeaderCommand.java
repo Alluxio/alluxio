@@ -11,7 +11,6 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -22,14 +21,9 @@ import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;

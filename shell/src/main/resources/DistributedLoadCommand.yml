@@ -4,5 +4,5 @@ description: |
   The `distributedLoad` command loads a file or directory in Alluxio space, making it resident in memory.
 example: |
   ```console
-    $ ./bin/alluxio fs distributedLoad /file1
-    ```
+  $ ./bin/alluxio fs distributedLoad /file1
+  ```

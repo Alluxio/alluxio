@@ -20,9 +20,13 @@ Usage: `{{cmd.usage}}`
   
 {{cmd.description}}
 
-{% if cmd.options %}
+{% if cmd.options.size > 0 %}
+
 Options:
-{{cmd.options}}
+{% for opt in cmd.options %}
+- {{opt}}
+{% endfor %}
+
 {% endif %}
 
 {{cmd.example}}
@@ -43,9 +47,13 @@ Usage: `{{adminCmd.usage}}`
   
 {{adminCmd.description}}
 
-{% if adminCmd.options %}
+{% if adminCmd.options.size > 0 %}
+
 Options:
-{{adminCmd.options}}
+{% for opt in adminCmd.options %}
+- {{opt}}
+{% endfor %}
+
 {% endif %}
 
 {% if adminCmd.subCommands %}

@@ -2,20 +2,20 @@ name: doctor
 usage: doctor [category]
 description: |
   The `doctor` command gives recommendations and warnings.
-    It can diagnose inconsistent configurations across different Alluxio nodes
-    as well as alert the operator when worker storage volumes are missing.
+  It can diagnose inconsistent configurations across different Alluxio nodes
+  as well as alert the operator when worker storage volumes are missing.
 
-    Where `[category]` is an optional argument. If no arguments are passed in,
-    all categories of errors/warnings will be printed out.
+  Where `[category]` is an optional argument. If no arguments are passed in,
+  all categories of errors/warnings will be printed out.
 example: |
   ```console
-    # shows server-side configuration errors and warnings
-    $ ./bin/alluxio fsadmin doctor configuration
-    # shows worker storage health errors and warnings
-    $ ./bin/alluixo fsadmin doctor storage
-    ```
+  # shows server-side configuration errors and warnings
+  $ ./bin/alluxio fsadmin doctor configuration
+  # shows worker storage health errors and warnings
+  $ ./bin/alluixo fsadmin doctor storage
+  ```
 subCommands: |
   - Configuration: Show server-side configuration errors/warnings
-      - Usage: `configuration`
-    - Storage: Show worker lost storage warnings
-      - Usage: `storage`
+    - Usage: `configuration`
+  - Storage: Show worker lost storage warnings
+    - Usage: `storage`

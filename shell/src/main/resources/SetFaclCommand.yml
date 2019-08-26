@@ -3,14 +3,14 @@ usage: setfacl [-d] [-R] [--set | -m | -x <acl_entries> <path>] | [-b | -k <path
 description: |
   The `setfacl` command modifies the access control list associated with a specified file or directory.
 
-    The `-R` option applies operations to all files and directories recursively. The `-m`
-    option modifies the ACL by adding/overwriting new entries. The `-x` option removes specific ACL entries.
-    The `-b` option removes all ACL entries, except for the base entries. The `-k` option
-    removes all the default ACL entries.
+  The `-R` option applies operations to all files and directories recursively. The `-m`
+  option modifies the ACL by adding/overwriting new entries. The `-x` option removes specific ACL entries.
+  The `-b` option removes all ACL entries, except for the base entries. The `-k` option
+  removes all the default ACL entries.
 example: |
   For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
-    ```console
-    $ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
+  ```console
+  $ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
 
-    $ ./bin/alluxio fs setfacl -b /testdir/testfile
-    ```
+  $ ./bin/alluxio fs setfacl -b /testdir/testfile
+  ```

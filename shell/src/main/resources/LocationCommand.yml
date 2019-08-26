@@ -4,6 +4,7 @@ description: |
   The `location` command displays the list of hosts storing the specified file.
 example: |
   For example, `location` can be used to debug data locality when running jobs using a compute framework.
-    ```console
-    $ ./bin/alluxio fs location /data/2015/logs-1.txt
-    ```
+  ```console
+  $ ./bin/alluxio fs location /LICENSE
+  /LICENSE with file id 33554431 is on nodes:
+  ```

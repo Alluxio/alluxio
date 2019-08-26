@@ -4,8 +4,8 @@ description: |
   The `test` command tests a property of a path, returning `0` if the property is true or `1` otherwise.
 example: |
   Examples:
-    ```console
-    $ ./bin/alluxio fs test -d /someDir
+  ```console
+  $ ./bin/alluxio fs test -d /someDir
 
-    $./bin/alluxio fs test -f /LICENSE
-    ```
+  $./bin/alluxio fs test -f /LICENSE
+  ```

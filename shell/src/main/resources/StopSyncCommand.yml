@@ -4,6 +4,6 @@ description: |
   The `stopSync` command stops the automatic syncing process of the specified path.
 example: |
   ```console
-    $ ./bin/alluxio fs stopSync /path/file
-    ```
+  $ ./bin/alluxio fs stopSync /path/file
+  ```
 

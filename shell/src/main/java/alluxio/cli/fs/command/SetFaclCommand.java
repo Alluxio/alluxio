@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.CommandReader;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -21,15 +20,11 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.security.authorization.AclEntry;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -88,6 +83,7 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
   public SetFaclCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
+
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION).addOption(SET_OPTION).addOption(MODIFY_OPTION)

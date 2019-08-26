@@ -2,13 +2,13 @@ name: help
 usage: help [<command>]
 description: |
   The `help` command prints the help message for a given fs subcommand.
-    If the given command does not exist, it prints help messages for all supported subcommands.
+  If the given command does not exist, it prints help messages for all supported subcommands.
 example: |
   Examples:
-    ```console
-    # Print all subcommands
-    $ ./bin/alluxio fs help
+  ```console
+  # Print all subcommands
+  $ ./bin/alluxio fs help
 
-    # Print help message for ls
-    $ ./bin/alluxio fs help ls
-    ```
+  # Print help message for ls
+  $ ./bin/alluxio fs help ls
+  ```
