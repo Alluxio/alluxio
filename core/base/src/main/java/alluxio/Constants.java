@@ -57,6 +57,7 @@ public final class Constants {
 
   public static final long UNKNOWN_SIZE = -1;
 
+  public static final String NO_SCHEME = "alluxio-noop";
   public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
 

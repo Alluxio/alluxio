@@ -1362,6 +1362,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
+  public AlluxioURI translateUri(String uriStr) throws InvalidPathException {
+    AlluxioURI uri = new AlluxioURI(uriStr);
+    // Scheme-less URIs are regarded as Alluxio URI.
+    if (uri.getScheme() == null || uri.getScheme().equals(Constants.SCHEME)) {
+      return uri;
+    } else {
+      // Reverse lookup mount table to find mount point that contains the path.
+      return mMountTable.reverseLookup(uriStr);
+    }
+  }
+
+  @Override
   public MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException {
     if (!mMountTable.isMountPoint(path)) {
       throw new InvalidPathException(

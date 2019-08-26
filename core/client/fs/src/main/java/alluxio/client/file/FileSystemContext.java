@@ -144,6 +144,9 @@ public final class FileSystemContext implements Closeable {
    */
   private volatile FileSystemContextReinitializer mReinitializer;
 
+  /** Whether to do URI scheme validation for file systems using this context.  */
+  private boolean mUriValidationEnabled = true;
+
   /**
    * Creates a {@link FileSystemContext} with a null subject.
    *
@@ -231,6 +234,7 @@ public final class FileSystemContext implements Closeable {
     if (mMetricsEnabled) {
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
+    mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
   /**
@@ -384,6 +388,13 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized InetSocketAddress getMasterAddress() throws UnavailableException {
     return mMasterClientContext.getMasterInquireClient().getPrimaryRpcAddress();
+  }
+
+  /**
+   * @return {@code true} if URI validation is enabled
+   */
+  public synchronized boolean getUriValidationEnabled() {
+    return mUriValidationEnabled;
   }
 
   private FileSystemMasterClient acquireMasterClient() {
