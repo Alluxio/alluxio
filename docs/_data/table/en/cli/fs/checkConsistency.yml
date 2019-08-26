@@ -1,0 +1,21 @@
+---
+name: "checkConsistency"
+usage: "checkConsistency [-r] [-t|--threads <threads>] <Alluxio path>"
+example: "For example, `checkConsistency` can be used to periodically validate the\
+  \ integrity of the namespace.\n```console\n# List each inconsistent file or directory\n\
+  $ ./bin/alluxio fs checkConsistency /\n\n# Repair the inconsistent files or directories\n\
+  $ ./bin/alluxio fs checkConsistency -r /\n```"
+subCommands: null
+description: "The `checkConsistency` command compares Alluxio and under storage metadata\
+  \ for a given path.\nIf the path is a directory, the entire subtree will be compared.\
+  \ The command returns a message listing\neach inconsistent file or directory. The\
+  \ system administrator should reconcile the differences of these\nfiles at their\
+  \ discretion. To avoid metadata inconsistencies between Alluxio and under storages,\
+  \ design\nyour systems to modify files and directories through Alluxio and avoid\
+  \ directly modifying the under storage.\n\nNOTE: This command requires a read lock\
+  \ on the subtree being checked, meaning writes and updates to files or\ndirectories\
+  \ in the subtree cannot be completed until this command completes.\n"
+options:
+- "`-r` repair inconsistent files"
+- "`-t` Number of threads used when repairing consistency.Defaults to <number of cores>\
+  \ * 2.This option has no effect if -r is not specified"

@@ -1,0 +1,9 @@
+---
+name: "getCapacityBytes"
+usage: "getCapacityBytes"
+example: "For example, `getCapacityBytes` can be used to verify if your cluster is\
+  \ set up as expected.\n```console\n$ ./bin/alluxio fs getCapacityBytes\n```"
+subCommands: null
+description: "The `getCapacityBytes` command returns the maximum number of bytes Alluxio\
+  \ is configured to store.\n"
+options: []

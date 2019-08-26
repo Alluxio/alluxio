@@ -74,9 +74,4 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return "Prints the hostname of the job master service leader.";
   }
-
-  @Override
-  public String getDocumentation() {
-    return null;
-  }
 }

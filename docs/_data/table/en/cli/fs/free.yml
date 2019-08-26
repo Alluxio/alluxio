@@ -1,0 +1,20 @@
+---
+name: "free"
+usage: "free [-f] <path>"
+example: "For example, `free` can be used to manually manage Alluxio’s data caching.\n\
+  ```console\n$ ./bin/alluxio fs free /unused/data\n\n$ ./bin/alluxio fs pin /tmp/data\n\
+  $ ./bin/alluxio fs free -f /tmp/data\n```"
+subCommands: null
+description: "The `free` command sends a request to the master to evict all blocks\
+  \ of a file from the Alluxio workers.\nIf the argument to `free` is a directory,\
+  \ it will recursively `free` all files. This request is not guaranteed\nto take\
+  \ effect immediately, as readers may be currently using the blocks of the file.\
+  \ `free` will return immediately\nafter the request is acknowledged by the master.\
+  \ Note that files must be already persisted in under storage before\nbeing freed\
+  \ or the free command will fail. Any pinned files cannot be freed unless -f option\
+  \ is specified.\nThe `free` command does not delete any data from the under storage\
+  \ system, only removing the blocks of those files\nin Alluxio space to reclaim space.\
+  \ Metadata is not affected by this operation; a freed file will still show up if\
+  \ an `ls` command is run.\n"
+options:
+- "`-f` force to free files even pinned"

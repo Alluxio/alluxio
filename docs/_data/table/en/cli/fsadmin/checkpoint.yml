@@ -1,0 +1,10 @@
+---
+name: "checkpoint"
+usage: "checkpoint"
+example: "```console\n$ ./bin/alluxio fsadmin checkpoint\n```"
+subCommands: null
+description: "creates a `checkpoint` in the primary master journal system. This command\n\
+  is mainly used for debugging and to avoid master journal logs\nfrom growing unbounded.\
+  \ Checkpointing requires a pause in master metadata changes,\nso use this command\
+  \ sparingly to avoid interfering with other users of the system.\n"
+options: []

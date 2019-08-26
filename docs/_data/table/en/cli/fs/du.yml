@@ -1,0 +1,31 @@
+---
+name: "du"
+usage: "du [-h|-s|--memory] <path>"
+example: "```console\n# Shows the size information of all the files in root directory\n\
+  $ ./bin/alluxio fs du /\nFile Size     In Alluxio       Path\n1337          0 (0%)\
+  \           /alluxio-site.properties\n4352          4352 (100%)      /testFolder/NOTICE\n\
+  26847         0 (0%)           /testDir/LICENSE\n2970          2970 (100%)     \
+  \ /testDir/README.md\n\n# Shows the in memory size information\n$ ./bin/alluxio\
+  \ fs du --memory /\nFile Size     In Alluxio       In Memory        Path\n1337 \
+  \         0 (0%)           0 (0%)           /alluxio-site.properties\n4352     \
+  \     4352 (100%)      4352 (100%)      /testFolder/NOTICE\n26847         0 (0%)\
+  \           0 (0%)           /testDir/LICENSE\n2970          2970 (100%)      2970\
+  \ (100%)      /testDir/README.md\n\n# Shows the aggregate size information in human-readable\
+  \ format\n./bin/alluxio fs du -h -s /\nFile Size     In Alluxio       In Memory\
+  \        Path\n34.67KB       7.15KB (20%)     7.15KB (20%)     /\n\n# Can be used\
+  \ to detect which folders are taking up the most space\n./bin/alluxio fs du -h -s\
+  \ /\\\\*\nFile Size     In Alluxio       Path\n1337B         0B (0%)          /alluxio-site.properties\n\
+  29.12KB       2970B (9%)       /testDir\n4352B         4352B (100%)     /testFolder\n\
+  ```"
+subCommands: null
+description: "The `du` command outputs the total size and in Alluxio size of files\
+  \ and folders.\n\nIf a directory is specified, it will display the total size and\
+  \ in Alluxio size of all files in this directory.\nIf the `-s` option is used, it\
+  \ will display the aggregate summary of file lengths being displayed.\n\nBy default,\
+  \ `du` prints the size in bytes. If the `-h` option is used,\nit will print sizes\
+  \ in human readable format (e.g., 1KB 234MB 2GB).\n\nThe `--memory` option will\
+  \ print the in memory size as well.\n"
+options:
+- "`--memory` display the in memory size and in memory percentage"
+- "`-h` print sizes in human readable format (e.g., 1KB 234MB 2GB)"
+- "`-s` display the aggregate summary of file lengths being displayed"

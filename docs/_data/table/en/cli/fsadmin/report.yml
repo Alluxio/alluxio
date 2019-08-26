@@ -1,0 +1,31 @@
+---
+name: "report"
+usage: "report [category] [category args]"
+example: "```console\n$ ./bin/alluxio fsadmin report\nAlluxio cluster summary:\n \
+  \   Master Address: localhost:19998\n    Zookeeper Enabled: false\n    Live Workers:\
+  \ 1\n    Lost Workers: 0\n    Total Capacity: 10.45GB\n    Used Capacity: 0B\n \
+  \   (only a subset of the results is shown)\n\n# Capacity information of all workers\n\
+  $ ./bin/alluxio fsadmin report capacity\n# Capacity information of live workers\n\
+  $ ./bin/alluxio fsadmin report capacity -live\n# Capacity information of specified\
+  \ workers\n$ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1\n\
+  \n$ ./bin/alluxio fsadmin report metrics\n\n$ ./bin/alluxio fsadmin report ufs\n\
+  Alluxio under storage system information:\nhdfs://localhost:9000/ on / (hdfs, capacity=-1B,\
+  \ used=-1B, not read-only, not shared, properties={})\n\n$ ./bin/alluxio fsadmin\
+  \ ufs --mode readOnly hdfs://ns\n```\n"
+subCommands: "- `capacity` will report Alluxio cluster capacity information for different\
+  \ subsets of workers:\n  - Usage: `capacity [-live] [-lost] [-workers <worker_names>]`\n\
+  - `metrcis` will report the metrics information of an Alluxio cluster\n  - Usage:\
+  \ `metrics`\n- `ufs` will report all the mounted under storage system information\
+  \ of Alluxio cluster.\n  - Usage: `ufs`\n"
+description: "Report Alluxio running cluster information.\nWhere `[category]` is an\
+  \ optional argument. If no arguments are passed in,\nsummary information will be\
+  \ printed out.\n`[category]` can be one of the following:\n  - `capacity`      \
+  \   worker capacity information\n  - `metrics`          metrics information\n  -\
+  \ `summary`          cluster summary\n  - `ufs`              under storage system\
+  \ information\n\nIf no argument is passed in, `report` will report the leading master,\
+  \ worker number,\nand capacity information.\n"
+options:
+- "`-h` print help information."
+- "`-live` show capacity information of live workers."
+- "`-lost` show capacity information of lost workers."
+- "`-workers` show capacity information of specified workers."

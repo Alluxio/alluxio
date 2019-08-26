@@ -1,0 +1,10 @@
+---
+name: "touch"
+usage: "touch <path>"
+example: "For example, `touch` can be used to create a file signifying the completion\
+  \ of analysis on a directory.\n```console\n$ ./bin/alluxio fs touch /data/yesterday/_DONE_\n\
+  ```\n"
+subCommands: null
+description: "The `touch` command creates a 0-byte file.\nFiles created with `touch`\
+  \ cannot be overwritten and are mostly useful as flags.\n"
+options: []

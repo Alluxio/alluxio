@@ -1,0 +1,14 @@
+---
+name: "getBlockInfo"
+usage: "getBlockInfo [blockId]"
+example: "```console\n$ ./bin/alluxio fsadmin getBlockInfo <block_id>\nBlockInfo{id=16793993216,\
+  \ length=6, locations=[BlockLocation{workerId=8265394007253444396,\naddress=WorkerNetAddress{host=local-mbp,\
+  \ rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=,\ntieredIdentity=TieredIdentity(node=local-mbp,\
+  \ rack=null)}, tierAlias=MEM, mediumType=MEM}]}\nThis block belongs to file {id=16810770431,\
+  \ path=/test2}\n```"
+subCommands: null
+description: "The `getBlockInfo` command provides the block information and file path\
+  \ of a block id.\nIt is primarily intended to assist power users in debugging their\
+  \ system.\n"
+options:
+- "`-h` print help information."

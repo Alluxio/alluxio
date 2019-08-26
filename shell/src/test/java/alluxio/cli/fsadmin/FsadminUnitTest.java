@@ -1,7 +1,8 @@
 package alluxio.cli.fsadmin;
 
 import alluxio.cli.Command;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,7 +15,8 @@ public class FsadminUnitTest {
 
   @Before
   public void loadFsadminCommands() {
-    sCommands = new FileSystemAdminShell(ServerConfiguration.global()).loadCommands();
+    InstancedConfiguration cmdCommand = new InstancedConfiguration(ConfigurationUtils.defaults());
+    sCommands = new FileSystemAdminShell(cmdCommand).loadCommands();
   }
 
   @Test

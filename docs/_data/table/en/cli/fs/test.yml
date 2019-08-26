@@ -1,0 +1,14 @@
+---
+name: "test"
+usage: "test [-d|-f|-e|-s|-z] <path>"
+example: "Examples:\n```console\n$ ./bin/alluxio fs test -d /someDir\n\n$./bin/alluxio\
+  \ fs test -f /LICENSE\n```\n"
+subCommands: null
+description: "The `test` command tests a property of a path, returning `0` if the\
+  \ property is true or `1` otherwise.\n"
+options:
+- "`-d` test whether path is a directory."
+- "`-f` test whether path is a file."
+- "`-e` test whether path exists."
+- "`-s` test whether path is not empty."
+- "`-z` test whether file is zero length."

@@ -1,0 +1,11 @@
+---
+name: "unmount"
+usage: "unmount <alluxioPath>"
+example: "For example, `unmount` can be used to remove an under storage system when\
+  \ the users no longer need data from that system\n```console\n$ ./bin/alluxio fs\
+  \ unmount /s3/data\n```"
+subCommands: null
+description: "The `unmount` command disassociates an Alluxio path with an under storage\
+  \ directory.\nAlluxio metadata for the mount point is removed along with any data\
+  \ blocks,\nbut the under storage system will retain all metadata and data.\n"
+options: []

@@ -1,0 +1,12 @@
+---
+name: "chgrp"
+usage: "chgrp [-R] <group> <path>"
+example: "For example, `chgrp` can be used as a quick way to change the group of file.\n\
+  ```console\n$ ./bin/alluxio fs chgrp alluxio-group-new /input/file1\n```\n"
+subCommands: null
+description: "The `chgrp` command changes the group of the file or directory in Alluxio.\n\
+  \ Alluxio supports file authorization with Posix file permission. Group is an authorizable\n\
+  \ entity in Posix file permissions model. The file owner or super user can execute\
+  \ this command\n to change the group of the file or directory.\n"
+options:
+- "`-R` change group recursively"

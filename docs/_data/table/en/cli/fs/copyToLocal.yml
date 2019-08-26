@@ -1,0 +1,13 @@
+---
+name: "copyToLocal"
+usage: "copyToLocal [--buffersize <bytes>] <src> <remoteDst>"
+example: "For example, `copyToLocal` can be used as a quick way to download output\
+  \ data for additional investigation or debugging.\n```console\n$ ./bin/alluxio fs\
+  \ copyToLocal /output/part-00000 part-00000\n$ wc -l part-00000\n```"
+subCommands: null
+description: "The `copyToLocal` command copies a file in Alluxio to the local file\
+  \ system.\nIf a directory is specified, the directory and all its contents will\
+  \ be copied recursively.\n"
+options:
+- "`--buffersize` Read buffer size in bytes, default is 8MB when copying from local,\
+  \ and 64MB when copying to local"

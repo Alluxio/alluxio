@@ -27,7 +27,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

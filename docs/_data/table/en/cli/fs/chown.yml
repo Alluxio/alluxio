@@ -1,0 +1,11 @@
+---
+name: "chown"
+usage: "chown [-R] <owner>[:<group>] <path>"
+example: "For example, `chown` can be used as a quick way to change the owner of file.\n\
+  ```console\n$ ./bin/alluxio fs chown alluxio-user /input/file1\n$ ./bin/alluxio\
+  \ fs chown alluxio-user:alluxio-group /input/file2\n```"
+subCommands: null
+description: "The `chown` command changes the owner of the file or directory in Alluxio.\n\
+  For security reasons, the ownership of a file can only be altered by a super user.\n"
+options:
+- "`-R` change owner recursively"

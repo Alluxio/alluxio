@@ -37,7 +37,8 @@ public final class CommandTest {
 
   private final class TestCommand implements Command {
 
-    public TestCommand() {}
+    public TestCommand() {
+    }
 
     @Override
     public String getCommandName() {

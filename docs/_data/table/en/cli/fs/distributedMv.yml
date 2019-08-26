@@ -1,0 +1,8 @@
+---
+name: "distributedMv"
+usage: "distributedMv <src> <dst>"
+example: "```console\n$ ./bin/alluxio fs distributedMv /hdfs/file1 /s3/\n```\n"
+subCommands: null
+description: "The `distributedMv` command moves a file or directory in parallel at\
+  \ file level.\n"
+options: []

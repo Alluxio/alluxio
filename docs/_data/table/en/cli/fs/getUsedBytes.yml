@@ -1,0 +1,8 @@
+---
+name: "getUsedBytes"
+usage: "getUsedBytes"
+example: "For example, `getUsedBytes` can be used to monitor the health of the cluster.\n\
+  ```console\n$ ./bin/alluxio fs getUsedBytes\n```"
+subCommands: null
+description: "The `getUsedBytes` command returns the number of used bytes in Alluxio.\n"
+options: []

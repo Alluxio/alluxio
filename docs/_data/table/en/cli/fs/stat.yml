@@ -1,0 +1,19 @@
+---
+name: "stat"
+usage: "stat [-f <format>] <path>"
+example: "For example, `stat` can be used to debug the block locations of a file.\
+  \ This is useful\nwhen trying to achieve locality for compute workloads.\n```console\n\
+  # Displays file's stat\n$ ./bin/alluxio fs stat /data/2015/logs-1.txt\n\n# Displays\
+  \ directory's stat\n$ ./bin/alluxio fs stat /data/2015\n\n# Displays the size of\
+  \ file\n$ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt\n```\n"
+subCommands: null
+description: "The `stat` command dumps the FileInfo representation of a file or a\
+  \ directory to the console.\nIt is primarily intended to assist power users in debugging\
+  \ their system.\nGenerally viewing the file info in the UI will be easier to understand.\n\
+  \nOne can specify `-f <arg>` to display info in given format:\n\n  `%N`: name of\
+  \ the file\n  `%z`: size of file in bytes\n  `%u`: owner\n  `%g`: group name of\
+  \ owner\n  `%y` or `%Y`: modification time, where `%y` shows the UTC date in the\
+  \ form `yyyy-MM-dd HH:mm:ss`\n    and `%Y` shows the number of milliseconds since\
+  \ January 1, 1970 UTC\n  `%b`: Number of blocks allocated for file\n"
+options:
+- "`-f` format"

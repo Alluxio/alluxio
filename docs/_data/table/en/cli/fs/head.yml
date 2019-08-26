@@ -1,0 +1,9 @@
+---
+name: "head"
+usage: "head [-c <bytes>] <path>"
+example: "Using the `-c [bytes]` option will print the first n bytes of data to the\
+  \ console.\n```console\n$ ./bin/alluxio fs head -c 2048 /output/part-00000\n```"
+subCommands: null
+description: "The `head` command prints the first 1 KB of data in a file to the console.\n"
+options:
+- "`-c` number of bytes (e.g., 1024, 4KB)"

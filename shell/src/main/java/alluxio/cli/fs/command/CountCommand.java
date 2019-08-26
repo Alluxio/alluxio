@@ -21,7 +21,6 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
-
 import java.io.IOException;
 import java.util.List;
 

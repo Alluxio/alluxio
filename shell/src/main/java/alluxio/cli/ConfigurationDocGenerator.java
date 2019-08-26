@@ -16,7 +16,6 @@ import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
@@ -29,12 +28,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -251,11 +250,8 @@ public final class ConfigurationDocGenerator {
   public static void main(String[] args) throws IOException {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     defaultKeys.removeIf(key -> key.isHidden());
-    InstancedConfiguration c = new InstancedConfiguration(ConfigurationUtils.defaults());
-    c.set(PropertyKey.HOME, System.getProperty("user.dir"));
-    String homeDir = c.get(PropertyKey.HOME);
-    //String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
-    //        .get(PropertyKey.HOME);
+    String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
+            .get(PropertyKey.HOME);
 
     // generate CSV files
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
@@ -266,14 +262,15 @@ public final class ConfigurationDocGenerator {
 
     // for Alluxio fs Commands
     Closer mCloser = Closer.create();
+    InstancedConfiguration cmdConfig = new InstancedConfiguration(ConfigurationUtils.defaults());
     Map<String, Command> fsCommands = FileSystemShellUtils.loadCommands(
-            mCloser.register(FileSystemContext.create(ServerConfiguration.global())));
+            mCloser.register(FileSystemContext.create(cmdConfig)));
     filePath = PathUtils.concatPath(homeDir, FS_YML_DIR);
     writeCommandDocs(fsCommands, filePath);
 
     // for ALluxio fsadmin commands
     Map<String, Command> fsadminCommands =
-            new FileSystemAdminShell(ServerConfiguration.global()).loadCommands();
+              new FileSystemAdminShell(cmdConfig).loadCommands();
     filePath = PathUtils.concatPath(homeDir, FSADMIN_YML_DIR);
     writeCommandDocs(fsadminCommands, filePath);
   }

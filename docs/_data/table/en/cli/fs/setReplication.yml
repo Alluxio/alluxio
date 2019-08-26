@@ -1,0 +1,19 @@
+---
+name: "setReplication"
+usage: "setReplication [-R] [--max <num> | --min <num>] <path>"
+example: "```console\n$ ./bin/alluxio fs setReplication -R /file3\n\n./bin/alluxio\
+  \ fs setReplication --max 4 /file3\n```\n"
+subCommands: null
+description: "The `setReplication` command sets the max and/or min replication level\
+  \ of a file or all files\nunder a directory recursively. This is a metadata operation\
+  \ and will not cause any replication\nto be created or removed immediately. The\
+  \ replication level of the target file or directory will\nbe changed automatically\
+  \ in background. This command takes an argument of `--min` to specify the\nminimal\
+  \ replication level and `--max` for the maximal replication. Specify `-1` as the\
+  \ argument of\n`--max` option to indicate no limit of the maximum number of replicas.\
+  \ If the specified path is a directory\nand `-R` is specified, it will recursively\
+  \ set all files in this directory.\n"
+options:
+- "`-R` set replication recursively"
+- "`--max` the maximum number of replicas"
+- "`--min` the minimum number of replicas"

@@ -1,0 +1,16 @@
+---
+name: "doctor"
+usage: "doctor [category]"
+example: "```console\n# shows server-side configuration errors and warnings\n$ ./bin/alluxio\
+  \ fsadmin doctor configuration\n# shows worker storage health errors and warnings\n\
+  $ ./bin/alluixo fsadmin doctor storage\n```\n"
+subCommands: "- Configuration: Show server-side configuration errors/warnings\n  -\
+  \ Usage: `configuration`\n- Storage: Show worker lost storage warnings\n  - Usage:\
+  \ `storage`"
+description: "The `doctor` command gives recommendations and warnings.\nIt can diagnose\
+  \ inconsistent configurations across different Alluxio nodes\nas well as alert the\
+  \ operator when worker storage volumes are missing.\n\nWhere `[category]` is an\
+  \ optional argument. If no arguments are passed in,\nall categories of errors/warnings\
+  \ will be printed out.\n"
+options:
+- "`-h` print help information."

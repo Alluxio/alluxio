@@ -1,0 +1,29 @@
+---
+name: "ls"
+usage: "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path>"
+example: "For example, ls can be used to browse the file system.\n```console\n$ ./bin/alluxio\
+  \ fs mount /s3/data s3://data-bucket/\n# Loads metadata for all immediate children\
+  \ of /s3/data and lists them.\n$ ./bin/alluxio fs ls /s3/data/\n\n# Forces loading\
+  \ metadata.\n$ aws s3 cp /tmp/somedata s3://data-bucket/somedata\n$ ./bin/alluxio\
+  \ fs ls -f /s3/data\n\n# Files are not removed from Alluxio if they are removed\
+  \ from the UFS (s3 here) only.\n$ aws s3 rm s3://data-bucket/somedata\n$ ./bin/alluxio\
+  \ fs ls -f /s3/data\n\n$ ./bin/alluxio fs ls -Rf /\n```\n"
+subCommands: null
+description: "The `ls` command lists all the immediate children in a directory and\
+  \ displays the file size,\nlast modification time, and in memory status of the files.\
+  \ Using `ls` on a file will only display\nthe information for that specific file.\n\
+  \nThe `ls` command will also load the metadata for any file or immediate children\
+  \ of a directory from the\nunder storage system to Alluxio namespace if it does\
+  \ not exist in Alluxio. `ls` queries the under storage system\nfor any file or directory\
+  \ matching the given path and creates a mirror of the file in Alluxio backed by\
+  \ that file.\nOnly the metadata, such as the file name and size, are loaded this\
+  \ way and no data transfer occurs.\n"
+options:
+- "`-f` force to load metadata for immediate children in a directory"
+- "`-d` list directories as plain files"
+- "`-h` print human-readable format sizes"
+- "`-p` list all pinned files"
+- "`-R` list subdirectories recursively"
+- "`-r` reverse order while sorting"
+- "`--sort` sort statuses by the given field {path|lastAccessTime|creationTime|size|lastModificationTime|inMemoryPercentage|name}"
+- "`--timestamp` display specific timestamp(default is last modification time) {lastAccessTime|creationTime|lastModificationTime}"

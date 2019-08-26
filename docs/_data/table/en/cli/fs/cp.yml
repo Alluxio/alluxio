@@ -1,0 +1,16 @@
+---
+name: "cp"
+usage: "cp [-R] [--buffersize] <bytes> <src> <dst>"
+example: "For example, `cp` can be used to copy files between under storage systems.\n\
+  ```console\n$ ./bin/alluxio fs cp /hdfs/file1 /s3/\n```"
+subCommands: null
+description: "The `cp` command copies a file or directory in the Alluxio file system\
+  \ or between the local file system and Alluxio file system.\n\nScheme `file` indicates\
+  \ the local file system whereas scheme `alluxio` or no scheme indicates the Alluxio\
+  \ file system.\n"
+options:
+- "`-R` copy files in subdirectories recursively"
+- "`--thread` Number of threads used to copy files in parallel,default value is CPU\
+  \ cores * 2"
+- "`-p` Preserve file permission attributes when copying files. All ownership, permissions\
+  \ and ACLs will be preserved"

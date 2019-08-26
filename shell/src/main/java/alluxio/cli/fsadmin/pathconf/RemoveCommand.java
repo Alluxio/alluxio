@@ -99,17 +99,7 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getDocumentation() {
-    return null;
-  }
-
-  @Override
   public String getDescription() {
     return description();
-  }
-
-  @Override
-  public String getExample() {
-    return null;
   }
 }

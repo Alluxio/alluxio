@@ -14,7 +14,8 @@ package alluxio.cli.fs.command;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 
 import com.google.common.io.Closer;
 import org.junit.Assert;
@@ -29,8 +30,9 @@ public class FsUnitTest {
   @Before
   public void loadFsCommands() {
     Closer mCloser = Closer.create();
+    InstancedConfiguration cmdCommand = new InstancedConfiguration(ConfigurationUtils.defaults());
     sCommands = FileSystemShellUtils.loadCommands(
-            mCloser.register(FileSystemContext.create(ServerConfiguration.global())));
+            mCloser.register(FileSystemContext.create(cmdCommand)));
   }
 
   @Test

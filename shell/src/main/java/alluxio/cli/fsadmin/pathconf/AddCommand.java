@@ -121,14 +121,4 @@ public final class AddCommand extends AbstractFsAdminCommand {
   public String getDescription() {
     return description();
   }
-
-  @Override
-  public String getDocumentation() {
-    return null;
-  }
-
-  @Override
-  public String getExample() {
-    return null;
-  }
 }

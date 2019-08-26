@@ -1,0 +1,20 @@
+---
+name: "mount"
+usage: "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>"
+example: "For example, `mount` can be used to make data in another storage system\
+  \ available in Alluxio.\n```console\n$ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/\n\
+  $ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/\n\
+  $ ./bin/alluxio fs mount \\\n> --option aws.accessKeyId=<accessKeyId> \\\n> --option\
+  \ aws.secretKey=<secretKey> \\\n> /mnt/s3 s3://data-bucket/\n```"
+subCommands: null
+description: "The `mount` command links an under storage path to an Alluxio path,\n\
+  where files and folders created in Alluxio space under the path will be backed by\
+  \ a\ncorresponding file or folder in the under storage path. For more details.\n\
+  \nNote that `--readonly` mounts are useful to prevent accidental write operations.\n\
+  If multiple Alluxio satellite clusters mount a remote storage cluster which serves\
+  \ as the\ncentral source of truth, `--readonly` option could help prevent any write\
+  \ operations on the\nsatellite cluster from wiping out the remote storage.\n"
+options:
+- "`--readonly` mount point is readonly in Alluxio"
+- "`--shared` mount point is shared"
+- "`--option` options associated with this mount point"

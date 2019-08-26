@@ -70,7 +70,8 @@ public final class LsCommand implements Command {
   }
 
   @Override
-  public void writeDocumentation(File file){}
+  public void writeDocumentation(File file){
+  }
 
   @Override
   public int run(CommandLine cl) {

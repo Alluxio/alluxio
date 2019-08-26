@@ -1,0 +1,9 @@
+---
+name: "checksum"
+usage: "checksum <Alluxio path>"
+example: "For example, `checksum` can be used to verify the contents of a file stored\
+  \ in Alluxio.\n```console\n$ ./bin/alluxio fs checksum /LICENSE\nmd5sum: bf0513403ff54711966f39b058e059a3\n\
+  md5 LICENSE\nMD5 (LICENSE) = bf0513403ff54711966f39b058e059a3\n```"
+subCommands: null
+description: "The `checksum` command outputs the md5 value of a file in Alluxio.\n"
+options: []

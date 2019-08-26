@@ -101,16 +101,6 @@ public class QuorumRemoveCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getDocumentation() {
-    return null;
-  }
-
-  @Override
-  public String getExample() {
-    return null;
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     if (cl.getOptions().length != 2) {
       throw new InvalidArgumentException(

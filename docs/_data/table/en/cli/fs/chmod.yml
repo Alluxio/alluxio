@@ -1,0 +1,11 @@
+---
+name: "chmod"
+usage: "chmod [-R] <mode> <path>"
+example: "For example, `chown` can be used as a quick way to change the owner of file.\n\
+  ```console\n$ ./bin/alluxio fs chmod 755 /input/file1\n```"
+subCommands: null
+description: "The `chmod` command changes the permission of file or directory in Alluxio.\n\
+  Currently, octal mode is supported: the numerical format accepts three octal\ndigits\
+  \ which refer to permissions for the file owner, the group and other users.\n"
+options:
+- "`-R` change mode recursively"

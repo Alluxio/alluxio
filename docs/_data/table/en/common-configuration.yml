@@ -1,5 +1,5 @@
 alluxio.conf.dir:
-  'The directory containing files used to configure Alluxio. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.conf.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'The directory containing files used to configure Alluxio. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.conf.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
@@ -77,13 +77,13 @@ alluxio.locality.script:
 alluxio.logger.type:
   'The type of logger.'
 alluxio.logs.dir:
-  'The path under Alluxio home directory to store log files. It has a corresponding environment variable $ALLUXIO_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'The path under Alluxio home directory to store log files. It has a corresponding environment variable $ALLUXIO_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logs.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.hostname:
-  'The hostname of Alluxio logserver. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.logserver.hostname&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'The hostname of Alluxio logserver. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.hostname"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.logs.dir:
-  'Default location for remote log files. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.logserver.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'Default location for remote log files. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.logs.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.port:
-  'Default port of logserver to receive logs from alluxio servers. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.logserver.port&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'Default port of logserver to receive logs from alluxio servers. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.logserver.port"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.threads.max:
   'The maximum number of threads used by logserver to service logging requests.'
 alluxio.logserver.threads.min:
@@ -139,7 +139,7 @@ alluxio.underfs.gcs.default.mode:
 alluxio.underfs.gcs.directory.suffix:
   'Directories are represented in GCS as zero-byte objects named with the specified suffix.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
-  'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format &quot;id1=user1;id2=user2&quot;. The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the &quot;Owners&quot; one.'
+  'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the "Owners" one.'
 alluxio.underfs.hdfs.configuration:
   'Location of the HDFS configuration file to overwrite the default HDFS client configuration. Note that, these files must be availableon every node.'
 alluxio.underfs.hdfs.impl:
@@ -189,7 +189,7 @@ alluxio.underfs.s3.intermediate.upload.clean.age:
 alluxio.underfs.s3.list.objects.v1:
   'Whether to use version 1 of GET Bucket (List Objects) API.'
 alluxio.underfs.s3.owner.id.to.username.mapping:
-  'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format &quot;id1=user1;id2=user2&quot;. The AWS S3 canonical ID can be found at the console address https://console.aws.amazon.com/iam/home?#security_credential . Please expand the &quot;Account Identifiers&quot; tab and refer to &quot;Canonical User ID&quot;.'
+  'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format "id1=user1;id2=user2". The AWS S3 canonical ID can be found at the console address https://console.aws.amazon.com/iam/home?#security_credential . Please expand the "Account Identifiers" tab and refer to "Canonical User ID".'
 alluxio.underfs.s3.proxy.host:
   'Optionally, specify a proxy host for communicating with S3.'
 alluxio.underfs.s3.proxy.port:
@@ -201,7 +201,7 @@ alluxio.underfs.s3.secure.http.enabled:
 alluxio.underfs.s3.server.side.encryption.enabled:
   'Whether or not to encrypt data stored in S3.'
 alluxio.underfs.s3.signer.algorithm:
-  'The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an S3 endpoint which only supports v2 signatures, set this to &quot;S3SignerType&quot;.'
+  'The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an S3 endpoint which only supports v2 signatures, set this to "S3SignerType".'
 alluxio.underfs.s3.socket.timeout:
   'Length of the socket timeout when communicating with S3.'
 alluxio.underfs.s3.streaming.upload.enabled:
