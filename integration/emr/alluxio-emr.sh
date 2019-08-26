@@ -260,7 +260,7 @@ main() {
   done
 
   if [[ -z "${alluxio_tarball}" ]]; then
-    alluxio_tarball="https://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz"
+    alluxio_tarball="https://downloads.alluxio.io/downloads/files/2.0.1/alluxio-2.0.1-bin.tar.gz"
   fi
 
   # Create user
