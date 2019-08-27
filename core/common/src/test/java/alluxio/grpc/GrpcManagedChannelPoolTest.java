@@ -58,11 +58,13 @@ public final class GrpcManagedChannelPoolTest {
     GrpcServer server1 = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
 
-    GrpcServerAddress address =
+    GrpcServerAddress address1 =
+        GrpcServerAddress.create(new InetSocketAddress("localhost", server1.getBindPort()));
+    GrpcServerAddress address2 =
         GrpcServerAddress.create(new InetSocketAddress("localhost", server1.getBindPort()));
 
-    key1.setServerAddress(address);
-    key2.setServerAddress(address);
+    key1.setServerAddress(address1);
+    key2.setServerAddress(address2);
 
     ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
         HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
@@ -182,7 +184,7 @@ public final class GrpcManagedChannelPoolTest {
     GrpcChannelKey key2 = GrpcChannelKey.create(sConf)
         .setPoolingStrategy(GrpcChannelKey.PoolingStrategy.DISABLED);
 
-    InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
+    InetSocketAddress bindAddress = new InetSocketAddress("0.0.0.0", 0);
 
     UserState us = UserState.Factory.create(sConf);
     GrpcServer server1 = GrpcServerBuilder
