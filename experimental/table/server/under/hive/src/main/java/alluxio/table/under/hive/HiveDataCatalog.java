@@ -186,6 +186,11 @@ public class HiveDataCatalog extends BaseMetastoreCatalog implements Closeable, 
   }
 
   @Override
+  public boolean dropTable(org.apache.iceberg.catalog.TableIdentifier identifier, boolean purge) {
+    throw new UnsupportedOperationException("to be implemented");
+  }
+
+  @Override
   public boolean dropTable(TableIdentifier identifier) {
     Preconditions.checkArgument(identifier.namespace().levels().length == 1,
         "Missing database in table identifier: %s", identifier);

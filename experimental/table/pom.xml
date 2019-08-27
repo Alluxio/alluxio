@@ -33,7 +33,7 @@
          properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
     <hive-metastore.verison>2.3.2</hive-metastore.verison>
-    <iceberg.version>master-SNAPSHOT</iceberg.version>
+    <iceberg.version>8c0f53bb</iceberg.version>
   </properties>
 
   <dependencyManagement>
@@ -51,6 +51,11 @@
       <dependency>
         <groupId>com.github.apache.incubator-iceberg</groupId>
         <artifactId>iceberg-api</artifactId>
+        <version>${iceberg.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.apache</groupId>
+        <artifactId>incubator-iceberg</artifactId>
         <version>${iceberg.version}</version>
       </dependency>
     </dependencies>
