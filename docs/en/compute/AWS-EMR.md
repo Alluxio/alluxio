@@ -13,11 +13,13 @@ This guide describes how to configure Alluxio to run on [AWS EMR](https://aws.am
 
 ## Overview
 
-AWS EMR provides great options for running clusters on-demand to handle compute workloads. It manages the
-deployment of various Hadoop Services and allows for hooks into these services for customizations. Alluxio
-can run on EMR to provide functionality above what EMRFS currently provides. Aside from the added performance
-benefits of caching, Alluxio also enables users to run compute workloads against on-premise storage or even a
-different cloud provider's storage i.e. GCS, Azure Blob Store. 
+AWS EMR provides great options for running clusters on-demand to handle compute workloads.
+It manages the deployment of various Hadoop Services and allows for hooks into these services for
+customizations.
+Alluxio can run on EMR to provide functionality above what EMRFS currently provides.
+Aside from the added performance benefits of caching, Alluxio also enables users to run compute 
+workloads against on-premise storage or even a different cloud provider's storage i.e. GCS, Azure
+Blob Store.
 
 ## Prerequisites
 
@@ -25,7 +27,7 @@ different cloud provider's storage i.e. GCS, Azure Blob Store.
 * IAM Account with the default EMR Roles
 * Key Pair for EC2
 * An S3 Bucket
-* AWS CLI: Make sure that the AWS CLI is also set up and ready with the required AWS Access/Secret key
+* AWS CLI: Make sure that the AWS CLI is set up and ready with the required AWS Access/Secret key
 
 The majority of the pre-requisites can be found by going through the
 [AWS EMR Getting Started](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-gs.html) guide. An S3 bucket
@@ -40,26 +42,21 @@ To begin with, [download an Alluxio release](https://www.alluxio.io/download) an
 ```bash
 aws emr create-default-roles
 ```
-2. Download `alluxio-emr.sh` from the [alluxio public S3 bucket](https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.sh) and
-upload the script to your S3 bucket.
-3. The input arguments for the bootstrap script are in the order below:
-    - The URI from where to download the Alluxio Release `.tar.gz` file. This can be an `http://`
-     URI, `s3://` URI or an `http://` URI.
-     This is a mandatory property.
-    - The root-ufs-uri. This should be an `s3://` or `hdfs://` URI designating the root mount of the Alluxio file system.
-       This is a mandatory property.
-    - Extra alluxio options. These are specified as a comma-separated list of key-values in the format `<key>=<value>`.
-       For example, `alluxio.user.file.writetype.default=CACHE_THROUGH`
-```
-aws emr create-cluster \
---release-label emr-5.23.0 \
+2. The Alluxio bootstrap script is hosted in a publicly readable
+[S3 bucket](https://alluxio-public.s3.amazonaws.com/2.0.1/emr/alluxio-emr.sh).
+This bucket can also be accessed using it's S3 URI: `s3://alluxio-public/emr/alluxio-emr.sh`
+The bootstrap script only requires a root UFS URI as an argument.
+Additional options can be seen in the comments at the top of the bootstrap script.
+```console
+$ aws emr create-cluster \
+--release-label emr-5.25.0 \
 --instance-count <num-instances> \
 --instance-type <instance-type> \
 --applications Name=Presto Name=Hive Name=Spark \
 --name '<cluster-name>' \
 --bootstrap-actions \
-Path=s3://bucket/path/to/alluxio-emr.sh,\
-Args=[<download-url>,<root-ufs-uri>,<additional-properties>] \
+Path=s3://alluxio-public/emr/2.0.1/alluxio-emr.sh,\
+Args=[s3://test-bucket/path/to/mount/] \
 --configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
 --ec2-attributes KeyName=<ec2-keypair-name>
 ```
@@ -69,8 +66,8 @@ to get the 'Master public DNS'. SSH into this instance using the keypair provide
 security group isn't specified via CLI, the default EMR security group will not allow inbound SSH. To SSH into the
 machine, a new rule will need to be added.
 5. Test that Alluxio is running as expected
-```
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests
+```console
+$ alluxio runTests
 ```
 
 Alluxio is installed in `/opt/alluxio/` by default. Hive and Presto are already configured to connect to Alluxio. The
@@ -79,18 +76,16 @@ definitions between multiple runs of the Alluxio cluster.
 
 See the below sample command for reference.
 
-```
-aws emr create-cluster \
---release-label emr-5.23.0 \
+```console
+$ aws emr create-cluster \
+--release-label emr-5.25.0 \
 --instance-count 3 \
 --instance-type m4.xlarge \
 --applications Name=Presto Name=Hive \
---name 'Test cluster' \
+--name 'Test Cluster' \
 --bootstrap-actions \
-Path=s3://alluxio-test/emr/bootstrap-actions/alluxio-emr.sh,\
-Args=[http://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz,\
-s3://alluxio-test/emr/mount/,\
-alluxio.underfs.s3.owner.id.to.username.mapping=f1234123412341234123412341234123412341234123412341234123412341234=hadoop] \
+Path=s3://alluxio-public/emr/2.0.1/alluxio-emr.sh,\
+Args=[s3://test-bucket/path/to/mount/] \
 --configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
 --ec2-attributes KeyName=admin-key
 ```
@@ -102,25 +97,21 @@ the value in the `alluxio-emr.sh` script.
 
 The simplest step to using EMR with Alluxio is to create a table on Alluxio and query it using Presto/Hive.
 
-1. SSH into the 'hadoop' user in the master node. Then switch to the 'alluxio' user.
+1. SSH into the 'hadoop' user in the master node.
 2. Create a directory in Alluxio to be the external location of your table.
 ```bash
 /opt/alluxio/bin/alluxio fs mkdir /testTable
 ```
-3. Set the 'hadoop' user to be the owner of the directory
-```bash
-/opt/alluxio/bin/alluxio fs chown hadoop:hadoop /testTable
+3. Start the hive CLI.
+```console
+$ hive
 ```
-4. Exit to switch back into the 'hadoop' user and start the hive CLI.
-```bash
-hive
-```
-5. Create a new database to see if AWS Glue is working as expected. Check the [console](https://console.aws.amazon.com/glue/home)
-to see if the database is created.
+4. Create a new database to see if AWS Glue is working as expected.
+Check the [console](https://console.aws.amazon.com/glue/home) to see if the database is created.
 ```sql
 CREATE DATABASE glue;
 ```
-6. Use the newly created database and define a table.
+5. Use the newly created database and define a table.
 ```sql
 USE glue;
 create external table test1 (userid INT,
@@ -132,19 +123,12 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 LOCATION 'alluxio:///testTable';
 ```
-7. Create the Presto /tmp directory
-```console
-#Create Presto temp directory
-$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
-$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
-$ presto-cli --catalog hive
-```
-8. Insert values into the table
+6. Insert values into the table
 ```sql
 USE glue;
 INSERT INTO test1 VALUES (1, 24, 'F', 'Developer', '12345');
 ```
-9. Read back the values in the table
+7. Read back the values in the table
 ```sql
 SELECT * FROM test1;
 ```
@@ -163,6 +147,7 @@ the `alluxio-site.properties`, add a line with the configuration needed to appen
 be passed as the 3rd argument to the bootstrap script with a ';' delimiter.
 
 ### Alluxio Client
-Generic client-side properties can also be edited via the bootstrap script as mentioned above. This is mostly for the native
-client (CLI). Property changes for a specific service like Presto/Hive should be done in the respective configuration file
-i.e. `core-site.xml`, `hive.catalog`.
+Generic client-side properties can also be edited via the bootstrap script as mentioned above.
+This is mostly for the native client (CLI).
+Property changes for a specific service like Presto/Hive should be done in the respective
+configuration file i.e. `core-site.xml`, `hive.catalog`.
