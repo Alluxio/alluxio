@@ -43,7 +43,7 @@ To begin with, [download an Alluxio release](https://www.alluxio.io/download) an
 ```console
 $ aws emr create-default-roles
 ```
-2. The Alluxio bootstrap script is now hosted in a publicly readable
+2. The Alluxio bootstrap script is hosted in a publicly readable
 [S3 bucket](https://alluxio-public.s3.amazonaws.com/2.0.1/emr/alluxio-emr.sh).
 This bucket can also be accessed using it's S3 URI: `s3://alluxio-public/emr/alluxio-emr.sh`
 The bootstrap script only requires a root UFS URI as an argument.
@@ -129,19 +129,12 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 LOCATION 'alluxio:///testTable';
 ```
-6. Create the Presto /tmp directory
-```console
-#Create Presto temp directory
-$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
-$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
-$ presto-cli --catalog hive
-```
-7. Insert values into the table
+6. Insert values into the table
 ```sql
 USE glue;
 INSERT INTO test1 VALUES (1, 24, 'F', 'Developer', '12345');
 ```
-8. Read back the values in the table
+7. Read back the values in the table
 ```sql
 SELECT * FROM test1;
 ```
