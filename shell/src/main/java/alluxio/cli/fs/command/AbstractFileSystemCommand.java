@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 import java.util.ArrayList;

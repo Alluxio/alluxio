@@ -45,7 +45,7 @@ public final class CommandUtils {
   private CommandUtils() {} // prevent instantiation
 
   /**
-   * Reads the documentation from the command's resource file
+   * Reads the documentation from the command's resource file.
    *
    * @param c the class of a command
    * @return the documentation command
@@ -61,22 +61,24 @@ public final class CommandUtils {
   }
 
   /**
-   * Writes documentation to yaml file to be displayed
+   * Writes documentation to yaml file to be displayed.
    *
    * @param filePath of documentation location
    * @param docs of command
    * @throws IOException
    */
-  public static void writeDocumentation(String filePath, CommandDocumentation docs) throws IOException {
+  public static void writeDocumentation(String filePath, CommandDocumentation docs)
+          throws IOException {
     OBJECT_MAPPER.writeValue(new File(filePath), docs);
   }
 
   /**
-   * Add options to command yaml documentaiton file
+   * Add options to command yaml documentation file.
+   *
    * @param cmd to add options to
    * @return options of the command
    */
-  public static String[] addOptions(Command cmd){
+  public static String[] addOptions(Command cmd) {
     int n = 0;
     String[] opt = new String[cmd.getOptions().getOptions().size()];
     for (Option commandOpt:cmd.getOptions().getOptions()) {

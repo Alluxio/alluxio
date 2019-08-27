@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
@@ -211,7 +210,7 @@ public final class ConfigurationDocGenerator {
   }
 
   /**
-   * Write yaml files containing the fields outlined in each command's resource file
+   * Write yaml files containing the fields outlined in each command's resource file.
    *
    * @param commands to get documentation from
    * @param filePath to generate documentaion

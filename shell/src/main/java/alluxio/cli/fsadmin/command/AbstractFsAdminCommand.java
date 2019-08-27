@@ -23,7 +23,6 @@ import alluxio.client.meta.MetaMasterConfigClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import jline.internal.Preconditions;
-import org.apache.commons.cli.Option;
 
 import java.io.PrintStream;
 import java.net.URL;
@@ -51,11 +50,6 @@ public abstract class AbstractFsAdminCommand implements Command {
     mMasterJournalMasterClient = context.getJournalMasterClientForMaster();
     mJobMasterJournalMasterClient = context.getJournalMasterClientForJobMaster();
     mPrintStream = context.getPrintStream();
-  }
-
-  private URL getCommandFile(Class c) {
-    Preconditions.checkNotNull(c);
-    return c.getClassLoader().getResource(String.format("%s.yml", c.getSimpleName()));
   }
 
   @Override
