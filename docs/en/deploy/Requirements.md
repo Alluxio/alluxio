@@ -49,7 +49,7 @@ There are Alluxio-specific requirements for cluster nodes running the worker pro
 * minimum 1 GB memory
 * minimum 2 CPU cores
 * Allow the following ports and protocols:
-  * Inbound TCP 29999 - The Alluxio worker's default RPC and data transfer port
+  * Inbound TCP 29999 - The Alluxio worker's default RPC port
   * Inbound TCP 30000 - The Alluxio worker's default web UI port: `http://<worker-hostname>:30000`
   * Inbound TCP 30001 - The Alluxio job worker's default RPC port
   * Inbound TCP 30003 - The Alluxio job worker's default web UI 
