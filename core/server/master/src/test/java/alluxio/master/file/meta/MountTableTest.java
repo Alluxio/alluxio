@@ -426,6 +426,33 @@ public final class MountTableTest {
     Assert.assertTrue(lookupFailed);
   }
 
+  /**
+   * Tests {@link MountTable#reverseLookup(String)}.
+   */
+  @Test
+  public void reverseLookupNestedParent() throws Exception {
+    String mountPath1 = "/mnt/foo";
+    String mountPath2 = "/mnt/foo/bar";
+    String ufsPath1 = "ufs-1://authority1/root1";
+    String ufsPath2 = "ufs-2://authority2/root2";
+    addMount(mountPath1, ufsPath1, 2);
+    addMount(mountPath2, ufsPath2, 3);
+
+    // Test successful reverse-lookup.
+    String testFile = PathUtils.uniqPath();
+    String testFileUfsPath = PathUtils.concatPath(ufsPath1, testFile);
+    boolean lookupFailed = false;
+    try {
+      mMountTable.reverseLookup(testFileUfsPath);
+    } catch (IllegalStateException e) {
+      // Exception expected
+      Assert.assertEquals(ExceptionMessage.FOREIGN_URI_IN_NESTED_PARENT.getMessage(testFileUfsPath),
+          e.getMessage());
+      lookupFailed = true;
+    }
+    Assert.assertTrue(lookupFailed);
+  }
+
   private void addMount(String alluxio, String ufs, long id) throws Exception {
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI(alluxio), new AlluxioURI(ufs), id,
             MountContext.defaults().getOptions().build());

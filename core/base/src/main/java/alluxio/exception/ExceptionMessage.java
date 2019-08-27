@@ -260,6 +260,7 @@ public enum ExceptionMessage {
   MOUNT_READONLY("A write operation on {0} under a readonly mount point {1} is not allowed"),
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
   FOREIGN_URI_NOT_MOUNTED("Foreign URI: {0} is not found on Alluxio mounts."),
+  FOREIGN_URI_IN_NESTED_PARENT("Foreign URI: {0} is in a mount that has nested mounts."),
 
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),

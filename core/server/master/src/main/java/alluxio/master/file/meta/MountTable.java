@@ -389,18 +389,34 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException
    */
   public AlluxioURI reverseLookup(String foreignUriStr) throws InvalidPathException {
+    // TODO(ggezer) Consider alternative mount table representations for optimizing this method.
     try (LockResource r = new LockResource(mReadLock)) {
       LOG.debug("Doing a reverse-lookup on foreign URI {}", foreignUriStr);
       // Enumerate existing mount points to find a mount point that owns
       // given uri.
+      Map.Entry<String, MountInfo> foundEntry = null;
       for (Map.Entry<String, MountInfo> mountEntry : mState.getMountTable().entrySet()) {
         AlluxioURI ufsUri = mountEntry.getValue().getUfsUri();
         String ufsUriStr = ufsUri.toString();
         // Check if current mount point owns given path.
         if (foreignUriStr.startsWith(ufsUriStr)) {
-          return new AlluxioURI(PathUtils.concatPath(mountEntry.getKey(),
-              foreignUriStr.substring(ufsUriStr.length())));
+          foundEntry = mountEntry;
+          break;
         }
+      }
+      if (foundEntry != null) {
+        // Validate the found mount does not have a nested mount.
+        // This is not allowed in order to restrict foreign URI schemes' scope.
+        for (Map.Entry<String, MountInfo> mountEntry : mState.getMountTable().entrySet()) {
+          if (mountEntry.getValue().getMountId() != foundEntry.getValue().getMountId()) {
+            if (mountEntry.getKey().startsWith(foundEntry.getKey())) {
+              throw new IllegalStateException(String
+                  .format(ExceptionMessage.FOREIGN_URI_IN_NESTED_PARENT.getMessage(foreignUriStr)));
+            }
+          }
+        }
+        return new AlluxioURI(PathUtils.concatPath(foundEntry.getKey(),
+            foreignUriStr.substring(foundEntry.getValue().getUfsUri().toString().length())));
       }
       // No mount found for given path.
       throw new InvalidPathException(
