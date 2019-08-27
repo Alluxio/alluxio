@@ -22,10 +22,8 @@ import alluxio.client.meta.MetaMasterConfigClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import jline.internal.Preconditions;
 
 import java.io.PrintStream;
-import java.net.URL;
 
 /**
  * Base class for fsadmin commands. It provides access to clients for talking to fs master, block
