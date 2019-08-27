@@ -65,9 +65,10 @@ public final class LsCommand implements Command {
     return null;
   }
 
+  // TODO(matt) implement documentation generation logic
   @Override
   public String getExample() {
-    return "$ ./bin/alluxio fs ls /testDir";
+    return "$ ./bin/alluxio extensions ls /testDir";
   }
 
   @Override

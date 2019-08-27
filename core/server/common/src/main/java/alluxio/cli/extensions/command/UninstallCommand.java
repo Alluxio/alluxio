@@ -65,6 +65,7 @@ public final class UninstallCommand implements Command {
     return null;
   }
 
+  // TODO(matt) implement documentation generation logic
   @Override
   public String getExample() {
     return null;
