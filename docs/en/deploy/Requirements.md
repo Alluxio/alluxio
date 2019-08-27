@@ -27,19 +27,20 @@ Listed below are the generic requirements to run Alluxio in local or cluster mod
 
 There are Alluxio-specific requirements for cluster nodes running the master process.
 
-Note that these are bare minimums to run the software. Running Alluxio at scale and under high load
-will increase these requirements.
+Note that these are bare minimum requirements to run the software.
+Running Alluxio at scale and under high load will increase these requirements.
 
 * Minimum 4 GB disk space
 * Minimum 4 GB memory
 * Minimum 4 CPU cores
 * Allow the following ports and protocols:
-  * Inbound TCP 19200 - The Alluxio master's default port for internal leader election
   * Inbound TCP 19998 - The Alluxio master's default RPC port
   * Inbound TCP 19999 - The Alluxio master's default web UI port: `http://<master-hostname>:19999`
   * Inbound TCP 20001 - The Alluxio job master's default RPC port
   * Inbound TCP 20002 - The Alluxio job master's default web UI port
-  * Inbound TCP 20003 - The Alluxio job master's default port for internal leader election
+  * Embedded Journal Requirements Only
+    * Inbound TCP 19200 - The Alluxio master's default port for internal leader election
+    * Inbound TCP 20003 - The Alluxio job master's default port for internal leader election
 
 ### Worker Requirements
 
@@ -57,14 +58,16 @@ There are Alluxio-specific requirements for cluster nodes running the worker pro
 
 #### Worker Cache
 
-Alluxio Workers need to be configured with storage to use as the caching layer. By default, they
-set up a [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)
-but this can be modified to use a different storage volume. By providing a different directory in
-`alluxio.worker.tieredstore.level%d.dirs.path`, users can setup Alluxio to use a different
-directory backed by a different storage medium. For users looking to get started with the defaults,
-run the command `./bin/alluxio-mount.sh SudoMount workers` with any sudo privileged account. This
-should be run after setting `alluxio.worker.memory.size` in the `alluxio-site.properties` file and
-adding all workers to the `conf/workers` file.
+Alluxio Workers need to be configured with storage to use as the caching layer.
+By default, they set up a
+[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) but this
+can be modified to use a different storage volume.
+By providing a different directory in `alluxio.worker.tieredstore.level%d.dirs.path`, users can 
+setup Alluxio to use a different directory backed by a different storage medium.
+For users looking to get started with the defaults, run the command `./bin/alluxio-mount.sh 
+SudoMount workers` with any sudo privileged account.
+This should be run after setting `alluxio.worker.memory.size` in the `alluxio-site.properties` 
+file and adding all workers to the `conf/workers` file.
 
 ```console
 $ ./bin/alluxio-mount.sh SudoMount workers
@@ -80,8 +83,8 @@ The proxy process provides a REST based client:
 
 ## Additional Requirements
 
-Alluxio can also aggregate logs into a remote server to view in a unified place. Below are the port and resource
-requirements for the Logging Server.
+Alluxio can also aggregate logs into a remote server to view in a unified place.
+Below are the port and resource requirements for the Logging Server.
  
 ### Remote Logging Server Requirements
 
