@@ -1,9 +1,0 @@
----
-name: "help"
-usage: "help [<command>]"
-example: "Examples:\n```console\n# Print all subcommands\n$ ./bin/alluxio fs help\n\
-  \n# Print help message for ls\n$ ./bin/alluxio fs help ls\n```"
-subCommands: null
-description: "The `help` command prints the help message for a given fs subcommand.\n\
-  If the given command does not exist, it prints help messages for all supported subcommands.\n"
-options: []

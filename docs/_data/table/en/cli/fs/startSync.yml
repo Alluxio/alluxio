@@ -1,8 +1,0 @@
----
-name: "startSync"
-usage: "startSync <path>"
-example: "```console\n$ ./bin/alluxio fs startSync /path/file\n```\n"
-subCommands: null
-description: "The `startSync` command starts the automatic syncing process of the\
-  \ specified path.\n"
-options: []

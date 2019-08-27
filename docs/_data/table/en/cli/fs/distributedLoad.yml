@@ -1,9 +1,0 @@
----
-name: "distributedLoad"
-usage: "distributedLoad [--replication <num>] <path>"
-example: "```console\n$ ./bin/alluxio fs distributedLoad /file1\n```\n"
-subCommands: null
-description: "The `distributedLoad` command loads a file or directory in Alluxio space,\
-  \ making it resident in memory.\n"
-options:
-- "`--replication` number of replicas to have for each block of the loaded file"

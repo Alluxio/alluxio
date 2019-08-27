@@ -1,8 +1,0 @@
----
-name: "stopSync"
-usage: "stopSync <path>"
-example: "```console\n$ ./bin/alluxio fs stopSync /path/file\n```\n"
-subCommands: null
-description: "The `stopSync` command stops the automatic syncing process of the specified\
-  \ path.\n"
-options: []

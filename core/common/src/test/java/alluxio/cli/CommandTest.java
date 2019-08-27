@@ -23,8 +23,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
-
 /**
  * Unit tests for {@link Command}.
  */
@@ -66,12 +64,8 @@ public final class CommandTest {
     }
 
     @Override
-    public String getDocumentation() {
-      return "documentation";
-    }
-
-    @Override
-    public void writeDocumentation(File file){
+    public CommandDocumentation getDocumentation() {
+      return null;
     }
 
     @Override

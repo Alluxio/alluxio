@@ -1,7 +1,0 @@
----
-name: "leader"
-usage: "leader"
-example: "```console\n$ ./bin/alluxio fs leader\nlocalhost\n```"
-subCommands: null
-description: "The `leader` command prints the current Alluxio leading master hostname.\n"
-options: []
