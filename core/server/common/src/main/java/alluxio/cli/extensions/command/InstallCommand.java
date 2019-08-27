@@ -65,7 +65,7 @@ public final class InstallCommand implements Command {
     return null;
   }
 
-  // TODO(matt) implement documentation generation logic
+  // TODO(zac) implement documentation generation logic
   @Override
   public String getExample() {
     return null;

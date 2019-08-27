@@ -53,7 +53,8 @@ public final class CommandUtils {
             String.format("%s.yml", c.getSimpleName()))) {
       return OBJECT_MAPPER.readValue(is, CommandDocumentation.class);
     } catch (IOException e) {
-      throw new RuntimeException("Could not read docs for class", e);
+      throw new RuntimeException(String.format(
+              "Could not read docs for class %s", c.getSimpleName()), e);
     }
   }
 

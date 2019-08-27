@@ -20,7 +20,7 @@ public class CommandDocumentation {
   private String mName;
   private  String mUsage;
   private String mDescription;
-  private String mExample;
+  private String mExamples;
   private  String mSubCommands;
   private String[] mOptions;
 
@@ -74,10 +74,10 @@ public class CommandDocumentation {
 
   /**
    *
-   * @param Example of command
+   * @param Examples of command
    */
-  public void setExample(String Example) {
-    mExample = Example;
+  public void setExample(String Examples) {
+    mExamples = Examples;
   }
 
   /**
@@ -85,7 +85,7 @@ public class CommandDocumentation {
    * @return example command
    */
   public  String getExample() {
-    return mExample;
+    return mExamples;
   }
 
   /**
@@ -109,7 +109,9 @@ public class CommandDocumentation {
    * @param options of command
    */
   public void setOptions(String[] options) {
-    mOptions = options.clone();
+    if (options != null) {
+      mOptions = options.clone();
+    }
   }
 
   /**

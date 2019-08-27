@@ -22,7 +22,7 @@ Usage: `{{cmd.usage}}`
 
 {% if cmd.options.size > 0 %}
 
-Optionss:
+Options:
 {% for opt in cmd.options %}
 - {{opt}}
 {% endfor %}
