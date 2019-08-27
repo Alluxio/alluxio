@@ -25,7 +25,12 @@
   <modules>
     <module>table</module>
   </modules>
-
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
