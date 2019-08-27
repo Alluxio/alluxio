@@ -19,6 +19,7 @@ import alluxio.cli.Command;
 import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -82,8 +83,9 @@ public final class FileSystemShell extends AbstractShell {
     return "fs";
   }
 
-  //Allows commands to be loaded to generate documentation
+  //public allows commands to be loaded to from configurationDocGenerator
   @Override
+  @VisibleForTesting
   public Map<String, Command> loadCommands() {
     return FileSystemShellUtils
         .loadCommands(

@@ -12,6 +12,7 @@
 package alluxio.cli.extensions.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.CommandDocumentation;
 import alluxio.cli.CommandUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -60,17 +61,13 @@ public final class LsCommand implements Command {
   }
 
   @Override
-  public String getDocumentation() {
+  public CommandDocumentation getDocumentation() {
     return null;
   }
 
   @Override
   public String getExample() {
-    return null;
-  }
-
-  @Override
-  public void writeDocumentation(File file){
+    return "$ ./bin/alluxio fs ls /testDir";
   }
 
   @Override

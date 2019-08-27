@@ -225,8 +225,8 @@ public final class ConfigurationDocGenerator {
 
     try {
       for (Map.Entry<String, Command> cmd : commands.entrySet()) {
-        cmd.getValue().writeDocumentation(new File(PathUtils.concatPath(filePath,
-                cmd.getValue().getCommandName() + ".yml")));
+        CommandUtils.writeDocumentation(new File(PathUtils.concatPath(filePath,
+                cmd.getValue().getCommandName() + ".yml")), cmd.getValue().getDocumentation());
       }
 
       LOG.info("Command YML files were created successfully.");

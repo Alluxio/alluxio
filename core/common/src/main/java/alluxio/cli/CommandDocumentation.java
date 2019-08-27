@@ -11,16 +11,18 @@
 
 package alluxio.cli;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * command object for reading yaml files.
  */
-public class CommandReader {
-  private String mName = null;
-  private  String mUsage = null;
-  private String mDescription = null;
-  private String mExample = null;
-  private  String mSubCommands = null;
-  private String[] mOptions = null;
+public class CommandDocumentation {
+  private String mName;
+  private  String mUsage;
+  private String mDescription;
+  private String mExample;
+  private  String mSubCommands;
+  private String[] mOptions;
 
   /**
    *
@@ -35,7 +37,7 @@ public class CommandReader {
    * @return command name
    */
   public String getName() {
-    return this.mName;
+    return mName;
   }
 
   /**
@@ -51,7 +53,7 @@ public class CommandReader {
    * @return command usage
    */
   public String getUsage() {
-    return this.mUsage;
+    return mUsage;
   }
 
   /**
@@ -67,7 +69,7 @@ public class CommandReader {
    * @return command description
    */
   public String getDescription() {
-    return this.mDescription;
+    return mDescription;
   }
 
   /**
@@ -83,7 +85,7 @@ public class CommandReader {
    * @return example command
    */
   public  String getExample() {
-    return this.mExample;
+    return mExample;
   }
 
   /**
@@ -99,7 +101,7 @@ public class CommandReader {
    * @return command subcommands
    */
   public String getSubCommands() {
-    return this.mSubCommands;
+    return mSubCommands;
   }
 
   /**
@@ -107,7 +109,7 @@ public class CommandReader {
    * @param options of command
    */
   public void setOptions(String[] options) {
-    mOptions = options;
+    mOptions = options.clone();
   }
 
   /**
@@ -115,13 +117,14 @@ public class CommandReader {
   * @return command options
   */
   public String[] getOptions() {
-    return this.mOptions;
+    return mOptions;
   }
 
   @Override
   public String toString() {
-    return "name: " + getName()
-            + "\nusage: " + getUsage()
-            + "\ndescription: |\n  " + getDescription();
+    return MoreObjects.toStringHelper(this)
+        .add("Name:", getName())
+        .add("Usage:", getUsage())
+        .add("Description:", getDescription()).toString();
   }
 }

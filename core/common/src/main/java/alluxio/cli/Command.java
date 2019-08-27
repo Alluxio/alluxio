@@ -20,7 +20,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -113,18 +112,11 @@ public interface Command {
   /**
    * @return the documentation of the command
    */
-  String getDocumentation();
+  CommandDocumentation getDocumentation();
 
   /**
    *
    * @return code examples of the command
    */
   String getExample();
-
-  /**
-   *
-   * @param file for yaml location
-   * @throws IOException
-   */
-  void writeDocumentation(File file) throws IOException;
 }

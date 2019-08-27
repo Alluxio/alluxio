@@ -12,7 +12,8 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.Command;
-import alluxio.cli.CommandReader;
+import alluxio.cli.CommandDocumentation;
+import alluxio.cli.CommandUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.journal.JournalMasterClient;
@@ -21,10 +22,9 @@ import alluxio.client.meta.MetaMasterConfigClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import jline.internal.Preconditions;
 import org.apache.commons.cli.Option;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
 
@@ -41,7 +41,7 @@ public abstract class AbstractFsAdminCommand implements Command {
   protected final JournalMasterClient mMasterJournalMasterClient;
   protected final JournalMasterClient mJobMasterJournalMasterClient;
 
-  private static final ObjectMapper OBJECTMAPPER = new ObjectMapper(new YAMLFactory());
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory());
 
   protected AbstractFsAdminCommand(Context context) {
     mFsClient = context.getFsClient();
@@ -54,6 +54,7 @@ public abstract class AbstractFsAdminCommand implements Command {
   }
 
   private URL getCommandFile(Class c) {
+    Preconditions.checkNotNull(c);
     return c.getClassLoader().getResource(String.format("%s.yml", c.getSimpleName()));
   }
 
@@ -73,25 +74,16 @@ public abstract class AbstractFsAdminCommand implements Command {
   }
 
   @Override
-  public String getDocumentation() {
-    return getDocs().toString();
+  public CommandDocumentation getDocumentation() {
+    CommandDocumentation d = getDocs();
+    d.setOptions(setOptions());
+    return d;
   }
 
-  private CommandReader getDocs() {
-    OBJECTMAPPER.findAndRegisterModules();
-    URL u = getCommandFile(this.getClass());
-    try {
-      CommandReader reader = OBJECTMAPPER.readValue(new File(u.getFile()), CommandReader.class);
-      reader.setOptions(setOptions());
-      return reader;
-    } catch (IOException e) {
-      throw new RuntimeException("Could not get fsadmin command docs", e);
-    }
-  }
-
-  @Override
-  public void writeDocumentation(File file) throws IOException {
-    OBJECTMAPPER.writeValue(file, getDocs());
+  private CommandDocumentation getDocs() {
+    CommandDocumentation d = CommandUtils.readDocumentation(this.getClass());
+    d.setOptions(setOptions());
+    return d;
   }
 
   private String[] setOptions() {

@@ -55,7 +55,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           .longOpt("threads")
           .required(false)
           .hasArg(true)
-          .desc("Number of threads used when repairing consistency. Defaults to <number of cores> * 2."
+          .desc("Number of threads used when repairing consistency."
+                  + "Defaults to <number of cores> * 2."
                   + "This option has no effect if -r is not specified")
           .build();
 

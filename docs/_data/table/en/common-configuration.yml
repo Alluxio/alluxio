@@ -117,7 +117,7 @@ alluxio.proxy.web.port:
 alluxio.secondary.master.metastore.dir:
   'The secondary master metastore work directory. Only some metastores need disk.'
 alluxio.site.conf.dir:
-  'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.site.conf.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+  'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending "-Dalluxio.site.conf.dir"=&lt;NEW_VALUE&gt;" to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.test.deprecated.key:
   'N/A'
 alluxio.tmp.dirs:

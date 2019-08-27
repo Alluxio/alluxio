@@ -29,6 +29,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +77,9 @@ public final class FileSystemAdminShell extends AbstractShell {
     return "fsadmin";
   }
 
+  //public allows commands to be loaded to from configuaritonDocGenerator
   @Override
+  @VisibleForTesting
   public Map<String, Command> loadCommands() {
     ClientContext ctx = ClientContext.create(mConfiguration);
     MasterClientContext masterConfig = MasterClientContext.newBuilder(ctx).build();

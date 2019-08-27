@@ -75,10 +75,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
-           .required(false)
-           .hasArg(false)
-           .desc("copy files in subdirectories recursively")
-           .build();
+          .required(false)
+          .hasArg(false)
+          .desc("copy files in subdirectories recursively")
+          .build();
   public static final Option THREAD_OPTION =
       Option.builder()
           .longOpt("thread")
@@ -87,8 +87,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .numberOfArgs(1)
           .argName("threads")
           .type(Number.class)
-          .desc("Number of threads used to copy files in parallel,"
-               + "default value is CPU cores * 2")
+          .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
           .build();
   public static final Option BUFFER_SIZE_OPTION =
       Option.builder()
@@ -160,7 +159,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
      * @param path the path to delete on shutdown when it's empty, otherwise can be {@code null}
      */
     public CopyThreadPoolExecutor(int threads, PrintStream stdout, PrintStream stderr,
-       FileSystem fileSystem, AlluxioURI path) {
+        FileSystem fileSystem, AlluxioURI path) {
       mPool = new ThreadPoolExecutor(threads, threads,
           1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads * 2),
           new ThreadPoolExecutor.CallerRunsPolicy());
@@ -321,7 +320,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         }
       } catch (ParseException e) {
         throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getLongOpt()
-                + " into an integer", e);
+            + " into an integer", e);
       }
     }
     if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
@@ -480,7 +479,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     } else {
       if (!recursive) {
         throw new IOException(
-            srcPath.getPath() + " is a directory, to copy it please use \"command -R <src> <dst>\"");
+            srcPath.getPath() + " is a directory, to copy it please use \"cp -R <src> <dst>\"");
       }
 
       List<URIStatus> statuses;
@@ -551,7 +550,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param dstPath the destination path in the Alluxio filesystem
    */
   private void preserveAttributes(AlluxioURI srcPath, AlluxioURI dstPath)
-     throws IOException, AlluxioException {
+      throws IOException, AlluxioException {
     if (mPreservePermissions) {
       URIStatus srcStatus = mFileSystem.getStatus(srcPath);
       mFileSystem.setAttribute(dstPath, SetAttributePOptions.newBuilder()
@@ -654,8 +653,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
       for (File srcFile : fileList) {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
         asyncCopyLocalPath(pool,
-            new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
-            newURI);
+              new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
+              newURI);
       }
     }
   }
@@ -727,9 +726,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
         try {
           File subDstFile = new File(dstFile.getAbsolutePath(), status.getName());
           copyToLocal(
-                  new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
-                  new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-                          subDstFile.getPath()));
+              new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
+              new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), subDstFile.getPath()));
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }

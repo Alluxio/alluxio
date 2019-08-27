@@ -19,7 +19,6 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.io.Closer;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Map;
@@ -27,16 +26,12 @@ import java.util.Map;
 public class FsUnitTest {
   private static Map<String, Command> sCommands;
 
-  @Before
-  public void loadFsCommands() {
+  @Test
+  public void checkDocs() {
     Closer mCloser = Closer.create();
     InstancedConfiguration cmdCommand = new InstancedConfiguration(ConfigurationUtils.defaults());
     sCommands = FileSystemShellUtils.loadCommands(
             mCloser.register(FileSystemContext.create(cmdCommand)));
-  }
-
-  @Test
-  public void checkDocs() {
     for (Map.Entry<String, Command> cmd : sCommands.entrySet()) {
       Command c = cmd.getValue();
       Assert.assertNotNull(c.getCommandName());

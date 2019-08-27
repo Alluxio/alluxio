@@ -13,7 +13,8 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.Command;
-import alluxio.cli.CommandReader;
+import alluxio.cli.CommandDocumentation;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -27,9 +28,7 @@ import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -45,8 +44,11 @@ public abstract class AbstractFileSystemCommand implements Command {
 
   protected FileSystem mFileSystem;
   protected FileSystemContext mFsContext;
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory());
 
-  private static final ObjectMapper OBJECTMAPPER = new ObjectMapper(new YAMLFactory());
+  static {
+    OBJECT_MAPPER.findAndRegisterModules();
+  }
   // The FilesystemContext contains configuration information and is also used to instantiate a
   // filesystem client, if null - load default properties
   protected AbstractFileSystemCommand(@Nullable FileSystemContext fsContext) {
@@ -107,50 +109,31 @@ public abstract class AbstractFileSystemCommand implements Command {
     }
   }
 
-  protected URL getCommandFile(Class c) {
-    return c.getClassLoader().getResource(String.format("%s.yml", c.getSimpleName()));
-  }
-
   @Override
   public String getCommandName() {
-    return getDocs().getName();
+    return getDocumentation().getName();
   }
 
   @Override
   public String getUsage() {
-    return getDocs().getUsage();
+    return getDocumentation().getUsage();
   }
 
   @Override
   public String getDescription() {
-    return getDocs().getDescription();
+    return getDocumentation().getDescription();
   }
 
   @Override
   public String getExample() {
-    return getDocs().getExample();
+    return getDocumentation().getExample();
   }
 
   @Override
-  public String getDocumentation() {
-    return getDocs().toString();
-  }
-
-  private CommandReader getDocs() {
-    OBJECTMAPPER.findAndRegisterModules();
-    URL u = getCommandFile(this.getClass());
-    try {
-      CommandReader reader = OBJECTMAPPER.readValue(new File(u.getFile()), CommandReader.class);
-      reader.setOptions(setOptions());
-      return reader;
-    } catch (IOException e) {
-      throw new RuntimeException("Could not get fsadmin command docs", e);
-    }
-  }
-
-  @Override
-  public void writeDocumentation(File file) throws IOException {
-    OBJECTMAPPER.writeValue(file, getDocs());
+  public CommandDocumentation getDocumentation() {
+    CommandDocumentation d = CommandUtils.readDocumentation(this.getClass());
+    d.setOptions(setOptions());
+    return d;
   }
 
   private String[] setOptions() {
