@@ -233,8 +233,8 @@ public class ShimFileSystemIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.MASTER_AUTO_MOUNT_ENABLED, "true",
-      PropertyKey.Name.MASTER_AUTO_MOUNT_READONLY, "false"})
+      PropertyKey.Name.MASTER_SHIMFS_AUTO_MOUNT_ENABLED, "true",
+      PropertyKey.Name.MASTER_SHIMFS_AUTO_MOUNT_READONLY, "false"})
   public void autoMountCreateFile() throws Exception {
     // Un-mounted foreign root.
     String foreignRoot = new AlluxioURI("file", Authority.fromString(null),
@@ -256,7 +256,7 @@ public class ShimFileSystemIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_AUTO_MOUNT_ENABLED, "true"})
+      confParams = {PropertyKey.Name.MASTER_SHIMFS_AUTO_MOUNT_ENABLED, "true"})
   public void autoMountGetFile() throws Exception {
     // Un-mounted foreign root.
     String foreignRoot = new AlluxioURI("file", Authority.fromString(null),

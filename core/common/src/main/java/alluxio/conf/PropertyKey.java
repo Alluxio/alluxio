@@ -1148,29 +1148,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_AUTO_MOUNT_ENABLED =
-      new Builder(Name.MASTER_AUTO_MOUNT_ENABLED)
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_ENABLED =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_ENABLED)
           .setDescription("If enabled, Alluxio will attempt to mount UFS for foreign URIs.")
           .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_AUTO_MOUNT_ROOT =
-      new Builder(Name.MASTER_AUTO_MOUNT_ROOT)
-          .setDescription("Alluxio root path for auto-mounted UFSes.")
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_ROOT =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_ROOT)
+          .setDescription("Alluxio root path for auto-mounted UFSes. "
+              + "This directory should already exist in Alluxio.")
           .setDefaultValue("/auto-mount")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_AUTO_MOUNT_READONLY =
-      new Builder(Name.MASTER_AUTO_MOUNT_READONLY)
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_READONLY =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_READONLY)
           .setDescription("If true, UFSes are auto-mounted as read-only.")
           .setDefaultValue(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_AUTO_MOUNT_SHARED =
-      new Builder(Name.MASTER_AUTO_MOUNT_SHARED)
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_SHARED =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_SHARED)
           .setDescription("If true, UFSes are auto-mounted as shared.")
           .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4023,10 +4024,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
-    public static final String MASTER_AUTO_MOUNT_ENABLED = "alluxio.master.auto.mount.enabled";
-    public static final String MASTER_AUTO_MOUNT_ROOT = "alluxio.master.auto.mount.root";
-    public static final String MASTER_AUTO_MOUNT_READONLY = "alluxio.master.auto.mount.readonly";
-    public static final String MASTER_AUTO_MOUNT_SHARED = "alluxio.master.auto.mount.shared";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_ENABLED =
+        "alluxio.master.auto.mount.enabled";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_ROOT =
+        "alluxio.master.auto.mount.root";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_READONLY =
+        "alluxio.master.auto.mount.readonly";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_SHARED =
+        "alluxio.master.auto.mount.shared";
 
     //
     // File system master related properties

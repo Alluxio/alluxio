@@ -1375,22 +1375,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       return mMountTable.reverseLookup(uriStr);
     } catch (InvalidPathException e) {
       // Throw if auto-mount is not requested.
-      if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_AUTO_MOUNT_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_ENABLED)) {
         throw e;
       }
     }
 
-    // Reverse lookup failed and auto-mount is requested.
+    // Reverse lookup failed. Attempt to auto-mount.
     try {
       autoMountUfsForUri(uri);
     } catch (Exception e) {
-      LOG.warn(String.format("Failed to auto-mount ufs for URI: %s", uri), e);
-      if (e instanceof InvalidPathException) {
-        // Don't throw as this could be thrown due to ufs having been mounted concurrently.
-      } else {
-        throw new InvalidPathException(
-            String.format("Failed to translate and auto-mount path: %s", uriStr), e);
-      }
+      throw new InvalidPathException(
+          String.format("Failed to translate and auto-mount path: %s", uriStr), e);
     }
     // Try translating the URI after auto-mount.
     return mMountTable.reverseLookup(uriStr);
@@ -1399,10 +1394,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /**
    * Attempts to mount given UFS Uri into designated auto-mount directory.
    *
-   * Mount attempt will start from the mounting lowest path component, and go to higher path
+   * Mount attempt will start from mounting the highest path component, and go to lowest path
    * components if mounting fails due to access control violation.
    *
-   * TODO(ggezer) Have fine-grained locking on mount paths instead of marking synchronized.
+   * TODO(ggezer): Have fine-grained locking on mount paths instead of marking synchronized.
    *
    * @param ufsUri ufs Uri for auto-mount
    * @throws AlluxioException
@@ -1410,13 +1405,26 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private synchronized void autoMountUfsForUri(AlluxioURI ufsUri)
       throws AlluxioException, IOException {
-    // Generate lowest Alluxio mount root for given path.
+    // Check if an auto-mount has been already made that resolves this URI.
+    try {
+      mMountTable.reverseLookup(ufsUri.toString());
+      // reverse lookup succeeded. No need to auto-mount.
+      LOG.debug("No need to do auto-mount for: {}", ufsUri);
+      return;
+    } catch (Exception e) {
+      // Continue auto-mounting.
+    }
+    // Generate highest Alluxio mount root for given path.
+    // The highest mount root will be URIs "scheme/authority" under the configured auto-mount root.
+    // This prevents same authorities under different schemes to be auto-mounted correctly.
     String alluxioMountRoot =
-        PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_AUTO_MOUNT_ROOT),
+        PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_ROOT),
             ufsUri.getScheme(), ufsUri.getAuthority());
     // Read default options for auto-mounted UFSes.
-    boolean mountReadonly = ServerConfiguration.getBoolean(PropertyKey.MASTER_AUTO_MOUNT_READONLY);
-    boolean mountShared = ServerConfiguration.getBoolean(PropertyKey.MASTER_AUTO_MOUNT_SHARED);
+    boolean mountReadonly =
+        ServerConfiguration.getBoolean(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_READONLY);
+    boolean mountShared =
+        ServerConfiguration.getBoolean(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_SHARED);
     // Try mounting UFS to Alluxio starting from the ufs root.
     int pathComponentIndex = 0;
     String currentPathComponent;
@@ -1425,17 +1433,20 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     AlluxioURI firstCreatedParent = null;
     try {
       /**
-       * In order to optimize auto-mount count, mount attempt is started from UFS root
+       * In order to minimize mount points, mount attempt is started from UFS root
        * for the given URI. If mount fails for due to "access control" or "mount prefix/postfix"
        * conditions, then the next path component is tried.
        *
        * For example:
-       * auto-mounting "/a/b/c/d" when mount-table already has an entry for "/a/x"
-       * will result in mounting at "/a/b/c"
+       *  auto-mounting "/a/b/c/d" when server don't have access to "/a"
+       *  will result in mounting at "/a/b"
        *
-       * auto-mounting "/a/b/c/d" when server don't have access to "/a"
-       * will result in mounting at "/a/b"
+       *  auto-mounting "/a/b/c/d" when mount-table already has an entry for "/a/x"
+       *  will result in mounting at "/a/b"
+       *
        */
+      MountContext mountCtx = MountContext
+          .mergeFrom(MountPOptions.newBuilder().setReadOnly(mountReadonly).setShared(mountShared));
       while ((currentPathComponent = ufsUri.getLeadingPath(pathComponentIndex++)) != null) {
         // Generate current Alluxio mount root.
         AlluxioURI currentAlluxioRootUri =
@@ -1447,23 +1458,21 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           // Ensure Alluxio parent path exist before mounting.
           AlluxioURI currentRootParentUri = currentAlluxioRootUri.getParent();
           if (!mInodeTree.inodePathExists(currentRootParentUri)) {
+            createDirectory(currentRootParentUri, CreateDirectoryContext
+                .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
             if (firstCreatedParent == null) {
               // Track first created dir while preparing to mount.
               firstCreatedParent = currentRootParentUri;
             }
-            createDirectory(currentAlluxioRootUri.getParent(), CreateDirectoryContext
-                .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
           }
-          // Mount current lowest path of UFS to Alluxio.
-          mount(currentAlluxioRootUri, currentUfsRootUri, MountContext.mergeFrom(
-              MountPOptions.newBuilder().setReadOnly(mountReadonly).setShared(mountShared)));
-          LOG.info("Auto-mounted UFS path: {} to Alluxio path: {}", currentAlluxioRootUri,
-              currentUfsRootUri);
+          // Mount current highest path of UFS to Alluxio.
+          mount(currentAlluxioRootUri, currentUfsRootUri, mountCtx);
+          LOG.info("Auto-mounted UFS path: {} to Alluxio path: {}", currentUfsRootUri,
+              currentAlluxioRootUri);
           return;
         } catch (AccessControlException | InvalidPathException e) {
-          LOG.warn(
-              String.format("Failed to auto-mount UFS path: %s to Alluxio path: %s due to error: ",
-                  currentAlluxioRootUri, currentUfsRootUri), e);
+          LOG.warn("Failed to auto-mount UFS path: {} to Alluxio path: {}.",
+              currentAlluxioRootUri, currentUfsRootUri, e);
           continue;
         }
       }
@@ -1476,9 +1485,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           delete(firstCreatedParent,
               DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
         } catch (IOException e1) {
-          LOG.warn(
-              String.format("Failed to clean-up created directory root: %s", firstCreatedParent),
-              e1);
+          LOG.warn("Failed to clean-up created directory root: {}", firstCreatedParent, e1);
         }
       }
     }
