@@ -165,9 +165,8 @@ install_alluxio() {
   download_file ${alluxio_tarball}
 
   local release=`basename "${alluxio_tarball}"`
-  local release_unzip="${release%"-bin*.tar.gz"}"
-  release_unzip="${release_unzip%".tar.gz"}"
-  release_unzip="${release_unzip%-bin*}"
+  local release_unzip="${release%".tar.gz"}"
+  release_unzip="${release_unzip%-[ab][il][ln]*}"
 
   # Unpack and inflate the release tar
   # TODO logic for different compression formats, s3 URIs, git URIs, etc.
