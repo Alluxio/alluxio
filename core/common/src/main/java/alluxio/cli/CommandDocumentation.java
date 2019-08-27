@@ -27,7 +27,7 @@ public class CommandDocumentation {
   private String[] mOptions;
 
   /**
-   * Set the name of the command
+   * Set the name of the command.
    *
    * @param name of command
    */
@@ -36,7 +36,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * get the name of the command
+   * get the name of the command.
    *
    * @return command name
    */
@@ -45,7 +45,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Set the usage of the command
+   * Set the usage of the command.
    *
    * @param Usage of command
    */
@@ -54,7 +54,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Get the usage of the command
+   * Get the usage of the command.
    *
    * @return command usage
    */
@@ -63,7 +63,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Set the description of the command
+   * Set the description of the command.
    *
    * @param Description of command
    */
@@ -72,7 +72,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Get the description of the command
+   * Get the description of the command.
    *
    * @return command description
    */
@@ -81,7 +81,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Set the examples of the command
+   * Set the examples of the command.
    *
    * @param Examples of command
    */
@@ -90,7 +90,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Get the examples of the command
+   * Get the examples of the command.
    *
    * @return example command
    */
@@ -99,7 +99,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Set the subCommands of the command
+   * Set the subCommands of the command.
    *
    * @param subCommands of command
    */
@@ -109,7 +109,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Get the subCommands of the command
+   * Get the subCommands of the command.
    *
    * @return command subcommands
    */
@@ -118,7 +118,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Set the options of the command
+   * Set the options of the command.
    *
    * @param options of command
    */
@@ -130,7 +130,7 @@ public class CommandDocumentation {
   }
 
   /**
-   * Get the options of the command
+   * Get the options of the command.
   *
   * @return command options
   */
