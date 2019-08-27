@@ -13,6 +13,8 @@ package alluxio.cli;
 
 import com.google.common.base.MoreObjects;
 
+import javax.annotation.Nullable;
+
 /**
  * command object for reading yaml files.
  */
@@ -25,6 +27,7 @@ public class CommandDocumentation {
   private String[] mOptions;
 
   /**
+   * Set the name of the command
    *
    * @param name of command
    */
@@ -33,6 +36,7 @@ public class CommandDocumentation {
   }
 
   /**
+   * get the name of the command
    *
    * @return command name
    */
@@ -41,6 +45,7 @@ public class CommandDocumentation {
   }
 
   /**
+   * Set the usage of the command
    *
    * @param Usage of command
    */
@@ -49,6 +54,7 @@ public class CommandDocumentation {
   }
 
   /**
+   * Get the usage of the command
    *
    * @return command usage
    */
@@ -57,6 +63,7 @@ public class CommandDocumentation {
   }
 
   /**
+   * Set the description of the command
    *
    * @param Description of command
    */
@@ -65,6 +72,7 @@ public class CommandDocumentation {
   }
 
   /**
+   * Get the description of the command
    *
    * @return command description
    */
@@ -73,30 +81,35 @@ public class CommandDocumentation {
   }
 
   /**
+   * Set the examples of the command
    *
    * @param Examples of command
    */
-  public void setExample(String Examples) {
+  public void setExamples(String Examples) {
     mExamples = Examples;
   }
 
   /**
+   * Get the examples of the command
    *
    * @return example command
    */
-  public  String getExample() {
+  public  String getExamples() {
     return mExamples;
   }
 
   /**
+   * Set the subCommands of the command
    *
    * @param subCommands of command
    */
+  @Nullable
   public void setSubCommands(String subCommands) {
     mSubCommands = subCommands;
   }
 
   /**
+   * Get the subCommands of the command
    *
    * @return command subcommands
    */
@@ -105,9 +118,11 @@ public class CommandDocumentation {
   }
 
   /**
+   * Set the options of the command
    *
    * @param options of command
    */
+  @Nullable
   public void setOptions(String[] options) {
     if (options != null) {
       mOptions = options.clone();
@@ -115,6 +130,7 @@ public class CommandDocumentation {
   }
 
   /**
+   * Get the options of the command
   *
   * @return command options
   */

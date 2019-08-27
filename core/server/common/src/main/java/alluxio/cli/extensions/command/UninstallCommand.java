@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -61,12 +62,14 @@ public final class UninstallCommand implements Command {
   }
 
   @Override
+  @Nullable
   public CommandDocumentation getDocumentation() {
     return null;
   }
 
   // TODO(zac) implement documentation generation logic
   @Override
+  @Nullable
   public String getExample() {
     return null;
   }

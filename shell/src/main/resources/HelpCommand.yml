@@ -3,7 +3,7 @@ usage: help [<command>]
 description: |
   The `help` command prints the help message for a given fs subcommand.
   If the given command does not exist, it prints help messages for all supported subcommands.
-example: |
+examples: |
   Examples:
   ```console
   # Print all subcommands

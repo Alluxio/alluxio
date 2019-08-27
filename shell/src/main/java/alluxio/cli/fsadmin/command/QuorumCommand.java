@@ -66,9 +66,4 @@ public class QuorumCommand extends AbstractFsAdminCommand {
   public Map<String, Command> getSubCommands() {
     return mSubCommands;
   }
-
-  @Override
-  public String getCommandName() {
-    return "quorum";
-  }
 }

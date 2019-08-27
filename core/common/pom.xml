@@ -40,6 +40,10 @@
       <artifactId>commons-httpclient</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -123,12 +127,6 @@
       <artifactId>curator-test</artifactId>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>com.fasterxml.jackson.dataformat</groupId>
-          <artifactId>jackson-dataformat-yaml</artifactId>
-          <version>2.9.9</version>
-          <scope>compile</scope>
-      </dependency>
   </dependencies>
 
   <build>

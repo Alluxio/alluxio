@@ -7,7 +7,7 @@ description: |
   option modifies the ACL by adding/overwriting new entries. The `-x` option removes specific ACL entries.
   The `-b` option removes all ACL entries, except for the base entries. The `-k` option
   removes all the default ACL entries.
-example: |
+examples: |
   For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
   ```console
   $ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile

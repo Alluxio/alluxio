@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -61,6 +62,7 @@ public final class LsCommand implements Command {
   }
 
   @Override
+  @Nullable
   public CommandDocumentation getDocumentation() {
     return null;
   }

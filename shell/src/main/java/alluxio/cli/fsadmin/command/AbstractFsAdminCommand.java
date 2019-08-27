@@ -59,45 +59,29 @@ public abstract class AbstractFsAdminCommand implements Command {
   }
 
   @Override
+  public String getCommandName() {
+    return getDocumentation().getName();
+  }
+
+  @Override
   public String getUsage() {
-    return getDocs().getUsage();
+    return getDocumentation().getUsage();
   }
 
   @Override
   public String getDescription() {
-    return getDocs().getDescription();
+    return getDocumentation().getDescription();
   }
 
   @Override
   public String getExample() {
-    return getDocs().getExample();
+    return getDocumentation().getExamples();
   }
 
   @Override
   public CommandDocumentation getDocumentation() {
-    CommandDocumentation d = getDocs();
-    d.setOptions(setOptions());
-    return d;
-  }
-
-  private CommandDocumentation getDocs() {
     CommandDocumentation d = CommandUtils.readDocumentation(this.getClass());
-    d.setOptions(setOptions());
+    d.setOptions(CommandUtils.addOptions(this));
     return d;
-  }
-
-  private String[] setOptions() {
-    int n = 0;
-    String[] opt = new String[this.getOptions().getOptions().size()];
-    for (Option commandOpt:this.getOptions().getOptions()) {
-      if (commandOpt.getOpt() == null) {
-        opt[n] = "`--" + commandOpt.getLongOpt() + "` ";
-      } else {
-        opt[n] = "`-" + commandOpt.getOpt() + "` ";
-      }
-      opt[n] += commandOpt.getDescription();
-      n++;
-    }
-    return opt;
   }
 }

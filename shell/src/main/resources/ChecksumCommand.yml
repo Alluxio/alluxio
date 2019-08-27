@@ -2,7 +2,7 @@ name: checksum
 usage: checksum <Alluxio path>
 description: |
   The `checksum` command outputs the md5 value of a file in Alluxio.
-example: |
+examples: |
   For example, `checksum` can be used to verify the contents of a file stored in Alluxio.
   ```console
   $ ./bin/alluxio fs checksum /LICENSE

@@ -12,7 +12,7 @@ description: |
 
   If no argument is passed in, `report` will report the leading master, worker number,
   and capacity information.
-example: |
+examples: |
   ```console
   $ ./bin/alluxio fsadmin report
   Alluxio cluster summary:

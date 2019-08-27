@@ -3,7 +3,7 @@ usage: quorum [remove] [info]
 description: |
   Manage embedded journal quorum configuration.
   See sub-commands' descriptions for more details.
-example: |
+examples: |
   ```console
   $ ./bin/alluxio fsadmin quorum info -domain MASTER
   Journal domain	: MASTER

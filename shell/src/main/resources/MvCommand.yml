@@ -6,7 +6,7 @@ description: |
   the file or directory will be placed as a child of the directory.
   `mv` is purely a metadata operation and does not affect the data blocks of the file.
   `mv` cannot be done between mount points of different under storage systems.
-example: |
+examples: |
   For example, `mv` can be used to re-organize your files.
   ```console
   $ ./bin/alluxio fs mv /data/2014 /data/archives/2014

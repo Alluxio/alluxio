@@ -3,7 +3,7 @@ usage: getBlockInfo [blockId]
 description: |
   The `getBlockInfo` command provides the block information and file path of a block id.
   It is primarily intended to assist power users in debugging their system.
-example: |
+examples: |
   ```console
   $ ./bin/alluxio fsadmin getBlockInfo <block_id>
   BlockInfo{id=16793993216, length=6, locations=[BlockLocation{workerId=8265394007253444396,

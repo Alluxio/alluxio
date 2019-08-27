@@ -9,7 +9,7 @@ description: |
   If you are persisting multiple files, you can use the `--parallelism <#>` option to submit `#` of persist
   commands in parallel. For example, if your folder has 10,000 files, persisting with a parallelism factor
   of 10 will persist 10 files at a time until all 10,000 files are persisted.
-example: |
+examples: |
   For example, `persist` can be used after filtering a series of temporary files for the ones containing useful data.
   ```console
   $ ./bin/alluxio fs persist /tmp/experimental-logs-2.txt

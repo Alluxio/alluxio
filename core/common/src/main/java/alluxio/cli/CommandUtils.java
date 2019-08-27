@@ -18,6 +18,7 @@ import alluxio.util.CommonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.reflections.Reflections;
 
 import java.io.File;
@@ -44,6 +45,7 @@ public final class CommandUtils {
   private CommandUtils() {} // prevent instantiation
 
   /**
+   * Reads the documentation from the command's resource file
    *
    * @param c the class of a command
    * @return the documentation command
@@ -59,13 +61,34 @@ public final class CommandUtils {
   }
 
   /**
+   * Writes documentation to yaml file to be displayed
    *
-   * @param file of documentation location
+   * @param filePath of documentation location
    * @param docs of command
    * @throws IOException
    */
-  public static void writeDocumentation(File file, CommandDocumentation docs) throws IOException {
-    OBJECT_MAPPER.writeValue(file, docs);
+  public static void writeDocumentation(String filePath, CommandDocumentation docs) throws IOException {
+    OBJECT_MAPPER.writeValue(new File(filePath), docs);
+  }
+
+  /**
+   * Add options to command yaml documentaiton file
+   * @param cmd to add options to
+   * @return options of the command
+   */
+  public static String[] addOptions(Command cmd){
+    int n = 0;
+    String[] opt = new String[cmd.getOptions().getOptions().size()];
+    for (Option commandOpt:cmd.getOptions().getOptions()) {
+      if (commandOpt.getOpt() == null) {
+        opt[n] = "`--" + commandOpt.getLongOpt() + "` ";
+      } else {
+        opt[n] = "`-" + commandOpt.getOpt() + "` ";
+      }
+      opt[n] += commandOpt.getDescription();
+      n++;
+    }
+    return opt;
   }
 
   /**

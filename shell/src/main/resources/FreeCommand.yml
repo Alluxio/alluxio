@@ -8,7 +8,7 @@ description: |
   being freed or the free command will fail. Any pinned files cannot be freed unless -f option is specified.
   The `free` command does not delete any data from the under storage system, only removing the blocks of those files
   in Alluxio space to reclaim space. Metadata is not affected by this operation; a freed file will still show up if an `ls` command is run.
-example: |
+examples: |
   For example, `free` can be used to manually manage Alluxio’s data caching.
   ```console
   $ ./bin/alluxio fs free /unused/data

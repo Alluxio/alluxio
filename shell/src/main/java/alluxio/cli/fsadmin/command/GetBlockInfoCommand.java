@@ -48,11 +48,6 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "getBlockInfo";
-  }
-
-  @Override
   public int run(CommandLine cl) throws IOException {
     if (cl.hasOption(HELP_OPTION_NAME)) {
       System.out.println(getUsage());

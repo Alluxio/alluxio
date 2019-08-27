@@ -46,11 +46,6 @@ public class BackupCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "backup";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(LOCAL_OPTION);
   }

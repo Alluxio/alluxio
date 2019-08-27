@@ -23,6 +23,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import javax.annotation.Nullable;
+
 /**
  * Unit tests for {@link Command}.
  */
@@ -64,6 +66,7 @@ public final class CommandTest {
     }
 
     @Override
+    @Nullable
     public CommandDocumentation getDocumentation() {
       return null;
     }

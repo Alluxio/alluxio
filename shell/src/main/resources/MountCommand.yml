@@ -9,7 +9,7 @@ description: |
   If multiple Alluxio satellite clusters mount a remote storage cluster which serves as the
   central source of truth, `--readonly` option could help prevent any write operations on the
   satellite cluster from wiping out the remote storage.
-example: |
+examples: |
   For example, `mount` can be used to make data in another storage system available in Alluxio.
   ```console
   $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/

@@ -52,6 +52,10 @@
       <artifactId>commons-io</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
@@ -63,11 +67,6 @@
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
    </dependency>
-      <dependency>
-          <groupId>com.fasterxml.jackson.dataformat</groupId>
-          <artifactId>jackson-dataformat-yaml</artifactId>
-          <version>2.9.9</version>
-      </dependency>
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>

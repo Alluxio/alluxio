@@ -56,11 +56,6 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "doctor";
-  }
-
-  @Override
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
     if (cl.hasOption(HELP_OPTION_NAME)) {

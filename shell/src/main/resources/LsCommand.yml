@@ -9,7 +9,7 @@ description: |
   under storage system to Alluxio namespace if it does not exist in Alluxio. `ls` queries the under storage system
   for any file or directory matching the given path and creates a mirror of the file in Alluxio backed by that file.
   Only the metadata, such as the file name and size, are loaded this way and no data transfer occurs.
-example: |
+examples: |
   For example, ls can be used to browse the file system.
   ```console
   $ ./bin/alluxio fs mount /s3/data s3://data-bucket/

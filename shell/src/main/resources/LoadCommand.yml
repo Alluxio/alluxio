@@ -8,7 +8,7 @@ description: |
   If the data is already loaded into Alluxio, load is a no-op unless the `--local` flag is used. The `--local`
   flag forces the data to be loaded to a local worker even if the data is already available on a remote worker.
   If load is run on a directory, files in the directory will be recursively loaded.
-example: |
+examples: |
   For example, `loadMetadata` can be used when other systems output to the under storage directly
   and the application running on Alluxio needs to use the output of those systems.
   ```console

@@ -34,11 +34,6 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "checkpoint";
-  }
-
-  @Override
   public int run(CommandLine cl) throws IOException {
     Thread thread = CommonUtils.createProgressThread(System.out);
     thread.start();

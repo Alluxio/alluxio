@@ -9,7 +9,7 @@ description: |
 
   NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates to files or
   directories in the subtree cannot be completed until this command completes.
-example: |
+examples: |
   For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
   ```console
   # List each inconsistent file or directory

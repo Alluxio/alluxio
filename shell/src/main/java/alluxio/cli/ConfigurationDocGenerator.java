@@ -211,6 +211,7 @@ public final class ConfigurationDocGenerator {
   }
 
   /**
+   * Write yaml files containing the fields outlined in each command's resource file
    *
    * @param commands to get documentation from
    * @param filePath to generate documentaion
@@ -222,11 +223,11 @@ public final class ConfigurationDocGenerator {
       return;
     }
     Closer closer = Closer.create();
-
+    String cmdPath;
     try {
       for (Map.Entry<String, Command> cmd : commands.entrySet()) {
-        CommandUtils.writeDocumentation(new File(PathUtils.concatPath(filePath,
-                cmd.getValue().getCommandName() + ".yml")), cmd.getValue().getDocumentation());
+        cmdPath = PathUtils.concatPath(filePath, cmd.getValue().getCommandName() + ".yml");
+        CommandUtils.writeDocumentation(cmdPath, cmd.getValue().getDocumentation());
       }
 
       LOG.info("Command YML files were created successfully.");

@@ -4,7 +4,7 @@ description: |
   The `ufs` command provides options to update attributes of a mounted under storage.
   The option mode can be used to put an under storage in maintenance mode.
   Certain operations can be restricted at this moment.
-example: |
+examples: |
   An under storage can enter `readOnly` mode to disallow write operations.
   Alluxio will not attempt any write operations on the under storage.
   ```console
