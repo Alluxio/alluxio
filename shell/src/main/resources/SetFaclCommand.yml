@@ -1,4 +1,4 @@
-name: setFacl
+name: setfacl
 usage: setfacl [-d] [-R] [--set | -m | -x <acl_entries> <path>] | [-b | -k <path>]
 description: |
   The `setfacl` command modifies the access control list associated with a specified file or directory.
