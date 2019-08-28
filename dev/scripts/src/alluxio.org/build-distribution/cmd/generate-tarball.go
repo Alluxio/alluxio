@@ -25,10 +25,6 @@ import (
 	"v.io/x/lib/cmdline"
 )
 
-const (
-	// The version of the hadoop client that the Alluxio client will be built for
-	defaultHadoopClient = "hadoop-2.7"
-)
 var (
 	cmdSingle = &cmdline.Command{
 		Name:   "single",
@@ -43,7 +39,7 @@ var (
 )
 
 func init() {
-	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", "hadoop-2.2", "the hadoop distribution to build this Alluxio distribution tarball")
+	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", "hadoop-2.7", "the hadoop distribution to build this Alluxio distribution tarball")
 	cmdSingle.Flags.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
 			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
@@ -249,9 +245,9 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 }
 
 func generateTarball(hadoopClients []string) error {
-	hadoopVersion, ok := hadoopDistributions[defaultHadoopClient]
+	hadoopVersion, ok := hadoopDistributions[hadoopClients[0]]
 	if !ok {
-		return fmt.Errorf("hadoop distribution %s not recognized\n", defaultHadoopClient)
+		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopClients[0])
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -321,7 +317,7 @@ func generateTarball(hadoopClients []string) error {
 	run("copying webui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
 
 	workerWebappDir := "webui/worker"
-	run ("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
+	run("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
 	run("copying webui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
 
 	if includeYarnIntegration(hadoopVersion) {
@@ -335,7 +331,7 @@ func generateTarball(hadoopClients []string) error {
 	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)
 
 	chdir(cwd)
-	os.Setenv("COPYFILE_DISABLE","1")
+	os.Setenv("COPYFILE_DISABLE", "1")
 	run("creating the new distribution tarball", "tar", "-czvf", tarball, dstDir)
 	run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
 
