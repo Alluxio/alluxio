@@ -1363,7 +1363,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public AlluxioURI autoMountOrTranslateUri(String uriStr) throws InvalidPathException {
+  public AlluxioURI translateUri(String uriStr) throws InvalidPathException {
     AlluxioURI uri = new AlluxioURI(uriStr);
     // Scheme-less URIs are regarded as Alluxio URI.
     if (uri.getScheme() == null || uri.getScheme().equals(Constants.SCHEME)) {

@@ -229,7 +229,7 @@ public interface FileSystemMaster extends Master {
    * @return URI in Alluxio namespace
    * @throws InvalidPathException if foreign URI not found in Alluxio
    */
-  AlluxioURI autoMountOrTranslateUri(String uriStr) throws InvalidPathException;
+  AlluxioURI translateUri(String uriStr) throws InvalidPathException;
 
   /**
    * Gets the mount point information of an Alluxio path for display purpose.
