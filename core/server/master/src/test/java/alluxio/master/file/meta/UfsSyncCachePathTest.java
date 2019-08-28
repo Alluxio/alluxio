@@ -66,7 +66,7 @@ public class UfsSyncCachePathTest {
     // request from getFileInfo
     boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, true);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, 100, true);
+    shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, true);
     Assert.assertFalse(shouldSync);
   }
 
@@ -88,12 +88,12 @@ public class UfsSyncCachePathTest {
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, true);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 100, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, true);
     Assert.assertFalse(shouldSync);
     // test child file
     shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, true);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 200, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, true);
     Assert.assertFalse(shouldSync);
   }
 
@@ -109,12 +109,12 @@ public class UfsSyncCachePathTest {
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, true);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 100, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, true);
     Assert.assertTrue(shouldSync);
     // test child file
     shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, true);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 200, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, true);
     Assert.assertTrue(shouldSync);
   }
 
@@ -130,12 +130,12 @@ public class UfsSyncCachePathTest {
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, true);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 100, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, true);
     Assert.assertFalse(shouldSync);
     // test child file
     shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, true);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 200, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, true);
     Assert.assertFalse(shouldSync);
   }
 
@@ -157,7 +157,7 @@ public class UfsSyncCachePathTest {
     // request from listStatus
     boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, 100, false);
+    shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, false);
     Assert.assertFalse(shouldSync);
   }
 
@@ -173,12 +173,12 @@ public class UfsSyncCachePathTest {
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 100, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, false);
     Assert.assertTrue(shouldSync);
     // test child file
     shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 200, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, false);
     Assert.assertTrue(shouldSync);
   }
 
@@ -194,12 +194,12 @@ public class UfsSyncCachePathTest {
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 100, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, false);
     Assert.assertFalse(shouldSync);
     // test child file
     shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 200, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, false);
     Assert.assertFalse(shouldSync);
   }
 
@@ -215,12 +215,12 @@ public class UfsSyncCachePathTest {
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 100, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, false);
     Assert.assertTrue(shouldSync);
     // test child file
     shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 200, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, false);
     Assert.assertTrue(shouldSync);
   }
 
@@ -236,12 +236,12 @@ public class UfsSyncCachePathTest {
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 100, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, false);
     Assert.assertFalse(shouldSync);
     // test child file
     shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, false);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 200, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, false);
     Assert.assertFalse(shouldSync);
   }
 }
