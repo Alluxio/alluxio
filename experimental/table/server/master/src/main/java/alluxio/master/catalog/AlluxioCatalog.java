@@ -46,10 +46,12 @@ public class AlluxioCatalog {
    *
    * @param type the database type
    * @param dbName the database name
+   * @param options the options
    * @return true if database successfully created
    */
-  public boolean createDatabase(String type, String dbName) throws IOException {
-    Database db = Database.create(mUdbRegistry, type, dbName);
+  public boolean createDatabase(String type, String dbName, Map<String, String> options)
+      throws IOException {
+    Database db = Database.create(mUdbRegistry, type, dbName, options);
     if (mDBs.putIfAbsent(dbName, db) != null) {
       return false;
     }

@@ -56,6 +56,19 @@ private static final long serialVersionUID = 0L;
             dbName_ = bs;
             break;
           }
+          case 18: {
+            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              options_ = com.google.protobuf.MapField.newMapField(
+                  OptionsDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x00000002;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+            options__ = input.readMessage(
+                OptionsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            options_.getMutableMap().put(
+                options__.getKey(), options__.getValue());
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -73,6 +86,17 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateDatabasePRequest_descriptor;
   }
 
+  @SuppressWarnings({"rawtypes"})
+  protected com.google.protobuf.MapField internalGetMapField(
+      int number) {
+    switch (number) {
+      case 2:
+        return internalGetOptions();
+      default:
+        throw new RuntimeException(
+            "Invalid map field number: " + number);
+    }
+  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateDatabasePRequest_fieldAccessorTable
@@ -123,6 +147,82 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int OPTIONS_FIELD_NUMBER = 2;
+  private static final class OptionsDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, java.lang.String> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, java.lang.String>newDefaultInstance(
+                alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateDatabasePRequest_OptionsEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "");
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, java.lang.String> options_;
+  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+  internalGetOptions() {
+    if (options_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          OptionsDefaultEntryHolder.defaultEntry);
+    }
+    return options_;
+  }
+
+  public int getOptionsCount() {
+    return internalGetOptions().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+
+  public boolean containsOptions(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetOptions().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getOptionsMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, java.lang.String> getOptions() {
+    return getOptionsMap();
+  }
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+
+  public java.util.Map<java.lang.String, java.lang.String> getOptionsMap() {
+    return internalGetOptions().getMap();
+  }
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+
+  public java.lang.String getOptionsOrDefault(
+      java.lang.String key,
+      java.lang.String defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, java.lang.String> map =
+        internalGetOptions().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+
+  public java.lang.String getOptionsOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, java.lang.String> map =
+        internalGetOptions().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -138,6 +238,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
     }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetOptions(),
+        OptionsDefaultEntryHolder.defaultEntry,
+        2);
     unknownFields.writeTo(output);
   }
 
@@ -148,6 +254,16 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
+    }
+    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+         : internalGetOptions().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+      options__ = OptionsDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, options__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -170,6 +286,8 @@ private static final long serialVersionUID = 0L;
       result = result && getDbName()
           .equals(other.getDbName());
     }
+    result = result && internalGetOptions().equals(
+        other.internalGetOptions());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -184,6 +302,10 @@ private static final long serialVersionUID = 0L;
     if (hasDbName()) {
       hash = (37 * hash) + DB_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getDbName().hashCode();
+    }
+    if (!internalGetOptions().getMap().isEmpty()) {
+      hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetOptions().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -290,6 +412,28 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateDatabasePRequest_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 2:
+          return internalGetOptions();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMutableMapField(
+        int number) {
+      switch (number) {
+        case 2:
+          return internalGetMutableOptions();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_CreateDatabasePRequest_fieldAccessorTable
@@ -316,6 +460,7 @@ private static final long serialVersionUID = 0L;
       super.clear();
       dbName_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
+      internalGetMutableOptions().clear();
       return this;
     }
 
@@ -344,6 +489,8 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000001;
       }
       result.dbName_ = dbName_;
+      result.options_ = internalGetOptions();
+      result.options_.makeImmutable();
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -391,6 +538,8 @@ private static final long serialVersionUID = 0L;
         dbName_ = other.dbName_;
         onChanged();
       }
+      internalGetMutableOptions().mergeFrom(
+          other.internalGetOptions());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -492,6 +641,129 @@ private static final long serialVersionUID = 0L;
   bitField0_ |= 0x00000001;
       dbName_ = value;
       onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> options_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetOptions() {
+      if (options_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            OptionsDefaultEntryHolder.defaultEntry);
+      }
+      return options_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetMutableOptions() {
+      onChanged();;
+      if (options_ == null) {
+        options_ = com.google.protobuf.MapField.newMapField(
+            OptionsDefaultEntryHolder.defaultEntry);
+      }
+      if (!options_.isMutable()) {
+        options_ = options_.copy();
+      }
+      return options_;
+    }
+
+    public int getOptionsCount() {
+      return internalGetOptions().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; options = 2;</code>
+     */
+
+    public boolean containsOptions(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetOptions().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getOptionsMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getOptions() {
+      return getOptionsMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; options = 2;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.String> getOptionsMap() {
+      return internalGetOptions().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; options = 2;</code>
+     */
+
+    public java.lang.String getOptionsOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetOptions().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; options = 2;</code>
+     */
+
+    public java.lang.String getOptionsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetOptions().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearOptions() {
+      internalGetMutableOptions().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, string&gt; options = 2;</code>
+     */
+
+    public Builder removeOptions(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableOptions().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String>
+    getMutableOptions() {
+      return internalGetMutableOptions().getMutableMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; options = 2;</code>
+     */
+    public Builder putOptions(
+        java.lang.String key,
+        java.lang.String value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      if (value == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableOptions().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <code>map&lt;string, string&gt; options = 2;</code>
+     */
+
+    public Builder putAllOptions(
+        java.util.Map<java.lang.String, java.lang.String> values) {
+      internalGetMutableOptions().getMutableMap()
+          .putAll(values);
       return this;
     }
     public final Builder setUnknownFields(

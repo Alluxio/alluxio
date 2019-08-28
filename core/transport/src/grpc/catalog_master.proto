@@ -112,6 +112,7 @@ message CreateTablePResponse {
 
 message CreateDatabasePRequest {
     optional string db_name = 1;
+    map<string, string> options = 2;
 }
 
 message CreateDatabasePResponse {
