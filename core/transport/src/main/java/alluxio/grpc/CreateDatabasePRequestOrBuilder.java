@@ -20,4 +20,38 @@ public interface CreateDatabasePRequestOrBuilder extends
    */
   com.google.protobuf.ByteString
       getDbNameBytes();
+
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+  int getOptionsCount();
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+  boolean containsOptions(
+      java.lang.String key);
+  /**
+   * Use {@link #getOptionsMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, java.lang.String>
+  getOptions();
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+  java.util.Map<java.lang.String, java.lang.String>
+  getOptionsMap();
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+
+  java.lang.String getOptionsOrDefault(
+      java.lang.String key,
+      java.lang.String defaultValue);
+  /**
+   * <code>map&lt;string, string&gt; options = 2;</code>
+   */
+
+  java.lang.String getOptionsOrThrow(
+      java.lang.String key);
 }

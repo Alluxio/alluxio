@@ -53,11 +53,12 @@ public class Database {
    * @param udbRegistry the udb registry
    * @param type the database type
    * @param name the database name
+   * @param options the options
    * @return the database instance
    */
-  public static Database create(UnderDatabaseRegistry udbRegistry, String type, String name)
-      throws IOException {
-    UnderDatabase udb = udbRegistry.create(type, Collections.emptyMap());
+  public static Database create(UnderDatabaseRegistry udbRegistry, String type, String name,
+      Map<String, String> options) throws IOException {
+    UnderDatabase udb = udbRegistry.create(type, options);
     return new Database(type, name, udb);
   }
 

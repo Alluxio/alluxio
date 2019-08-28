@@ -77,9 +77,9 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public boolean createDatabase(String database) throws IOException {
+  public boolean createDatabase(String database, Map<String, String> options) throws IOException {
     // TODO(gpang): update api
-    return mCatalog.createDatabase("hive", database);
+    return mCatalog.createDatabase("hive", database, options);
   }
 
   @Override
