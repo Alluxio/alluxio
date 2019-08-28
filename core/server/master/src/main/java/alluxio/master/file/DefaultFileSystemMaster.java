@@ -1363,7 +1363,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public AlluxioURI translateUri(String uriStr) throws InvalidPathException {
+  public AlluxioURI autoMountOrTranslateUri(String uriStr) throws InvalidPathException {
     AlluxioURI uri = new AlluxioURI(uriStr);
     // Scheme-less URIs are regarded as Alluxio URI.
     if (uri.getScheme() == null || uri.getScheme().equals(Constants.SCHEME)) {
@@ -1394,8 +1394,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /**
    * Attempts to mount given UFS Uri into designated auto-mount directory.
    *
-   * Mount attempt will start from mounting the highest path component, and go to lowest path
-   * components if mounting fails due to access control violation.
+   * In order to minimize mount points, mount attempt is started from UFS root
+   * for the given URI. If mount fails for due to "access control" or "mount prefix/postfix"
+   * conditions, then the next path component is tried.
+   *
+   * For example:
+   *  auto-mounting "/a/b/c/d" when server don't have access to "/a"
+   *  will result in mounting at "/a/b"
+   *
+   *  auto-mounting "/a/b/c/d" when mount-table already has an entry for "/a/x"
+   *  will result in mounting at "/a/b"
+   *
    *
    * TODO(ggezer): Have fine-grained locking on mount paths instead of marking synchronized.
    *
@@ -1416,7 +1425,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     // Generate highest Alluxio mount root for given path.
     // The highest mount root will be URIs "scheme/authority" under the configured auto-mount root.
-    // This prevents same authorities under different schemes to be auto-mounted correctly.
+    // This allows same authorities under different schemes to be auto-mounted correctly.
     String alluxioMountRoot =
         PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_ROOT),
             ufsUri.getScheme(), ufsUri.getAuthority());
@@ -1432,19 +1441,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // It'll be deleted recursively if this mount fails.
     AlluxioURI firstCreatedParent = null;
     try {
-      /**
-       * In order to minimize mount points, mount attempt is started from UFS root
-       * for the given URI. If mount fails for due to "access control" or "mount prefix/postfix"
-       * conditions, then the next path component is tried.
-       *
-       * For example:
-       *  auto-mounting "/a/b/c/d" when server don't have access to "/a"
-       *  will result in mounting at "/a/b"
-       *
-       *  auto-mounting "/a/b/c/d" when mount-table already has an entry for "/a/x"
-       *  will result in mounting at "/a/b"
-       *
-       */
       MountContext mountCtx = MountContext
           .mergeFrom(MountPOptions.newBuilder().setReadOnly(mountReadonly).setShared(mountShared));
       while ((currentPathComponent = ufsUri.getLeadingPath(pathComponentIndex++)) != null) {

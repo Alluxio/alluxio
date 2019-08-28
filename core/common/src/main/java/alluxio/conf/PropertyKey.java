@@ -4025,13 +4025,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
     public static final String MASTER_SHIMFS_AUTO_MOUNT_ENABLED =
-        "alluxio.master.auto.mount.enabled";
+        "alluxio.master.shimfs.auto.mount.enabled";
     public static final String MASTER_SHIMFS_AUTO_MOUNT_ROOT =
-        "alluxio.master.auto.mount.root";
+        "alluxio.master.shimfs.auto.mount.root";
     public static final String MASTER_SHIMFS_AUTO_MOUNT_READONLY =
-        "alluxio.master.auto.mount.readonly";
+        "alluxio.master.shimfs.auto.mount.readonly";
     public static final String MASTER_SHIMFS_AUTO_MOUNT_SHARED =
-        "alluxio.master.auto.mount.shared";
+        "alluxio.master.shimfs.auto.mount.shared";
 
     //
     // File system master related properties
