@@ -12,9 +12,11 @@
 package alluxio.grpc;
 
 import com.google.common.base.MoreObjects;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Objects;
 
 /**
  * Defines an gRPC server endpoint.
@@ -59,6 +61,27 @@ public class GrpcServerAddress {
    */
   public SocketAddress getSocketAddress() {
     return mSocketAddress;
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder()
+        .append(mHostName)
+        .append(mSocketAddress)
+        .toHashCode();
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (!(other instanceof GrpcServerAddress)) {
+      return false;
+    }
+    GrpcServerAddress otherAddress = (GrpcServerAddress) other;
+    return Objects.equals(mHostName, otherAddress.getHostName())
+        && Objects.equals(mSocketAddress, otherAddress.getSocketAddress());
   }
 
   @Override
