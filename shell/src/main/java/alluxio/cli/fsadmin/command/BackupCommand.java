@@ -18,8 +18,8 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPOptions.Builder;
 import alluxio.util.CommonUtils;
-
 import alluxio.wire.BackupResponse;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;

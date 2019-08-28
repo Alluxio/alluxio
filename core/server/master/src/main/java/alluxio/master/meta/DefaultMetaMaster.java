@@ -401,7 +401,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
     AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
     return new BackupResponse(
-        backupUri, 
+        backupUri,
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
             ServerConfiguration.global()),
         entryCount.get());

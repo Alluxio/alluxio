@@ -44,7 +44,7 @@ public class BackupResponse {
    */
   public static BackupResponse fromProto(BackupPResponse pResp) {
     return new BackupResponse(new AlluxioURI(
-        pResp.getBackupUri()), 
+        pResp.getBackupUri()),
         pResp.getHostname(),
         pResp.getEntryCount());
   }
