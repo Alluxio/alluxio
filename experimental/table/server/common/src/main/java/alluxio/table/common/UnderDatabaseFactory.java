@@ -25,8 +25,10 @@ public interface UnderDatabaseFactory {
   String getType();
 
   /**
+   * @param udbContext the db context
    * @param configuration configuration values
    * @return a new instance of the under database
    */
-  UnderDatabase create(Map<String, String> configuration) throws IOException;
+  UnderDatabase create(UdbContext udbContext, Map<String, String> configuration)
+      throws IOException;
 }
