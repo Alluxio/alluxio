@@ -11,9 +11,13 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileStatistics;
+import alluxio.table.common.UdbContext;
 import alluxio.table.common.UdbTable;
 import alluxio.table.common.UnderDatabase;
 import alluxio.underfs.UnderFileSystem;
@@ -25,6 +29,8 @@ import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.iceberg.catalog.TableIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,12 +40,15 @@ import java.util.Map;
  * Hive database implementation.
  */
 public class HiveDatabase implements UnderDatabase {
+  private static final Logger LOG = LoggerFactory.getLogger(HiveDatabase.class);
   private static final String DEFAULT_DB_NAME = "default";
 
+  private final UdbContext mUdbContext;
   private final HiveDataCatalog mCatalog;
   private final Hive mHive;
 
-  private HiveDatabase(HiveDataCatalog catalog, Hive hive) {
+  private HiveDatabase(UdbContext udbContext, HiveDataCatalog catalog, Hive hive) {
+    mUdbContext = udbContext;
     mCatalog = catalog;
     mHive = hive;
   }
@@ -47,10 +56,12 @@ public class HiveDatabase implements UnderDatabase {
   /**
    * Creates an instance of the Hive database UDB.
    *
+   * @param udbContext the db context
    * @param configuration the configuration
    * @return the new instance
    */
-  public static HiveDatabase create(Map<String, String> configuration) throws IOException {
+  public static HiveDatabase create(UdbContext udbContext, Map<String, String> configuration)
+      throws IOException {
     UnderFileSystem ufs;
     if (URIUtils.isLocalFilesystem(ServerConfiguration
         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
@@ -72,7 +83,7 @@ public class HiveDatabase implements UnderDatabase {
     } catch (HiveException e) {
       throw new IOException("Failed to create hive client: " + e.getMessage(), e);
     }
-    return new HiveDatabase(catalog, hive);
+    return new HiveDatabase(udbContext, catalog, hive);
   }
 
   @Override
@@ -91,12 +102,29 @@ public class HiveDatabase implements UnderDatabase {
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
+    Table table = null;
     try {
-      Table table = mHive.getTable(DEFAULT_DB_NAME, tableName);
-      return new HiveTable(tableName, HiveUtils.toProto(table.getAllCols()),
-          table.getDataLocation().toString(), null);
+      table = mHive.getTable(DEFAULT_DB_NAME, tableName);
+      AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
+      // make sure the parent exists
+      mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
+          CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+//      mDbContext.getFileSystem()
+//          .mount(tableUri, new AlluxioURI(table.getDataLocation().toString()));
+      mUdbContext.getFileSystem().mount(tableUri, new AlluxioURI("/tmp/speedcore/table"));
+      LOG.info("mounted table {} location {} to Alluxio location {}", tableName,
+          table.getDataLocation(), tableUri);
+      // TODO(gpang): manage the mount mapping for statistics/metadata
+      return new HiveTable(tableName, HiveUtils.toProto(table.getAllCols()), tableUri.getPath(),
+          null);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
+    } catch (AlluxioException e) {
+      throw new IOException(
+          "Failed to mount table location. tableName: " + tableName
+              + " tableLocation: " + (table != null ? table.getDataLocation() : "null")
+              + " AlluxioLocation: " + mUdbContext.getTableLocation(tableName)
+              + " error: " + e.getMessage(), e);
     }
   }
 

@@ -55,16 +55,18 @@ public class UnderDatabaseRegistry {
   /**
    * Creates a new instance of an {@link UnderDatabase}.
    *
+   * @param udbContext the db context
    * @param type the udb type
    * @param configuration the udb configuration
    * @return a new udb instance
    */
-  public UnderDatabase create(String type, Map<String, String> configuration) throws IOException {
+  public UnderDatabase create(UdbContext udbContext, String type,
+      Map<String, String> configuration) throws IOException {
     Map<String, UnderDatabaseFactory> map = mFactories;
     UnderDatabaseFactory factory = map.get(type);
     if (factory == null) {
       throw new IOException(String.format("UdbFactory for type '%s' does not exist.", type));
     }
-    return factory.create(configuration);
+    return factory.create(udbContext, configuration);
   }
 }

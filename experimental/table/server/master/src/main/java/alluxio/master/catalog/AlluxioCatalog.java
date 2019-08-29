@@ -11,7 +11,11 @@
 
 package alluxio.master.catalog;
 
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileStatistics;
+import alluxio.table.common.UdbContext;
 import alluxio.table.common.UnderDatabaseRegistry;
 
 import org.slf4j.Logger;
@@ -32,12 +36,15 @@ public class AlluxioCatalog {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioCatalog.class);
 
   private final Map<String, Database> mDBs = new ConcurrentHashMap<>();
-  private final UnderDatabaseRegistry mUdbRegistry = new UnderDatabaseRegistry();
+  private final UnderDatabaseRegistry mUdbRegistry;
+  private final FileSystem mFileSystem;
 
   /**
    * Creates an instance.
    */
   public AlluxioCatalog() {
+    mFileSystem = FileSystem.Factory.create(FileSystemContext.create(ServerConfiguration.global()));
+    mUdbRegistry = new UnderDatabaseRegistry();
     mUdbRegistry.refresh();
   }
 
@@ -51,7 +58,8 @@ public class AlluxioCatalog {
    */
   public boolean createDatabase(String type, String dbName, Map<String, String> options)
       throws IOException {
-    Database db = Database.create(mUdbRegistry, type, dbName, options);
+    Database db = Database
+        .create(new UdbContext(mUdbRegistry, mFileSystem, type, dbName), type, dbName, options);
     if (mDBs.putIfAbsent(dbName, db) != null) {
       return false;
     }
