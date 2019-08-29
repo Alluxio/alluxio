@@ -16,6 +16,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
 import alluxio.master.BackupManager;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -51,7 +53,7 @@ public final class DailyMetadataBackup {
   private final MetaMaster mMetaMaster;
   private final int mRetainedFiles;
   private final ScheduledExecutorService mScheduledExecutor;
-  private final UnderFileSystem mUfs;
+  private final CloseableResource<UnderFileSystem> mUfs;
 
   private ScheduledFuture<?> mBackup;
 
@@ -60,16 +62,16 @@ public final class DailyMetadataBackup {
    *
    * @param metaMaster the meta master
    * @param service a scheduled executor service
-   * @param ufs the under file system
+   * @param ufsClient the under file system client
    */
   DailyMetadataBackup(MetaMaster metaMaster,
-      ScheduledExecutorService service, UnderFileSystem ufs) {
+      ScheduledExecutorService service, UfsManager.UfsClient ufsClient) {
     mMetaMaster = metaMaster;
     mBackupDir = ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     mRetainedFiles = ServerConfiguration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
     mScheduledExecutor = service;
-    mUfs = ufs;
-    mIsLocal = ufs.getUnderFSType().equals("local");
+    mUfs = ufsClient.acquireUfsResource();
+    mIsLocal = mUfs.get().getUnderFSType().equals("local");
   }
 
   /**
@@ -132,7 +134,7 @@ public final class DailyMetadataBackup {
    * Deletes stale backup files to avoid consuming too many spaces.
    */
   private void deleteStaleBackups() throws Exception {
-    UfsStatus[] statuses = mUfs.listStatus(mBackupDir);
+    UfsStatus[] statuses = mUfs.get().listStatus(mBackupDir);
     if (statuses.length <= mRetainedFiles) {
       return;
     }
@@ -157,7 +159,7 @@ public final class DailyMetadataBackup {
     for (int i = 0; i < toDeleteFileNum; i++) {
       String toDeleteFile = PathUtils.concatPath(mBackupDir,
           timeToFile.pollFirstEntry().getValue());
-      mUfs.deleteExistingFile(toDeleteFile);
+      mUfs.get().deleteExistingFile(toDeleteFile);
     }
     LOG.info("Deleted {} stale metadata backup files at {}", toDeleteFileNum, mBackupDir);
   }
@@ -182,5 +184,6 @@ public final class DailyMetadataBackup {
       Thread.currentThread().interrupt();
       LOG.warn("Interrupted while " + waitForMessage);
     }
+    mUfs.close();
   }
 }

@@ -21,7 +21,9 @@ import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.BackupManager;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -48,6 +50,7 @@ public class DailyMetadataBackupTest {
   private MetaMaster mMetaMaster;
   private ControllableScheduler mScheduler;
   private UnderFileSystem mUfs;
+  private UfsManager.UfsClient mUfsClient;
   private Random mRandom;
   private String mBackupDir;
 
@@ -64,6 +67,14 @@ public class DailyMetadataBackupTest {
     when(mUfs.getUnderFSType()).thenReturn("local");
     when(mUfs.deleteFile(any())).thenReturn(true);
 
+    mUfsClient = Mockito.mock(UfsManager.UfsClient.class);
+    when(mUfsClient.acquireUfsResource()).thenReturn(new CloseableResource<UnderFileSystem>(mUfs) {
+      @Override
+      public void close() {
+        // Noop
+      }
+    });
+
     mScheduler = new ControllableScheduler();
   }
 
@@ -76,7 +87,8 @@ public class DailyMetadataBackupTest {
             PropertyKey.MASTER_DAILY_BACKUP_ENABLED, "true",
             PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED,
             String.valueOf(fileToRetain)), ServerConfiguration.global()).toResource()) {
-      DailyMetadataBackup dailyBackup = new DailyMetadataBackup(mMetaMaster, mScheduler, mUfs);
+      DailyMetadataBackup dailyBackup =
+          new DailyMetadataBackup(mMetaMaster, mScheduler, mUfsClient);
       dailyBackup.start();
 
       int backUpFileNum = 0;
