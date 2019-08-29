@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Copycat transport {@link Client} implementation that uses Alluxio gRPC.
@@ -49,35 +50,45 @@ public class CopycatGrpcClient implements Client {
   /** Created connections. */
   private final List<Connection> mConnections;
 
+  /** Executor for building client connections. */
+  private final ExecutorService mExecutor;
+
   /**
    * Creates copycat transport client that can be used to connect to remote copycat servers.
    *
    * @param conf Alluxio configuration
    * @param userState authentication user
+   * @param executor transport executor
    */
-  public CopycatGrpcClient(AlluxioConfiguration conf, UserState userState) {
+  public CopycatGrpcClient(AlluxioConfiguration conf, UserState userState,
+      ExecutorService executor) {
     mConf = conf;
     mUserState = userState;
+    mExecutor = executor;
     mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
   @Override
   public CompletableFuture<Connection> connect(Address address) {
-    return ThreadContext.currentContextOrThrow().execute(() -> {
+    LOG.debug("Copycat transport client connecting to: {}", address);
+    final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
+    // Future for this connection.
+    final CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
+    // Spawn gRPC connection building on a common pool.
+    final CompletableFuture<Connection> buildFuture = CompletableFuture.supplyAsync(() -> {
       try {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
-                .newBuilder(new GrpcServerAddress(address.host(), address.socketAddress()), mConf)
-                .setSubject(mUserState.getSubject()).build();
+            .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
+            .setClientType("CopycatClient").setSubject(mUserState.getSubject()).build();
 
         // Create stub for receiving stream from server.
         CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =
             CopycatMessageServerGrpc.newStub(channel);
 
         // Create client connection that is bound to remote server stream.
-        CopycatGrpcConnection clientConnection =
-            new CopycatGrpcClientConnection(ThreadContext.currentContextOrThrow(), channel,
-                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+        CopycatGrpcConnection clientConnection = new CopycatGrpcClientConnection(threadContext,
+            mExecutor, channel, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
         LOG.debug("Created copycat connection for target: {}", address);
@@ -86,7 +97,19 @@ public class CopycatGrpcClient implements Client {
       } catch (Throwable e) {
         throw new RuntimeException(e);
       }
+    }, mExecutor);
+    // When connection is build, complete the connection future with it on a catalyst thread context
+    // for setting up the connection.
+    buildFuture.whenComplete((result, error) -> {
+      threadContext.execute(() -> {
+        if (error == null) {
+          connectionFuture.complete(result);
+        } else {
+          connectionFuture.completeExceptionally(error);
+        }
+      });
     });
+    return connectionFuture;
   }
 
   @Override
@@ -94,8 +117,8 @@ public class CopycatGrpcClient implements Client {
     LOG.debug("Closing copycat transport client with {} connections.", mConnections.size());
     // Close created connections.
     List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
-    for (Connection connectionPair : mConnections) {
-      connectionCloseFutures.add(connectionPair.close());
+    for (Connection connection : mConnections) {
+      connectionCloseFutures.add(connection.close());
     }
     mConnections.clear();
     return CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0]));

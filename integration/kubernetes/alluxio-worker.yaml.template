@@ -27,6 +27,10 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       containers:
         - name: alluxio-worker
           image: alluxio/alluxio:2.1.0-SNAPSHOT

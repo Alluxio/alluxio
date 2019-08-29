@@ -236,7 +236,8 @@ public final class NetworkAddressUtils {
    */
   public static InetSocketAddress getConnectAddress(ServiceType service,
       AlluxioConfiguration conf) {
-    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
+    return InetSocketAddress.createUnresolved(getConnectHost(service, conf),
+        getPort(service, conf));
   }
 
   /**
@@ -604,7 +605,7 @@ public final class NetworkAddressUtils {
     if (strArr.length != 2) {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
-    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+    return InetSocketAddress.createUnresolved(strArr[0], Integer.parseInt(strArr[1]));
   }
 
   /**
@@ -655,9 +656,9 @@ public final class NetworkAddressUtils {
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel =
-        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).disableAuthentication()
-            .setSubject(userState.getSubject()).build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
+        .setClientType("PingService").disableAuthentication().setSubject(userState.getSubject())
+        .build();
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
           ServiceVersionClientServiceGrpc.newBlockingStub(channel);

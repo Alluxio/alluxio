@@ -738,7 +738,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     Metrics.GET_FILE_INFO_OPS.inc();
     long opTimeMs = System.currentTimeMillis();
     LockingScheme lockingScheme =
-        createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
+        createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ, true);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
@@ -1359,6 +1359,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue()));
     }
     return mountPoints;
+  }
+
+  @Override
+  public AlluxioURI translateUri(String uriStr) throws InvalidPathException {
+    AlluxioURI uri = new AlluxioURI(uriStr);
+    // Scheme-less URIs are regarded as Alluxio URI.
+    if (uri.getScheme() == null || uri.getScheme().equals(Constants.SCHEME)) {
+      return uri;
+    } else {
+      // Reverse lookup mount table to find mount point that contains the path.
+      return mMountTable.reverseLookup(uriStr);
+    }
   }
 
   @Override
@@ -3353,7 +3365,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
                     .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                         .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))));
 
-            mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
+            mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
           } catch (Exception e) {
             // This may be expected. For example, when creating a new file, the UFS file is not
             // expected to exist.
@@ -3371,7 +3383,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
-            mUfsSyncPathCache.notifySyncedPath(mountPoint);
+            mUfsSyncPathCache.notifySyncedPath(mountPoint, syncDescendantType);
           }
         }
       } catch (InvalidPathException e) {
@@ -3386,7 +3398,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     if (pathsToLoad.isEmpty()) {
-      mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
+      mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
     }
     return true;
   }
@@ -3756,6 +3768,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try {
         mSyncManager.startSyncPostJournal(uri);
       } catch (Throwable e) {
+        LOG.warn("Start sync failed on {}", uri, e);
         // revert state;
         RemoveSyncPointEntry removeSyncPoint =
             File.RemoveSyncPointEntry.newBuilder()
@@ -3807,6 +3820,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         long mountId = resolution.getMountId();
         mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
       } catch (Throwable e) {
+        LOG.warn("Stop sync failed on {}", uri, e);
         // revert state;
         AddSyncPointEntry addSyncPoint =
             File.AddSyncPointEntry.newBuilder()
@@ -4015,6 +4029,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
       // Process persist requests.
       for (long fileId : mPersistRequests.keySet()) {
+        // Throw if interrupted.
+        if (Thread.interrupted()) {
+          throw new InterruptedException("PersistenceScheduler interrupted.");
+        }
         boolean remove = true;
         alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
         if (timer == null) {
@@ -4196,6 +4214,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       boolean queueEmpty = mPersistCheckerPool.getQueue().isEmpty();
       // Check the progress of persist jobs.
       for (long fileId : mPersistJobs.keySet()) {
+        // Throw if interrupted.
+        if (Thread.interrupted()) {
+          throw new InterruptedException("PersistenceChecker interrupted.");
+        }
         final PersistJob job = mPersistJobs.get(fileId);
         if (job == null) {
           // This could happen if a key is removed from mPersistJobs while we are iterating.
@@ -4504,19 +4526,25 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @return newly-created {@link FileSystemMasterAuditContext} instance
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
-      @Nullable AlluxioURI dstPath, @Nullable Inode srcInode)
-      throws AccessControlException {
+      @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) {
     FileSystemMasterAuditContext auditContext =
         new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {
-      String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
-      String ugi;
+      String user = null;
+      String ugi = "";
       try {
-        String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
-        ugi = user + "," + primaryGroup;
-      } catch (IOException e) {
-        LOG.warn("Failed to get primary group for user {}.", user);
-        ugi = user;
+        user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+      } catch (AccessControlException e) {
+        ugi = "N/A";
+      }
+      if (user != null) {
+        try {
+          String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
+          ugi = user + "," + primaryGroup;
+        } catch (IOException e) {
+          LOG.debug("Failed to get primary group for user {}.", user);
+          ugi = user + ",N/A";
+        }
       }
       AuthType authType =
           ServerConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
@@ -4561,11 +4589,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
       LockPattern desiredLockMode) {
+    return createLockingScheme(path, options, desiredLockMode, false);
+  }
+
+  private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
+      LockPattern desiredLockMode, boolean isGetFileInfo) {
     // If client options didn't specify the interval, fallback to whatever the server has
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
         ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-    boolean shouldSync = mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval);
+    boolean shouldSync =
+        mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval, isGetFileInfo);
     return new LockingScheme(path, desiredLockMode, shouldSync);
   }
 

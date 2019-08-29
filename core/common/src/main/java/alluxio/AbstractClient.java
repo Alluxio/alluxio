@@ -210,23 +210,14 @@ public abstract class AbstractClient implements Client {
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
-      if (mAddress.isUnresolved()) {
-        // Sometimes the acquired addressed wasn't resolved, retry resolving before
-        // using it to connect.
-        LOG.debug("Retry resolving address {}", mAddress);
-        // Creates a new InetSocketAddress to force resolving the hostname again.
-        mAddress = new InetSocketAddress(mAddress.getHostName(), mAddress.getPort());
-        if (mAddress.isUnresolved()) {
-          LOG.debug("Failed to resolve address on retry {}", mAddress);
-        }
-      }
       try {
         beforeConnect();
         LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-            .newBuilder(new GrpcServerAddress(mAddress), mContext.getClusterConf())
+            .newBuilder(GrpcServerAddress.create(mAddress), mContext.getClusterConf())
             .setSubject(mContext.getSubject())
+            .setClientType(getServiceName())
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);

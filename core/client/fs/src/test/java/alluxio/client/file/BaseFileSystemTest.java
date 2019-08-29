@@ -103,6 +103,7 @@ public final class BaseFileSystemTest {
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
+    when(mFileContext.getUriValidationEnabled()).thenReturn(true);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
   }
 

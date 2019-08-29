@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -27,7 +28,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -35,17 +35,14 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
-import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.SingleMasterAuthority;
-import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.fs.BlockLocation;
@@ -119,7 +116,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     try {
       if (mFileSystem.exists(uri)) {
         throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
@@ -163,7 +160,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(blockSize)
         .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true).build();
 
@@ -213,7 +210,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public FSDataOutputStream createNonRecursive(Path path, FsPermission permission,
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
-    AlluxioURI parentUri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path.getParent()));
+    AlluxioURI parentUri = getAlluxioPath(path.getParent());
     ensureExists(parentUri);
     return create(path, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
@@ -244,7 +241,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     DeletePOptions options = DeletePOptions.newBuilder().setRecursive(recursive).build();
     try {
       mFileSystem.delete(uri, options);
@@ -278,7 +275,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     List<BlockLocation> blockLocations = new ArrayList<>();
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
+    AlluxioURI path = getAlluxioPath(file.getPath());
     try {
       List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(path);
       locations.forEach(location -> {
@@ -315,7 +312,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public boolean setReplication(Path path, short replication) throws IOException {
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
 
     try {
       if (!mFileSystem.exists(uri) || mFileSystem.getStatus(uri).isFolder()) {
@@ -341,7 +338,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     URIStatus fileStatus;
     try {
       fileStatus = mFileSystem.getStatus(uri);
@@ -351,11 +348,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       throw new IOException(e);
     }
 
-    return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
-        getReplica(fileStatus), fileStatus.getBlockSizeBytes(),
-        fileStatus.getLastModificationTimeMs(),
+    return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(), getReplica(fileStatus),
+        fileStatus.getBlockSizeBytes(), fileStatus.getLastModificationTimeMs(),
         fileStatus.getLastAccessTimeMs(), new FsPermission((short) fileStatus.getMode()),
-        fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
+        fileStatus.getOwner(), fileStatus.getGroup(), getFsPath(mAlluxioHeader, fileStatus));
   }
 
   private int getReplica(URIStatus status) {
@@ -375,7 +371,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void setOwner(Path path, final String username, final String groupname)
       throws IOException {
     LOG.debug("setOwner({},{},{})", path, username, groupname);
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
     boolean ownerOrGroupChanged = false;
     if (username != null && !username.isEmpty()) {
@@ -404,7 +400,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
     LOG.debug("setMode({},{})", path, permission.toString());
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     SetAttributePOptions options = SetAttributePOptions.newBuilder()
         .setMode(new Mode(permission.toShort()).toProto()).setRecursive(false).build();
     try {
@@ -464,8 +460,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf,
       @Nullable AlluxioConfiguration alluxioConfiguration)
       throws IOException {
-    Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
-        PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
+    // Validates scheme and authority of FS Uri.
+    validateFsUri(uri);
 
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
@@ -474,16 +470,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     // HDFS doesn't allow the authority to be empty; it must be "/" instead.
     String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
-    mAlluxioHeader = getScheme() + "://" + authority;
+    mAlluxioHeader = getFsScheme(uri) + "://" + authority;
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
-
-    Authority auth = Authority.fromString(uri.getAuthority());
-    if (auth instanceof UnknownAuthority) {
-      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
-              + "configured with the authority from %s", auth, uri));
-    }
-
     mUri = URI.create(mAlluxioHeader);
 
     if (mFileSystem != null) {
@@ -502,7 +491,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     LOG.info("Initializing filesystem with connect details {}",
         Factory.getConnectDetails(alluxioConf));
 
-    mFileSystem = FileSystem.Factory.create(ClientContext.create(subject, alluxioConf));
+    // Create FileSystem for accessing Alluxio.
+    // Disable URI validation for non-Alluxio schemes.
+    boolean disableUriValidation =
+        (uri.getScheme() != null) ? uri.getScheme().equals(Constants.SCHEME) : true;
+    mFileSystem = FileSystem.Factory.create(
+        ClientContext.create(subject, alluxioConf).setUriValidationEnabled(disableUriValidation));
   }
 
   /**
@@ -613,12 +607,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementReadOps(1);
     }
 
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     List<URIStatus> statuses;
     try {
       statuses = mFileSystem.listStatus(uri);
     } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException(HadoopUtils.getPathWithoutScheme(path));
+      throw new FileNotFoundException(getAlluxioPath(path).toString());
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -630,8 +624,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       ret[k] = new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
           status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
           status.getLastAccessTimeMs(), new FsPermission((short) status.getMode()),
-          status.getOwner(), status.getGroup(),
-          new Path(mAlluxioHeader + status.getPath()));
+          status.getOwner(), status.getGroup(), getFsPath(mAlluxioHeader, status));
     }
     return ret;
   }
@@ -649,7 +642,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder().setRecursive(true)
         .setAllowExists(true).setMode(new Mode(permission.toShort()).toProto()).build();
     try {
@@ -675,7 +668,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementReadOps(1);
     }
 
-    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    AlluxioURI uri = getAlluxioPath(path);
     return new FSDataInputStream(new HdfsFileInputStream(mFileSystem, uri, mStatistics));
   }
 
@@ -686,8 +679,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    AlluxioURI srcPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(src));
-    AlluxioURI dstPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(dst));
+    AlluxioURI srcPath = getAlluxioPath(src);
+    AlluxioURI dstPath = getAlluxioPath(dst);
     try {
       mFileSystem.rename(srcPath, dstPath);
     } catch (FileDoesNotExistException e) {
@@ -745,4 +738,38 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       throw new IOException(e);
     }
   }
+
+  /**
+   * Validates given FS base URI for scheme and authority.
+   *
+   * @param fsUri FS Uri
+   * @throws IOException
+   * @throws IllegalArgumentException
+   */
+  protected abstract void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException;
+
+  /**
+   * Used to get FS scheme.
+   *
+   * @param fsUri file system base URI
+   * @return file system scheme
+   */
+  protected abstract String getFsScheme(URI fsUri);
+
+  /**
+   * Used to convert hadoop path to Alluxio path.
+   *
+   * @param path the input path
+   * @return the Alluxio path
+   */
+  protected abstract AlluxioURI getAlluxioPath(Path path);
+
+  /**
+   * Used to get FS native path from Alluxio file status.
+   *
+   * @param fsUriHeader FS URI header -> "scheme://authority"
+   * @param fileStatus Alluxio file status
+   * @return FS native path
+   */
+  protected abstract Path getFsPath(String fsUriHeader, URIStatus fileStatus);
 }

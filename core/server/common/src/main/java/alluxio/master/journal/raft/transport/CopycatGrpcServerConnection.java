@@ -13,6 +13,8 @@ package alluxio.master.journal.raft.transport;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * {@link CopycatGrpcConnection} implementation for server.
  */
@@ -23,9 +25,11 @@ public class CopycatGrpcServerConnection extends CopycatGrpcConnection {
    * Note: {@link #setTargetObserver} should be called explicitly before using the connection.
    *
    * @param context copycat thread context
+   * @param executor transport executor
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public CopycatGrpcServerConnection(ThreadContext context, long requestTimeoutMs) {
-    super(ConnectionOwner.SERVER, context, requestTimeoutMs);
+  public CopycatGrpcServerConnection(ThreadContext context, ExecutorService executor,
+      long requestTimeoutMs) {
+    super(ConnectionOwner.SERVER, context, executor, requestTimeoutMs);
   }
 }

@@ -98,7 +98,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
-    MetricsSystem.resetAllCounters();
+    MetricsSystem.resetCountersAndGauges();
   }
 
   /**

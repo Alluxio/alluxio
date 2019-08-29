@@ -663,7 +663,7 @@ public final class UnderFileSystemCommonOperations {
     // https://cloud.google.com/storage/docs/consistency for more details.
     // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
     UfsStatus[] results = new UfsStatus[] {};
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 50; i++) {
       results = mUfs.listStatus(config.getTopLevelDirectory());
       if (children.length == results.length) {
         break;

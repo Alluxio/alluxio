@@ -631,7 +631,6 @@ public class AlluxioURITest {
     assertEquals(null, new AlluxioURI("/").getScheme());
     assertEquals("file", new AlluxioURI("file:/").getScheme());
     assertEquals("file", new AlluxioURI("file://localhost/").getScheme());
-    assertEquals("alluxio-ft", new AlluxioURI("alluxio-ft://localhost/").getScheme());
     assertEquals("s3", new AlluxioURI("s3://localhost/").getScheme());
     assertEquals("alluxio", new AlluxioURI("alluxio://localhost/").getScheme());
     assertEquals("hdfs", new AlluxioURI("hdfs://localhost/").getScheme());

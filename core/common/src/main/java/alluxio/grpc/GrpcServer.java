@@ -16,6 +16,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticationServer;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import io.grpc.Server;
 
 import java.io.IOException;
@@ -40,7 +41,8 @@ public final class GrpcServer {
    * @param authServer the authentication server
    * @param serverShutdownTimeoutMs server shutdown timeout in milliseconds
    */
-  public GrpcServer(Server server, AuthenticationServer authServer, long serverShutdownTimeoutMs) {
+  public GrpcServer(Server server, AuthenticationServer authServer,
+      long serverShutdownTimeoutMs) {
     mServer = server;
     mAuthServer = authServer;
     mServerShutdownTimeoutMs = serverShutdownTimeoutMs;
@@ -113,5 +115,13 @@ public final class GrpcServer {
    */
   public boolean isServing() {
     return mStarted && !mServer.isShutdown() || !mServer.isTerminated();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("Server", mServer)
+        .add("AuthServerType", mAuthServer.getClass().getSimpleName())
+        .toString();
   }
 }

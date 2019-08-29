@@ -57,14 +57,11 @@ public final class Constants {
 
   public static final long UNKNOWN_SIZE = -1;
 
+  public static final String NO_SCHEME = "alluxio-noop";
   public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
 
-  public static final String SCHEME_FT = "alluxio-ft";
-  public static final String HEADER_FT = SCHEME_FT + "://";
-
   public static final String HEADER_OSS = "oss://";
-
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";

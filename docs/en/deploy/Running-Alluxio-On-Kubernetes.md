@@ -88,8 +88,13 @@ properties:
 EOF
 ```
 Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
-For example:
-- If using Amazon S3 as the under store, add these properties:
+
+Once the configuration is finalized, install as follows:
+```console
+helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
+```
+
+##### Example: Amazon S3 as the under store
 ```console
 $ cat << EOF > config.yaml
 properties:
@@ -98,8 +103,9 @@ properties:
   aws.secretKey: "<secretKey>"
 EOF
 ```
-- If using HDFS as the under store, first create secrets for any configuration required by an HDFS
-client. These are mounted under `/secrets`.
+
+##### Example: HDFS as the under store
+First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
 ```console
 $ kubectl create secret generic alluxio-hdfs-config --from-file=./core-site.xml --from-file=./hdfs-site.xml
 ```
@@ -132,14 +138,33 @@ secrets:
 EOF
 ```
 
-Install
+##### Example: Off-heap Metastore Management
+The following configuration provisions an emptyDir volume with the specified configuration and
+configures the Alluxio master to use the mounted directory for the RocksDB metastore.
 ```console
-helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
+$ cat << EOF > config.yaml
+properties:
+  ...
+  alluxio.master.metastore: ROCKS
+  alluxio.master.metastore.dir: /metastore
+
+volumes:
+  master:
+    metastore:
+      medium: ""
+      size: 1Gi
+      mountPath: /metastore
+EOF
 ```
+
 #### Using `kubectl`
 
-Define environment variables in `alluxio.properties`. Copy the properties template at
-`integration/kubernetes/conf`, and modify or add any configuration properties as required.
+Copy the template.
+```console
+$ cp alluxio-configMap.yaml.template alluxio-configMap.yaml
+```
+
+Modify or add any configuration properties as required.
 The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
 
 ```
@@ -150,9 +175,6 @@ ALLUXIO_JAVA_OPTS=-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
 
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
-```console
-$ cp alluxio-configMap.yaml.template alluxio-configMap.yaml
-```
 
 Create a ConfigMap.
 ```console

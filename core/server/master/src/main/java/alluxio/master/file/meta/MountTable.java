@@ -382,6 +382,33 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
+   * Reverse lookup given foreign URI and returns Alluxio path.
+   *
+   * @param foreignUriStr foreign URI string
+   * @return Alluxio URI for given foreign path
+   * @throws InvalidPathException
+   */
+  public AlluxioURI reverseLookup(String foreignUriStr) throws InvalidPathException {
+    try (LockResource r = new LockResource(mReadLock)) {
+      LOG.debug("Doing a reverse-lookup on foreign URI {}", foreignUriStr);
+      // Enumerate existing mount points to find a mount point that owns
+      // given uri.
+      for (Map.Entry<String, MountInfo> mountEntry : mState.getMountTable().entrySet()) {
+        AlluxioURI ufsUri = mountEntry.getValue().getUfsUri();
+        String ufsUriStr = ufsUri.toString();
+        // Check if current mount point owns given path.
+        if (foreignUriStr.startsWith(ufsUriStr)) {
+          return new AlluxioURI(PathUtils.concatPath(mountEntry.getKey(),
+              foreignUriStr.substring(ufsUriStr.length())));
+        }
+      }
+      // No mount found for given path.
+      throw new InvalidPathException(
+          String.format(ExceptionMessage.FOREIGN_URI_NOT_MOUNTED.getMessage(foreignUriStr)));
+    }
+  }
+
+  /**
    * Checks to see if a write operation is allowed for the specified Alluxio path, by determining
    * if it is under a readonly mount point.
    *

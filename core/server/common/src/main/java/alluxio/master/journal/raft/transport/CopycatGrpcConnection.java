@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,6 +91,9 @@ public abstract class CopycatGrpcConnection
   /** Used to synchronize during connection shut down. */
   private final ReadWriteLock mStateLock;
 
+  /** Executor for connection. */
+  private final ExecutorService mExecutor;
+
   /**
    * Creates a connection object.
    *
@@ -97,12 +101,14 @@ public abstract class CopycatGrpcConnection
    *
    * @param connectionOwner owner of connection
    * @param context copycat thread context
+   * @param executor transport executor
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
   public CopycatGrpcConnection(ConnectionOwner connectionOwner, ThreadContext context,
-                               long requestTimeoutMs) {
+      ExecutorService executor, long requestTimeoutMs) {
     mConnectionOwner = connectionOwner;
     mContext = context;
+    mExecutor = executor;
     mRequestTimeoutMs = requestTimeoutMs;
 
     mStateLock = new ReentrantReadWriteLock();
@@ -154,8 +160,8 @@ public abstract class CopycatGrpcConnection
 
       // Create a contextual future for the request.
       CopycatGrpcConnection.ContextualFuture<U> future =
-              new CopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
-                      ThreadContext.currentContextOrThrow());
+          new CopycatGrpcConnection.ContextualFuture<>(System.currentTimeMillis(),
+              ThreadContext.currentContextOrThrow());
 
       // Don't allow request if connection is closed.
       if (mClosed) {
@@ -171,10 +177,10 @@ public abstract class CopycatGrpcConnection
       // Serialize the request and send it over to target.
       try {
         mTargetObserver.onNext(CopycatMessage.newBuilder()
-                .setRequestHeader(CopycatRequestHeader.newBuilder().setRequestId(requestId))
-                .setMessage(UnsafeByteOperations
-                        .unsafeWrap(future.getContext().serializer().writeObject(request).array()))
-                .build());
+            .setRequestHeader(CopycatRequestHeader.newBuilder().setRequestId(requestId))
+            .setMessage(UnsafeByteOperations
+                .unsafeWrap(future.getContext().serializer().writeObject(request).array()))
+            .build());
       } catch (Exception e) {
         future.completeExceptionally(e);
         return future;
@@ -391,7 +397,7 @@ public abstract class CopycatGrpcConnection
           listener.accept(this);
         }
       }
-    });
+    }, mExecutor);
   }
 
   /*
