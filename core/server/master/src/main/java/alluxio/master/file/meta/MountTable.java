@@ -389,7 +389,7 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException
    */
   public AlluxioURI reverseLookup(String foreignUriStr) throws InvalidPathException {
-    // TODO(ggezer) Consider alternative mount table representations for optimizing this method.
+    // TODO(ggezer): Consider alternative mount table representations for optimizing this method.
     try (LockResource r = new LockResource(mReadLock)) {
       LOG.debug("Doing a reverse-lookup on foreign URI {}", foreignUriStr);
       // Enumerate existing mount points to find a mount point that owns
