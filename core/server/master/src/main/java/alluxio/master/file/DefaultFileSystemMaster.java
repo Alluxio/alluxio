@@ -1394,17 +1394,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /**
    * Attempts to mount given UFS Uri into designated auto-mount directory.
    *
-   * In order to minimize mount points, mount attempt is started from UFS root
-   * for the given URI. If mount fails for due to "access control" or "mount prefix/postfix"
-   * conditions, then the next path component is tried.
+   * In order to minimize mount points, mount attempt is started from UFS root for the given URI. If
+   * mount fails for due to "access control" or "mount prefix/postfix" conditions, then the next
+   * path component is tried.
    *
-   * For example:
-   *  auto-mounting "/a/b/c/d" when server don't have access to "/a"
-   *  will result in mounting at "/a/b"
+   * For example: auto-mounting "/a/b/c/d" when server don't have access to "/a" will result in
+   * mounting at "/a/b"
    *
-   *  auto-mounting "/a/b/c/d" when mount-table already has an entry for "/a/x"
-   *  will result in mounting at "/a/b"
-   *
+   * auto-mounting "/a/b/c/d" when mount-table already has an entry for "/a/x" will result in
+   * mounting at "/a/b"
    *
    * TODO(ggezer): Have fine-grained locking on mount paths instead of marking synchronized.
    *
@@ -1474,16 +1472,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       // Could not mount any sub-path.
       throw new IOException(String.format("Failed to auto-mount path: %s", ufsUri));
-    } catch (Exception e) {
+    } catch (AlluxioException | IOException e) {
       // Cleanup before failing.
       if (firstCreatedParent != null) {
         try {
           delete(firstCreatedParent,
               DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
-        } catch (IOException e1) {
+        } catch (Exception e1) {
           LOG.warn("Failed to clean-up created directory root: {}", firstCreatedParent, e1);
         }
       }
+      throw e;
     }
   }
 
