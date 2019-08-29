@@ -109,9 +109,8 @@ public class HiveDatabase implements UnderDatabase {
       // make sure the parent exists
       mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
           CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
-//      mDbContext.getFileSystem()
-//          .mount(tableUri, new AlluxioURI(table.getDataLocation().toString()));
-      mUdbContext.getFileSystem().mount(tableUri, new AlluxioURI("/tmp/speedcore/table"));
+      mUdbContext.getFileSystem()
+          .mount(tableUri, new AlluxioURI(table.getDataLocation().toString()));
       LOG.info("mounted table {} location {} to Alluxio location {}", tableName,
           table.getDataLocation(), tableUri);
       // TODO(gpang): manage the mount mapping for statistics/metadata
