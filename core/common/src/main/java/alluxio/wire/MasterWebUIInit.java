@@ -117,7 +117,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets newer version available.
    *
    * @param newerVersionAvailable the newer version available
-   * @return the newer version available
+   * @return true if a newer version is available, false otherwise
    */
   public MasterWebUIInit setNewerVersionAvailable(boolean newerVersionAvailable) {
     mNewerVersionAvailable = newerVersionAvailable;
