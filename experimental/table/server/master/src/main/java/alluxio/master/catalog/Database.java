@@ -13,9 +13,9 @@ package alluxio.master.catalog;
 
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.Schema;
-import alluxio.table.common.UdbContext;
-import alluxio.table.common.UdbTable;
-import alluxio.table.common.UnderDatabase;
+import alluxio.table.common.udb.UdbContext;
+import alluxio.table.common.udb.UdbTable;
+import alluxio.table.common.udb.UnderDatabase;
 
 import java.io.IOException;
 import java.util.ArrayList;

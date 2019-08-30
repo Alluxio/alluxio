@@ -13,7 +13,7 @@ package alluxio.table.under.hive;
 
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.Schema;
-import alluxio.table.common.UdbTable;
+import alluxio.table.common.udb.UdbTable;
 
 import java.util.Map;
 

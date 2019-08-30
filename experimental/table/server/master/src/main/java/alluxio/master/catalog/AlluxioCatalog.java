@@ -15,8 +15,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileStatistics;
-import alluxio.table.common.UdbContext;
-import alluxio.table.common.UnderDatabaseRegistry;
+import alluxio.table.common.udb.UdbContext;
+import alluxio.table.common.udb.UnderDatabaseRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

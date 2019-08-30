@@ -9,36 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.table.common;
+package alluxio.table.common.udb;
 
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.Schema;
-
-import java.util.Map;
+import java.io.IOException;
 
 /**
- * The interface for the underdb table.
+ * The under database factory interface.
  */
-public interface UdbTable {
+public interface UnderDatabaseFactory {
 
   /**
-   * @return the table name
+   * @return the type of under database for the factory
    */
-  String getName();
+  String getType();
 
   /**
-   * @return the table schema
+   * @param udbContext the db context
+   * @param configuration configuration values
+   * @return a new instance of the under database
    */
-  Schema getSchema();
-
-  /**
-   * @return the base location
-   */
-  String getBaseLocation();
-
-  // TODO(gpang): generalize statistics
-  /**
-   * @return statistics of the table
-   */
-  Map<String, FileStatistics> getStatistics();
+  UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration)
+      throws IOException;
 }

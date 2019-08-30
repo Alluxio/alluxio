@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.table.common;
-
-import alluxio.table.common.udb.UdbConfiguration;
+package alluxio.table.common.udb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

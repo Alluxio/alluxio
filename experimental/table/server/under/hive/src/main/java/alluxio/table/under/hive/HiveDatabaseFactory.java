@@ -12,9 +12,9 @@
 package alluxio.table.under.hive;
 
 import alluxio.table.common.udb.UdbConfiguration;
-import alluxio.table.common.UdbContext;
-import alluxio.table.common.UnderDatabase;
-import alluxio.table.common.UnderDatabaseFactory;
+import alluxio.table.common.udb.UdbContext;
+import alluxio.table.common.udb.UnderDatabase;
+import alluxio.table.common.udb.UnderDatabaseFactory;
 
 import java.io.IOException;
 
