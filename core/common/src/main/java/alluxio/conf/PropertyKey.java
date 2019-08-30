@@ -665,8 +665,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)
           .setAlias("alluxio.underfs.object.breadcrumbs.enabled")
           .setDefaultValue(true)
-          .setDescription("Set this to false to prevent Alluxio from creating zero byte objects " +
-              "for faster directory listing during read or list operations on object store UFS")
+          .setDescription("Set this to false to prevent Alluxio from creating zero byte objects "
+              + "during read or list operations on object store UFS. Leaving this on enables more"
+              + " efficient listing of prefixes.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
