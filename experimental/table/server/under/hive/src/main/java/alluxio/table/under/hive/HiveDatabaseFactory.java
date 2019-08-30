@@ -11,12 +11,12 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.UdbContext;
 import alluxio.table.common.UnderDatabase;
 import alluxio.table.common.UnderDatabaseFactory;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Factory to create database implementation.
@@ -30,7 +30,7 @@ public class HiveDatabaseFactory implements UnderDatabaseFactory {
   }
 
   @Override
-  public UnderDatabase create(UdbContext udbContext, Map<String, String> configuration)
+  public UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration)
       throws IOException {
     return HiveDatabase.create(udbContext, configuration);
   }

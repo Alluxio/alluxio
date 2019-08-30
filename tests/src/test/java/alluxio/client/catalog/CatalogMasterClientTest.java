@@ -30,6 +30,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +69,7 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
     Map<String, MountPointInfo> test = mFileSystem.getMountTable();
     List<String> dbs = mCatalogMasterClient.getAllDatabases();
     Assert.assertEquals(0, dbs.size());
-    mCatalogMasterClient.createDatabase("test1");
+    mCatalogMasterClient.createDatabase("test1", Collections.emptyMap());
     dbs = mCatalogMasterClient.getAllDatabases();
     Assert.assertEquals(1, dbs.size());
     Assert.assertEquals(dbs.get(0), "test1");

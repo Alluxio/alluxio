@@ -53,12 +53,13 @@ public class Database {
    * @param udbContext the db context
    * @param type the database type
    * @param name the database name
-   * @param options the options
+   * @param configuration the configuration
    * @return the database instance
    */
   public static Database create(UdbContext udbContext, String type, String name,
-      Map<String, String> options) throws IOException {
-    UnderDatabase udb = udbContext.getUdbRegistry().create(udbContext, type, options);
+      CatalogConfiguration configuration) throws IOException {
+    UnderDatabase udb = udbContext.getUdbRegistry()
+        .create(udbContext, type, configuration.getUdbConfiguration(type));
     return new Database(type, name, udb);
   }
 

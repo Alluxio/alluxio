@@ -20,6 +20,7 @@ import alluxio.grpc.FileStatistics;
 import alluxio.table.common.UdbContext;
 import alluxio.table.common.UdbTable;
 import alluxio.table.common.UnderDatabase;
+import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
@@ -41,16 +42,21 @@ import java.util.Map;
  */
 public class HiveDatabase implements UnderDatabase {
   private static final Logger LOG = LoggerFactory.getLogger(HiveDatabase.class);
-  private static final String DEFAULT_DB_NAME = "default";
 
   private final UdbContext mUdbContext;
+  private final UdbConfiguration mConfiguration;
   private final HiveDataCatalog mCatalog;
   private final Hive mHive;
+  private final String mDbName;
 
-  private HiveDatabase(UdbContext udbContext, HiveDataCatalog catalog, Hive hive) {
+  private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
+      HiveDataCatalog catalog, Hive hive, String dbName) {
     mUdbContext = udbContext;
+    mConfiguration = configuration;
     mCatalog = catalog;
     mHive = hive;
+    mDbName = dbName;
+    mConfiguration.toString(); // read the field
   }
 
   /**
@@ -60,8 +66,19 @@ public class HiveDatabase implements UnderDatabase {
    * @param configuration the configuration
    * @return the new instance
    */
-  public static HiveDatabase create(UdbContext udbContext, Map<String, String> configuration)
+  public static HiveDatabase create(UdbContext udbContext, UdbConfiguration configuration)
       throws IOException {
+    String uris = configuration.get(Property.HIVE_METASTORE_URIS);
+    if (uris.isEmpty()) {
+      throw new IOException("Hive metastore uris is not configured. Please set parameter: "
+          + Property.HIVE_METASTORE_URIS.getFullName(HiveDatabaseFactory.TYPE));
+    }
+    String dbName = configuration.get(Property.DATABASE_NAME);
+    if (dbName.isEmpty()) {
+      throw new IOException("Hive database name is not configured. Please set parameter: "
+          + Property.DATABASE_NAME.getFullName(HiveDatabaseFactory.TYPE));
+    }
+
     UnderFileSystem ufs;
     if (URIUtils.isLocalFilesystem(ServerConfiguration
         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
@@ -72,18 +89,17 @@ public class HiveDatabase implements UnderDatabase {
     }
     HiveDataCatalog catalog = new HiveDataCatalog(ufs);
     // TODO(gpang): get rid of creating db
-    catalog.createDatabase(DEFAULT_DB_NAME);
+    catalog.createDatabase(dbName);
 
     Hive hive;
     try {
       HiveConf conf = new HiveConf();
-      // TODO(gpang): use configuration keys passed in
-      conf.set("hive.metastore.uris", "thrift://localhost:9083");
+      conf.set("hive.metastore.uris", uris);
       hive = Hive.get(conf);
     } catch (HiveException e) {
       throw new IOException("Failed to create hive client: " + e.getMessage(), e);
     }
-    return new HiveDatabase(udbContext, catalog, hive);
+    return new HiveDatabase(udbContext, configuration, catalog, hive, dbName);
   }
 
   @Override
@@ -94,7 +110,7 @@ public class HiveDatabase implements UnderDatabase {
   @Override
   public List<String> getTableNames() throws IOException {
     try {
-      return mHive.getAllTables(DEFAULT_DB_NAME);
+      return mHive.getAllTables(mDbName);
     } catch (HiveException e) {
       throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
     }
@@ -104,7 +120,7 @@ public class HiveDatabase implements UnderDatabase {
   public UdbTable getTable(String tableName) throws IOException {
     Table table = null;
     try {
-      table = mHive.getTable(DEFAULT_DB_NAME, tableName);
+      table = mHive.getTable(mDbName, tableName);
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
       // make sure the parent exists
       mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
@@ -130,7 +146,7 @@ public class HiveDatabase implements UnderDatabase {
   @Override
   public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
       throws IOException {
-    mCatalog.getTable(TableIdentifier.of(DEFAULT_DB_NAME, tableName));
+    mCatalog.getTable(TableIdentifier.of(mDbName, tableName));
     return null;
   }
 }

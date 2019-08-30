@@ -77,9 +77,16 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public boolean createDatabase(String database, Map<String, String> options) throws IOException {
-    // TODO(gpang): update api
-    return mCatalog.createDatabase("hive", database, options);
+  public boolean createDatabase(String database, CatalogConfiguration configuration)
+      throws IOException {
+    // TODO(gpang): should type just be an argument?
+    if (configuration.get(CatalogProperty.DB_TYPE).isEmpty()) {
+      throw new IOException(
+          "The database type is not configured. Please set property: " + CatalogProperty.DB_TYPE
+              .getName());
+    }
+    return mCatalog
+        .createDatabase(configuration.get(CatalogProperty.DB_TYPE), database, configuration);
   }
 
   @Override

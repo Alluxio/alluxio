@@ -90,10 +90,12 @@ public interface CatalogMasterClient extends Client {
    * Create database with given schema.
    *
    * @param databaseName database name
+   * @param configuration the configuration
    * @return true if database created successfully
    * @throws AlluxioStatusException
    */
-  boolean createDatabase(String databaseName) throws AlluxioStatusException;
+  boolean createDatabase(String databaseName, Map<String, String> configuration)
+      throws AlluxioStatusException;
 
   /**
    * Create table with given schema.

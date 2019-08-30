@@ -115,8 +115,8 @@ public class CatalogMasterClientServiceHandler
   @Override
   public void createDatabase(CreateDatabasePRequest request,
       StreamObserver<CreateDatabasePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> CreateDatabasePResponse.newBuilder()
-        .setSuccess(mCatalogMaster.createDatabase(request.getDbName(), request.getOptionsMap()))
+    RpcUtils.call(LOG, () -> CreateDatabasePResponse.newBuilder().setSuccess(mCatalogMaster
+        .createDatabase(request.getDbName(), new CatalogConfiguration(request.getOptionsMap())))
         .build(), "createDatabase", "", responseObserver);
   }
 

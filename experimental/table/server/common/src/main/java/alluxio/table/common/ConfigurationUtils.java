@@ -11,25 +11,22 @@
 
 package alluxio.table.common;
 
-import alluxio.table.common.udb.UdbConfiguration;
-
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * The under database factory interface.
+ * This represents a property name and default value for the UDB.
  */
-public interface UnderDatabaseFactory {
+public class ConfigurationUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
+
+  private ConfigurationUtils() {} // prevent instantiation
 
   /**
-   * @return the type of under database for the factory
+   * @param udbType the udb type
+   * @return the prefix of the property name, for a given udb type
    */
-  String getType();
-
-  /**
-   * @param udbContext the db context
-   * @param configuration configuration values
-   * @return a new instance of the under database
-   */
-  UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration)
-      throws IOException;
+  public static String getUdbPrefix(String udbType) {
+    return String.format("udb-%s.", udbType);
+  }
 }

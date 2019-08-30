@@ -43,10 +43,10 @@ public interface CatalogMaster extends Master {
    * Create a database.
    *
    * @param dbName a database name
-   * @param options the options
+   * @param configuration the configuration
    * @return true if creation is successful
    */
-  boolean createDatabase(String dbName, Map<String, String> options) throws IOException;
+  boolean createDatabase(String dbName, CatalogConfiguration configuration) throws IOException;
 
   /**
    * Create a table.

@@ -11,6 +11,8 @@
 
 package alluxio.table.common;
 
+import alluxio.table.common.udb.UdbConfiguration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +63,7 @@ public class UnderDatabaseRegistry {
    * @return a new udb instance
    */
   public UnderDatabase create(UdbContext udbContext, String type,
-      Map<String, String> configuration) throws IOException {
+      UdbConfiguration configuration) throws IOException {
     Map<String, UnderDatabaseFactory> map = mFactories;
     UnderDatabaseFactory factory = map.get(type);
     if (factory == null) {
