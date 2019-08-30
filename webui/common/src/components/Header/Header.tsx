@@ -43,8 +43,8 @@ export interface IHeaderProps {
 interface IHeaderState {
   isAutoRefreshing: boolean;
   isOpen: boolean;
-  pathname: string;
   isPopoverOpen: boolean;
+  pathname: string;
 }
 
 export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
@@ -133,7 +133,6 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     });
   }
 
-  // newerVersionAvailable is only given if newer than current version
   private renderNewerVersionNotification() {
     if (!this.props.newerVersionAvailable) return null;
 

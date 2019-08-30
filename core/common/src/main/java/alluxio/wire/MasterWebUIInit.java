@@ -49,9 +49,9 @@ public final class MasterWebUIInit implements Serializable {
   }
 
   /**
-   * Gets latest version.
+   * Gets newer version available.
    *
-   * @return the latest version
+   * @return the newer version available
    */
   public boolean getNewerVersionAvailable() {
     return mNewerVersionAvailable;
