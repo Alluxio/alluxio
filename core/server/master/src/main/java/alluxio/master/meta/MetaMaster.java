@@ -90,7 +90,7 @@ public interface MetaMaster extends Master {
   void removePathConfiguration(String path) throws UnavailableException;
 
   /**
-   * @return true if newer version is available
+   * @return true if newer version is available, false otherwise
    */
   boolean getNewerVersionAvailable();
 
