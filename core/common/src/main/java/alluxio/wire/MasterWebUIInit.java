@@ -106,7 +106,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets debug.
    *
    * @param debug the debug
-   * @return debug debug
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setDebug(boolean debug) {
     mDebug = debug;
@@ -117,7 +117,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets newer version available.
    *
    * @param newerVersionAvailable the newer version available
-   * @return the newer version available
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setNewerVersionAvailable(boolean newerVersionAvailable) {
     mNewerVersionAvailable = newerVersionAvailable;
@@ -128,7 +128,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets web file info enabled.
    *
    * @param enabled the enabled
-   * @return the web file info enabled
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setWebFileInfoEnabled(boolean enabled) {
     mWebFileInfoEnabled = enabled;
@@ -139,7 +139,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets security authorization permission enabled.
    *
    * @param enabled the enabled
-   * @return the security authorization permission enabled
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setSecurityAuthorizationPermissionEnabled(boolean enabled) {
     mSecurityAuthorizationPermissionEnabled = enabled;
@@ -150,7 +150,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets worker port.
    *
    * @param port the port
-   * @return the worker port
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setWorkerPort(int port) {
     mWorkerPort = port;
@@ -161,7 +161,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets refresh interval.
    *
    * @param interval the interval
-   * @return the refresh interval
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setRefreshInterval(int interval) {
     mRefreshInterval = interval;
@@ -172,7 +172,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets proxy download file api url.
    *
    * @param apiUrl the api url
-   * @return the proxy download file api url
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setProxyDownloadFileApiUrl(Map<String, String> apiUrl) {
     mProxyDownloadFileApiUrl = apiUrl;
