@@ -24,14 +24,18 @@ public class BackupResponse {
   private AlluxioURI mBackupUri;
   // The hostname of the master that did the backup.
   private String mHostname;
+  // The entry count in backup.
+  private long mEntryCount;
 
   /**
    * @param backupUri the URI of the backed up file
    * @param hostname the hostname of the master that did the backup
+   * @param entryCount the entry count in backup
    */
-  public BackupResponse(AlluxioURI backupUri, String hostname) {
+  public BackupResponse(AlluxioURI backupUri, String hostname, long entryCount) {
     mBackupUri = Preconditions.checkNotNull(backupUri, "backupUri");
     mHostname = Preconditions.checkNotNull(hostname, "hostname");
+    mEntryCount = entryCount;
   }
 
   /**
@@ -39,14 +43,20 @@ public class BackupResponse {
    * @return wire type options corresponding to the proto options
    */
   public static BackupResponse fromProto(BackupPResponse pResp) {
-    return new BackupResponse(new AlluxioURI(pResp.getBackupUri()), pResp.getHostname());
+    return new BackupResponse(new AlluxioURI(
+        pResp.getBackupUri()),
+        pResp.getHostname(),
+        pResp.getEntryCount());
   }
 
   /**
    * @return the proto options corresponding to these options
    */
   public BackupPResponse toProto() {
-    return BackupPResponse.newBuilder().setBackupUri(mBackupUri.toString()).setHostname(mHostname)
+    return BackupPResponse.newBuilder()
+        .setBackupUri(mBackupUri.toString())
+        .setHostname(mHostname)
+        .setEntryCount(mEntryCount)
         .build();
   }
 
@@ -62,5 +72,12 @@ public class BackupResponse {
    */
   public String getHostname() {
     return mHostname;
+  }
+
+  /**
+   * @return the entry count in backup
+   */
+  public long getEntryCount() {
+    return mEntryCount;
   }
 }
