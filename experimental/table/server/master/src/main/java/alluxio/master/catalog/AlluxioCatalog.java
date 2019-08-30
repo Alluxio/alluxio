@@ -15,8 +15,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileStatistics;
-import alluxio.table.common.UdbContext;
-import alluxio.table.common.UnderDatabaseRegistry;
+import alluxio.table.common.udb.UdbContext;
+import alluxio.table.common.udb.UnderDatabaseRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,13 +53,14 @@ public class AlluxioCatalog {
    *
    * @param type the database type
    * @param dbName the database name
-   * @param options the options
+   * @param configuration the configuration
    * @return true if database successfully created
    */
-  public boolean createDatabase(String type, String dbName, Map<String, String> options)
+  public boolean createDatabase(String type, String dbName, CatalogConfiguration configuration)
       throws IOException {
     Database db = Database
-        .create(new UdbContext(mUdbRegistry, mFileSystem, type, dbName), type, dbName, options);
+        .create(new UdbContext(mUdbRegistry, mFileSystem, type, dbName), type, dbName,
+            configuration);
     if (mDBs.putIfAbsent(dbName, db) != null) {
       return false;
     }

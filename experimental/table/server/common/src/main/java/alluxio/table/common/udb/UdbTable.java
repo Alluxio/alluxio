@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.table.common;
+package alluxio.table.common.udb;
 
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.Schema;

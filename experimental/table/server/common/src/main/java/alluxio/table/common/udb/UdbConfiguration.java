@@ -9,26 +9,27 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.table.common;
+package alluxio.table.common.udb;
 
-import java.io.IOException;
+import alluxio.table.common.BaseConfiguration;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Map;
 
 /**
- * The under database factory interface.
+ * This represents a configuration of the UDB.
  */
-public interface UnderDatabaseFactory {
+public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
+  private static final Logger LOG = LoggerFactory.getLogger(UdbConfiguration.class);
 
   /**
-   * @return the type of under database for the factory
+   * Creates an instance.
+   *
+   * @param values the map of values
    */
-  String getType();
-
-  /**
-   * @param udbContext the db context
-   * @param configuration configuration values
-   * @return a new instance of the under database
-   */
-  UnderDatabase create(UdbContext udbContext, Map<String, String> configuration)
-      throws IOException;
+  public UdbConfiguration(Map<String, String> values) {
+    super(values);
+  }
 }

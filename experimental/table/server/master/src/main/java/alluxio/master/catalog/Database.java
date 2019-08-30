@@ -13,9 +13,9 @@ package alluxio.master.catalog;
 
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.Schema;
-import alluxio.table.common.UdbContext;
-import alluxio.table.common.UdbTable;
-import alluxio.table.common.UnderDatabase;
+import alluxio.table.common.udb.UdbContext;
+import alluxio.table.common.udb.UdbTable;
+import alluxio.table.common.udb.UnderDatabase;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,12 +53,13 @@ public class Database {
    * @param udbContext the db context
    * @param type the database type
    * @param name the database name
-   * @param options the options
+   * @param configuration the configuration
    * @return the database instance
    */
   public static Database create(UdbContext udbContext, String type, String name,
-      Map<String, String> options) throws IOException {
-    UnderDatabase udb = udbContext.getUdbRegistry().create(udbContext, type, options);
+      CatalogConfiguration configuration) throws IOException {
+    UnderDatabase udb = udbContext.getUdbRegistry()
+        .create(udbContext, type, configuration.getUdbConfiguration(type));
     return new Database(type, name, udb);
   }
 

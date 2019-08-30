@@ -99,9 +99,11 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public boolean createDatabase(String dbName) throws AlluxioStatusException {
+  public boolean createDatabase(String dbName, Map<String, String> configuration)
+      throws AlluxioStatusException {
     return retryRPC(() -> mClient.createDatabase(
-        CreateDatabasePRequest.newBuilder().setDbName(dbName).build()).getSuccess());
+        CreateDatabasePRequest.newBuilder().setDbName(dbName).putAllOptions(configuration).build())
+        .getSuccess());
   }
 
   @Override
