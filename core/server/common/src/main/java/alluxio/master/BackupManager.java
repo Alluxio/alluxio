@@ -17,6 +17,7 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -32,6 +33,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 /**
@@ -64,20 +69,21 @@ public class BackupManager {
    * Writes a backup to the specified stream.
    *
    * @param os the stream to write to
+   * @param entryCount will receive total entry count that are backed up
    */
-  public void backup(OutputStream os) throws IOException {
-    int count = 0;
+  public void backup(OutputStream os, AtomicLong entryCount) throws IOException {
+    // Create gZIP compressed stream as back-up stream.
     GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(os);
     for (Master master : mRegistry.getServers()) {
       Iterator<JournalEntry> it = master.getJournalEntryIterator();
       while (it.hasNext()) {
         it.next().toBuilder().clearSequenceNumber().build().writeDelimitedTo(zipStream);
-        count++;
+        entryCount.incrementAndGet();
       }
     }
     // finish() instead of close() since close would close os, which is owned by the caller.
     zipStream.finish();
-    LOG.info("Created backup with {} entries", count);
+    LOG.info("Created backup with {} entries", entryCount.get());
   }
 
   /**
@@ -86,7 +92,14 @@ public class BackupManager {
    * @param is an input stream to read from the backup
    */
   public void initFromBackup(InputStream is) throws IOException {
-    int count = 0;
+    AtomicLong appliedEntryCount = new AtomicLong(0);
+    // Progress executor
+    ScheduledExecutorService traceExecutor = Executors.newScheduledThreadPool(1,
+        ThreadFactoryUtils.build("master-backup-tracer-%d", true));
+    traceExecutor.scheduleAtFixedRate(() -> {
+      LOG.info("{} entries from backup applied so far...", appliedEntryCount.get());
+    }, 30, 30, TimeUnit.SECONDS);
+
     try (GzipCompressorInputStream gzIn = new GzipCompressorInputStream(is);
          JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {
       List<Master> masters = mRegistry.getServers();
@@ -120,7 +133,7 @@ public class BackupManager {
             // Apply entry to journal.
             contextMap.get(masterName).append(bufferedEntry);
             // entry is processed.
-            count++;
+            appliedEntryCount.incrementAndGet();
           }
           // Close journal context.
           for (JournalContext context : contextMap.values()) {
@@ -134,7 +147,9 @@ public class BackupManager {
           break;
         }
       }
+    } finally {
+      traceExecutor.shutdownNow();
     }
-    LOG.info("Restored {} entries from backup", count);
+    LOG.info("Restored {} entries from backup", appliedEntryCount.get());
   }
 }

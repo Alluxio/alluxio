@@ -110,10 +110,11 @@ public final class DailyMetadataBackup {
     try {
       BackupResponse resp = mMetaMaster.backup(new BackupOptions(mBackupDir, mIsLocal));
       if (mIsLocal) {
-        LOG.info("Successfully backed up journal to {} on master {}",
-            resp.getBackupUri(), resp.getHostname());
+        LOG.info("Successfully backed up journal to {} on master {} with {} entries.",
+            resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());
       } else {
-        LOG.info("Successfully backed up journal to {}", resp.getBackupUri());
+        LOG.info("Successfully backed up journal to {} with {} entries.",
+            resp.getBackupUri(), resp.getEntryCount());
       }
     } catch (Throwable t) {
       LOG.error("Failed to execute daily backup at {}", mBackupDir, t);

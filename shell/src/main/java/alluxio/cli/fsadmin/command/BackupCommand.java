@@ -63,10 +63,11 @@ public class BackupCommand extends AbstractFsAdminCommand {
     boolean local = cl.hasOption(LOCAL_OPTION.getLongOpt());
     BackupResponse resp = mMetaClient.backup(dir, local);
     if (local) {
-      mPrintStream.printf("Successfully backed up journal to %s on master %s%n",
-          resp.getBackupUri(), resp.getHostname());
+      mPrintStream.printf("Successfully backed up journal to %s on master %s with %d entries%n",
+          resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());
     } else {
-      mPrintStream.printf("Successfully backed up journal to %s%n", resp.getBackupUri());
+      mPrintStream.printf("Successfully backed up journal to %s with %d entries%n",
+          resp.getBackupUri(), resp.getEntryCount());
     }
     return 0;
   }

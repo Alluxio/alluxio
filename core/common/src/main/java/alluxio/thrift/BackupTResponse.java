@@ -40,6 +40,7 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
 
   private static final org.apache.thrift.protocol.TField BACKUP_URI_FIELD_DESC = new org.apache.thrift.protocol.TField("backupUri", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField HOSTNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("hostname", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField ENTRY_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("entryCount", org.apache.thrift.protocol.TType.I64, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -49,11 +50,13 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
 
   private String backupUri; // required
   private String hostname; // required
+  private long entryCount; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     BACKUP_URI((short)1, "backupUri"),
-    HOSTNAME((short)2, "hostname");
+    HOSTNAME((short)2, "hostname"),
+    ENTRY_COUNT((short)3, "entryCount");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -72,6 +75,8 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
           return BACKUP_URI;
         case 2: // HOSTNAME
           return HOSTNAME;
+        case 3: // ENTRY_COUNT
+          return ENTRY_COUNT;
         default:
           return null;
       }
@@ -112,6 +117,8 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
   }
 
   // isset id assignments
+  private static final int __ENTRYCOUNT_ISSET_ID = 0;
+  private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -119,6 +126,8 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.HOSTNAME, new org.apache.thrift.meta_data.FieldMetaData("hostname", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.ENTRY_COUNT, new org.apache.thrift.meta_data.FieldMetaData("entryCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BackupTResponse.class, metaDataMap);
   }
@@ -128,23 +137,28 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
 
   public BackupTResponse(
     String backupUri,
-    String hostname)
+    String hostname,
+    long entryCount)
   {
     this();
     this.backupUri = backupUri;
     this.hostname = hostname;
+    this.entryCount = entryCount;
+    setEntryCountIsSet(true);
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public BackupTResponse(BackupTResponse other) {
+    __isset_bitfield = other.__isset_bitfield;
     if (other.isSetBackupUri()) {
       this.backupUri = other.backupUri;
     }
     if (other.isSetHostname()) {
       this.hostname = other.hostname;
     }
+    this.entryCount = other.entryCount;
   }
 
   public BackupTResponse deepCopy() {
@@ -155,6 +169,8 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
   public void clear() {
     this.backupUri = null;
     this.hostname = null;
+    setEntryCountIsSet(false);
+    this.entryCount = 0;
   }
 
   public String getBackupUri() {
@@ -205,6 +221,29 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
     }
   }
 
+  public long getEntryCount() {
+    return this.entryCount;
+  }
+
+  public BackupTResponse setEntryCount(long entryCount) {
+    this.entryCount = entryCount;
+    setEntryCountIsSet(true);
+    return this;
+  }
+
+  public void unsetEntryCount() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ENTRYCOUNT_ISSET_ID);
+  }
+
+  /** Returns true if field entryCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetEntryCount() {
+    return EncodingUtils.testBit(__isset_bitfield, __ENTRYCOUNT_ISSET_ID);
+  }
+
+  public void setEntryCountIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ENTRYCOUNT_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case BACKUP_URI:
@@ -223,6 +262,14 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
       }
       break;
 
+    case ENTRY_COUNT:
+      if (value == null) {
+        unsetEntryCount();
+      } else {
+        setEntryCount((Long)value);
+      }
+      break;
+
     }
   }
 
@@ -233,6 +280,9 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
 
     case HOSTNAME:
       return getHostname();
+
+    case ENTRY_COUNT:
+      return getEntryCount();
 
     }
     throw new IllegalStateException();
@@ -249,6 +299,8 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
       return isSetBackupUri();
     case HOSTNAME:
       return isSetHostname();
+    case ENTRY_COUNT:
+      return isSetEntryCount();
     }
     throw new IllegalStateException();
   }
@@ -284,6 +336,15 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
         return false;
     }
 
+    boolean this_present_entryCount = true;
+    boolean that_present_entryCount = true;
+    if (this_present_entryCount || that_present_entryCount) {
+      if (!(this_present_entryCount && that_present_entryCount))
+        return false;
+      if (this.entryCount != that.entryCount)
+        return false;
+    }
+
     return true;
   }
 
@@ -300,6 +361,11 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
     list.add(present_hostname);
     if (present_hostname)
       list.add(hostname);
+
+    boolean present_entryCount = true;
+    list.add(present_entryCount);
+    if (present_entryCount)
+      list.add(entryCount);
 
     return list.hashCode();
   }
@@ -328,6 +394,16 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
     }
     if (isSetHostname()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.hostname, other.hostname);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetEntryCount()).compareTo(other.isSetEntryCount());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetEntryCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.entryCount, other.entryCount);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -367,6 +443,10 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
       sb.append(this.hostname);
     }
     first = false;
+    if (!first) sb.append(", ");
+    sb.append("entryCount:");
+    sb.append(this.entryCount);
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -386,6 +466,8 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
 
   private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
     try {
+      // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+      __isset_bitfield = 0;
       read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
     } catch (org.apache.thrift.TException te) {
       throw new java.io.IOException(te);
@@ -426,6 +508,14 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 3: // ENTRY_COUNT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.entryCount = iprot.readI64();
+              struct.setEntryCountIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -451,6 +541,9 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
         oprot.writeString(struct.hostname);
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(ENTRY_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.entryCount);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -475,19 +568,25 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
       if (struct.isSetHostname()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetEntryCount()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetBackupUri()) {
         oprot.writeString(struct.backupUri);
       }
       if (struct.isSetHostname()) {
         oprot.writeString(struct.hostname);
       }
+      if (struct.isSetEntryCount()) {
+        oprot.writeI64(struct.entryCount);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, BackupTResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.backupUri = iprot.readString();
         struct.setBackupUriIsSet(true);
@@ -495,6 +594,10 @@ public class BackupTResponse implements org.apache.thrift.TBase<BackupTResponse,
       if (incoming.get(1)) {
         struct.hostname = iprot.readString();
         struct.setHostnameIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.entryCount = iprot.readI64();
+        struct.setEntryCountIsSet(true);
       }
     }
   }
