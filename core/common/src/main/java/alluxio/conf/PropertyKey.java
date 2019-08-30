@@ -662,14 +662,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_BREADCRUMBS_ENABLED =
-          new Builder(Name.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)
-                  .setAlias("alluxio.underfs.object.breadcrumbs.enabled")
-                  .setDefaultValue(true)
-                  .setDescription(("Set this to false to prevent Alluxio from creating breadcrumbs"
-                          + "during read or list operations on object store UFS"))
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.SERVER)
-                  .build();
+      new Builder(Name.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)
+          .setAlias("alluxio.underfs.object.breadcrumbs.enabled")
+          .setDefaultValue(true)
+          .setDescription(("Set this to false to prevent Alluxio from creating breadcrumbs during" +
+              " read or list operations on object store UFS"))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
       new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
           .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
