@@ -34,7 +34,7 @@ interface ILogsProps {
   queryStringSuffix: string;
   request: IRequest;
   textAreaHeight: number;
-  update: (reqParam: string, value: string | undefined) => void;
+  updateRequestParameter: (reqParam: string, value: string | undefined) => void;
 }
 
 export type AllProps = IPropsFromState & ILogsProps & IPropsFromDispatch;
@@ -100,13 +100,13 @@ export class LogsPresenter extends React.Component<AllProps> {
 
   private createInputChangeHandler(reqParam: string) {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
-      this.props.update(reqParam, event.target.value);
+      this.props.updateRequestParameter(reqParam, event.target.value);
     };
   }
 
   private createButtonHandler(reqParam: string, value: string | undefined) {
     return (event: React.MouseEvent<HTMLButtonElement>) => {
-      this.props.update(reqParam, value);
+      this.props.updateRequestParameter(reqParam, value);
     };
   }
 }

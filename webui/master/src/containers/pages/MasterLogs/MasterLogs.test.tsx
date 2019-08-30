@@ -44,7 +44,7 @@ describe('MasterLogs', () => {
       refresh: initialState.refresh.data,
       textAreaHeight: 0,
       request: {},
-      update: sinon.spy(() => {}),
+      updateRequestParameter: sinon.spy(() => {}),
       queryStringSuffix: '',
       errors: createAlertErrors(false),
       loading: false,

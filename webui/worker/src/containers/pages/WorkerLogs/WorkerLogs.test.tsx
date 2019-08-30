@@ -42,7 +42,7 @@ describe('Logs', () => {
       refresh: initialState.refresh.data,
       textAreaHeight: 0,
       request: {},
-      update: sinon.spy(() => {}),
+      updateRequestParameter: sinon.spy(() => {}),
       queryStringSuffix: '',
       class: '',
       errors: createAlertErrors(false),

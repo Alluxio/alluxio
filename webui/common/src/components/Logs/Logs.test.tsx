@@ -40,7 +40,7 @@ describe('Logs', () => {
       loading: false,
       class: '',
       errors: createAlertErrors(false),
-      update: sinon.spy()
+      updateRequestParameter: sinon.spy()
     };
   });
 
