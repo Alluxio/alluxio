@@ -29,6 +29,7 @@ import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.user.ServerUserState;
 import alluxio.security.user.UserState;
+import alluxio.underfs.MasterUfsManager;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
@@ -128,6 +129,7 @@ public class MasterTestUtils {
         .setStartTimeMs(startTimeMs)
         .setUserState(userState)
         .setPort(port)
+        .setUfsManager(new MasterUfsManager())
         .build();
     new MetricsMasterFactory().create(registry, masterContext);
     new BlockMasterFactory().create(registry, masterContext);
