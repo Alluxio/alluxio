@@ -59,6 +59,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
       init={
         Object {
           "debug": false,
+          "newerVersionAvailable": false,
           "proxyDownloadFileApiUrl": Object {
             "prefix": "http://192.168.1.6:39999/api/v1/paths/",
             "suffix": "/download-file/",
@@ -232,6 +233,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                         "replace": [Function],
                       }
                     }
+                    newerVersionAvailable={false}
                   >
                     <div
                       className="header"
@@ -809,6 +811,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                           initData={
                             Object {
                               "debug": false,
+                              "newerVersionAvailable": false,
                               "proxyDownloadFileApiUrl": Object {
                                 "prefix": "http://192.168.1.6:39999/api/v1/paths/",
                                 "suffix": "/download-file/",

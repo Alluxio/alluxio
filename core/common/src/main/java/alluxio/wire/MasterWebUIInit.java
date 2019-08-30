@@ -26,6 +26,7 @@ public final class MasterWebUIInit implements Serializable {
   private static final long serialVersionUID = -6482980420852879864L;
 
   private boolean mDebug;
+  private boolean mNewerVersionAvailable;
   private boolean mWebFileInfoEnabled;
   private boolean mSecurityAuthorizationPermissionEnabled;
   private int mWorkerPort;
@@ -45,6 +46,15 @@ public final class MasterWebUIInit implements Serializable {
    */
   public boolean getDebug() {
     return mDebug;
+  }
+
+  /**
+   * Gets latest version.
+   *
+   * @return the latest version
+   */
+  public boolean getNewerVersionAvailable() {
+    return mNewerVersionAvailable;
   }
 
   /**
@@ -100,6 +110,17 @@ public final class MasterWebUIInit implements Serializable {
    */
   public MasterWebUIInit setDebug(boolean debug) {
     mDebug = debug;
+    return this;
+  }
+
+  /**
+   * Sets newer version available.
+   *
+   * @param newerVersionAvailable the newer version available
+   * @return the newer version available
+   */
+  public MasterWebUIInit setNewerVersionAvailable(boolean newerVersionAvailable) {
+    mNewerVersionAvailable = newerVersionAvailable;
     return this;
   }
 
@@ -161,6 +182,7 @@ public final class MasterWebUIInit implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("debug", mDebug)
+        .add("newerVersionAvailable", mNewerVersionAvailable)
         .add("webFileInfoEnabled", mWebFileInfoEnabled)
         .add("securityAuthorizationPermissionEnabled", mSecurityAuthorizationPermissionEnabled)
         .add("workerPort", mWorkerPort).add("refreshInterval", mRefreshInterval).toString();

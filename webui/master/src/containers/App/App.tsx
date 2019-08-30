@@ -91,7 +91,7 @@ export class App extends React.Component<AllProps> {
       <ConnectedRouter history={history}>
         <div className="App h-100">
           <div className="w-100 sticky-top header-wrapper">
-            <Header history={history} data={headerNavigationData} autoRefreshCallback={this.setAutoRefresh}/>
+            <Header history={history} data={headerNavigationData} autoRefreshCallback={this.setAutoRefresh} newerVersionAvailable={init.newerVersionAvailable}/>
           </div>
           <div className="w-100 pt-5 mt-3 pb-4 mb-2">
             <Switch>

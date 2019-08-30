@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {faCheckSquare, faSquare} from '@fortawesome/free-regular-svg-icons'
+import {faBell, faCheckSquare, faSquare} from '@fortawesome/free-regular-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {Action, Location} from 'history';
 import React from 'react';
@@ -23,8 +23,8 @@ import {
   NavbarBrand,
   NavbarToggler,
   NavItem,
-  NavLink
-} from 'reactstrap';
+  NavLink, Popover, PopoverBody
+} from "reactstrap";
 
 import {INavigationData, INavigationDataCallbackParameters} from '../../constants';
 import logo from '../../images/alluxio-mark-tight-sm.svg';
@@ -37,12 +37,14 @@ export interface IHeaderProps {
   data: INavigationData[];
   callbackParameters?: INavigationDataCallbackParameters;
   history: any;
+  newerVersionAvailable?: boolean
 }
 
 interface IHeaderState {
   isAutoRefreshing: boolean;
   isOpen: boolean;
   pathname: string;
+  isPopoverOpen: boolean;
 }
 
 export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
@@ -52,9 +54,11 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     const {history: {location: {pathname}}} = this.props;
     this.toggleHamburgerMenu = this.toggleHamburgerMenu.bind(this);
     this.toggleAutoRefresh = this.toggleAutoRefresh.bind(this);
+    this.togglePopover = this.togglePopover.bind(this);
     this.renderNavItems = this.renderNavItems.bind(this);
+    this.renderNewerVersionNotification = this.renderNewerVersionNotification.bind(this);
     this.closeHeaderOnClick = this.closeHeaderOnClick.bind(this);
-    this.state = {isAutoRefreshing: false, isOpen: false, pathname};
+    this.state = {isAutoRefreshing: false, isOpen: false, pathname, isPopoverOpen: false};
   }
 
   public componentDidMount() {
@@ -96,6 +100,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
                     isOpen={isOpen} navbar={true}>
             <Nav tabs={!isOpen} vertical={isOpen}>
               <NavItem>
+                {this.renderNewerVersionNotification()}
                 <ButtonGroup className="auto-refresh-button mr-1">
                   <Button size="sm" color="secondary"
                           onClick={this.toggleAutoRefresh} active={isAutoRefreshing}>
@@ -128,6 +133,24 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     });
   }
 
+  // newerVersionAvailable is only given if newer than current version
+  private renderNewerVersionNotification() {
+    if (!this.props.newerVersionAvailable) return null;
+
+    return (
+      <ButtonGroup className="mr-1">
+        <Button id="Popover1" size="sm" color="secondary">
+          <FontAwesomeIcon icon={faBell}/>
+        </Button>
+        <Popover placement="bottom" isOpen={this.state.isPopoverOpen} target="Popover1" toggle={this.togglePopover} trigger="hover">
+          <PopoverBody>
+            <span>A new Alluxio version is available <a href="https://www.alluxio.io/download/">here</a>!</span>
+          </PopoverBody>
+        </Popover>
+      </ButtonGroup>
+    );
+  }
+
   private closeHeaderOnClick() {
     this.setState({isOpen: false});
   }
@@ -145,5 +168,9 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
 
   private toggleHamburgerMenu() {
     this.setState({isOpen: !this.state.isOpen});
+  }
+
+  private togglePopover() {
+    this.setState({isPopoverOpen: !this.state.isPopoverOpen});
   }
 }

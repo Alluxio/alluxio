@@ -138,6 +138,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC,
       ServerConfiguration.global());
 
+  /** Indicates if newer version is available. */
+  private boolean mNewerVersionAvailable = true;
+
   /** The address of this master. */
   private Address mMasterAddress;
 
@@ -320,6 +323,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
               System.out.println("The latest version (" + latestVersion + ") is not the same "
                   + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
                   + "visit https://www.alluxio.io/download/.");
+              mNewerVersionAvailable = true;
             }
           } catch (Exception e) {
             LOG.debug("Unable to check for updates: {}", e.getMessage());
@@ -477,6 +481,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     try (JournalContext ctx = createJournalContext()) {
       mPathProperties.removeAll(ctx, path);
     }
+  }
+
+  @Override
+  public boolean getNewerVersionAvailable() {
+    return mNewerVersionAvailable;
   }
 
   @Override
