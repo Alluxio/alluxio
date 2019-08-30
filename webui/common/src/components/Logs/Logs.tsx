@@ -12,13 +12,7 @@
 import {History, LocationState} from 'history';
 import React from 'react';
 import {Table} from 'reactstrap';
-import {
-  FileView,
-  withErrors,
-  withFetchDataFromPath, withFluidContainer,
-  withLoadingMessage,
-  withTextAreaResize
-} from '..';
+import {FileView, withErrors, withFetchDataFromPath, withFluidContainer, withLoadingMessage, withTextAreaResize} from '..';
 import {IAlertErrors, ICommonState, IFileInfo, IRequest} from '../../constants';
 import {createAlertErrors, renderFileNameLink} from '../../utilities';
 import {ILogs, ILogsState} from '../../store/logs/types';
@@ -40,7 +34,7 @@ interface ILogsProps {
   queryStringSuffix: string;
   request: IRequest;
   textAreaHeight: number;
-  upateRequestParameter: (reqParam: string, value: string | undefined) => void;
+  update: (reqParam: string, value: string | undefined) => void;
 }
 
 export type AllProps = IPropsFromState & ILogsProps & IPropsFromDispatch;
@@ -106,13 +100,13 @@ export class LogsPresenter extends React.Component<AllProps> {
 
   private createInputChangeHandler(reqParam: string) {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
-      this.props.upateRequestParameter(reqParam, event.target.value);
+      this.props.update(reqParam, event.target.value);
     };
   }
 
   private createButtonHandler(reqParam: string, value: string | undefined) {
     return (event: React.MouseEvent<HTMLButtonElement>) => {
-      this.props.upateRequestParameter(reqParam, value);
+      this.props.update(reqParam, value);
     };
   }
 }

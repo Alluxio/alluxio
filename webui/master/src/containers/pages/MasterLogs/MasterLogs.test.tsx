@@ -44,7 +44,7 @@ describe('MasterLogs', () => {
       refresh: initialState.refresh.data,
       textAreaHeight: 0,
       request: {},
-      upateRequestParameter: sinon.spy(() => {}),
+      update: sinon.spy(() => {}),
       queryStringSuffix: '',
       errors: createAlertErrors(false),
       loading: false,
@@ -71,24 +71,4 @@ describe('MasterLogs', () => {
       expect(shallowWrapper).toMatchSnapshot();
     });
   });
-
-  // describe('App with connected component', () => {
-  //   let reactWrapper: ReactWrapper;
-  //
-  //   beforeAll(() => {
-  //     reactWrapper = mount(<Provider store={store}><MasterLogs history={history}/></Provider>);
-  //   });
-  //
-  //   it('Renders without crashing', () => {
-  //     expect(reactWrapper.length).toEqual(1);
-  //   });
-  //
-  //   it('Contains the component', () => {
-  //     expect(reactWrapper.find('.logs-page').length).toEqual(1);
-  //   });
-  //
-  //   it('Matches snapshot', () => {
-  //     expect(reactWrapper).toMatchSnapshot();
-  //   });
-  // });
 });

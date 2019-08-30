@@ -18,7 +18,14 @@ export function createAlertErrors(errorCondition: boolean, errorList?: string[])
         specific: []
     };
 
-    errorList && errorList.forEach(err => err && (errors.hasErrors = true) && errors.specific.push(err));
+    if (errorList) {
+        errorList.forEach(err => {
+            if (err) {
+                errors.hasErrors = true;
+                errors.specific.push(err);
+            }
+        });
+    }
 
     return errors;
 }

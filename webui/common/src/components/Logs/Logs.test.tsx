@@ -40,7 +40,7 @@ describe('Logs', () => {
       loading: false,
       class: '',
       errors: createAlertErrors(false),
-      upateRequestParameter: sinon.spy()
+      update: sinon.spy()
     };
   });
 
@@ -81,33 +81,4 @@ describe('Logs', () => {
       });
     });
   });
-
-  // describe('App with connected component', () => {
-  //   let reactWrapper: ReactWrapper;
-  //   let context = {};
-  //
-  //   beforeAll(() => {
-  //     reactWrapper = mount(
-  //         <StaticRouter location="someLocation" context={context}>
-  //           <LogsPresenter {...props}/>
-  //         </StaticRouter>
-  //     );
-  //   });
-  //
-  //   it('Renders without crashing', () => {
-  //     expect(reactWrapper.length).toEqual(1);
-  //   });
-  //
-  //   // it('Contains the component', () => {
-  //   //   expect(reactWrapper.find('.logs-page').length).toEqual(1);
-  //   // });
-  //
-  //   // it('Calls fetchRequest', () => {
-  //   //   sinon.assert.called(props.fetchRequest as SinonSpy);
-  //   // });
-  //
-  //   it('Matches snapshot', () => {
-  //     expect(reactWrapper).toMatchSnapshot();
-  //   });
-  // });
 });

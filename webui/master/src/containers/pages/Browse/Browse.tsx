@@ -73,7 +73,7 @@ export class BrowsePresenter extends React.Component<AllProps> {
   private renderFileView(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
     const {request: {offset, end, path}, history, textAreaHeight} = this.props;
     const offsetInputHandler = this.createInputChangeHandler('offset').bind(this);
-    const beginInputHandler = this.createButtonHandler('end',undefined).bind(this);
+    const beginInputHandler = this.createButtonHandler('end', undefined).bind(this);
     const endInputHandler = this.createButtonHandler('end', '1').bind(this);
     return (
         <React.Fragment>

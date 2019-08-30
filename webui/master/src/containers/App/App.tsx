@@ -16,14 +16,7 @@ import {connect} from 'react-redux';
 import {StaticContext} from 'react-router';
 import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
 import {compose, Dispatch} from 'redux';
-
-import {
-  Footer,
-  withErrors,
-  withLoadingMessage,
-  Header,
-  withFetchData
-} from '@alluxio/common-ui/src/components';
+import { Footer, withErrors, withLoadingMessage, Header, withFetchData} from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {
   Browse, Configuration, Data, MasterLogs, Metrics, Overview, Workers

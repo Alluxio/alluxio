@@ -87,28 +87,4 @@ describe('App', () => {
       expect(shallowWrapper).toMatchSnapshot();
     });
   });
-
-  // describe('Connected component', () => {
-  //   let reactWrapper: ReactWrapper;
-  //
-  //   beforeAll(() => {
-  //     reactWrapper = mount(<Provider store={store}><ConnectedApp {...props} history={history}/></Provider>);
-  //   });
-  //
-  //   it('Renders without crashing', () => {
-  //     expect(reactWrapper.length).toEqual(1);
-  //   });
-  //
-  //   it('Contains the overview component', () => {
-  //     expect(reactWrapper.find('.overview-page').length).toEqual(1);
-  //   });
-  //
-  //   it('Calls fetchRequest', () => {
-  //     sinon.assert.called(props.fetchRequest as SinonSpy);
-  //   });
-  //
-  //   it('Matches snapshot', () => {
-  //     expect(reactWrapper).toMatchSnapshot();
-  //   });
-  // });
 });
