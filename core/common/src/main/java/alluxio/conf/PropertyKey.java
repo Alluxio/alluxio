@@ -665,8 +665,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)
           .setAlias("alluxio.underfs.object.breadcrumbs.enabled")
           .setDefaultValue(true)
-          .setDescription(("Set this to false to prevent Alluxio from creating breadcrumbs during" +
-              " read or list operations on object store UFS"))
+          .setDescription("Set this to false to prevent Alluxio from creating breadcrumbs during" +
+              " read or list operations on object store UFS")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
