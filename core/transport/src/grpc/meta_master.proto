@@ -15,6 +15,7 @@ message BackupPOptions {
 message BackupPResponse {
  optional string backupUri = 1;
  optional string hostname = 2;
+ optional int64 entryCount = 3;
 }
 
 message ConfigProperties {

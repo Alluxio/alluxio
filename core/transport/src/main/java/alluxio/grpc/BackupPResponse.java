@@ -18,6 +18,7 @@ private static final long serialVersionUID = 0L;
   private BackupPResponse() {
     backupUri_ = "";
     hostname_ = "";
+    entryCount_ = 0L;
   }
 
   @java.lang.Override
@@ -61,6 +62,11 @@ private static final long serialVersionUID = 0L;
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
             hostname_ = bs;
+            break;
+          }
+          case 24: {
+            bitField0_ |= 0x00000004;
+            entryCount_ = input.readInt64();
             break;
           }
         }
@@ -172,6 +178,21 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int ENTRYCOUNT_FIELD_NUMBER = 3;
+  private long entryCount_;
+  /**
+   * <code>optional int64 entryCount = 3;</code>
+   */
+  public boolean hasEntryCount() {
+    return ((bitField0_ & 0x00000004) == 0x00000004);
+  }
+  /**
+   * <code>optional int64 entryCount = 3;</code>
+   */
+  public long getEntryCount() {
+    return entryCount_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -190,6 +211,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, hostname_);
     }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      output.writeInt64(3, entryCount_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -203,6 +227,10 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, hostname_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(3, entryCount_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -230,6 +258,11 @@ private static final long serialVersionUID = 0L;
       result = result && getHostname()
           .equals(other.getHostname());
     }
+    result = result && (hasEntryCount() == other.hasEntryCount());
+    if (hasEntryCount()) {
+      result = result && (getEntryCount()
+          == other.getEntryCount());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -248,6 +281,11 @@ private static final long serialVersionUID = 0L;
     if (hasHostname()) {
       hash = (37 * hash) + HOSTNAME_FIELD_NUMBER;
       hash = (53 * hash) + getHostname().hashCode();
+    }
+    if (hasEntryCount()) {
+      hash = (37 * hash) + ENTRYCOUNT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getEntryCount());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -382,6 +420,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       hostname_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
+      entryCount_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
@@ -414,6 +454,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000002;
       }
       result.hostname_ = hostname_;
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.entryCount_ = entryCount_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -465,6 +509,9 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00000002;
         hostname_ = other.hostname_;
         onChanged();
+      }
+      if (other.hasEntryCount()) {
+        setEntryCount(other.getEntryCount());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -642,6 +689,38 @@ private static final long serialVersionUID = 0L;
   }
   bitField0_ |= 0x00000002;
       hostname_ = value;
+      onChanged();
+      return this;
+    }
+
+    private long entryCount_ ;
+    /**
+     * <code>optional int64 entryCount = 3;</code>
+     */
+    public boolean hasEntryCount() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 entryCount = 3;</code>
+     */
+    public long getEntryCount() {
+      return entryCount_;
+    }
+    /**
+     * <code>optional int64 entryCount = 3;</code>
+     */
+    public Builder setEntryCount(long value) {
+      bitField0_ |= 0x00000004;
+      entryCount_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 entryCount = 3;</code>
+     */
+    public Builder clearEntryCount() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      entryCount_ = 0L;
       onChanged();
       return this;
     }
