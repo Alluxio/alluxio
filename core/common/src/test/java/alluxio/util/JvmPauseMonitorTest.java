@@ -11,12 +11,12 @@
 
 package alluxio.util;
 
+import static org.junit.Assert.assertNotEquals;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.collect.Lists;
 import org.junit.Ignore;
-import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 
 import java.util.List;
