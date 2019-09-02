@@ -12,6 +12,7 @@
 package alluxio.util;
 
 import static org.junit.Assert.assertNotEquals;
+
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
