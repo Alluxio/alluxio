@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
@@ -128,7 +129,8 @@ public final class GrpcDataWriter implements DataWriter {
     mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_WRITER_FLUSH_TIMEOUT);
 
     WriteRequestCommand.Builder builder =
-        WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type);
+        WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type)
+            .setMediumType(options.getMediumType());
     if (type == RequestType.UFS_FILE) {
       Protocol.CreateUfsFileOptions ufsFileOptions =
           Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
@@ -153,6 +155,8 @@ public final class GrpcDataWriter implements DataWriter {
           .setFallback(alreadyFallback).build();
       builder.setCreateUfsBlockOptions(ufsBlockOptions);
     }
+    // check if we need to pin block on create
+    builder.setPinOnCreate(options.getWriteType() == WriteType.ASYNC_THROUGH);
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;

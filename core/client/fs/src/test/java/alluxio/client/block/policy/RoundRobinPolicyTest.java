@@ -11,6 +11,11 @@
 
 package alluxio.client.block.policy;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
@@ -20,7 +25,6 @@ import alluxio.test.util.CommonUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -48,11 +52,11 @@ public final class RoundRobinPolicyTest {
 
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
-    Assert.assertNotEquals(
+    assertNotEquals(
         policy.getWorker(options).getHost(),
         policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(123))).getHost());
 
-    Assert.assertEquals(
+    assertEquals(
         policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555))).getHost(),
         policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555))).getHost());
   }
@@ -65,7 +69,7 @@ public final class RoundRobinPolicyTest {
     RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(new ArrayList<>())
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
-    Assert.assertNull(policy.getWorker(options));
+    assertNull(policy.getWorker(options));
   }
 
   /**
@@ -81,9 +85,9 @@ public final class RoundRobinPolicyTest {
     RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength((long) Constants.MB));
-    Assert.assertNotNull(policy.getWorker(options));
+    assertNotNull(policy.getWorker(options));
     options.setBlockWorkerInfos(new ArrayList<>());
-    Assert.assertNull(policy.getWorker(options));
+    assertNull(policy.getWorker(options));
   }
 
   @Test

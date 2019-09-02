@@ -23,7 +23,18 @@ The guide will cover the following tasks:
 The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
-To try Alluxio in a distributed environment with more realistic workloads, request [a sandbox cluster](https://www.alluxio.org/sandbox/request) with Alluxio and Spark installed on AWS for free.
+
+If you are trying to speedup SQL analytics, you can try the Presto Alluxio Getting Started tutorial:
+
+<p align="center">
+<a href="https://www.alluxio.io/alluxio-presto-sandbox-docker/">
+ <img src="https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png" width="250" alt="Laptop with Docker"/></a>
+<a href="https://www.alluxio.io/alluxio-presto-sandbox-aws/">
+ <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
+</p>
+
+In addition, you can try more advanced testing with a cluster of Alluxio. 
+- Request [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free
 
 ## Prerequisites
 
@@ -34,13 +45,13 @@ To try Alluxio in a distributed environment with more realistic workloads, reque
 
 ## Downloading Alluxio
 
-Download Alluxio from [this page](https://www.alluxio.org/download). Select the
+Download Alluxio from [this page](https://www.alluxio.io/download). Select the
 {{site.ALLUXIO_RELEASED_VERSION}} release followed by the distribution built for default Hadoop.
 Unpack the downloaded file with the following commands.
 
-```bash
-tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
-cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
+```console
+$ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
+$ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
 This creates a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
@@ -52,14 +63,14 @@ to as `${ALLUXIO_HOME}`.
 In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-site.properties` configuration
 file by copying the template file.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost`.
 
-```bash
-echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+```console
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 ```
 
 ### [Bonus] Configuration for AWS
@@ -68,9 +79,9 @@ To configure Alluxio to interact with Amazon S3, add AWS access information to t
 configuration in `conf/alluxio-site.properties`. The following commands update the
 configuration.
 
-```bash
-echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
-echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
+```console
+$ echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
+$ echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
 Replace **`<AWS_ACCESS_KEY_ID>`** and **`<AWS_SECRET_ACCESS_KEY>`** with
@@ -81,8 +92,8 @@ a valid AWS access key ID and AWS secret access key respectively.
 Alluxio provides commands to ensure the system environment is ready for running Alluxio services.
 Run the following command to validate the environment for running Alluxio locally:
 
-```bash
-./bin/alluxio validateEnv local
+```console
+$ ./bin/alluxio validateEnv local
 ```
 
 This reports potential problems that might prevent Alluxio from starting locally.
@@ -95,15 +106,15 @@ usage information regarding the `validateEnv` command.
 Alluxio needs to be formatted before starting the process. The following command formats
 the Alluxio journal and worker storage directories.
 
-```bash
-./bin/alluxio format
+```console
+$ ./bin/alluxio format
 ```
 
 By default, Alluxio is configured to start a master and worker process when running locally.
 Start Alluxio on localhost with the following command:
 
-```bash
-./bin/alluxio-start.sh local SudoMount
+```console
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 Congratulations! Alluxio is now up and running! Visit
@@ -115,29 +126,29 @@ to see the status of the Alluxio master and worker respectively.
 The [Alluxio shell]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) provides
 command line operations for interacting with Alluxio. To see a list of filesystem operations, run
 
-```bash
-./bin/alluxio fs
+```console
+$ ./bin/alluxio fs
 ```
 
 List files in Alluxio with the `ls` command. To list all files in the root directory, use the
 following command:
 
-```bash
-./bin/alluxio fs ls /
+```console
+$ ./bin/alluxio fs ls /
 ```
 
 At this moment, there are no files in Alluxio. Copy a file into Alluxio by using the
 `copyFromLocal` shell command.
 
-```bash
-./bin/alluxio fs copyFromLocal LICENSE /LICENSE
+```console
+$ ./bin/alluxio fs copyFromLocal LICENSE /LICENSE
 Copied LICENSE to /LICENSE
 ```
 
 List the files in Alluxio again to see the `LICENSE` file.
 
-```bash
-./bin/alluxio fs ls /
+```console
+$ ./bin/alluxio fs ls /
 -rw-r--r-- staff  staff     26847 NOT_PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
 ```
 
@@ -146,8 +157,8 @@ created, the owner and group of the file, and the percentage of the file that is
 
 The `cat` command prints the contents of the file.
 
-```bash
-./bin/alluxio fs cat /LICENSE
+```console
+$ ./bin/alluxio fs cat /LICENSE
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -159,8 +170,8 @@ The `cat` command prints the contents of the file.
 With the default configuration, Alluxio uses the local file system as its under file storage (UFS). The
 default path for the UFS is `./underFSStorage`. Examine the contents of the UFS with:
 
-```bash
-ls ./underFSStorage/
+```console
+$ ls ./underFSStorage/
 ```
 
 Note that the directory does not exist. This is because Alluxio is currently writing data only into
@@ -168,15 +179,15 @@ Alluxio space, not to the UFS.
 
 Configure Alluxio to persist the file from Alluxio space to the UFS by using the `persist` command.
 
-```bash
-./bin/alluxio fs persist /LICENSE
+```console
+$ ./bin/alluxio fs persist /LICENSE
 persisted file /LICENSE with size 26847
 ```
 
 The file should appear when examining the UFS path again.
 
-```bash
-ls ./underFSStorage
+```console
+$ ls ./underFSStorage
 LICENSE
 ```
 
@@ -187,7 +198,7 @@ shows the file as **PERSISTED**.
 ## [Bonus] Mounting in Alluxio
 
 Alluxio unifies access to storage systems with the unified namespace feature. Read the [Unified
-Namespace blog post](https://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
+Namespace blog post](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)
 and the [unified namespace documentation]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more detailed
 explanations of the feature.
 
@@ -196,22 +207,22 @@ access the files across various storage systems through the Alluxio namespace se
 
 Create a directory in Alluxio to store our mount points.
 
-```bash
-./bin/alluxio fs mkdir /mnt
+```console
+$ ./bin/alluxio fs mkdir /mnt
 Successfully created directory /mnt
 ```
 
 Mount an existing S3 bucket to Alluxio. This guide uses the `alluxio-quick-start` S3 bucket.
 
-```bash
-./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
-Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
+```console
+$ ./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3://alluxio-quick-start/data
+Mounted s3://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
 List the files mounted from S3 through the Alluxio namespace by using the `ls` command.
 
-```bash
-./bin/alluxio fs ls /mnt/s3
+```console
+$ ./bin/alluxio fs ls /mnt/s3
 -r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
 -r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
 -r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
@@ -224,8 +235,8 @@ The newly mounted files and directories are also visible in the
 With Alluxio's unified namespace, users can interact with data from different storage systems
 seamlessly. The `ls -R` command recursively lists all the files that exist under a directory.
 
-```bash
-./bin/alluxio fs ls -R /
+```console
+$ ./bin/alluxio fs ls -R /
 -rw-r--r-- staff  staff     26847 PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
 drwxr-xr-x staff  staff         1 PERSISTED 01-09-2018 16:05:59:547  DIR /mnt
 dr-x------ staff  staff         4 PERSISTED 01-09-2018 16:34:55:362  DIR /mnt/s3
@@ -244,16 +255,16 @@ in S3.
 Since Alluxio leverages memory to store data, it can accelerate access to data. Check the status
 of a file previously mounted from S3 into Alluxio:
 
-```bash
-./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
+```console
+$ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 The output shows that the file is **Not In Memory**. This file is a sample of tweets.
 Count the number of tweets with the word "kitten" and time the duration of the operation.
 
-```bash
-time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
+```console
+$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
 889
 
 real	0m22.857s
@@ -267,8 +278,8 @@ of this file. Alluxio can accelerate access to this data by using memory to stor
 
 After reading the file by the `cat` command, check the status with the `ls` command:
 
-```bash
-./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
+```console
+$ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002 100% /mnt/s3/sample_tweets_150m.csv
 ```
 
@@ -277,8 +288,8 @@ significantly faster.
 
 Now count the number of tweets with the word "puppy".
 
-```bash
-time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
+```console
+$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
 1553
 
 real	0m1.917s
@@ -291,8 +302,8 @@ memory.
 
 Now count how many tweets mention the word "bunny".
 
-```bash
-time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
+```console
+$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
 907
 
 real	0m1.983s
@@ -306,8 +317,8 @@ Congratulations! You installed Alluxio locally and used Alluxio to accelerate ac
 
 Stop Alluxio with the following command:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Conclusion

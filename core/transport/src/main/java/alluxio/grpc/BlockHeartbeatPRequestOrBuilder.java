@@ -105,7 +105,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
 
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -113,7 +113,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
   int getAddedBlocksOnTiersCount();
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -128,7 +128,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
   getAddedBlocksOnTiers();
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -137,7 +137,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
   getAddedBlocksOnTiersMap();
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -148,7 +148,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
       alluxio.grpc.TierList defaultValue);
   /**
    * <pre>
-   ** the map of added blocks on all tiers 
+   ** the map of added blocks on all tiers (deprecated since 2.0, replaced by addedBlocks) 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.TierList&gt; addedBlocksOnTiers = 4;</code>
@@ -223,4 +223,48 @@ public interface BlockHeartbeatPRequestOrBuilder extends
 
   alluxio.grpc.StorageList getLostStorageOrThrow(
       java.lang.String key);
+
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  java.util.List<alluxio.grpc.LocationBlockIdListEntry> 
+      getAddedBlocksList();
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  alluxio.grpc.LocationBlockIdListEntry getAddedBlocks(int index);
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  int getAddedBlocksCount();
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  java.util.List<? extends alluxio.grpc.LocationBlockIdListEntryOrBuilder> 
+      getAddedBlocksOrBuilderList();
+  /**
+   * <pre>
+   ** use repeated fields to represent mapping from BlockStoreLocationProto to TierList 
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.block.LocationBlockIdListEntry addedBlocks = 7;</code>
+   */
+  alluxio.grpc.LocationBlockIdListEntryOrBuilder getAddedBlocksOrBuilder(
+      int index);
 }

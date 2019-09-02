@@ -28,7 +28,6 @@ import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.LoginUserRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
@@ -73,6 +72,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
@@ -88,6 +88,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.security.user.TestUserState;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -180,9 +181,6 @@ public final class FileSystemMasterTest {
       ServerConfiguration.global());
 
   @Rule
-  public LoginUserRule mLoginUser = new LoginUserRule(TEST_USER, ServerConfiguration.global());
-
-  @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
     {
       put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
@@ -269,8 +267,9 @@ public final class FileSystemMasterTest {
   public void createFileUsesOperationTime() throws Exception {
     AlluxioURI path = new AlluxioURI("/test");
     mFileSystemMaster.createFile(path, CreateFileContext.defaults().setOperationTimeMs(100));
-    assertEquals(100, mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults())
-        .getLastModificationTimeMs());
+    FileInfo info = mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults());
+    assertEquals(100, info.getLastModificationTimeMs());
+    assertEquals(100, info.getLastAccessTimeMs());
   }
 
   /**
@@ -301,7 +300,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat1 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
@@ -1216,6 +1215,19 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void setDefaultAclforFile() throws Exception {
+    SetAclContext context = SetAclContext.defaults();
+    createFileWithSingleBlock(NESTED_FILE_URI);
+
+    Set<String> newEntries = Sets.newHashSet("default:user::rwx",
+        "default:group::rwx", "default:other::r-x");
+
+    mThrown.expect(UnsupportedOperationException.class);
+    mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.MODIFY,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
+  }
+
+  @Test
   public void setDefaultAcl() throws Exception {
     SetAclContext context = SetAclContext.defaults();
     createFileWithSingleBlock(NESTED_FILE_URI);
@@ -1666,7 +1678,7 @@ public final class FileSystemMasterTest {
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1690,7 +1702,7 @@ public final class FileSystemMasterTest {
 
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1713,7 +1725,7 @@ public final class FileSystemMasterTest {
             .newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1741,7 +1753,7 @@ public final class FileSystemMasterTest {
 
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1990,10 +2002,10 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileContext);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", "MEM", blockId, Constants.KB);
     // add SSD block
     blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "SSD", blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "SSD", "SSD", blockId, Constants.KB);
     mFileSystemMaster.completeFile(NESTED_FILE_URI, CompleteFileContext.defaults());
 
     // Create 2 files in memory.
@@ -2107,7 +2119,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2160,7 +2172,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2195,7 +2207,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2249,7 +2261,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2509,7 +2521,8 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(ROOT_FILE_URI);
 
     long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
-    mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
+    mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI,
+        ScheduleAsyncPersistenceContext.defaults());
 
     FileSystemCommand command = mFileSystemMaster
         .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatContext.defaults());
@@ -2643,7 +2656,7 @@ public final class FileSystemMasterTest {
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.createFile(uri, mNestedFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", "MEM", blockId, Constants.KB);
     CompleteFileContext context =
         CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(Constants.KB));
     mFileSystemMaster.completeFile(uri, context);
@@ -2653,7 +2666,8 @@ public final class FileSystemMasterTest {
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem);
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
+        new TestUserState(TEST_USER, ServerConfiguration.global()));
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
@@ -2674,14 +2688,14 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), new HashMap<String, StorageList>(),
+        ImmutableMap.of(), new HashMap<String, StorageList>(),
         RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), new HashMap<String, StorageList>(),
+        ImmutableMap.of(), new HashMap<String, StorageList>(),
         RegisterWorkerPOptions.getDefaultInstance());
   }
 

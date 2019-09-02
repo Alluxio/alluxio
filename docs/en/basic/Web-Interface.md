@@ -59,7 +59,7 @@ in the navigation bar:
 ![browse]({{ '/img/screenshot_browseFileSystem.png' | relativize_url }})
 
 Files in the current folder are listed, with the file name, file size, size for each block, the
-percentage of in-Alluxio data, creation time, and the modification time.\
+percentage of in-Alluxio data, creation time, and the modification time.  
 To view the content of a file, click the link for that file.
 
 ![viewFile]({{ '/img/screenshot_viewFile.png' | relativize_url }})
@@ -81,10 +81,10 @@ The master UI shows all known Alluxio workers in the system in the "Workers" tab
 
 The workers page gives an overview of all Alluxio worker nodes divided into two sections:
 
-* **Live Nodes** A list of all the workers currently serving Alluxio requests.
+* **Live Workers** A list of all the workers currently serving Alluxio requests.
 Clicking on the worker name will redirect to the worker's web UI.
 
-* **Dead Nodes** A list of all workers proclaimed as dead by the master,
+* **Lost Workers** A list of all workers proclaimed as dead by the master,
 usually due to a long timeout waiting for the worker heartbeat.
 Possible causes include system restart or network failures.
 
@@ -96,7 +96,9 @@ To access master metrics section, click on the “Metrics” tab in the navigati
 
 This section shows all master metrics. It includes the following sections:
 
-* **Master Gauges** Overall measures of the master.
+* **% UFS Space Used** Overall measures of UFS capacity.
+
+* **% Alluxio Space Used** Overall measures of Alluxio capacity.
 
 * **Logical Operation** Number of operations performed.
 
@@ -106,7 +108,7 @@ This section shows all master metrics. It includes the following sections:
 
 The web interface for an Alluxio worker can be found by visiting `http://<WORKER IP>:30000`.
 For instance, if Alluxio was started locally, the worker web interface
-can be viewed by visiting [localhost:19999](http://localhost:19999).
+can be viewed by visiting [localhost:30000](http://localhost:30000).
 
 ### Home Page
 
@@ -118,7 +120,7 @@ but shows information specific to the particular worker.
 ### BlockInfo Page
 
 In the "BlockInfo" page, information on the files stored by the worker is shown,
-such as the file size and which tiers the file is stored on.
+such as the file size and which tier the file is stored on.
 Clicking on a file shows the blocks of that file.
 
 ![workerBlockInfo]({{ '/img/screenshot_workerBlockInfo.png' | relativize_url }})
@@ -133,4 +135,4 @@ This section shows all worker metrics. It includes the following sections:
 
 * **Worker Gauges** Overall measures of the worker.
 
-* **Logical Operation** Number of operations performed.
+* **Logical Operations** Number of operations performed.

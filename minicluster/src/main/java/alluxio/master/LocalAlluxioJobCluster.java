@@ -44,6 +44,8 @@ public final class LocalAlluxioJobCluster {
   private Thread mMasterThread;
   private Thread mWorkerThread;
 
+  private boolean mIsRunning = false;
+
   /**
    * Creates a new instance of {@link LocalAlluxioJobCluster}.
    */
@@ -63,6 +65,7 @@ public final class LocalAlluxioJobCluster {
     TestUtils.waitForReady(mMaster);
     startWorker();
     TestUtils.waitForReady(mWorker);
+    mIsRunning = true;
   }
 
   /**
@@ -71,9 +74,12 @@ public final class LocalAlluxioJobCluster {
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
-    LOG.info("Stop Alluxio job service");
-    mWorker.stop();
-    mMaster.stop();
+    if (mIsRunning) {
+      LOG.info("Stop Alluxio job service");
+      mWorker.stop();
+      mMaster.stop();
+      mIsRunning = false;
+    }
   }
 
   /**

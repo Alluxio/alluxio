@@ -38,41 +38,41 @@ fs.cos.region=<COS_REGION>
 fs.cos.app.id=<COS_APP_ID>
 ```
 
-更改完成后，Alluxio应该能够将COS作为底层文件系统运行，你可以尝试[使用COS在本地运行Alluxio](#running-alluxio-locally-with-cos)
+更改完成后，Alluxio应该能够将COS作为底层文件系统运行，你可以尝试[使用COS在本地运行Alluxio](#使用COS在本地运行Alluxio)
 
 ### 嵌套目录安装
 
-COS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 [Mount命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将COS实例内部的目录挂载到Alluxio的/cos目录
+COS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 [Mount命令]({{ '/cn/basic/Command-Line-Interface.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将COS实例内部的目录挂载到Alluxio的/cos目录
 
-```bash
-    bin/alluxio fs mount --option fs.cos.access.key=<COS_SECRET_ID> \
+```console
+$ ./bin/alluxio fs mount --option fs.cos.access.key=<COS_SECRET_ID> \
     --option fs.cos.secret.key=<COS_SECRET_KEY> \
     --option fs.cos.region=<COS_REGION> \
     --option fs.cos.app.id=<COS_APP_ID> \
     /cos cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>/
 ```
 
-## 使用COS在本地运行Alluxio {#running-alluxio-locally-with-cos}
+## 使用COS在本地运行Alluxio
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master UI。
 
 接着，你可以运行一个简单的示例程序：
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 运行成功后，访问你的COS目录`cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像`COS_ALLUXIO_BUCKET/COS_DATA/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`这样。。
 
 运行以下命令停止Alluxio：
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```

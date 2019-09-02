@@ -67,6 +67,10 @@ public class NoopMaster implements Master, NoopJournaled {
   }
 
   @Override
+  public void close() {
+  }
+
+  @Override
   public JournalContext createJournalContext() {
     throw new IllegalStateException("Cannot create journal contexts for NoopMaster");
   }

@@ -12,12 +12,16 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
+import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Assert;
@@ -54,8 +58,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
   public void setfacl() throws Exception {
     String testOwner = "test_user_setfacl";
     String expected = "";
-    clearAndLogin(testOwner);
-    URIStatus[] files = createFiles();
+    URIStatus[] files = createFiles(testOwner);
 
     mFsShell.run("setfacl", "-m", "user:testuser:rwx", "/testRoot/testFileA");
     mFsShell.run("getfacl", "/testRoot/testFileA");
@@ -89,8 +92,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
           "test_user_setDefaultFacl"})
   public void setDefaultFacl() throws Exception {
     String testOwner = "test_user_setDefaultFacl";
-    clearAndLogin(testOwner);
-    URIStatus[] files = createFiles();
+    URIStatus[] files = createFiles(testOwner);
     mFsShell.run("setfacl", "-m", "default:user:testuser:rwx", "/testRoot/testDir");
     mFsShell.run("getfacl", "/testRoot/testDir");
 
@@ -145,19 +147,26 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
   }
 
   // Helper function to create a set of files in the file system
-  private URIStatus[] createFiles() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
+  private URIStatus[] createFiles(String user) throws IOException, AlluxioException {
+    FileSystem fs = mFileSystem;
+    if (user != null) {
+      fs = mLocalAlluxioCluster.getClient(FileSystemContext
+          .create(new TestUserState(user, ServerConfiguration.global()).getSubject(),
+              ServerConfiguration.global()));
+    }
+
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA",
         WritePType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testDir/testFileB",
         WritePType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WritePType.THROUGH,
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileC", WritePType.THROUGH,
         30);
 
     URIStatus[] files = new URIStatus[4];
-    files[0] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
-    files[1] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir"));
-    files[2] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
-    files[3] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileC"));
+    files[0] = fs.getStatus(new AlluxioURI("/testRoot/testFileA"));
+    files[1] = fs.getStatus(new AlluxioURI("/testRoot/testDir"));
+    files[2] = fs.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
+    files[3] = fs.getStatus(new AlluxioURI("/testRoot/testFileC"));
     return files;
   }
 }

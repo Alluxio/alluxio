@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;
@@ -34,7 +34,7 @@ public class PartialLRUEvictor extends LRUEvictor {
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */
-  public PartialLRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
+  public PartialLRUEvictor(BlockMetadataEvictorView view, Allocator allocator) {
     super(view, allocator);
   }
 
@@ -42,9 +42,10 @@ public class PartialLRUEvictor extends LRUEvictor {
   protected BlockStoreLocation updateBlockStoreLocation(long bytesToBeAvailable,
       BlockStoreLocation location) {
     StorageDirView candidateDirView =
-        EvictorUtils.getDirWithMaxFreeSpace(bytesToBeAvailable, location, mManagerView);
+        EvictorUtils.getDirWithMaxFreeSpace(bytesToBeAvailable, location, mMetadataView);
     if (candidateDirView != null) {
-      return new BlockStoreLocation(location.tierAlias(), candidateDirView.getDirViewIndex());
+      return new BlockStoreLocation(location.tierAlias(), candidateDirView.getDirViewIndex(),
+          candidateDirView.getMediumType());
     } else {
       return location;
     }

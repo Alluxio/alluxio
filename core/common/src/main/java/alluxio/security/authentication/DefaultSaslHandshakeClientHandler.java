@@ -20,6 +20,7 @@ import com.google.protobuf.ByteString;
 
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
+import java.util.UUID;
 
 /**
  * Default implementation of {@link SaslHandshakeClientHandler}.
@@ -69,7 +70,7 @@ public class DefaultSaslHandshakeClientHandler implements SaslHandshakeClientHan
   }
 
   @Override
-  public SaslMessage getInitialMessage(String channelId) throws SaslException {
+  public SaslMessage getInitialMessage(UUID channelId) throws SaslException {
     byte[] initiateSaslResponse = null;
     if (mSaslClientHandler.getSaslClient().hasInitialResponse()) {
       initiateSaslResponse = mSaslClient.evaluateChallenge(S_INITIATE_CHALLENGE);
@@ -80,7 +81,7 @@ public class DefaultSaslHandshakeClientHandler implements SaslHandshakeClientHan
     if (initiateSaslResponse != null) {
       initialResponse.setMessage(ByteString.copyFrom(initiateSaslResponse));
     }
-    initialResponse.setClientId(channelId);
+    initialResponse.setClientId(channelId.toString());
     return initialResponse.build();
   }
 }

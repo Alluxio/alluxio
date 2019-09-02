@@ -49,16 +49,16 @@ public class SparkIntegrationChecker implements Serializable{
       + "If Alluxio client jar path has been set correctly, please check whether the "
       + "Alluxio client jar has been distributed on the classpath of all Spark cluster nodes.\n\n"
       + "For details, please refer to: "
-      + "https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html\n";
+      + "https://docs.alluxio.io/os/user/stable/en/compute/Spark.html\n";
   private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the "
       + "fs.alluxio.impl property in ${SPARK_HOME}/conf/core-site.xml.\n\n"
       + "For details, please refer to: "
-      + "https://www.alluxio.org/docs/master/en/Debugging-Guide.html"
+      + "https://docs.alluxio.io/os/user/stable/en/operation/Troubleshooting.html"
       + "#q-why-do-i-see-exceptions-like-no-filesystem-for-scheme-alluxio\n";
   private static final String FAIL_TO_SUPPORT_HA_MESSAGE = "Please check the "
       + "alluxio.zookeeper.address property in ${SPARK_HOME}/conf/core-site.xml\n\n"
       + "For details, please refer to: "
-      + "https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html\n";
+      + "https://docs.alluxio.io/os/user/stable/en/compute/Spark.html\n";
   private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****";
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****";
 

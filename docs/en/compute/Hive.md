@@ -15,11 +15,13 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 ## Prerequisites
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
-* [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted).
-* Alluxio has been set up and is running.
+* [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted). If you are using Hive2.1+, 
+  make sure to [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
+  before starting Hive. `$HIVE_HOME/bin/schematool -dbType derby -initSchema`
+* Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/deploy/Running-Alluxio-Locally.html).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-  downloaded from Alluxio [download page](http://www.alluxio.org/download).
+  downloaded from Alluxio [download page](https://www.alluxio.io/download).
   Alternatively, advanced users can compile this client jar from the source code
   by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * To run Hive on Hadoop MapReduce, please also follow the instructions in
@@ -31,10 +33,10 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 
 Distribute Alluxio client jar on all Hive nodes and include the Alluxio client jar to Hive
 classpath so Hive can query and access data on Alluxio.
-Set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
+Within Hive installation directory , set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
-```bash
-export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
+```console
+$ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
 ## Example: Create New Hive Tables in Alluxio
@@ -58,9 +60,9 @@ You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
 
-```bash
-./bin/alluxio fs mkdir /ml-100k
-./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
+```console
+$ ./bin/alluxio fs mkdir /ml-100k
+$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
 ```
 
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
@@ -128,8 +130,8 @@ for more details about Alluxio `mount` operation.
 
 ### Move an Internal Table from HDFS to Alluxio
 
-We assume that the `hive.metastore.warehouse.dir` property is set to `/user/hive/warehouse` which
-is the default value, and the internal table is already created like this:
+We assume that the `hive.metastore.warehouse.dir` property (within your Hive installation `conf/hive-default.xml`)
+is set to `/user/hive/warehouse` which is the default value, and the internal table is already created like this:
 
 ```
 hive> CREATE TABLE u_user (
@@ -203,7 +205,7 @@ ensure that this file is on the classpath of Hive service on each node.
 - Add the Alluxio site properties to `conf/hive-site.xml` configuration file on each node.
 
 For example, change
-`alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`.
+`alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`.
 
 One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
 of each Hive node:
@@ -252,7 +254,7 @@ hive> alter table u_user set location "alluxio:///ml-100k";
 ```
 
 Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
-See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority) for more details.
+See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
 ### Experimental: Use Alluxio as the Default Filesystem
 
@@ -276,11 +278,11 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 
 Create Directories in Alluxio for Hive:
 
-```bash
-./bin/alluxio fs mkdir /tmp
-./bin/alluxio fs mkdir /user/hive/warehouse
-./bin/alluxio fs chmod 775 /tmp
-./bin/alluxio fs chmod 775 /user/hive/warehouse
+```console
+$ ./bin/alluxio fs mkdir /tmp
+$ ./bin/alluxio fs mkdir /user/hive/warehouse
+$ ./bin/alluxio fs chmod 775 /tmp
+$ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 ```
 
 Then you can follow the
@@ -333,11 +335,12 @@ setup correctly set up with Alluxio. The Hive integration checker can help you a
 
 You can run the following command in the Alluxio project directory:
 
-```bash
-integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+```console
+$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
 
-You can use `-h` to display helpful information about the command.
+You can use `-h` to display helpful information about the command, along with this detailed page on 
+[JDBC connection URLs](https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC) to specify the Hive URL.
 This command will report potential problems that might prevent you from running Hive on Alluxio.
 
 ### Logging Configuration

@@ -27,7 +27,6 @@ import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -49,8 +48,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   public TestLoggerRule mLogRule = new TestLoggerRule();
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persist() throws Exception {
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WritePType.MUST_CACHE, 10);
@@ -62,8 +59,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistDirectory() throws Exception {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
     ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
@@ -84,8 +79,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistMultiFiles() throws Exception {
     String filePath1 = "/testPersist/testFile1";
     String filePath2 = "/testFile2";
@@ -109,8 +102,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
    * Tests persisting files and directories together in one persist command.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistMultiFilesAndDirs() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -135,8 +126,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistNonexistentFile() throws Exception {
     // Cannot persist a nonexistent file
     String path = "/testPersistNonexistent";
@@ -147,8 +136,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistTwice() throws Exception {
     // Persisting an already-persisted file is okay
     String testFilePath = "/testPersist/testFile";
@@ -162,8 +149,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistWithAncestorPermission() throws Exception {
     String ufsRoot =
         PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
@@ -196,8 +181,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistWithWildCard() throws Exception {
     String filePath1 = "/testPersist1/testFile1";
     String filePath2 = "/testPersist2/testFile2";
@@ -218,8 +201,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistRecursive() throws Exception {
     String filePath1 = "/testPersistRecursive/testFile1";
     String filePath2 = "/testPersistRecursive/testDir1/testFile2";
@@ -240,8 +221,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistPartial() throws Exception {
     String filePath1 = "/testPersistPartial/testFile1";
     String filePath2 = "/testPersistPartial/testFile2";
@@ -270,36 +249,43 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistParallelFilesEqParallelism() throws Exception {
     persistParallel(10, 10);
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistParallelFilesLtParallelism() throws Exception {
     persistParallel(10, 100);
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistParallelFilesGtParallelism() throws Exception {
     persistParallel(2, 1);
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
+  public void persistWithWaitTimeTest() throws Exception {
+    String filePath = "/testPersistWaitTime/testFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 10);
+    int ret = mFsShell.run("persist", "--wait", "1s", "/*");
+    Assert.assertEquals(0, ret);
+    checkFilePersisted(new AlluxioURI(filePath), 10);
+  }
+
+  @Test
+  public void persistWithWaitTimeBiggerThanTimeoutTest() throws Exception {
+    String filePath = "/testPersistWaitTimeValid/testFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 10);
+    int ret = mFsShell.run("persist", "--wait", "2s", "--timeout", "1s", "/*");
+    Assert.assertEquals(-1, ret);
+  }
+
+  @Test
   public void persistShortTimeout() throws Exception {
     shortTimeoutTest("--timeout");
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistShortTimeoutShortOption() throws Exception {
     shortTimeoutTest("-t");
   }
@@ -317,8 +303,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void persistLongTimeout() throws Exception {
     int fileSize = 100;
     List<AlluxioURI> files = createUnpersistedFiles("/testPersistTimeout", fileSize, 25);

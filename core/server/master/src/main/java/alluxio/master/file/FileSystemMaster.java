@@ -37,6 +37,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
@@ -216,12 +217,23 @@ public interface FileSystemMaster extends Master {
   Map<String, MountPointInfo>  getMountTable();
 
   /**
-   * Gets the mount point information of an Alluxio path.
+   * Translates given URI to an Alluxio URI.
+   * If given URI does not contain a scheme, then it is regarded as Alluxio URI.
+   * For other cases it will go through a reverse lookup against mount table.
+   *
+   * @param uriStr uri
+   * @return URI in Alluxio namespace
+   * @throws InvalidPathException if foreign URI not found in Alluxio
+   */
+  AlluxioURI translateUri(String uriStr) throws InvalidPathException;
+
+  /**
+   * Gets the mount point information of an Alluxio path for display purpose.
    *
    * @param path an Alluxio path which must be a mount point
    * @return the mount point information
    */
-  MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException;
+  MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException;
 
   /**
    * @return the number of files and directories
@@ -401,6 +413,22 @@ public interface FileSystemMaster extends Master {
       IOException, AccessControlException;
 
   /**
+   * Update properties of an Alluxio mount point.
+   * <p>
+   * This operation requires users to have WRITE permission on the parent
+   * of the Alluxio path.
+   *
+   * @param alluxioPath the Alluxio path to update, must be a mount point
+   * @param context the mount context
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws InvalidPathException if the given path is not a mount point
+   * @throws AccessControlException if the permission check fails
+   */
+  void updateMount(AlluxioURI alluxioPath, MountContext context)
+      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
+      IOException, AccessControlException;
+
+  /**
    * Sets the ACL for a path.
    *
    * @param path the path to set attribute for
@@ -436,8 +464,10 @@ public interface FileSystemMaster extends Master {
    * Schedules a file for async persistence.
    *
    * @param path the path of the file for persistence
+   * @param context the schedule async persistence context
    */
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
+  void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
+      throws AlluxioException, UnavailableException;
 
   /**
    * Update the operation mode for the given ufs path under one or more mount points.

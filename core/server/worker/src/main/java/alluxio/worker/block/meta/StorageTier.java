@@ -79,15 +79,24 @@ public final class StorageTier {
     Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
     String[] dirQuotas = rawDirQuota.split(",");
 
+    PropertyKey tierDirMediumConf =
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(mTierOrdinal);
+    String rawDirMedium = ServerConfiguration.get(tierDirMediumConf);
+    Preconditions.checkState(rawDirMedium.length() > 0,
+        "Tier medium type configuration should not be blank");
+    String[] dirMedium = rawDirMedium.split(",");
+
     mDirs = new ArrayList<>(dirPaths.length);
     mLostStorage = new ArrayList<>();
 
     long totalCapacity = 0;
     for (int i = 0; i < dirPaths.length; i++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
+      int mediumTypeindex = i >= dirMedium.length ? dirMedium.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       try {
-        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, dirPaths[i]);
+        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, dirPaths[i],
+            dirMedium[mediumTypeindex]);
         totalCapacity += capacity;
         mDirs.add(dir);
       } catch (IOException e) {

@@ -14,7 +14,7 @@ package alluxio.security.authentication;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.security.User;
+import alluxio.security.CurrentUser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public final class AuthenticationUserUtils {
 
     if (subject != null) {
       // The HDFS client uses the subject to pass in the user
-      Set<User> user = subject.getPrincipals(User.class);
+      Set<CurrentUser> user = subject.getPrincipals(CurrentUser.class);
       LOG.debug("Impersonation: subject: {}", subject);
       if (user != null && !user.isEmpty()) {
         hdfsUser = user.iterator().next().getName();

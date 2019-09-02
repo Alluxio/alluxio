@@ -63,11 +63,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio configuration
    * @return the created {@link OSSUnderFileSystem} instance
    */
   public static OSSUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) throws Exception {
+      UnderFileSystemConfiguration conf) throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ACCESS_KEY),
         "Property %s is required to connect to OSS", PropertyKey.OSS_ACCESS_KEY);
@@ -79,10 +78,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     String accessKey = conf.get(PropertyKey.OSS_SECRET_KEY);
     String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
 
-    ClientConfiguration ossClientConf = initializeOSSClientConfig(alluxioConf);
+    ClientConfiguration ossClientConf = initializeOSSClientConfig(conf);
     OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
 
-    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf, alluxioConf);
+    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf);
   }
 
   /**
@@ -94,8 +93,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this UFS
    */
   protected OSSUnderFileSystem(AlluxioURI uri, OSSClient ossClient, String bucketName,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
-    super(uri, conf, alluxioConf);
+      UnderFileSystemConfiguration conf) {
+    super(uri, conf);
     mClient = ossClient;
     mBucketName = bucketName;
   }
@@ -126,7 +125,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(0);
@@ -141,7 +140,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new OSSOutputStream(mBucketName, key, mClient,
-        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override
@@ -169,7 +168,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     key = key.equals(PATH_SEPARATOR) ? "" : key;
     ListObjectsRequest request = new ListObjectsRequest(mBucketName);
     request.setPrefix(key);
-    request.setMaxKeys(getListingChunkLength(mAlluxioConf));
+    request.setMaxKeys(getListingChunkLength(mUfsConf));
     request.setDelimiter(delimiter);
 
     ObjectListing result = getObjectListingChunk(request);
@@ -284,7 +283,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       throws IOException {
     try {
       return new OSSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy,
-          mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
+          mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (ServiceException e) {
       throw new IOException(e.getMessage());
     }

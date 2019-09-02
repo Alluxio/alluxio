@@ -14,7 +14,6 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
@@ -91,7 +90,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
-  private UnderFileSystemConfiguration mUfsConf;
 
   private HdfsActiveSyncProvider mHdfsActiveSyncer;
 
@@ -100,13 +98,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Hadoop
-   * @param alluxioConf Alluxio configuration
    * @return a new HDFS {@link UnderFileSystem} instance
    */
   public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+      UnderFileSystemConfiguration conf) {
     Configuration hdfsConf = createConfiguration(conf);
-    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf, alluxioConf);
+    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf);
   }
 
   /**
@@ -115,11 +112,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
-   * @param alluxioConf Alluxio configuration
    */
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      Configuration hdfsConf, AlluxioConfiguration alluxioConf) {
-    super(ufsUri, conf, alluxioConf);
+      Configuration hdfsConf) {
+    super(ufsUri, conf);
 
     // Create the supported HdfsAclProvider if possible.
     HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();
@@ -140,25 +136,38 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     }
     mHdfsAclProvider = hdfsAclProvider;
 
-    mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
     // Stash the classloader to prevent service loading throwing exception due to
     // classloader mismatch.
-    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(hdfsConf.getClassLoader());
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
     } finally {
-      Thread.currentThread().setContextClassLoader(previousClassLoader);
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
 
     mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
       @Override
       public FileSystem load(String userKey) throws Exception {
-        return path.getFileSystem(hdfsConf);
+        // When running {@link UnderFileSystemContractTest} with hdfs path,
+        // the org.apache.hadoop.fs.FileSystem is loaded by {@link ExtensionClassLoader},
+        // but the org.apache.hadoop.fs.LocalFileSystem is loaded by {@link AppClassLoader}.
+        // When an interface and associated implementation are each loaded
+        // by two separate class loaders, an instance of the class from one loader cannot
+        // be recognized as implementing the interface from the other loader.
+        ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+          // Set the class loader to ensure FileSystem implementations are
+          // loaded by the same class loader to avoid ServerConfigurationError
+          Thread.currentThread().setContextClassLoader(currentClassLoader);
+          return path.getFileSystem(hdfsConf);
+        } finally {
+          Thread.currentThread().setContextClassLoader(previousClassLoader);
+        }
       }
     });
 
@@ -167,8 +176,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
     try {
       Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS)
-          .getConstructor(URI.class, Configuration.class, AlluxioConfiguration.class);
-      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, alluxioConf);
+          .getConstructor(URI.class, Configuration.class, UnderFileSystemConfiguration.class);
+      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, mUfsConf);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
         LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");
@@ -647,7 +656,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return true;
   }
 

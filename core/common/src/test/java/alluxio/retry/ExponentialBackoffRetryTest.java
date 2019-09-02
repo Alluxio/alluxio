@@ -11,7 +11,8 @@
 
 package alluxio.retry;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 /**
@@ -30,7 +31,7 @@ public final class ExponentialBackoffRetryTest {
     for (int i = 0; i < max; i++) {
       backoff.setRetryCount(i);
       long time = backoff.getSleepTime();
-      Assert.assertTrue("Time must always be positive: " + time, time > 0);
+      assertTrue("Time must always be positive: " + time, time > 0);
     }
   }
 

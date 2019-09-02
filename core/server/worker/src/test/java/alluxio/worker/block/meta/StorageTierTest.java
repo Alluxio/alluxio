@@ -39,7 +39,7 @@ public class StorageTierTest {
   private static final String TEST_WORKER_DATA_DIR = "testworker";
 
   private static final long[] TIER_CAPACITY_BYTES = {TEST_DIR1_CAPACITY, TEST_DIR2_CAPACITY};
-
+  private static final String[] TEST_TIER_MEDIUM_TYPES = {"MEM", "MEM"};
   private StorageTier mTier;
   private StorageDir mDir1;
   private TempBlockMeta mTempBlockMeta;
@@ -66,7 +66,8 @@ public class StorageTierTest {
     String[] tierPath = {mTestDirPath1, mTestDirPath2};
 
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
-        TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES, TEST_WORKER_DATA_DIR);
+        TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES,
+        TEST_TIER_MEDIUM_TYPES, TEST_WORKER_DATA_DIR);
 
     mTestBlockDirPath1 = PathUtils.concatPath(mTestDirPath1,  TEST_WORKER_DATA_DIR);
     mTestBlockDirPath2 = PathUtils.concatPath(mTestDirPath2,  TEST_WORKER_DATA_DIR);
@@ -149,6 +150,20 @@ public class StorageTierTest {
     mTier = StorageTier.newStorageTier("MEM");
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());
+    Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
+  }
+
+  @Test
+  public void tolerantMisconfigurationInStorageDir() throws Exception {
+    ServerConfiguration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0),
+            "MEM");
+    ServerConfiguration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
+            2000);
+    mTier = StorageTier.newStorageTier("MEM");
+    List<StorageDir> dirs = mTier.getStorageDirs();
+    Assert.assertEquals(2, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
   }
 }

@@ -12,7 +12,6 @@
 package alluxio.testutils.underfs.sleeping;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -46,11 +45,10 @@ public class SleepingUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     if (mUfs == null) {
       Preconditions.checkArgument(path != null, "path may not be null");
-      return new SleepingUnderFileSystem(new AlluxioURI(path), mOptions, conf, alluxioConf);
+      return new SleepingUnderFileSystem(new AlluxioURI(path), mOptions, conf);
     } else {
       return mUfs;
     }

@@ -21,6 +21,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientContext;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -106,7 +107,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient,
                 mWorkerId),
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), ServerUserState.global()));
   }
 
   @Override

@@ -78,6 +78,11 @@ public class HeapBlockStore implements BlockStore {
   }
 
   @Override
+  public void close() {
+    // Nothing to close for HEAP store.
+  }
+
+  @Override
   public List<BlockLocation> getLocations(long blockid) {
     if (!mBlockLocations.containsKey(blockid)) {
       return Collections.emptyList();

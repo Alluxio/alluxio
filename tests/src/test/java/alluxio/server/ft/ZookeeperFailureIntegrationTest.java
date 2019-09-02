@@ -49,7 +49,6 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(ImmutableMap.of(
       PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1000",
-      PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "5",
       PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "500",
       PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500",
       PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2500"), ServerConfiguration.global()
@@ -116,7 +115,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         new InetSocketAddress(netAddress.getHostname(), netAddress.getRpcPort());
     try {
       GrpcChannel channel = GrpcChannelBuilder
-          .newBuilder(new GrpcServerAddress(address), ServerConfiguration.global()).build();
+          .newBuilder(GrpcServerAddress.create(address), ServerConfiguration.global()).build();
       FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub client =
           FileSystemMasterClientServiceGrpc.newBlockingStub(channel);
       client.listStatus(ListStatusPRequest.getDefaultInstance());

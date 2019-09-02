@@ -37,7 +37,7 @@ to the focus of this guide but covered by
 [Unified and Transparent Namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}).
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-downloaded from Alluxio [download page](http://www.alluxio.org/download).
+downloaded from Alluxio [download page](https://www.alluxio.io/download).
 Alternatively, advanced users can compile this client jar from the source code
 by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 
@@ -49,9 +49,9 @@ running. Specifically, put the client jar on the same local path (e.g. `{{site.A
 Add the Alluxio client jar to the classpath of Spark drivers and executors
 in order for Spark applications to use the client jar to read and write files in Alluxio.
 Specifically, add the following line to `spark/conf/spark-defaults.conf` on every node running
-Spark.
+Spark. Also, make sure the client jar is copied to every node running Spark.
 
-```bash
+```
 spark.driver.extraClassPath   {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
@@ -65,8 +65,8 @@ This section shows how to use Alluxio as input and output sources for your Spark
 Copy local data to the Alluxio file system. Put the file `LICENSE` into Alluxio,
 assuming you are in the Alluxio project directory:
 
-```bash
-./bin/alluxio fs copyFromLocal LICENSE /Input
+```console
+$ ./bin/alluxio fs copyFromLocal LICENSE /Input
 ```
 
 Run the following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
@@ -89,8 +89,8 @@ as an example of a distributed under storage system.
 
 Put a file `Input_HDFS` into HDFS:
 
-```bash
-hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
+```console
+$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
 ```
 
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
@@ -115,7 +115,7 @@ When connecting to the Alluxio HA cluster using internal leader election,
 add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf` so Spark applications
 can know the Alluxio masters to connect to and find out the leader master.
 
-```bash
+```
 spark.driver.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 spark.executor.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
@@ -143,8 +143,8 @@ Spark users can use pass JVM system properties to Spark jobs by adding `"-Dprope
 Spark drivers. For example, to submit a Spark job with the write `CACHE_THROUGH` when writing to
  Alluxio:
 
-```bash
-spark-submit \
+```console
+$ spark-submit \
 --conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 --conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 ...
@@ -184,7 +184,7 @@ connect to Alluxio HA cluster using internal leader election:
 
 > Note that you must use semicolons rather than commas to separate different addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
-Please refer to the instructions in [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority).
+Please refer to the instructions in [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
 
 ### Cache RDD into Alluxio
 
@@ -208,7 +208,7 @@ The saved RDDs in Alluxio can be read again (from memory) by using `sc.textFile`
 ```
 
 See the blog article
-"[Effective Spark RDDs with Alluxio](https://www.alluxio.com/blog/effective-spark-rdds-with-alluxio)".
+"[Effective Spark RDDs with Alluxio](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)".
 
 ### Cache Dataframe into Alluxio
 
@@ -222,7 +222,7 @@ After the parquet is written to Alluxio, it can be read from memory by using `sq
 ```
 
 See the blog article
-"[Effective Spark DataFrames with Alluxio](https://www.alluxio.com/blog/effective-spark-dataframes-with-alluxio)".
+"[Effective Spark DataFrames with Alluxio](https://www.alluxio.io/resources/whitepapers/effective-spark-dataframes-with-alluxio/)".
 
 ## TroubleShooting
 
@@ -244,14 +244,14 @@ before running Spark, a tool that comes with Alluxio can help check the configur
 When you have a running Spark cluster (or Spark standalone) of version 2.x, you can run the
 following command in the Alluxio project directory:
 
-```bash
-integration/checker/bin/alluxio-checker.sh spark <spark master uri>
+```console
+$ integration/checker/bin/alluxio-checker.sh spark <spark master uri>
 ```
 
 For example,
 
-```bash
-integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
+```console
+$ integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
 ```
 
 This command will report potential problems that might prevent you from running Spark on Alluxio.
@@ -271,14 +271,14 @@ There is a workaround when launching Spark to achieve data locality. Users can e
 hostnames by using the following script offered in Spark. Start Spark Worker in each slave node with
 slave-hostname:
 
-```bash
-${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+```console
+$ ${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
 ```
 
 For example:
 
-```bash
-${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
+```console
+$ ${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
 ```
 
 You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh` to achieve this. For

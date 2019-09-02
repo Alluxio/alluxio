@@ -23,6 +23,7 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,8 +91,9 @@ public final class SafeUfsDeleter implements UfsDeleter {
           }
         } else {
           if (isRecursiveDeleteSafe(alluxioUri)) {
-            if (!ufs.deleteExistingDirectory(ufsUri,
-                alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
+            DeleteOptions options =
+                DeleteOptions.defaults().setRecursive(true);
+            if (!ufs.deleteExistingDirectory(ufsUri, options)) {
               // TODO(adit): handle partial failures of recursive deletes
               if (ufs.isDirectory(ufsUri)) {
                 throw new IOException(ExceptionMessage.DELETE_FAILED_UFS_DIR.getMessage());

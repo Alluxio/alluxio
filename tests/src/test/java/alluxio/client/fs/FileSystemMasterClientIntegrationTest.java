@@ -41,8 +41,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 30).build();
+      new LocalAlluxioClusterResource.Builder().build();
 
   @Test
   public void openClose() throws AlluxioException, IOException {

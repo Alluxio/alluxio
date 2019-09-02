@@ -51,7 +51,7 @@ public final class FileSystemMasterWorkerServiceHandler
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
   public FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
-    Preconditions.checkNotNull(fileSystemMaster);
+    Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
   }
 

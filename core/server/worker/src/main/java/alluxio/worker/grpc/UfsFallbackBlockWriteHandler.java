@@ -69,13 +69,16 @@ public final class UfsFallbackBlockWriteHandler
    *
    * @param blockWorker the block worker
    * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether using a domain socket
    */
   UfsFallbackBlockWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
-      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
+      boolean domainSocketEnabled) {
     super(responseObserver, userInfo);
     mWorker = blockWorker;
     mUfsManager = ufsManager;
-    mBlockWriteHandler = new BlockWriteHandler(blockWorker, responseObserver, userInfo);
+    mBlockWriteHandler =
+        new BlockWriteHandler(blockWorker, responseObserver, userInfo, domainSocketEnabled);
   }
 
   @Override
@@ -88,7 +91,8 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-          mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+          mStorageTierAssoc.getAlias(request.getTier()),
+          request.getMediumType(), FILE_BUFFER_SIZE);
     }
     return context;
   }
@@ -219,7 +223,7 @@ public final class UfsFallbackBlockWriteHandler
     UnderFileSystem ufs = ufsResource.get();
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
-        ufs.create(ufsPath,
+        ufs.createNonexistingFile(ufsPath,
             CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
                 .setCreateParent(true));
     context.setOutputStream(ufsOutputStream);

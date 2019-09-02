@@ -40,7 +40,7 @@ Alluxio server使用Java [ServiceLoader](https://docs.oracle.com/javase/7/docs/a
 
 ### 实现底层存储接口
 
-[HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs)和[S3A Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a)是两个将存储系统对接Alluxio好的样例。
+[HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs)和[S3 Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a)是两个将存储系统对接Alluxio好的样例。
 
 步骤1：实现接口`UnderFileSystem`
 

@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
@@ -153,7 +154,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       os.write((byte) 0);
-      Thread.sleep((int) ServerConfiguration.getMs(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
+      Thread.sleep(Constants.SECOND_MS * 2);
       os.write((byte) 1);
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {

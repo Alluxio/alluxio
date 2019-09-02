@@ -13,30 +13,30 @@ package alluxio.security.authentication.plain;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.authentication.AbstractSaslServerHandler;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authentication.AuthenticationProvider;
-import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.SaslServerHandler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.Security;
 import java.util.HashMap;
-import java.util.UUID;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
-import javax.security.sasl.SaslServer;
 
 /**
  * {@link SaslServerHandler} implementation for Plain/Custom schemes.
  */
-public class SaslServerHandlerPlain implements SaslServerHandler {
+public class SaslServerHandlerPlain extends AbstractSaslServerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(SaslServerHandlerPlain.class);
+
   static {
     Security.addProvider(new PlainSaslServerProvider());
   }
-
-  /** Underlying {@code SaslServer}. */
-  private final SaslServer mSaslServer;
 
   /**
    * Creates {@link SaslServerHandler} for Plain/Custom.
@@ -54,19 +54,13 @@ public class SaslServerHandlerPlain implements SaslServerHandler {
   }
 
   @Override
-  public void authenticationCompleted(UUID channelId, AuthenticationServer authenticationServer) {
-    authenticationServer.registerChannel(channelId,
-        new AuthenticatedUserInfo(mSaslServer.getAuthorizationID()), mSaslServer);
-  }
-
-  @Override
   public void setAuthenticatedUserInfo(AuthenticatedUserInfo userinfo) {
     // Plain authentication only needs authorized user name which is available in completed
     // SaslServer instance.
   }
 
   @Override
-  public SaslServer getSaslServer() {
-    return mSaslServer;
+  public AuthenticatedUserInfo getAuthenticatedUserInfo() {
+    return new AuthenticatedUserInfo(mSaslServer.getAuthorizationID());
   }
 }

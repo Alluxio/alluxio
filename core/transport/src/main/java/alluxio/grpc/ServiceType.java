@@ -60,6 +60,10 @@ public enum ServiceType
    * <code>FILE_SYSTEM_WORKER_WORKER_SERVICE = 12;</code>
    */
   FILE_SYSTEM_WORKER_WORKER_SERVICE(12),
+  /**
+   * <code>JOURNAL_MASTER_CLIENT_SERVICE = 13;</code>
+   */
+  JOURNAL_MASTER_CLIENT_SERVICE(13),
   ;
 
   /**
@@ -114,6 +118,10 @@ public enum ServiceType
    * <code>FILE_SYSTEM_WORKER_WORKER_SERVICE = 12;</code>
    */
   public static final int FILE_SYSTEM_WORKER_WORKER_SERVICE_VALUE = 12;
+  /**
+   * <code>JOURNAL_MASTER_CLIENT_SERVICE = 13;</code>
+   */
+  public static final int JOURNAL_MASTER_CLIENT_SERVICE_VALUE = 13;
 
 
   public final int getNumber() {
@@ -143,6 +151,7 @@ public enum ServiceType
       case 10: return JOB_MASTER_CLIENT_SERVICE;
       case 11: return JOB_MASTER_WORKER_SERVICE;
       case 12: return FILE_SYSTEM_WORKER_WORKER_SERVICE;
+      case 13: return JOURNAL_MASTER_CLIENT_SERVICE;
       default: return null;
     }
   }

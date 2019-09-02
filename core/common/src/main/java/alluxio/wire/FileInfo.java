@@ -22,8 +22,12 @@ import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -45,11 +49,13 @@ public final class FileInfo implements Serializable {
   private boolean mCompleted;
   private boolean mFolder;
   private boolean mPinned;
+  private Set<String> mMediumTypes = new HashSet<>();
   private boolean mCacheable;
   private boolean mPersisted;
   private ArrayList<Long> mBlockIds = new ArrayList<>();
   private int mInMemoryPercentage;
   private long mLastModificationTimeMs;
+  private long mLastAccessTimeMs;
   private long mTtl;
   private TtlAction mTtlAction;
   private String mOwner = "";
@@ -66,6 +72,7 @@ public final class FileInfo implements Serializable {
 
   private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
   private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
+  private Map<String, byte[]> mXAttr;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -185,6 +192,13 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @return the file last access time (in milliseconds)
+   */
+  public long getLastAccessTimeMs() {
+    return mLastAccessTimeMs;
+  }
+
+  /**
    * @return the file time-to-live (in seconds)
    */
   public long getTtl() {
@@ -296,6 +310,21 @@ public final class FileInfo implements Serializable {
   public List<String> convertDefaultAclToStringEntries() {
     // do not use getX as the name of the method, otherwise it will be used by json serialization
     return (mDefaultAcl == null) ? new ArrayList<>() : mDefaultAcl.toStringEntries();
+  }
+
+  /**
+   * @return a set of pinned locations
+   */
+  public Set<String> getMediumTypes() {
+    return mMediumTypes;
+  }
+
+  /**
+   * @return the extended attributes
+   */
+  @Nullable
+  public Map<String, byte[]> getXAttr() {
+    return mXAttr;
   }
 
   /**
@@ -447,6 +476,15 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param lastAccessTimeMs the last access time (in milliseconds) to use
+   * @return the file information
+   */
+  public FileInfo setLastAccessTimeMs(long lastAccessTimeMs) {
+    mLastAccessTimeMs = lastAccessTimeMs;
+    return this;
+  }
+
+  /**
    * @param ttl the file time-to-live (in seconds) to use
    * @return the file information
    */
@@ -575,6 +613,24 @@ public final class FileInfo implements Serializable {
     return this;
   }
 
+  /**
+   * @param mediumTypes the pinned locations
+   * @return the file information
+   */
+  public FileInfo setMediumTypes(Set<String> mediumTypes) {
+    mMediumTypes = mediumTypes;
+    return this;
+  }
+
+  /**
+   * @param xAttr the extended attributes to use
+   * @return the updated {@link FileInfo}
+   */
+  public FileInfo setXAttr(Map<String, byte[]> xAttr) {
+    mXAttr = xAttr;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -591,6 +647,7 @@ public final class FileInfo implements Serializable {
         && mCacheable == that.mCacheable && mPersisted == that.mPersisted
         && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
         && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
+        && mLastAccessTimeMs == that.mLastAccessTimeMs
         && mOwner.equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
         && mReplicationMax == that.mReplicationMax && mReplicationMin == that.mReplicationMin
@@ -598,16 +655,17 @@ public final class FileInfo implements Serializable {
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
         && Objects.equal(mAcl, that.mAcl)
-        && Objects.equal(mDefaultAcl, that.mDefaultAcl);
+        && Objects.equal(mDefaultAcl, that.mDefaultAcl)
+        && Objects.equal(mMediumTypes, that.mMediumTypes);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
-        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode, mReplicationMax,
-        mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction,
-        mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl);
+        mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
+        mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfos,
+        mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
   }
 
   @Override
@@ -618,9 +676,11 @@ public final class FileInfo implements Serializable {
         .add("path", mPath)
         .add("ufsPath", mUfsPath).add("length", mLength).add("blockSizeBytes", mBlockSizeBytes)
         .add("creationTimeMs", mCreationTimeMs).add("completed", mCompleted).add("folder", mFolder)
-        .add("pinned", mPinned).add("cacheable", mCacheable).add("persisted", mPersisted)
+        .add("pinned", mPinned).add("pinnedlocation", mMediumTypes)
+        .add("cacheable", mCacheable).add("persisted", mPersisted)
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
+        .add("lastAccessTimesMs", mLastAccessTimeMs)
         .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("replicationMax", mReplicationMax).add("replicationMin", mReplicationMin)

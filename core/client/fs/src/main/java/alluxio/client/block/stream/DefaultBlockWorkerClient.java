@@ -22,9 +22,11 @@ import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcManagedChannelPool;
+import alluxio.grpc.GrpcChannelKey;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.MoveBlockRequest;
+import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -80,11 +82,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       // Disables channel pooling for data streaming to achieve better throughput.
       // Channel is still reused due to client pooling.
       mStreamingChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
+          GrpcChannelKey.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
       mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
       // Uses default pooling strategy for RPC calls for better scalability.
       mRpcChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
+          GrpcChannelKey.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
     } catch (StatusRuntimeException e) {
       throw AlluxioStatusException.fromStatusRuntimeException(e);
     }
@@ -119,7 +121,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       DataMessageMarshaller<WriteRequest> marshaller =
           ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) responseObserver)
               .getRequestMarshaller();
-      Preconditions.checkNotNull(marshaller);
+      Preconditions.checkNotNull(marshaller, "marshaller");
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getWriteBlockMethod().toBuilder()
@@ -168,6 +170,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
+  public MoveBlockResponse moveBlock(MoveBlockRequest request) {
+    // Default time out is 30 secs, may need to adjust this if block move takes longer
+    return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
+        .moveBlock(request);
+  }
+
+  @Override
   public void asyncCache(final AsyncCacheRequest request) {
     mRpcAsyncStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
@@ -189,7 +198,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   private GrpcChannel buildChannel(Subject subject, GrpcServerAddress address,
-      GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
+      GrpcChannelKey.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
       EventLoopGroup workerGroup)
       throws AlluxioStatusException {
     return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)
@@ -205,6 +214,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
             (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
         .setFlowControlWindow(
             (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
+        .setClientType("DefaultBlockWorkerClient")
         .build();
   }
 }

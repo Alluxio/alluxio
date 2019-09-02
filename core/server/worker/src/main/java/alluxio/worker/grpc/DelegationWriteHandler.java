@@ -31,14 +31,17 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
   private final DataMessageMarshaller<WriteRequest> mMarshaller;
   private AbstractWriteHandler mWriteHandler;
   private AuthenticatedUserInfo mUserInfo;
+  private final boolean mDomainSocketEnabled;
 
   /**
    * @param workerProcess the worker process instance
    * @param responseObserver the response observer of the gRPC stream
    * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether using a domain socket
    */
   public DelegationWriteHandler(WorkerProcess workerProcess,
-      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
+      boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
@@ -48,19 +51,20 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
     } else {
       mMarshaller = null;
     }
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   private AbstractWriteHandler createWriterHandler(alluxio.grpc.WriteRequest request) {
     switch (request.getCommand().getType()) {
       case ALLUXIO_BLOCK:
         return new BlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class), mResponseObserver,
-            mUserInfo);
+            mUserInfo, mDomainSocketEnabled);
       case UFS_FILE:
         return new UfsFileWriteHandler(mWorkerProcess.getUfsManager(), mResponseObserver,
             mUserInfo);
       case UFS_FALLBACK_BLOCK:
         return new UfsFallbackBlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class),
-            mWorkerProcess.getUfsManager(), mResponseObserver, mUserInfo);
+            mWorkerProcess.getUfsManager(), mResponseObserver, mUserInfo, mDomainSocketEnabled);
       default:
         throw new IllegalArgumentException(String.format("Invalid request type %s",
             request.getCommand().getType().name()));

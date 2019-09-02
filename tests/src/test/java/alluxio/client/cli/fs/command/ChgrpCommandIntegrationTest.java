@@ -28,7 +28,6 @@ import java.io.IOException;
 public final class ChgrpCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void chgrp() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     mFsShell.run("chgrp", "group1", "/testFile");
     String group = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
@@ -43,7 +42,6 @@ public final class ChgrpCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chgrpRecursive() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile",
         WritePType.MUST_CACHE, 10);
     // "chgrp -R group1 /testDir" should apply to both dir and child file
@@ -63,7 +61,6 @@ public final class ChgrpCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chgrpWildcard() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/foo/testFile1",
         WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/foo/testFile2",

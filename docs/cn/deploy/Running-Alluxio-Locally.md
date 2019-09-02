@@ -11,9 +11,9 @@ priority: 1
 
 # 前提条件
 
-这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 8或更高版本)。
+这部分的前提条件是你安装了[Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)(JDK 8或更高版本)。
 
-下载 [Alluxio](https://alluxio.org/download) 二进制发行版 {{site.ALLUXIO_RELEASED_VERSION}}:
+下载 [Alluxio](https://alluxio.io/download) 二进制发行版 {{site.ALLUXIO_RELEASED_VERSION}}:
 
 在独立模式下运行，请执行以下操作：
 
@@ -32,16 +32,16 @@ priority: 1
 > 当前服务器上之前保存的Alluxio文件系统的所有数据和元数据都会被清除。
 > 但是，底层数据不会改变。
 
-```bash
-./bin/alluxio format
+```console
+$ ./bin/alluxio format
 ```
 
 # 第1步：本地启动Alluxio文件系统
 
 简单运行如下的命令来启动Alluxio文件系统。
 
-```bash
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio-start.sh local
 ```
 
 > 注意：用户在linux系统下运行上述命令需要输入密码来获取sudo权限,
@@ -54,11 +54,15 @@ priority: 1
 
 运行一个更全面的系统完整性检查：
 
-{% include Running-Alluxio-Locally/run-tests.md %}
+```console
+$ ./bin/alluxio runTests
+```
 
 可以在任意时刻执行以下命令以关闭Alluxio:
 
-{% include Running-Alluxio-Locally/Alluxio-stop.md %}
+```console
+$ ./bin/alluxio-stop.sh local
+```
 
 
 # FAQ
@@ -80,8 +84,8 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 
 然后在不需要请求root权限的情况下启动Alluxio，使用上述的目录作为存储器：
 
-```bash
-./bin/alluxio-start.sh local NoMount
+```console
+$ ./bin/alluxio-start.sh local NoMount
 ```
 
 另外，用户可以使用Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)存储数据，
@@ -95,8 +99,8 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 
 其次是：
 
-```bash
-./bin/alluxio-start.sh local NoMount
+```console
+$ ./bin/alluxio-start.sh local NoMount
 ```
 
 ## 我怎样避免通过输入密码运行sudo命令？
@@ -106,7 +110,9 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 * 通过超级用户身份启动Alluxio。
 * 在[sudoers](https://help.ubuntu.com/community/Sudoers)中增加启动Alluxio的用户。
 * 在Linux文件 `/etc/sudoers`下添加下面一行，赋予当前用户（e.g., "alluxio"）有限的sudo权限
-`alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/mkdir * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
+```
+alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/mkdir * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk
+```
 这允许"alluxio"用户应用sudo权限在一个具体路径`/mnt/ramdisk` 下执行命令mount, umount, mkdir 和 chmod （假设命令在 `/bin/`）
 ，并且不需要输入密码。
 查看更多关于 [Sudoer User Specifications](https://help.ubuntu.com/community/Sudoers#User_Specifications)的介绍。

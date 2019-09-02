@@ -128,6 +128,38 @@ public final class MetaMasterConfigurationServiceGrpc {
      return getRemovePathConfigurationMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetConfigHashPOptions,
+      alluxio.grpc.GetConfigHashPResponse> getGetConfigHashMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetConfigHash",
+      requestType = alluxio.grpc.GetConfigHashPOptions.class,
+      responseType = alluxio.grpc.GetConfigHashPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetConfigHashPOptions,
+      alluxio.grpc.GetConfigHashPResponse> getGetConfigHashMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetConfigHashPOptions, alluxio.grpc.GetConfigHashPResponse> getGetConfigHashMethod;
+    if ((getGetConfigHashMethod = MetaMasterConfigurationServiceGrpc.getGetConfigHashMethod) == null) {
+      synchronized (MetaMasterConfigurationServiceGrpc.class) {
+        if ((getGetConfigHashMethod = MetaMasterConfigurationServiceGrpc.getGetConfigHashMethod) == null) {
+          MetaMasterConfigurationServiceGrpc.getGetConfigHashMethod = getGetConfigHashMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetConfigHashPOptions, alluxio.grpc.GetConfigHashPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.meta.MetaMasterConfigurationService", "GetConfigHash"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetConfigHashPOptions.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetConfigHashPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("GetConfigHash"))
+                  .build();
+          }
+        }
+     }
+     return getGetConfigHashMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -193,6 +225,17 @@ public final class MetaMasterConfigurationServiceGrpc {
       asyncUnimplementedUnaryCall(getRemovePathConfigurationMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Returns the hashes of cluster and path level configurations.
+     * </pre>
+     */
+    public void getConfigHash(alluxio.grpc.GetConfigHashPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigHashPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetConfigHashMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -216,6 +259,13 @@ public final class MetaMasterConfigurationServiceGrpc {
                 alluxio.grpc.RemovePathConfigurationPRequest,
                 alluxio.grpc.RemovePathConfigurationPResponse>(
                   this, METHODID_REMOVE_PATH_CONFIGURATION)))
+          .addMethod(
+            getGetConfigHashMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetConfigHashPOptions,
+                alluxio.grpc.GetConfigHashPResponse>(
+                  this, METHODID_GET_CONFIG_HASH)))
           .build();
     }
   }
@@ -278,6 +328,18 @@ public final class MetaMasterConfigurationServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getRemovePathConfigurationMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns the hashes of cluster and path level configurations.
+     * </pre>
+     */
+    public void getConfigHash(alluxio.grpc.GetConfigHashPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigHashPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetConfigHashMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -334,6 +396,17 @@ public final class MetaMasterConfigurationServiceGrpc {
     public alluxio.grpc.RemovePathConfigurationPResponse removePathConfiguration(alluxio.grpc.RemovePathConfigurationPRequest request) {
       return blockingUnaryCall(
           getChannel(), getRemovePathConfigurationMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns the hashes of cluster and path level configurations.
+     * </pre>
+     */
+    public alluxio.grpc.GetConfigHashPResponse getConfigHash(alluxio.grpc.GetConfigHashPOptions request) {
+      return blockingUnaryCall(
+          getChannel(), getGetConfigHashMethod(), getCallOptions(), request);
     }
   }
 
@@ -395,11 +468,24 @@ public final class MetaMasterConfigurationServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getRemovePathConfigurationMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns the hashes of cluster and path level configurations.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetConfigHashPResponse> getConfigHash(
+        alluxio.grpc.GetConfigHashPOptions request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetConfigHashMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_CONFIGURATION = 0;
   private static final int METHODID_SET_PATH_CONFIGURATION = 1;
   private static final int METHODID_REMOVE_PATH_CONFIGURATION = 2;
+  private static final int METHODID_GET_CONFIG_HASH = 3;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -429,6 +515,10 @@ public final class MetaMasterConfigurationServiceGrpc {
         case METHODID_REMOVE_PATH_CONFIGURATION:
           serviceImpl.removePathConfiguration((alluxio.grpc.RemovePathConfigurationPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.RemovePathConfigurationPResponse>) responseObserver);
+          break;
+        case METHODID_GET_CONFIG_HASH:
+          serviceImpl.getConfigHash((alluxio.grpc.GetConfigHashPOptions) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigHashPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -494,6 +584,7 @@ public final class MetaMasterConfigurationServiceGrpc {
               .addMethod(getGetConfigurationMethod())
               .addMethod(getSetPathConfigurationMethod())
               .addMethod(getRemovePathConfigurationMethod())
+              .addMethod(getGetConfigHashMethod())
               .build();
         }
       }

@@ -8,27 +8,27 @@ public interface GetConfigurationPResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
   java.util.List<alluxio.grpc.ConfigProperty> 
-      getConfigsList();
+      getClusterConfigsList();
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
-  alluxio.grpc.ConfigProperty getConfigs(int index);
+  alluxio.grpc.ConfigProperty getClusterConfigs(int index);
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
-  int getConfigsCount();
+  int getClusterConfigsCount();
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
   java.util.List<? extends alluxio.grpc.ConfigPropertyOrBuilder> 
-      getConfigsOrBuilderList();
+      getClusterConfigsOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
-  alluxio.grpc.ConfigPropertyOrBuilder getConfigsOrBuilder(
+  alluxio.grpc.ConfigPropertyOrBuilder getClusterConfigsOrBuilder(
       int index);
 
   /**
@@ -64,4 +64,32 @@ public interface GetConfigurationPResponseOrBuilder extends
 
   alluxio.grpc.ConfigProperties getPathConfigsOrThrow(
       java.lang.String key);
+
+  /**
+   * <code>optional string clusterConfigHash = 3;</code>
+   */
+  boolean hasClusterConfigHash();
+  /**
+   * <code>optional string clusterConfigHash = 3;</code>
+   */
+  java.lang.String getClusterConfigHash();
+  /**
+   * <code>optional string clusterConfigHash = 3;</code>
+   */
+  com.google.protobuf.ByteString
+      getClusterConfigHashBytes();
+
+  /**
+   * <code>optional string pathConfigHash = 4;</code>
+   */
+  boolean hasPathConfigHash();
+  /**
+   * <code>optional string pathConfigHash = 4;</code>
+   */
+  java.lang.String getPathConfigHash();
+  /**
+   * <code>optional string pathConfigHash = 4;</code>
+   */
+  com.google.protobuf.ByteString
+      getPathConfigHashBytes();
 }

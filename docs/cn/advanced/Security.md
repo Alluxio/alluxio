@@ -76,8 +76,8 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 
 例如，当启用访问权限控制时，运行shell命令`ls -R`后其输出如下：
 
-```bash
-./bin/alluxio fs ls /
+```console
+$ ./bin/alluxio fs ls /
 drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2017 13:24:15:649  DIR /default_tests_files
 -rw-r--r-- jack           staff                       80   NOT_PERSISTED 11-20-2017 13:24:15:649 100% /default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE
 ```
@@ -86,7 +86,7 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 
 当用户确定后，其组列表通过一个组映射服务确定，该服务通过`alluxio.security.group.mapping.class`配置，其默认实现是
 `alluxio.security.group.provider.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
-用户-组映射默认使用了一种缓存机制，映射关系默认会缓存60秒，这个可以通过`alluxio.security.group.mapping.cache.timeout.ms`进行配置，如果这个值设置成为“0”，缓存就不会启用.
+用户-组映射默认使用了一种缓存机制，映射关系默认会缓存60秒，这个可以通过`alluxio.security.group.mapping.cache.timeout`进行配置，如果这个值设置成为“0”，缓存就不会启用.
 
 `alluxio.security.authorization.permission.supergroup`属性定义了一个超级组，该组中的所有用户都是超级用户。
 
@@ -142,10 +142,10 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。这
 - `_HDFS_USER_`
   - Alluxio client会模拟HDFS client的用户（当使用Hadoop兼容的client来调用Alluxio时）
 
-## 审纪 {#auditing}
-Alluxio支持审纪日志以便系统管理员能追踪用户对文件元数据的访问操作。
+## 审计 {#auditing}
+Alluxio支持审计日志以便系统管理员能追踪用户对文件元数据的访问操作。
 
-审纪日志文件(`master_audit.log`) 包括多个审计记录条目，每个条目对应一次获取文件元数据的记录。
+审计日志文件(`master_audit.log`) 包括多个审计记录条目，每个条目对应一次获取文件元数据的记录。
 Alluxio审计日志格式如下表所示：
 
 <table class="table table-striped">

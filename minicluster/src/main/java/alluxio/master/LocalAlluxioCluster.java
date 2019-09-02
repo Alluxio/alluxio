@@ -142,6 +142,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   @Override
   public void stop() throws Exception {
     super.stop();
+    TestUtils.assertAllLocksReleased(this);
     // clear HDFS client caching
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }

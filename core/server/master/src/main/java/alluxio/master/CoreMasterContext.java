@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.InodeStore;
+import alluxio.security.user.UserState;
 
 import com.google.common.base.Preconditions;
 
@@ -25,11 +26,12 @@ public class CoreMasterContext extends MasterContext {
   private final BackupManager mBackupManager;
   private final BlockStore.Factory mBlockStoreFactory;
   private final InodeStore.Factory mInodeStoreFactory;
+  private final JournalSystem mJournalSystem;
   private final long mStartTimeMs;
   private final int mPort;
 
   private CoreMasterContext(Builder builder) {
-    super(builder.mJournalSystem);
+    super(builder.mJournalSystem, builder.mUserState);
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
@@ -37,6 +39,7 @@ public class CoreMasterContext extends MasterContext {
         Preconditions.checkNotNull(builder.mBlockStoreFactory, "blockStoreFactory");
     mInodeStoreFactory =
         Preconditions.checkNotNull(builder.mInodeStoreFactory, "inodeStoreFactory");
+    mJournalSystem = Preconditions.checkNotNull(builder.mJournalSystem, "journalSystem");
     mStartTimeMs = builder.mStartTimeMs;
     mPort = builder.mPort;
   }
@@ -70,6 +73,12 @@ public class CoreMasterContext extends MasterContext {
   }
 
   /**
+   * @return the journal system
+   */
+  public JournalSystem getJournalSystem() {
+    return mJournalSystem;
+  }
+  /**
    * @return the master process start time in milliseconds
    */
   public long getStartTimeMs() {
@@ -95,6 +104,7 @@ public class CoreMasterContext extends MasterContext {
    */
   public static class Builder {
     private JournalSystem mJournalSystem;
+    private UserState mUserState;
     private SafeModeManager mSafeModeManager;
     private BackupManager mBackupManager;
     private BlockStore.Factory mBlockStoreFactory;
@@ -108,6 +118,15 @@ public class CoreMasterContext extends MasterContext {
      */
     public Builder setJournalSystem(JournalSystem journalSystem) {
       mJournalSystem = journalSystem;
+      return this;
+    }
+
+    /**
+     * @param userState the user state
+     * @return the builder
+     */
+    public Builder setUserState(UserState userState) {
+      mUserState = userState;
       return this;
     }
 

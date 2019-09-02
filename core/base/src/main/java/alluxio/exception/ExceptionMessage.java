@@ -190,6 +190,10 @@ public enum ExceptionMessage {
   INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
   INVALID_ARGS_SORT_FIELD("Invalid sort option `{0}` for --sort"),
   INVALID_ARG_TYPE("Arg {0} is not type {1}"),
+  INVALID_OPTION("Invalid option provided. Supported options: {0}"),
+  INVALID_OPTION_COUNT("Invalid option count. Expected: {0}, Found: {1}"),
+  INVALID_OPTION_VALUE("Invalid value provided for option: {0}. Supported values: {1}"),
+  INVALID_ADDRESS_VALUE("Invalid address provided."),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
@@ -231,10 +235,6 @@ public enum ExceptionMessage {
           + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
-  IMPERSONATION_NOT_CONFIGURED(
-      "User {0} is not configured for any impersonation. impersonationUser: {1}"),
-  IMPERSONATION_GROUPS_FAILED("Failed to get groups for impersonationUser {0}. user: {1}"),
-  IMPERSONATION_DENIED("User {0} is not configured to impersonate {1}"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
@@ -259,6 +259,7 @@ public enum ExceptionMessage {
       "Mount path {0} shadows an existing path {1} in the parent underlying filesystem"),
   MOUNT_READONLY("A write operation on {0} under a readonly mount point {1} is not allowed"),
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
+  FOREIGN_URI_NOT_MOUNTED("Foreign URI: {0} is not found on Alluxio mounts."),
 
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
@@ -285,6 +286,7 @@ public enum ExceptionMessage {
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
+  PINNED_TO_MULTIPLE_MEDIUMTYPES("File {0} pinned to multiple medium types"),
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),

@@ -17,13 +17,19 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.JournalDomain;
 import alluxio.master.job.JobMaster;
+import alluxio.master.journal.DefaultJournalMaster;
+import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
@@ -144,9 +150,9 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     stopRejectingServers();
     if (isServing()) {
       stopServing();
-      stopMaster();
-      mJournalSystem.stop();
     }
+    stopMaster();
+    mJournalSystem.stop();
   }
 
   protected void startMaster(boolean isLeader) {
@@ -198,8 +204,14 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
-          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
+          GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
+          ServerConfiguration.global(), ServerUserState.global());
       registerServices(serverBuilder, mJobMaster.getServices());
+
+      // Add journal master client service.
+      serverBuilder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
+          new GrpcService(new JournalMasterClientServiceHandler(
+              new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem))));
 
       mGrpcServer = serverBuilder.build().start();
       LOG.info("Started gRPC server on address {}", mRpcConnectAddress);

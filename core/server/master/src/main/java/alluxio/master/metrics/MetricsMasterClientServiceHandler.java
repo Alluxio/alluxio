@@ -53,12 +53,15 @@ public final class MetricsMasterClientServiceHandler
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
 
-          List<Metric> metrics = Lists.newArrayList();
-          for (alluxio.grpc.Metric metric : request.getOptions().getMetricsList()) {
-            Metric parsed = Metric.fromProto(metric);
-            metrics.add(parsed);
+          for (alluxio.grpc.ClientMetrics clientMetric :
+              request.getOptions().getClientMetricsList()) {
+            List<Metric> metrics = Lists.newArrayList();
+            for (alluxio.grpc.Metric metric : clientMetric.getMetricsList()) {
+              metrics.add(Metric.fromProto(metric));
+            }
+            mMetricsMaster.clientHeartbeat(
+                clientMetric.getClientId(), clientMetric.getHostname(), metrics);
           }
-          mMetricsMaster.clientHeartbeat(request.getClientId(), request.getHostname(), metrics);
           return MetricsHeartbeatPResponse.getDefaultInstance();
         }, "metricsHeartbeat", "request=%s", responseObserver, request);
   }

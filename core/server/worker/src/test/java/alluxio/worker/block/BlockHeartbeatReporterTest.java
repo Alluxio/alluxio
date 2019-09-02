@@ -26,9 +26,9 @@ import java.util.Map;
  */
 public final class BlockHeartbeatReporterTest {
   private static final int SESSION_ID = 1;
-  private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation("MEM", 0);
-  private static final BlockStoreLocation SSD_LOC = new BlockStoreLocation("SSD", 0);
-  private static final BlockStoreLocation HDD_LOC = new BlockStoreLocation("HDD", 0);
+  private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation("MEM", 0, "MEM");
+  private static final BlockStoreLocation SSD_LOC = new BlockStoreLocation("SSD", 0, "SSD");
+  private static final BlockStoreLocation HDD_LOC = new BlockStoreLocation("HDD", 0, "HDD");
   BlockHeartbeatReporter mReporter;
 
   /**
@@ -40,7 +40,7 @@ public final class BlockHeartbeatReporterTest {
   }
 
   private void moveBlock(long blockId, BlockStoreLocation newLocation) {
-    BlockStoreLocation unusedOldLocation = new BlockStoreLocation("MEM", 0);
+    BlockStoreLocation unusedOldLocation = new BlockStoreLocation("MEM", 0, "MEM");
     mReporter.onMoveBlockByWorker(SESSION_ID, blockId, unusedOldLocation, newLocation);
   }
 
@@ -71,20 +71,20 @@ public final class BlockHeartbeatReporterTest {
     moveBlock(block2, SSD_LOC);
     moveBlock(block3, HDD_LOC);
     BlockHeartbeatReport report = mReporter.generateReport();
-    Map<String, List<Long>> addedBlocks = report.getAddedBlocks();
+    Map<BlockStoreLocation, List<Long>> addedBlocks = report.getAddedBlocks();
 
     // Block1 moved to memory
-    List<Long> addedBlocksMem = addedBlocks.get("MEM");
+    List<Long> addedBlocksMem = addedBlocks.get(MEM_LOC);
     assertEquals(1, addedBlocksMem.size());
     assertEquals(block1, addedBlocksMem.get(0));
 
     // Block2 moved to ssd
-    List<Long> addedBlocksSsd = addedBlocks.get("SSD");
+    List<Long> addedBlocksSsd = addedBlocks.get(SSD_LOC);
     assertEquals(1, addedBlocksSsd.size());
     assertEquals(block2, addedBlocksSsd.get(0));
 
     // Block3 moved to hdd
-    List<Long> addedBlocksHdd = addedBlocks.get("HDD");
+    List<Long> addedBlocksHdd = addedBlocks.get(HDD_LOC);
     assertEquals(1, addedBlocksHdd.size());
     assertEquals(block3, addedBlocksHdd.get(0));
   }
@@ -130,7 +130,7 @@ public final class BlockHeartbeatReporterTest {
     assertTrue(removedBlocks.contains(block3));
 
     // No blocks should have been added
-    Map<String, List<Long>> addedBlocks = report.getAddedBlocks();
+    Map<BlockStoreLocation, List<Long>> addedBlocks = report.getAddedBlocks();
     assertTrue(addedBlocks.isEmpty());
   }
 
@@ -146,7 +146,7 @@ public final class BlockHeartbeatReporterTest {
 
     // The block should not be in the added blocks list
     BlockHeartbeatReport report = mReporter.generateReport();
-    assertEquals(null, report.getAddedBlocks().get("MEM"));
+    assertEquals(null, report.getAddedBlocks().get(MEM_LOC));
 
     // The block should be in the removed blocks list
     List<Long> removedBlocks = report.getRemovedBlocks();

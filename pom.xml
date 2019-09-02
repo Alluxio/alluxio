@@ -14,11 +14,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
-  <url>http://alluxio.org/</url>
+  <url>https://www.alluxio.io/</url>
   <licenses>
     <license>
       <name>Apache License</name>
@@ -39,7 +39,7 @@
       <email>haoyuan@alluxio.com</email>
       <url>http://www.cs.berkeley.edu/~haoyuan</url>
       <organization>Alluxio Open Foundation</organization>
-      <organizationUrl>http://alluxio.org/</organizationUrl>
+      <organizationUrl>https://alluxio.io/</organizationUrl>
     </developer>
   </developers>
   <issueManagement>
@@ -91,7 +91,7 @@
     <repository>
       <id>mapr-repo</id>
       <name>MapR Repository</name>
-      <url>http://repository.mapr.com/maven</url>
+      <url>http://repository.mapr.com/maven/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -128,26 +128,21 @@
       </snapshots>
     </repository>
     <repository>
-      <id>miredot</id>
-      <name>MireDot Releases</name>
-      <url>http://nexus.qmino.com/content/repositories/miredot</url>
-    </repository>
-    <repository>
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
   </repositories>
 
   <properties>
-    <apache.curator.version>4.0.1</apache.curator.version>
-    <apache.curator-test.version>2.12.0</apache.curator-test.version>
+    <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
-    <copycat.version>1.2.12</copycat.version>
+    <copycat.version>1.2.13</copycat.version>
     <cxf.version>2.7.0</cxf.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <gmetric4j.version>1.0.7</gmetric4j.version>
     <grpc.version>1.17.1</grpc.version>
+    <netty.version>4.1.30.Final</netty.version>
     <hadoop.version>2.2.0</hadoop.version>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
     <java.version>1.8</java.version>
@@ -169,11 +164,10 @@
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
+    <update.check.enabled>false</update.check.enabled>
   </properties>
 
   <modules>
-    <module>alluxio-ui</module>
-    <module>alluxio-shaded-hadoop</module>
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
@@ -181,9 +175,11 @@
     <module>logserver</module>
     <module>minicluster</module>
     <module>job</module>
+    <module>shaded</module>
     <module>shell</module>
     <module>tests</module>
     <module>underfs</module>
+    <module>webui</module>
   </modules>
 
   <dependencyManagement>
@@ -240,12 +236,6 @@
         <version>0.5.1</version>
       </dependency>
       <dependency>
-        <groupId>com.qmino</groupId>
-        <artifactId>miredot-annotations</artifactId>
-        <version>1.4.0</version>
-      </dependency>
-      <dependency>
-        <!-- using older version to match dependency version from Hadoop -->
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
@@ -347,11 +337,10 @@
         <artifactId>grpc-stub</artifactId>
         <version>${grpc.version}</version>
       </dependency>
-      <!-- Netty 4.0.50+ required for shading in client runtime jar to work -->
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
-        <version>4.1.30.Final</version>
+        <version>${netty.version}</version>
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
@@ -367,6 +356,11 @@
         <groupId>io.prometheus</groupId>
         <artifactId>simpleclient_dropwizard</artifactId>
         <version>${prometheus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-annotations</artifactId>
+        <version>1.5.22</version>
       </dependency>
       <dependency>
         <groupId>javax.ws.rs</groupId>
@@ -407,37 +401,16 @@
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-client</artifactId>
         <version>${apache.curator.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-framework</artifactId>
         <version>${apache.curator.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-recipes</artifactId>
         <version>${apache.curator.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <!-- We do not use dependent management for hadoop-common, hadoop-hdfs, as it is unavailable in hadoop-1 -->
       <!-- We do not use dependent management for hadoop-core, as it is unavailable in hadoop-2.x -->
@@ -455,11 +428,6 @@
           <exclusion>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
           </exclusion>
           <!-- Excluded to avoid implementation conflict with javax.servlet:servlet-api -->
           <exclusion>
@@ -492,11 +460,6 @@
           <exclusion>
             <groupId>javax.servlet.jsp</groupId>
             <artifactId>jsp-api</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
           </exclusion>
           <!-- Excluded to avoid issues with the web UI -->
           <exclusion>
@@ -551,12 +514,6 @@
         <version>${copycat.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.atomix.catalyst</groupId>
-        <artifactId>catalyst-netty</artifactId>
-        <!-- catalyst-netty is versioned independently of other Atomix services -->
-        <version>1.2.1</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.mesos</groupId>
         <artifactId>mesos</artifactId>
         <version>0.23.0</version>
@@ -576,7 +533,7 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.4.6</version>
+        <version>3.5.5</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -697,7 +654,7 @@
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-test</artifactId>
-        <version>${apache.curator-test.version}</version>
+        <version>${apache.curator.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -849,14 +806,6 @@
     </dependency>
   </dependencies>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>miredot</id>
-      <name>MireDot Releases</name>
-      <url>http://nexus.qmino.com/content/repositories/miredot</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <build>
     <pluginManagement>
       <plugins>
@@ -874,53 +823,6 @@
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>2.9</version>
-        </plugin>
-        <plugin>
-          <groupId>com.qmino</groupId>
-          <artifactId>miredot-plugin</artifactId>
-          <version>2.0.3</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>restdoc</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <output>
-              <html>
-                <intro>${project.basedir}/src/main/resources/intro.html</intro>
-                <title>Alluxio ${project.version} REST API</title>
-                <baseUrl>http://host:port/api/v1</baseUrl>
-              </html>
-            </output>
-            <restModel>
-              <httpStatusCodes>
-                <httpStatusCode>
-                  <httpCode>200</httpCode>
-                  <document>always</document>
-                  <defaultMessage>The service call has completed successfully.</defaultMessage>
-                </httpStatusCode>
-                <httpStatusCode>
-                  <httpCode>412</httpCode>
-                  <document>put,post</document>
-                  <defaultMessage>Invalid JSON/XML input.</defaultMessage>
-                </httpStatusCode>
-                <httpStatusCode>
-                  <httpCode>500</httpCode>
-                  <document>always</document>
-                  <defaultMessage>The service call has not succeeded.</defaultMessage>
-                  <sticky>true</sticky> <!-- Document always, even if there is an @statuscode tag -->
-                </httpStatusCode>
-              </httpStatusCodes>
-            </restModel>
-            <analysis>
-              <checks>
-                <JAVADOC_MISSING_INTERFACEDOCUMENTATION>ignore</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
-                <JAVADOC_MISSING_AUTHORS>ignore</JAVADOC_MISSING_AUTHORS>
-              </checks>
-            </analysis>
-          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1033,6 +935,20 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>templating-maven-plugin</artifactId>
           <version>1.0.0</version>
+        </plugin>
+        <!-- REST Documentation plugin -->
+        <plugin>
+          <groupId>com.github.kongchen</groupId>
+          <artifactId>swagger-maven-plugin</artifactId>
+          <version>3.1.1</version>
+          <executions>
+            <execution>
+              <phase>compile</phase>
+              <goals>
+                <goal>generate</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -1191,7 +1107,7 @@
             <exclude>**/\?/.java/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
-            <exclude>alluxio-ui/node_modules/*</exclude>
+            <exclude>webui/node_modules/*</exclude>
             <exclude>build/**/*</exclude>
             <exclude>conf/alluxio-env.sh</exclude>
             <exclude>conf/alluxio-site.properties</exclude>
@@ -1200,16 +1116,17 @@
             <exclude>conf/workers</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
+            <exclude>generated/**</exclude>
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
             <exclude>**/.idea/**</exclude>
-            <exclude>alluxio-ui/**/.nvmrc</exclude>
-            <exclude>alluxio-ui/**/*.svg</exclude>
-            <exclude>alluxio-ui/**/.env*</exclude>
-            <exclude>alluxio-ui/**/node/**</exclude>
-            <exclude>alluxio-ui/**/node_modules/**</exclude>
-            <exclude>alluxio-ui/**/src/**/*.css</exclude>
-            <exclude>alluxio-ui/**/build/**</exclude>
+            <exclude>webui/**/.nvmrc</exclude>
+            <exclude>webui/**/*.svg</exclude>
+            <exclude>webui/**/.env*</exclude>
+            <exclude>webui/**/node/**</exclude>
+            <exclude>webui/**/node_modules/**</exclude>
+            <exclude>webui/**/src/**/*.css</exclude>
+            <exclude>webui/**/build/**</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>

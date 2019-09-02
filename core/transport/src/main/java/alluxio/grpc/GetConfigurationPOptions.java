@@ -17,6 +17,8 @@ private static final long serialVersionUID = 0L;
   }
   private GetConfigurationPOptions() {
     rawValue_ = false;
+    ignoreClusterConf_ = false;
+    ignorePathConf_ = false;
   }
 
   @java.lang.Override
@@ -53,6 +55,16 @@ private static final long serialVersionUID = 0L;
           case 8: {
             bitField0_ |= 0x00000001;
             rawValue_ = input.readBool();
+            break;
+          }
+          case 16: {
+            bitField0_ |= 0x00000002;
+            ignoreClusterConf_ = input.readBool();
+            break;
+          }
+          case 24: {
+            bitField0_ |= 0x00000004;
+            ignorePathConf_ = input.readBool();
             break;
           }
         }
@@ -95,6 +107,36 @@ private static final long serialVersionUID = 0L;
     return rawValue_;
   }
 
+  public static final int IGNORECLUSTERCONF_FIELD_NUMBER = 2;
+  private boolean ignoreClusterConf_;
+  /**
+   * <code>optional bool ignoreClusterConf = 2;</code>
+   */
+  public boolean hasIgnoreClusterConf() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional bool ignoreClusterConf = 2;</code>
+   */
+  public boolean getIgnoreClusterConf() {
+    return ignoreClusterConf_;
+  }
+
+  public static final int IGNOREPATHCONF_FIELD_NUMBER = 3;
+  private boolean ignorePathConf_;
+  /**
+   * <code>optional bool ignorePathConf = 3;</code>
+   */
+  public boolean hasIgnorePathConf() {
+    return ((bitField0_ & 0x00000004) == 0x00000004);
+  }
+  /**
+   * <code>optional bool ignorePathConf = 3;</code>
+   */
+  public boolean getIgnorePathConf() {
+    return ignorePathConf_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -110,6 +152,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       output.writeBool(1, rawValue_);
     }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      output.writeBool(2, ignoreClusterConf_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      output.writeBool(3, ignorePathConf_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -121,6 +169,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(1, rawValue_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(2, ignoreClusterConf_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(3, ignorePathConf_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -143,6 +199,16 @@ private static final long serialVersionUID = 0L;
       result = result && (getRawValue()
           == other.getRawValue());
     }
+    result = result && (hasIgnoreClusterConf() == other.hasIgnoreClusterConf());
+    if (hasIgnoreClusterConf()) {
+      result = result && (getIgnoreClusterConf()
+          == other.getIgnoreClusterConf());
+    }
+    result = result && (hasIgnorePathConf() == other.hasIgnorePathConf());
+    if (hasIgnorePathConf()) {
+      result = result && (getIgnorePathConf()
+          == other.getIgnorePathConf());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -158,6 +224,16 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + RAWVALUE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getRawValue());
+    }
+    if (hasIgnoreClusterConf()) {
+      hash = (37 * hash) + IGNORECLUSTERCONF_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIgnoreClusterConf());
+    }
+    if (hasIgnorePathConf()) {
+      hash = (37 * hash) + IGNOREPATHCONF_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIgnorePathConf());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -290,6 +366,10 @@ private static final long serialVersionUID = 0L;
       super.clear();
       rawValue_ = false;
       bitField0_ = (bitField0_ & ~0x00000001);
+      ignoreClusterConf_ = false;
+      bitField0_ = (bitField0_ & ~0x00000002);
+      ignorePathConf_ = false;
+      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
@@ -318,6 +398,14 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000001;
       }
       result.rawValue_ = rawValue_;
+      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        to_bitField0_ |= 0x00000002;
+      }
+      result.ignoreClusterConf_ = ignoreClusterConf_;
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.ignorePathConf_ = ignorePathConf_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -362,6 +450,12 @@ private static final long serialVersionUID = 0L;
       if (other == alluxio.grpc.GetConfigurationPOptions.getDefaultInstance()) return this;
       if (other.hasRawValue()) {
         setRawValue(other.getRawValue());
+      }
+      if (other.hasIgnoreClusterConf()) {
+        setIgnoreClusterConf(other.getIgnoreClusterConf());
+      }
+      if (other.hasIgnorePathConf()) {
+        setIgnorePathConf(other.getIgnorePathConf());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -419,6 +513,70 @@ private static final long serialVersionUID = 0L;
     public Builder clearRawValue() {
       bitField0_ = (bitField0_ & ~0x00000001);
       rawValue_ = false;
+      onChanged();
+      return this;
+    }
+
+    private boolean ignoreClusterConf_ ;
+    /**
+     * <code>optional bool ignoreClusterConf = 2;</code>
+     */
+    public boolean hasIgnoreClusterConf() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool ignoreClusterConf = 2;</code>
+     */
+    public boolean getIgnoreClusterConf() {
+      return ignoreClusterConf_;
+    }
+    /**
+     * <code>optional bool ignoreClusterConf = 2;</code>
+     */
+    public Builder setIgnoreClusterConf(boolean value) {
+      bitField0_ |= 0x00000002;
+      ignoreClusterConf_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool ignoreClusterConf = 2;</code>
+     */
+    public Builder clearIgnoreClusterConf() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      ignoreClusterConf_ = false;
+      onChanged();
+      return this;
+    }
+
+    private boolean ignorePathConf_ ;
+    /**
+     * <code>optional bool ignorePathConf = 3;</code>
+     */
+    public boolean hasIgnorePathConf() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional bool ignorePathConf = 3;</code>
+     */
+    public boolean getIgnorePathConf() {
+      return ignorePathConf_;
+    }
+    /**
+     * <code>optional bool ignorePathConf = 3;</code>
+     */
+    public Builder setIgnorePathConf(boolean value) {
+      bitField0_ |= 0x00000004;
+      ignorePathConf_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool ignorePathConf = 3;</code>
+     */
+    public Builder clearIgnorePathConf() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      ignorePathConf_ = false;
       onChanged();
       return this;
     }

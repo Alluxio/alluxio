@@ -278,11 +278,12 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     // Stop the default cluster.
     after();
 
-    // Create a new cluster, with no workers initially
-    final MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(2, 0);
-    cluster.initConfiguration();
-    cluster.start();
+    MultiMasterLocalAlluxioCluster cluster = null;
     try {
+      // Create a new cluster, with no workers initially
+      cluster = new MultiMasterLocalAlluxioCluster(2, 0);
+      cluster.initConfiguration();
+      cluster.start();
       // Get the first block master
       BlockMaster blockMaster1 =
           cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
@@ -343,7 +344,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
           RegisterWorkerPOptions.getDefaultInstance());
     } finally {
-      cluster.stop();
+      if (cluster != null) {
+        cluster.stop();
+      }
     }
 
     // Start the default cluster.

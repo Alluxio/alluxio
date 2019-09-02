@@ -146,6 +146,34 @@ public final class InodeMeta {
         getUfsFingerprintBytes();
 
     /**
+     * <code>repeated string medium_type = 27;</code>
+     */
+    java.util.List<java.lang.String>
+        getMediumTypeList();
+    /**
+     * <code>repeated string medium_type = 27;</code>
+     */
+    int getMediumTypeCount();
+    /**
+     * <code>repeated string medium_type = 27;</code>
+     */
+    java.lang.String getMediumType(int index);
+    /**
+     * <code>repeated string medium_type = 27;</code>
+     */
+    com.google.protobuf.ByteString
+        getMediumTypeBytes(int index);
+
+    /**
+     * <code>optional int64 last_accessed_ms = 30;</code>
+     */
+    boolean hasLastAccessedMs();
+    /**
+     * <code>optional int64 last_accessed_ms = 30;</code>
+     */
+    long getLastAccessedMs();
+
+    /**
      * <pre>
      * directory only
      * </pre>
@@ -278,6 +306,15 @@ public final class InodeMeta {
     int getReplicationMin();
 
     /**
+     * <code>optional int64 should_persist_time = 28;</code>
+     */
+    boolean hasShouldPersistTime();
+    /**
+     * <code>optional int64 should_persist_time = 28;</code>
+     */
+    long getShouldPersistTime();
+
+    /**
      * <pre>
      * Used for recovering in-progress file persist jobs on master start.
      * </pre>
@@ -307,13 +344,72 @@ public final class InodeMeta {
      */
     com.google.protobuf.ByteString
         getPersistJobTempUfsPathBytes();
+
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+    int getXAttrCount();
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+    boolean containsXAttr(
+        java.lang.String key);
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+    getXAttr();
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+    getXAttrMap();
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    com.google.protobuf.ByteString getXAttrOrDefault(
+        java.lang.String key,
+        com.google.protobuf.ByteString defaultValue);
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    com.google.protobuf.ByteString getXAttrOrThrow(
+        java.lang.String key);
   }
   /**
    * <pre>
    **
    * General inode metadata. This includes most inode metadata, but does not include the inode's
    * children or time of last modification.
-   * next available id: 27
+   * next available id: 31
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.meta.Inode}
@@ -339,6 +435,8 @@ public final class InodeMeta {
       persistenceState_ = "";
       isPinned_ = false;
       ufsFingerprint_ = "";
+      mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      lastAccessedMs_ = 0L;
       isMountPoint_ = false;
       hasDirectChildrenLoaded_ = false;
       childCount_ = 0L;
@@ -350,6 +448,7 @@ public final class InodeMeta {
       replicationDurable_ = 0;
       replicationMax_ = 0;
       replicationMin_ = 0;
+      shouldPersistTime_ = 0L;
       persistJobId_ = 0L;
       persistJobTempUfsPath_ = "";
     }
@@ -458,18 +557,18 @@ public final class InodeMeta {
               break;
             }
             case 96: {
-              bitField0_ |= 0x00001000;
+              bitField0_ |= 0x00002000;
               isMountPoint_ = input.readBool();
               break;
             }
             case 104: {
-              bitField0_ |= 0x00002000;
+              bitField0_ |= 0x00004000;
               hasDirectChildrenLoaded_ = input.readBool();
               break;
             }
             case 114: {
               alluxio.proto.shared.Acl.AccessControlList.Builder subBuilder = null;
-              if (((bitField0_ & 0x00008000) == 0x00008000)) {
+              if (((bitField0_ & 0x00010000) == 0x00010000)) {
                 subBuilder = defaultAcl_.toBuilder();
               }
               defaultAcl_ = input.readMessage(alluxio.proto.shared.Acl.AccessControlList.PARSER, extensionRegistry);
@@ -477,18 +576,18 @@ public final class InodeMeta {
                 subBuilder.mergeFrom(defaultAcl_);
                 defaultAcl_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00008000;
+              bitField0_ |= 0x00010000;
               break;
             }
             case 120: {
-              bitField0_ |= 0x00010000;
+              bitField0_ |= 0x00020000;
               blockSizeBytes_ = input.readInt64();
               break;
             }
             case 128: {
-              if (!((mutable_bitField0_ & 0x00020000) == 0x00020000)) {
+              if (!((mutable_bitField0_ & 0x00080000) == 0x00080000)) {
                 blocks_ = new java.util.ArrayList<java.lang.Long>();
-                mutable_bitField0_ |= 0x00020000;
+                mutable_bitField0_ |= 0x00080000;
               }
               blocks_.add(input.readInt64());
               break;
@@ -496,9 +595,9 @@ public final class InodeMeta {
             case 130: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00020000) == 0x00020000) && input.getBytesUntilLimit() > 0) {
+              if (!((mutable_bitField0_ & 0x00080000) == 0x00080000) && input.getBytesUntilLimit() > 0) {
                 blocks_ = new java.util.ArrayList<java.lang.Long>();
-                mutable_bitField0_ |= 0x00020000;
+                mutable_bitField0_ |= 0x00080000;
               }
               while (input.getBytesUntilLimit() > 0) {
                 blocks_.add(input.readInt64());
@@ -507,43 +606,43 @@ public final class InodeMeta {
               break;
             }
             case 136: {
-              bitField0_ |= 0x00020000;
+              bitField0_ |= 0x00040000;
               isCacheable_ = input.readBool();
               break;
             }
             case 144: {
-              bitField0_ |= 0x00040000;
+              bitField0_ |= 0x00080000;
               isCompleted_ = input.readBool();
               break;
             }
             case 152: {
-              bitField0_ |= 0x00080000;
+              bitField0_ |= 0x00100000;
               length_ = input.readInt64();
               break;
             }
             case 160: {
-              bitField0_ |= 0x00100000;
+              bitField0_ |= 0x00200000;
               replicationDurable_ = input.readInt32();
               break;
             }
             case 168: {
-              bitField0_ |= 0x00200000;
+              bitField0_ |= 0x00400000;
               replicationMax_ = input.readInt32();
               break;
             }
             case 176: {
-              bitField0_ |= 0x00400000;
+              bitField0_ |= 0x00800000;
               replicationMin_ = input.readInt32();
               break;
             }
             case 184: {
-              bitField0_ |= 0x00800000;
+              bitField0_ |= 0x02000000;
               persistJobId_ = input.readInt64();
               break;
             }
             case 194: {
               com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x01000000;
+              bitField0_ |= 0x04000000;
               persistJobTempUfsPath_ = bs;
               break;
             }
@@ -553,8 +652,40 @@ public final class InodeMeta {
               break;
             }
             case 208: {
-              bitField0_ |= 0x00004000;
+              bitField0_ |= 0x00008000;
               childCount_ = input.readInt64();
+              break;
+            }
+            case 218: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              if (!((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
+                mediumType_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00001000;
+              }
+              mediumType_.add(bs);
+              break;
+            }
+            case 224: {
+              bitField0_ |= 0x01000000;
+              shouldPersistTime_ = input.readInt64();
+              break;
+            }
+            case 234: {
+              if (!((mutable_bitField0_ & 0x20000000) == 0x20000000)) {
+                xAttr_ = com.google.protobuf.MapField.newMapField(
+                    XAttrDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x20000000;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
+              xAttr__ = input.readMessage(
+                  XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              xAttr_.getMutableMap().put(
+                  xAttr__.getKey(), xAttr__.getValue());
+              break;
+            }
+            case 240: {
+              bitField0_ |= 0x00001000;
+              lastAccessedMs_ = input.readInt64();
               break;
             }
           }
@@ -565,8 +696,11 @@ public final class InodeMeta {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00020000) == 0x00020000)) {
+        if (((mutable_bitField0_ & 0x00080000) == 0x00080000)) {
           blocks_ = java.util.Collections.unmodifiableList(blocks_);
+        }
+        if (((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
+          mediumType_ = mediumType_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -577,6 +711,17 @@ public final class InodeMeta {
       return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 29:
+          return internalGetXAttr();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_fieldAccessorTable
@@ -853,6 +998,50 @@ public final class InodeMeta {
       }
     }
 
+    public static final int MEDIUM_TYPE_FIELD_NUMBER = 27;
+    private com.google.protobuf.LazyStringList mediumType_;
+    /**
+     * <code>repeated string medium_type = 27;</code>
+     */
+    public com.google.protobuf.ProtocolStringList
+        getMediumTypeList() {
+      return mediumType_;
+    }
+    /**
+     * <code>repeated string medium_type = 27;</code>
+     */
+    public int getMediumTypeCount() {
+      return mediumType_.size();
+    }
+    /**
+     * <code>repeated string medium_type = 27;</code>
+     */
+    public java.lang.String getMediumType(int index) {
+      return mediumType_.get(index);
+    }
+    /**
+     * <code>repeated string medium_type = 27;</code>
+     */
+    public com.google.protobuf.ByteString
+        getMediumTypeBytes(int index) {
+      return mediumType_.getByteString(index);
+    }
+
+    public static final int LAST_ACCESSED_MS_FIELD_NUMBER = 30;
+    private long lastAccessedMs_;
+    /**
+     * <code>optional int64 last_accessed_ms = 30;</code>
+     */
+    public boolean hasLastAccessedMs() {
+      return ((bitField0_ & 0x00001000) == 0x00001000);
+    }
+    /**
+     * <code>optional int64 last_accessed_ms = 30;</code>
+     */
+    public long getLastAccessedMs() {
+      return lastAccessedMs_;
+    }
+
     public static final int IS_MOUNT_POINT_FIELD_NUMBER = 12;
     private boolean isMountPoint_;
     /**
@@ -863,7 +1052,7 @@ public final class InodeMeta {
      * <code>optional bool is_mount_point = 12;</code>
      */
     public boolean hasIsMountPoint() {
-      return ((bitField0_ & 0x00001000) == 0x00001000);
+      return ((bitField0_ & 0x00002000) == 0x00002000);
     }
     /**
      * <pre>
@@ -882,7 +1071,7 @@ public final class InodeMeta {
      * <code>optional bool has_direct_children_loaded = 13;</code>
      */
     public boolean hasHasDirectChildrenLoaded() {
-      return ((bitField0_ & 0x00002000) == 0x00002000);
+      return ((bitField0_ & 0x00004000) == 0x00004000);
     }
     /**
      * <code>optional bool has_direct_children_loaded = 13;</code>
@@ -897,7 +1086,7 @@ public final class InodeMeta {
      * <code>optional int64 child_count = 26;</code>
      */
     public boolean hasChildCount() {
-      return ((bitField0_ & 0x00004000) == 0x00004000);
+      return ((bitField0_ & 0x00008000) == 0x00008000);
     }
     /**
      * <code>optional int64 child_count = 26;</code>
@@ -912,7 +1101,7 @@ public final class InodeMeta {
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
      */
     public boolean hasDefaultAcl() {
-      return ((bitField0_ & 0x00008000) == 0x00008000);
+      return ((bitField0_ & 0x00010000) == 0x00010000);
     }
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
@@ -937,7 +1126,7 @@ public final class InodeMeta {
      * <code>optional int64 block_size_bytes = 15;</code>
      */
     public boolean hasBlockSizeBytes() {
-      return ((bitField0_ & 0x00010000) == 0x00010000);
+      return ((bitField0_ & 0x00020000) == 0x00020000);
     }
     /**
      * <pre>
@@ -978,7 +1167,7 @@ public final class InodeMeta {
      * <code>optional bool is_cacheable = 17;</code>
      */
     public boolean hasIsCacheable() {
-      return ((bitField0_ & 0x00020000) == 0x00020000);
+      return ((bitField0_ & 0x00040000) == 0x00040000);
     }
     /**
      * <code>optional bool is_cacheable = 17;</code>
@@ -993,7 +1182,7 @@ public final class InodeMeta {
      * <code>optional bool is_completed = 18;</code>
      */
     public boolean hasIsCompleted() {
-      return ((bitField0_ & 0x00040000) == 0x00040000);
+      return ((bitField0_ & 0x00080000) == 0x00080000);
     }
     /**
      * <code>optional bool is_completed = 18;</code>
@@ -1008,7 +1197,7 @@ public final class InodeMeta {
      * <code>optional int64 length = 19;</code>
      */
     public boolean hasLength() {
-      return ((bitField0_ & 0x00080000) == 0x00080000);
+      return ((bitField0_ & 0x00100000) == 0x00100000);
     }
     /**
      * <code>optional int64 length = 19;</code>
@@ -1023,7 +1212,7 @@ public final class InodeMeta {
      * <code>optional int32 replication_durable = 20;</code>
      */
     public boolean hasReplicationDurable() {
-      return ((bitField0_ & 0x00100000) == 0x00100000);
+      return ((bitField0_ & 0x00200000) == 0x00200000);
     }
     /**
      * <code>optional int32 replication_durable = 20;</code>
@@ -1038,7 +1227,7 @@ public final class InodeMeta {
      * <code>optional int32 replication_max = 21;</code>
      */
     public boolean hasReplicationMax() {
-      return ((bitField0_ & 0x00200000) == 0x00200000);
+      return ((bitField0_ & 0x00400000) == 0x00400000);
     }
     /**
      * <code>optional int32 replication_max = 21;</code>
@@ -1053,13 +1242,28 @@ public final class InodeMeta {
      * <code>optional int32 replication_min = 22;</code>
      */
     public boolean hasReplicationMin() {
-      return ((bitField0_ & 0x00400000) == 0x00400000);
+      return ((bitField0_ & 0x00800000) == 0x00800000);
     }
     /**
      * <code>optional int32 replication_min = 22;</code>
      */
     public int getReplicationMin() {
       return replicationMin_;
+    }
+
+    public static final int SHOULD_PERSIST_TIME_FIELD_NUMBER = 28;
+    private long shouldPersistTime_;
+    /**
+     * <code>optional int64 should_persist_time = 28;</code>
+     */
+    public boolean hasShouldPersistTime() {
+      return ((bitField0_ & 0x01000000) == 0x01000000);
+    }
+    /**
+     * <code>optional int64 should_persist_time = 28;</code>
+     */
+    public long getShouldPersistTime() {
+      return shouldPersistTime_;
     }
 
     public static final int PERSIST_JOB_ID_FIELD_NUMBER = 23;
@@ -1072,7 +1276,7 @@ public final class InodeMeta {
      * <code>optional int64 persist_job_id = 23;</code>
      */
     public boolean hasPersistJobId() {
-      return ((bitField0_ & 0x00800000) == 0x00800000);
+      return ((bitField0_ & 0x02000000) == 0x02000000);
     }
     /**
      * <pre>
@@ -1091,7 +1295,7 @@ public final class InodeMeta {
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
      */
     public boolean hasPersistJobTempUfsPath() {
-      return ((bitField0_ & 0x01000000) == 0x01000000);
+      return ((bitField0_ & 0x04000000) == 0x04000000);
     }
     /**
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
@@ -1125,6 +1329,102 @@ public final class InodeMeta {
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
+    }
+
+    public static final int XATTR_FIELD_NUMBER = 29;
+    private static final class XAttrDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, com.google.protobuf.ByteString> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
+                  alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.BYTES,
+                  com.google.protobuf.ByteString.EMPTY);
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, com.google.protobuf.ByteString> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+    internalGetXAttr() {
+      if (xAttr_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            XAttrDefaultEntryHolder.defaultEntry);
+      }
+      return xAttr_;
+    }
+
+    public int getXAttrCount() {
+      return internalGetXAttr().getMap().size();
+    }
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    public boolean containsXAttr(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetXAttr().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
+      return getXAttrMap();
+    }
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
+      return internalGetXAttr().getMap();
+    }
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    public com.google.protobuf.ByteString getXAttrOrDefault(
+        java.lang.String key,
+        com.google.protobuf.ByteString defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+          internalGetXAttr().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+     * comparatively large amount of memory to other fields
+     * </pre>
+     *
+     * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+     */
+
+    public com.google.protobuf.ByteString getXAttrOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+          internalGetXAttr().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
     }
 
     private byte memoizedIsInitialized = -1;
@@ -1172,50 +1472,65 @@ public final class InodeMeta {
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 11, ufsFingerprint_);
       }
-      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
         output.writeBool(12, isMountPoint_);
       }
-      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
         output.writeBool(13, hasDirectChildrenLoaded_);
       }
-      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
         output.writeMessage(14, getDefaultAcl());
       }
-      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
         output.writeInt64(15, blockSizeBytes_);
       }
       for (int i = 0; i < blocks_.size(); i++) {
         output.writeInt64(16, blocks_.get(i));
       }
-      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((bitField0_ & 0x00040000) == 0x00040000)) {
         output.writeBool(17, isCacheable_);
       }
-      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((bitField0_ & 0x00080000) == 0x00080000)) {
         output.writeBool(18, isCompleted_);
       }
-      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((bitField0_ & 0x00100000) == 0x00100000)) {
         output.writeInt64(19, length_);
       }
-      if (((bitField0_ & 0x00100000) == 0x00100000)) {
+      if (((bitField0_ & 0x00200000) == 0x00200000)) {
         output.writeInt32(20, replicationDurable_);
       }
-      if (((bitField0_ & 0x00200000) == 0x00200000)) {
+      if (((bitField0_ & 0x00400000) == 0x00400000)) {
         output.writeInt32(21, replicationMax_);
       }
-      if (((bitField0_ & 0x00400000) == 0x00400000)) {
+      if (((bitField0_ & 0x00800000) == 0x00800000)) {
         output.writeInt32(22, replicationMin_);
       }
-      if (((bitField0_ & 0x00800000) == 0x00800000)) {
+      if (((bitField0_ & 0x02000000) == 0x02000000)) {
         output.writeInt64(23, persistJobId_);
       }
-      if (((bitField0_ & 0x01000000) == 0x01000000)) {
+      if (((bitField0_ & 0x04000000) == 0x04000000)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 24, persistJobTempUfsPath_);
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         output.writeInt64(25, lastModifiedMs_);
       }
-      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
         output.writeInt64(26, childCount_);
+      }
+      for (int i = 0; i < mediumType_.size(); i++) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 27, mediumType_.getRaw(i));
+      }
+      if (((bitField0_ & 0x01000000) == 0x01000000)) {
+        output.writeInt64(28, shouldPersistTime_);
+      }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetXAttr(),
+          XAttrDefaultEntryHolder.defaultEntry,
+          29);
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        output.writeInt64(30, lastAccessedMs_);
       }
       unknownFields.writeTo(output);
     }
@@ -1266,19 +1581,19 @@ public final class InodeMeta {
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(11, ufsFingerprint_);
       }
-      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(12, isMountPoint_);
       }
-      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(13, hasDirectChildrenLoaded_);
       }
-      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(14, getDefaultAcl());
       }
-      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(15, blockSizeBytes_);
       }
@@ -1291,44 +1606,70 @@ public final class InodeMeta {
         size += dataSize;
         size += 2 * getBlocksList().size();
       }
-      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((bitField0_ & 0x00040000) == 0x00040000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(17, isCacheable_);
       }
-      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((bitField0_ & 0x00080000) == 0x00080000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(18, isCompleted_);
       }
-      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((bitField0_ & 0x00100000) == 0x00100000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(19, length_);
       }
-      if (((bitField0_ & 0x00100000) == 0x00100000)) {
+      if (((bitField0_ & 0x00200000) == 0x00200000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(20, replicationDurable_);
       }
-      if (((bitField0_ & 0x00200000) == 0x00200000)) {
+      if (((bitField0_ & 0x00400000) == 0x00400000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(21, replicationMax_);
       }
-      if (((bitField0_ & 0x00400000) == 0x00400000)) {
+      if (((bitField0_ & 0x00800000) == 0x00800000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(22, replicationMin_);
       }
-      if (((bitField0_ & 0x00800000) == 0x00800000)) {
+      if (((bitField0_ & 0x02000000) == 0x02000000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(23, persistJobId_);
       }
-      if (((bitField0_ & 0x01000000) == 0x01000000)) {
+      if (((bitField0_ & 0x04000000) == 0x04000000)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(24, persistJobTempUfsPath_);
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(25, lastModifiedMs_);
       }
-      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(26, childCount_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < mediumType_.size(); i++) {
+          dataSize += computeStringSizeNoTag(mediumType_.getRaw(i));
+        }
+        size += dataSize;
+        size += 2 * getMediumTypeList().size();
+      }
+      if (((bitField0_ & 0x01000000) == 0x01000000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(28, shouldPersistTime_);
+      }
+      for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
+           : internalGetXAttr().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
+        xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(29, xAttr__);
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(30, lastAccessedMs_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1405,6 +1746,13 @@ public final class InodeMeta {
         result = result && getUfsFingerprint()
             .equals(other.getUfsFingerprint());
       }
+      result = result && getMediumTypeList()
+          .equals(other.getMediumTypeList());
+      result = result && (hasLastAccessedMs() == other.hasLastAccessedMs());
+      if (hasLastAccessedMs()) {
+        result = result && (getLastAccessedMs()
+            == other.getLastAccessedMs());
+      }
       result = result && (hasIsMountPoint() == other.hasIsMountPoint());
       if (hasIsMountPoint()) {
         result = result && (getIsMountPoint()
@@ -1462,6 +1810,11 @@ public final class InodeMeta {
         result = result && (getReplicationMin()
             == other.getReplicationMin());
       }
+      result = result && (hasShouldPersistTime() == other.hasShouldPersistTime());
+      if (hasShouldPersistTime()) {
+        result = result && (getShouldPersistTime()
+            == other.getShouldPersistTime());
+      }
       result = result && (hasPersistJobId() == other.hasPersistJobId());
       if (hasPersistJobId()) {
         result = result && (getPersistJobId()
@@ -1472,6 +1825,8 @@ public final class InodeMeta {
         result = result && getPersistJobTempUfsPath()
             .equals(other.getPersistJobTempUfsPath());
       }
+      result = result && internalGetXAttr().equals(
+          other.internalGetXAttr());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -1538,6 +1893,15 @@ public final class InodeMeta {
         hash = (37 * hash) + UFS_FINGERPRINT_FIELD_NUMBER;
         hash = (53 * hash) + getUfsFingerprint().hashCode();
       }
+      if (getMediumTypeCount() > 0) {
+        hash = (37 * hash) + MEDIUM_TYPE_FIELD_NUMBER;
+        hash = (53 * hash) + getMediumTypeList().hashCode();
+      }
+      if (hasLastAccessedMs()) {
+        hash = (37 * hash) + LAST_ACCESSED_MS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getLastAccessedMs());
+      }
       if (hasIsMountPoint()) {
         hash = (37 * hash) + IS_MOUNT_POINT_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
@@ -1593,6 +1957,11 @@ public final class InodeMeta {
         hash = (37 * hash) + REPLICATION_MIN_FIELD_NUMBER;
         hash = (53 * hash) + getReplicationMin();
       }
+      if (hasShouldPersistTime()) {
+        hash = (37 * hash) + SHOULD_PERSIST_TIME_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getShouldPersistTime());
+      }
       if (hasPersistJobId()) {
         hash = (37 * hash) + PERSIST_JOB_ID_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
@@ -1601,6 +1970,10 @@ public final class InodeMeta {
       if (hasPersistJobTempUfsPath()) {
         hash = (37 * hash) + PERSIST_JOB_TEMP_UFS_PATH_FIELD_NUMBER;
         hash = (53 * hash) + getPersistJobTempUfsPath().hashCode();
+      }
+      if (!internalGetXAttr().getMap().isEmpty()) {
+        hash = (37 * hash) + XATTR_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetXAttr().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -1700,7 +2073,7 @@ public final class InodeMeta {
      **
      * General inode metadata. This includes most inode metadata, but does not include the inode's
      * children or time of last modification.
-     * next available id: 27
+     * next available id: 31
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.meta.Inode}
@@ -1714,6 +2087,28 @@ public final class InodeMeta {
         return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_descriptor;
       }
 
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 29:
+            return internalGetXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 29:
+            return internalGetMutableXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_fieldAccessorTable
@@ -1768,38 +2163,45 @@ public final class InodeMeta {
         bitField0_ = (bitField0_ & ~0x00000400);
         ufsFingerprint_ = "";
         bitField0_ = (bitField0_ & ~0x00000800);
-        isMountPoint_ = false;
+        mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00001000);
-        hasDirectChildrenLoaded_ = false;
+        lastAccessedMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00002000);
-        childCount_ = 0L;
+        isMountPoint_ = false;
         bitField0_ = (bitField0_ & ~0x00004000);
+        hasDirectChildrenLoaded_ = false;
+        bitField0_ = (bitField0_ & ~0x00008000);
+        childCount_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00010000);
         if (defaultAclBuilder_ == null) {
           defaultAcl_ = null;
         } else {
           defaultAclBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00008000);
-        blockSizeBytes_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00010000);
-        blocks_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00020000);
-        isCacheable_ = false;
+        blockSizeBytes_ = 0L;
         bitField0_ = (bitField0_ & ~0x00040000);
-        isCompleted_ = false;
+        blocks_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00080000);
-        length_ = 0L;
+        isCacheable_ = false;
         bitField0_ = (bitField0_ & ~0x00100000);
-        replicationDurable_ = 0;
+        isCompleted_ = false;
         bitField0_ = (bitField0_ & ~0x00200000);
-        replicationMax_ = 0;
+        length_ = 0L;
         bitField0_ = (bitField0_ & ~0x00400000);
-        replicationMin_ = 0;
+        replicationDurable_ = 0;
         bitField0_ = (bitField0_ & ~0x00800000);
-        persistJobId_ = 0L;
+        replicationMax_ = 0;
         bitField0_ = (bitField0_ & ~0x01000000);
-        persistJobTempUfsPath_ = "";
+        replicationMin_ = 0;
         bitField0_ = (bitField0_ & ~0x02000000);
+        shouldPersistTime_ = 0L;
+        bitField0_ = (bitField0_ & ~0x04000000);
+        persistJobId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x08000000);
+        persistJobTempUfsPath_ = "";
+        bitField0_ = (bitField0_ & ~0x10000000);
+        internalGetMutableXAttr().clear();
         return this;
       }
 
@@ -1876,67 +2278,82 @@ public final class InodeMeta {
           to_bitField0_ |= 0x00000800;
         }
         result.ufsFingerprint_ = ufsFingerprint_;
-        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+        if (((bitField0_ & 0x00001000) == 0x00001000)) {
+          mediumType_ = mediumType_.getUnmodifiableView();
+          bitField0_ = (bitField0_ & ~0x00001000);
+        }
+        result.mediumType_ = mediumType_;
+        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
           to_bitField0_ |= 0x00001000;
         }
-        result.isMountPoint_ = isMountPoint_;
-        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+        result.lastAccessedMs_ = lastAccessedMs_;
+        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
           to_bitField0_ |= 0x00002000;
         }
-        result.hasDirectChildrenLoaded_ = hasDirectChildrenLoaded_;
-        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
+        result.isMountPoint_ = isMountPoint_;
+        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
           to_bitField0_ |= 0x00004000;
         }
-        result.childCount_ = childCount_;
-        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
+        result.hasDirectChildrenLoaded_ = hasDirectChildrenLoaded_;
+        if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
           to_bitField0_ |= 0x00008000;
+        }
+        result.childCount_ = childCount_;
+        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+          to_bitField0_ |= 0x00010000;
         }
         if (defaultAclBuilder_ == null) {
           result.defaultAcl_ = defaultAcl_;
         } else {
           result.defaultAcl_ = defaultAclBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
-          to_bitField0_ |= 0x00010000;
-        }
-        result.blockSizeBytes_ = blockSizeBytes_;
-        if (((bitField0_ & 0x00020000) == 0x00020000)) {
-          blocks_ = java.util.Collections.unmodifiableList(blocks_);
-          bitField0_ = (bitField0_ & ~0x00020000);
-        }
-        result.blocks_ = blocks_;
         if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
           to_bitField0_ |= 0x00020000;
         }
-        result.isCacheable_ = isCacheable_;
-        if (((from_bitField0_ & 0x00080000) == 0x00080000)) {
+        result.blockSizeBytes_ = blockSizeBytes_;
+        if (((bitField0_ & 0x00080000) == 0x00080000)) {
+          blocks_ = java.util.Collections.unmodifiableList(blocks_);
+          bitField0_ = (bitField0_ & ~0x00080000);
+        }
+        result.blocks_ = blocks_;
+        if (((from_bitField0_ & 0x00100000) == 0x00100000)) {
           to_bitField0_ |= 0x00040000;
         }
-        result.isCompleted_ = isCompleted_;
-        if (((from_bitField0_ & 0x00100000) == 0x00100000)) {
+        result.isCacheable_ = isCacheable_;
+        if (((from_bitField0_ & 0x00200000) == 0x00200000)) {
           to_bitField0_ |= 0x00080000;
         }
-        result.length_ = length_;
-        if (((from_bitField0_ & 0x00200000) == 0x00200000)) {
+        result.isCompleted_ = isCompleted_;
+        if (((from_bitField0_ & 0x00400000) == 0x00400000)) {
           to_bitField0_ |= 0x00100000;
         }
-        result.replicationDurable_ = replicationDurable_;
-        if (((from_bitField0_ & 0x00400000) == 0x00400000)) {
+        result.length_ = length_;
+        if (((from_bitField0_ & 0x00800000) == 0x00800000)) {
           to_bitField0_ |= 0x00200000;
         }
-        result.replicationMax_ = replicationMax_;
-        if (((from_bitField0_ & 0x00800000) == 0x00800000)) {
+        result.replicationDurable_ = replicationDurable_;
+        if (((from_bitField0_ & 0x01000000) == 0x01000000)) {
           to_bitField0_ |= 0x00400000;
         }
-        result.replicationMin_ = replicationMin_;
-        if (((from_bitField0_ & 0x01000000) == 0x01000000)) {
+        result.replicationMax_ = replicationMax_;
+        if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
           to_bitField0_ |= 0x00800000;
         }
-        result.persistJobId_ = persistJobId_;
-        if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
+        result.replicationMin_ = replicationMin_;
+        if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
           to_bitField0_ |= 0x01000000;
         }
+        result.shouldPersistTime_ = shouldPersistTime_;
+        if (((from_bitField0_ & 0x08000000) == 0x08000000)) {
+          to_bitField0_ |= 0x02000000;
+        }
+        result.persistJobId_ = persistJobId_;
+        if (((from_bitField0_ & 0x10000000) == 0x10000000)) {
+          to_bitField0_ |= 0x04000000;
+        }
         result.persistJobTempUfsPath_ = persistJobTempUfsPath_;
+        result.xAttr_ = internalGetXAttr();
+        result.xAttr_.makeImmutable();
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2021,6 +2438,19 @@ public final class InodeMeta {
           ufsFingerprint_ = other.ufsFingerprint_;
           onChanged();
         }
+        if (!other.mediumType_.isEmpty()) {
+          if (mediumType_.isEmpty()) {
+            mediumType_ = other.mediumType_;
+            bitField0_ = (bitField0_ & ~0x00001000);
+          } else {
+            ensureMediumTypeIsMutable();
+            mediumType_.addAll(other.mediumType_);
+          }
+          onChanged();
+        }
+        if (other.hasLastAccessedMs()) {
+          setLastAccessedMs(other.getLastAccessedMs());
+        }
         if (other.hasIsMountPoint()) {
           setIsMountPoint(other.getIsMountPoint());
         }
@@ -2039,7 +2469,7 @@ public final class InodeMeta {
         if (!other.blocks_.isEmpty()) {
           if (blocks_.isEmpty()) {
             blocks_ = other.blocks_;
-            bitField0_ = (bitField0_ & ~0x00020000);
+            bitField0_ = (bitField0_ & ~0x00080000);
           } else {
             ensureBlocksIsMutable();
             blocks_.addAll(other.blocks_);
@@ -2064,14 +2494,19 @@ public final class InodeMeta {
         if (other.hasReplicationMin()) {
           setReplicationMin(other.getReplicationMin());
         }
+        if (other.hasShouldPersistTime()) {
+          setShouldPersistTime(other.getShouldPersistTime());
+        }
         if (other.hasPersistJobId()) {
           setPersistJobId(other.getPersistJobId());
         }
         if (other.hasPersistJobTempUfsPath()) {
-          bitField0_ |= 0x02000000;
+          bitField0_ |= 0x10000000;
           persistJobTempUfsPath_ = other.persistJobTempUfsPath_;
           onChanged();
         }
+        internalGetMutableXAttr().mergeFrom(
+            other.internalGetXAttr());
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -2706,6 +3141,131 @@ public final class InodeMeta {
         return this;
       }
 
+      private com.google.protobuf.LazyStringList mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureMediumTypeIsMutable() {
+        if (!((bitField0_ & 0x00001000) == 0x00001000)) {
+          mediumType_ = new com.google.protobuf.LazyStringArrayList(mediumType_);
+          bitField0_ |= 0x00001000;
+         }
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public com.google.protobuf.ProtocolStringList
+          getMediumTypeList() {
+        return mediumType_.getUnmodifiableView();
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public int getMediumTypeCount() {
+        return mediumType_.size();
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public java.lang.String getMediumType(int index) {
+        return mediumType_.get(index);
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public com.google.protobuf.ByteString
+          getMediumTypeBytes(int index) {
+        return mediumType_.getByteString(index);
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public Builder setMediumType(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMediumTypeIsMutable();
+        mediumType_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public Builder addMediumType(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMediumTypeIsMutable();
+        mediumType_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public Builder addAllMediumType(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureMediumTypeIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, mediumType_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public Builder clearMediumType() {
+        mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00001000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string medium_type = 27;</code>
+       */
+      public Builder addMediumTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMediumTypeIsMutable();
+        mediumType_.add(value);
+        onChanged();
+        return this;
+      }
+
+      private long lastAccessedMs_ ;
+      /**
+       * <code>optional int64 last_accessed_ms = 30;</code>
+       */
+      public boolean hasLastAccessedMs() {
+        return ((bitField0_ & 0x00002000) == 0x00002000);
+      }
+      /**
+       * <code>optional int64 last_accessed_ms = 30;</code>
+       */
+      public long getLastAccessedMs() {
+        return lastAccessedMs_;
+      }
+      /**
+       * <code>optional int64 last_accessed_ms = 30;</code>
+       */
+      public Builder setLastAccessedMs(long value) {
+        bitField0_ |= 0x00002000;
+        lastAccessedMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 last_accessed_ms = 30;</code>
+       */
+      public Builder clearLastAccessedMs() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        lastAccessedMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
       private boolean isMountPoint_ ;
       /**
        * <pre>
@@ -2715,7 +3275,7 @@ public final class InodeMeta {
        * <code>optional bool is_mount_point = 12;</code>
        */
       public boolean hasIsMountPoint() {
-        return ((bitField0_ & 0x00001000) == 0x00001000);
+        return ((bitField0_ & 0x00004000) == 0x00004000);
       }
       /**
        * <pre>
@@ -2735,7 +3295,7 @@ public final class InodeMeta {
        * <code>optional bool is_mount_point = 12;</code>
        */
       public Builder setIsMountPoint(boolean value) {
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00004000;
         isMountPoint_ = value;
         onChanged();
         return this;
@@ -2748,7 +3308,7 @@ public final class InodeMeta {
        * <code>optional bool is_mount_point = 12;</code>
        */
       public Builder clearIsMountPoint() {
-        bitField0_ = (bitField0_ & ~0x00001000);
+        bitField0_ = (bitField0_ & ~0x00004000);
         isMountPoint_ = false;
         onChanged();
         return this;
@@ -2759,7 +3319,7 @@ public final class InodeMeta {
        * <code>optional bool has_direct_children_loaded = 13;</code>
        */
       public boolean hasHasDirectChildrenLoaded() {
-        return ((bitField0_ & 0x00002000) == 0x00002000);
+        return ((bitField0_ & 0x00008000) == 0x00008000);
       }
       /**
        * <code>optional bool has_direct_children_loaded = 13;</code>
@@ -2771,7 +3331,7 @@ public final class InodeMeta {
        * <code>optional bool has_direct_children_loaded = 13;</code>
        */
       public Builder setHasDirectChildrenLoaded(boolean value) {
-        bitField0_ |= 0x00002000;
+        bitField0_ |= 0x00008000;
         hasDirectChildrenLoaded_ = value;
         onChanged();
         return this;
@@ -2780,7 +3340,7 @@ public final class InodeMeta {
        * <code>optional bool has_direct_children_loaded = 13;</code>
        */
       public Builder clearHasDirectChildrenLoaded() {
-        bitField0_ = (bitField0_ & ~0x00002000);
+        bitField0_ = (bitField0_ & ~0x00008000);
         hasDirectChildrenLoaded_ = false;
         onChanged();
         return this;
@@ -2791,7 +3351,7 @@ public final class InodeMeta {
        * <code>optional int64 child_count = 26;</code>
        */
       public boolean hasChildCount() {
-        return ((bitField0_ & 0x00004000) == 0x00004000);
+        return ((bitField0_ & 0x00010000) == 0x00010000);
       }
       /**
        * <code>optional int64 child_count = 26;</code>
@@ -2803,7 +3363,7 @@ public final class InodeMeta {
        * <code>optional int64 child_count = 26;</code>
        */
       public Builder setChildCount(long value) {
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00010000;
         childCount_ = value;
         onChanged();
         return this;
@@ -2812,7 +3372,7 @@ public final class InodeMeta {
        * <code>optional int64 child_count = 26;</code>
        */
       public Builder clearChildCount() {
-        bitField0_ = (bitField0_ & ~0x00004000);
+        bitField0_ = (bitField0_ & ~0x00010000);
         childCount_ = 0L;
         onChanged();
         return this;
@@ -2825,7 +3385,7 @@ public final class InodeMeta {
        * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
        */
       public boolean hasDefaultAcl() {
-        return ((bitField0_ & 0x00008000) == 0x00008000);
+        return ((bitField0_ & 0x00020000) == 0x00020000);
       }
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
@@ -2850,7 +3410,7 @@ public final class InodeMeta {
         } else {
           defaultAclBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
@@ -2864,7 +3424,7 @@ public final class InodeMeta {
         } else {
           defaultAclBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
@@ -2872,7 +3432,7 @@ public final class InodeMeta {
        */
       public Builder mergeDefaultAcl(alluxio.proto.shared.Acl.AccessControlList value) {
         if (defaultAclBuilder_ == null) {
-          if (((bitField0_ & 0x00008000) == 0x00008000) &&
+          if (((bitField0_ & 0x00020000) == 0x00020000) &&
               defaultAcl_ != null &&
               defaultAcl_ != alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance()) {
             defaultAcl_ =
@@ -2884,7 +3444,7 @@ public final class InodeMeta {
         } else {
           defaultAclBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
@@ -2897,14 +3457,14 @@ public final class InodeMeta {
         } else {
           defaultAclBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00008000);
+        bitField0_ = (bitField0_ & ~0x00020000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
        */
       public alluxio.proto.shared.Acl.AccessControlList.Builder getDefaultAclBuilder() {
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00020000;
         onChanged();
         return getDefaultAclFieldBuilder().getBuilder();
       }
@@ -2945,7 +3505,7 @@ public final class InodeMeta {
        * <code>optional int64 block_size_bytes = 15;</code>
        */
       public boolean hasBlockSizeBytes() {
-        return ((bitField0_ & 0x00010000) == 0x00010000);
+        return ((bitField0_ & 0x00040000) == 0x00040000);
       }
       /**
        * <pre>
@@ -2965,7 +3525,7 @@ public final class InodeMeta {
        * <code>optional int64 block_size_bytes = 15;</code>
        */
       public Builder setBlockSizeBytes(long value) {
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00040000;
         blockSizeBytes_ = value;
         onChanged();
         return this;
@@ -2978,7 +3538,7 @@ public final class InodeMeta {
        * <code>optional int64 block_size_bytes = 15;</code>
        */
       public Builder clearBlockSizeBytes() {
-        bitField0_ = (bitField0_ & ~0x00010000);
+        bitField0_ = (bitField0_ & ~0x00040000);
         blockSizeBytes_ = 0L;
         onChanged();
         return this;
@@ -2986,9 +3546,9 @@ public final class InodeMeta {
 
       private java.util.List<java.lang.Long> blocks_ = java.util.Collections.emptyList();
       private void ensureBlocksIsMutable() {
-        if (!((bitField0_ & 0x00020000) == 0x00020000)) {
+        if (!((bitField0_ & 0x00080000) == 0x00080000)) {
           blocks_ = new java.util.ArrayList<java.lang.Long>(blocks_);
-          bitField0_ |= 0x00020000;
+          bitField0_ |= 0x00080000;
          }
       }
       /**
@@ -3045,7 +3605,7 @@ public final class InodeMeta {
        */
       public Builder clearBlocks() {
         blocks_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00020000);
+        bitField0_ = (bitField0_ & ~0x00080000);
         onChanged();
         return this;
       }
@@ -3055,7 +3615,7 @@ public final class InodeMeta {
        * <code>optional bool is_cacheable = 17;</code>
        */
       public boolean hasIsCacheable() {
-        return ((bitField0_ & 0x00040000) == 0x00040000);
+        return ((bitField0_ & 0x00100000) == 0x00100000);
       }
       /**
        * <code>optional bool is_cacheable = 17;</code>
@@ -3067,7 +3627,7 @@ public final class InodeMeta {
        * <code>optional bool is_cacheable = 17;</code>
        */
       public Builder setIsCacheable(boolean value) {
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00100000;
         isCacheable_ = value;
         onChanged();
         return this;
@@ -3076,7 +3636,7 @@ public final class InodeMeta {
        * <code>optional bool is_cacheable = 17;</code>
        */
       public Builder clearIsCacheable() {
-        bitField0_ = (bitField0_ & ~0x00040000);
+        bitField0_ = (bitField0_ & ~0x00100000);
         isCacheable_ = false;
         onChanged();
         return this;
@@ -3087,7 +3647,7 @@ public final class InodeMeta {
        * <code>optional bool is_completed = 18;</code>
        */
       public boolean hasIsCompleted() {
-        return ((bitField0_ & 0x00080000) == 0x00080000);
+        return ((bitField0_ & 0x00200000) == 0x00200000);
       }
       /**
        * <code>optional bool is_completed = 18;</code>
@@ -3099,7 +3659,7 @@ public final class InodeMeta {
        * <code>optional bool is_completed = 18;</code>
        */
       public Builder setIsCompleted(boolean value) {
-        bitField0_ |= 0x00080000;
+        bitField0_ |= 0x00200000;
         isCompleted_ = value;
         onChanged();
         return this;
@@ -3108,7 +3668,7 @@ public final class InodeMeta {
        * <code>optional bool is_completed = 18;</code>
        */
       public Builder clearIsCompleted() {
-        bitField0_ = (bitField0_ & ~0x00080000);
+        bitField0_ = (bitField0_ & ~0x00200000);
         isCompleted_ = false;
         onChanged();
         return this;
@@ -3119,7 +3679,7 @@ public final class InodeMeta {
        * <code>optional int64 length = 19;</code>
        */
       public boolean hasLength() {
-        return ((bitField0_ & 0x00100000) == 0x00100000);
+        return ((bitField0_ & 0x00400000) == 0x00400000);
       }
       /**
        * <code>optional int64 length = 19;</code>
@@ -3131,7 +3691,7 @@ public final class InodeMeta {
        * <code>optional int64 length = 19;</code>
        */
       public Builder setLength(long value) {
-        bitField0_ |= 0x00100000;
+        bitField0_ |= 0x00400000;
         length_ = value;
         onChanged();
         return this;
@@ -3140,7 +3700,7 @@ public final class InodeMeta {
        * <code>optional int64 length = 19;</code>
        */
       public Builder clearLength() {
-        bitField0_ = (bitField0_ & ~0x00100000);
+        bitField0_ = (bitField0_ & ~0x00400000);
         length_ = 0L;
         onChanged();
         return this;
@@ -3151,7 +3711,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_durable = 20;</code>
        */
       public boolean hasReplicationDurable() {
-        return ((bitField0_ & 0x00200000) == 0x00200000);
+        return ((bitField0_ & 0x00800000) == 0x00800000);
       }
       /**
        * <code>optional int32 replication_durable = 20;</code>
@@ -3163,7 +3723,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_durable = 20;</code>
        */
       public Builder setReplicationDurable(int value) {
-        bitField0_ |= 0x00200000;
+        bitField0_ |= 0x00800000;
         replicationDurable_ = value;
         onChanged();
         return this;
@@ -3172,7 +3732,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_durable = 20;</code>
        */
       public Builder clearReplicationDurable() {
-        bitField0_ = (bitField0_ & ~0x00200000);
+        bitField0_ = (bitField0_ & ~0x00800000);
         replicationDurable_ = 0;
         onChanged();
         return this;
@@ -3183,7 +3743,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_max = 21;</code>
        */
       public boolean hasReplicationMax() {
-        return ((bitField0_ & 0x00400000) == 0x00400000);
+        return ((bitField0_ & 0x01000000) == 0x01000000);
       }
       /**
        * <code>optional int32 replication_max = 21;</code>
@@ -3195,7 +3755,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_max = 21;</code>
        */
       public Builder setReplicationMax(int value) {
-        bitField0_ |= 0x00400000;
+        bitField0_ |= 0x01000000;
         replicationMax_ = value;
         onChanged();
         return this;
@@ -3204,7 +3764,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_max = 21;</code>
        */
       public Builder clearReplicationMax() {
-        bitField0_ = (bitField0_ & ~0x00400000);
+        bitField0_ = (bitField0_ & ~0x01000000);
         replicationMax_ = 0;
         onChanged();
         return this;
@@ -3215,7 +3775,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_min = 22;</code>
        */
       public boolean hasReplicationMin() {
-        return ((bitField0_ & 0x00800000) == 0x00800000);
+        return ((bitField0_ & 0x02000000) == 0x02000000);
       }
       /**
        * <code>optional int32 replication_min = 22;</code>
@@ -3227,7 +3787,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_min = 22;</code>
        */
       public Builder setReplicationMin(int value) {
-        bitField0_ |= 0x00800000;
+        bitField0_ |= 0x02000000;
         replicationMin_ = value;
         onChanged();
         return this;
@@ -3236,8 +3796,40 @@ public final class InodeMeta {
        * <code>optional int32 replication_min = 22;</code>
        */
       public Builder clearReplicationMin() {
-        bitField0_ = (bitField0_ & ~0x00800000);
+        bitField0_ = (bitField0_ & ~0x02000000);
         replicationMin_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long shouldPersistTime_ ;
+      /**
+       * <code>optional int64 should_persist_time = 28;</code>
+       */
+      public boolean hasShouldPersistTime() {
+        return ((bitField0_ & 0x04000000) == 0x04000000);
+      }
+      /**
+       * <code>optional int64 should_persist_time = 28;</code>
+       */
+      public long getShouldPersistTime() {
+        return shouldPersistTime_;
+      }
+      /**
+       * <code>optional int64 should_persist_time = 28;</code>
+       */
+      public Builder setShouldPersistTime(long value) {
+        bitField0_ |= 0x04000000;
+        shouldPersistTime_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 should_persist_time = 28;</code>
+       */
+      public Builder clearShouldPersistTime() {
+        bitField0_ = (bitField0_ & ~0x04000000);
+        shouldPersistTime_ = 0L;
         onChanged();
         return this;
       }
@@ -3251,7 +3843,7 @@ public final class InodeMeta {
        * <code>optional int64 persist_job_id = 23;</code>
        */
       public boolean hasPersistJobId() {
-        return ((bitField0_ & 0x01000000) == 0x01000000);
+        return ((bitField0_ & 0x08000000) == 0x08000000);
       }
       /**
        * <pre>
@@ -3271,7 +3863,7 @@ public final class InodeMeta {
        * <code>optional int64 persist_job_id = 23;</code>
        */
       public Builder setPersistJobId(long value) {
-        bitField0_ |= 0x01000000;
+        bitField0_ |= 0x08000000;
         persistJobId_ = value;
         onChanged();
         return this;
@@ -3284,7 +3876,7 @@ public final class InodeMeta {
        * <code>optional int64 persist_job_id = 23;</code>
        */
       public Builder clearPersistJobId() {
-        bitField0_ = (bitField0_ & ~0x01000000);
+        bitField0_ = (bitField0_ & ~0x08000000);
         persistJobId_ = 0L;
         onChanged();
         return this;
@@ -3295,7 +3887,7 @@ public final class InodeMeta {
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
        */
       public boolean hasPersistJobTempUfsPath() {
-        return ((bitField0_ & 0x02000000) == 0x02000000);
+        return ((bitField0_ & 0x10000000) == 0x10000000);
       }
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
@@ -3338,7 +3930,7 @@ public final class InodeMeta {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x02000000;
+  bitField0_ |= 0x10000000;
         persistJobTempUfsPath_ = value;
         onChanged();
         return this;
@@ -3347,7 +3939,7 @@ public final class InodeMeta {
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
        */
       public Builder clearPersistJobTempUfsPath() {
-        bitField0_ = (bitField0_ & ~0x02000000);
+        bitField0_ = (bitField0_ & ~0x10000000);
         persistJobTempUfsPath_ = getDefaultInstance().getPersistJobTempUfsPath();
         onChanged();
         return this;
@@ -3360,9 +3952,167 @@ public final class InodeMeta {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x02000000;
+  bitField0_ |= 0x10000000;
         persistJobTempUfsPath_ = value;
         onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, com.google.protobuf.ByteString> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+      internalGetXAttr() {
+        if (xAttr_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        return xAttr_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+      internalGetMutableXAttr() {
+        onChanged();;
+        if (xAttr_ == null) {
+          xAttr_ = com.google.protobuf.MapField.newMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        if (!xAttr_.isMutable()) {
+          xAttr_ = xAttr_.copy();
+        }
+        return xAttr_;
+      }
+
+      public int getXAttrCount() {
+        return internalGetXAttr().getMap().size();
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public boolean containsXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetXAttr().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getXAttrMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
+        return getXAttrMap();
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
+        return internalGetXAttr().getMap();
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public com.google.protobuf.ByteString getXAttrOrDefault(
+          java.lang.String key,
+          com.google.protobuf.ByteString defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+            internalGetXAttr().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public com.google.protobuf.ByteString getXAttrOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+            internalGetXAttr().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearXAttr() {
+        internalGetMutableXAttr().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public Builder removeXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+      getMutableXAttr() {
+        return internalGetMutableXAttr().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+      public Builder putXAttr(
+          java.lang.String key,
+          com.google.protobuf.ByteString value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <pre>
+       * Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+       * comparatively large amount of memory to other fields
+       * </pre>
+       *
+       * <code>map&lt;string, bytes&gt; xAttr = 29;</code>
+       */
+
+      public Builder putAllXAttr(
+          java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
+        internalGetMutableXAttr().getMutableMap()
+            .putAll(values);
         return this;
       }
       public final Builder setUnknownFields(
@@ -3419,6 +4169,11 @@ public final class InodeMeta {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_meta_Inode_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_meta_Inode_XAttrEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -3430,7 +4185,7 @@ public final class InodeMeta {
     java.lang.String[] descriptorData = {
       "\n\033proto/meta/inode_meta.proto\022\022alluxio.p" +
       "roto.meta\032\021grpc/common.proto\032\026proto/shar" +
-      "ed/acl.proto\"\273\005\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020cr" +
+      "ed/acl.proto\"\352\006\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020cr" +
       "eation_time_ms\030\002 \001(\003\022\024\n\014is_directory\030\003 \001" +
       "(\010\022\013\n\003ttl\030\004 \001(\003\022+\n\nttl_action\030\005 \001(\0162\027.al" +
       "luxio.grpc.TtlAction\022\030\n\020last_modified_ms" +
@@ -3438,16 +4193,21 @@ public final class InodeMeta {
       "\031\n\021persistence_state\030\010 \001(\t\022\021\n\tis_pinned\030" +
       "\t \001(\010\022;\n\naccess_acl\030\n \001(\0132\'.alluxio.prot" +
       "o.shared.AccessControlList\022\027\n\017ufs_finger" +
-      "print\030\013 \001(\t\022\026\n\016is_mount_point\030\014 \001(\010\022\"\n\032h" +
-      "as_direct_children_loaded\030\r \001(\010\022\023\n\013child" +
-      "_count\030\032 \001(\003\022<\n\013default_acl\030\016 \001(\0132\'.allu" +
-      "xio.proto.shared.AccessControlList\022\030\n\020bl" +
-      "ock_size_bytes\030\017 \001(\003\022\016\n\006blocks\030\020 \003(\003\022\024\n\014" +
-      "is_cacheable\030\021 \001(\010\022\024\n\014is_completed\030\022 \001(\010" +
-      "\022\016\n\006length\030\023 \001(\003\022\033\n\023replication_durable\030" +
-      "\024 \001(\005\022\027\n\017replication_max\030\025 \001(\005\022\027\n\017replic" +
-      "ation_min\030\026 \001(\005\022\026\n\016persist_job_id\030\027 \001(\003\022" +
-      "!\n\031persist_job_temp_ufs_path\030\030 \001(\t"
+      "print\030\013 \001(\t\022\023\n\013medium_type\030\033 \003(\t\022\030\n\020last" +
+      "_accessed_ms\030\036 \001(\003\022\026\n\016is_mount_point\030\014 \001" +
+      "(\010\022\"\n\032has_direct_children_loaded\030\r \001(\010\022\023" +
+      "\n\013child_count\030\032 \001(\003\022<\n\013default_acl\030\016 \001(\013" +
+      "2\'.alluxio.proto.shared.AccessControlLis" +
+      "t\022\030\n\020block_size_bytes\030\017 \001(\003\022\016\n\006blocks\030\020 " +
+      "\003(\003\022\024\n\014is_cacheable\030\021 \001(\010\022\024\n\014is_complete" +
+      "d\030\022 \001(\010\022\016\n\006length\030\023 \001(\003\022\033\n\023replication_d" +
+      "urable\030\024 \001(\005\022\027\n\017replication_max\030\025 \001(\005\022\027\n" +
+      "\017replication_min\030\026 \001(\005\022\033\n\023should_persist" +
+      "_time\030\034 \001(\003\022\026\n\016persist_job_id\030\027 \001(\003\022!\n\031p" +
+      "ersist_job_temp_ufs_path\030\030 \001(\t\0223\n\005xAttr\030" +
+      "\035 \003(\0132$.alluxio.proto.meta.Inode.XAttrEn" +
+      "try\032,\n\nXAttrEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
+      "\002 \001(\014:\0028\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3468,7 +4228,13 @@ public final class InodeMeta {
     internal_static_alluxio_proto_meta_Inode_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_meta_Inode_descriptor,
-        new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "IsMountPoint", "HasDirectChildrenLoaded", "ChildCount", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "PersistJobId", "PersistJobTempUfsPath", });
+        new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "MediumType", "LastAccessedMs", "IsMountPoint", "HasDirectChildrenLoaded", "ChildCount", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "ShouldPersistTime", "PersistJobId", "PersistJobTempUfsPath", "XAttr", });
+    internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor =
+      internal_static_alluxio_proto_meta_Inode_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_meta_Inode_XAttrEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     alluxio.grpc.CommonProto.getDescriptor();
     alluxio.proto.shared.Acl.getDescriptor();
   }

@@ -18,13 +18,19 @@ import alluxio.RuntimeConstants;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.JournalDomain;
+import alluxio.master.journal.DefaultJournalMaster;
+import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils.ProcessType;
@@ -155,10 +161,10 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void stop() throws Exception {
     stopRejectingServers();
     if (isServing()) {
-      stopMasters();
       stopServing();
-      mJournalSystem.stop();
     }
+    closeMasters();
+    mJournalSystem.stop();
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -211,6 +217,17 @@ public class AlluxioMasterProcess extends MasterProcess {
   protected void stopMasters() {
     try {
       mRegistry.stop();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Closes all masters, including block master, fileSystem master and additional masters.
+   */
+  protected void closeMasters() {
+    try {
+      mRegistry.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -274,24 +291,30 @@ public class AlluxioMasterProcess extends MasterProcess {
       stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
-          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
+          GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
+          ServerConfiguration.global(), ServerUserState.global());
 
       mRPCExecutor = new ForkJoinPool(
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_PARALLELISM),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM),
           ForkJoinPool.defaultForkJoinWorkerThreadFactory,
           null,
           true,
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_CORE_SIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_MAX_SIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_MIN_RUNNABLE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MIN_RUNNABLE),
           null,
-          ServerConfiguration.getMs(PropertyKey.MASTER_EXECUTOR_POOL_KEEPALIVE_TIME_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE),
           TimeUnit.MILLISECONDS);
 
       serverBuilder.executor(mRPCExecutor);
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
+
+      // Add journal master client service.
+      serverBuilder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
+          new GrpcService(new JournalMasterClientServiceHandler(
+              new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem))));
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
@@ -318,7 +341,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       mRPCExecutor.shutdown();
       try {
         mRPCExecutor.awaitTermination(
-            ServerConfiguration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT),
+            ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
             TimeUnit.MILLISECONDS);
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();

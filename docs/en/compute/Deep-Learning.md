@@ -71,7 +71,7 @@ so deep learning training can be more cost effective and take less time.
 
 We use Tensorflow as an example deep learning framework in this page to show how Alluxio can help
 data access and management. We run Tensorflow benchmarks on Alluxio Fuse as described in
-[Alluxio Tensorflow](({{ '/en/compute/Tensorflow.html' | relativize_url }})) docs.
+[Alluxio Tensorflow]({{ '/en/compute/Tensorflow.html' | relativize_url }}) docs.
 
 After mounting the under storage once, data in various under storages becomes immediately
 available through Alluxio and can be transparently accessed to the benchmark without any

@@ -24,26 +24,18 @@ import org.junit.Test;
  */
 public class S3AUnderFileSystemFactoryTest {
 
-  /**
-   * This test ensures the S3A UFS module correctly accepts paths that begin with s3a://.
-   */
   @Test
   public void factory() {
     AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
         conf);
-    UnderFileSystemFactory factory2 = UnderFileSystemFactoryRegistry.find("s3n://test-bucket/path",
+    UnderFileSystemFactory factory2 = UnderFileSystemFactoryRegistry.find("s3://test-bucket/path",
         conf);
-    UnderFileSystemFactory factory3 = UnderFileSystemFactoryRegistry.find("s3://test-bucket/path",
+    UnderFileSystemFactory factory3 = UnderFileSystemFactoryRegistry.find("s3n://test-bucket/path",
         conf);
 
-    Assert.assertNotNull(
-        "A UnderFileSystemFactory should exist for s3a paths when using this module", factory);
-    Assert.assertNull(
-        "A UnderFileSystemFactory should not exist for non s3a paths when using this module",
-        factory2);
-    Assert.assertNull(
-        "A UnderFileSystemFactory should not exist for non s3a paths when using this module",
-        factory3);
+    Assert.assertNotNull(factory);
+    Assert.assertNotNull(factory2);
+    Assert.assertNull(factory3);
   }
 }

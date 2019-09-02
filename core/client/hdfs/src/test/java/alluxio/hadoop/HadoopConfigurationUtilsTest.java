@@ -11,13 +11,16 @@
 
 package alluxio.hadoop;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -45,8 +48,8 @@ public final class HadoopConfigurationUtilsTest {
     long beforeSize = mConf.toMap().size();
     mConf = HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, mConf.copyProperties());
     long afterSize = mConf.toMap().size();
-    Assert.assertEquals(beforeSize, afterSize);
-    Assert.assertFalse(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals(beforeSize, afterSize);
+    assertFalse(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
   }
 
   /**
@@ -65,12 +68,12 @@ public final class HadoopConfigurationUtilsTest {
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
     mConf = HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, mConf.copyProperties());
-    Assert.assertEquals(TEST_S3_ACCCES_KEY, mConf.get(PropertyKey.S3A_ACCESS_KEY));
-    Assert.assertEquals(TEST_S3_SECRET_KEY, mConf.get(PropertyKey.S3A_SECRET_KEY));
-    Assert.assertEquals(Source.RUNTIME, mConf.getSource(PropertyKey.S3A_ACCESS_KEY));
-    Assert.assertEquals(Source.RUNTIME, mConf.getSource(PropertyKey.S3A_SECRET_KEY));
-    Assert.assertTrue(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-    Assert.assertEquals("host1:port1,host2:port2;host3:port3",
+    assertEquals(TEST_S3_ACCCES_KEY, mConf.get(PropertyKey.S3A_ACCESS_KEY));
+    assertEquals(TEST_S3_SECRET_KEY, mConf.get(PropertyKey.S3A_SECRET_KEY));
+    assertEquals(Source.RUNTIME, mConf.getSource(PropertyKey.S3A_ACCESS_KEY));
+    assertEquals(Source.RUNTIME, mConf.getSource(PropertyKey.S3A_SECRET_KEY));
+    assertTrue(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("host1:port1,host2:port2;host3:port3",
         mConf.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 }

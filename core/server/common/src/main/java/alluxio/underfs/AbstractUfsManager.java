@@ -129,8 +129,8 @@ public abstract class AbstractUfsManager implements UfsManager {
 
       // Detect whether to use managed blocking on UFS operations.
       boolean useManagedBlocking = fs.isObjectStorage();
-      if (ufsConf.isSet(PropertyKey.UNDERFS_RUN_WITH_MANAGEDBLOCKING)) {
-        useManagedBlocking = ufsConf.getBoolean(PropertyKey.UNDERFS_RUN_WITH_MANAGEDBLOCKING);
+      if (ufsConf.isSet(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED)) {
+        useManagedBlocking = ufsConf.getBoolean(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED);
       }
       // Wrap UFS under managed blocking forwarder if required.
       if (useManagedBlocking) {
@@ -194,8 +194,8 @@ public abstract class AbstractUfsManager implements UfsManager {
         Map<String, String> rootConf =
             ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
-            UnderFileSystemConfiguration.defaults().setReadOnly(rootReadOnly).setShared(rootShared)
-                .createMountSpecificConf(rootConf));
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+                .setReadOnly(rootReadOnly).setShared(rootShared).createMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {

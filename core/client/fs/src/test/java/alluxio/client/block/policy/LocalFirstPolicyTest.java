@@ -11,6 +11,7 @@
 
 package alluxio.client.block.policy;
 
+import static alluxio.client.util.ClientTestUtils.worker;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -23,8 +24,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.TieredIdentity;
-import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.testing.EqualsTester;
@@ -144,19 +143,5 @@ public final class LocalFirstPolicyTest {
         .addEqualityGroup(new LocalFirstPolicy(TieredIdentityFactory.fromString("node=x,rack=z",
             sConf), sConf))
         .testEquals();
-  }
-
-  private BlockWorkerInfo worker(long capacity, String node, String rack) {
-    WorkerNetAddress address = new WorkerNetAddress();
-    List<LocalityTier> tiers = new ArrayList<>();
-    if (node != null && !node.isEmpty()) {
-      address.setHost(node);
-      tiers.add(new LocalityTier(Constants.LOCALITY_NODE, node));
-    }
-    if (rack != null && !rack.isEmpty()) {
-      tiers.add(new LocalityTier(Constants.LOCALITY_RACK, rack));
-    }
-    address.setTieredIdentity(new TieredIdentity(tiers));
-    return new BlockWorkerInfo(address, capacity, 0);
   }
 }

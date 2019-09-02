@@ -24,8 +24,8 @@ Alluxio兼容Mesos 0.23.0及之后的版本。
 
 启动Mesos slave时，可以指定要管理的端口资源。
 
-```bash
-/usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
+```console
+$ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
 ```
 
 #### 更改Alluxio端口
@@ -33,11 +33,10 @@ Alluxio兼容Mesos 0.23.0及之后的版本。
 或者，您可以在`alluxio-site.properties`文件中指定Alluxio端口，如下所示：
 
 ```properties
-alluxio.master.port=31398
+alluxio.master.rpc.port=31398
 alluxio.master.web.port=31399
 
-alluxio.worker.port=31498
-alluxio.worker.data.port=31499
+alluxio.worker.rpc.port=31498
 alluxio.worker.web.port=31500
 ```
 
@@ -59,8 +58,8 @@ alluxio.worker.web.port=31500
 3. 设置属性`alluxio.home`的值为Alluxio在所有Mesos节点上的安装路径
 4. 启动Alluxio Mesos框架
 
-```bash
-./integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
+```console
+$ ./integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
 ```
 
 #### 通过Alluxio压缩包url进行部署
@@ -70,8 +69,8 @@ alluxio.worker.web.port=31500
 1. 设置属性`alluxio.integration.mesos.alluxio.jar.url`指向一个Alluxio压缩包
 2. 启动Alluxio Mesos框架
 
-```bash
-./integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
+```console
+$ ./integration/mesos/bin/alluxio-mesos-start.sh mesosMaster:5050 // address of Mesos master
 ```
 
 注意这个压缩包应该使用`-Pmesos`选项进行编译。1.3.0及以上的已发布的Alluxio压缩包是采用这种方式编译的。

@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -32,11 +31,9 @@ public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param uri path belonging to this under file system
    * @param ufsConf UFS configuration
-   * @param alluxioConf Alluxio configuration
    */
-  public ConsistentUnderFileSystem(AlluxioURI uri,
-      UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
-    super(uri, ufsConf, alluxioConf);
+  public ConsistentUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
   }
 
   @Override

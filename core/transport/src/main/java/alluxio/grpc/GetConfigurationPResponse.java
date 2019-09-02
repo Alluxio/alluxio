@@ -16,7 +16,9 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetConfigurationPResponse() {
-    configs_ = java.util.Collections.emptyList();
+    clusterConfigs_ = java.util.Collections.emptyList();
+    clusterConfigHash_ = "";
+    pathConfigHash_ = "";
   }
 
   @java.lang.Override
@@ -52,10 +54,10 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              configs_ = new java.util.ArrayList<alluxio.grpc.ConfigProperty>();
+              clusterConfigs_ = new java.util.ArrayList<alluxio.grpc.ConfigProperty>();
               mutable_bitField0_ |= 0x00000001;
             }
-            configs_.add(
+            clusterConfigs_.add(
                 input.readMessage(alluxio.grpc.ConfigProperty.PARSER, extensionRegistry));
             break;
           }
@@ -72,6 +74,18 @@ private static final long serialVersionUID = 0L;
                 pathConfigs__.getKey(), pathConfigs__.getValue());
             break;
           }
+          case 26: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000001;
+            clusterConfigHash_ = bs;
+            break;
+          }
+          case 34: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000002;
+            pathConfigHash_ = bs;
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -81,7 +95,7 @@ private static final long serialVersionUID = 0L;
           e).setUnfinishedMessage(this);
     } finally {
       if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-        configs_ = java.util.Collections.unmodifiableList(configs_);
+        clusterConfigs_ = java.util.Collections.unmodifiableList(clusterConfigs_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -110,39 +124,40 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.GetConfigurationPResponse.class, alluxio.grpc.GetConfigurationPResponse.Builder.class);
   }
 
-  public static final int CONFIGS_FIELD_NUMBER = 1;
-  private java.util.List<alluxio.grpc.ConfigProperty> configs_;
+  private int bitField0_;
+  public static final int CLUSTERCONFIGS_FIELD_NUMBER = 1;
+  private java.util.List<alluxio.grpc.ConfigProperty> clusterConfigs_;
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
-  public java.util.List<alluxio.grpc.ConfigProperty> getConfigsList() {
-    return configs_;
+  public java.util.List<alluxio.grpc.ConfigProperty> getClusterConfigsList() {
+    return clusterConfigs_;
   }
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
   public java.util.List<? extends alluxio.grpc.ConfigPropertyOrBuilder> 
-      getConfigsOrBuilderList() {
-    return configs_;
+      getClusterConfigsOrBuilderList() {
+    return clusterConfigs_;
   }
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
-  public int getConfigsCount() {
-    return configs_.size();
+  public int getClusterConfigsCount() {
+    return clusterConfigs_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
-  public alluxio.grpc.ConfigProperty getConfigs(int index) {
-    return configs_.get(index);
+  public alluxio.grpc.ConfigProperty getClusterConfigs(int index) {
+    return clusterConfigs_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
    */
-  public alluxio.grpc.ConfigPropertyOrBuilder getConfigsOrBuilder(
+  public alluxio.grpc.ConfigPropertyOrBuilder getClusterConfigsOrBuilder(
       int index) {
-    return configs_.get(index);
+    return clusterConfigs_.get(index);
   }
 
   public static final int PATHCONFIGS_FIELD_NUMBER = 2;
@@ -221,6 +236,90 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
+  public static final int CLUSTERCONFIGHASH_FIELD_NUMBER = 3;
+  private volatile java.lang.Object clusterConfigHash_;
+  /**
+   * <code>optional string clusterConfigHash = 3;</code>
+   */
+  public boolean hasClusterConfigHash() {
+    return ((bitField0_ & 0x00000001) == 0x00000001);
+  }
+  /**
+   * <code>optional string clusterConfigHash = 3;</code>
+   */
+  public java.lang.String getClusterConfigHash() {
+    java.lang.Object ref = clusterConfigHash_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        clusterConfigHash_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string clusterConfigHash = 3;</code>
+   */
+  public com.google.protobuf.ByteString
+      getClusterConfigHashBytes() {
+    java.lang.Object ref = clusterConfigHash_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      clusterConfigHash_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int PATHCONFIGHASH_FIELD_NUMBER = 4;
+  private volatile java.lang.Object pathConfigHash_;
+  /**
+   * <code>optional string pathConfigHash = 4;</code>
+   */
+  public boolean hasPathConfigHash() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional string pathConfigHash = 4;</code>
+   */
+  public java.lang.String getPathConfigHash() {
+    java.lang.Object ref = pathConfigHash_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        pathConfigHash_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string pathConfigHash = 4;</code>
+   */
+  public com.google.protobuf.ByteString
+      getPathConfigHashBytes() {
+    java.lang.Object ref = pathConfigHash_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      pathConfigHash_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -233,8 +332,8 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    for (int i = 0; i < configs_.size(); i++) {
-      output.writeMessage(1, configs_.get(i));
+    for (int i = 0; i < clusterConfigs_.size(); i++) {
+      output.writeMessage(1, clusterConfigs_.get(i));
     }
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
@@ -242,6 +341,12 @@ private static final long serialVersionUID = 0L;
         internalGetPathConfigs(),
         PathConfigsDefaultEntryHolder.defaultEntry,
         2);
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, clusterConfigHash_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, pathConfigHash_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -250,9 +355,9 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (int i = 0; i < configs_.size(); i++) {
+    for (int i = 0; i < clusterConfigs_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(1, configs_.get(i));
+        .computeMessageSize(1, clusterConfigs_.get(i));
     }
     for (java.util.Map.Entry<java.lang.String, alluxio.grpc.ConfigProperties> entry
          : internalGetPathConfigs().getMap().entrySet()) {
@@ -263,6 +368,12 @@ private static final long serialVersionUID = 0L;
           .build();
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, pathConfigs__);
+    }
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, clusterConfigHash_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, pathConfigHash_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -280,10 +391,20 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetConfigurationPResponse other = (alluxio.grpc.GetConfigurationPResponse) obj;
 
     boolean result = true;
-    result = result && getConfigsList()
-        .equals(other.getConfigsList());
+    result = result && getClusterConfigsList()
+        .equals(other.getClusterConfigsList());
     result = result && internalGetPathConfigs().equals(
         other.internalGetPathConfigs());
+    result = result && (hasClusterConfigHash() == other.hasClusterConfigHash());
+    if (hasClusterConfigHash()) {
+      result = result && getClusterConfigHash()
+          .equals(other.getClusterConfigHash());
+    }
+    result = result && (hasPathConfigHash() == other.hasPathConfigHash());
+    if (hasPathConfigHash()) {
+      result = result && getPathConfigHash()
+          .equals(other.getPathConfigHash());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -295,13 +416,21 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (getConfigsCount() > 0) {
-      hash = (37 * hash) + CONFIGS_FIELD_NUMBER;
-      hash = (53 * hash) + getConfigsList().hashCode();
+    if (getClusterConfigsCount() > 0) {
+      hash = (37 * hash) + CLUSTERCONFIGS_FIELD_NUMBER;
+      hash = (53 * hash) + getClusterConfigsList().hashCode();
     }
     if (!internalGetPathConfigs().getMap().isEmpty()) {
       hash = (37 * hash) + PATHCONFIGS_FIELD_NUMBER;
       hash = (53 * hash) + internalGetPathConfigs().hashCode();
+    }
+    if (hasClusterConfigHash()) {
+      hash = (37 * hash) + CLUSTERCONFIGHASH_FIELD_NUMBER;
+      hash = (53 * hash) + getClusterConfigHash().hashCode();
+    }
+    if (hasPathConfigHash()) {
+      hash = (37 * hash) + PATHCONFIGHASH_FIELD_NUMBER;
+      hash = (53 * hash) + getPathConfigHash().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -450,18 +579,22 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getConfigsFieldBuilder();
+        getClusterConfigsFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      if (configsBuilder_ == null) {
-        configs_ = java.util.Collections.emptyList();
+      if (clusterConfigsBuilder_ == null) {
+        clusterConfigs_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
       } else {
-        configsBuilder_.clear();
+        clusterConfigsBuilder_.clear();
       }
       internalGetMutablePathConfigs().clear();
+      clusterConfigHash_ = "";
+      bitField0_ = (bitField0_ & ~0x00000004);
+      pathConfigHash_ = "";
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -485,17 +618,27 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.GetConfigurationPResponse buildPartial() {
       alluxio.grpc.GetConfigurationPResponse result = new alluxio.grpc.GetConfigurationPResponse(this);
       int from_bitField0_ = bitField0_;
-      if (configsBuilder_ == null) {
+      int to_bitField0_ = 0;
+      if (clusterConfigsBuilder_ == null) {
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          configs_ = java.util.Collections.unmodifiableList(configs_);
+          clusterConfigs_ = java.util.Collections.unmodifiableList(clusterConfigs_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
-        result.configs_ = configs_;
+        result.clusterConfigs_ = clusterConfigs_;
       } else {
-        result.configs_ = configsBuilder_.build();
+        result.clusterConfigs_ = clusterConfigsBuilder_.build();
       }
       result.pathConfigs_ = internalGetPathConfigs();
       result.pathConfigs_.makeImmutable();
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000001;
+      }
+      result.clusterConfigHash_ = clusterConfigHash_;
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000002;
+      }
+      result.pathConfigHash_ = pathConfigHash_;
+      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -537,34 +680,44 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetConfigurationPResponse other) {
       if (other == alluxio.grpc.GetConfigurationPResponse.getDefaultInstance()) return this;
-      if (configsBuilder_ == null) {
-        if (!other.configs_.isEmpty()) {
-          if (configs_.isEmpty()) {
-            configs_ = other.configs_;
+      if (clusterConfigsBuilder_ == null) {
+        if (!other.clusterConfigs_.isEmpty()) {
+          if (clusterConfigs_.isEmpty()) {
+            clusterConfigs_ = other.clusterConfigs_;
             bitField0_ = (bitField0_ & ~0x00000001);
           } else {
-            ensureConfigsIsMutable();
-            configs_.addAll(other.configs_);
+            ensureClusterConfigsIsMutable();
+            clusterConfigs_.addAll(other.clusterConfigs_);
           }
           onChanged();
         }
       } else {
-        if (!other.configs_.isEmpty()) {
-          if (configsBuilder_.isEmpty()) {
-            configsBuilder_.dispose();
-            configsBuilder_ = null;
-            configs_ = other.configs_;
+        if (!other.clusterConfigs_.isEmpty()) {
+          if (clusterConfigsBuilder_.isEmpty()) {
+            clusterConfigsBuilder_.dispose();
+            clusterConfigsBuilder_ = null;
+            clusterConfigs_ = other.clusterConfigs_;
             bitField0_ = (bitField0_ & ~0x00000001);
-            configsBuilder_ = 
+            clusterConfigsBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getConfigsFieldBuilder() : null;
+                 getClusterConfigsFieldBuilder() : null;
           } else {
-            configsBuilder_.addAllMessages(other.configs_);
+            clusterConfigsBuilder_.addAllMessages(other.clusterConfigs_);
           }
         }
       }
       internalGetMutablePathConfigs().mergeFrom(
           other.internalGetPathConfigs());
+      if (other.hasClusterConfigHash()) {
+        bitField0_ |= 0x00000004;
+        clusterConfigHash_ = other.clusterConfigHash_;
+        onChanged();
+      }
+      if (other.hasPathConfigHash()) {
+        bitField0_ |= 0x00000008;
+        pathConfigHash_ = other.pathConfigHash_;
+        onChanged();
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -593,244 +746,244 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.util.List<alluxio.grpc.ConfigProperty> configs_ =
+    private java.util.List<alluxio.grpc.ConfigProperty> clusterConfigs_ =
       java.util.Collections.emptyList();
-    private void ensureConfigsIsMutable() {
+    private void ensureClusterConfigsIsMutable() {
       if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        configs_ = new java.util.ArrayList<alluxio.grpc.ConfigProperty>(configs_);
+        clusterConfigs_ = new java.util.ArrayList<alluxio.grpc.ConfigProperty>(clusterConfigs_);
         bitField0_ |= 0x00000001;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.ConfigProperty, alluxio.grpc.ConfigProperty.Builder, alluxio.grpc.ConfigPropertyOrBuilder> configsBuilder_;
+        alluxio.grpc.ConfigProperty, alluxio.grpc.ConfigProperty.Builder, alluxio.grpc.ConfigPropertyOrBuilder> clusterConfigsBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public java.util.List<alluxio.grpc.ConfigProperty> getConfigsList() {
-      if (configsBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(configs_);
+    public java.util.List<alluxio.grpc.ConfigProperty> getClusterConfigsList() {
+      if (clusterConfigsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(clusterConfigs_);
       } else {
-        return configsBuilder_.getMessageList();
+        return clusterConfigsBuilder_.getMessageList();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public int getConfigsCount() {
-      if (configsBuilder_ == null) {
-        return configs_.size();
+    public int getClusterConfigsCount() {
+      if (clusterConfigsBuilder_ == null) {
+        return clusterConfigs_.size();
       } else {
-        return configsBuilder_.getCount();
+        return clusterConfigsBuilder_.getCount();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public alluxio.grpc.ConfigProperty getConfigs(int index) {
-      if (configsBuilder_ == null) {
-        return configs_.get(index);
+    public alluxio.grpc.ConfigProperty getClusterConfigs(int index) {
+      if (clusterConfigsBuilder_ == null) {
+        return clusterConfigs_.get(index);
       } else {
-        return configsBuilder_.getMessage(index);
+        return clusterConfigsBuilder_.getMessage(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder setConfigs(
+    public Builder setClusterConfigs(
         int index, alluxio.grpc.ConfigProperty value) {
-      if (configsBuilder_ == null) {
+      if (clusterConfigsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureConfigsIsMutable();
-        configs_.set(index, value);
+        ensureClusterConfigsIsMutable();
+        clusterConfigs_.set(index, value);
         onChanged();
       } else {
-        configsBuilder_.setMessage(index, value);
+        clusterConfigsBuilder_.setMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder setConfigs(
+    public Builder setClusterConfigs(
         int index, alluxio.grpc.ConfigProperty.Builder builderForValue) {
-      if (configsBuilder_ == null) {
-        ensureConfigsIsMutable();
-        configs_.set(index, builderForValue.build());
+      if (clusterConfigsBuilder_ == null) {
+        ensureClusterConfigsIsMutable();
+        clusterConfigs_.set(index, builderForValue.build());
         onChanged();
       } else {
-        configsBuilder_.setMessage(index, builderForValue.build());
+        clusterConfigsBuilder_.setMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder addConfigs(alluxio.grpc.ConfigProperty value) {
-      if (configsBuilder_ == null) {
+    public Builder addClusterConfigs(alluxio.grpc.ConfigProperty value) {
+      if (clusterConfigsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureConfigsIsMutable();
-        configs_.add(value);
+        ensureClusterConfigsIsMutable();
+        clusterConfigs_.add(value);
         onChanged();
       } else {
-        configsBuilder_.addMessage(value);
+        clusterConfigsBuilder_.addMessage(value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder addConfigs(
+    public Builder addClusterConfigs(
         int index, alluxio.grpc.ConfigProperty value) {
-      if (configsBuilder_ == null) {
+      if (clusterConfigsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureConfigsIsMutable();
-        configs_.add(index, value);
+        ensureClusterConfigsIsMutable();
+        clusterConfigs_.add(index, value);
         onChanged();
       } else {
-        configsBuilder_.addMessage(index, value);
+        clusterConfigsBuilder_.addMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder addConfigs(
+    public Builder addClusterConfigs(
         alluxio.grpc.ConfigProperty.Builder builderForValue) {
-      if (configsBuilder_ == null) {
-        ensureConfigsIsMutable();
-        configs_.add(builderForValue.build());
+      if (clusterConfigsBuilder_ == null) {
+        ensureClusterConfigsIsMutable();
+        clusterConfigs_.add(builderForValue.build());
         onChanged();
       } else {
-        configsBuilder_.addMessage(builderForValue.build());
+        clusterConfigsBuilder_.addMessage(builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder addConfigs(
+    public Builder addClusterConfigs(
         int index, alluxio.grpc.ConfigProperty.Builder builderForValue) {
-      if (configsBuilder_ == null) {
-        ensureConfigsIsMutable();
-        configs_.add(index, builderForValue.build());
+      if (clusterConfigsBuilder_ == null) {
+        ensureClusterConfigsIsMutable();
+        clusterConfigs_.add(index, builderForValue.build());
         onChanged();
       } else {
-        configsBuilder_.addMessage(index, builderForValue.build());
+        clusterConfigsBuilder_.addMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder addAllConfigs(
+    public Builder addAllClusterConfigs(
         java.lang.Iterable<? extends alluxio.grpc.ConfigProperty> values) {
-      if (configsBuilder_ == null) {
-        ensureConfigsIsMutable();
+      if (clusterConfigsBuilder_ == null) {
+        ensureClusterConfigsIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, configs_);
+            values, clusterConfigs_);
         onChanged();
       } else {
-        configsBuilder_.addAllMessages(values);
+        clusterConfigsBuilder_.addAllMessages(values);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder clearConfigs() {
-      if (configsBuilder_ == null) {
-        configs_ = java.util.Collections.emptyList();
+    public Builder clearClusterConfigs() {
+      if (clusterConfigsBuilder_ == null) {
+        clusterConfigs_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
       } else {
-        configsBuilder_.clear();
+        clusterConfigsBuilder_.clear();
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public Builder removeConfigs(int index) {
-      if (configsBuilder_ == null) {
-        ensureConfigsIsMutable();
-        configs_.remove(index);
+    public Builder removeClusterConfigs(int index) {
+      if (clusterConfigsBuilder_ == null) {
+        ensureClusterConfigsIsMutable();
+        clusterConfigs_.remove(index);
         onChanged();
       } else {
-        configsBuilder_.remove(index);
+        clusterConfigsBuilder_.remove(index);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public alluxio.grpc.ConfigProperty.Builder getConfigsBuilder(
+    public alluxio.grpc.ConfigProperty.Builder getClusterConfigsBuilder(
         int index) {
-      return getConfigsFieldBuilder().getBuilder(index);
+      return getClusterConfigsFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public alluxio.grpc.ConfigPropertyOrBuilder getConfigsOrBuilder(
+    public alluxio.grpc.ConfigPropertyOrBuilder getClusterConfigsOrBuilder(
         int index) {
-      if (configsBuilder_ == null) {
-        return configs_.get(index);  } else {
-        return configsBuilder_.getMessageOrBuilder(index);
+      if (clusterConfigsBuilder_ == null) {
+        return clusterConfigs_.get(index);  } else {
+        return clusterConfigsBuilder_.getMessageOrBuilder(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
     public java.util.List<? extends alluxio.grpc.ConfigPropertyOrBuilder> 
-         getConfigsOrBuilderList() {
-      if (configsBuilder_ != null) {
-        return configsBuilder_.getMessageOrBuilderList();
+         getClusterConfigsOrBuilderList() {
+      if (clusterConfigsBuilder_ != null) {
+        return clusterConfigsBuilder_.getMessageOrBuilderList();
       } else {
-        return java.util.Collections.unmodifiableList(configs_);
+        return java.util.Collections.unmodifiableList(clusterConfigs_);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public alluxio.grpc.ConfigProperty.Builder addConfigsBuilder() {
-      return getConfigsFieldBuilder().addBuilder(
+    public alluxio.grpc.ConfigProperty.Builder addClusterConfigsBuilder() {
+      return getClusterConfigsFieldBuilder().addBuilder(
           alluxio.grpc.ConfigProperty.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
-    public alluxio.grpc.ConfigProperty.Builder addConfigsBuilder(
+    public alluxio.grpc.ConfigProperty.Builder addClusterConfigsBuilder(
         int index) {
-      return getConfigsFieldBuilder().addBuilder(
+      return getClusterConfigsFieldBuilder().addBuilder(
           index, alluxio.grpc.ConfigProperty.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty clusterConfigs = 1;</code>
      */
     public java.util.List<alluxio.grpc.ConfigProperty.Builder> 
-         getConfigsBuilderList() {
-      return getConfigsFieldBuilder().getBuilderList();
+         getClusterConfigsBuilderList() {
+      return getClusterConfigsFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
         alluxio.grpc.ConfigProperty, alluxio.grpc.ConfigProperty.Builder, alluxio.grpc.ConfigPropertyOrBuilder> 
-        getConfigsFieldBuilder() {
-      if (configsBuilder_ == null) {
-        configsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+        getClusterConfigsFieldBuilder() {
+      if (clusterConfigsBuilder_ == null) {
+        clusterConfigsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.ConfigProperty, alluxio.grpc.ConfigProperty.Builder, alluxio.grpc.ConfigPropertyOrBuilder>(
-                configs_,
+                clusterConfigs_,
                 ((bitField0_ & 0x00000001) == 0x00000001),
                 getParentForChildren(),
                 isClean());
-        configs_ = null;
+        clusterConfigs_ = null;
       }
-      return configsBuilder_;
+      return clusterConfigsBuilder_;
     }
 
     private com.google.protobuf.MapField<
@@ -953,6 +1106,158 @@ private static final long serialVersionUID = 0L;
         java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> values) {
       internalGetMutablePathConfigs().getMutableMap()
           .putAll(values);
+      return this;
+    }
+
+    private java.lang.Object clusterConfigHash_ = "";
+    /**
+     * <code>optional string clusterConfigHash = 3;</code>
+     */
+    public boolean hasClusterConfigHash() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string clusterConfigHash = 3;</code>
+     */
+    public java.lang.String getClusterConfigHash() {
+      java.lang.Object ref = clusterConfigHash_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          clusterConfigHash_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string clusterConfigHash = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getClusterConfigHashBytes() {
+      java.lang.Object ref = clusterConfigHash_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        clusterConfigHash_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string clusterConfigHash = 3;</code>
+     */
+    public Builder setClusterConfigHash(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+      clusterConfigHash_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string clusterConfigHash = 3;</code>
+     */
+    public Builder clearClusterConfigHash() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      clusterConfigHash_ = getDefaultInstance().getClusterConfigHash();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string clusterConfigHash = 3;</code>
+     */
+    public Builder setClusterConfigHashBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+      clusterConfigHash_ = value;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object pathConfigHash_ = "";
+    /**
+     * <code>optional string pathConfigHash = 4;</code>
+     */
+    public boolean hasPathConfigHash() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional string pathConfigHash = 4;</code>
+     */
+    public java.lang.String getPathConfigHash() {
+      java.lang.Object ref = pathConfigHash_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          pathConfigHash_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string pathConfigHash = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPathConfigHashBytes() {
+      java.lang.Object ref = pathConfigHash_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        pathConfigHash_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string pathConfigHash = 4;</code>
+     */
+    public Builder setPathConfigHash(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+      pathConfigHash_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string pathConfigHash = 4;</code>
+     */
+    public Builder clearPathConfigHash() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      pathConfigHash_ = getDefaultInstance().getPathConfigHash();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string pathConfigHash = 4;</code>
+     */
+    public Builder setPathConfigHashBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+      pathConfigHash_ = value;
+      onChanged();
       return this;
     }
     public final Builder setUnknownFields(

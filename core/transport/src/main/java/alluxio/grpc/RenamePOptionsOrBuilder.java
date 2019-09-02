@@ -19,4 +19,13 @@ public interface RenamePOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
+
+  /**
+   * <code>optional bool persist = 2;</code>
+   */
+  boolean hasPersist();
+  /**
+   * <code>optional bool persist = 2;</code>
+   */
+  boolean getPersist();
 }

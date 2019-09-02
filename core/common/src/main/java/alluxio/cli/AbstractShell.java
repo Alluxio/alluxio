@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,6 +44,7 @@ public abstract class AbstractShell implements Closeable {
   private Set<String> mUnstableAlias;
   private Map<String, Command> mCommands;
   protected InstancedConfiguration mConfiguration;
+  protected Closer mCloser;
 
   /**
    * Creates a new instance of {@link AbstractShell}.
@@ -53,6 +55,7 @@ public abstract class AbstractShell implements Closeable {
    */
   public AbstractShell(Map<String, String[]> commandAlias,
       Set<String> unstableAlias, InstancedConfiguration conf) {
+    mCloser = Closer.create();
     mConfiguration = conf; // This needs to go first in case loadCommands() uses the reference to
     // the configuration
     mUnstableAlias = unstableAlias;
@@ -99,12 +102,29 @@ public abstract class AbstractShell implements Closeable {
       }
     }
 
-    String[] args = Arrays.copyOfRange(argv, 1, argv.length);
     CommandLine cmdline;
     try {
+      String[] args;
+      if (command.hasSubCommand()) {
+        if (argv.length < 2) {
+          throw new InvalidArgumentException("No sub-command is specified");
+        }
+        if (!command.getSubCommands().containsKey(argv[1])) {
+          throw new InvalidArgumentException("Unknown sub-command: " + argv[1]);
+        }
+        command = command.getSubCommands().get(argv[1]);
+        if (argv.length > 2) {
+          args = Arrays.copyOfRange(argv, 2, argv.length);
+        } else {
+          args = new String[]{};
+        }
+      } else {
+        args = Arrays.copyOfRange(argv, 1, argv.length);
+      }
       cmdline = command.parseAndValidateArgs(args);
     } catch (InvalidArgumentException e) {
       System.out.println("Usage: " + command.getUsage());
+      System.out.println(command.getDescription());
       LOG.error("Invalid arguments for command {}:", command.getCommandName(), e);
       return -1;
     }
@@ -128,6 +148,7 @@ public abstract class AbstractShell implements Closeable {
 
   @Override
   public void close() throws IOException {
+    mCloser.close();
   }
 
   /**

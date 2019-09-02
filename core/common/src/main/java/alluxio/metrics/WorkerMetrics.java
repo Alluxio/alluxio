@@ -68,6 +68,10 @@ public final class WorkerMetrics {
   public static final String BYTES_READ_ALLUXIO_THROUGHPUT = "BytesReadAlluxioThroughput";
   public static final String BYTES_WRITTEN_ALLUXIO = "BytesWrittenAlluxio";
   public static final String BYTES_WRITTEN_ALLUXIO_THROUGHPUT = "BytesWrittenAlluxioThroughput";
+  public static final String BYTES_READ_DOMAIN = "BytesReadDomain";
+  public static final String BYTES_READ_DOMAIN_THROUGHPUT = "BytesReadDomainThroughput";
+  public static final String BYTES_WRITTEN_DOMAIN = "BytesWrittenDomain";
+  public static final String BYTES_WRITTEN_DOMAIN_THROUGHPUT = "BytesWrittenDomainThroughput";
 
   /** Total number of bytes read/written from UFS through this worker. */
   public static final String BYTES_READ_UFS = "BytesReadPerUfs";

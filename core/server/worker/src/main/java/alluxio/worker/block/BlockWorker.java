@@ -67,17 +67,18 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block is persisted
-   * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
-   * {@link BlockMasterClient#commitBlock(long, long, String, long, long)} succeeds.
+   * after {@link BlockStore#commitBlock(long, long, boolean)}. The block will not be accessible
+   * until {@link BlockMasterClient#commitBlock(long, long, String, String, long, long)} succeeds.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to commit
+   * @param pinOnCreate whether to pin block on create
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
-  void commitBlock(long sessionId, long blockId)
+  void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;
 
@@ -97,13 +98,15 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to create
    * @param tierAlias the alias of the tier to place the new block in,
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
+   * @param medium the name of the medium to place the new block in
    * @param initialBytes the initial amount of bytes to be allocated
    * @return a string representing the path to the local file
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
+  String createBlock(long sessionId, long blockId, String tierAlias,
+      String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
@@ -115,12 +118,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to be created
    * @param tierAlias the alias of the tier to place the new block in
+   * @param medium the name of the medium to place the new block in
    * @param initialBytes the initial amount of bytes to be allocated
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  void createBlockRemote(long sessionId, long blockId, String tierAlias, long initialBytes)
+  void createBlockRemote(long sessionId, long blockId, String tierAlias,
+      String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
@@ -255,6 +260,25 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *         block
    */
   void moveBlock(long sessionId, long blockId, String tierAlias)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      WorkerOutOfSpaceException, IOException;
+
+  /**
+   * Moves a block from its current location to a target location, with a specific medium type.
+   * Throws an {@link IllegalArgumentException} if the medium type is not one of the listed medium
+   * types.
+   *
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to move
+   * @param mediumType the medium type to move to
+   * @throws BlockDoesNotExistException if blockId cannot be found
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
+   *         newLocation
+   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
+   *         block
+   */
+  void moveBlockToMedium(long sessionId, long blockId, String mediumType)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 

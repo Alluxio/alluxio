@@ -49,6 +49,9 @@ public final class RegistryTest {
 
     @Override
     public void stop() throws IOException {}
+
+    @Override
+    public void close() throws IOException {}
   }
 
   public class ServerA extends TestServer {

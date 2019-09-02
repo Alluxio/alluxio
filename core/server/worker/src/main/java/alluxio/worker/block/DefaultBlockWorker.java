@@ -33,6 +33,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -219,24 +220,22 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mSessionCleaner = new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore);
 
     // Setup space reserver
-    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
-      mSpaceReserver = new SpaceReserver(this);
-      getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
-              (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
-              ServerConfiguration.global()));
-    }
+    mSpaceReserver = new SpaceReserver(this);
+    getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
+            (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
+            ServerConfiguration.global(), ServerUserState.global()));
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), ServerUserState.global()));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), ServerUserState.global()));
 
     // Setup storage checker
     if (ServerConfiguration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
@@ -244,7 +243,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, mStorageChecker,
               (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-                  ServerConfiguration.global()));
+                  ServerConfiguration.global(), ServerUserState.global()));
     }
 
     // Start the session cleanup checker to perform the periodical checking
@@ -261,7 +260,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     // 2. Shutdown the executors.
     // 3. Shutdown the clients. This needs to happen after the executors is shutdown because
     //    runnables running in the executors might be using the clients.
-    mSessionCleaner.stop();
+    if (mSessionCleaner != null) {
+      mSessionCleaner.stop();
+    }
     // The executor shutdown needs to be done in a loop with retry because the interrupt
     // signal can sometimes be ignored.
     try {
@@ -301,13 +302,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId)
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
     // NOTE: this may be invoked multiple times due to retry on client side.
     // TODO(binfan): find a better way to handle retry logic
     try {
-      mBlockStore.commitBlock(sessionId, blockId);
+      mBlockStore.commitBlock(sessionId, blockId, pinOnCreate);
     } catch (BlockAlreadyExistsException e) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure, therefore ignore the exception", blockId, e);
@@ -320,11 +321,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
+      String mediumType = loc.mediumType();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
-          length);
+      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), mediumType,
+          blockId, length);
     } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
@@ -346,9 +348,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
+  public String createBlock(long sessionId, long blockId, String tierAlias,
+      String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc;
+    if (medium.isEmpty()) {
+      loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    } else {
+      loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
+    }
     TempBlockMeta createdBlock;
     try {
       createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
@@ -362,9 +370,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void createBlockRemote(long sessionId, long blockId, String tierAlias, long initialBytes)
+  public void createBlockRemote(long sessionId, long blockId, String tierAlias,
+      String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc;
+    if (medium.isEmpty()) {
+      loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    } else {
+      loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
+    }
     mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
   }
 
@@ -431,6 +445,24 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
     // Because the move operation is expensive, we first check if the operation is necessary
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
+    long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    try {
+      BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
+      if (meta.getBlockLocation().belongsTo(dst)) {
+        return;
+      }
+    } finally {
+      mBlockStore.unlockBlock(lockId);
+    }
+    // Execute the block move if necessary
+    mBlockStore.moveBlock(sessionId, blockId, dst);
+  }
+
+  @Override
+  public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      WorkerOutOfSpaceException, IOException {
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInTierWithMedium(mediumType);
     long lockId = mBlockStore.lockBlock(sessionId, blockId);
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
@@ -528,7 +560,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
       if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
         try {
-          commitBlock(sessionId, blockId);
+          commitBlock(sessionId, blockId, false);
         } catch (BlockDoesNotExistException e) {
           // This can only happen if the session is expired. Ignore this exception if that happens.
           LOG.warn("Block {} does not exist while being committed.", blockId);

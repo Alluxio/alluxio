@@ -306,7 +306,7 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return mUfs.supportsFlush();
   }
 

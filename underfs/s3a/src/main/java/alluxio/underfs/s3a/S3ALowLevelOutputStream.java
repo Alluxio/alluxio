@@ -79,7 +79,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Some multipart uploads may not be completed/aborted in normal ways and need periodical cleanup
  * by enabling the {@link PropertyKey#UNDERFS_CLEANUP_ENABLED}.
  * When a leader master starts or a cleanup interval is reached, all the multipart uploads
- * older than {@link PropertyKey#UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE} will be cleaned.
+ * older than {@link PropertyKey#UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE} will be cleaned.
  */
 @NotThreadSafe
 public class S3ALowLevelOutputStream extends OutputStream {

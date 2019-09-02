@@ -33,8 +33,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.net.InetSocketAddress;
-
 /**
  * Integration tests for path level configurations.
  */
@@ -72,10 +70,8 @@ public class PathConfigurationIntegrationTest {
     mMetaConfig = new RetryHandlingMetaMasterConfigClient(
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
     setPathConfigurations(mMetaConfig);
-    InetSocketAddress address = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
-        .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
-    fsCtx.getClientContext().updateConfigurationDefaults(address);
+    fsCtx.getClientContext().loadConf(fsCtx.getMasterAddress(), true, true);
     mFileSystem = mLocalAlluxioClusterResource.get().getClient(fsCtx);
     mWriteThrough = CreateFilePOptions.newBuilder().setRecursive(true)
         .setWriteType(WritePType.THROUGH).build();

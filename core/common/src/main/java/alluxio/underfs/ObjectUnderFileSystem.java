@@ -26,10 +26,11 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Supplier;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -75,16 +77,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /** Executor service used for parallel UFS operations such as bulk deletes. */
   protected ExecutorService mExecutorService;
 
+  /** The root key of an object fs. */
+  protected final Supplier<String> mRootKeySupplier =
+      UnderFileSystemUtils.memoize(this::getRootKey);
+
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
    * @param ufsConf UFS configuration
    */
-  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
-      AlluxioConfiguration alluxioConf) {
-    super(uri, ufsConf, alluxioConf);
-    int numThreads = mAlluxioConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
+  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
+    int numThreads = mUfsConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPool(
         "alluxio-underfs-object-service-worker", numThreads).create();
   }
@@ -459,7 +464,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     @Override
     protected int getBatchSize() {
       // Delete batch size is same as listing length
-      return getListingChunkLength(mAlluxioConf);
+      return getListingChunkLength(mUfsConf);
     }
 
     @Override
@@ -476,7 +481,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -749,7 +754,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return false;
   }
 
@@ -759,7 +764,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param key the key to create
    * @return true if the operation was successful
    */
-  protected abstract boolean createEmptyObject(String key);
+  @VisibleForTesting
+  public abstract boolean createEmptyObject(String key);
 
   /**
    * Creates an {@link OutputStream} for object uploads.
@@ -881,7 +887,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected boolean isRoot(String path) {
     return PathUtils.normalizePath(path, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
+        PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
   }
 
   /**
@@ -1106,7 +1112,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected String stripPrefixIfPresent(String path) {
     String stripedKey = CommonUtils.stripPrefixIfPresent(path,
-        PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
+        PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
     if (!stripedKey.equals(path)) {
       return stripedKey;
     }

@@ -1,7 +1,9 @@
 - name: ALLUXIO_CONF_DIR
   description: The path to the alluxio configuration directory.
 - name: ALLUXIO_LOGS_DIR
-  description: The path to the Alluxio logs directory
+  description: The path to the directory that stores Alluxio server logs
+- name: ALLUXIO_USER_LOGS_DIR
+  description: The path to the directory that stores Alluxio user logs
 - name: ALLUXIO_MASTER_HOSTNAME
   description: hostname of the Alluxio master. Defaults to localhost
 - name: ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS
@@ -31,3 +33,4 @@
   description: >
     The path to the local directory where the Alluxio log server stores logs received from the
     Alluxio servers
+

@@ -62,6 +62,10 @@ public interface MasterInquireClient {
      * @return an authority string representing the connect details
      */
     Authority toAuthority();
+
+    boolean equals(Object obj);
+
+    int hashCode();
   }
 
   /**
@@ -77,7 +81,8 @@ public interface MasterInquireClient {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
-            conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
+            conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
+            conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
@@ -93,7 +98,8 @@ public interface MasterInquireClient {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH),
-            conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
+            conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
+            conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(conf);
         if (addresses.size() > 1) {

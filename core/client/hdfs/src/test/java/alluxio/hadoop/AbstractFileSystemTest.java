@@ -42,7 +42,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import org.apache.hadoop.fs.BlockLocation;
@@ -121,21 +120,6 @@ public class AbstractFileSystemTest {
   }
 
   @Test
-  public void hadoopShouldLoadFaultTolerantFileSystemWhenConfigured() throws Exception {
-    URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
-
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.MASTER_HOSTNAME, uri.getHost(),
-        PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
-        PropertyKey.ZOOKEEPER_ENABLED, "true",
-        PropertyKey.ZOOKEEPER_ADDRESS, "ignored"), mConfiguration).toResource()) {
-      final org.apache.hadoop.fs.FileSystem fs =
-          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-      assertTrue(fs instanceof FaultTolerantFileSystem);
-    }
-  }
-
-  @Test
   public void hadoopShouldLoadFileSystemWithSingleZkUri() throws Exception {
     org.apache.hadoop.conf.Configuration conf = getConf();
     URI uri = URI.create(Constants.HEADER + "zk@zkHost:2181/tmp/path.txt");
@@ -192,37 +176,6 @@ public class AbstractFileSystemTest {
     uri = URI.create("alluxio://host1:19998;host2:19998;host3:19998/path");
     fs = org.apache.hadoop.fs.FileSystem.get(uri, getConf());
     assertTrue(fs instanceof FileSystem);
-  }
-
-  /**
-   * Hadoop should be able to load uris like alluxio-ft:///path/to/file.
-   */
-  @Test
-  public void loadFaultTolerantSystemWhenUsingNoAuthority() throws Exception {
-    URI uri = URI.create(Constants.HEADER_FT + "/tmp/path.txt");
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.ZOOKEEPER_ENABLED, "true",
-        PropertyKey.ZOOKEEPER_ADDRESS, "ignored"), mConfiguration).toResource()) {
-      final org.apache.hadoop.fs.FileSystem fs =
-          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-      assertTrue(fs instanceof FaultTolerantFileSystem);
-    }
-  }
-
-  /**
-   * Tests that using an alluxio-ft:/// URI is still possible after using an alluxio://host:port/
-   * URI.
-   */
-  @Test
-  public void loadRegularThenFaultTolerant() throws Exception {
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.ZOOKEEPER_ENABLED, "true",
-        PropertyKey.ZOOKEEPER_ADDRESS, "host:2"), mConfiguration).toResource()) {
-      org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER + "host:1/"), getConf());
-      org.apache.hadoop.fs.FileSystem fs =
-          org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER_FT + "/"), getConf());
-      assertTrue(fs instanceof FaultTolerantFileSystem);
-    }
   }
 
   @Test
@@ -381,12 +334,14 @@ public class AbstractFileSystemTest {
   public void listStatus() throws Exception {
     FileInfo fileInfo1 = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
         .setMode(00755);
     FileInfo fileInfo2 = new FileInfo()
         .setLastModificationTimeMs(222L)
+        .setLastAccessTimeMs(234L)
         .setFolder(true)
         .setOwner("user2")
         .setGroup("group2")
@@ -438,6 +393,7 @@ public class AbstractFileSystemTest {
   public void getStatus() throws Exception {
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
@@ -639,6 +595,7 @@ public class AbstractFileSystemTest {
             toList()))).setUfsLocations(ufsLocations);
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
@@ -684,7 +641,6 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     if (HadoopClientTestUtils.isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
-      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
     }
     return conf;
   }
@@ -709,6 +665,7 @@ public class AbstractFileSystemTest {
     assertEquals(info.getGroup(), status.getGroup());
     assertEquals(info.getMode(), status.getPermission().toShort());
     assertEquals(info.getLastModificationTimeMs(), status.getModificationTime());
+    assertEquals(info.getLastAccessTimeMs(), status.getAccessTime());
     assertEquals(info.isFolder(), status.isDir());
   }
 }

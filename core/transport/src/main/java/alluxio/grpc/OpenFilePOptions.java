@@ -18,6 +18,7 @@ private static final long serialVersionUID = 0L;
   private OpenFilePOptions() {
     readType_ = 1;
     maxUfsReadConcurrency_ = 0;
+    updateLastAccessTime_ = true;
   }
 
   @java.lang.Override
@@ -78,6 +79,11 @@ private static final long serialVersionUID = 0L;
               commonOptions_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000004;
+            break;
+          }
+          case 32: {
+            bitField0_ |= 0x00000008;
+            updateLastAccessTime_ = input.readBool();
             break;
           }
         }
@@ -157,6 +163,21 @@ private static final long serialVersionUID = 0L;
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
 
+  public static final int UPDATELASTACCESSTIME_FIELD_NUMBER = 4;
+  private boolean updateLastAccessTime_;
+  /**
+   * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+   */
+  public boolean hasUpdateLastAccessTime() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+   */
+  public boolean getUpdateLastAccessTime() {
+    return updateLastAccessTime_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -178,6 +199,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       output.writeMessage(3, getCommonOptions());
     }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      output.writeBool(4, updateLastAccessTime_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -197,6 +221,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getCommonOptions());
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(4, updateLastAccessTime_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -228,6 +256,11 @@ private static final long serialVersionUID = 0L;
       result = result && getCommonOptions()
           .equals(other.getCommonOptions());
     }
+    result = result && (hasUpdateLastAccessTime() == other.hasUpdateLastAccessTime());
+    if (hasUpdateLastAccessTime()) {
+      result = result && (getUpdateLastAccessTime()
+          == other.getUpdateLastAccessTime());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -250,6 +283,11 @@ private static final long serialVersionUID = 0L;
     if (hasCommonOptions()) {
       hash = (37 * hash) + COMMONOPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getCommonOptions().hashCode();
+    }
+    if (hasUpdateLastAccessTime()) {
+      hash = (37 * hash) + UPDATELASTACCESSTIME_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getUpdateLastAccessTime());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -391,6 +429,8 @@ private static final long serialVersionUID = 0L;
         commonOptionsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000004);
+      updateLastAccessTime_ = true;
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -431,6 +471,10 @@ private static final long serialVersionUID = 0L;
       } else {
         result.commonOptions_ = commonOptionsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.updateLastAccessTime_ = updateLastAccessTime_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -481,6 +525,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasCommonOptions()) {
         mergeCommonOptions(other.getCommonOptions());
+      }
+      if (other.hasUpdateLastAccessTime()) {
+        setUpdateLastAccessTime(other.getUpdateLastAccessTime());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -694,6 +741,38 @@ private static final long serialVersionUID = 0L;
         commonOptions_ = null;
       }
       return commonOptionsBuilder_;
+    }
+
+    private boolean updateLastAccessTime_ = true;
+    /**
+     * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+     */
+    public boolean hasUpdateLastAccessTime() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+     */
+    public boolean getUpdateLastAccessTime() {
+      return updateLastAccessTime_;
+    }
+    /**
+     * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+     */
+    public Builder setUpdateLastAccessTime(boolean value) {
+      bitField0_ |= 0x00000008;
+      updateLastAccessTime_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+     */
+    public Builder clearUpdateLastAccessTime() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      updateLastAccessTime_ = true;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

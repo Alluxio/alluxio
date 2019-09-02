@@ -15,11 +15,13 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.network.ChannelType;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
@@ -84,7 +86,13 @@ public final class GrpcDataServer implements DataServer {
     mSocketAddress = bindAddress;
     mWorkerProcess = workerProcess;
     try {
-      BlockWorkerImpl blockWorkerService = new BlockWorkerImpl(workerProcess, mFsContext);
+      // There is no way to query domain socket address afterwards.
+      // So store the bind address if it's domain socket address.
+      if (bindAddress instanceof DomainSocketAddress) {
+        mDomainSocketAddress = (DomainSocketAddress) bindAddress;
+      }
+      BlockWorkerImpl blockWorkerService =
+          new BlockWorkerImpl(workerProcess, mFsContext, mDomainSocketAddress != null);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           ServerConfiguration.global()))
           .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
@@ -97,11 +105,6 @@ public final class GrpcDataServer implements DataServer {
           .maxInboundMessageSize((int) mMaxInboundMessageSize)
           .build()
           .start();
-      // There is no way to query domain socket address afterwards.
-      // So store the bind address if it's domain socket address.
-      if (bindAddress instanceof DomainSocketAddress) {
-        mDomainSocketAddress = (DomainSocketAddress) bindAddress;
-      }
     } catch (IOException e) {
       LOG.error("Server failed to start on {}", bindAddress.toString(), e);
       throw new RuntimeException(e);
@@ -112,7 +115,8 @@ public final class GrpcDataServer implements DataServer {
   private GrpcServerBuilder createServerBuilder(String hostName,
       SocketAddress bindAddress, ChannelType type) {
     GrpcServerBuilder builder =
-        GrpcServerBuilder.forAddress(hostName, bindAddress, ServerConfiguration.global());
+        GrpcServerBuilder.forAddress(GrpcServerAddress.create(hostName, bindAddress),
+            ServerConfiguration.global(), ServerUserState.global());
     int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
 
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.

@@ -93,7 +93,7 @@ public class FileSystemFactoryTest {
     Map<String, String> sysProps = new HashMap<>();
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), Boolean.toString(true));
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zk@192.168.0.5");
-    sysProps.put(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), "/leader");
+    sysProps.put(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), "/alluxio/leader");
 
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       ConfigurationUtils.reloadProperties();

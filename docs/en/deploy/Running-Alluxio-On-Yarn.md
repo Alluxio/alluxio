@@ -57,9 +57,9 @@ On Alluxio master nodes, we recommend at least 4 vcores.
 
 After updating the YARN configuration, restart YARN so that it picks up the changes:
 
-```bash
-${HADOOP_HOME}/sbin/stop-yarn.sh
-${HADOOP_HOME}/sbin/start-yarn.sh
+```console
+$ ${HADOOP_HOME}/sbin/stop-yarn.sh
+$ ${HADOOP_HOME}/sbin/start-yarn.sh
 ```
 
 ## Running Alluxio as a YARN Application
@@ -72,7 +72,7 @@ YARN to request containers for launching the master and workers.
 
 **A running YARN cluster**
 
-**[Alluxio downloaded locally](https://www.alluxio.org/download)**
+**[Alluxio downloaded locally](https://www.alluxio.io/download)**
 
 ### Launch Alluxio
 
@@ -85,11 +85,11 @@ Use the script `integration/yarn/bin/alluxio-yarn.sh` to start Alluxio. This scr
 For example, to launch an Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
 `hdfs://${HDFS_MASTER}:9000/tmp/` and the master hostname is `${ALLUXIO_MASTER}`, you would run
 
-```bash
+```console
 # If Yarn does not reside in `HADOOP_HOME`, set the environment variable `YARN_HOME` to the base path of Yarn.
-export HADOOP_HOME=<path to hadoop home>
-${HADOOP_HOME}/bin/hadoop fs -mkdir hdfs://${HDFS_MASTER}:9000/tmp
-${ALLUXIO_HOME}/integration/yarn/bin/alluxio-yarn.sh 3 hdfs://${HDFS_MASTER}:9000/tmp/ ${ALLUXIO_MASTER}
+$ export HADOOP_HOME=<path to hadoop home>
+$ ${HADOOP_HOME}/bin/hadoop fs -mkdir hdfs://${HDFS_MASTER}:9000/tmp
+$ ${ALLUXIO_HOME}/integration/yarn/bin/alluxio-yarn.sh 3 hdfs://${HDFS_MASTER}:9000/tmp/ ${ALLUXIO_MASTER}
 ```
 
 You may also start the Alluxio Master node separately from Yarn in which case the above startup will
@@ -109,8 +109,8 @@ INFO impl.YarnClientImpl: Submitted application application_1445469376652_0002
 
 This application ID can be used to destroy the application by running
 
-```bash
-${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
+```console
+$ ${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
 ```
 
 The ID can also be found in the YARN web UI.
@@ -121,8 +121,8 @@ Once you have the Alluxio application running, you can access the web UI at
 master_hostname:19999. To test IO functionality, configure
 `alluxio.master.hostname=master_hostname` in `conf/alluxio-site.properties` and run
 
-```bash
-${ALLUXIO_HOME}/bin/alluxio runTests
+```console
+$ ${ALLUXIO_HOME}/bin/alluxio runTests
 ```
 
 ### Configuration

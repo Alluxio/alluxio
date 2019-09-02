@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -25,7 +24,6 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.RuntimeConstants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -42,8 +40,8 @@ import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.meta.Block;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.web.MasterWebServer;
@@ -83,7 +81,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
       .setRpcPort(80).setDataPort(81).setWebPort(82);
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(83).setDataPort(84).setWebPort(85);
-  private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
+  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATIONS
+      = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
 
   private static final long UFS_SPACE_TOTAL = 100L;
@@ -139,10 +138,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
     List<String> tiers = Arrays.asList("MEM", "SSD");
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
-        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
+        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
-        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
+        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
     String filesPinnedProperty =
@@ -163,8 +162,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
         .thenReturn(UFS_SPACE_TOTAL);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
-    when(underFileSystemFactoryMock.create(eq(TEST_PATH),
-        Matchers.<UnderFileSystemConfiguration>any(), any(AlluxioConfiguration.class)))
+    when(underFileSystemFactoryMock.create(eq(TEST_PATH), Matchers.any()))
         .thenReturn(underFileSystemMock);
     UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }

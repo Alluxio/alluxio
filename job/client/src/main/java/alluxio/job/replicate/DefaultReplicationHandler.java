@@ -57,4 +57,15 @@ public final class DefaultReplicationHandler implements ReplicationHandler {
       mJobMasterClientPool.release(client);
     }
   }
+
+  @Override
+  public long migrate(AlluxioURI uri, long blockId, String workerHost, String mediumType)
+      throws AlluxioException, IOException {
+    JobMasterClient client = mJobMasterClientPool.acquire();
+    try {
+      return client.run(new MoveConfig(blockId, workerHost, mediumType));
+    } finally {
+      mJobMasterClientPool.release(client);
+    }
+  }
 }

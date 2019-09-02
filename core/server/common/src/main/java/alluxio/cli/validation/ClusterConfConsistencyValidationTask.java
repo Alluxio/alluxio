@@ -28,6 +28,8 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 /**
  * Task for validating system limit for current user.
  */
@@ -123,6 +125,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
     return result;
   }
 
+  @Nullable
   private Properties getNodeConf(String node) {
     try {
       String homeDir = ServerConfiguration.get(PropertyKey.HOME);

@@ -21,6 +21,7 @@ import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.journal.checkpoint.Checkpointed;
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader;
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.StreamUtils;
 
@@ -38,6 +39,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Utility methods for working with the Alluxio journal.
@@ -184,6 +187,29 @@ public final class JournalUtils {
     if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
       System.exit(-1);
       throw new RuntimeException(t);
+    }
+  }
+
+  /**
+   * Appends a journal entry to all the supplied journal sinks.
+   *
+   * @param journalSinks a supplier of journal sinks
+   * @param entry the journal entry
+   */
+  public static void sinkAppend(Supplier<Set<JournalSink>> journalSinks, JournalEntry entry) {
+    for (JournalSink sink : journalSinks.get()) {
+      sink.append(entry);
+    }
+  }
+
+  /**
+   * Appends a flush to all the supplied journal sinks.
+   *
+   * @param journalSinks a supplier of journal sinks
+   */
+  public static void sinkFlush(Supplier<Set<JournalSink>> journalSinks) {
+    for (JournalSink sink : journalSinks.get()) {
+      sink.flush();
     }
   }
 

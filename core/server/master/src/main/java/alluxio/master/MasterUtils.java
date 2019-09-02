@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 /**
  * This class encapsulates the different master services that are configured to run.
  */
-final class MasterUtils {
+public final class MasterUtils {
   private MasterUtils() {}  // prevent instantiation
 
   /**
@@ -67,7 +67,7 @@ final class MasterUtils {
         ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
-        return () -> new HeapBlockStore();
+        return HeapBlockStore::new;
       case ROCKS:
         return () -> new RocksBlockStore(baseDir);
       default:

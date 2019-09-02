@@ -12,21 +12,23 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.master.journal.JournalType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
-import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Throwables;
+import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +47,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiMasterLocalAlluxioCluster.class);
+  private static final int WAIT_MASTER_START_TIMEOUT_MS = 5000;
 
-  private RestartableTestingServer mCuratorServer = null;
+  private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
 
   private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
@@ -70,7 +73,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
     try {
       mCuratorServer =
-          new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
+              new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
       LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);
@@ -109,7 +112,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getLocalAlluxioMaster().getRpcLocalPort();
+    return Constants.HEADER + "zk@" + mCuratorServer.getConnectString();
   }
 
   @Override
@@ -200,6 +203,20 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
         WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
+  private void waitForMasterServing() throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("master starts serving RPCs", () -> {
+      try {
+        getClient().getStatus(new AlluxioURI("/"));
+        return true;
+      } catch (AlluxioException e) {
+        LOG.error("Failed to get status of /:", e);
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(WAIT_MASTER_START_TIMEOUT_MS));
+  }
+
   /**
    * Stops the cluster's Zookeeper service.
    */
@@ -218,8 +235,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   protected void startMasters() throws IOException {
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/election");
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/alluxio/election");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/alluxio/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
       ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR,
@@ -247,16 +264,10 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
-    boolean hasLeader = false;
-    while (!hasLeader) {
-      for (int i = 0; i < mMasters.size(); i++) {
-        if (mMasters.get(i).isServing()) {
-          LOG.info("master NO.{} is selected as leader. address: {}", i,
-              mMasters.get(i).getAddress());
-          hasLeader = true;
-          break;
-        }
-      }
+    try {
+      waitForMasterServing();
+    } catch (Exception e) {
+      throw new IOException(e);
     }
     // Use first master port
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT,
@@ -265,7 +276,6 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
   @Override
   public void startWorkers() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     super.startWorkers();
   }
 

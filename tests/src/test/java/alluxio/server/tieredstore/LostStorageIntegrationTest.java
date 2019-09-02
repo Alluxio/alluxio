@@ -115,7 +115,6 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
   private void startClusterWithWorkerStorage(String ssdPath, String hddPath) throws Exception {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB")
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), SSD_TIER)

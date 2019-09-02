@@ -59,4 +59,27 @@ public interface CreateLocalBlockRequestOrBuilder extends
    * <code>optional bool cleanup_on_failure = 6;</code>
    */
   boolean getCleanupOnFailure();
+
+  /**
+   * <code>optional string medium_type = 7;</code>
+   */
+  boolean hasMediumType();
+  /**
+   * <code>optional string medium_type = 7;</code>
+   */
+  java.lang.String getMediumType();
+  /**
+   * <code>optional string medium_type = 7;</code>
+   */
+  com.google.protobuf.ByteString
+      getMediumTypeBytes();
+
+  /**
+   * <code>optional bool pin_on_create = 8;</code>
+   */
+  boolean hasPinOnCreate();
+  /**
+   * <code>optional bool pin_on_create = 8;</code>
+   */
+  boolean getPinOnCreate();
 }

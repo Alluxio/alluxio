@@ -20,6 +20,8 @@ import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.MoveBlockRequest;
+import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -63,18 +65,22 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   private final AsyncCacheRequestManager mRequestManager;
   private ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
+  private final boolean mDomainSocketEnabled;
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
    *
    * @param workerProcess the worker process
    * @param fsContext context used to read blocks
+   * @param domainSocketEnabled is using domain sockets
    */
-  public BlockWorkerImpl(WorkerProcess workerProcess, FileSystemContext fsContext) {
+  public BlockWorkerImpl(WorkerProcess workerProcess, FileSystemContext fsContext,
+      boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
     mRequestManager = new AsyncCacheRequestManager(
         GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class),
         fsContext);
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   /**
@@ -103,7 +109,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
     }
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
         mWorkerProcess.getWorker(BlockWorker.class), callStreamObserver,
-        getAuthenticatedUserInfo());
+        getAuthenticatedUserInfo(), mDomainSocketEnabled);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
   }
@@ -117,8 +123,8 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
       responseObserver =
           new DataMessageServerRequestObserver<>(responseObserver, mWriteRequestMarshaller, null);
     }
-    DelegationWriteHandler handler =
-        new DelegationWriteHandler(mWorkerProcess, responseObserver, getAuthenticatedUserInfo());
+    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver,
+        getAuthenticatedUserInfo(), mDomainSocketEnabled);
     serverResponseObserver.setOnCancelHandler(handler::onCancel);
     return handler;
   }
@@ -159,6 +165,17 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
       mWorkerProcess.getWorker(BlockWorker.class).removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void moveBlock(MoveBlockRequest request,
+      StreamObserver<MoveBlockResponse> responseObserver) {
+    long sessionId = IdUtils.createSessionId();
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<MoveBlockResponse>) () -> {
+      mWorkerProcess.getWorker(BlockWorker.class).moveBlockToMedium(sessionId,
+          request.getBlockId(), request.getMediumType());
+      return MoveBlockResponse.getDefaultInstance();
+    }, "moveBlock", "request=%s", responseObserver, request);
   }
 
   /**

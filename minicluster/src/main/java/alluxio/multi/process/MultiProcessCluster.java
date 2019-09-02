@@ -14,19 +14,21 @@ package alluxio.multi.process;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
-import alluxio.client.meta.MetaMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.client.journal.JournalMasterClient;
+import alluxio.client.journal.RetryHandlingJournalMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MasterInfo;
@@ -43,12 +45,12 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
+import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +96,7 @@ public final class MultiProcessCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
   private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
+  private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 5000;
 
   private final Map<PropertyKey, String> mProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
@@ -115,7 +118,7 @@ public final class MultiProcessCluster {
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
   private State mState;
-  private RestartableTestingServer mCuratorServer;
+  private TestingServer mCuratorServer;
   private FileSystemContext mFilesystemContext;
   /**
    * Tracks whether the test has succeeded. If mSuccess is never updated before {@link #destroy()},
@@ -191,7 +194,7 @@ public final class MultiProcessCluster {
         break;
       case ZOOKEEPER_HA:
         mCuratorServer = mCloser.register(
-            new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
+                new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
         mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
         mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, "true");
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
@@ -234,6 +237,9 @@ public final class MultiProcessCluster {
       createWorker(i).start();
     }
     System.out.printf("Starting alluxio cluster in directory %s%n", mWorkDir.getAbsolutePath());
+    int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
+    System.out.printf("Alluxio primary master %s starts serving RPCs%n",
+        mMasterAddresses.get(primaryMasterIndex));
   }
 
   /**
@@ -267,10 +273,9 @@ public final class MultiProcessCluster {
         // Make sure the leader is serving.
         fs.getStatus(new AlluxioURI("/"));
         return true;
-      } catch (UnavailableException e) {
-        return false;
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        LOG.error("Failed to get status of root directory:", e);
+        return false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     int primaryRpcPort;
@@ -360,6 +365,18 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * @return a journal master client for alluxio master
+   */
+  public synchronized JournalMasterClient getJournalMasterClientForMaster() {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to create a journal master client, but state was %s", mState);
+
+    return new RetryHandlingJournalMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+            .setMasterInquireClient(getMasterInquireClient()).build());
+  }
+
+  /**
    * @return clients for communicating with the cluster
    */
   public synchronized Clients getClients() {
@@ -421,6 +438,7 @@ public final class MultiProcessCluster {
       saveWorkdir();
     }
     mCloser.close();
+    ServerConfiguration.reset();
     LOG.info("Destroyed cluster {}", mClusterName);
     mState = State.DESTROYED;
   }
@@ -477,6 +495,21 @@ public final class MultiProcessCluster {
    */
   public synchronized void updateMasterConf(PropertyKey key, @Nullable String value) {
     mMasters.forEach(master -> master.updateConf(key, value));
+  }
+
+  /**
+   * Updates internal master list with an external address.
+   *
+   * This API is to provide support when this cluster is joined by external masters.
+   * Calling this API with an external master address will make this cluster aware of it
+   * when creating clients/contexts etc.
+   *
+   * @param externalMasterAddress external master address
+   */
+  public synchronized void addExternalMasterAddress(MasterNetAddress externalMasterAddress) {
+    mMasterAddresses.add(externalMasterAddress);
+    // Reset current context to cause reinstantiation with new addresses.
+    mFilesystemContext = null;
   }
 
   /**
@@ -648,7 +681,8 @@ public final class MultiProcessCluster {
         return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
             ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             ServerConfiguration.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
-            ServerConfiguration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
+            ServerConfiguration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
+            ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }

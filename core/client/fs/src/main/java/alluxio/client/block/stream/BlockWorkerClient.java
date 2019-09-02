@@ -15,6 +15,8 @@ import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.MoveBlockRequest;
+import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.conf.AlluxioConfiguration;
@@ -119,6 +121,14 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   RemoveBlockResponse removeBlock(RemoveBlockRequest request);
+
+  /**
+   * Move a block from worker.
+   * @param request the remove block request
+   * @return the response from server
+   * @throws StatusRuntimeException if any error occurs
+   */
+  MoveBlockResponse moveBlock(MoveBlockRequest request);
 
   /**
    * Caches a block asynchronously.

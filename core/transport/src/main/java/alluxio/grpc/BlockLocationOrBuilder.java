@@ -42,4 +42,18 @@ public interface BlockLocationOrBuilder extends
    */
   com.google.protobuf.ByteString
       getTierAliasBytes();
+
+  /**
+   * <code>optional string mediumType = 4;</code>
+   */
+  boolean hasMediumType();
+  /**
+   * <code>optional string mediumType = 4;</code>
+   */
+  java.lang.String getMediumType();
+  /**
+   * <code>optional string mediumType = 4;</code>
+   */
+  com.google.protobuf.ByteString
+      getMediumTypeBytes();
 }

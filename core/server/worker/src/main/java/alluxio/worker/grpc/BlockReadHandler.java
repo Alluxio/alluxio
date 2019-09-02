@@ -62,6 +62,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   /** The Block Worker. */
   private final BlockWorker mWorker;
 
+  private final boolean mDomainSocketEnabled;
+
   /**
    * The data reader to read from a local block worker.
    */
@@ -153,11 +155,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
           try {
             BlockReader reader =
                 mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
-            String counterName = WorkerMetrics.BYTES_READ_ALLUXIO;
             context.setBlockReader(reader);
-            context.setCounter(MetricsSystem.counter(counterName));
-            String meterName = WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT;
-            context.setMeter(MetricsSystem.meter(meterName));
             mWorker.accessBlock(request.getSessionId(), request.getId());
             ((FileChannel) reader.getChannel()).position(request.getStart());
             return;
@@ -207,16 +205,27 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
    * @param blockWorker the block worker
    * @param responseObserver the response observer of the gRPC stream
    * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether reading block over domain socket
    */
   public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
-      StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+      StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo,
+      boolean domainSocketEnabled) {
     super(executorService, responseObserver, userInfo);
     mWorker = blockWorker;
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   @Override
   protected BlockReadRequestContext createRequestContext(alluxio.grpc.ReadRequest request) {
-    return new BlockReadRequestContext(request);
+    BlockReadRequestContext context = new BlockReadRequestContext(request);
+    if (mDomainSocketEnabled) {
+      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_READ_DOMAIN));
+      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT));
+    } else {
+      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_READ_ALLUXIO));
+      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
+    }
+    return context;
   }
 
   @Override

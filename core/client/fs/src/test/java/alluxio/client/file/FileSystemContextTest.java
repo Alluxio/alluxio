@@ -11,18 +11,18 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.fail;
+
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.resource.CloseableResource;
 
-import org.junit.Assert;
+import com.google.common.io.Closer;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Tests {@link FileSystemContext}.
@@ -44,13 +44,13 @@ public final class FileSystemContextTest {
    */
   @Test(timeout = 10000)
   public void acquireAtMaxLimit() throws Exception {
-    final List<FileSystemMasterClient> clients = new ArrayList<>();
+    Closer closer = Closer.create();
 
     // Acquire all the clients
     FileSystemContext fsContext = FileSystemContext.create(
         ClientContext.create(mConf));
     for (int i = 0; i < mConf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS); i++) {
-      clients.add(fsContext.acquireMasterClient());
+      closer.register(fsContext.acquireMasterClientResource());
     }
     Thread acquireThread = new Thread(new AcquireClient(fsContext));
     acquireThread.start();
@@ -61,13 +61,11 @@ public final class FileSystemContextTest {
     long start = System.currentTimeMillis();
     acquireThread.join(timeoutMs);
     if (System.currentTimeMillis() - start < timeoutMs) {
-      Assert.fail("Acquired a master client when the client pool was full.");
+      fail("Acquired a master client when the client pool was full.");
     }
 
     // Release all the clients
-    for (FileSystemMasterClient client : clients) {
-      fsContext.releaseMasterClient(client);
-    }
+    closer.close();
 
     // Wait for the spawned thread to complete. If it is unable to acquire a master client before
     // the defined timeout, fail.
@@ -75,7 +73,7 @@ public final class FileSystemContextTest {
     start = System.currentTimeMillis();
     acquireThread.join(timeoutMs);
     if (System.currentTimeMillis() - start >= timeoutMs) {
-      Assert.fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
+      fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
     }
   }
 
@@ -89,8 +87,8 @@ public final class FileSystemContextTest {
 
     @Override
     public void run() {
-      FileSystemMasterClient client = mFsCtx.acquireMasterClient();
-      mFsCtx.releaseMasterClient(client);
+      CloseableResource<FileSystemMasterClient> client = mFsCtx.acquireMasterClientResource();
+      client.close();
     }
   }
 }

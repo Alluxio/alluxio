@@ -32,6 +32,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MetricType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.AlluxioMasterProcess;
@@ -44,8 +45,8 @@ import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
-import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
@@ -83,7 +84,8 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
-import com.qmino.miredot.annotations.ReturnType;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -94,6 +96,7 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -121,6 +124,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for requesting general master information.
  */
 @NotThreadSafe
+@Api(value = "/master", description = "Alluxio Master Rest Service")
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
@@ -198,7 +202,8 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
-  @ReturnType("alluxio.wire.AlluxioMasterInfo")
+  @ApiOperation(value = "Get general Alluxio Master service information",
+      response = alluxio.wire.AlluxioMasterInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(() -> {
@@ -225,7 +230,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_INIT)
-  @ReturnType("alluxio.wire.MasterWebUIInit")
   public Response getWebUIInit() {
     return RestUtils.call(() -> {
       MasterWebUIInit response = new MasterWebUIInit();
@@ -243,7 +247,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setSecurityAuthorizationPermissionEnabled(
               ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setWorkerPort(ServerConfiguration.getInt(PropertyKey.WORKER_WEB_PORT))
-          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS))
+          .setRefreshInterval((int) ServerConfiguration.getMs(PropertyKey.WEB_REFRESH_INTERVAL))
           .setProxyDownloadFileApiUrl(proxyDowloadFileApiUrl);
 
       return response;
@@ -257,7 +261,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_OVERVIEW)
-  @ReturnType("alluxio.wire.MasterWebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
       MasterWebUIOverview response = new MasterWebUIOverview();
@@ -300,7 +303,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       MountPointInfo mountInfo;
       try {
-        mountInfo = mFileSystemMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
+        mountInfo = mFileSystemMaster.getDisplayMountPointInfo(new AlluxioURI(MountTable.ROOT));
 
         long capacityBytes = mountInfo.getUfsCapacityBytes();
         long usedBytes = mountInfo.getUfsUsedBytes();
@@ -346,7 +349,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_BROWSE)
-  @ReturnType("alluxio.wire.MasterWebUIBrowse")
   public Response getWebUIBrowse(@DefaultValue("/") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("") @QueryParam("end") String requestEnd,
@@ -360,14 +362,14 @@ public final class AlluxioMasterRestServiceHandler {
 
       if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
           && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
-        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
       response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG)).setShowPermissions(
           ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setInvalidPathError("");
       List<FileInfo> filesInfo;
-      String path = requestPath;
-      if (path == null || path.isEmpty()) {
+      String path = URLDecoder.decode(requestPath, "UTF-8");
+      if (path.isEmpty()) {
         path = AlluxioURI.SEPARATOR;
       }
       AlluxioURI currentPath = new AlluxioURI(path);
@@ -561,7 +563,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_DATA)
-  @ReturnType("alluxio.wire.MasterWebUIData")
   public Response getWebUIData(@DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
@@ -573,7 +574,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
           && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
-        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
       response.setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setFatalError("")
           .setShowPermissions(ServerConfiguration
@@ -637,7 +638,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_LOGS)
-  @ReturnType("alluxio.wire.MasterWebUILogs")
   public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("") @QueryParam("end") String requestEnd,
@@ -772,7 +772,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_CONFIG)
-  @ReturnType("alluxio.wire.MasterWebUIConfiguration")
   public Response getWebUIConfiguration() {
     return RestUtils.call(() -> {
       MasterWebUIConfiguration response = new MasterWebUIConfiguration();
@@ -782,7 +781,8 @@ public final class AlluxioMasterRestServiceHandler {
       TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
       Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
       for (ConfigProperty configProperty : mMetaMaster
-          .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())) {
+          .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+          .toProto().getClusterConfigsList()) {
         String confName = configProperty.getName();
         if (!alluxioConfExcludes.contains(confName)) {
           sortedProperties.add(new ImmutableTriple<>(confName,
@@ -804,7 +804,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_WORKERS)
-  @ReturnType("alluxio.wire.MasterWebUIWorkers")
   public Response getWebUIWorkers() {
     return RestUtils.call(() -> {
       MasterWebUIWorkers response = new MasterWebUIWorkers();
@@ -847,7 +846,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_METRICS)
-  @ReturnType("alluxio.wire.MasterWebUIMetrics")
   public Response getWebUIMetrics() {
     return RestUtils.call(() -> {
       MasterWebUIMetrics response = new MasterWebUIMetrics();
@@ -882,16 +880,20 @@ public final class AlluxioMasterRestServiceHandler {
           .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL)).getValue();
       Long bytesReadRemote = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO)).getValue();
+      Long bytesReadDomainSocket = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN)).getValue();
       Long bytesReadUfs = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL)).getValue();
       response.setTotalBytesReadLocal(FormatUtils.getSizeFromBytes(bytesReadLocal))
+          .setTotalBytesReadDomainSocket(FormatUtils.getSizeFromBytes(bytesReadDomainSocket))
           .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
           .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
       // cluster cache hit and miss
-      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
+      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs + bytesReadDomainSocket;
       double cacheHitLocalPercentage =
-          (bytesReadTotal > 0) ? (100D * bytesReadLocal / bytesReadTotal) : 0;
+          (bytesReadTotal > 0)
+              ? (100D * (bytesReadLocal + bytesReadDomainSocket) / bytesReadTotal) : 0;
       double cacheHitRemotePercentage =
           (bytesReadTotal > 0) ? (100D * bytesReadRemote / bytesReadTotal) : 0;
       double cacheMissPercentage =
@@ -904,14 +906,20 @@ public final class AlluxioMasterRestServiceHandler {
       // cluster write size
       Long bytesWrittenAlluxio = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO)).getValue();
+      Long bytesWrittenDomainSocket = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN)).getValue();
       Long bytesWrittenUfs = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL)).getValue();
       response.setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
+          .setTotalBytesWrittenDomainSocket(FormatUtils.getSizeFromBytes(bytesWrittenDomainSocket))
           .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
       // cluster read throughput
       Long bytesReadLocalThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT))
+          .getValue();
+      Long bytesReadDomainSocketThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT))
           .getValue();
       Long bytesReadRemoteThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT))
@@ -921,6 +929,8 @@ public final class AlluxioMasterRestServiceHandler {
           .getValue();
       response
           .setTotalBytesReadLocalThroughput(FormatUtils.getSizeFromBytes(bytesReadLocalThroughput))
+          .setTotalBytesReadDomainSocketThroughput(
+              FormatUtils.getSizeFromBytes(bytesReadDomainSocketThroughput))
           .setTotalBytesReadRemoteThroughput(
               FormatUtils.getSizeFromBytes(bytesReadRemoteThroughput))
           .setTotalBytesReadUfsThroughput(FormatUtils.getSizeFromBytes(bytesReadUfsThroughput));
@@ -929,11 +939,16 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT))
           .getValue();
+      Long bytesWrittenDomainSocketThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT))
+          .getValue();
       Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
           .getValue();
       response.setTotalBytesWrittenAlluxioThroughput(
           FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
+          .setTotalBytesWrittenDomainSocketThroughput(
+              FormatUtils.getSizeFromBytes(bytesWrittenDomainSocketThroughput))
           .setTotalBytesWrittenUfsThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput));
 
@@ -948,7 +963,8 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_READ_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
           ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
@@ -961,7 +977,8 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_WRITTEN_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
           ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
@@ -974,15 +991,18 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.UFS_OP_PREFIX)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         if (!metric.getTags().containsKey(WorkerMetrics.TAG_UFS)) {
           continue;
         }
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
+          // Unescape the URI for display
+          String ufsUnescaped = MetricsSystem.unescape(ufs);
           Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-          perUfsMap.put(ufs, (long) metric.getValue());
-          ufsOpsMap.put(ufs, perUfsMap);
+          perUfsMap.put(ufsUnescaped, (long) metric.getValue());
+          ufsOpsMap.put(ufsUnescaped, perUfsMap);
         }
       }
       response.setUfsOps(ufsOpsMap);
@@ -1021,7 +1041,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CONFIGURATION)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
     return RestUtils.call(() -> getConfigurationInternal(true), ServerConfiguration.global());
@@ -1035,7 +1054,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_METRICS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
     return RestUtils.call(this::getMetricsInternal, ServerConfiguration.global());
@@ -1049,7 +1067,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_RPC_ADDRESS)
-  @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
     return RestUtils
@@ -1064,7 +1081,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_START_TIME_MS)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
     return RestUtils.call(() -> mMasterProcess.getStartTimeMs(), ServerConfiguration.global());
@@ -1078,7 +1094,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UPTIME_MS)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
     return RestUtils.call(() -> mMasterProcess.getUptimeMs(), ServerConfiguration.global());
@@ -1092,7 +1107,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_VERSION)
-  @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
     return RestUtils.call(() -> RuntimeConstants.VERSION, ServerConfiguration.global());
@@ -1106,7 +1120,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
     return RestUtils.call(() -> mBlockMaster.getCapacityBytes(), ServerConfiguration.global());
@@ -1120,7 +1133,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
     return RestUtils.call(() -> mBlockMaster.getUsedBytes(), ServerConfiguration.global());
@@ -1134,7 +1146,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_FREE_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getFreeBytes() {
     return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes(),
@@ -1150,7 +1161,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_CAPACITY_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsCapacityBytes() {
     return RestUtils.call(() -> getUfsCapacityInternal().getTotal(), ServerConfiguration.global());
@@ -1164,7 +1174,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_USED_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsUsedBytes() {
     return RestUtils.call(() -> getUfsCapacityInternal().getUsed(), ServerConfiguration.global());
@@ -1178,7 +1187,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_UFS_FREE_BYTES)
-  @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsFreeBytes() {
     return RestUtils.call(() -> {
@@ -1213,7 +1221,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getCapacityBytesOnTiers() {
     return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
@@ -1234,7 +1241,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getUsedBytesOnTiers() {
     return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
@@ -1254,7 +1260,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_WORKER_COUNT)
-  @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
     return RestUtils.call(() -> mBlockMaster.getWorkerCount(), ServerConfiguration.global());
@@ -1268,7 +1273,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_WORKER_INFO_LIST)
-  @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
     return RestUtils.call(() -> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
@@ -1339,7 +1343,6 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @POST
   @Path(LOG_LEVEL)
-  @ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), ServerConfiguration.global());

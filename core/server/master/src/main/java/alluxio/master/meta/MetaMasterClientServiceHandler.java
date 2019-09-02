@@ -17,6 +17,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPResponse;
+import alluxio.grpc.CheckpointPOptions;
+import alluxio.grpc.CheckpointPResponse;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
@@ -155,5 +157,13 @@ public final class MetaMasterClientServiceHandler
       }
       return GetMetricsPResponse.newBuilder().putAllMetrics(metricsMap).build();
     }, "getConfiguration", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void checkpoint(CheckpointPOptions options,
+      StreamObserver<CheckpointPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
+        CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
+        "checkpoint", "options=%s", responseObserver, options);
   }
 }

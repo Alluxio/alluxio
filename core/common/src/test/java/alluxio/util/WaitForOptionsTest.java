@@ -11,9 +11,10 @@
 
 package alluxio.util;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.test.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Random;
@@ -22,8 +23,8 @@ public final class WaitForOptionsTest {
   @Test
   public void defaults() {
     WaitForOptions options = WaitForOptions.defaults();
-    Assert.assertEquals(WaitForOptions.DEFAULT_INTERVAL, options.getInterval());
-    Assert.assertEquals(WaitForOptions.NEVER, options.getTimeoutMs());
+    assertEquals(WaitForOptions.DEFAULT_INTERVAL, options.getInterval());
+    assertEquals(WaitForOptions.NEVER, options.getTimeoutMs());
   }
 
   /**
@@ -39,8 +40,8 @@ public final class WaitForOptionsTest {
     options.setInterval(interval);
     options.setTimeoutMs(timeout);
 
-    Assert.assertEquals(interval, options.getInterval());
-    Assert.assertEquals(timeout, options.getTimeoutMs());
+    assertEquals(interval, options.getInterval());
+    assertEquals(timeout, options.getTimeoutMs());
   }
 
   @Test

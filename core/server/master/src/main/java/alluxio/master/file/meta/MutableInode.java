@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
@@ -23,6 +24,7 @@ import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
@@ -30,8 +32,12 @@ import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -49,12 +55,15 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   protected long mTtl;
   protected TtlAction mTtlAction;
   private long mLastModificationTimeMs;
+  private long mLastAccessTimeMs;
   private String mName;
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
+  private Set<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
+  private Map<String, byte[]> mXAttr;
 
   protected MutableInode(long id, boolean isDirectory) {
     mCreationTimeMs = System.currentTimeMillis();
@@ -64,12 +73,15 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mLastModificationTimeMs = mCreationTimeMs;
+    mLastAccessTimeMs = mCreationTimeMs;
     mName = null;
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
+    mMediumTypes = new HashSet<>();
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    mXAttr = null;
   }
 
   @Override
@@ -100,6 +112,11 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   @Override
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
+  }
+
+  @Override
+  public long getLastAccessTimeMs() {
+    return mLastAccessTimeMs;
   }
 
   @Override
@@ -160,6 +177,17 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   @Override
   public AccessControlList getACL() {
     return mAcl;
+  }
+
+  @Override
+  @Nullable
+  public Map<String, byte[]> getXAttr() {
+    return mXAttr;
+  }
+
+  @Override
+  public Set<String> getMediumTypes() {
+    return mMediumTypes;
   }
 
   /**
@@ -307,6 +335,29 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   /**
+   * @param lastAccessTimeMs the last access time to use
+   * @return the updated object
+   */
+  public T setLastAccessTimeMs(long lastAccessTimeMs) {
+    return setLastAccessTimeMs(lastAccessTimeMs, false);
+  }
+
+  /**
+   * @param lastAccessTimeMs the last access time to use
+   * @param override if true, sets the value regardless of the previous last access time,
+   *                 should be set to true for journal replay
+   * @return the updated object
+   */
+  public T setLastAccessTimeMs(long lastAccessTimeMs, boolean override) {
+    synchronized (this) {
+      if (override || mLastAccessTimeMs < lastAccessTimeMs) {
+        mLastAccessTimeMs = lastAccessTimeMs;
+      }
+      return getThis();
+    }
+  }
+
+  /**
    * @param name the name to use
    * @return the updated object
    */
@@ -430,6 +481,24 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     return getThis();
   }
 
+  /**
+   * @param xAttr The new set of extended attributes
+   * @return the updated object
+   */
+  public T setXAttr(Map<String, byte[]> xAttr) {
+    mXAttr = xAttr;
+    return getThis();
+  }
+
+  /**
+   * @param mediumTypes the medium types to pin to
+   * @return the updated object
+   */
+  public T setMediumTypes(Set<String> mediumTypes) {
+    mMediumTypes = mediumTypes;
+    return getThis();
+  }
+
   @Override
   public abstract FileInfo generateClientFileInfo(String path);
 
@@ -498,8 +567,15 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setLastModificationTimeMs(entry.getLastModificationTimeMs(),
           entry.getOverwriteModificationTime());
     }
+    if (entry.hasLastAccessTimeMs()) {
+      setLastAccessTimeMs(entry.getLastAccessTimeMs(),
+          entry.getOverwriteAccessTime());
+    }
     if (entry.hasMode()) {
       setMode((short) entry.getMode());
+    }
+    if (entry.getMediumTypeCount() != 0) {
+      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     }
     if (entry.hasName()) {
       setName(entry.getName());
@@ -525,6 +601,12 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasUfsFingerprint()) {
       setUfsFingerprint(entry.getUfsFingerprint());
     }
+    if (entry.getXAttrCount() > 0) {
+      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+    }
+    if (entry.getMediumTypeCount() != 0) {
+      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    }
   }
 
   @Override
@@ -544,6 +626,12 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     return mId == that.mId;
   }
 
+  /**
+   * @param path path of the inode
+   * @return the journal entry representing the inode
+   */
+  public abstract Journal.JournalEntry toJournalEntry(String path);
+
   protected MoreObjects.ToStringHelper toStringHelper() {
     return MoreObjects.toStringHelper(this)
         .add("id", mId)
@@ -557,26 +645,35 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .add("directory", mDirectory)
         .add("persistenceState", mPersistenceState)
         .add("lastModificationTimeMs", mLastModificationTimeMs)
+        .add("lastAccessTimeMs", mLastAccessTimeMs)
         .add("owner", mAcl.getOwningUser())
         .add("group", mAcl.getOwningGroup())
         .add("permission", mAcl.getMode())
-        .add("ufsFingerprint", mUfsFingerprint);
+        .add("ufsFingerprint", mUfsFingerprint)
+        .add("mediatypes", mMediumTypes)
+        .add("xAttr", mXAttr);
   }
 
   protected InodeMeta.Inode.Builder toProtoBuilder() {
-    return InodeMeta.Inode.newBuilder()
+    InodeMeta.Inode.Builder inode = InodeMeta.Inode.newBuilder()
         .setId(getId())
         .setCreationTimeMs(getCreationTimeMs())
         .setIsDirectory(isDirectory())
         .setTtl(getTtl())
         .setTtlAction(getTtlAction())
         .setLastModifiedMs(getLastModificationTimeMs())
+        .setLastAccessedMs(getLastAccessTimeMs())
         .setName(getName())
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())
         .setIsPinned(isPinned())
         .setAccessAcl(ProtoUtils.toProto(getACL()))
-        .setUfsFingerprint(getUfsFingerprint());
+        .setUfsFingerprint(getUfsFingerprint())
+        .addAllMediumType(getMediumTypes());
+    if (getXAttr() != null) {
+      inode.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
+    }
+    return inode;
   }
 
   /**

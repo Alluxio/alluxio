@@ -14,11 +14,12 @@ package alluxio.security.authentication;
 import alluxio.grpc.ChannelAuthenticationScheme;
 
 import javax.security.sasl.SaslClient;
+import java.io.IOException;
 
 /**
  * Interface for authentication scheme specific {@link SaslClient} management.
  */
-public interface SaslClientHandler {
+public interface SaslClientHandler extends AutoCloseable {
   /**
    * @return the scheme under which client is authenticating
    */
@@ -28,4 +29,10 @@ public interface SaslClientHandler {
    * @return the {@link SaslClient} instance
    */
   SaslClient getSaslClient();
+
+  /**
+   * Close the handler and dispose internal resources.
+   */
+  @Override
+  void close() throws IOException;
 }

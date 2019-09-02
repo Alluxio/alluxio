@@ -25,6 +25,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobServerContext;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -108,7 +109,7 @@ public final class JobWorker extends AbstractWorker {
             new CommandHandlingExecutor(mJobServerContext, mTaskExecutorManager, mJobMasterClient,
                 address),
             (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), ServerUserState.global()));
   }
 
   @Override

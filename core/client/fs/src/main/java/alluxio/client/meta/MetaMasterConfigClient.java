@@ -13,6 +13,8 @@ package alluxio.client.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
 
 import java.io.Closeable;
@@ -26,9 +28,15 @@ import java.util.Set;
  */
 public interface MetaMasterConfigClient extends Closeable {
   /**
+   * @param options the options
    * @return the runtime configuration
    */
-  Configuration getConfiguration() throws IOException;
+  Configuration getConfiguration(GetConfigurationPOptions options) throws IOException;
+
+  /**
+   * @return hashes of cluster and path level configurations
+   */
+  ConfigHash getConfigHash() throws IOException;
 
   /**
    * Sets a property for a path.

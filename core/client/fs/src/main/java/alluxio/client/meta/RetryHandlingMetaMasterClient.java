@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.CheckpointPOptions;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMetricsPOptions;
@@ -93,5 +94,11 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
     return retryRPC(
         () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
+  }
+
+  @Override
+  public String checkpoint() throws IOException {
+    return retryRPC(() -> mClient
+        .checkpoint(CheckpointPOptions.newBuilder().build()).getMasterHostname());
   }
 }
