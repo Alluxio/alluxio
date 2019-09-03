@@ -113,18 +113,18 @@ public final class MountTableTest {
 
     // Test reverseResolve()
     Assert.assertEquals(new AlluxioURI("/mnt/foo"),
-        mMountTable.reverseResolve(new AlluxioURI("/foo")));
+        mMountTable.reverseResolve(new AlluxioURI("/foo")).getUri());
     Assert.assertEquals(new AlluxioURI("/mnt/foo/x"),
-        mMountTable.reverseResolve(new AlluxioURI("/foo/x")));
-    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar")),
+        mMountTable.reverseResolve(new AlluxioURI("/foo/x")).getUri());
+    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar")).getUri(),
         new AlluxioURI("/mnt/bar"));
-    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar/y")),
+    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar/y")).getUri(),
         new AlluxioURI("/mnt/bar/y"));
     // Test reverseResolve(), ufs path is not mounted
     Assert.assertEquals(new AlluxioURI("/foobar"),
-        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/foobar")));
+        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/foobar")).getUri());
     Assert.assertEquals(new AlluxioURI("/"),
-        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/")));
+        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/")).getUri());
     Assert.assertNull(mMountTable.reverseResolve(new AlluxioURI("/foobar")));
 
     // Test getMountPoint()
@@ -389,68 +389,6 @@ public final class MountTableTest {
     Assert.assertEquals(info1, mMountTable.getMountInfo(info1.getMountId()));
     Assert.assertEquals(info2, mMountTable.getMountInfo(info2.getMountId()));
     Assert.assertEquals(null, mMountTable.getMountInfo(4L));
-  }
-
-  /**
-   * Tests {@link MountTable#reverseLookup(String)}.
-   */
-  @Test
-  public void reverseLookupKnownUri() throws Exception {
-    String mountPath = "/mnt/foo";
-    String ufsPath = "ufs-1://authority/root";
-    addMount(mountPath, ufsPath, 2);
-    // Test successful reverse-lookup.
-    String testFile = PathUtils.uniqPath();
-    String testFileUfsPath = PathUtils.concatPath(ufsPath, testFile);
-    String testFileAlluxioPath = PathUtils.concatPath(mountPath, testFile);
-    Assert.assertEquals(testFileAlluxioPath, mMountTable.reverseLookup(testFileUfsPath).getPath());
-  }
-
-  /**
-   * Tests {@link MountTable#reverseLookup(String)}.
-   */
-  @Test
-  public void reverseLookupUnknownUri() throws Exception {
-    // Test unknown reverse-lookup.
-    String unmountedUfsPath = "ufs-unknown://authority/root";
-    String testFileUfsPath = PathUtils.concatPath(unmountedUfsPath, PathUtils.uniqPath());
-    boolean lookupFailed = false;
-    try {
-      mMountTable.reverseLookup(testFileUfsPath);
-    } catch (InvalidPathException e) {
-      // Exception expected
-      Assert.assertEquals(ExceptionMessage.FOREIGN_URI_NOT_MOUNTED.getMessage(testFileUfsPath),
-          e.getMessage());
-      lookupFailed = true;
-    }
-    Assert.assertTrue(lookupFailed);
-  }
-
-  /**
-   * Tests {@link MountTable#reverseLookup(String)}.
-   */
-  @Test
-  public void reverseLookupNestedParent() throws Exception {
-    String mountPath1 = "/mnt/foo";
-    String mountPath2 = "/mnt/foo/bar";
-    String ufsPath1 = "ufs-1://authority1/root1";
-    String ufsPath2 = "ufs-2://authority2/root2";
-    addMount(mountPath1, ufsPath1, 2);
-    addMount(mountPath2, ufsPath2, 3);
-
-    // Test successful reverse-lookup.
-    String testFile = PathUtils.uniqPath();
-    String testFileUfsPath = PathUtils.concatPath(ufsPath1, testFile);
-    boolean lookupFailed = false;
-    try {
-      mMountTable.reverseLookup(testFileUfsPath);
-    } catch (IllegalStateException e) {
-      // Exception expected
-      Assert.assertEquals(ExceptionMessage.FOREIGN_URI_IN_NESTED_PARENT.getMessage(testFileUfsPath),
-          e.getMessage());
-      lookupFailed = true;
-    }
-    Assert.assertTrue(lookupFailed);
   }
 
   private void addMount(String alluxio, String ufs, long id) throws Exception {
