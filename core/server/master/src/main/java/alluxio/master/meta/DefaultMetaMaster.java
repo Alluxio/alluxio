@@ -140,7 +140,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       ServerConfiguration.global());
 
   /** Indicates if newer version is available. */
-  private boolean mNewerVersionAvailable = true;
+  private boolean mNewerVersionAvailable;
 
   /** The address of this master. */
   private Address mMasterAddress;
