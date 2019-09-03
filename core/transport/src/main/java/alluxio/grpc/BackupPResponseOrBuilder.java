@@ -34,4 +34,13 @@ public interface BackupPResponseOrBuilder extends
    */
   com.google.protobuf.ByteString
       getHostnameBytes();
+
+  /**
+   * <code>optional int64 entryCount = 3;</code>
+   */
+  boolean hasEntryCount();
+  /**
+   * <code>optional int64 entryCount = 3;</code>
+   */
+  long getEntryCount();
 }
