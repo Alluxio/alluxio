@@ -168,17 +168,17 @@ public class ChannelAuthenticator {
         // Intercept authenticated channel with channel-Id injector.
         mChannel = ClientInterceptors.intercept(mManagedChannel,
             new ChannelIdInjector(mChannelKey.getChannelId()));
-      } catch (IOException exc) {
+      } catch (IOException e) {
         Status.Code code = Status.Code.UNKNOWN;
-        if (exc instanceof AlluxioStatusException) {
-          code = ((AlluxioStatusException) exc).getStatusCode();
+        if (e instanceof AlluxioStatusException) {
+          code = ((AlluxioStatusException) e).getStatusCode();
         }
         String message = String.format(
             "Channel authentication failed with code:%s. ChannelKey: %s, AuthType: %s, Error: %s",
-            code.name(), mChannelKey.toStringShort(), mAuthType, exc.toString());
+            code.name(), mChannelKey.toStringShort(), mAuthType, e.toString());
         LOG.warn(message);
         throw AlluxioStatusException
-            .from(Status.fromCode(code).withDescription(message).withCause(exc));
+            .from(Status.fromCode(code).withDescription(message).withCause(e));
       }
     }
 
