@@ -10,12 +10,14 @@
  */
 
 export * from './saga/getSagaRequest';
-
+export * from './misc/autoRefresh';
 export * from './misc/getDebouncedFunction';
 export * from './misc/parseQueryString';
 export * from './misc/isExternalLink';
 export * from './misc/bytesToString';
 export * from './misc/disableFormSubmit';
 export * from './misc/renderFileNameLink';
-
+export * from './misc/createAlertErrors';
+export * from './misc/renderView';
+export * from './misc/getDisplayName';
 export * from './nivo/transformToNivoFormat';

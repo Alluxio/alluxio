@@ -26,6 +26,7 @@ import 'source-serif-pro/source-serif-pro.css';
 import 'source-code-pro/source-code-pro.css';
 
 import './index.css';
+import {IAppProps} from "./containers/App/App";
 
 const history = createBrowserHistory();
 history.listen((loc: Location, action: Action) => {
@@ -50,7 +51,7 @@ const store = configureStore(history, initialState);
 
 ReactDOM.render(
   <Provider store={store}>
-    <App history={history}/>
+    {React.createElement(App as React.ComponentType<IAppProps>, {history: history})}
   </Provider>,
   document.getElementById('root') as HTMLElement
 );

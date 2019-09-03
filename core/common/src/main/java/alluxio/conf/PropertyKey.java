@@ -661,6 +661,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_BREADCRUMBS_ENABLED =
+      new Builder(Name.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)
+          .setAlias("alluxio.underfs.object.breadcrumbs.enabled")
+          .setDefaultValue(true)
+          .setDescription("Set this to false to prevent Alluxio from creating zero byte objects "
+              + "during read or list operations on object store UFS. Leaving this on enables more"
+              + " efficient listing of prefixes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
       new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
           .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
@@ -1146,6 +1156,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The storage address of the UFS at the Alluxio root mount point.")
           .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_ENABLED =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_ENABLED)
+          .setDescription("If enabled, Alluxio will attempt to mount UFS for foreign URIs.")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_ROOT =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_ROOT)
+          .setDescription("Alluxio root path for auto-mounted UFSes. "
+              + "This directory should already exist in Alluxio.")
+          .setDefaultValue("/auto-mount")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_READONLY =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_READONLY)
+          .setDescription("If true, UFSes are auto-mounted as read-only.")
+          .setDefaultValue(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_SHARED =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_SHARED)
+          .setDescription("If true, UFSes are auto-mounted as shared.")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
 
@@ -3737,6 +3776,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_WEB_PARENT_NAMES = "alluxio.underfs.web.parent.names";
     public static final String UNDERFS_WEB_TITLES = "alluxio.underfs.web.titles";
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
+    public static final String UNDERFS_OBJECT_BREADCRUMBS_ENABLED =
+            "alluxio.underfs.object.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
@@ -3995,6 +4036,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_ENABLED =
+        "alluxio.master.shimfs.auto.mount.enabled";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_ROOT =
+        "alluxio.master.shimfs.auto.mount.root";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_READONLY =
+        "alluxio.master.shimfs.auto.mount.readonly";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_SHARED =
+        "alluxio.master.shimfs.auto.mount.shared";
 
     //
     // File system master related properties

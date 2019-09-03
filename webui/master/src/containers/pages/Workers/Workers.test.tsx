@@ -21,7 +21,9 @@ import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
 import {initialInitState} from '../../../store/init/reducer';
 import ConnectedApp from '../../App/App';
-import {AllProps, Workers} from './Workers';
+import {AllProps, WorkersPresenter} from './Workers';
+import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -32,15 +34,16 @@ describe('Workers', () => {
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
-    history.push('/workers');
+    history.push(routePaths.workers);
     store = configureStore(history, initialState);
     props = {
       initData: initialInitState.data,
-      initLoading: initialInitState.loading,
-      fetchRequest: sinon.spy(() => {}),
-      refresh: initialState.refresh.data,
       workersData: initialState.workers.data,
-      workersLoading: initialState.workers.loading
+      errors: createAlertErrors(false),
+      loading: false,
+      refresh: initialState.refresh.data,
+      class: '',
+      fetchRequest: sinon.spy(() => {})
     };
   });
 
@@ -52,7 +55,7 @@ describe('Workers', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Workers {...props}/>);
+      shallowWrapper = shallow(<WorkersPresenter {...props}/>);
     });
 
     it('Renders without crashing', () => {
@@ -61,30 +64,6 @@ describe('Workers', () => {
 
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
-    });
-  });
-
-  describe('App with connected component', () => {
-    let reactWrapper: ReactWrapper;
-
-    beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp history={history}/></Provider>);
-    });
-
-    it('Renders without crashing', () => {
-      expect(reactWrapper.length).toEqual(1);
-    });
-
-    it('Contains the component', () => {
-      expect(reactWrapper.find('.workers-page').length).toEqual(1);
-    });
-
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
-    });
-
-    it('Matches snapshot', () => {
-      expect(reactWrapper).toMatchSnapshot();
     });
   });
 });

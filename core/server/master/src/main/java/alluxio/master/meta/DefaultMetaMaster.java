@@ -83,6 +83,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -377,6 +378,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       }
     }
     String backupFilePath;
+    AtomicLong entryCount = new AtomicLong(0);
     try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
       Instant now = Instant.now();
       String backupFileName = String.format(BackupManager.BACKUP_FILE_FORMAT,
@@ -385,7 +387,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       backupFilePath = PathUtils.concatPath(dir, backupFileName);
       try {
         try (OutputStream ufsStream = ufs.create(backupFilePath)) {
-          mBackupManager.backup(ufsStream);
+          mBackupManager.backup(ufsStream, entryCount);
         }
       } catch (Throwable t) {
         try {
@@ -402,9 +404,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       rootUfs = "file:///";
     }
     AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
-    return new BackupResponse(backupUri,
+    return new BackupResponse(
+        backupUri,
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ServerConfiguration.global()));
+            ServerConfiguration.global()),
+        entryCount.get());
   }
 
   @Override

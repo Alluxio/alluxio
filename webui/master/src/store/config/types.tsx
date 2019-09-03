@@ -12,6 +12,7 @@
 import {AxiosResponse} from 'axios';
 
 import {IConfigTriple} from '../../constants';
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 export interface IConfig {
   configuration: IConfigTriple[];
