@@ -90,6 +90,7 @@ public class GrpcManagedChannelPool {
         }
       }
       if (shutdownExistingChannel) {
+        // TODO(ggezer): Avoid being have to create new channel with existing ref-count.
         existingRefCount = chHolder.getRefCount();
         LOG.debug("Shutting down an existing unhealthy managed channel. "
             + "ChannelKey: {}. Existing Ref-count: {}", key, existingRefCount);
