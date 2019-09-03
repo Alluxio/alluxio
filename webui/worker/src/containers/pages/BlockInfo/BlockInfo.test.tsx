@@ -20,7 +20,9 @@ import sinon, {SinonSpy} from 'sinon';
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
-import {AllProps, BlockInfo} from './BlockInfo';
+import {AllProps, BlockInfoPresenter} from './BlockInfo';
+import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -31,14 +33,16 @@ describe('BlockInfo', () => {
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
-    history.push('/blockInfo');
+    history.push(routePaths.blockInfo);
     store = configureStore(history, initialState);
     props = {
-      location: {search: ''},
+      refresh: false,
       fetchRequest: sinon.spy(() => {}),
       data: initialState.blockInfo.data,
-      loading: initialState.blockInfo.loading,
-      refresh: initialState.refresh.data
+      loading: false,
+      errors: createAlertErrors(false),
+      request: {},
+      class: ''
     };
   });
 
@@ -50,39 +54,33 @@ describe('BlockInfo', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<BlockInfo {...props}/>);
+      shallowWrapper = shallow(<BlockInfoPresenter {...props}/>);
     });
 
     it('Renders without crashing', () => {
       expect(shallowWrapper.length).toEqual(1);
     });
 
-    it('Matches snapshot', () => {
-      expect(shallowWrapper).toMatchSnapshot();
-    });
-  });
-
-  describe('App with connected component', () => {
-    let reactWrapper: ReactWrapper;
-
-    beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp history={history}/></Provider>);
+    it('Contains a div with class col-12', () => {
+      expect(shallowWrapper.find('.col-12').length).toEqual(1);
     });
 
-    it('Renders without crashing', () => {
-      expect(reactWrapper.length).toEqual(1);
+    describe('Renders BlockInfo Listing', () => {
+      it('Matches snapshot with Table listing', () => {
+        expect(shallowWrapper).toMatchSnapshot();
+      });
     });
 
-    it('Contains the component', () => {
-      expect(reactWrapper.find('.blockInfo-page').length).toEqual(1);
-    });
+    describe('Renders BlockInfo view', () => {
+      beforeAll(() => {
+        const data = {...props.data};
+        data.blockSizeBytes = 'x';
+        shallowWrapper.setProps({data: data});
+      });
 
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
-    });
-
-    it('Matches snapshot', () => {
-      expect(reactWrapper).toMatchSnapshot();
+      it('Matches snapshot with File', () => {
+        expect(shallowWrapper).toMatchSnapshot();
+      });
     });
   });
 });

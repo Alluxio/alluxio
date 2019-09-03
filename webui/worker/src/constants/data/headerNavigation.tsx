@@ -10,19 +10,20 @@
  */
 
 import {INavigationData} from '@alluxio/common-ui/src/constants';
+import {routePaths} from "./routePaths";
 
 export const headerNavigationData: INavigationData[] = [{
   innerText: 'Overview',
-  url: '/overview'
+  url: routePaths.overview
 }, {
   innerText: 'BlockInfo',
-  url: '/blockInfo'
+  url: routePaths.blockInfo
 }, {
   innerText: 'Logs',
-  url: '/logs'
+  url: routePaths.logs
 }, {
   innerText: 'Metrics',
-  url: '/metrics'
+  url: routePaths.metrics
 }, {
   innerText: 'Return to Master',
   url: ({masterHostname, masterPort}) => `${window.location.protocol}//${masterHostname}:${masterPort}`
