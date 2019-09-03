@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import * as React from 'react';
+import React from 'react';
 
 export const disableFormSubmit = (event: React.KeyboardEvent<HTMLFormElement>) => {
   event.preventDefault();

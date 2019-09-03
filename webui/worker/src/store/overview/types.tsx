@@ -11,6 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 import {IStorageTierInfo} from '../../constants';
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 export interface IOverview {
   'capacityBytes': string;

@@ -12,6 +12,8 @@
 import {AxiosResponse} from 'axios';
 
 import {INodeInfo} from '../../constants';
+import {IInit} from "../init/types";
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 export interface IWorkers {
   'debug': boolean;

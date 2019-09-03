@@ -13,8 +13,9 @@ import {AxiosResponse} from 'axios';
 import {action} from 'typesafe-actions';
 
 import {DataActionTypes} from './types';
+import {IRequest} from "@alluxio/common-ui/src/constants";
 
-export const fetchRequest = (offset?: string, limit?: string) => action(DataActionTypes.FETCH_REQUEST,
+export const fetchRequest = ({offset, limit}: IRequest) => action(DataActionTypes.FETCH_REQUEST,
   {queryString: {limit, offset}}
 );
 export const fetchSuccess = (response: AxiosResponse) => action(DataActionTypes.FETCH_SUCCESS, response);
