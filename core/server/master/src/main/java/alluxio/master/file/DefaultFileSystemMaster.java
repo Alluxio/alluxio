@@ -1371,16 +1371,23 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     // Reverse lookup mount table to find mount point that contains the path.
-    try {
-      return mMountTable.reverseLookup(uriStr);
-    } catch (InvalidPathException e) {
-      // Throw if auto-mount is not requested.
-      if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_ENABLED)) {
-        throw e;
+    MountTable.ReverseResolution resolution = mMountTable.reverseResolve(uri);
+    if (resolution != null) {
+      // Before returning the resolved path, make sure mount point does not contain
+      // nested mounts as translation on one mount should not give visibility to another.
+      if (mMountTable.containsMountPoint(resolution.getMountInfo().getAlluxioUri(), false)) {
+        throw new IllegalStateException(
+            String.format("Foreign URI: %s is in a mount that has nested mounts.", uriStr));
       }
+      return resolution.getUri();
     }
 
-    // Reverse lookup failed. Attempt to auto-mount.
+    // Resolve unsuccessful
+    if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_ENABLED)) {
+      throw new InvalidPathException(String.format("Could not reverse resolve path: %s", uriStr));
+    }
+
+    // Attempt to auto-mount.
     try {
       autoMountUfsForUri(uri);
     } catch (Exception e) {
@@ -1388,7 +1395,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           String.format("Failed to translate and auto-mount path: %s", uriStr), e);
     }
     // Try translating the URI after auto-mount.
-    return mMountTable.reverseLookup(uriStr);
+    resolution = mMountTable.reverseResolve(uri);
+    if (resolution == null) {
+      throw new InvalidPathException(
+          String.format("Could not reverse resolve path: %s after auto-mount.", uriStr));
+    }
+    return resolution.getUri();
   }
 
   /**
@@ -1414,7 +1426,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throws AlluxioException, IOException {
     // Check if an auto-mount has been already made that resolves this URI.
     try {
-      mMountTable.reverseLookup(ufsUri.toString());
+      mMountTable.reverseResolve(ufsUri).getUri();
       // reverse lookup succeeded. No need to auto-mount.
       LOG.debug("No need to do auto-mount for: {}", ufsUri);
       return;
@@ -3613,7 +3625,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         }
       }
 
-      boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri());
+      boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri(), true);
 
       UfsSyncUtils.SyncPlan syncPlan =
           UfsSyncUtils.computeSyncPlan(inode, ufsFpParsed, containsMountPoint);

@@ -20,6 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.InternalException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -271,5 +272,25 @@ public class ShimFileSystemIntegrationTest {
     Assert.assertNotNull(mShimFileSystem.getStatus(foreignUri));
     // Validate that UFS is auto-mounted.
     Assert.assertEquals(mountCount + 1, mFileSystem.getMountTable().size());
+  }
+
+  @Test
+  public void nestedMount() throws Exception {
+    // UFS root to nest under existing mount.
+    String nestedMountUfsRoot = new AlluxioURI("file", Authority.fromString(null),
+        AlluxioTestDirectory.createTemporaryDirectory("nestedMount").getAbsolutePath()).toString();
+    // Created nested mount under SHIM_MOUNT_PATH.
+    mFileSystem.mount(new AlluxioURI(SHIM_MOUNT_PATH + "/nested"),
+        new AlluxioURI(nestedMountUfsRoot));
+
+    boolean failed = false;
+    try {
+      // Getting status of the first order mount root via shim-fs should fail due to nested mounts.
+      mShimFileSystem.getStatus(new AlluxioURI(mTempFolder.getRoot().toURI().toString()));
+    } catch (Exception e) {
+      Assert.assertTrue(e.getCause() instanceof InternalException);
+      failed = true;
+    }
+    Assert.assertTrue(failed);
   }
 }
