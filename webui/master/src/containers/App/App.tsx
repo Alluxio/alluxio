@@ -55,13 +55,13 @@ export class App extends React.Component<AllProps> {
   }
 
   public render() {
-    const {history} = this.props;
+    const {history, init: {newerVersionAvailable}} = this.props;
 
     return (
       <ConnectedRouter history={history}>
         <div className="App h-100">
           <div className="w-100 sticky-top header-wrapper">
-            <Header history={history} data={headerNavigationData} autoRefreshCallback={this.autoRefresh.setAutoRefresh}/>
+            <Header history={history} data={headerNavigationData} autoRefreshCallback={this.autoRefresh.setAutoRefresh} newerVersionAvailable={newerVersionAvailable}/>
           </div>
           <div className="w-100 pt-5 mt-3 pb-4 mb-2">
             <Switch>
