@@ -83,6 +83,7 @@ exports[`App Shallow component Matches snapshot 1`] = `
             "replace": [Function],
           }
         }
+        newerVersionAvailable={false}
       />
     </div>
     <div

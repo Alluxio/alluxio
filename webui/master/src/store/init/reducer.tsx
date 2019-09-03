@@ -16,6 +16,7 @@ import {IInitState, InitActionTypes} from './types';
 export const initialInitState: IInitState = {
   data: {
     'debug': false,
+    'newerVersionAvailable': false,
     'proxyDownloadFileApiUrl': {
       'prefix': 'http://192.168.1.6:39999/api/v1/paths/',
       'suffix': '/download-file/'

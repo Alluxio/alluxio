@@ -243,6 +243,7 @@ public final class AlluxioMasterRestServiceHandler {
       proxyDowloadFileApiUrl.put("suffix", "/download-file/");
 
       response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
+          .setNewerVersionAvailable(mMetaMaster.getNewerVersionAvailable())
           .setWebFileInfoEnabled(ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
               ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
