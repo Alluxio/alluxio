@@ -12,6 +12,7 @@
 package alluxio.master.catalog;
 
 import alluxio.Constants;
+import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -21,6 +22,7 @@ import alluxio.grpc.Schema;
 import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
@@ -28,6 +30,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,12 +41,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This catalog master manages catalogs metadata information.
  */
 public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultCatalogMaster.class);
+  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(FileSystemMaster.class);
 
   private final AlluxioCatalog mCatalog;
   private final UnderFileSystem mUfs;
@@ -110,6 +115,11 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   public List<String> getDataFiles(String dbName, String tableName) throws IOException {
     // TODO(gpang): revisit api
     return new ArrayList<>(mCatalog.getStatistics(dbName, tableName).keySet());
+  }
+
+  @Override
+  public Set<Class<? extends Server>> getDependencies() {
+    return DEPS;
   }
 
   @Override
