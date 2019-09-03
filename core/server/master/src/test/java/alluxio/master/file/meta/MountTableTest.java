@@ -31,7 +31,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
-import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;

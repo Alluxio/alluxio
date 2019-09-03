@@ -265,13 +265,14 @@ public final class MountTable implements DelegatingJournaled {
    * @param containsSelf cause method to return true when given uri itself is a mount point
    * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
    */
-  public boolean containsMountPoint(AlluxioURI uri, boolean containsSelf) throws InvalidPathException {
+  public boolean containsMountPoint(AlluxioURI uri, boolean containsSelf)
+      throws InvalidPathException {
     String path = uri.getPath();
 
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mountPath = entry.getKey();
-        if(!containsSelf && mountPath.equals(path)) {
+        if (!containsSelf && mountPath.equals(path)) {
           continue;
         }
         if (PathUtils.hasPrefix(mountPath, path)) {
