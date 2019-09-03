@@ -59,6 +59,8 @@ struct BackupTResponse {
  // The hostname of the master which wrote the backup. This is useful
  // when the backup was written to local disk of that host.
  2: string hostname
+ // The number of entries in back-up.
+ 3: i64 entryCount
 }
 
 struct GetMasterInfoTOptions {
