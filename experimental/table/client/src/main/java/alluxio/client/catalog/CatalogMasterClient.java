@@ -13,7 +13,6 @@ package alluxio.client.catalog;
 
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.ColumnStatistics;
 import alluxio.grpc.ColumnStatisticsInfo;
 import alluxio.grpc.Database;
 import alluxio.grpc.FileStatistics;

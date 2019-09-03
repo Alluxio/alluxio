@@ -16,7 +16,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.experimental.ProtoUtils;
 import alluxio.Constants;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
-import alluxio.grpc.ColumnStatistics;
 import alluxio.grpc.ColumnStatisticsInfo;
 import alluxio.grpc.CreateDatabasePRequest;
 import alluxio.grpc.CreateTablePRequest;
