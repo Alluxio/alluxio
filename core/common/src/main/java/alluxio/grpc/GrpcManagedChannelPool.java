@@ -16,7 +16,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Verify;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
@@ -212,7 +211,6 @@ public class GrpcManagedChannelPool {
     } finally {
       managedChannel.shutdownNow();
     }
-    Verify.verify(managedChannel.isShutdown());
   }
 
   /**
