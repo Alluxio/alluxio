@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "alluxio.fullname" . }}-format-script
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-delete-policy": before-hook-creation
+  labels:
+    name: {{ template "alluxio.fullname" . }}-format-script
+    app: {{ template "alluxio.name" . }}
+    chart: {{ template "alluxio.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  format-master.sh: |
+    #!/bin/bash
+    set -xev
+    if [ ! "$(ls -A /journal)" ]
+    then
+      echo "/journal is empty! Need format."
+      /opt/alluxio/bin/alluxio formatMaster
+      echo "Format successfull!"
+    else
+      echo "/journal is not empty! Skip format"
+    fi
