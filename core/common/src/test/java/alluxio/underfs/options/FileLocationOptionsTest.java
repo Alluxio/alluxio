@@ -13,13 +13,13 @@ package alluxio.underfs.options;
 
 import alluxio.test.util.CommonUtils;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for the {@link FileLocationOptions} class.
