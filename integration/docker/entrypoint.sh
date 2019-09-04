@@ -13,7 +13,6 @@
 set -e
 
 ALLUXIO_HOME="/opt/alluxio"
-ALLUXIO_HOME="/Users/zac-alluxio/projects/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
 declare -a RUNNING_PROCESSES
@@ -96,7 +95,7 @@ function mountAlluxioRootFSWithFuseOption {
   tail -f /opt/alluxio/logs/fuse.log
 }
 
-# Sends a signal to each of the running processes
+# Sends a signal to each of the running background processes
 #
 # Args:
 #     1: the signal to send
@@ -125,8 +124,8 @@ function forward_signal {
 
 # Sets up traps on all signals [1, 31]
 #
-# A few note about trapping some signals
-# - SIGINT (2): Background process (started with &) ignore SIGINT. AS workaround to still
+# Notes about trapping some signals
+# - SIGINT (2): Background process (started with &) ignore SIGINT. As a workaround to still
 #               terminate processes when SIGINT is passed, convert the signal sent to the
 #               processes to be something other than SIGINT
 # - SIGKILL (9): Cannot be trapped. It will directly kill the bash parent shell, the child
