@@ -1386,7 +1386,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     // Resolve unsuccessful
     if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_ENABLED)) {
-      throw new InvalidPathException(String.format("Could not reverse resolve ufs path: %s", uriStr));
+      throw new InvalidPathException(
+          String.format("Could not reverse resolve ufs path: %s", uriStr));
     }
 
     // Attempt to auto-mount.
