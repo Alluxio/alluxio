@@ -13,6 +13,7 @@
 set -e
 
 ALLUXIO_HOME="/opt/alluxio"
+ALLUXIO_HOME="/Users/zac-alluxio/projects/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
 declare -a RUNNING_PROCESSES
@@ -109,34 +110,38 @@ function forward_signal {
     signal="1"
   fi
 
-  echo "Forwarding signal ${signal} to processes \"${RUNNING_PROCESSES}\""
-  for proc in "${RUNNING_PROCESSES[@]}"; do
-    kill -${signal} "${proc}"
-  done
-  # This function may take over execution thread from the "main" function
-  # Wait if the processes are still up.
+  local procs="$(jobs -p)"
+  echo -e "Forwarding signal ${signal} to processes:\n ${procs}"
+  while read -r proc; do
+    if [ -n "${proc}" ]; then
+      kill -${signal} "${proc}"
+    fi
+  done <<< "${procs}"
+  # This function may take over execution thread from the "main" function.
+  # Wait if the processes are still up. Additional signals of the same type as this
+  # will not be able to be processed
   wait
 }
 
+# Sets up traps on all signals [1, 31]
+#
+# A few note about trapping some signals
+# - SIGINT (2): Background process (started with &) ignore SIGINT. AS workaround to still
+#               terminate processes when SIGINT is passed, convert the signal sent to the
+#               processes to be something other than SIGINT
+# - SIGKILL (9): Cannot be trapped. It will directly kill the bash parent shell, the child
+#                processes will continue to live
 function setup_signals {
-
-  # A few note about trapping these signals
-  # - SIGINT (2): Background process (started with &) ignore SIGINT. AS workaround to still
-  #               terminate processes when SIGINT is passed, convert the signal sent to the
-  #               processes to be something other than SIGINT
-  # - SIGKILL (9): Cannot be trapped. It will directly kill the bash parent shell, the child
-  #                processes will continue to live
   for i in {1..31}; do
-    local v="forward_signal ${i}"
     trap "forward_signal ${i}" ${i}
   done
 
+  # If the script exits for any reason without a signal, forward a SIGHUP to the children
   trap "forward_signal 1" EXIT
-  trap "wait" RETURN
 }
 
 function main {
-  if [[ $# -lt 1 ]]; then
+  if [[ "$#" -lt 1 ]]; then
     printUsage
     exit 1
   fi
@@ -157,7 +162,7 @@ function main {
 
   local processes
   processes=()
-  case ${service} in
+  case "${service}" in
     master)
       formatMasterIfSpecified
       processes+=("job_master")
@@ -209,9 +214,7 @@ function main {
 
   for proc in "${processes[@]}"; do
     ./bin/launch-process "${proc}" -c &
-    RUNNING_PROCESSES+=("$!")
   done
-
   wait
 }
 
