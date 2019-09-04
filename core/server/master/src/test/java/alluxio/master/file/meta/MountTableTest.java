@@ -214,6 +214,15 @@ public final class MountTableTest {
     Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("/mnt/bar")));
     Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("/mnt/bar/baz")));
 
+    // Test containsMountPoint
+    Assert.assertTrue(mMountTable.containsMountPoint(new AlluxioURI("/mnt/bar"), false));
+    Assert.assertTrue(mMountTable.containsMountPoint(new AlluxioURI("/mnt/bar/baz"), false));
+    Assert.assertFalse(mMountTable.containsMountPoint(new AlluxioURI("/mnt/bar/baz/bay"), false));
+    Assert.assertFalse(mMountTable.containsMountPoint(new AlluxioURI("/mnt/foo"), false));
+    Assert.assertTrue(mMountTable.containsMountPoint(new AlluxioURI("/mnt/foo"), true));
+    Assert.assertTrue(mMountTable.containsMountPoint(new AlluxioURI("/"), true));
+    Assert.assertFalse(mMountTable.containsMountPoint(new AlluxioURI("/bogus"), true));
+
     // Test delete()
     Assert.assertFalse(deleteMount("/mnt/bar/baz"));
     Assert.assertTrue(deleteMount("/mnt/bar/baz/bay"));
