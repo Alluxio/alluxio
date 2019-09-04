@@ -51,7 +51,7 @@ spec:
             value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: {{ .Values.const.configName }}
           ports:
           - containerPort: {{ .Values.resources.worker.ports.rpc }}
             name: rpc
@@ -92,7 +92,7 @@ spec:
             value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: {{ .Values.const.configName }}
           ports:
           - containerPort: {{ .Values.resources.jobWorker.ports.rpc }}
             name: job-rpc

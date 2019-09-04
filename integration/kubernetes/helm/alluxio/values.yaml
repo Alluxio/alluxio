@@ -68,6 +68,18 @@ volumes:
     ramdisk:
       size: 1Gi
 
+# Alluxio supports journal type of UFS and EMBEDDED
+# UFS journal with HDFS example
+# journal:
+#   type: "UFS"
+#   folder: "hdfs://{host name}:{host port}/journal"
+journal:
+  type: "UFS"
+  folder: "/journal"
+
+const:
+  configName: "alluxio-config"
+
 # These options must be passed in using the "helm -f" option
 # properties:
 #   alluxio.master.mount.table.root.ufs: ""

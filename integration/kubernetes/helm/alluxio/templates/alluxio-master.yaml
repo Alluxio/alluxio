@@ -71,7 +71,7 @@ spec:
           args: ["master-only", "--no-format"]
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: {{ .Values.const.configName }}
           ports:
           - containerPort: 19998
             name: rpc
@@ -107,7 +107,7 @@ spec:
           args: ["job-master"]
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: {{ .Values.const.configName }}
           ports:
           - containerPort: 20001
             name: job-rpc
