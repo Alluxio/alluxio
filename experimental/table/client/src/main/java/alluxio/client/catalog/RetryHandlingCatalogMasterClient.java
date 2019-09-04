@@ -16,21 +16,21 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.experimental.ProtoUtils;
 import alluxio.Constants;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
+import alluxio.grpc.ColumnStatisticsInfo;
 import alluxio.grpc.CreateDatabasePRequest;
 import alluxio.grpc.CreateTablePRequest;
+import alluxio.grpc.Database;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllTablesPRequest;
 import alluxio.grpc.GetDataFilesPRequest;
 import alluxio.grpc.GetStatisticsPRequest;
 import alluxio.grpc.GetTablePRequest;
+import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
 
-import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
-import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.iceberg.Schema;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -141,7 +141,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<Partition> getPartitionsByNames(
+  public List<PartitionInfo> getPartitionsByNames(
           String databaseName,
           String tableName,
           List<String> partitionNames) throws AlluxioStatusException {
@@ -149,7 +149,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public Partition getPartition(
+  public PartitionInfo getPartition(
           String databaseName,
           String tableName,
           List<String> partitionValues) throws AlluxioStatusException {
@@ -157,7 +157,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public Map<String, List<ColumnStatisticsObj>> getPartitionColumnStatistics(
+  public Map<String, List<ColumnStatisticsInfo>> getPartitionColumnStatistics(
           String databaseName,
           String tableName,
           List<String> partitionNames,

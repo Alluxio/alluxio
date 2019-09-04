@@ -13,13 +13,13 @@ package alluxio.client.catalog;
 
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.ColumnStatisticsInfo;
+import alluxio.grpc.Database;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
 
-import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
-import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.iceberg.Schema;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -145,7 +145,7 @@ public interface CatalogMasterClient extends Client {
    * @return list of partition metadata
    * @throws AlluxioStatusException
    */
-  List<Partition> getPartitionsByNames(
+  List<PartitionInfo> getPartitionsByNames(
           String databaseName,
           String tableName,
           List<String> partitionNames) throws AlluxioStatusException;
@@ -159,7 +159,7 @@ public interface CatalogMasterClient extends Client {
    * @return partition metadata
    * @throws AlluxioStatusException
    */
-  Partition getPartition(
+  PartitionInfo getPartition(
           String databaseName,
           String tableName,
           List<String> partitionValues) throws AlluxioStatusException;
@@ -174,7 +174,7 @@ public interface CatalogMasterClient extends Client {
    * @return Map<String partitionName, Map<String columnName, columnStatistics>>
    * @throws AlluxioStatusException
    */
-  Map<String, List<ColumnStatisticsObj>> getPartitionColumnStatistics(
+  Map<String, List<ColumnStatisticsInfo>> getPartitionColumnStatistics(
           String databaseName,
           String tableName,
           List<String> partitionNames,
