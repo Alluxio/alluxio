@@ -43,8 +43,8 @@ To begin with, [download an Alluxio release](https://www.alluxio.io/download) an
 aws emr create-default-roles
 ```
 2. The Alluxio bootstrap script is hosted in a publicly readable
-[S3 bucket](https://alluxio-public.s3.amazonaws.com/2.0.1/emr/alluxio-emr.sh).
-This bucket can also be accessed using it's S3 URI: `s3://alluxio-public/emr/alluxio-emr.sh`
+[S3 bucket](https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.sh).
+This bucket can also be accessed using it's S3 URI: `s3://alluxio-public/emr/2.0.1/alluxio-emr.sh`
 The bootstrap script only requires a root UFS URI as an argument.
 Additional options can be seen in the comments at the top of the bootstrap script.
 ```console
