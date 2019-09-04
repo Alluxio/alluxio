@@ -12,8 +12,26 @@
 
 set -e
 
+ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
+declare -a RUNNING_PROCESSES
+
+# List of environment variables which go in alluxio-env.sh instead of
+# alluxio-site.properties
+ALLUXIO_ENV_VARS=(
+  ALLUXIO_CLASSPATH
+  ALLUXIO_HOSTNAME
+  ALLUXIO_JARS
+  ALLUXIO_JAVA_OPTS
+  ALLUXIO_MASTER_JAVA_OPTS
+  ALLUXIO_PROXY_JAVA_OPTS
+  ALLUXIO_RAM_FOLDER
+  ALLUXIO_USER_JAVA_OPTS
+  ALLUXIO_WORKER_JAVA_OPTS
+  ALLUXIO_JOB_MASTER_JAVA_OPTS
+  ALLUXIO_JOB_WORKER_JAVA_OPTS
+)
 
 function printUsage {
   echo "Usage: COMMAND [COMMAND_OPTIONS]"
@@ -29,53 +47,17 @@ function printUsage {
   echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
 }
 
-if [[ $# -lt 1 ]]; then
-  printUsage
-  exit 1
-fi
-
-service=$1
-options=$2
-
-# Only set ALLUXIO_RAM_FOLDER if tiered storage isn't explicitly configured
-if [[ -z "${ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH}" ]]; then
-  # Docker will set this tmpfs up by default. Its size is configurable through the
-  # --shm-size argument to docker run
-  export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
-fi
-
-home=/opt/alluxio
-cd ${home}
-
-# List of environment variables which go in alluxio-env.sh instead of
-# alluxio-site.properties
-alluxio_env_vars=(
-  ALLUXIO_CLASSPATH
-  ALLUXIO_HOSTNAME
-  ALLUXIO_JARS
-  ALLUXIO_JAVA_OPTS
-  ALLUXIO_MASTER_JAVA_OPTS
-  ALLUXIO_PROXY_JAVA_OPTS
-  ALLUXIO_RAM_FOLDER
-  ALLUXIO_USER_JAVA_OPTS
-  ALLUXIO_WORKER_JAVA_OPTS
-  ALLUXIO_JOB_MASTER_JAVA_OPTS
-  ALLUXIO_JOB_WORKER_JAVA_OPTS
-)
-
 function writeConf {
   local IFS=$'\n' # split by line instead of space
   for keyvaluepair in $(env); do
     # split around the first "="
     key=$(echo ${keyvaluepair} | cut -d= -f1)
     value=$(echo ${keyvaluepair} | cut -d= -f2-)
-    if [[ "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
+    if [[ "${ALLUXIO_ENV_VARS[*]}" =~ "${key}" ]]; then
       echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
     fi
   done
 }
-
-writeConf
 
 function formatMasterIfSpecified {
   if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
@@ -113,41 +95,124 @@ function mountAlluxioRootFSWithFuseOption {
   tail -f /opt/alluxio/logs/fuse.log
 }
 
-case ${service,,} in
-  master)
-    formatMasterIfSpecified
-    integration/docker/bin/alluxio-job-master.sh &
-    integration/docker/bin/alluxio-master.sh &
-    wait -n
-    ;;
-  master-only)
-    formatMasterIfSpecified
-    integration/docker/bin/alluxio-master.sh
-    ;;
-  job-master)
-    integration/docker/bin/alluxio-job-master.sh
-    ;;
-  worker)
-    formatWorkerIfSpecified
-    integration/docker/bin/alluxio-job-worker.sh &
-    integration/docker/bin/alluxio-worker.sh &
-    wait -n
-    ;;
-  worker-only)
-    formatWorkerIfSpecified
-    integration/docker/bin/alluxio-worker.sh
-    ;;
-  job-worker)
-    integration/docker/bin/alluxio-job-worker.sh
-    ;;
-  proxy)
-    integration/docker/bin/alluxio-proxy.sh
-    ;;
-  fuse)
-    mountAlluxioRootFSWithFuseOption
-    ;;
-  *)
+# Sends a signal to each of the running processes
+#
+# Args:
+#     1: the signal to send
+function forward_signal {
+  local signal
+  signal="${1}"
+
+  # background jobs don't respond to SIGINT
+  # Change to SIGHUP
+  if [ "${signal}" -eq "2" ]; then
+    signal="1"
+  fi
+
+  echo "Forwarding signal ${signal} to processes \"${RUNNING_PROCESSES}\""
+  for proc in "${RUNNING_PROCESSES[@]}"; do
+    kill -${signal} "${proc}"
+  done
+  # This function may take over execution thread from the "main" function
+  # Wait if the processes are still up.
+  wait
+}
+
+function setup_signals {
+
+  # A few note about trapping these signals
+  # - SIGINT (2): Background process (started with &) ignore SIGINT. AS workaround to still
+  #               terminate processes when SIGINT is passed, convert the signal sent to the
+  #               processes to be something other than SIGINT
+  # - SIGKILL (9): Cannot be trapped. It will directly kill the bash parent shell, the child
+  #                processes will continue to live
+  for i in {1..31}; do
+    local v="forward_signal ${i}"
+    trap "forward_signal ${i}" ${i}
+  done
+
+  trap "forward_signal 1" EXIT
+  trap "wait" RETURN
+}
+
+function main {
+  if [[ $# -lt 1 ]]; then
     printUsage
     exit 1
-    ;;
-esac
+  fi
+
+  local service="$1"
+  local options="$2"
+
+  # Only set ALLUXIO_RAM_FOLDER if tiered storage isn't explicitly configured
+  if [[ -z "${ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH}" ]]; then
+    # Docker will set this tmpfs up by default. Its size is configurable through the
+    # --shm-size argument to docker run
+    export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
+  fi
+
+  cd ${ALLUXIO_HOME}
+
+  writeConf
+
+  local processes
+  processes=()
+  case ${service} in
+    master)
+      formatMasterIfSpecified
+      processes+=("job_master")
+      processes+=("master")
+      ;;
+    master-only)
+      formatMasterIfSpecified
+      processes+=("master")
+      ;;
+    job-master)
+      processes+=("job_master")
+      ;;
+    worker)
+      formatWorkerIfSpecified
+      processes+=("job_worker")
+      processes+=("worker")
+      ;;
+    worker-only)
+      formatWorkerIfSpecified
+      processes+=("worker")
+      ;;
+    job-worker)
+      processes+=("job_worker")
+      ;;
+    proxy)
+      processes+=("proxy")
+      ;;
+    fuse)
+      mountAlluxioRootFSWithFuseOption
+      ;;
+    *)
+      printUsage
+      exit 1
+      ;;
+  esac
+
+  if [ -z "${processes}" ]; then
+    printUsage
+    exit 1
+  fi
+
+  # Only a single process is going to be started, simply exec and replace in the shell
+  if [ "${#processes[@]}" -eq 1 ]; then
+    exec ./bin/launch-process "${processes[0]}" -c
+  fi
+
+  # Multiple processes may be running, so manage them by forwarding any signals to them.
+  setup_signals
+
+  for proc in "${processes[@]}"; do
+    ./bin/launch-process "${proc}" -c &
+    RUNNING_PROCESSES+=("$!")
+  done
+
+  wait
+}
+
+main "$@"
