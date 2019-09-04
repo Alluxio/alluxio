@@ -116,6 +116,25 @@ public class InstancedConfigurationTest {
   }
 
   @Test
+  public void isSetCredential() {
+    assertFalse(mConfiguration.isSet(PropertyKey.S3A_SECRET_KEY));
+    mConfiguration.set(PropertyKey.S3A_SECRET_KEY, "foo");
+    assertTrue(mConfiguration.isSet(PropertyKey.S3A_SECRET_KEY));
+  }
+
+  @Test
+  public void isSetResolveCredential() {
+    PropertyKey nestedCred = PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            PropertyKey.S3A_SECRET_KEY.toString());
+    System.out.println("Templated key " + nestedCred.toString());
+    mConfiguration.unset(PropertyKey.S3A_SECRET_KEY);
+    mConfiguration.set(nestedCred, "${aws.secretKey}");
+    assertFalse(mConfiguration.isSet(nestedCred));
+    mConfiguration.set(PropertyKey.S3A_SECRET_KEY, "bar");
+    assertTrue(mConfiguration.isSet(nestedCred));
+  }
+
+  @Test
   public void getInt() {
     mConfiguration.set(PropertyKey.WEB_THREADS, "1");
     assertEquals(1, mConfiguration.getInt(PropertyKey.WEB_THREADS));
@@ -436,10 +455,6 @@ public class InstancedConfigurationTest {
   }
 
   @Test
-  public void getCredentialField() {
-  }
-
-  @Test
   public void getUnsetCredentialFieldThrowsException() {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage("No value set for configuration key");
@@ -460,9 +475,8 @@ public class InstancedConfigurationTest {
     mConfiguration.getCredential(PropertyKey.CONF_DIR);
   }
 
-  // TODO(jiacheng): Add more tests here
-
   @Test
+  // TODO(jiacheng): check nested cases
   public void getNestedProperties() {
     mConfiguration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
@@ -475,6 +489,18 @@ public class InstancedConfigurationTest {
     expected.put("alluxio.unknown.property", "val2");
     assertThat(mConfiguration.getNestedProperties(
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("foo")),
+        CoreMatchers.is(expected));
+  }
+
+  @Test
+  public void getNestedPropertiesCredential() {
+    // TODO(jiacheng): Is this a valid case?
+    PropertyKey nestedCred = PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+        PropertyKey.S3A_SECRET_KEY.toString());
+    mConfiguration.set(nestedCred, "foo");
+    Map<String, String> expected = new HashMap<>();
+    expected.put(PropertyKey.S3A_SECRET_KEY.toString(), "foo");
+    assertThat(mConfiguration.getNestedProperties(nestedCred),
         CoreMatchers.is(expected));
   }
 
@@ -520,6 +546,11 @@ public class InstancedConfigurationTest {
     mConfiguration.set(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "test");
     assertEquals("test",
         mConfiguration.get(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)));
+  }
+
+  @Test
+  public void getTemplatedCredential() {
+    // TODO(jiacheng)
   }
 
   @Test
@@ -758,6 +789,11 @@ public class InstancedConfigurationTest {
   }
 
   @Test
+  public void sourceCredential() {
+    // TODO(jiacheng)
+  }
+
+  @Test
   public void getRuntimeDefault() throws Exception {
     AtomicInteger x = new AtomicInteger(100);
     PropertyKey key = new PropertyKey.Builder("testKey")
@@ -818,6 +854,12 @@ public class InstancedConfigurationTest {
     String regexString = "(\\$\\{([^{}]*)\\})";
     Pattern confRegex = Pattern.compile(regexString);
     assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
+  }
+
+  @Test
+  public void toMapCredential() {
+    // TODO(jiacheng)
+
   }
 
   @Test

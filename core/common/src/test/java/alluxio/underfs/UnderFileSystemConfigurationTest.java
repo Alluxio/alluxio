@@ -38,7 +38,30 @@ public final class UnderFileSystemConfigurationTest {
   }
 
   @Test
+  // TODO(jiacheng): change key, refactor?
   public void getValueWhenGlobalConfHasProperty() throws Exception {
+    // Set property in global configuration
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar", mConfiguration)
+            .toResource()) {
+      Random random = new Random();
+      boolean readOnly = random.nextBoolean();
+      boolean shared = random.nextBoolean();
+      UnderFileSystemConfiguration conf = UnderFileSystemConfiguration
+              .defaults(ConfigurationTestUtils.defaults()).setReadOnly(readOnly).setShared(shared);
+      assertEquals(readOnly, conf.isReadOnly());
+      assertEquals(shared, conf.isShared());
+      assertEquals("bar", mConfiguration.getCredential(PropertyKey.S3A_ACCESS_KEY));
+      conf = UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+              .setReadOnly(readOnly).setShared(shared)
+              .createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      assertEquals(readOnly, conf.isReadOnly());
+      assertEquals(shared, conf.isShared());
+      assertEquals("foo", conf.getCredential(PropertyKey.S3A_ACCESS_KEY));
+    }
+  }
+
+  @Test
+  public void getValueWhenGlobalConfHasPropertyCredential() throws Exception {
     // Set property in global configuration
     try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar", mConfiguration)
         .toResource()) {
