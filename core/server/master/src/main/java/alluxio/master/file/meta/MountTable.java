@@ -472,7 +472,7 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * This class represents a Alluxio path after resolution.
+   * This class represents a Alluxio path after reverse resolution.
    */
   public final class ReverseResolution {
     private final MountInfo mMountInfo;

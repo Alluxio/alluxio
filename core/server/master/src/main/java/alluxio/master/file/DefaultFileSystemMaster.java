@@ -1377,14 +1377,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       // nested mounts as translation on one mount should not give visibility to another.
       if (mMountTable.containsMountPoint(resolution.getMountInfo().getAlluxioUri(), false)) {
         throw new IllegalStateException(
-            String.format("Foreign URI: %s is in a mount that has nested mounts.", uriStr));
+            String.format(
+                "Foreign URI: %s is reverse resolved to a mount :%s which has nested mounts.",
+                uriStr, resolution.getMountInfo().getAlluxioUri()));
       }
       return resolution.getUri();
     }
 
     // Resolve unsuccessful
     if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SHIMFS_AUTO_MOUNT_ENABLED)) {
-      throw new InvalidPathException(String.format("Could not reverse resolve path: %s", uriStr));
+      throw new InvalidPathException(String.format("Could not reverse resolve ufs path: %s", uriStr));
     }
 
     // Attempt to auto-mount.
