@@ -12,11 +12,10 @@
 package alluxio.grpc;
 
 import alluxio.collections.Pair;
-import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Verify;
+import com.google.common.base.Preconditions;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
@@ -25,17 +24,15 @@ import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.HashMap;
 import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Used to maintain singleton gRPC {@link ManagedChannel} instances per process.
@@ -53,82 +50,21 @@ public class GrpcManagedChannelPool {
     sInstance = new GrpcManagedChannelPool();
   }
 
-  /**
-   * @return the singleton pool instance
-   */
-  public static GrpcManagedChannelPool INSTANCE() {
-    return sInstance;
-  }
-
-  /*
-   * Concurrently shutting down gRPC channels may cause incomplete RPC messages
-   * bouncing back and forth between client and server. This lock is used to serialize
-   * channel shut downs in a single JVM boundary.
-   */
   /** Channels per address. */
-  @GuardedBy("mLock")
-  private HashMap<GrpcChannelKey, ManagedChannelReference> mChannels;
-  /** Used to control access to mChannel. */
-  private ReentrantReadWriteLock mLock;
-
-  /** Scheduler for destruction of idle channels. */
-  protected ScheduledExecutorService mScheduler;
+  private ConcurrentMap<GrpcChannelKey, ManagedChannelHolder> mChannels;
 
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
    */
   public GrpcManagedChannelPool() {
-    mChannels = new HashMap<>();
-    mLock = new ReentrantReadWriteLock(true);
+    mChannels = new ConcurrentHashMap<>();
   }
 
   /**
-   * Shuts down the managed channel for given key.
-   *
-   * (Should be called with {@code mLock} acquired.)
-   *
-   * @param channelKey channel key
-   * @param shutdownTimeoutMs shutdown timeout in miliseconds
+   * @return the singleton pool instance
    */
-  private void shutdownManagedChannel(GrpcChannelKey channelKey, long shutdownTimeoutMs) {
-    ManagedChannel managedChannel = mChannels.get(channelKey).get();
-    managedChannel.shutdown();
-    try {
-      managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      // Allow thread to exit.
-    } finally {
-      managedChannel.shutdownNow();
-    }
-    Verify.verify(managedChannel.isShutdown());
-    LOG.debug("Shut down managed channel. ChannelKey: {}", channelKey);
-  }
-
-  private boolean waitForChannelReady(ManagedChannel managedChannel, long healthCheckTimeoutMs) {
-    try {
-      Boolean res = CommonUtils.waitForResult("channel to be ready", () -> {
-        ConnectivityState currentState = managedChannel.getState(true);
-        switch (currentState) {
-          case READY:
-            return true;
-          case TRANSIENT_FAILURE:
-          case SHUTDOWN:
-            return false;
-          case IDLE:
-          case CONNECTING:
-            return null;
-          default:
-            return null;
-        }
-      }, WaitForOptions.defaults().setTimeoutMs((int) healthCheckTimeoutMs));
-      return res;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
-    }
+  public static GrpcManagedChannelPool INSTANCE() {
+    return sInstance;
   }
 
   /**
@@ -139,82 +75,55 @@ public class GrpcManagedChannelPool {
    * @param shutdownTimeoutMs shutdown timeout in milliseconds
    * @return a {@link ManagedChannel}
    */
-  public ManagedChannel acquireManagedChannel(GrpcChannelKey channelKey,
-      long healthCheckTimeoutMs, long shutdownTimeoutMs) {
-    boolean shutdownExistingChannel = false;
-    ManagedChannelReference managedChannelRef = null;
-    try (LockResource lockShared = new LockResource(mLock.readLock())) {
-      if (mChannels.containsKey(channelKey)) {
-        managedChannelRef = mChannels.get(channelKey);
-        if (waitForChannelReady(managedChannelRef.get(),
-            healthCheckTimeoutMs)) {
-          LOG.debug("Acquiring an existing managed channel. ChannelKey: {}. Ref-count: {}",
-              channelKey, managedChannelRef.getRefCount());
-          return managedChannelRef.reference();
+  public ManagedChannel acquireManagedChannel(GrpcChannelKey channelKey, long healthCheckTimeoutMs,
+      long shutdownTimeoutMs) {
+    return mChannels.compute(channelKey, (key, chHolder) -> {
+      boolean shutdownExistingChannel = false;
+      int existingRefCount = 0;
+      if (chHolder != null) {
+        if (waitForChannelReady(chHolder.get(), healthCheckTimeoutMs)) {
+          LOG.debug("Acquiring an existing managed channel. ChannelKey: {}. Ref-count: {}", key,
+              chHolder.getRefCount());
+          return chHolder.reference();
         } else {
-          // Postpone channel shutdown under exclusive lock below.
           shutdownExistingChannel = true;
         }
       }
-    }
-    try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
-      // Dispose existing channel if required.
-      int existingRefCount = 0;
-      if (shutdownExistingChannel && mChannels.containsKey(channelKey)
-          && mChannels.get(channelKey) == managedChannelRef) {
-        existingRefCount = managedChannelRef.getRefCount();
+      if (shutdownExistingChannel) {
+        // TODO(ggezer): Avoid being have to create new channel with existing ref-count.
+        existingRefCount = chHolder.getRefCount();
         LOG.debug("Shutting down an existing unhealthy managed channel. "
-            + "ChannelKey: {}. Existing Ref-count: {}", channelKey, existingRefCount);
-        shutdownManagedChannel(channelKey, shutdownTimeoutMs);
-        mChannels.remove(channelKey);
+            + "ChannelKey: {}. Existing Ref-count: {}", key, existingRefCount);
+        shutdownManagedChannel(chHolder.get(), shutdownTimeoutMs);
       }
-      if (!mChannels.containsKey(channelKey)) {
-        LOG.debug("Creating a new managed channel. ChannelKey: {}. Ref-count:{}",
-            channelKey, existingRefCount);
-        mChannels.put(channelKey,
-            new ManagedChannelReference(createManagedChannel(channelKey), existingRefCount));
-      }
-      return mChannels.get(channelKey).reference();
-    }
+
+      LOG.debug("Creating a new managed channel. ChannelKey: {}. Ref-count:{}", key,
+          existingRefCount);
+      return new ManagedChannelHolder(createManagedChannel(key), existingRefCount).reference();
+    }).get();
   }
 
   /**
    * Decreases the ref-count of the {@link ManagedChannel} for the given address.
-   *
-   * It shuts down and releases the {@link ManagedChannel} if reference count reaches zero.
+   * It shuts down the underlying channel if reference count reaches zero.
    *
    * @param channelKey host address
    * @param shutdownTimeoutMs shutdown timeout in milliseconds
    */
   public void releaseManagedChannel(GrpcChannelKey channelKey, long shutdownTimeoutMs) {
-    boolean shutdownManagedChannel;
-    try (LockResource lockShared = new LockResource(mLock.readLock())) {
-      Verify.verify(mChannels.containsKey(channelKey));
-      ManagedChannelReference channelRef = mChannels.get(channelKey);
-      channelRef.dereference();
-      shutdownManagedChannel = channelRef.getRefCount() <= 0;
-      LOG.debug("Released managed channel for: {}. Ref-count: {}", channelKey,
-          channelRef.getRefCount());
-    }
-    if (shutdownManagedChannel) {
-      try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
-        if (mChannels.containsKey(channelKey)) {
-          ManagedChannelReference channelRef = mChannels.get(channelKey);
-          if (channelRef.getRefCount() <= 0) {
-            shutdownManagedChannel(channelKey, shutdownTimeoutMs);
-          }
-        }
+    mChannels.compute(channelKey, (key, chHolder) -> {
+      Preconditions.checkNotNull(chHolder, "Releasing nonexistent channel");
+      if (chHolder.dereference() == 0) {
+        LOG.debug("Released managed channel for: {}. Ref-count: {}", key, chHolder.getRefCount());
+        shutdownManagedChannel(chHolder.get(), shutdownTimeoutMs);
+        return null;
       }
-    }
+      return chHolder;
+    });
   }
 
   /**
    * Creates a {@link ManagedChannel} by given pool key.
-   *
-   * (Should be called with {@code mLock} acquired.)
-   *
-   * @param channelKey channel pool key
-   * @return the created channel
    */
   private ManagedChannel createManagedChannel(GrpcChannelKey channelKey) {
     // Create netty channel builder with the address from channel key.
@@ -262,13 +171,57 @@ public class GrpcManagedChannelPool {
   }
 
   /**
+   * Returns {@code true} if given managed channel is ready.
+   */
+  private boolean waitForChannelReady(ManagedChannel managedChannel, long healthCheckTimeoutMs) {
+    try {
+      Boolean res = CommonUtils.waitForResult("channel to be ready", () -> {
+        ConnectivityState currentState = managedChannel.getState(true);
+        switch (currentState) {
+          case READY:
+            return true;
+          case TRANSIENT_FAILURE:
+          case SHUTDOWN:
+            return false;
+          case IDLE:
+          case CONNECTING:
+            return null;
+          default:
+            return null;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs((int) healthCheckTimeoutMs));
+      return res;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
+  }
+
+  /**
+   * Shuts down the managed channel.
+   */
+  private void shutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs) {
+    managedChannel.shutdown();
+    try {
+      managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      // Allow thread to exit.
+    } finally {
+      managedChannel.shutdownNow();
+    }
+  }
+
+  /**
    * Used as reference counting wrapper over {@link ManagedChannel}.
    */
-  private class ManagedChannelReference {
+  private class ManagedChannelHolder {
     private ManagedChannel mChannel;
     private AtomicInteger mRefCount;
 
-    private ManagedChannelReference(ManagedChannel channel, int refCount) {
+    private ManagedChannelHolder(ManagedChannel channel, int refCount) {
       mChannel = channel;
       mRefCount = new AtomicInteger(refCount);
     }
@@ -276,16 +229,18 @@ public class GrpcManagedChannelPool {
     /**
      * @return the underlying {@link ManagedChannel} after increasing ref-count
      */
-    private ManagedChannel reference() {
+    private ManagedChannelHolder reference() {
       mRefCount.incrementAndGet();
-      return mChannel;
+      return this;
     }
 
     /**
      * Decrement the ref-count for underlying {@link ManagedChannel}.
+     *
+     * @return the current ref count after dereference
      */
-    private void dereference() {
-      mRefCount.decrementAndGet();
+    private int dereference() {
+      return mRefCount.decrementAndGet();
     }
 
     /**
