@@ -36,7 +36,8 @@ repeatedly input the password, you can add the public SSH key for the host into
 details.
 
 ## Mount RAMFS file system
-> Run the belo command to mount RAMFS file system.
+
+> Run the below command to mount RAMFS file system.
 
 ```console
 $ ./bin/alluxio-mount.sh SudoMount
