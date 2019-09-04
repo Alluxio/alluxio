@@ -15,7 +15,6 @@ set -e
 ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
-declare -a RUNNING_PROCESSES
 
 # List of environment variables which go in alluxio-env.sh instead of
 # alluxio-site.properties
