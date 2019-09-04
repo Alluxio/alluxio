@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 /**
  * A two-level concurrent map implementation. Concurrent usage is managed by the outer map.
@@ -59,6 +60,7 @@ public class TwoKeyConcurrentMap<K1, K2, V, M extends Map<K2, V>> extends Concur
    * @param k1 the first key
    * @param k2 the second key
    */
+  @Nullable
   public void removeInnerValue(K1 k1, K2 k2) {
     computeIfPresent(k1, (k, inner) -> {
       inner.remove(k2);
