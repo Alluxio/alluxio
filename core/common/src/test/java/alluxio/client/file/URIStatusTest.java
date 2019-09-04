@@ -74,8 +74,7 @@ public final class URIStatusTest {
     assertEquals(uriStatus.isPersisted(), fileInfo.isPersisted());
     assertEquals(uriStatus.isPinned(), fileInfo.isPinned());
     assertEquals(uriStatus.isMountPoint(), fileInfo.isMountPoint());
-    assertEquals(uriStatus.getFileBlockInfos(),
-        fileInfo.getFileBlockInfos());
+    assertEquals(uriStatus.getFileBlockInfos(), fileInfo.getFileBlockInfos());
     assertEquals(uriStatus.toString(), fileInfo.toString());
   }
 
