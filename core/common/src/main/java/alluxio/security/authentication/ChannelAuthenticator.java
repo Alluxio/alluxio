@@ -15,7 +15,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnknownException;
 import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcChannelKey;
@@ -30,11 +29,13 @@ import io.grpc.ClientInterceptors;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -167,17 +168,17 @@ public class ChannelAuthenticator {
         // Intercept authenticated channel with channel-Id injector.
         mChannel = ClientInterceptors.intercept(mManagedChannel,
             new ChannelIdInjector(mChannelKey.getChannelId()));
-      } catch (Exception exc) {
-        String message = String.format(
-            "Channel authentication failed. ChannelKey: %s, AuthType: %s, Target: %s, Error: %s",
-            mChannelKey, mAuthType, mManagedChannel.authority(), exc.toString());
-        LOG.warn(message);
-        if (exc instanceof AlluxioStatusException) {
-          throw AlluxioStatusException.from(
-              ((AlluxioStatusException) exc).getStatus().withDescription(message).withCause(exc));
-        } else {
-          throw new UnknownException(message, exc);
+      } catch (IOException e) {
+        Status.Code code = Status.Code.UNKNOWN;
+        if (e instanceof AlluxioStatusException) {
+          code = ((AlluxioStatusException) e).getStatusCode();
         }
+        String message = String.format(
+            "Channel authentication failed with code:%s. ChannelKey: %s, AuthType: %s, Error: %s",
+            code.name(), mChannelKey.toStringShort(), mAuthType, e.toString());
+        LOG.warn(message);
+        throw AlluxioStatusException
+            .from(Status.fromCode(code).withDescription(message).withCause(e));
       }
     }
 
