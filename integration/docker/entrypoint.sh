@@ -99,17 +99,15 @@ function mountAlluxioRootFSWithFuseOption {
 # Args:
 #     1: the signal to send
 function forward_signal {
-  local signal
-  signal="${1}"
-
-  # background jobs don't respond to SIGINT
-  # Change to SIGHUP
+  local signal="${1}"
+  # background jobs don't respond to SIGINT (2)
+  # Change to SIGHUP (1)
   if [ "${signal}" -eq "2" ]; then
     signal="1"
   fi
 
   local procs="$(jobs -p)"
-  echo -e "Forwarding signal ${signal} to processes:\n ${procs}"
+  echo -e "Forwarding signal ${signal} to processes:\n${procs}"
   while read -r proc; do
     if [ -n "${proc}" ]; then
       kill -${signal} "${proc}"
