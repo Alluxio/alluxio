@@ -59,33 +59,33 @@ function writeConf {
 }
 
 function formatMasterIfSpecified {
-  if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
+  if [[ -n ${OPTIONS} && ${OPTIONS} != ${NO_FORMAT} ]]; then
     printUsage
     exit 1
   fi
-  if [[ ${options} != ${NO_FORMAT} ]]; then
+  if [[ ${OPTIONS} != ${NO_FORMAT} ]]; then
     bin/alluxio formatMaster
   fi
 }
 
 function formatWorkerIfSpecified {
-  if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
+  if [[ -n ${OPTIONS} && ${OPTIONS} != ${NO_FORMAT} ]]; then
     printUsage
     exit 1
   fi
-  if [[ ${options} != ${NO_FORMAT} ]]; then
+  if [[ ${OPTIONS} != ${NO_FORMAT} ]]; then
     bin/alluxio formatWorker
   fi
 }
 
 function mountAlluxioRootFSWithFuseOption {
   local fuseOptions=""
-  if [[ -n ${options} ]]; then
-    if [[ ! ${options} =~ ${FUSE_OPTS}=* ]] || [[ ! -n ${options#*=} ]]; then
+  if [[ -n ${OPTIONS} ]]; then
+    if [[ ! ${OPTIONS} =~ ${FUSE_OPTS}=* ]] || [[ ! -n ${OPTIONS#*=} ]]; then
       printUsage
       exit 1
     fi
-    fuseOptions="-o ${options#*=}"
+    fuseOptions="-o ${OPTIONS#*=}"
   fi
 
   # Unmount first if cleanup failed and ignore error
@@ -143,7 +143,7 @@ function main {
   fi
 
   local service="$1"
-  local options="$2"
+  OPTIONS="$2"
 
   # Only set ALLUXIO_RAM_FOLDER if tiered storage isn't explicitly configured
   if [[ -z "${ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH}" ]]; then
