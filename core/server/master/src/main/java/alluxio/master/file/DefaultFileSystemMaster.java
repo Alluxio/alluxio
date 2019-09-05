@@ -1378,7 +1378,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       if (mMountTable.containsMountPoint(resolution.getMountInfo().getAlluxioUri(), false)) {
         throw new IllegalStateException(
             String.format(
-                "Foreign URI: %s is reverse resolved to a mount :%s which has nested mounts.",
+                "Foreign URI: %s is reverse resolved to a mount: %s which has nested mounts.",
                 uriStr, resolution.getMountInfo().getAlluxioUri()));
       }
       return resolution.getUri();
