@@ -168,8 +168,6 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string) {
 	chdir(srcPath)
 	pathsToCopy := []string{
-		"integration/docker/bin/alluxio-job-worker.sh",
-		"integration/docker/bin/alluxio-job-master.sh",
 		"bin/alluxio",
 		"bin/alluxio-masters.sh",
 		"bin/alluxio-monitor.sh",
@@ -193,9 +191,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile",
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
-		"integration/docker/bin/alluxio-master.sh",
-		"integration/docker/bin/alluxio-proxy.sh",
-		"integration/docker/bin/alluxio-worker.sh",
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
