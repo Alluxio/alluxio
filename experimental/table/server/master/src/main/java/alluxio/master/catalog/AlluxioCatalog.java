@@ -131,6 +131,6 @@ public class AlluxioCatalog {
   public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
       throws IOException {
     Table table = getTable(dbName, tableName);
-    return table.getStatistics();
+    return table.get().getStatistics();
   }
 }

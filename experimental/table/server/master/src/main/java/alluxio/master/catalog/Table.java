@@ -11,34 +11,40 @@
 
 package alluxio.master.catalog;
 
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.Schema;
+import alluxio.table.common.udb.UdbTable;
 
-import java.util.Map;
+import java.util.ArrayList;
 
 /**
- * The table implementation which manages all the table information.
+ * The table implementation which manages all the versions of the table.
  */
 public class Table {
   private final String mName;
-  private final Schema mSchema;
-  private final String mBaseLocation;
-  private final Map<String, FileStatistics> mStatistics;
+  private final UdbTable mUdbTable;
+  private final ArrayList<TableVersion> mVersions;
 
   /**
    * Creates an instance.
    *
-   * @param name the table name
-   * @param schema the table schema
-   * @param baseLocation the base location
-   * @param statistics the statistics
+   * @param udbTable the udb table
    */
-  public Table(String name, Schema schema, String baseLocation,
-      Map<String, FileStatistics> statistics) {
-    mName = name;
-    mSchema = schema;
-    mBaseLocation = baseLocation;
-    mStatistics = statistics;
+  public Table(UdbTable udbTable) {
+    mUdbTable = udbTable;
+
+    mName = mUdbTable.getName();
+    mVersions = new ArrayList<>(2);
+    TableVersion tableVersion = new TableVersion(mUdbTable.getSchema());
+    tableVersion.addView(TableVersion.DEFAULT_VIEW_NAME, mUdbTable.getView());
+    mVersions.add(tableVersion);
+  }
+
+  /**
+   * @return the latest version of the table
+   */
+  public TableVersion get() {
+    synchronized (mVersions) {
+      return mVersions.get(mVersions.size() - 1);
+    }
   }
 
   /**
@@ -46,26 +52,5 @@ public class Table {
    */
   public String getName() {
     return mName;
-  }
-
-  /**
-   * @return the table schema
-   */
-  public Schema getSchema() {
-    return mSchema;
-  }
-
-  /**
-   * @return the base location
-   */
-  public String getBaseLocation() {
-    return mBaseLocation;
-  }
-
-  /**
-   * @return the statistics
-   */
-  public Map<String, FileStatistics> getStatistics() {
-    return mStatistics;
   }
 }

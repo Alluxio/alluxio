@@ -77,10 +77,11 @@ public class CatalogMasterClientServiceHandler
       Table table = mCatalogMaster.getTable(request.getDbName(), request.getTableName());
       TableInfo info;
       if (table != null) {
+        TableVersion tv = table.get();
         info = TableInfo.newBuilder().setDbName(request.getDbName())
             .setTableName(request.getTableName())
-            .setBaseLocation(table.getBaseLocation())
-            .setSchema(table.getSchema())
+            .setBaseLocation(tv.getBaseLocation())
+            .setSchema(tv.getSchema())
             .build();
         return GetTablePResponse.newBuilder()
             .setTableInfo(info)
@@ -98,9 +99,10 @@ public class CatalogMasterClientServiceHandler
           request.getSchema());
       TableInfo info;
       if (table != null) {
+        TableVersion tv = table.get();
         info = TableInfo.newBuilder().setDbName(request.getDbName())
             .setTableName(request.getTableName())
-            .setBaseLocation(table.getBaseLocation()).setSchema(table.getSchema())
+            .setBaseLocation(tv.getBaseLocation()).setSchema(tv.getSchema())
             .build();
         return CreateTablePResponse.newBuilder()
             .setTableInfo(info)
