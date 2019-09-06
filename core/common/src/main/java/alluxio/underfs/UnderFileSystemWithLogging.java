@@ -58,6 +58,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private final UnderFileSystem mUnderFileSystem;
   private final UnderFileSystemConfiguration mConf;
   private final String mPath;
+  private final String mUfsTag;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
@@ -74,6 +75,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     mPath = path;
     mUnderFileSystem = ufs;
     mConf = conf;
+    mUfsTag = getUfsTag();
   }
 
   @Override
@@ -961,22 +963,26 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return mUnderFileSystem.isSeekable();
   }
 
+  private String getUfsTag() {
+    AlluxioURI uri = new AlluxioURI(mPath);
+    uri = new AlluxioURI(uri.getScheme(), uri.getAuthority(), uri.getRootPath());
+    return MetricsSystem.escape(uri);
+  }
+
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mConf)
           && AuthenticatedClientUser.get(mConf) != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            AuthenticatedClientUser.get(mConf).getName(), WorkerMetrics.TAG_UFS,
-            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
-            mUnderFileSystem.getUnderFSType());
+            AuthenticatedClientUser.get(mConf).getName(), WorkerMetrics.TAG_UFS, mUfsTag,
+            WorkerMetrics.TAG_UFS_TYPE, mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
       // fall through
     }
-    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
-        MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
-        mUnderFileSystem.getUnderFSType());
+    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS, mUfsTag,
+        WorkerMetrics.TAG_UFS_TYPE, mUnderFileSystem.getUnderFSType());
   }
 
   // TODO(calvin): This should not be in this class
