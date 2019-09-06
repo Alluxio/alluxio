@@ -341,6 +341,7 @@ public class InodeTreePersistentState implements Journaled {
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
     mToBePersistedIds.remove(id);
+    mTtlBuckets.remove(inode);
   }
 
   private void applyCreateDirectory(InodeDirectoryEntry entry) {
