@@ -9,42 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.table.common.udb;
+package alluxio.table.common;
 
 import alluxio.grpc.FileStatistics;
-import alluxio.grpc.Schema;
-import alluxio.table.common.TableView;
 
 import java.util.Map;
 
 /**
- * The interface for the underdb table.
+ * A view or representation of a table.
  */
-public interface UdbTable {
-
-  /**
-   * @return the table name
-   */
-  String getName();
-
-  /**
-   * @return the table schema
-   */
-  Schema getSchema();
-
+public interface TableView {
   /**
    * @return the base location
    */
   String getBaseLocation();
 
-  // TODO(gpang): generalize statistics
   /**
-   * @return statistics of the table
+   * @return the statistics
    */
   Map<String, FileStatistics> getStatistics();
-
-  /**
-   * @return returns a view for this udb table
-   */
-  TableView getView();
 }
