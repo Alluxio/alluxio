@@ -90,8 +90,7 @@ function mountAlluxioRootFSWithFuseOption {
 
   # Unmount first if cleanup failed and ignore error
   ! integration/fuse/bin/alluxio-fuse unmount /alluxio-fuse
-  integration/fuse/bin/alluxio-fuse mount ${fuseOptions} /alluxio-fuse /
-  tail -f /opt/alluxio/logs/fuse.log
+  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} /alluxio-fuse /
 }
 
 # Sends a signal to each of the running background processes
