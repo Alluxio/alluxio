@@ -145,6 +145,21 @@ public final class CatalogMasterProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_GetStatisticsPRequest_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_AttachDatabasePRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_AttachDatabasePRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_AttachDatabasePRequest_OptionsEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_AttachDatabasePRequest_OptionsEntry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_AttachDatabasePResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_AttachDatabasePResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_ColumnStatistics_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -231,42 +246,49 @@ public final class CatalogMasterProto {
       "\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\"*\n\025G" +
       "etDataFilesPResponse\022\021\n\tdata_file\030\001 \003(\t\"" +
       "<\n\025GetStatisticsPRequest\022\017\n\007db_name\030\001 \001(" +
-      "\t\022\022\n\ntable_name\030\002 \001(\t\"(\n\020ColumnStatistic" +
-      "s\022\024\n\014record_count\030\001 \001(\004\"\231\001\n\016FileStatisti" +
-      "cs\0228\n\006column\030\001 \003(\0132(.alluxio.grpc.FileSt" +
-      "atistics.ColumnEntry\032M\n\013ColumnEntry\022\013\n\003k" +
-      "ey\030\001 \001(\r\022-\n\005value\030\002 \001(\0132\036.alluxio.grpc.C" +
-      "olumnStatistics:\0028\001\"\263\001\n\026GetStatisticsPRe" +
-      "sponse\022H\n\nstatistics\030\001 \003(\01324.alluxio.grp" +
-      "c.GetStatisticsPResponse.StatisticsEntry" +
-      "\032O\n\017StatisticsEntry\022\013\n\003key\030\001 \001(\t\022+\n\005valu" +
-      "e\030\002 \001(\0132\034.alluxio.grpc.FileStatistics:\0028" +
-      "\001*\304\001\n\013FieldTypeId\022\013\n\007BOOLEAN\020\000\022\013\n\007INTEGE" +
-      "R\020\001\022\010\n\004LONG\020\002\022\t\n\005FLOAT\020\003\022\n\n\006DOUBLE\020\004\022\010\n\004" +
-      "DATE\020\005\022\010\n\004TIME\020\006\022\r\n\tTIMESTAMP\020\007\022\n\n\006STRIN" +
-      "G\020\010\022\010\n\004UUID\020\t\022\t\n\005FIXED\020\n\022\n\n\006BINARY\020\013\022\013\n\007" +
-      "DECIMAL\020\014\022\n\n\006STRUCT\020\r\022\010\n\004LIST\020\016\022\007\n\003MAP\020\017" +
-      "*%\n\tTableType\022\n\n\006NATIVE\020\000\022\014\n\010IMPORTED\020\0012" +
-      "\336\005\n\032CatalogMasterClientService\022`\n\017GetAll" +
-      "Databases\022%.alluxio.grpc.GetAllDatabases" +
-      "PRequest\032&.alluxio.grpc.GetAllDatabasesP" +
-      "Response\022W\n\014GetAllTables\022\".alluxio.grpc." +
-      "GetAllTablesPRequest\032#.alluxio.grpc.GetA" +
-      "llTablesPResponse\022K\n\010GetTable\022\036.alluxio." +
-      "grpc.GetTablePRequest\032\037.alluxio.grpc.Get" +
-      "TablePResponse\022N\n\tLoadTable\022\037.alluxio.gr" +
-      "pc.LoadTablePRequest\032 .alluxio.grpc.Load" +
-      "TablePResponse\022T\n\013CreateTable\022!.alluxio." +
-      "grpc.CreateTablePRequest\032\".alluxio.grpc." +
-      "CreateTablePResponse\022]\n\016CreateDatabase\022$" +
-      ".alluxio.grpc.CreateDatabasePRequest\032%.a" +
-      "lluxio.grpc.CreateDatabasePResponse\022W\n\014G" +
-      "etDataFiles\022\".alluxio.grpc.GetDataFilesP" +
-      "Request\032#.alluxio.grpc.GetDataFilesPResp" +
-      "onse\022Z\n\rGetStatistics\022#.alluxio.grpc.Get" +
-      "StatisticsPRequest\032$.alluxio.grpc.GetSta" +
-      "tisticsPResponseB$\n\014alluxio.grpcB\022Catalo" +
-      "gMasterProtoP\001"
+      "\t\022\022\n\ntable_name\030\002 \001(\t\"\235\001\n\026AttachDatabase" +
+      "PRequest\022\017\n\007db_name\030\001 \001(\t\022B\n\007options\030\002 \003" +
+      "(\01321.alluxio.grpc.AttachDatabasePRequest" +
+      ".OptionsEntry\032.\n\014OptionsEntry\022\013\n\003key\030\001 \001" +
+      "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"*\n\027AttachDatabaseP" +
+      "Response\022\017\n\007success\030\001 \001(\010\"(\n\020ColumnStati" +
+      "stics\022\024\n\014record_count\030\001 \001(\004\"\231\001\n\016FileStat" +
+      "istics\0228\n\006column\030\001 \003(\0132(.alluxio.grpc.Fi" +
+      "leStatistics.ColumnEntry\032M\n\013ColumnEntry\022" +
+      "\013\n\003key\030\001 \001(\r\022-\n\005value\030\002 \001(\0132\036.alluxio.gr" +
+      "pc.ColumnStatistics:\0028\001\"\263\001\n\026GetStatistic" +
+      "sPResponse\022H\n\nstatistics\030\001 \003(\01324.alluxio" +
+      ".grpc.GetStatisticsPResponse.StatisticsE" +
+      "ntry\032O\n\017StatisticsEntry\022\013\n\003key\030\001 \001(\t\022+\n\005" +
+      "value\030\002 \001(\0132\034.alluxio.grpc.FileStatistic" +
+      "s:\0028\001*\304\001\n\013FieldTypeId\022\013\n\007BOOLEAN\020\000\022\013\n\007IN" +
+      "TEGER\020\001\022\010\n\004LONG\020\002\022\t\n\005FLOAT\020\003\022\n\n\006DOUBLE\020\004" +
+      "\022\010\n\004DATE\020\005\022\010\n\004TIME\020\006\022\r\n\tTIMESTAMP\020\007\022\n\n\006S" +
+      "TRING\020\010\022\010\n\004UUID\020\t\022\t\n\005FIXED\020\n\022\n\n\006BINARY\020\013" +
+      "\022\013\n\007DECIMAL\020\014\022\n\n\006STRUCT\020\r\022\010\n\004LIST\020\016\022\007\n\003M" +
+      "AP\020\017*%\n\tTableType\022\n\n\006NATIVE\020\000\022\014\n\010IMPORTE" +
+      "D\020\0012\275\006\n\032CatalogMasterClientService\022`\n\017Ge" +
+      "tAllDatabases\022%.alluxio.grpc.GetAllDatab" +
+      "asesPRequest\032&.alluxio.grpc.GetAllDataba" +
+      "sesPResponse\022W\n\014GetAllTables\022\".alluxio.g" +
+      "rpc.GetAllTablesPRequest\032#.alluxio.grpc." +
+      "GetAllTablesPResponse\022K\n\010GetTable\022\036.allu" +
+      "xio.grpc.GetTablePRequest\032\037.alluxio.grpc" +
+      ".GetTablePResponse\022N\n\tLoadTable\022\037.alluxi" +
+      "o.grpc.LoadTablePRequest\032 .alluxio.grpc." +
+      "LoadTablePResponse\022T\n\013CreateTable\022!.allu" +
+      "xio.grpc.CreateTablePRequest\032\".alluxio.g" +
+      "rpc.CreateTablePResponse\022]\n\016CreateDataba" +
+      "se\022$.alluxio.grpc.CreateDatabasePRequest" +
+      "\032%.alluxio.grpc.CreateDatabasePResponse\022" +
+      "]\n\016AttachDatabase\022$.alluxio.grpc.AttachD" +
+      "atabasePRequest\032%.alluxio.grpc.AttachDat" +
+      "abasePResponse\022W\n\014GetDataFiles\022\".alluxio" +
+      ".grpc.GetDataFilesPRequest\032#.alluxio.grp" +
+      "c.GetDataFilesPResponse\022Z\n\rGetStatistics" +
+      "\022#.alluxio.grpc.GetStatisticsPRequest\032$." +
+      "alluxio.grpc.GetStatisticsPResponseB$\n\014a" +
+      "lluxio.grpcB\022CatalogMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -437,14 +459,32 @@ public final class CatalogMasterProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetStatisticsPRequest_descriptor,
         new java.lang.String[] { "DbName", "TableName", });
-    internal_static_alluxio_grpc_ColumnStatistics_descriptor =
+    internal_static_alluxio_grpc_AttachDatabasePRequest_descriptor =
       getDescriptor().getMessageTypes().get(23);
+    internal_static_alluxio_grpc_AttachDatabasePRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_AttachDatabasePRequest_descriptor,
+        new java.lang.String[] { "DbName", "Options", });
+    internal_static_alluxio_grpc_AttachDatabasePRequest_OptionsEntry_descriptor =
+      internal_static_alluxio_grpc_AttachDatabasePRequest_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_grpc_AttachDatabasePRequest_OptionsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_AttachDatabasePRequest_OptionsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_alluxio_grpc_AttachDatabasePResponse_descriptor =
+      getDescriptor().getMessageTypes().get(24);
+    internal_static_alluxio_grpc_AttachDatabasePResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_AttachDatabasePResponse_descriptor,
+        new java.lang.String[] { "Success", });
+    internal_static_alluxio_grpc_ColumnStatistics_descriptor =
+      getDescriptor().getMessageTypes().get(25);
     internal_static_alluxio_grpc_ColumnStatistics_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_ColumnStatistics_descriptor,
         new java.lang.String[] { "RecordCount", });
     internal_static_alluxio_grpc_FileStatistics_descriptor =
-      getDescriptor().getMessageTypes().get(24);
+      getDescriptor().getMessageTypes().get(26);
     internal_static_alluxio_grpc_FileStatistics_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_FileStatistics_descriptor,
@@ -456,7 +496,7 @@ public final class CatalogMasterProto {
         internal_static_alluxio_grpc_FileStatistics_ColumnEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_GetStatisticsPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(25);
+      getDescriptor().getMessageTypes().get(27);
     internal_static_alluxio_grpc_GetStatisticsPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetStatisticsPResponse_descriptor,

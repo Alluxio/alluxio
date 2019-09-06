@@ -12,6 +12,8 @@
 package alluxio.master.catalog;
 
 import alluxio.RpcUtils;
+import alluxio.grpc.AttachDatabasePRequest;
+import alluxio.grpc.AttachDatabasePResponse;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.CreateDatabasePRequest;
 import alluxio.grpc.CreateDatabasePResponse;
@@ -52,6 +54,14 @@ public class CatalogMasterClientServiceHandler
   public CatalogMasterClientServiceHandler(CatalogMaster catalogMaster) {
     Preconditions.checkNotNull(catalogMaster, "catalogMaster");
     mCatalogMaster = catalogMaster;
+  }
+
+  @Override
+  public void attachDatabase(AttachDatabasePRequest request,
+      StreamObserver<AttachDatabasePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> AttachDatabasePResponse.newBuilder().setSuccess(mCatalogMaster
+        .attachDatabase(request.getDbName(), new CatalogConfiguration(request.getOptionsMap())))
+        .build(), "attachDatabase", "", responseObserver);
   }
 
   @Override

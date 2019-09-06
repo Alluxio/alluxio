@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.experimental.ProtoUtils;
 import alluxio.Constants;
+import alluxio.grpc.AttachDatabasePRequest;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.ColumnStatisticsInfo;
 import alluxio.grpc.CreateDatabasePRequest;
@@ -96,6 +97,14 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient.getTable(
         GetTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName).build())
         .getTableInfo());
+  }
+
+  @Override
+  public boolean attachDatabase(String dbName, Map<String, String> configuration)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.attachDatabase(
+        AttachDatabasePRequest.newBuilder().build().newBuilder().setDbName(dbName)
+            .putAllOptions(configuration).build()).getSuccess());
   }
 
   @Override
