@@ -87,6 +87,17 @@ public interface CatalogMasterClient extends Client {
   TableInfo getTable(String databaseName, String tableName) throws AlluxioStatusException;
 
   /**
+   * Attaches an existing database.
+   *
+   * @param dbName database name
+   * @param configuration the configuration
+   * @return true if database created successfully
+   * @throws AlluxioStatusException
+   */
+  boolean attachDatabase(String dbName, Map<String, String> configuration)
+      throws AlluxioStatusException;
+
+  /**
    * Create database with given schema.
    *
    * @param databaseName database name

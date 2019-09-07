@@ -156,6 +156,15 @@ message GetStatisticsPRequest {
     optional string table_name = 2;
 }
 
+message AttachDatabasePRequest {
+    optional string db_name = 1;
+    map<string, string> options = 2;
+}
+
+message AttachDatabasePResponse {
+    optional bool success = 1;
+}
+
 message ColumnStatistics {
     optional uint64 record_count = 1;
 }
@@ -201,6 +210,11 @@ service CatalogMasterClientService {
      * Create a new database in the metastore
      */
     rpc CreateDatabase(CreateDatabasePRequest) returns (CreateDatabasePResponse);
+
+    /**
+     * Attach an existing database into the catalog as a new database name
+     */
+    rpc AttachDatabase(AttachDatabasePRequest) returns (AttachDatabasePResponse);
 
     rpc GetDataFiles(GetDataFilesPRequest) returns (GetDataFilesPResponse);
 
