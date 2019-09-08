@@ -12,18 +12,6 @@
 #
 
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: alluxio-pv-claim
-spec:
-  storageClassName: standard
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-      storage: "1Gi"
----
-apiVersion: v1
 kind: Service
 metadata:
   name: alluxio-master-0
@@ -71,9 +59,6 @@ spec:
             memory: 1G
         command: ["/entrypoint.sh"]
         args: ["master-only", "--no-format"]
-        env:
-        - name: ALLUXIO_MASTER_JAVA_OPTS
-          value: " -Dalluxio.master.hostname=alluxio-master-0 "
         envFrom:
         - configMapRef:
             name: alluxio-config
@@ -83,8 +68,9 @@ spec:
         - containerPort: 19999
           name: web
         volumeMounts:
-        - name: alluxio-journal
-          mountPath: /journal
+        - name: secret-alluxio-hdfs-config-volume
+          mountPath: /secrets/hdfsConfig
+          readOnly: true
       - name: alluxio-job-master
         image: alluxio/alluxio:2.1.0-SNAPSHOT
         imagePullPolicy: IfNotPresent
@@ -97,9 +83,6 @@ spec:
             memory: 1024M
         command: ["/entrypoint.sh"]
         args: ["job-master"]
-        env:
-        - name: ALLUXIO_MASTER_JAVA_OPTS
-          value: " -Dalluxio.master.hostname=alluxio-master-0 "
         envFrom:
         - configMapRef:
             name: alluxio-config
@@ -108,8 +91,14 @@ spec:
           name: job-rpc
         - containerPort: 20002
           name: job-web
+        volumeMounts:
+        - name: secret-alluxio-hdfs-config-volume
+          mountPath: /secrets/hdfsConfig
+          readOnly: true
       restartPolicy: Always
       volumes:
-      - name: alluxio-journal
-        persistentVolumeClaim:
-          claimName: alluxio-pv-claim
+      - name: secret-alluxio-hdfs-config-volume
+        secret:
+          secretName: alluxio-hdfs-config
+          defaultMode: 256
+---

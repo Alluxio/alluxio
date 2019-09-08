@@ -8,10 +8,10 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-{{ $isHA := gt (int .Values.resources.masterCount) 1 }}
-{{ $workerHost := print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME)" }}
-{{ $workerAndMasterHost := printf " -Dalluxio.master.hostname=alluxio-master-0 %s" $workerHost }}
-{{ $workerJavaOpts := $isHA | ternary $workerHost $workerAndMasterHost }}
+#{{ $isHA := gt (int .Values.resources.masterCount) 1 }}
+#{{ $workerHost := print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME)" }}
+#{{ $workerAndMasterHost := printf " -Dalluxio.master.hostname=alluxio-master-0 %s" $workerHost }}
+#{{ $workerJavaOpts := $isHA | ternary $workerHost $workerAndMasterHost }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -51,7 +51,7 @@ spec:
             fieldRef:
               fieldPath: status.hostIP
         - name: ALLUXIO_WORKER_JAVA_OPTS
-          value: {{ $workerJavaOpts | quote }}
+          value: {{ print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) " | quote }}
         envFrom:
         - configMapRef:
             name: {{ .Values.const.configName }}
@@ -92,7 +92,7 @@ spec:
             fieldRef:
               fieldPath: status.hostIP
         - name: ALLUXIO_JOB_WORKER_JAVA_OPTS
-          value: {{ $workerJavaOpts | quote }}
+          value: {{ print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) " | quote }}
         envFrom:
         - configMapRef:
             name: {{ .Values.const.configName }}

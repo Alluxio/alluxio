@@ -10,22 +10,12 @@
 #
 {{ $root := . -}}
 {{ $masterCount := int .Values.resources.masterCount }}
-{{ $needJournalVolume := not (and (eq .Values.journal.type "UFS") (gt $masterCount 1)) }}
-
-{{- if $needJournalVolume }}
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: alluxio-pv-claim
-spec:
-  storageClassName: {{ .Values.volumes.master.journal.storageClass }}
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-      storage: {{ .Values.volumes.master.journal.size | quote }}
----
-{{- end}}
+{{ $isSingleMaster := eq $masterCount 1 }}
+{{ $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
+{{ $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
+{{ $isUfsLocal := and (eq .Values.journal.type "UFS") (eq .Values.journal.ufsType "local") }}
+{{ $isSingleUfsLocal := and $isUfsLocal $isSingleMaster }}
+{{ $needJournalVolume := or $isEmbedded $isUfsLocal }}
 
 {{- range $i := until $masterCount }}
   {{ $masterName := printf "alluxio-master-%v" $i }}
@@ -78,9 +68,11 @@ spec:
             memory: {{ $root.Values.resources.master.requests.memory }}
         command: ["/entrypoint.sh"]
         args: ["master-only", "--no-format"]
+        {{- if $isHaEmbedded }}
         env:
-        - name: ALLUXIO_MASTER_JAVA_OPTS
-          value: {{ $masterJavaOpts | quote }}
+          - name: ALLUXIO_MASTER_JAVA_OPTS
+            value: {{ $masterJavaOpts | quote }}
+        {{- end }}
         envFrom:
         - configMapRef:
             name: {{ $root.Values.const.configName }}
@@ -115,9 +107,11 @@ spec:
             memory: {{ $root.Values.resources.jobMaster.requests.memory }}
         command: ["/entrypoint.sh"]
         args: ["job-master"]
+        {{- if $isHaEmbedded }}
         env:
         - name: ALLUXIO_MASTER_JAVA_OPTS
           value: {{ $masterJavaOpts | quote }}
+        {{- end }}
         envFrom:
         - configMapRef:
             name: {{ $root.Values.const.configName }}
@@ -138,11 +132,15 @@ spec:
         {{- end }}
       restartPolicy: Always
       volumes:
-      {{- if $needJournalVolume }}
+      {{- if $isSingleUfsLocal }}
       - name: alluxio-journal
         persistentVolumeClaim:
           claimName: alluxio-pv-claim
       {{- end }}
+      {{- if $isHaEmbedded }}
+      - name: alluxio-journal
+        emptyDir: {}
+      {{- end}}
       {{- if $root.Values.secrets }}
       {{- if $root.Values.secrets.master }}
       {{- range $key, $val := $root.Values.secrets.master }}

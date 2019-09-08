@@ -10,7 +10,10 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-
+#
+#
+#
+#
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -50,7 +53,7 @@ spec:
             fieldRef:
               fieldPath: status.hostIP
         - name: ALLUXIO_WORKER_JAVA_OPTS
-          value: " -Dalluxio.master.hostname=alluxio-master-0  -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME)"
+          value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
         envFrom:
         - configMapRef:
             name: alluxio-config
@@ -82,7 +85,7 @@ spec:
             fieldRef:
               fieldPath: status.hostIP
         - name: ALLUXIO_JOB_WORKER_JAVA_OPTS
-          value: " -Dalluxio.master.hostname=alluxio-master-0  -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME)"
+          value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
         envFrom:
         - configMapRef:
             name: alluxio-config
@@ -108,3 +111,4 @@ spec:
         hostPath:
           path: /tmp/alluxio-domain
           type: DirectoryOrCreate
+
