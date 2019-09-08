@@ -18,7 +18,7 @@ group: 0
 fsGroup: 0
 
 resources:
-  masterCount: 1 # For high availability mode increase this to >1
+  masterCount: 1 # For multiMaster mode increase this to >1
   master:
     replicaCount: 1
     limits:
