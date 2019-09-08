@@ -48,40 +48,55 @@ function generateVolumeTemplates {
   helm template helm/alluxio/ -x templates/alluxio-journal-volume.yaml > "$dir/alluxio-journal-volume.yaml.template"
 }
 
+function generateSingleUfsTemplates {
+  echo "Target FS $1"
+  targetFs=$1
+  case $targetFs in
+    "local")
+      echo "Using local journal"
+      dir="singleMaster-localJournal"
+      generateVolumeTemplates
+      generatePodTemplates
+      ;;
+    "hdfs")
+      echo "Journal UFS $ufs"
+      dir="singleMaster-hdfsJournal"
+      generatePodTemplatesWithConfig
+      ;;
+    *)
+      echo "Unknown Journal UFS type $ufs"
+      printUsage
+      exit 1
+  esac
+}
+
+function main {
+  mode=$1
+  case $mode in
+    "single-ufs")
+      echo "Generating templates for $mode"
+      if ! [ $# -eq 2 ]; then
+        printUsage
+        exit 1
+      fi
+      ufs=$2
+      generateSingleUfsTemplates "$ufs"
+      ;;
+    "multi-embedded")
+      echo "Generating templates for $mode"
+      dir="multiMaster-embeddedJournal"
+      generatePodTemplates
+      ;;
+    *)
+      echo "Unknown mode $mode"
+      printUsage
+      exit 1
+  esac
+}
+
 if [ $# -lt 1 ] || [ $# -gt 2 ]; then
   printUsage
   exit 1
 fi
 
-mode=$1
-
-if [ "$mode" == "single-ufs" ]; then
-  echo "Generating templates for $mode"
-  if ! [ $# -eq 2 ]; then
-    printUsage
-    exit 1
-  fi
-  ufs=$2
-  if [ "$ufs" == "local" ]; then
-    echo "Using UFS $ufs"
-    dir="single-local"
-    generateVolumeTemplates
-    generatePodTemplates
-  elif [ "$ufs" == "hdfs" ]; then
-    echo "Using UFS $ufs"
-    dir="single-hdfs"
-    generatePodTemplatesWithConfig
-  else
-    echo "Unknown UFS type"
-    printUsage
-    exit 1
-  fi
-elif [ "$mode" == "multi-embedded" ]; then
-  echo "Generating templates for $mode"
-  dir="multi-embedded"
-  generatePodTemplates
-else
-  echo "Unknown mode $mode"
-  printUsage
-  exit 1
-fi
+main "$@"

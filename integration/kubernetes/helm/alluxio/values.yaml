@@ -80,7 +80,7 @@ volumes:
 #   folder: "/journal"
 journal:
   type: "UFS"
-  ufsType: "local"
+  ufsType: "local" # Ignored if type is "EMBEDDED"
   folder: "/journal"
 
 const:
