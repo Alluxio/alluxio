@@ -145,8 +145,8 @@ public interface CatalogMasterClient extends Client {
    * @return list of partitions
    * @throws AlluxioStatusException
    */
-  List<PartitionInfo> getPartitionByConstraint(String databaseName, String tableName, Constraint constraint)
-      throws AlluxioStatusException;
+  List<PartitionInfo> getPartitionByConstraint(String databaseName, String tableName,
+      Constraint constraint) throws AlluxioStatusException;
 
   /**
    * Get partition names with given database name and table name.
