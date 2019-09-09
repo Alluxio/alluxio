@@ -36,7 +36,7 @@ public final class GrpcChannel extends Channel {
   private Supplier<Boolean> mChannelHealthState;
   private Channel mChannel;
   private Runnable mAuthCloseCallback;
-  private boolean mChannelReleased;
+  private boolean mChannelReleased = false;
   private boolean mChannelHealthy = true;
   private final long mShutdownTimeoutMs;
 
@@ -52,7 +52,6 @@ public final class GrpcChannel extends Channel {
     mChannelKey = channelKey;
     mChannelHealthState = () -> mChannelHealthy;
     mChannel = ClientInterceptors.intercept(channel, new ChannelResponseTracker((this)));
-    mChannelReleased = false;
     mShutdownTimeoutMs = shutdownTimeoutMs;
   }
 
@@ -96,7 +95,7 @@ public final class GrpcChannel extends Channel {
   /**
    * Shuts down the channel.
    */
-  public void shutdown() {
+  public synchronized void shutdown() {
     if (mAuthCloseCallback != null) {
       // Stop authenticated session with server.
       mAuthCloseCallback.run();
@@ -111,7 +110,7 @@ public final class GrpcChannel extends Channel {
   /**
    * @return {@code true} if the channel has been shut down
    */
-  public boolean isShutdown() {
+  public synchronized boolean isShutdown() {
     return mChannelReleased;
   }
 

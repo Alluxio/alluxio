@@ -35,6 +35,14 @@ repeatedly input the password, you can add the public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more
 details.
 
+## Mount RAMFS file system
+
+> Run the below command to mount RAMFS file system.
+
+```console
+$ ./bin/alluxio-mount.sh SudoMount
+```
+
 ## Format Alluxio Filesystem
 
 > NOTE: This step is only required when you run Alluxio for the first time.

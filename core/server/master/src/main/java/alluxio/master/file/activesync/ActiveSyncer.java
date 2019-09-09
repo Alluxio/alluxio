@@ -80,7 +80,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
           // This returns a list of ufsUris that we need to sync.
           Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
           for (AlluxioURI ufsUri : ufsSyncPoints) {
-            AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri);
+            AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri).getUri();
             if (alluxioUri != null) {
               if (syncInfo.isForceSync()) {
                 LOG.debug("force full sync {}", ufsUri.toString());
@@ -94,7 +94,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
                 RetryUtils.retry("Incremental Sync", () -> {
                   mFileSystemMaster.activeSyncMetadata(alluxioUri,
                       syncInfo.getChangedFiles(ufsUri).stream().parallel()
-                          .map(mMountTable::reverseResolve).collect(Collectors.toSet()),
+                          .map((uri) -> mMountTable.reverseResolve(uri).getUri())
+                          .collect(Collectors.toSet()),
                       mSyncManager.getExecutor()
                   );
                 }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration

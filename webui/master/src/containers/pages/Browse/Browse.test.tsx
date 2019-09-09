@@ -20,7 +20,9 @@ import sinon, {SinonSpy} from 'sinon';
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App'
-import {AllProps, Browse} from './Browse';
+import Browse, {AllProps, BrowsePresenter} from './Browse';
+import {routePaths} from "../../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -31,17 +33,22 @@ describe('Browse', () => {
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
-    history.push('/browse');
+    history.push(routePaths.browse);
     store = configureStore(history, initialState);
     props = {
       location: {search: ''},
       fetchRequest: sinon.spy(),
       history: history,
       browseData: initialState.browse.data,
-      browseLoading: initialState.browse.loading,
       initData: initialState.init.data,
-      initLoading: initialState.init.loading,
-      refresh: initialState.refresh.data
+      refresh: initialState.refresh.data,
+      queryStringSuffix: '',
+      class: '',
+      errors: createAlertErrors(false),
+      loading: false,
+      textAreaHeight: 0,
+      request: {},
+      upateRequestParameter: sinon.spy()
     };
   });
 
@@ -53,39 +60,33 @@ describe('Browse', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Browse {...props}/>);
+      shallowWrapper = shallow(<BrowsePresenter {...props} />);
     });
 
     it('Renders without crashing', () => {
       expect(shallowWrapper.length).toEqual(1);
     });
 
-    it('Matches snapshot', () => {
-      expect(shallowWrapper).toMatchSnapshot();
-    });
-  });
-
-  describe('App with connected component', () => {
-    let reactWrapper: ReactWrapper;
-
-    beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp history={history}/></Provider>);
+    it('Contains a div with class col-12', () => {
+      expect(shallowWrapper.find('.col-12').length).toEqual(1);
     });
 
-    it('Renders without crashing', () => {
-      expect(reactWrapper.length).toEqual(1);
+    describe('Renders Directory Listing', () => {
+      it('Matches snapshot with Table listing', () => {
+        expect(shallowWrapper).toMatchSnapshot();
+      });
     });
 
-    it('Contains the component', () => {
-      expect(reactWrapper.find('.browse-page').length).toEqual(1);
-    });
+    describe('Renders FileView', () => {
+      beforeAll(() => {
+        const data = {...props.browseData};
+        data.currentDirectory.isDirectory = false;
+        shallowWrapper.setProps({browseData: data});
+      });
 
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
-    });
-
-    it('Matches snapshot', () => {
-      expect(reactWrapper).toMatchSnapshot();
+      it('Matches snapshot with File', () => {
+        expect(shallowWrapper).toMatchSnapshot();
+      });
     });
   });
 });

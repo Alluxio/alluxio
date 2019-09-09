@@ -43,6 +43,11 @@ describe('Header', () => {
       expect(shallowWrapper.length).toEqual(1);
     });
 
+    it('Matches snapshot with newer version', () => {
+      shallowWrapper.setProps({newerVersionAvailable: true});
+      expect(shallowWrapper).toMatchSnapshot();
+    });
+
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
     });

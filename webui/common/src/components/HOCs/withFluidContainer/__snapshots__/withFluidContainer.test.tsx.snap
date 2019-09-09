@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`withLoadingMessage HOC Shallow component Matches snapshot - renders LoadingMessage 1`] = `
+<div
+  className="test"
+>
+  <div
+    className="container-fluid"
+  >
+    <div
+      className="row"
+    >
+      <WrappedComponent
+        class="test"
+      />
+    </div>
+  </div>
+</div>
+`;

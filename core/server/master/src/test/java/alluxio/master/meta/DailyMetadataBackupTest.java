@@ -60,8 +60,9 @@ public class DailyMetadataBackupTest {
     mBackupDir = "/tmp/test/alluxio_backups";
 
     mMetaMaster = Mockito.mock(MetaMaster.class);
-    when(mMetaMaster.backup(any())).thenReturn(new BackupResponse(new AlluxioURI(
-        PathUtils.concatPath(mBackupDir, generateBackupFileName())), "localhost"));
+    when(mMetaMaster.backup(any())).thenReturn(new BackupResponse(
+        new AlluxioURI(PathUtils.concatPath(mBackupDir, generateBackupFileName())), "localhost",
+        0/*not validated.*/));
 
     mUfs = Mockito.mock(UnderFileSystem.class);
     when(mUfs.getUnderFSType()).thenReturn("local");

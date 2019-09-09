@@ -10,6 +10,7 @@
  */
 
 import {INavigationData} from '@alluxio/common-ui/src/constants';
+import {routePaths} from "./routePaths";
 
 export const footerNavigationData: INavigationData[] = [{
   attributes: {target: '_blank'},
@@ -21,7 +22,7 @@ export const footerNavigationData: INavigationData[] = [{
   url: 'https://groups.google.com/forum/#!forum/alluxio-users'
 }, {
   innerText: 'Workers',
-  url: '/workers'
+  url: routePaths.workers
 }, {
   attributes: {target: '_blank'},
   innerText: 'Slack Channel',

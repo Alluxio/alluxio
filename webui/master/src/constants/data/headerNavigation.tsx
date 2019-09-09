@@ -10,26 +10,27 @@
  */
 
 import {INavigationData} from '@alluxio/common-ui/src/constants';
+import {routePaths} from "./routePaths";
 
 export const headerNavigationData : INavigationData[] = [{
   innerText: 'Overview',
-  url: '/overview'
+  url: routePaths.overview
 }, {
   innerText: 'Browse',
-  url: '/browse'
+  url: routePaths.browse
 }, {
   innerText: 'In-Alluxio Data',
-  url: '/data'
+  url: routePaths.data
 }, {
   innerText: 'Logs',
-  url: '/logs'
+  url: routePaths.logs
 }, {
   innerText: 'Configuration',
-  url: '/config'
+  url: routePaths.config
 }, {
   innerText: 'Workers',
-  url: '/workers'
+  url: routePaths.workers
 }, {
   innerText: 'Metrics',
-  url: '/metrics'
+  url: routePaths.metrics
 }];

@@ -83,6 +83,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -137,6 +138,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private final InetSocketAddress mRpcConnectAddress
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC,
       ServerConfiguration.global());
+
+  /** Indicates if newer version is available. */
+  private boolean mNewerVersionAvailable;
 
   /** The address of this master. */
   private Address mMasterAddress;
@@ -314,6 +318,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
               System.out.println("The latest version (" + latestVersion + ") is not the same "
                   + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
                   + "visit https://www.alluxio.io/download/.");
+              mNewerVersionAvailable = true;
             }
           } catch (Exception e) {
             LOG.debug("Unable to check for updates: {}", e.getMessage());
@@ -354,12 +359,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     try (CloseableResource<UnderFileSystem> ufsResource =
              mUfsManager.getRoot().acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
-      if ((options.getLocalFileSystem() || !options.hasTargetDirectory())
-          && !ufs.getUnderFSType().equals("local")) {
-        LOG.info("Backing up to local filesystem in directory {}", dir);
-      } else {
-        LOG.info("Backing up to root UFS in directory {}", dir);
-      }
       if (!ufs.isDirectory(dir)) {
         if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
             .setCreateParent(true))) {
@@ -367,6 +366,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
       }
       String backupFilePath;
+      AtomicLong entryCount = new AtomicLong(0);
       try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
         Instant now = Instant.now();
         String backupFileName = String.format(BackupManager.BACKUP_FILE_FORMAT,
@@ -375,7 +375,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         backupFilePath = PathUtils.concatPath(dir, backupFileName);
         try {
           try (OutputStream ufsStream = ufs.create(backupFilePath)) {
-            mBackupManager.backup(ufsStream);
+            mBackupManager.backup(ufsStream, entryCount);
           }
         } catch (Throwable t) {
           try {
@@ -391,11 +391,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       if (options.getLocalFileSystem()) {
         rootUfs = "file:///";
       }
-      AlluxioURI backupUri =
-          new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
-      return new BackupResponse(backupUri,
+      AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
+      return new BackupResponse(
+          backupUri,
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-              ServerConfiguration.global()));
+              ServerConfiguration.global()),
+          entryCount.get());
     }
   }
 
@@ -473,6 +474,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     try (JournalContext ctx = createJournalContext()) {
       mPathProperties.removeAll(ctx, path);
     }
+  }
+
+  @Override
+  public boolean getNewerVersionAvailable() {
+    return mNewerVersionAvailable;
   }
 
   @Override
