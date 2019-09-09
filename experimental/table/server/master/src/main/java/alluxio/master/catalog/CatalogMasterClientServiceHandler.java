@@ -12,6 +12,8 @@
 package alluxio.master.catalog;
 
 import alluxio.RpcUtils;
+import alluxio.grpc.AttachDatabasePRequest;
+import alluxio.grpc.AttachDatabasePResponse;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.CreateDatabasePRequest;
 import alluxio.grpc.CreateDatabasePResponse;
@@ -57,6 +59,14 @@ public class CatalogMasterClientServiceHandler
   }
 
   @Override
+  public void attachDatabase(AttachDatabasePRequest request,
+      StreamObserver<AttachDatabasePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> AttachDatabasePResponse.newBuilder().setSuccess(mCatalogMaster
+        .attachDatabase(request.getDbName(), new CatalogConfiguration(request.getOptionsMap())))
+        .build(), "attachDatabase", "", responseObserver);
+  }
+
+  @Override
   public void getAllDatabases(GetAllDatabasesPRequest request,
       StreamObserver<GetAllDatabasesPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> GetAllDatabasesPResponse.newBuilder()
@@ -79,10 +89,11 @@ public class CatalogMasterClientServiceHandler
       Table table = mCatalogMaster.getTable(request.getDbName(), request.getTableName());
       TableInfo info;
       if (table != null) {
+        TableVersion tv = table.get();
         info = TableInfo.newBuilder().setDbName(request.getDbName())
             .setTableName(request.getTableName())
-            .setBaseLocation(table.getBaseLocation())
-            .setSchema(table.getSchema())
+            .setBaseLocation(tv.getBaseLocation())
+            .setSchema(tv.getSchema())
             .build();
         return GetTablePResponse.newBuilder()
             .setTableInfo(info)
@@ -100,9 +111,10 @@ public class CatalogMasterClientServiceHandler
           request.getSchema());
       TableInfo info;
       if (table != null) {
+        TableVersion tv = table.get();
         info = TableInfo.newBuilder().setDbName(request.getDbName())
             .setTableName(request.getTableName())
-            .setBaseLocation(table.getBaseLocation()).setSchema(table.getSchema())
+            .setBaseLocation(tv.getBaseLocation()).setSchema(tv.getSchema())
             .build();
         return CreateTablePResponse.newBuilder()
             .setTableInfo(info)

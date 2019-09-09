@@ -223,6 +223,38 @@ public final class CatalogMasterClientServiceGrpc {
      return getCreateDatabaseMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.AttachDatabasePRequest,
+      alluxio.grpc.AttachDatabasePResponse> getAttachDatabaseMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "AttachDatabase",
+      requestType = alluxio.grpc.AttachDatabasePRequest.class,
+      responseType = alluxio.grpc.AttachDatabasePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.AttachDatabasePRequest,
+      alluxio.grpc.AttachDatabasePResponse> getAttachDatabaseMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.AttachDatabasePRequest, alluxio.grpc.AttachDatabasePResponse> getAttachDatabaseMethod;
+    if ((getAttachDatabaseMethod = CatalogMasterClientServiceGrpc.getAttachDatabaseMethod) == null) {
+      synchronized (CatalogMasterClientServiceGrpc.class) {
+        if ((getAttachDatabaseMethod = CatalogMasterClientServiceGrpc.getAttachDatabaseMethod) == null) {
+          CatalogMasterClientServiceGrpc.getAttachDatabaseMethod = getAttachDatabaseMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.AttachDatabasePRequest, alluxio.grpc.AttachDatabasePResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.CatalogMasterClientService", "AttachDatabase"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.AttachDatabasePRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.AttachDatabasePResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("AttachDatabase"))
+                  .build();
+          }
+        }
+     }
+     return getAttachDatabaseMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetDataFilesPRequest,
       alluxio.grpc.GetDataFilesPResponse> getGetDataFilesMethod;
 
@@ -417,6 +449,17 @@ public final class CatalogMasterClientServiceGrpc {
     }
 
     /**
+     * <pre>
+     **
+     * Attach an existing database into the catalog as a new database name
+     * </pre>
+     */
+    public void attachDatabase(alluxio.grpc.AttachDatabasePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.AttachDatabasePResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getAttachDatabaseMethod(), responseObserver);
+    }
+
+    /**
      */
     public void getDataFiles(alluxio.grpc.GetDataFilesPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetDataFilesPResponse> responseObserver) {
@@ -481,6 +524,13 @@ public final class CatalogMasterClientServiceGrpc {
                 alluxio.grpc.CreateDatabasePRequest,
                 alluxio.grpc.CreateDatabasePResponse>(
                   this, METHODID_CREATE_DATABASE)))
+          .addMethod(
+            getAttachDatabaseMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.AttachDatabasePRequest,
+                alluxio.grpc.AttachDatabasePResponse>(
+                  this, METHODID_ATTACH_DATABASE)))
           .addMethod(
             getGetDataFilesMethod(),
             asyncUnaryCall(
@@ -601,6 +651,18 @@ public final class CatalogMasterClientServiceGrpc {
     }
 
     /**
+     * <pre>
+     **
+     * Attach an existing database into the catalog as a new database name
+     * </pre>
+     */
+    public void attachDatabase(alluxio.grpc.AttachDatabasePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.AttachDatabasePResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getAttachDatabaseMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
      */
     public void getDataFiles(alluxio.grpc.GetDataFilesPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetDataFilesPResponse> responseObserver) {
@@ -711,6 +773,17 @@ public final class CatalogMasterClientServiceGrpc {
     public alluxio.grpc.CreateDatabasePResponse createDatabase(alluxio.grpc.CreateDatabasePRequest request) {
       return blockingUnaryCall(
           getChannel(), getCreateDatabaseMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Attach an existing database into the catalog as a new database name
+     * </pre>
+     */
+    public alluxio.grpc.AttachDatabasePResponse attachDatabase(alluxio.grpc.AttachDatabasePRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getAttachDatabaseMethod(), getCallOptions(), request);
     }
 
     /**
@@ -830,6 +903,18 @@ public final class CatalogMasterClientServiceGrpc {
     }
 
     /**
+     * <pre>
+     **
+     * Attach an existing database into the catalog as a new database name
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.AttachDatabasePResponse> attachDatabase(
+        alluxio.grpc.AttachDatabasePRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getAttachDatabaseMethod(), getCallOptions()), request);
+    }
+
+    /**
      */
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetDataFilesPResponse> getDataFiles(
         alluxio.grpc.GetDataFilesPRequest request) {
@@ -860,9 +945,10 @@ public final class CatalogMasterClientServiceGrpc {
   private static final int METHODID_LOAD_TABLE = 3;
   private static final int METHODID_CREATE_TABLE = 4;
   private static final int METHODID_CREATE_DATABASE = 5;
-  private static final int METHODID_GET_DATA_FILES = 6;
-  private static final int METHODID_GET_STATISTICS = 7;
-  private static final int METHODID_GET_PARTITIONS = 8;
+  private static final int METHODID_ATTACH_DATABASE = 6;
+  private static final int METHODID_GET_DATA_FILES = 7;
+  private static final int METHODID_GET_STATISTICS = 8;
+  private static final int METHODID_GET_PARTITIONS = 9;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -904,6 +990,10 @@ public final class CatalogMasterClientServiceGrpc {
         case METHODID_CREATE_DATABASE:
           serviceImpl.createDatabase((alluxio.grpc.CreateDatabasePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.CreateDatabasePResponse>) responseObserver);
+          break;
+        case METHODID_ATTACH_DATABASE:
+          serviceImpl.attachDatabase((alluxio.grpc.AttachDatabasePRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.AttachDatabasePResponse>) responseObserver);
           break;
         case METHODID_GET_DATA_FILES:
           serviceImpl.getDataFiles((alluxio.grpc.GetDataFilesPRequest) request,
@@ -984,6 +1074,7 @@ public final class CatalogMasterClientServiceGrpc {
               .addMethod(getLoadTableMethod())
               .addMethod(getCreateTableMethod())
               .addMethod(getCreateDatabaseMethod())
+              .addMethod(getAttachDatabaseMethod())
               .addMethod(getGetDataFilesMethod())
               .addMethod(getGetStatisticsMethod())
               .addMethod(getGetPartitionsMethod())

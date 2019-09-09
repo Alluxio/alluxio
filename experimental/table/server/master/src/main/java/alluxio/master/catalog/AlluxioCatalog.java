@@ -52,14 +52,14 @@ public class AlluxioCatalog {
   }
 
   /**
-   * create a database.
+   * Attaches an existing database.
    *
    * @param type the database type
    * @param dbName the database name
    * @param configuration the configuration
    * @return true if database successfully created
    */
-  public boolean createDatabase(String type, String dbName, CatalogConfiguration configuration)
+  public boolean attachDatabase(String type, String dbName, CatalogConfiguration configuration)
       throws IOException {
     Database db = Database
         .create(new UdbContext(mUdbRegistry, mFileSystem, type, dbName), type, dbName,
@@ -69,6 +69,20 @@ public class AlluxioCatalog {
     }
     db.sync();
     return true;
+  }
+
+  /**
+   * Create a new database.
+   *
+   * @param type the database type
+   * @param dbName the database name
+   * @param configuration the configuration
+   * @return true if database successfully created
+   */
+  public boolean createDatabase(String type, String dbName, CatalogConfiguration configuration)
+      throws IOException {
+    // unsupported
+    return false;
   }
 
   /**
@@ -134,7 +148,7 @@ public class AlluxioCatalog {
   public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
       throws IOException {
     Table table = getTable(dbName, tableName);
-    return table.getStatistics();
+    return table.get().getStatistics();
   }
 
   public Map<String, PartitionInfo> getPartitions(String dbName, String tableName, Constraint constraint) {

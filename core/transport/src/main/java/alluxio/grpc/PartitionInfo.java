@@ -16,7 +16,15 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private PartitionInfo() {
-    filePath_ = "";
+    values_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    dbName_ = "";
+    tableName_ = "";
+    createTime_ = 0;
+    lastAccessTime_ = 0;
+    sd_ = "";
+    catName_ = "";
+    writeId_ = 0L;
+    isStatsCompliant_ = false;
   }
 
   @java.lang.Override
@@ -52,8 +60,81 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
+            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              values_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000001;
+            }
+            values_.add(bs);
+            break;
+          }
+          case 18: {
+            com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
-            filePath_ = bs;
+            dbName_ = bs;
+            break;
+          }
+          case 26: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000002;
+            tableName_ = bs;
+            break;
+          }
+          case 32: {
+            bitField0_ |= 0x00000004;
+            createTime_ = input.readInt32();
+            break;
+          }
+          case 40: {
+            bitField0_ |= 0x00000008;
+            lastAccessTime_ = input.readInt32();
+            break;
+          }
+          case 50: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000010;
+            sd_ = bs;
+            break;
+          }
+          case 58: {
+            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+              parameters_ = com.google.protobuf.MapField.newMapField(
+                  ParametersDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x00000040;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+            parameters__ = input.readMessage(
+                ParametersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            parameters_.getMutableMap().put(
+                parameters__.getKey(), parameters__.getValue());
+            break;
+          }
+          case 74: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000020;
+            catName_ = bs;
+            break;
+          }
+          case 80: {
+            bitField0_ |= 0x00000040;
+            writeId_ = input.readInt64();
+            break;
+          }
+          case 88: {
+            bitField0_ |= 0x00000080;
+            isStatsCompliant_ = input.readBool();
+            break;
+          }
+          case 98: {
+            alluxio.grpc.ColumnStatisticsInfo.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000100) == 0x00000100)) {
+              subBuilder = colStats_.toBuilder();
+            }
+            colStats_ = input.readMessage(alluxio.grpc.ColumnStatisticsInfo.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(colStats_);
+              colStats_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000100;
             break;
           }
         }
@@ -64,6 +145,9 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        values_ = values_.getUnmodifiableView();
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -73,6 +157,17 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_PartitionInfo_descriptor;
   }
 
+  @SuppressWarnings({"rawtypes"})
+  protected com.google.protobuf.MapField internalGetMapField(
+      int number) {
+    switch (number) {
+      case 7:
+        return internalGetParameters();
+      default:
+        throw new RuntimeException(
+            "Invalid map field number: " + number);
+    }
+  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_PartitionInfo_fieldAccessorTable
@@ -81,19 +176,64 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int FILE_PATH_FIELD_NUMBER = 1;
-  private volatile java.lang.Object filePath_;
+  public static final int VALUES_FIELD_NUMBER = 1;
+  private com.google.protobuf.LazyStringList values_;
   /**
-   * <code>optional string file_path = 1;</code>
+   * <pre>
+   * string value is converted to appropriate partition key type
+   * </pre>
+   *
+   * <code>repeated string values = 1;</code>
    */
-  public boolean hasFilePath() {
+  public com.google.protobuf.ProtocolStringList
+      getValuesList() {
+    return values_;
+  }
+  /**
+   * <pre>
+   * string value is converted to appropriate partition key type
+   * </pre>
+   *
+   * <code>repeated string values = 1;</code>
+   */
+  public int getValuesCount() {
+    return values_.size();
+  }
+  /**
+   * <pre>
+   * string value is converted to appropriate partition key type
+   * </pre>
+   *
+   * <code>repeated string values = 1;</code>
+   */
+  public java.lang.String getValues(int index) {
+    return values_.get(index);
+  }
+  /**
+   * <pre>
+   * string value is converted to appropriate partition key type
+   * </pre>
+   *
+   * <code>repeated string values = 1;</code>
+   */
+  public com.google.protobuf.ByteString
+      getValuesBytes(int index) {
+    return values_.getByteString(index);
+  }
+
+  public static final int DBNAME_FIELD_NUMBER = 2;
+  private volatile java.lang.Object dbName_;
+  /**
+   * <code>optional string dbName = 2;</code>
+   */
+  public boolean hasDbName() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string file_path = 1;</code>
+   * <code>optional string dbName = 2;</code>
    */
-  public java.lang.String getFilePath() {
-    java.lang.Object ref = filePath_;
+  public java.lang.String getDbName() {
+    java.lang.Object ref = dbName_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -101,26 +241,333 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        filePath_ = s;
+        dbName_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string file_path = 1;</code>
+   * <code>optional string dbName = 2;</code>
    */
   public com.google.protobuf.ByteString
-      getFilePathBytes() {
-    java.lang.Object ref = filePath_;
+      getDbNameBytes() {
+    java.lang.Object ref = dbName_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      filePath_ = b;
+      dbName_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
     }
+  }
+
+  public static final int TABLENAME_FIELD_NUMBER = 3;
+  private volatile java.lang.Object tableName_;
+  /**
+   * <code>optional string tableName = 3;</code>
+   */
+  public boolean hasTableName() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional string tableName = 3;</code>
+   */
+  public java.lang.String getTableName() {
+    java.lang.Object ref = tableName_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        tableName_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string tableName = 3;</code>
+   */
+  public com.google.protobuf.ByteString
+      getTableNameBytes() {
+    java.lang.Object ref = tableName_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      tableName_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int CREATETIME_FIELD_NUMBER = 4;
+  private int createTime_;
+  /**
+   * <code>optional int32 createTime = 4;</code>
+   */
+  public boolean hasCreateTime() {
+    return ((bitField0_ & 0x00000004) == 0x00000004);
+  }
+  /**
+   * <code>optional int32 createTime = 4;</code>
+   */
+  public int getCreateTime() {
+    return createTime_;
+  }
+
+  public static final int LASTACCESSTIME_FIELD_NUMBER = 5;
+  private int lastAccessTime_;
+  /**
+   * <code>optional int32 lastAccessTime = 5;</code>
+   */
+  public boolean hasLastAccessTime() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional int32 lastAccessTime = 5;</code>
+   */
+  public int getLastAccessTime() {
+    return lastAccessTime_;
+  }
+
+  public static final int SD_FIELD_NUMBER = 6;
+  private volatile java.lang.Object sd_;
+  /**
+   * <pre>
+   * storage descriptor
+   * </pre>
+   *
+   * <code>optional string sd = 6;</code>
+   */
+  public boolean hasSd() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <pre>
+   * storage descriptor
+   * </pre>
+   *
+   * <code>optional string sd = 6;</code>
+   */
+  public java.lang.String getSd() {
+    java.lang.Object ref = sd_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        sd_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * storage descriptor
+   * </pre>
+   *
+   * <code>optional string sd = 6;</code>
+   */
+  public com.google.protobuf.ByteString
+      getSdBytes() {
+    java.lang.Object ref = sd_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      sd_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int PARAMETERS_FIELD_NUMBER = 7;
+  private static final class ParametersDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, java.lang.String> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, java.lang.String>newDefaultInstance(
+                alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_PartitionInfo_ParametersEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "");
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, java.lang.String> parameters_;
+  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+  internalGetParameters() {
+    if (parameters_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          ParametersDefaultEntryHolder.defaultEntry);
+    }
+    return parameters_;
+  }
+
+  public int getParametersCount() {
+    return internalGetParameters().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   */
+
+  public boolean containsParameters(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetParameters().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getParametersMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, java.lang.String> getParameters() {
+    return getParametersMap();
+  }
+  /**
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   */
+
+  public java.util.Map<java.lang.String, java.lang.String> getParametersMap() {
+    return internalGetParameters().getMap();
+  }
+  /**
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   */
+
+  public java.lang.String getParametersOrDefault(
+      java.lang.String key,
+      java.lang.String defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, java.lang.String> map =
+        internalGetParameters().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   */
+
+  public java.lang.String getParametersOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, java.lang.String> map =
+        internalGetParameters().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
+  public static final int CATNAME_FIELD_NUMBER = 9;
+  private volatile java.lang.Object catName_;
+  /**
+   * <code>optional string catName = 9;</code>
+   */
+  public boolean hasCatName() {
+    return ((bitField0_ & 0x00000020) == 0x00000020);
+  }
+  /**
+   * <code>optional string catName = 9;</code>
+   */
+  public java.lang.String getCatName() {
+    java.lang.Object ref = catName_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        catName_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string catName = 9;</code>
+   */
+  public com.google.protobuf.ByteString
+      getCatNameBytes() {
+    java.lang.Object ref = catName_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      catName_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int WRITEID_FIELD_NUMBER = 10;
+  private long writeId_;
+  /**
+   * <code>optional int64 writeId = 10;</code>
+   */
+  public boolean hasWriteId() {
+    return ((bitField0_ & 0x00000040) == 0x00000040);
+  }
+  /**
+   * <code>optional int64 writeId = 10;</code>
+   */
+  public long getWriteId() {
+    return writeId_;
+  }
+
+  public static final int ISSTATSCOMPLIANT_FIELD_NUMBER = 11;
+  private boolean isStatsCompliant_;
+  /**
+   * <code>optional bool isStatsCompliant = 11;</code>
+   */
+  public boolean hasIsStatsCompliant() {
+    return ((bitField0_ & 0x00000080) == 0x00000080);
+  }
+  /**
+   * <code>optional bool isStatsCompliant = 11;</code>
+   */
+  public boolean getIsStatsCompliant() {
+    return isStatsCompliant_;
+  }
+
+  public static final int COL_STATS_FIELD_NUMBER = 12;
+  private alluxio.grpc.ColumnStatisticsInfo colStats_;
+  /**
+   * <pre>
+   * column statistics for partition
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+   */
+  public boolean hasColStats() {
+    return ((bitField0_ & 0x00000100) == 0x00000100);
+  }
+  /**
+   * <pre>
+   * column statistics for partition
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+   */
+  public alluxio.grpc.ColumnStatisticsInfo getColStats() {
+    return colStats_ == null ? alluxio.grpc.ColumnStatisticsInfo.getDefaultInstance() : colStats_;
+  }
+  /**
+   * <pre>
+   * column statistics for partition
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+   */
+  public alluxio.grpc.ColumnStatisticsInfoOrBuilder getColStatsOrBuilder() {
+    return colStats_ == null ? alluxio.grpc.ColumnStatisticsInfo.getDefaultInstance() : colStats_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -135,8 +582,41 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
+    for (int i = 0; i < values_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, values_.getRaw(i));
+    }
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, filePath_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, dbName_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, tableName_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      output.writeInt32(4, createTime_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      output.writeInt32(5, lastAccessTime_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 6, sd_);
+    }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetParameters(),
+        ParametersDefaultEntryHolder.defaultEntry,
+        7);
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 9, catName_);
+    }
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      output.writeInt64(10, writeId_);
+    }
+    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      output.writeBool(11, isStatsCompliant_);
+    }
+    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      output.writeMessage(12, getColStats());
     }
     unknownFields.writeTo(output);
   }
@@ -146,8 +626,55 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
+    {
+      int dataSize = 0;
+      for (int i = 0; i < values_.size(); i++) {
+        dataSize += computeStringSizeNoTag(values_.getRaw(i));
+      }
+      size += dataSize;
+      size += 1 * getValuesList().size();
+    }
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, filePath_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, dbName_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, tableName_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(4, createTime_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(5, lastAccessTime_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, sd_);
+    }
+    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+         : internalGetParameters().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+      parameters__ = ParametersDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, parameters__);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(9, catName_);
+    }
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(10, writeId_);
+    }
+    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(11, isStatsCompliant_);
+    }
+    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(12, getColStats());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -165,10 +692,54 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.PartitionInfo other = (alluxio.grpc.PartitionInfo) obj;
 
     boolean result = true;
-    result = result && (hasFilePath() == other.hasFilePath());
-    if (hasFilePath()) {
-      result = result && getFilePath()
-          .equals(other.getFilePath());
+    result = result && getValuesList()
+        .equals(other.getValuesList());
+    result = result && (hasDbName() == other.hasDbName());
+    if (hasDbName()) {
+      result = result && getDbName()
+          .equals(other.getDbName());
+    }
+    result = result && (hasTableName() == other.hasTableName());
+    if (hasTableName()) {
+      result = result && getTableName()
+          .equals(other.getTableName());
+    }
+    result = result && (hasCreateTime() == other.hasCreateTime());
+    if (hasCreateTime()) {
+      result = result && (getCreateTime()
+          == other.getCreateTime());
+    }
+    result = result && (hasLastAccessTime() == other.hasLastAccessTime());
+    if (hasLastAccessTime()) {
+      result = result && (getLastAccessTime()
+          == other.getLastAccessTime());
+    }
+    result = result && (hasSd() == other.hasSd());
+    if (hasSd()) {
+      result = result && getSd()
+          .equals(other.getSd());
+    }
+    result = result && internalGetParameters().equals(
+        other.internalGetParameters());
+    result = result && (hasCatName() == other.hasCatName());
+    if (hasCatName()) {
+      result = result && getCatName()
+          .equals(other.getCatName());
+    }
+    result = result && (hasWriteId() == other.hasWriteId());
+    if (hasWriteId()) {
+      result = result && (getWriteId()
+          == other.getWriteId());
+    }
+    result = result && (hasIsStatsCompliant() == other.hasIsStatsCompliant());
+    if (hasIsStatsCompliant()) {
+      result = result && (getIsStatsCompliant()
+          == other.getIsStatsCompliant());
+    }
+    result = result && (hasColStats() == other.hasColStats());
+    if (hasColStats()) {
+      result = result && getColStats()
+          .equals(other.getColStats());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -181,9 +752,51 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasFilePath()) {
-      hash = (37 * hash) + FILE_PATH_FIELD_NUMBER;
-      hash = (53 * hash) + getFilePath().hashCode();
+    if (getValuesCount() > 0) {
+      hash = (37 * hash) + VALUES_FIELD_NUMBER;
+      hash = (53 * hash) + getValuesList().hashCode();
+    }
+    if (hasDbName()) {
+      hash = (37 * hash) + DBNAME_FIELD_NUMBER;
+      hash = (53 * hash) + getDbName().hashCode();
+    }
+    if (hasTableName()) {
+      hash = (37 * hash) + TABLENAME_FIELD_NUMBER;
+      hash = (53 * hash) + getTableName().hashCode();
+    }
+    if (hasCreateTime()) {
+      hash = (37 * hash) + CREATETIME_FIELD_NUMBER;
+      hash = (53 * hash) + getCreateTime();
+    }
+    if (hasLastAccessTime()) {
+      hash = (37 * hash) + LASTACCESSTIME_FIELD_NUMBER;
+      hash = (53 * hash) + getLastAccessTime();
+    }
+    if (hasSd()) {
+      hash = (37 * hash) + SD_FIELD_NUMBER;
+      hash = (53 * hash) + getSd().hashCode();
+    }
+    if (!internalGetParameters().getMap().isEmpty()) {
+      hash = (37 * hash) + PARAMETERS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetParameters().hashCode();
+    }
+    if (hasCatName()) {
+      hash = (37 * hash) + CATNAME_FIELD_NUMBER;
+      hash = (53 * hash) + getCatName().hashCode();
+    }
+    if (hasWriteId()) {
+      hash = (37 * hash) + WRITEID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getWriteId());
+    }
+    if (hasIsStatsCompliant()) {
+      hash = (37 * hash) + ISSTATSCOMPLIANT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsStatsCompliant());
+    }
+    if (hasColStats()) {
+      hash = (37 * hash) + COL_STATS_FIELD_NUMBER;
+      hash = (53 * hash) + getColStats().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -290,6 +903,28 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_PartitionInfo_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 7:
+          return internalGetParameters();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMutableMapField(
+        int number) {
+      switch (number) {
+        case 7:
+          return internalGetMutableParameters();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_PartitionInfo_fieldAccessorTable
@@ -310,12 +945,36 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getColStatsFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      filePath_ = "";
+      values_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000001);
+      dbName_ = "";
+      bitField0_ = (bitField0_ & ~0x00000002);
+      tableName_ = "";
+      bitField0_ = (bitField0_ & ~0x00000004);
+      createTime_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000008);
+      lastAccessTime_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000010);
+      sd_ = "";
+      bitField0_ = (bitField0_ & ~0x00000020);
+      internalGetMutableParameters().clear();
+      catName_ = "";
+      bitField0_ = (bitField0_ & ~0x00000080);
+      writeId_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000100);
+      isStatsCompliant_ = false;
+      bitField0_ = (bitField0_ & ~0x00000200);
+      if (colStatsBuilder_ == null) {
+        colStats_ = null;
+      } else {
+        colStatsBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000400);
       return this;
     }
 
@@ -340,10 +999,53 @@ private static final long serialVersionUID = 0L;
       alluxio.grpc.PartitionInfo result = new alluxio.grpc.PartitionInfo(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        values_ = values_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000001);
+      }
+      result.values_ = values_;
+      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.filePath_ = filePath_;
+      result.dbName_ = dbName_;
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000002;
+      }
+      result.tableName_ = tableName_;
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.createTime_ = createTime_;
+      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.lastAccessTime_ = lastAccessTime_;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.sd_ = sd_;
+      result.parameters_ = internalGetParameters();
+      result.parameters_.makeImmutable();
+      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+        to_bitField0_ |= 0x00000020;
+      }
+      result.catName_ = catName_;
+      if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+        to_bitField0_ |= 0x00000040;
+      }
+      result.writeId_ = writeId_;
+      if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+        to_bitField0_ |= 0x00000080;
+      }
+      result.isStatsCompliant_ = isStatsCompliant_;
+      if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+        to_bitField0_ |= 0x00000100;
+      }
+      if (colStatsBuilder_ == null) {
+        result.colStats_ = colStats_;
+      } else {
+        result.colStats_ = colStatsBuilder_.build();
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -386,10 +1088,52 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.PartitionInfo other) {
       if (other == alluxio.grpc.PartitionInfo.getDefaultInstance()) return this;
-      if (other.hasFilePath()) {
-        bitField0_ |= 0x00000001;
-        filePath_ = other.filePath_;
+      if (!other.values_.isEmpty()) {
+        if (values_.isEmpty()) {
+          values_ = other.values_;
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          ensureValuesIsMutable();
+          values_.addAll(other.values_);
+        }
         onChanged();
+      }
+      if (other.hasDbName()) {
+        bitField0_ |= 0x00000002;
+        dbName_ = other.dbName_;
+        onChanged();
+      }
+      if (other.hasTableName()) {
+        bitField0_ |= 0x00000004;
+        tableName_ = other.tableName_;
+        onChanged();
+      }
+      if (other.hasCreateTime()) {
+        setCreateTime(other.getCreateTime());
+      }
+      if (other.hasLastAccessTime()) {
+        setLastAccessTime(other.getLastAccessTime());
+      }
+      if (other.hasSd()) {
+        bitField0_ |= 0x00000020;
+        sd_ = other.sd_;
+        onChanged();
+      }
+      internalGetMutableParameters().mergeFrom(
+          other.internalGetParameters());
+      if (other.hasCatName()) {
+        bitField0_ |= 0x00000080;
+        catName_ = other.catName_;
+        onChanged();
+      }
+      if (other.hasWriteId()) {
+        setWriteId(other.getWriteId());
+      }
+      if (other.hasIsStatsCompliant()) {
+        setIsStatsCompliant(other.getIsStatsCompliant());
+      }
+      if (other.hasColStats()) {
+        mergeColStats(other.getColStats());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -419,24 +1163,153 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object filePath_ = "";
-    /**
-     * <code>optional string file_path = 1;</code>
-     */
-    public boolean hasFilePath() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+    private com.google.protobuf.LazyStringList values_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensureValuesIsMutable() {
+      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        values_ = new com.google.protobuf.LazyStringArrayList(values_);
+        bitField0_ |= 0x00000001;
+       }
     }
     /**
-     * <code>optional string file_path = 1;</code>
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
      */
-    public java.lang.String getFilePath() {
-      java.lang.Object ref = filePath_;
+    public com.google.protobuf.ProtocolStringList
+        getValuesList() {
+      return values_.getUnmodifiableView();
+    }
+    /**
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
+     */
+    public int getValuesCount() {
+      return values_.size();
+    }
+    /**
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
+     */
+    public java.lang.String getValues(int index) {
+      return values_.get(index);
+    }
+    /**
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getValuesBytes(int index) {
+      return values_.getByteString(index);
+    }
+    /**
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
+     */
+    public Builder setValues(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureValuesIsMutable();
+      values_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
+     */
+    public Builder addValues(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureValuesIsMutable();
+      values_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
+     */
+    public Builder addAllValues(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureValuesIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, values_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
+     */
+    public Builder clearValues() {
+      values_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000001);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * string value is converted to appropriate partition key type
+     * </pre>
+     *
+     * <code>repeated string values = 1;</code>
+     */
+    public Builder addValuesBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureValuesIsMutable();
+      values_.add(value);
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object dbName_ = "";
+    /**
+     * <code>optional string dbName = 2;</code>
+     */
+    public boolean hasDbName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string dbName = 2;</code>
+     */
+    public java.lang.String getDbName() {
+      java.lang.Object ref = dbName_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          filePath_ = s;
+          dbName_ = s;
         }
         return s;
       } else {
@@ -444,55 +1317,712 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string file_path = 1;</code>
+     * <code>optional string dbName = 2;</code>
      */
     public com.google.protobuf.ByteString
-        getFilePathBytes() {
-      java.lang.Object ref = filePath_;
+        getDbNameBytes() {
+      java.lang.Object ref = dbName_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        filePath_ = b;
+        dbName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string file_path = 1;</code>
+     * <code>optional string dbName = 2;</code>
      */
-    public Builder setFilePath(
+    public Builder setDbName(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000001;
-      filePath_ = value;
+  bitField0_ |= 0x00000002;
+      dbName_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string file_path = 1;</code>
+     * <code>optional string dbName = 2;</code>
      */
-    public Builder clearFilePath() {
-      bitField0_ = (bitField0_ & ~0x00000001);
-      filePath_ = getDefaultInstance().getFilePath();
+    public Builder clearDbName() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      dbName_ = getDefaultInstance().getDbName();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string file_path = 1;</code>
+     * <code>optional string dbName = 2;</code>
      */
-    public Builder setFilePathBytes(
+    public Builder setDbNameBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000001;
-      filePath_ = value;
+  bitField0_ |= 0x00000002;
+      dbName_ = value;
       onChanged();
       return this;
+    }
+
+    private java.lang.Object tableName_ = "";
+    /**
+     * <code>optional string tableName = 3;</code>
+     */
+    public boolean hasTableName() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string tableName = 3;</code>
+     */
+    public java.lang.String getTableName() {
+      java.lang.Object ref = tableName_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          tableName_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string tableName = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getTableNameBytes() {
+      java.lang.Object ref = tableName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        tableName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string tableName = 3;</code>
+     */
+    public Builder setTableName(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+      tableName_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string tableName = 3;</code>
+     */
+    public Builder clearTableName() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      tableName_ = getDefaultInstance().getTableName();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string tableName = 3;</code>
+     */
+    public Builder setTableNameBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+      tableName_ = value;
+      onChanged();
+      return this;
+    }
+
+    private int createTime_ ;
+    /**
+     * <code>optional int32 createTime = 4;</code>
+     */
+    public boolean hasCreateTime() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int32 createTime = 4;</code>
+     */
+    public int getCreateTime() {
+      return createTime_;
+    }
+    /**
+     * <code>optional int32 createTime = 4;</code>
+     */
+    public Builder setCreateTime(int value) {
+      bitField0_ |= 0x00000008;
+      createTime_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 createTime = 4;</code>
+     */
+    public Builder clearCreateTime() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      createTime_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private int lastAccessTime_ ;
+    /**
+     * <code>optional int32 lastAccessTime = 5;</code>
+     */
+    public boolean hasLastAccessTime() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional int32 lastAccessTime = 5;</code>
+     */
+    public int getLastAccessTime() {
+      return lastAccessTime_;
+    }
+    /**
+     * <code>optional int32 lastAccessTime = 5;</code>
+     */
+    public Builder setLastAccessTime(int value) {
+      bitField0_ |= 0x00000010;
+      lastAccessTime_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 lastAccessTime = 5;</code>
+     */
+    public Builder clearLastAccessTime() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      lastAccessTime_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object sd_ = "";
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional string sd = 6;</code>
+     */
+    public boolean hasSd() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional string sd = 6;</code>
+     */
+    public java.lang.String getSd() {
+      java.lang.Object ref = sd_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          sd_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional string sd = 6;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSdBytes() {
+      java.lang.Object ref = sd_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sd_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional string sd = 6;</code>
+     */
+    public Builder setSd(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000020;
+      sd_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional string sd = 6;</code>
+     */
+    public Builder clearSd() {
+      bitField0_ = (bitField0_ & ~0x00000020);
+      sd_ = getDefaultInstance().getSd();
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional string sd = 6;</code>
+     */
+    public Builder setSdBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000020;
+      sd_ = value;
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> parameters_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetParameters() {
+      if (parameters_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            ParametersDefaultEntryHolder.defaultEntry);
+      }
+      return parameters_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetMutableParameters() {
+      onChanged();;
+      if (parameters_ == null) {
+        parameters_ = com.google.protobuf.MapField.newMapField(
+            ParametersDefaultEntryHolder.defaultEntry);
+      }
+      if (!parameters_.isMutable()) {
+        parameters_ = parameters_.copy();
+      }
+      return parameters_;
+    }
+
+    public int getParametersCount() {
+      return internalGetParameters().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameters = 7;</code>
+     */
+
+    public boolean containsParameters(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetParameters().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getParametersMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getParameters() {
+      return getParametersMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameters = 7;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.String> getParametersMap() {
+      return internalGetParameters().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameters = 7;</code>
+     */
+
+    public java.lang.String getParametersOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetParameters().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameters = 7;</code>
+     */
+
+    public java.lang.String getParametersOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetParameters().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearParameters() {
+      internalGetMutableParameters().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameters = 7;</code>
+     */
+
+    public Builder removeParameters(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableParameters().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String>
+    getMutableParameters() {
+      return internalGetMutableParameters().getMutableMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameters = 7;</code>
+     */
+    public Builder putParameters(
+        java.lang.String key,
+        java.lang.String value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      if (value == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableParameters().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameters = 7;</code>
+     */
+
+    public Builder putAllParameters(
+        java.util.Map<java.lang.String, java.lang.String> values) {
+      internalGetMutableParameters().getMutableMap()
+          .putAll(values);
+      return this;
+    }
+
+    private java.lang.Object catName_ = "";
+    /**
+     * <code>optional string catName = 9;</code>
+     */
+    public boolean hasCatName() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional string catName = 9;</code>
+     */
+    public java.lang.String getCatName() {
+      java.lang.Object ref = catName_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          catName_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string catName = 9;</code>
+     */
+    public com.google.protobuf.ByteString
+        getCatNameBytes() {
+      java.lang.Object ref = catName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        catName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string catName = 9;</code>
+     */
+    public Builder setCatName(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000080;
+      catName_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string catName = 9;</code>
+     */
+    public Builder clearCatName() {
+      bitField0_ = (bitField0_ & ~0x00000080);
+      catName_ = getDefaultInstance().getCatName();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string catName = 9;</code>
+     */
+    public Builder setCatNameBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000080;
+      catName_ = value;
+      onChanged();
+      return this;
+    }
+
+    private long writeId_ ;
+    /**
+     * <code>optional int64 writeId = 10;</code>
+     */
+    public boolean hasWriteId() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    /**
+     * <code>optional int64 writeId = 10;</code>
+     */
+    public long getWriteId() {
+      return writeId_;
+    }
+    /**
+     * <code>optional int64 writeId = 10;</code>
+     */
+    public Builder setWriteId(long value) {
+      bitField0_ |= 0x00000100;
+      writeId_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 writeId = 10;</code>
+     */
+    public Builder clearWriteId() {
+      bitField0_ = (bitField0_ & ~0x00000100);
+      writeId_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private boolean isStatsCompliant_ ;
+    /**
+     * <code>optional bool isStatsCompliant = 11;</code>
+     */
+    public boolean hasIsStatsCompliant() {
+      return ((bitField0_ & 0x00000200) == 0x00000200);
+    }
+    /**
+     * <code>optional bool isStatsCompliant = 11;</code>
+     */
+    public boolean getIsStatsCompliant() {
+      return isStatsCompliant_;
+    }
+    /**
+     * <code>optional bool isStatsCompliant = 11;</code>
+     */
+    public Builder setIsStatsCompliant(boolean value) {
+      bitField0_ |= 0x00000200;
+      isStatsCompliant_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool isStatsCompliant = 11;</code>
+     */
+    public Builder clearIsStatsCompliant() {
+      bitField0_ = (bitField0_ & ~0x00000200);
+      isStatsCompliant_ = false;
+      onChanged();
+      return this;
+    }
+
+    private alluxio.grpc.ColumnStatisticsInfo colStats_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.ColumnStatisticsInfo, alluxio.grpc.ColumnStatisticsInfo.Builder, alluxio.grpc.ColumnStatisticsInfoOrBuilder> colStatsBuilder_;
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    public boolean hasColStats() {
+      return ((bitField0_ & 0x00000400) == 0x00000400);
+    }
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    public alluxio.grpc.ColumnStatisticsInfo getColStats() {
+      if (colStatsBuilder_ == null) {
+        return colStats_ == null ? alluxio.grpc.ColumnStatisticsInfo.getDefaultInstance() : colStats_;
+      } else {
+        return colStatsBuilder_.getMessage();
+      }
+    }
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    public Builder setColStats(alluxio.grpc.ColumnStatisticsInfo value) {
+      if (colStatsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        colStats_ = value;
+        onChanged();
+      } else {
+        colStatsBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000400;
+      return this;
+    }
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    public Builder setColStats(
+        alluxio.grpc.ColumnStatisticsInfo.Builder builderForValue) {
+      if (colStatsBuilder_ == null) {
+        colStats_ = builderForValue.build();
+        onChanged();
+      } else {
+        colStatsBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000400;
+      return this;
+    }
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    public Builder mergeColStats(alluxio.grpc.ColumnStatisticsInfo value) {
+      if (colStatsBuilder_ == null) {
+        if (((bitField0_ & 0x00000400) == 0x00000400) &&
+            colStats_ != null &&
+            colStats_ != alluxio.grpc.ColumnStatisticsInfo.getDefaultInstance()) {
+          colStats_ =
+            alluxio.grpc.ColumnStatisticsInfo.newBuilder(colStats_).mergeFrom(value).buildPartial();
+        } else {
+          colStats_ = value;
+        }
+        onChanged();
+      } else {
+        colStatsBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000400;
+      return this;
+    }
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    public Builder clearColStats() {
+      if (colStatsBuilder_ == null) {
+        colStats_ = null;
+        onChanged();
+      } else {
+        colStatsBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000400);
+      return this;
+    }
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    public alluxio.grpc.ColumnStatisticsInfo.Builder getColStatsBuilder() {
+      bitField0_ |= 0x00000400;
+      onChanged();
+      return getColStatsFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    public alluxio.grpc.ColumnStatisticsInfoOrBuilder getColStatsOrBuilder() {
+      if (colStatsBuilder_ != null) {
+        return colStatsBuilder_.getMessageOrBuilder();
+      } else {
+        return colStats_ == null ?
+            alluxio.grpc.ColumnStatisticsInfo.getDefaultInstance() : colStats_;
+      }
+    }
+    /**
+     * <pre>
+     * column statistics for partition
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.ColumnStatisticsInfo col_stats = 12;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.ColumnStatisticsInfo, alluxio.grpc.ColumnStatisticsInfo.Builder, alluxio.grpc.ColumnStatisticsInfoOrBuilder> 
+        getColStatsFieldBuilder() {
+      if (colStatsBuilder_ == null) {
+        colStatsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.ColumnStatisticsInfo, alluxio.grpc.ColumnStatisticsInfo.Builder, alluxio.grpc.ColumnStatisticsInfoOrBuilder>(
+                getColStats(),
+                getParentForChildren(),
+                isClean());
+        colStats_ = null;
+      }
+      return colStatsBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

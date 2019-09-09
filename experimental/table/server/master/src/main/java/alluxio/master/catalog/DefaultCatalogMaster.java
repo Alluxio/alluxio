@@ -75,6 +75,19 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
+  public boolean attachDatabase(String dbName, CatalogConfiguration configuration)
+      throws IOException {
+    // TODO(gpang): should type just be an argument?
+    if (configuration.get(CatalogProperty.DB_TYPE).isEmpty()) {
+      throw new IOException(
+          "The database type is not configured. Please set property: " + CatalogProperty.DB_TYPE
+              .getName());
+    }
+    return mCatalog
+        .createDatabase(configuration.get(CatalogProperty.DB_TYPE), dbName, configuration);
+  }
+
+  @Override
   public List<String> getAllDatabases() throws IOException {
     return mCatalog.getAllDatabases();
   }

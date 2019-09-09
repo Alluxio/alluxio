@@ -53,7 +53,7 @@ message Database {
 }
 
 enum TableType {
-    NATIVE = 0;  //native alluxio metastore table, both metadata and datafile managed by alluxio
+    NATIVE = 0; //native alluxio metastore table, both metadata and datafile managed by alluxio
     IMPORTED = 1; //imported alluxio metastore table, only the metadata is managed by alluxio
 }
 message TableInfo {
@@ -63,6 +63,29 @@ message TableInfo {
     optional string base_location = 4;
     optional uint32 version = 5;
     optional Schema schema = 6;
+}
+
+message PartitionInfo {
+  repeated string values = 1; // string value is converted to appropriate partition key type
+  optional string dbName = 2;
+  optional string tableName = 3;
+  optional int32 createTime = 4;
+  optional int32 lastAccessTime = 5;
+  optional string sd = 6; // storage descriptor
+  map<string, string> parameters = 7;
+  optional string catName = 9;
+  optional int64 writeId = 10;
+  optional bool isStatsCompliant = 11;
+  optional ColumnStatisticsInfo col_stats = 12; // column statistics for partition
+}
+
+message ColumnStatisticsInfo {
+    optional string col_name = 1;
+    optional FieldTypeId col_type = 2;
+    optional ColumnStatisticsData data = 3;
+}
+
+message ColumnStatisticsData {
 }
 
 message GetAllDatabasesPRequest {
@@ -133,6 +156,15 @@ message GetStatisticsPRequest {
     optional string table_name = 2;
 }
 
+message AttachDatabasePRequest {
+    optional string db_name = 1;
+    map<string, string> options = 2;
+}
+
+message AttachDatabasePResponse {
+    optional bool success = 1;
+}
+
 message ColumnStatistics {
     optional uint64 record_count = 1;
 }
@@ -188,9 +220,6 @@ message GetPartitionsPRequest {
     optional Constraint constraint = 3;
 }
 
-message PartitionInfo {
-    optional string file_path = 1;
-}
 message GetPartitionsPResponse {
     map<string, PartitionInfo> partitions = 1;
 }
@@ -229,6 +258,11 @@ service CatalogMasterClientService {
      * Create a new database in the metastore
      */
     rpc CreateDatabase(CreateDatabasePRequest) returns (CreateDatabasePResponse);
+
+    /**
+     * Attach an existing database into the catalog as a new database name
+     */
+    rpc AttachDatabase(AttachDatabasePRequest) returns (AttachDatabasePResponse);
 
     rpc GetDataFiles(GetDataFilesPRequest) returns (GetDataFilesPResponse);
 
