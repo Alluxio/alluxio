@@ -141,11 +141,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** The address of this master. */
   private Address mMasterAddress;
 
-  /** The root ufs client. */
-  private final UfsManager.UfsClient mRootUfsClient;
-
-  /** The root ufs. */
-  private final CloseableResource<UnderFileSystem> mRootUfs;
+  /** The manager of all ufs. */
+  private final UfsManager mUfsManager;
 
   /** The metadata daily backup. */
   private DailyMetadataBackup mDailyBackup;
@@ -246,8 +243,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
 
-    mRootUfsClient = masterContext.getUfsManager().getRoot();
-    mRootUfs = mRootUfsClient.acquireUfsResource();
+    mUfsManager = masterContext.getUfsManager();
 
     mPathProperties = new PathProperties();
     mState = new State();
@@ -300,7 +296,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
-            ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mRootUfsClient);
+            ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfsManager);
         mDailyBackup.start();
       }
       if (mState.getClusterID() == INVALID_CLUSTER_ID) {
@@ -355,48 +351,52 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   public BackupResponse backup(BackupPOptions options) throws IOException {
     String dir = options.hasTargetDirectory() ? options.getTargetDirectory()
         : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    UnderFileSystem ufs = mRootUfs.get();
-    if ((options.getLocalFileSystem() || !options.hasTargetDirectory())
-            && !ufs.getUnderFSType().equals("local")) {
-      LOG.info("Backing up to local filesystem in directory {}", dir);
-    } else {
-      LOG.info("Backing up to root UFS in directory {}", dir);
-    }
-    if (!ufs.isDirectory(dir)) {
-      if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
-          .setCreateParent(true))) {
-        throw new IOException(String.format("Failed to create directory %s", dir));
+    try (CloseableResource<UnderFileSystem> ufsResource =
+             mUfsManager.getRoot().acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      if ((options.getLocalFileSystem() || !options.hasTargetDirectory())
+          && !ufs.getUnderFSType().equals("local")) {
+        LOG.info("Backing up to local filesystem in directory {}", dir);
+      } else {
+        LOG.info("Backing up to root UFS in directory {}", dir);
       }
-    }
-    String backupFilePath;
-    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
-      Instant now = Instant.now();
-      String backupFileName = String.format(BackupManager.BACKUP_FILE_FORMAT,
-          DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
-          now.toEpochMilli());
-      backupFilePath = PathUtils.concatPath(dir, backupFileName);
-      try {
-        try (OutputStream ufsStream = ufs.create(backupFilePath)) {
-          mBackupManager.backup(ufsStream);
+      if (!ufs.isDirectory(dir)) {
+        if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
+            .setCreateParent(true))) {
+          throw new IOException(String.format("Failed to create directory %s", dir));
         }
-      } catch (Throwable t) {
+      }
+      String backupFilePath;
+      try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
+        Instant now = Instant.now();
+        String backupFileName = String.format(BackupManager.BACKUP_FILE_FORMAT,
+            DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
+            now.toEpochMilli());
+        backupFilePath = PathUtils.concatPath(dir, backupFileName);
         try {
-          ufs.deleteExistingFile(backupFilePath);
-        } catch (Throwable t2) {
-          LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
-          t.addSuppressed(t2);
+          try (OutputStream ufsStream = ufs.create(backupFilePath)) {
+            mBackupManager.backup(ufsStream);
+          }
+        } catch (Throwable t) {
+          try {
+            ufs.deleteExistingFile(backupFilePath);
+          } catch (Throwable t2) {
+            LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
+            t.addSuppressed(t2);
+          }
+          throw t;
         }
-        throw t;
       }
+      String rootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      if (options.getLocalFileSystem()) {
+        rootUfs = "file:///";
+      }
+      AlluxioURI backupUri =
+          new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
+      return new BackupResponse(backupUri,
+          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+              ServerConfiguration.global()));
     }
-    String rootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    if (options.getLocalFileSystem()) {
-      rootUfs = "file:///";
-    }
-    AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
-    return new BackupResponse(backupUri,
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ServerConfiguration.global()));
   }
 
   @Override
