@@ -11,11 +11,17 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
 import alluxio.table.common.TableView;
 import alluxio.table.common.udb.UdbTable;
 
+import org.apache.hadoop.hive.ql.metadata.Partition;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,6 +32,8 @@ public class HiveTable implements UdbTable {
   private final Schema mSchema;
   private final String mBaseLocation;
   private final Map<String, FileStatistics> mStatistics;
+  private final List<Partition>  mPartitionInfo;
+  private final List<FieldSchema> mPartitionKeys;
 
   /**
    * Creates a new instance.
@@ -34,13 +42,18 @@ public class HiveTable implements UdbTable {
    * @param schema the table schema
    * @param baseLocation the base location
    * @param statistics the table statistics
+   * @param cols partition keys
+   * @param partitions partition list
    */
   public HiveTable(String name, Schema schema, String baseLocation,
-      Map<String, FileStatistics> statistics) {
+      Map<String, FileStatistics> statistics, List<FieldSchema> cols,
+      List<Partition> partitions) {
     mName = name;
     mSchema = schema;
     mBaseLocation = baseLocation;
     mStatistics = statistics;
+    mPartitionInfo = partitions;
+    mPartitionKeys = cols;
   }
 
   @Override
@@ -55,7 +68,8 @@ public class HiveTable implements UdbTable {
 
   @Override
   public TableView getView() {
-    return new HiveTableView(mBaseLocation, mStatistics);
+    return new HiveTableView(mBaseLocation, mStatistics,
+        mPartitionKeys, getPartitions());
   }
 
   @Override
@@ -66,5 +80,15 @@ public class HiveTable implements UdbTable {
   @Override
   public Map<String, FileStatistics> getStatistics() {
     return mStatistics;
+  }
+
+  @Override
+  public List<PartitionInfo> getPartitions() {
+    List<PartitionInfo> partList = new ArrayList<>();
+    for (Partition part: mPartitionInfo) {
+      partList.add(PartitionInfo.newBuilder().setTableName(mName)
+          .addAllValues(part.getValues()).setSd(part.getLocation()).build());
+    }
+    return partList;
   }
 }

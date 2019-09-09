@@ -25,6 +25,8 @@ import alluxio.grpc.GetAllTablesPRequest;
 import alluxio.grpc.GetAllTablesPResponse;
 import alluxio.grpc.GetDataFilesPRequest;
 import alluxio.grpc.GetDataFilesPResponse;
+import alluxio.grpc.GetPartitionsPRequest;
+import alluxio.grpc.GetPartitionsPResponse;
 import alluxio.grpc.GetStatisticsPRequest;
 import alluxio.grpc.GetStatisticsPResponse;
 import alluxio.grpc.GetTablePRequest;
@@ -146,5 +148,13 @@ public class CatalogMasterClientServiceHandler
     RpcUtils.call(LOG, () -> GetDataFilesPResponse.newBuilder()
             .addAllDataFile(mCatalogMaster.getDataFiles(request.getDbName(),
                 request.getTableName())).build(), "getStatistics", "", responseObserver);
+  }
+
+  @Override
+  public void getPartitions(GetPartitionsPRequest request,
+      StreamObserver<GetPartitionsPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetPartitionsPResponse.newBuilder()
+        .addAllPartitions(mCatalogMaster.getPartitions(request.getDbName(), request.getTableName(),
+            request.getConstraint())).build(), "getPartitions", "", responseObserver);
   }
 }

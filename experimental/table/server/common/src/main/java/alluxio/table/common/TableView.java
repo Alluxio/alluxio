@@ -11,8 +11,11 @@
 
 package alluxio.table.common;
 
+import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,4 +31,14 @@ public interface TableView {
    * @return the statistics
    */
   Map<String, FileStatistics> getStatistics();
+
+  /**
+   * @return the partition information
+   */
+  List<PartitionInfo> getPartitions();
+
+  /**
+   * @return the partition keys
+   */
+  List<FieldSchema> getPartitionCols();
 }

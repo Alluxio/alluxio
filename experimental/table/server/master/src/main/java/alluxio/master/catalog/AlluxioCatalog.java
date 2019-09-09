@@ -14,7 +14,12 @@ package alluxio.master.catalog;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.AllOrNoneSet;
+import alluxio.grpc.Constraint;
+import alluxio.grpc.Domain;
+import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
@@ -23,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -146,5 +152,49 @@ public class AlluxioCatalog {
       throws IOException {
     Table table = getTable(dbName, tableName);
     return table.get().getStatistics();
+  }
+
+  /**
+   * Returns the partitions based on a constraint for the specified table.
+   *
+   * @param dbName the database name
+   * @param tableName the table name
+   * @param constraint the column contraint
+   * @return the partition info for the specified table
+   */
+  public List<PartitionInfo> getPartitions(String dbName, String tableName,
+      Constraint constraint) throws IOException {
+    Table table = getTable(dbName, tableName);
+    List<FieldSchema> cols = table.get().getPartitionKeys();
+    List<String> colNames = cols.stream().map(FieldSchema::getName).collect(Collectors.toList());
+
+    List<PartitionInfo> parts = table.get().getPartitionInfo();
+
+    Map<String, Domain> partitionConstraints = new LinkedHashMap<>(); //maintain insertion order
+
+    for (String col : colNames) {
+      Domain domain = constraint.getColumnConstraintsMap().get(col);
+      if (domain != null) {
+        partitionConstraints.put(col, domain);
+      } else {
+        partitionConstraints.put(col,
+            Domain.newBuilder().setAllOrNone(
+                AllOrNoneSet.newBuilder().setAll(true).build()).build());
+      }
+    }
+
+    List<PartitionInfo> returnList = new ArrayList<>();
+
+    for (PartitionInfo partInfo : parts) {
+      if (checkDomain(partInfo, partitionConstraints)) {
+        returnList.add(partInfo);
+      }
+    }
+
+    return returnList;
+  }
+
+  private boolean checkDomain(PartitionInfo partitionInfo, Map<String, Domain> constraints) {
+    return true;
   }
 }

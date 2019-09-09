@@ -14,6 +14,7 @@ package alluxio.client.catalog;
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ColumnStatisticsInfo;
+import alluxio.grpc.Constraint;
 import alluxio.grpc.Database;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.PartitionInfo;
@@ -134,6 +135,18 @@ public interface CatalogMasterClient extends Client {
           String databaseName,
           String tableName,
           List<String> columnNames) throws AlluxioStatusException;
+
+  /**
+   * Get partition names with given database name and table name.
+   *
+   * @param databaseName database name
+   * @param tableName table name
+   * @param constraint constraint on the columns
+   * @return list of partitions
+   * @throws AlluxioStatusException
+   */
+  List<PartitionInfo> getPartitionByConstraint(String databaseName, String tableName,
+      Constraint constraint) throws AlluxioStatusException;
 
   /**
    * Get partition names with given database name and table name.

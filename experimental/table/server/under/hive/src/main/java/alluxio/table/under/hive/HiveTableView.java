@@ -11,9 +11,12 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 import alluxio.table.common.TableView;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,17 +25,25 @@ import java.util.Map;
 public class HiveTableView implements TableView {
   private final String mBaseLocation;
   private final Map<String, FileStatistics> mStatistics;
+  private final List<FieldSchema> mPartitionCols;
+  private final List<PartitionInfo> mPartitions;
 
   /**
    * Creates a new instance.
    *
    * @param baseLocation the base location
    * @param statistics the table statistics
+   * @param partitionCols partition columns
+   * @param partitions partitions
    */
   public HiveTableView(String baseLocation,
-      Map<String, FileStatistics> statistics) {
+      Map<String, FileStatistics> statistics,
+      List<FieldSchema> partitionCols,
+      List<PartitionInfo> partitions) {
     mBaseLocation = baseLocation;
     mStatistics = statistics;
+    mPartitionCols = partitionCols;
+    mPartitions = partitions;
   }
 
   @Override
@@ -43,5 +54,15 @@ public class HiveTableView implements TableView {
   @Override
   public Map<String, FileStatistics> getStatistics() {
     return mStatistics;
+  }
+
+  @Override
+  public List<PartitionInfo> getPartitions() {
+    return mPartitions;
+  }
+
+  @Override
+  public List<FieldSchema> getPartitionCols() {
+    return mPartitionCols;
   }
 }

@@ -8,36 +8,56 @@ public interface FileStatisticsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>map&lt;uint32, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <pre>
+   *map column names to column statistics
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
    */
   int getColumnCount();
   /**
-   * <code>map&lt;uint32, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <pre>
+   *map column names to column statistics
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
    */
   boolean containsColumn(
-      int key);
+      java.lang.String key);
   /**
    * Use {@link #getColumnMap()} instead.
    */
   @java.lang.Deprecated
-  java.util.Map<java.lang.Integer, alluxio.grpc.ColumnStatistics>
+  java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics>
   getColumn();
   /**
-   * <code>map&lt;uint32, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <pre>
+   *map column names to column statistics
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
    */
-  java.util.Map<java.lang.Integer, alluxio.grpc.ColumnStatistics>
+  java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics>
   getColumnMap();
   /**
-   * <code>map&lt;uint32, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <pre>
+   *map column names to column statistics
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
    */
 
   alluxio.grpc.ColumnStatistics getColumnOrDefault(
-      int key,
+      java.lang.String key,
       alluxio.grpc.ColumnStatistics defaultValue);
   /**
-   * <code>map&lt;uint32, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <pre>
+   *map column names to column statistics
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
    */
 
   alluxio.grpc.ColumnStatistics getColumnOrThrow(
-      int key);
+      java.lang.String key);
 }

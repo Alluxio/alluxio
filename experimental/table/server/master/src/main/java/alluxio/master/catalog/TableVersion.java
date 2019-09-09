@@ -11,11 +11,14 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
 import alluxio.table.common.TableView;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,5 +79,27 @@ public class TableVersion {
       return view.getStatistics();
     }
     return Collections.emptyMap();
+  }
+
+  /**
+   * @return the partition keys
+   */
+  public List<FieldSchema> getPartitionKeys() {
+    TableView view = mViews.get(DEFAULT_VIEW_NAME);
+    if (view != null) {
+      return view.getPartitionCols();
+    }
+    return Collections.emptyList();
+  }
+
+  /**
+   * @return the partition info
+   */
+  public List<PartitionInfo> getPartitionInfo() {
+    TableView view = mViews.get(DEFAULT_VIEW_NAME);
+    if (view != null) {
+      return view.getPartitions();
+    }
+    return Collections.emptyList();
   }
 }
