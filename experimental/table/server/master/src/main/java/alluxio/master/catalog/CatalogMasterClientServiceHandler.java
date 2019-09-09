@@ -62,8 +62,9 @@ public class CatalogMasterClientServiceHandler
   public void attachDatabase(AttachDatabasePRequest request,
       StreamObserver<AttachDatabasePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> AttachDatabasePResponse.newBuilder().setSuccess(mCatalogMaster
-        .attachDatabase(request.getDbName(), new CatalogConfiguration(request.getOptionsMap())))
-        .build(), "attachDatabase", "", responseObserver);
+            .attachDatabase(request.getDbName(), request.getDbType(),
+                new CatalogConfiguration(request.getOptionsMap()))).build(), "attachDatabase", "",
+        responseObserver);
   }
 
   @Override
