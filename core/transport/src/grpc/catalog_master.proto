@@ -158,7 +158,8 @@ message GetStatisticsPRequest {
 
 message AttachDatabasePRequest {
     optional string db_name = 1;
-    map<string, string> options = 2;
+    optional string db_type = 2;
+    map<string, string> options = 3;
 }
 
 message AttachDatabasePResponse {
