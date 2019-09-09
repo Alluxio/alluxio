@@ -8,36 +8,26 @@ public interface GetPartitionsPResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+   */
+  java.util.List<alluxio.grpc.PartitionInfo> 
+      getPartitionsList();
+  /**
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+   */
+  alluxio.grpc.PartitionInfo getPartitions(int index);
+  /**
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
    */
   int getPartitionsCount();
   /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
    */
-  boolean containsPartitions(
-      java.lang.String key);
+  java.util.List<? extends alluxio.grpc.PartitionInfoOrBuilder> 
+      getPartitionsOrBuilderList();
   /**
-   * Use {@link #getPartitionsMap()} instead.
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
    */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo>
-  getPartitions();
-  /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-   */
-  java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo>
-  getPartitionsMap();
-  /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-   */
-
-  alluxio.grpc.PartitionInfo getPartitionsOrDefault(
-      java.lang.String key,
-      alluxio.grpc.PartitionInfo defaultValue);
-  /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-   */
-
-  alluxio.grpc.PartitionInfo getPartitionsOrThrow(
-      java.lang.String key);
+  alluxio.grpc.PartitionInfoOrBuilder getPartitionsOrBuilder(
+      int index);
 }

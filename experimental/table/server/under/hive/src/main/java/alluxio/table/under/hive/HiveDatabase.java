@@ -18,7 +18,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.ColumnStatistics;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileStatistics;
-import alluxio.grpc.FileStatisticsOrBuilder;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
@@ -32,6 +31,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.iceberg.catalog.TableIdentifier;
 import org.slf4j.Logger;
@@ -164,10 +164,13 @@ public class HiveDatabase implements UnderDatabase {
               ColumnStatistics.newBuilder().setRecordCount(distinct_count).build());
         }
       }
+      // Potentially expensive call
+      List<Partition> partitions = mHive.getPartitions(table);
 
       // TODO(gpang): manage the mount mapping for statistics/metadata
-      return new HiveTable(tableName, HiveUtils.toProto(table.getAllCols()), tableUri.getPath(),
-          Collections.singletonMap("unpartitioned", builder.build()));
+      return new HiveTable(tableName, HiveUtils.toProtoSchema(table.getAllCols()), tableUri.getPath(),
+          Collections.singletonMap("unpartitioned", builder.build()), HiveUtils.toProto(table.getPartitionKeys()),
+          partitions);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     } catch (AlluxioException e) {

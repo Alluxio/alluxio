@@ -12,9 +12,11 @@
 package alluxio.table.common.udb;
 
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
 import alluxio.table.common.TableView;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,4 +49,9 @@ public interface UdbTable {
    * @return returns a view for this udb table
    */
   TableView getView();
+
+  /**
+   * @return returns partition info for the table
+   */
+  List<PartitionInfo> getPartitions();
 }

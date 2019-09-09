@@ -17,6 +17,7 @@ import alluxio.grpc.Type;
 
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,15 +30,25 @@ public class HiveUtils {
    * @param hiveSchema the hive schema
    * @return the proto representation
    */
-  public static Schema toProto(List<FieldSchema> hiveSchema) {
-    Schema.Builder schemaBuilder = Schema.newBuilder();
+  public static List<alluxio.grpc.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
+    List<alluxio.grpc.FieldSchema> list = new ArrayList<>();
     for (FieldSchema field : hiveSchema) {
       alluxio.grpc.FieldSchema aFieldSchema = alluxio.grpc.FieldSchema.newBuilder()
           .setName(field.getName())
           .setType(Type.newBuilder().setType(toProto(field.getType())))
           .build();
-      schemaBuilder.addCols(aFieldSchema);
+      list.add(aFieldSchema);
     }
+    return list;
+  }
+
+  /**
+   * @param hiveSchema the hive schema
+   * @return the proto representation
+   */
+  public static Schema toProtoSchema(List<FieldSchema> hiveSchema) {
+    Schema.Builder schemaBuilder = Schema.newBuilder();
+    schemaBuilder.addAllCols(toProto(hiveSchema));
     return schemaBuilder.build();
   }
 

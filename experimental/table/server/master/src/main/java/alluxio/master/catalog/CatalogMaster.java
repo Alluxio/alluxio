@@ -110,5 +110,6 @@ public interface CatalogMaster extends Master {
    *
    * @return a map of partitions and related partition info
    */
-  Map<String, PartitionInfo> getPartitions(String dbName, String tableName, Constraint constraint);
+  List<PartitionInfo> getPartitions(String dbName, String tableName, Constraint constraint)
+      throws IOException;
 }

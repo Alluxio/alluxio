@@ -221,7 +221,7 @@ message GetPartitionsPRequest {
 }
 
 message GetPartitionsPResponse {
-    map<string, PartitionInfo> partitions = 1;
+    repeated PartitionInfo partitions = 1;
 }
 
 /**

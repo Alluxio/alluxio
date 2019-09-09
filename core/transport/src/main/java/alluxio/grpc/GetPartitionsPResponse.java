@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetPartitionsPResponse() {
+    partitions_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -51,15 +52,11 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              partitions_ = com.google.protobuf.MapField.newMapField(
-                  PartitionsDefaultEntryHolder.defaultEntry);
+              partitions_ = new java.util.ArrayList<alluxio.grpc.PartitionInfo>();
               mutable_bitField0_ |= 0x00000001;
             }
-            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.PartitionInfo>
-            partitions__ = input.readMessage(
-                PartitionsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            partitions_.getMutableMap().put(
-                partitions__.getKey(), partitions__.getValue());
+            partitions_.add(
+                input.readMessage(alluxio.grpc.PartitionInfo.PARSER, extensionRegistry));
             break;
           }
         }
@@ -70,6 +67,9 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        partitions_ = java.util.Collections.unmodifiableList(partitions_);
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -79,17 +79,6 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 1:
-        return internalGetPartitions();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
-    }
-  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_fieldAccessorTable
@@ -98,79 +87,38 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int PARTITIONS_FIELD_NUMBER = 1;
-  private static final class PartitionsDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, alluxio.grpc.PartitionInfo> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, alluxio.grpc.PartitionInfo>newDefaultInstance(
-                alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_PartitionsEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                alluxio.grpc.PartitionInfo.getDefaultInstance());
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, alluxio.grpc.PartitionInfo> partitions_;
-  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.PartitionInfo>
-  internalGetPartitions() {
-    if (partitions_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          PartitionsDefaultEntryHolder.defaultEntry);
-    }
+  private java.util.List<alluxio.grpc.PartitionInfo> partitions_;
+  /**
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+   */
+  public java.util.List<alluxio.grpc.PartitionInfo> getPartitionsList() {
     return partitions_;
   }
-
+  /**
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+   */
+  public java.util.List<? extends alluxio.grpc.PartitionInfoOrBuilder> 
+      getPartitionsOrBuilderList() {
+    return partitions_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+   */
   public int getPartitionsCount() {
-    return internalGetPartitions().getMap().size();
+    return partitions_.size();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
    */
-
-  public boolean containsPartitions(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetPartitions().getMap().containsKey(key);
+  public alluxio.grpc.PartitionInfo getPartitions(int index) {
+    return partitions_.get(index);
   }
   /**
-   * Use {@link #getPartitionsMap()} instead.
+   * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
    */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> getPartitions() {
-    return getPartitionsMap();
-  }
-  /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-   */
-
-  public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> getPartitionsMap() {
-    return internalGetPartitions().getMap();
-  }
-  /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-   */
-
-  public alluxio.grpc.PartitionInfo getPartitionsOrDefault(
-      java.lang.String key,
-      alluxio.grpc.PartitionInfo defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> map =
-        internalGetPartitions().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-   */
-
-  public alluxio.grpc.PartitionInfo getPartitionsOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> map =
-        internalGetPartitions().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
+  public alluxio.grpc.PartitionInfoOrBuilder getPartitionsOrBuilder(
+      int index) {
+    return partitions_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -185,12 +133,9 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetPartitions(),
-        PartitionsDefaultEntryHolder.defaultEntry,
-        1);
+    for (int i = 0; i < partitions_.size(); i++) {
+      output.writeMessage(1, partitions_.get(i));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -199,15 +144,9 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.PartitionInfo> entry
-         : internalGetPartitions().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.PartitionInfo>
-      partitions__ = PartitionsDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
+    for (int i = 0; i < partitions_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, partitions__);
+        .computeMessageSize(1, partitions_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -225,8 +164,8 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetPartitionsPResponse other = (alluxio.grpc.GetPartitionsPResponse) obj;
 
     boolean result = true;
-    result = result && internalGetPartitions().equals(
-        other.internalGetPartitions());
+    result = result && getPartitionsList()
+        .equals(other.getPartitionsList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -238,9 +177,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (!internalGetPartitions().getMap().isEmpty()) {
+    if (getPartitionsCount() > 0) {
       hash = (37 * hash) + PARTITIONS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetPartitions().hashCode();
+      hash = (53 * hash) + getPartitionsList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -347,28 +286,6 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 1:
-          return internalGetPartitions();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 1:
-          return internalGetMutablePartitions();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_fieldAccessorTable
@@ -389,11 +306,17 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getPartitionsFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      internalGetMutablePartitions().clear();
+      if (partitionsBuilder_ == null) {
+        partitions_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+      } else {
+        partitionsBuilder_.clear();
+      }
       return this;
     }
 
@@ -417,8 +340,15 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.GetPartitionsPResponse buildPartial() {
       alluxio.grpc.GetPartitionsPResponse result = new alluxio.grpc.GetPartitionsPResponse(this);
       int from_bitField0_ = bitField0_;
-      result.partitions_ = internalGetPartitions();
-      result.partitions_.makeImmutable();
+      if (partitionsBuilder_ == null) {
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          partitions_ = java.util.Collections.unmodifiableList(partitions_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.partitions_ = partitions_;
+      } else {
+        result.partitions_ = partitionsBuilder_.build();
+      }
       onBuilt();
       return result;
     }
@@ -460,8 +390,32 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetPartitionsPResponse other) {
       if (other == alluxio.grpc.GetPartitionsPResponse.getDefaultInstance()) return this;
-      internalGetMutablePartitions().mergeFrom(
-          other.internalGetPartitions());
+      if (partitionsBuilder_ == null) {
+        if (!other.partitions_.isEmpty()) {
+          if (partitions_.isEmpty()) {
+            partitions_ = other.partitions_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensurePartitionsIsMutable();
+            partitions_.addAll(other.partitions_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.partitions_.isEmpty()) {
+          if (partitionsBuilder_.isEmpty()) {
+            partitionsBuilder_.dispose();
+            partitionsBuilder_ = null;
+            partitions_ = other.partitions_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+            partitionsBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getPartitionsFieldBuilder() : null;
+          } else {
+            partitionsBuilder_.addAllMessages(other.partitions_);
+          }
+        }
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -490,127 +444,244 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private com.google.protobuf.MapField<
-        java.lang.String, alluxio.grpc.PartitionInfo> partitions_;
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.PartitionInfo>
-    internalGetPartitions() {
-      if (partitions_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            PartitionsDefaultEntryHolder.defaultEntry);
-      }
-      return partitions_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.PartitionInfo>
-    internalGetMutablePartitions() {
-      onChanged();;
-      if (partitions_ == null) {
-        partitions_ = com.google.protobuf.MapField.newMapField(
-            PartitionsDefaultEntryHolder.defaultEntry);
-      }
-      if (!partitions_.isMutable()) {
-        partitions_ = partitions_.copy();
-      }
-      return partitions_;
+    private java.util.List<alluxio.grpc.PartitionInfo> partitions_ =
+      java.util.Collections.emptyList();
+    private void ensurePartitionsIsMutable() {
+      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        partitions_ = new java.util.ArrayList<alluxio.grpc.PartitionInfo>(partitions_);
+        bitField0_ |= 0x00000001;
+       }
     }
 
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.PartitionInfo, alluxio.grpc.PartitionInfo.Builder, alluxio.grpc.PartitionInfoOrBuilder> partitionsBuilder_;
+
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public java.util.List<alluxio.grpc.PartitionInfo> getPartitionsList() {
+      if (partitionsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(partitions_);
+      } else {
+        return partitionsBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
     public int getPartitionsCount() {
-      return internalGetPartitions().getMap().size();
-    }
-    /**
-     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-     */
-
-    public boolean containsPartitions(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetPartitions().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getPartitionsMap()} instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> getPartitions() {
-      return getPartitionsMap();
-    }
-    /**
-     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-     */
-
-    public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> getPartitionsMap() {
-      return internalGetPartitions().getMap();
-    }
-    /**
-     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-     */
-
-    public alluxio.grpc.PartitionInfo getPartitionsOrDefault(
-        java.lang.String key,
-        alluxio.grpc.PartitionInfo defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> map =
-          internalGetPartitions().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
-     */
-
-    public alluxio.grpc.PartitionInfo getPartitionsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> map =
-          internalGetPartitions().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
+      if (partitionsBuilder_ == null) {
+        return partitions_.size();
+      } else {
+        return partitionsBuilder_.getCount();
       }
-      return map.get(key);
     }
-
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public alluxio.grpc.PartitionInfo getPartitions(int index) {
+      if (partitionsBuilder_ == null) {
+        return partitions_.get(index);
+      } else {
+        return partitionsBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public Builder setPartitions(
+        int index, alluxio.grpc.PartitionInfo value) {
+      if (partitionsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensurePartitionsIsMutable();
+        partitions_.set(index, value);
+        onChanged();
+      } else {
+        partitionsBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public Builder setPartitions(
+        int index, alluxio.grpc.PartitionInfo.Builder builderForValue) {
+      if (partitionsBuilder_ == null) {
+        ensurePartitionsIsMutable();
+        partitions_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        partitionsBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public Builder addPartitions(alluxio.grpc.PartitionInfo value) {
+      if (partitionsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensurePartitionsIsMutable();
+        partitions_.add(value);
+        onChanged();
+      } else {
+        partitionsBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public Builder addPartitions(
+        int index, alluxio.grpc.PartitionInfo value) {
+      if (partitionsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensurePartitionsIsMutable();
+        partitions_.add(index, value);
+        onChanged();
+      } else {
+        partitionsBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public Builder addPartitions(
+        alluxio.grpc.PartitionInfo.Builder builderForValue) {
+      if (partitionsBuilder_ == null) {
+        ensurePartitionsIsMutable();
+        partitions_.add(builderForValue.build());
+        onChanged();
+      } else {
+        partitionsBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public Builder addPartitions(
+        int index, alluxio.grpc.PartitionInfo.Builder builderForValue) {
+      if (partitionsBuilder_ == null) {
+        ensurePartitionsIsMutable();
+        partitions_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        partitionsBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public Builder addAllPartitions(
+        java.lang.Iterable<? extends alluxio.grpc.PartitionInfo> values) {
+      if (partitionsBuilder_ == null) {
+        ensurePartitionsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, partitions_);
+        onChanged();
+      } else {
+        partitionsBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
     public Builder clearPartitions() {
-      internalGetMutablePartitions().getMutableMap()
-          .clear();
+      if (partitionsBuilder_ == null) {
+        partitions_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+      } else {
+        partitionsBuilder_.clear();
+      }
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
      */
-
-    public Builder removePartitions(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutablePartitions().getMutableMap()
-          .remove(key);
+    public Builder removePartitions(int index) {
+      if (partitionsBuilder_ == null) {
+        ensurePartitionsIsMutable();
+        partitions_.remove(index);
+        onChanged();
+      } else {
+        partitionsBuilder_.remove(index);
+      }
       return this;
     }
     /**
-     * Use alternate mutation accessors instead.
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
      */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo>
-    getMutablePartitions() {
-      return internalGetMutablePartitions().getMutableMap();
+    public alluxio.grpc.PartitionInfo.Builder getPartitionsBuilder(
+        int index) {
+      return getPartitionsFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
      */
-    public Builder putPartitions(
-        java.lang.String key,
-        alluxio.grpc.PartitionInfo value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutablePartitions().getMutableMap()
-          .put(key, value);
-      return this;
+    public alluxio.grpc.PartitionInfoOrBuilder getPartitionsOrBuilder(
+        int index) {
+      if (partitionsBuilder_ == null) {
+        return partitions_.get(index);  } else {
+        return partitionsBuilder_.getMessageOrBuilder(index);
+      }
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
      */
-
-    public Builder putAllPartitions(
-        java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> values) {
-      internalGetMutablePartitions().getMutableMap()
-          .putAll(values);
-      return this;
+    public java.util.List<? extends alluxio.grpc.PartitionInfoOrBuilder> 
+         getPartitionsOrBuilderList() {
+      if (partitionsBuilder_ != null) {
+        return partitionsBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(partitions_);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public alluxio.grpc.PartitionInfo.Builder addPartitionsBuilder() {
+      return getPartitionsFieldBuilder().addBuilder(
+          alluxio.grpc.PartitionInfo.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public alluxio.grpc.PartitionInfo.Builder addPartitionsBuilder(
+        int index) {
+      return getPartitionsFieldBuilder().addBuilder(
+          index, alluxio.grpc.PartitionInfo.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.PartitionInfo partitions = 1;</code>
+     */
+    public java.util.List<alluxio.grpc.PartitionInfo.Builder> 
+         getPartitionsBuilderList() {
+      return getPartitionsFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.PartitionInfo, alluxio.grpc.PartitionInfo.Builder, alluxio.grpc.PartitionInfoOrBuilder> 
+        getPartitionsFieldBuilder() {
+      if (partitionsBuilder_ == null) {
+        partitionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.PartitionInfo, alluxio.grpc.PartitionInfo.Builder, alluxio.grpc.PartitionInfoOrBuilder>(
+                partitions_,
+                ((bitField0_ & 0x00000001) == 0x00000001),
+                getParentForChildren(),
+                isClean());
+        partitions_ = null;
+      }
+      return partitionsBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

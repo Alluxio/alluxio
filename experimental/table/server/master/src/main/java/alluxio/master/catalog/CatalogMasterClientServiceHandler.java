@@ -154,7 +154,7 @@ public class CatalogMasterClientServiceHandler
   public void getPartitions(GetPartitionsPRequest request,
       StreamObserver<GetPartitionsPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> GetPartitionsPResponse.newBuilder()
-        .putAllPartitions(mCatalogMaster.getPartitions(request.getDbName(), request.getTableName(),
+        .addAllPartitions(mCatalogMaster.getPartitions(request.getDbName(), request.getTableName(),
             request.getConstraint())).build(), "getPartitions", "", responseObserver);
   }
 }

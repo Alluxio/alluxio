@@ -234,11 +234,6 @@ public final class CatalogMasterProto {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_GetPartitionsPResponse_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_GetPartitionsPResponse_PartitionsEntry_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_GetPartitionsPResponse_PartitionsEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -334,42 +329,39 @@ public final class CatalogMasterProto {
       "key\030\001 \001(\t\022#\n\005value\030\002 \001(\0132\024.alluxio.grpc." +
       "Domain:\0028\001\"j\n\025GetPartitionsPRequest\022\017\n\007d" +
       "b_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022,\n\ncons" +
-      "traint\030\003 \001(\0132\030.alluxio.grpc.Constraint\"\262" +
-      "\001\n\026GetPartitionsPResponse\022H\n\npartitions\030" +
-      "\001 \003(\01324.alluxio.grpc.GetPartitionsPRespo" +
-      "nse.PartitionsEntry\032N\n\017PartitionsEntry\022\013" +
-      "\n\003key\030\001 \001(\t\022*\n\005value\030\002 \001(\0132\033.alluxio.grp" +
-      "c.PartitionInfo:\0028\001*\304\001\n\013FieldTypeId\022\013\n\007B" +
-      "OOLEAN\020\000\022\013\n\007INTEGER\020\001\022\010\n\004LONG\020\002\022\t\n\005FLOAT" +
-      "\020\003\022\n\n\006DOUBLE\020\004\022\010\n\004DATE\020\005\022\010\n\004TIME\020\006\022\r\n\tTI" +
-      "MESTAMP\020\007\022\n\n\006STRING\020\010\022\010\n\004UUID\020\t\022\t\n\005FIXED" +
-      "\020\n\022\n\n\006BINARY\020\013\022\013\n\007DECIMAL\020\014\022\n\n\006STRUCT\020\r\022" +
-      "\010\n\004LIST\020\016\022\007\n\003MAP\020\017*%\n\tTableType\022\n\n\006NATIV" +
-      "E\020\000\022\014\n\010IMPORTED\020\0012\231\007\n\032CatalogMasterClien" +
-      "tService\022`\n\017GetAllDatabases\022%.alluxio.gr" +
-      "pc.GetAllDatabasesPRequest\032&.alluxio.grp" +
-      "c.GetAllDatabasesPResponse\022W\n\014GetAllTabl" +
-      "es\022\".alluxio.grpc.GetAllTablesPRequest\032#" +
-      ".alluxio.grpc.GetAllTablesPResponse\022K\n\010G" +
-      "etTable\022\036.alluxio.grpc.GetTablePRequest\032" +
-      "\037.alluxio.grpc.GetTablePResponse\022N\n\tLoad" +
-      "Table\022\037.alluxio.grpc.LoadTablePRequest\032 " +
-      ".alluxio.grpc.LoadTablePResponse\022T\n\013Crea" +
-      "teTable\022!.alluxio.grpc.CreateTablePReque" +
-      "st\032\".alluxio.grpc.CreateTablePResponse\022]" +
-      "\n\016CreateDatabase\022$.alluxio.grpc.CreateDa" +
-      "tabasePRequest\032%.alluxio.grpc.CreateData" +
-      "basePResponse\022]\n\016AttachDatabase\022$.alluxi" +
-      "o.grpc.AttachDatabasePRequest\032%.alluxio." +
-      "grpc.AttachDatabasePResponse\022W\n\014GetDataF" +
-      "iles\022\".alluxio.grpc.GetDataFilesPRequest" +
-      "\032#.alluxio.grpc.GetDataFilesPResponse\022Z\n" +
-      "\rGetStatistics\022#.alluxio.grpc.GetStatist" +
-      "icsPRequest\032$.alluxio.grpc.GetStatistics" +
-      "PResponse\022Z\n\rGetPartitions\022#.alluxio.grp" +
-      "c.GetPartitionsPRequest\032$.alluxio.grpc.G" +
-      "etPartitionsPResponseB$\n\014alluxio.grpcB\022C" +
-      "atalogMasterProtoP\001"
+      "traint\030\003 \001(\0132\030.alluxio.grpc.Constraint\"I" +
+      "\n\026GetPartitionsPResponse\022/\n\npartitions\030\001" +
+      " \003(\0132\033.alluxio.grpc.PartitionInfo*\304\001\n\013Fi" +
+      "eldTypeId\022\013\n\007BOOLEAN\020\000\022\013\n\007INTEGER\020\001\022\010\n\004L" +
+      "ONG\020\002\022\t\n\005FLOAT\020\003\022\n\n\006DOUBLE\020\004\022\010\n\004DATE\020\005\022\010" +
+      "\n\004TIME\020\006\022\r\n\tTIMESTAMP\020\007\022\n\n\006STRING\020\010\022\010\n\004U" +
+      "UID\020\t\022\t\n\005FIXED\020\n\022\n\n\006BINARY\020\013\022\013\n\007DECIMAL\020" +
+      "\014\022\n\n\006STRUCT\020\r\022\010\n\004LIST\020\016\022\007\n\003MAP\020\017*%\n\tTabl" +
+      "eType\022\n\n\006NATIVE\020\000\022\014\n\010IMPORTED\020\0012\231\007\n\032Cata" +
+      "logMasterClientService\022`\n\017GetAllDatabase" +
+      "s\022%.alluxio.grpc.GetAllDatabasesPRequest" +
+      "\032&.alluxio.grpc.GetAllDatabasesPResponse" +
+      "\022W\n\014GetAllTables\022\".alluxio.grpc.GetAllTa" +
+      "blesPRequest\032#.alluxio.grpc.GetAllTables" +
+      "PResponse\022K\n\010GetTable\022\036.alluxio.grpc.Get" +
+      "TablePRequest\032\037.alluxio.grpc.GetTablePRe" +
+      "sponse\022N\n\tLoadTable\022\037.alluxio.grpc.LoadT" +
+      "ablePRequest\032 .alluxio.grpc.LoadTablePRe" +
+      "sponse\022T\n\013CreateTable\022!.alluxio.grpc.Cre" +
+      "ateTablePRequest\032\".alluxio.grpc.CreateTa" +
+      "blePResponse\022]\n\016CreateDatabase\022$.alluxio" +
+      ".grpc.CreateDatabasePRequest\032%.alluxio.g" +
+      "rpc.CreateDatabasePResponse\022]\n\016AttachDat" +
+      "abase\022$.alluxio.grpc.AttachDatabasePRequ" +
+      "est\032%.alluxio.grpc.AttachDatabasePRespon" +
+      "se\022W\n\014GetDataFiles\022\".alluxio.grpc.GetDat" +
+      "aFilesPRequest\032#.alluxio.grpc.GetDataFil" +
+      "esPResponse\022Z\n\rGetStatistics\022#.alluxio.g" +
+      "rpc.GetStatisticsPRequest\032$.alluxio.grpc" +
+      ".GetStatisticsPResponse\022Z\n\rGetPartitions" +
+      "\022#.alluxio.grpc.GetPartitionsPRequest\032$." +
+      "alluxio.grpc.GetPartitionsPResponseB$\n\014a" +
+      "lluxio.grpcB\022CatalogMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -648,12 +640,6 @@ public final class CatalogMasterProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor,
         new java.lang.String[] { "Partitions", });
-    internal_static_alluxio_grpc_GetPartitionsPResponse_PartitionsEntry_descriptor =
-      internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor.getNestedTypes().get(0);
-    internal_static_alluxio_grpc_GetPartitionsPResponse_PartitionsEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_GetPartitionsPResponse_PartitionsEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
     alluxio.grpc.CommonProto.getDescriptor();
   }
 
