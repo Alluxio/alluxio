@@ -18,6 +18,7 @@ import alluxio.Constants;
 import alluxio.grpc.AttachDatabasePRequest;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.ColumnStatisticsInfo;
+import alluxio.grpc.Constraint;
 import alluxio.grpc.CreateDatabasePRequest;
 import alluxio.grpc.CreateTablePRequest;
 import alluxio.grpc.Database;
@@ -25,6 +26,7 @@ import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllTablesPRequest;
 import alluxio.grpc.GetDataFilesPRequest;
+import alluxio.grpc.GetPartitionsPRequest;
 import alluxio.grpc.GetStatisticsPRequest;
 import alluxio.grpc.GetTablePRequest;
 import alluxio.grpc.PartitionInfo;
@@ -132,6 +134,14 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient.getStatistics(
         GetStatisticsPRequest.newBuilder().setDbName(databaseName)
             .setTableName(tableName).build()).getStatisticsMap());
+  }
+
+  @Override
+  public List<PartitionInfo> getPartitionByConstraint(String databaseName, String tableName,
+      Constraint constraint) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getPartitions(
+        GetPartitionsPRequest.newBuilder().setDbName(databaseName)
+            .setTableName(tableName).setConstraint(constraint).build()).getPartitionsList());
   }
 
   @Override
