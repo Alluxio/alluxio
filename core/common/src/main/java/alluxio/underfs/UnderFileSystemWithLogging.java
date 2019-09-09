@@ -625,7 +625,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
 
   private String getUfsTag() {
     AlluxioURI uri = new AlluxioURI(mPath);
-    uri = new AlluxioURI(uri.getScheme(), uri.getAuthority(), uri.getRootPath());
+    uri = new AlluxioURI(uri.getScheme(), uri.getAuthority(), uri.getPath());
     return MetricsSystem.escape(uri);
   }
 
