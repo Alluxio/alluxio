@@ -30,10 +30,12 @@ public interface CatalogMaster extends Master {
    * Attach an existing database to the catalog.
    *
    * @param dbName the database name to attach to
+   * @param dbType the database type
    * @param configuration the configuration
    * @return true if creation is successful
    */
-  boolean attachDatabase(String dbName, CatalogConfiguration configuration) throws IOException;
+  boolean attachDatabase(String dbName, String dbType, CatalogConfiguration configuration)
+      throws IOException;
 
   /**
    * Get a listing of all databases.

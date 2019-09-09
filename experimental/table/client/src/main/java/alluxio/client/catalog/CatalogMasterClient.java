@@ -91,11 +91,12 @@ public interface CatalogMasterClient extends Client {
    * Attaches an existing database.
    *
    * @param dbName database name
+   * @param dbType database type
    * @param configuration the configuration
    * @return true if database created successfully
    * @throws AlluxioStatusException
    */
-  boolean attachDatabase(String dbName, Map<String, String> configuration)
+  boolean attachDatabase(String dbName, String dbType, Map<String, String> configuration)
       throws AlluxioStatusException;
 
   /**
