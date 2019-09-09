@@ -33,6 +33,8 @@ public class HiveTableView implements TableView {
    *
    * @param baseLocation the base location
    * @param statistics the table statistics
+   * @param partitionCols partition columns
+   * @param partitions partitions
    */
   public HiveTableView(String baseLocation,
       Map<String, FileStatistics> statistics,

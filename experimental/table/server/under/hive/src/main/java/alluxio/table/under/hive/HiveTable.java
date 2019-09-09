@@ -17,6 +17,7 @@ import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
 import alluxio.table.common.TableView;
 import alluxio.table.common.udb.UdbTable;
+
 import org.apache.hadoop.hive.ql.metadata.Partition;
 
 import java.util.ArrayList;
@@ -41,6 +42,8 @@ public class HiveTable implements UdbTable {
    * @param schema the table schema
    * @param baseLocation the base location
    * @param statistics the table statistics
+   * @param cols partition keys
+   * @param partitions partition list
    */
   public HiveTable(String name, Schema schema, String baseLocation,
       Map<String, FileStatistics> statistics, List<FieldSchema> cols,
@@ -83,8 +86,8 @@ public class HiveTable implements UdbTable {
   public List<PartitionInfo> getPartitions() {
     List<PartitionInfo> partList = new ArrayList<>();
     for (Partition part: mPartitionInfo) {
-        partList.add(PartitionInfo.newBuilder().setTableName(mName)
-            .addAllValues(part.getValues()).setSd(part.getLocation()).build());
+      partList.add(PartitionInfo.newBuilder().setTableName(mName)
+          .addAllValues(part.getValues()).setSd(part.getLocation()).build());
     }
     return partList;
   }

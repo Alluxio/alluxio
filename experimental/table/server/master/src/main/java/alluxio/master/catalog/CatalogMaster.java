@@ -100,7 +100,6 @@ public interface CatalogMaster extends Master {
    */
   List<String> getDataFiles(String databaseName, String tableName) throws IOException;
 
-
   /**
    * Get a map of partitions and related partition info based on constraints.
    *

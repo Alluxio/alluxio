@@ -32,7 +32,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -30,6 +30,16 @@ public class HiveUtils {
    * @param hiveSchema the hive schema
    * @return the proto representation
    */
+  public static Schema toProtoSchema(List<FieldSchema> hiveSchema) {
+    Schema.Builder schemaBuilder = Schema.newBuilder();
+    schemaBuilder.addAllCols(toProto(hiveSchema));
+    return schemaBuilder.build();
+  }
+
+  /**
+   * @param hiveSchema the hive schema
+   * @return the proto representation
+   */
   public static List<alluxio.grpc.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
     List<alluxio.grpc.FieldSchema> list = new ArrayList<>();
     for (FieldSchema field : hiveSchema) {
@@ -40,16 +50,6 @@ public class HiveUtils {
       list.add(aFieldSchema);
     }
     return list;
-  }
-
-  /**
-   * @param hiveSchema the hive schema
-   * @return the proto representation
-   */
-  public static Schema toProtoSchema(List<FieldSchema> hiveSchema) {
-    Schema.Builder schemaBuilder = Schema.newBuilder();
-    schemaBuilder.addAllCols(toProto(hiveSchema));
-    return schemaBuilder.build();
   }
 
   private static FieldTypeId toProto(String hiveType) {

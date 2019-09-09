@@ -143,34 +143,34 @@ public class HiveDatabase implements UnderDatabase {
       FileStatistics.Builder builder = FileStatistics.newBuilder();
       for (ColumnStatisticsObj columnStat : columnStats) {
         if (columnStat.isSetStatsData()) {
-          long distinct_count;
+          long distinctCount;
           switch (columnStat.getColType()) {
             case "string":
-              distinct_count = columnStat.getStatsData().getStringStats().getNumDVs();
+              distinctCount = columnStat.getStatsData().getStringStats().getNumDVs();
               break;
             case "int":
-              distinct_count = columnStat.getStatsData().getDecimalStats().getNumDVs();
+              distinctCount = columnStat.getStatsData().getDecimalStats().getNumDVs();
               break;
             case "float":
-              distinct_count = columnStat.getStatsData().getDoubleStats().getNumDVs();
+              distinctCount = columnStat.getStatsData().getDoubleStats().getNumDVs();
               break;
             case "bigint":
-              distinct_count = columnStat.getStatsData().getLongStats().getNumDVs();
+              distinctCount = columnStat.getStatsData().getLongStats().getNumDVs();
               break;
             default:
-              distinct_count = -1;
+              distinctCount = -1;
           }
           builder.putColumn(columnStat.getColName(),
-              ColumnStatistics.newBuilder().setRecordCount(distinct_count).build());
+              ColumnStatistics.newBuilder().setRecordCount(distinctCount).build());
         }
       }
       // Potentially expensive call
       List<Partition> partitions = mHive.getPartitions(table);
 
       // TODO(gpang): manage the mount mapping for statistics/metadata
-      return new HiveTable(tableName, HiveUtils.toProtoSchema(table.getAllCols()), tableUri.getPath(),
-          Collections.singletonMap("unpartitioned", builder.build()), HiveUtils.toProto(table.getPartitionKeys()),
-          partitions);
+      return new HiveTable(tableName, HiveUtils.toProtoSchema(table.getAllCols()),
+          tableUri.getPath(), Collections.singletonMap("unpartitioned", builder.build()),
+          HiveUtils.toProto(table.getPartitionKeys()), partitions);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     } catch (AlluxioException e) {
