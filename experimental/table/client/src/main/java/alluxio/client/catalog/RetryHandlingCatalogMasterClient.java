@@ -105,7 +105,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   public boolean attachDatabase(String dbName, Map<String, String> configuration)
       throws AlluxioStatusException {
     return retryRPC(() -> mClient.attachDatabase(
-        AttachDatabasePRequest.newBuilder().build().newBuilder().setDbName(dbName)
+        AttachDatabasePRequest.newBuilder().setDbName(dbName)
             .putAllOptions(configuration).build()).getSuccess());
   }
 
