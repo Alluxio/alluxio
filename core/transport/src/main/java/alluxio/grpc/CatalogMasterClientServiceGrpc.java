@@ -287,6 +287,38 @@ public final class CatalogMasterClientServiceGrpc {
      return getGetStatisticsMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetPartitionsPRequest,
+      alluxio.grpc.GetPartitionsPResponse> getGetPartitionsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetPartitions",
+      requestType = alluxio.grpc.GetPartitionsPRequest.class,
+      responseType = alluxio.grpc.GetPartitionsPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetPartitionsPRequest,
+      alluxio.grpc.GetPartitionsPResponse> getGetPartitionsMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetPartitionsPRequest, alluxio.grpc.GetPartitionsPResponse> getGetPartitionsMethod;
+    if ((getGetPartitionsMethod = CatalogMasterClientServiceGrpc.getGetPartitionsMethod) == null) {
+      synchronized (CatalogMasterClientServiceGrpc.class) {
+        if ((getGetPartitionsMethod = CatalogMasterClientServiceGrpc.getGetPartitionsMethod) == null) {
+          CatalogMasterClientServiceGrpc.getGetPartitionsMethod = getGetPartitionsMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetPartitionsPRequest, alluxio.grpc.GetPartitionsPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.CatalogMasterClientService", "GetPartitions"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetPartitionsPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetPartitionsPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("GetPartitions"))
+                  .build();
+          }
+        }
+     }
+     return getGetPartitionsMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -398,6 +430,13 @@ public final class CatalogMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getGetStatisticsMethod(), responseObserver);
     }
 
+    /**
+     */
+    public void getPartitions(alluxio.grpc.GetPartitionsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetPartitionsPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetPartitionsMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -456,6 +495,13 @@ public final class CatalogMasterClientServiceGrpc {
                 alluxio.grpc.GetStatisticsPRequest,
                 alluxio.grpc.GetStatisticsPResponse>(
                   this, METHODID_GET_STATISTICS)))
+          .addMethod(
+            getGetPartitionsMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetPartitionsPRequest,
+                alluxio.grpc.GetPartitionsPResponse>(
+                  this, METHODID_GET_PARTITIONS)))
           .build();
     }
   }
@@ -569,6 +615,14 @@ public final class CatalogMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getGetStatisticsMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void getPartitions(alluxio.grpc.GetPartitionsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetPartitionsPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetPartitionsMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -671,6 +725,13 @@ public final class CatalogMasterClientServiceGrpc {
     public alluxio.grpc.GetStatisticsPResponse getStatistics(alluxio.grpc.GetStatisticsPRequest request) {
       return blockingUnaryCall(
           getChannel(), getGetStatisticsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public alluxio.grpc.GetPartitionsPResponse getPartitions(alluxio.grpc.GetPartitionsPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetPartitionsMethod(), getCallOptions(), request);
     }
   }
 
@@ -783,6 +844,14 @@ public final class CatalogMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getGetStatisticsMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetPartitionsPResponse> getPartitions(
+        alluxio.grpc.GetPartitionsPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetPartitionsMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_ALL_DATABASES = 0;
@@ -793,6 +862,7 @@ public final class CatalogMasterClientServiceGrpc {
   private static final int METHODID_CREATE_DATABASE = 5;
   private static final int METHODID_GET_DATA_FILES = 6;
   private static final int METHODID_GET_STATISTICS = 7;
+  private static final int METHODID_GET_PARTITIONS = 8;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -842,6 +912,10 @@ public final class CatalogMasterClientServiceGrpc {
         case METHODID_GET_STATISTICS:
           serviceImpl.getStatistics((alluxio.grpc.GetStatisticsPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetStatisticsPResponse>) responseObserver);
+          break;
+        case METHODID_GET_PARTITIONS:
+          serviceImpl.getPartitions((alluxio.grpc.GetPartitionsPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetPartitionsPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -912,6 +986,7 @@ public final class CatalogMasterClientServiceGrpc {
               .addMethod(getCreateDatabaseMethod())
               .addMethod(getGetDataFilesMethod())
               .addMethod(getGetStatisticsMethod())
+              .addMethod(getGetPartitionsMethod())
               .build();
         }
       }

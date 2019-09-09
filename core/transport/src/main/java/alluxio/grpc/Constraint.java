@@ -4,18 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.FileStatistics}
+ * Protobuf type {@code alluxio.grpc.Constraint}
  */
-public  final class FileStatistics extends
+public  final class Constraint extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.FileStatistics)
-    FileStatisticsOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.Constraint)
+    ConstraintOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use FileStatistics.newBuilder() to construct.
-  private FileStatistics(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use Constraint.newBuilder() to construct.
+  private Constraint(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private FileStatistics() {
+  private Constraint() {
   }
 
   @java.lang.Override
@@ -23,7 +23,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private FileStatistics(
+  private Constraint(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -51,15 +51,15 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              column_ = com.google.protobuf.MapField.newMapField(
-                  ColumnDefaultEntryHolder.defaultEntry);
+              columnConstraints_ = com.google.protobuf.MapField.newMapField(
+                  ColumnConstraintsDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000001;
             }
-            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.ColumnStatistics>
-            column__ = input.readMessage(
-                ColumnDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            column_.getMutableMap().put(
-                column__.getKey(), column__.getValue());
+            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.Domain>
+            columnConstraints__ = input.readMessage(
+                ColumnConstraintsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            columnConstraints_.getMutableMap().put(
+                columnConstraints__.getKey(), columnConstraints__.getValue());
             break;
           }
         }
@@ -76,7 +76,7 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_descriptor;
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Constraint_descriptor;
   }
 
   @SuppressWarnings({"rawtypes"})
@@ -84,7 +84,7 @@ private static final long serialVersionUID = 0L;
       int number) {
     switch (number) {
       case 1:
-        return internalGetColumn();
+        return internalGetColumnConstraints();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -92,97 +92,97 @@ private static final long serialVersionUID = 0L;
   }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_fieldAccessorTable
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Constraint_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.FileStatistics.class, alluxio.grpc.FileStatistics.Builder.class);
+            alluxio.grpc.Constraint.class, alluxio.grpc.Constraint.Builder.class);
   }
 
-  public static final int COLUMN_FIELD_NUMBER = 1;
-  private static final class ColumnDefaultEntryHolder {
+  public static final int COLUMN_CONSTRAINTS_FIELD_NUMBER = 1;
+  private static final class ColumnConstraintsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
-        java.lang.String, alluxio.grpc.ColumnStatistics> defaultEntry =
+        java.lang.String, alluxio.grpc.Domain> defaultEntry =
             com.google.protobuf.MapEntry
-            .<java.lang.String, alluxio.grpc.ColumnStatistics>newDefaultInstance(
-                alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_ColumnEntry_descriptor, 
+            .<java.lang.String, alluxio.grpc.Domain>newDefaultInstance(
+                alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Constraint_ColumnConstraintsEntry_descriptor, 
                 com.google.protobuf.WireFormat.FieldType.STRING,
                 "",
                 com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                alluxio.grpc.ColumnStatistics.getDefaultInstance());
+                alluxio.grpc.Domain.getDefaultInstance());
   }
   private com.google.protobuf.MapField<
-      java.lang.String, alluxio.grpc.ColumnStatistics> column_;
-  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ColumnStatistics>
-  internalGetColumn() {
-    if (column_ == null) {
+      java.lang.String, alluxio.grpc.Domain> columnConstraints_;
+  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.Domain>
+  internalGetColumnConstraints() {
+    if (columnConstraints_ == null) {
       return com.google.protobuf.MapField.emptyMapField(
-          ColumnDefaultEntryHolder.defaultEntry);
+          ColumnConstraintsDefaultEntryHolder.defaultEntry);
     }
-    return column_;
+    return columnConstraints_;
   }
 
-  public int getColumnCount() {
-    return internalGetColumn().getMap().size();
+  public int getColumnConstraintsCount() {
+    return internalGetColumnConstraints().getMap().size();
   }
   /**
    * <pre>
-   *map column names to column statistics
+   * maps column to constraint, columns not present are not constrained
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
    */
 
-  public boolean containsColumn(
+  public boolean containsColumnConstraints(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetColumn().getMap().containsKey(key);
+    return internalGetColumnConstraints().getMap().containsKey(key);
   }
   /**
-   * Use {@link #getColumnMap()} instead.
+   * Use {@link #getColumnConstraintsMap()} instead.
    */
   @java.lang.Deprecated
-  public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> getColumn() {
-    return getColumnMap();
+  public java.util.Map<java.lang.String, alluxio.grpc.Domain> getColumnConstraints() {
+    return getColumnConstraintsMap();
   }
   /**
    * <pre>
-   *map column names to column statistics
+   * maps column to constraint, columns not present are not constrained
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
    */
 
-  public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> getColumnMap() {
-    return internalGetColumn().getMap();
+  public java.util.Map<java.lang.String, alluxio.grpc.Domain> getColumnConstraintsMap() {
+    return internalGetColumnConstraints().getMap();
   }
   /**
    * <pre>
-   *map column names to column statistics
+   * maps column to constraint, columns not present are not constrained
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
    */
 
-  public alluxio.grpc.ColumnStatistics getColumnOrDefault(
+  public alluxio.grpc.Domain getColumnConstraintsOrDefault(
       java.lang.String key,
-      alluxio.grpc.ColumnStatistics defaultValue) {
+      alluxio.grpc.Domain defaultValue) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> map =
-        internalGetColumn().getMap();
+    java.util.Map<java.lang.String, alluxio.grpc.Domain> map =
+        internalGetColumnConstraints().getMap();
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
    * <pre>
-   *map column names to column statistics
+   * maps column to constraint, columns not present are not constrained
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
    */
 
-  public alluxio.grpc.ColumnStatistics getColumnOrThrow(
+  public alluxio.grpc.Domain getColumnConstraintsOrThrow(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> map =
-        internalGetColumn().getMap();
+    java.util.Map<java.lang.String, alluxio.grpc.Domain> map =
+        internalGetColumnConstraints().getMap();
     if (!map.containsKey(key)) {
       throw new java.lang.IllegalArgumentException();
     }
@@ -204,8 +204,8 @@ private static final long serialVersionUID = 0L;
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
-        internalGetColumn(),
-        ColumnDefaultEntryHolder.defaultEntry,
+        internalGetColumnConstraints(),
+        ColumnConstraintsDefaultEntryHolder.defaultEntry,
         1);
     unknownFields.writeTo(output);
   }
@@ -215,15 +215,15 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.ColumnStatistics> entry
-         : internalGetColumn().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.ColumnStatistics>
-      column__ = ColumnDefaultEntryHolder.defaultEntry.newBuilderForType()
+    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.Domain> entry
+         : internalGetColumnConstraints().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.Domain>
+      columnConstraints__ = ColumnConstraintsDefaultEntryHolder.defaultEntry.newBuilderForType()
           .setKey(entry.getKey())
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, column__);
+          .computeMessageSize(1, columnConstraints__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -235,14 +235,14 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.FileStatistics)) {
+    if (!(obj instanceof alluxio.grpc.Constraint)) {
       return super.equals(obj);
     }
-    alluxio.grpc.FileStatistics other = (alluxio.grpc.FileStatistics) obj;
+    alluxio.grpc.Constraint other = (alluxio.grpc.Constraint) obj;
 
     boolean result = true;
-    result = result && internalGetColumn().equals(
-        other.internalGetColumn());
+    result = result && internalGetColumnConstraints().equals(
+        other.internalGetColumnConstraints());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -254,78 +254,78 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (!internalGetColumn().getMap().isEmpty()) {
-      hash = (37 * hash) + COLUMN_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetColumn().hashCode();
+    if (!internalGetColumnConstraints().getMap().isEmpty()) {
+      hash = (37 * hash) + COLUMN_CONSTRAINTS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetColumnConstraints().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.Constraint parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.Constraint parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.Constraint parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.Constraint parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(byte[] data)
+  public static alluxio.grpc.Constraint parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.Constraint parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.Constraint parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.Constraint parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.Constraint parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileStatistics parseDelimitedFrom(
+  public static alluxio.grpc.Constraint parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.Constraint parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.Constraint parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -337,7 +337,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.FileStatistics prototype) {
+  public static Builder newBuilder(alluxio.grpc.Constraint prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -352,15 +352,15 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.FileStatistics}
+   * Protobuf type {@code alluxio.grpc.Constraint}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.FileStatistics)
-      alluxio.grpc.FileStatisticsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.Constraint)
+      alluxio.grpc.ConstraintOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Constraint_descriptor;
     }
 
     @SuppressWarnings({"rawtypes"})
@@ -368,7 +368,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 1:
-          return internalGetColumn();
+          return internalGetColumnConstraints();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -379,7 +379,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 1:
-          return internalGetMutableColumn();
+          return internalGetMutableColumnConstraints();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -387,12 +387,12 @@ private static final long serialVersionUID = 0L;
     }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_fieldAccessorTable
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Constraint_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.FileStatistics.class, alluxio.grpc.FileStatistics.Builder.class);
+              alluxio.grpc.Constraint.class, alluxio.grpc.Constraint.Builder.class);
     }
 
-    // Construct using alluxio.grpc.FileStatistics.newBuilder()
+    // Construct using alluxio.grpc.Constraint.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -409,32 +409,32 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      internalGetMutableColumn().clear();
+      internalGetMutableColumnConstraints().clear();
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_Constraint_descriptor;
     }
 
-    public alluxio.grpc.FileStatistics getDefaultInstanceForType() {
-      return alluxio.grpc.FileStatistics.getDefaultInstance();
+    public alluxio.grpc.Constraint getDefaultInstanceForType() {
+      return alluxio.grpc.Constraint.getDefaultInstance();
     }
 
-    public alluxio.grpc.FileStatistics build() {
-      alluxio.grpc.FileStatistics result = buildPartial();
+    public alluxio.grpc.Constraint build() {
+      alluxio.grpc.Constraint result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.FileStatistics buildPartial() {
-      alluxio.grpc.FileStatistics result = new alluxio.grpc.FileStatistics(this);
+    public alluxio.grpc.Constraint buildPartial() {
+      alluxio.grpc.Constraint result = new alluxio.grpc.Constraint(this);
       int from_bitField0_ = bitField0_;
-      result.column_ = internalGetColumn();
-      result.column_.makeImmutable();
+      result.columnConstraints_ = internalGetColumnConstraints();
+      result.columnConstraints_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -466,18 +466,18 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.FileStatistics) {
-        return mergeFrom((alluxio.grpc.FileStatistics)other);
+      if (other instanceof alluxio.grpc.Constraint) {
+        return mergeFrom((alluxio.grpc.Constraint)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.FileStatistics other) {
-      if (other == alluxio.grpc.FileStatistics.getDefaultInstance()) return this;
-      internalGetMutableColumn().mergeFrom(
-          other.internalGetColumn());
+    public Builder mergeFrom(alluxio.grpc.Constraint other) {
+      if (other == alluxio.grpc.Constraint.getDefaultInstance()) return this;
+      internalGetMutableColumnConstraints().mergeFrom(
+          other.internalGetColumnConstraints());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -491,11 +491,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.FileStatistics parsedMessage = null;
+      alluxio.grpc.Constraint parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.FileStatistics) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.Constraint) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -507,114 +507,114 @@ private static final long serialVersionUID = 0L;
     private int bitField0_;
 
     private com.google.protobuf.MapField<
-        java.lang.String, alluxio.grpc.ColumnStatistics> column_;
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ColumnStatistics>
-    internalGetColumn() {
-      if (column_ == null) {
+        java.lang.String, alluxio.grpc.Domain> columnConstraints_;
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.Domain>
+    internalGetColumnConstraints() {
+      if (columnConstraints_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
-            ColumnDefaultEntryHolder.defaultEntry);
+            ColumnConstraintsDefaultEntryHolder.defaultEntry);
       }
-      return column_;
+      return columnConstraints_;
     }
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ColumnStatistics>
-    internalGetMutableColumn() {
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.Domain>
+    internalGetMutableColumnConstraints() {
       onChanged();;
-      if (column_ == null) {
-        column_ = com.google.protobuf.MapField.newMapField(
-            ColumnDefaultEntryHolder.defaultEntry);
+      if (columnConstraints_ == null) {
+        columnConstraints_ = com.google.protobuf.MapField.newMapField(
+            ColumnConstraintsDefaultEntryHolder.defaultEntry);
       }
-      if (!column_.isMutable()) {
-        column_ = column_.copy();
+      if (!columnConstraints_.isMutable()) {
+        columnConstraints_ = columnConstraints_.copy();
       }
-      return column_;
+      return columnConstraints_;
     }
 
-    public int getColumnCount() {
-      return internalGetColumn().getMap().size();
+    public int getColumnConstraintsCount() {
+      return internalGetColumnConstraints().getMap().size();
     }
     /**
      * <pre>
-     *map column names to column statistics
+     * maps column to constraint, columns not present are not constrained
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
      */
 
-    public boolean containsColumn(
+    public boolean containsColumnConstraints(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetColumn().getMap().containsKey(key);
+      return internalGetColumnConstraints().getMap().containsKey(key);
     }
     /**
-     * Use {@link #getColumnMap()} instead.
+     * Use {@link #getColumnConstraintsMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> getColumn() {
-      return getColumnMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.Domain> getColumnConstraints() {
+      return getColumnConstraintsMap();
     }
     /**
      * <pre>
-     *map column names to column statistics
+     * maps column to constraint, columns not present are not constrained
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
      */
 
-    public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> getColumnMap() {
-      return internalGetColumn().getMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.Domain> getColumnConstraintsMap() {
+      return internalGetColumnConstraints().getMap();
     }
     /**
      * <pre>
-     *map column names to column statistics
+     * maps column to constraint, columns not present are not constrained
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
      */
 
-    public alluxio.grpc.ColumnStatistics getColumnOrDefault(
+    public alluxio.grpc.Domain getColumnConstraintsOrDefault(
         java.lang.String key,
-        alluxio.grpc.ColumnStatistics defaultValue) {
+        alluxio.grpc.Domain defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> map =
-          internalGetColumn().getMap();
+      java.util.Map<java.lang.String, alluxio.grpc.Domain> map =
+          internalGetColumnConstraints().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
      * <pre>
-     *map column names to column statistics
+     * maps column to constraint, columns not present are not constrained
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
      */
 
-    public alluxio.grpc.ColumnStatistics getColumnOrThrow(
+    public alluxio.grpc.Domain getColumnConstraintsOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> map =
-          internalGetColumn().getMap();
+      java.util.Map<java.lang.String, alluxio.grpc.Domain> map =
+          internalGetColumnConstraints().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
       }
       return map.get(key);
     }
 
-    public Builder clearColumn() {
-      internalGetMutableColumn().getMutableMap()
+    public Builder clearColumnConstraints() {
+      internalGetMutableColumnConstraints().getMutableMap()
           .clear();
       return this;
     }
     /**
      * <pre>
-     *map column names to column statistics
+     * maps column to constraint, columns not present are not constrained
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
      */
 
-    public Builder removeColumn(
+    public Builder removeColumnConstraints(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableColumn().getMutableMap()
+      internalGetMutableColumnConstraints().getMutableMap()
           .remove(key);
       return this;
     }
@@ -622,37 +622,37 @@ private static final long serialVersionUID = 0L;
      * Use alternate mutation accessors instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics>
-    getMutableColumn() {
-      return internalGetMutableColumn().getMutableMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.Domain>
+    getMutableColumnConstraints() {
+      return internalGetMutableColumnConstraints().getMutableMap();
     }
     /**
      * <pre>
-     *map column names to column statistics
+     * maps column to constraint, columns not present are not constrained
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
      */
-    public Builder putColumn(
+    public Builder putColumnConstraints(
         java.lang.String key,
-        alluxio.grpc.ColumnStatistics value) {
+        alluxio.grpc.Domain value) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableColumn().getMutableMap()
+      internalGetMutableColumnConstraints().getMutableMap()
           .put(key, value);
       return this;
     }
     /**
      * <pre>
-     *map column names to column statistics
+     * maps column to constraint, columns not present are not constrained
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.Domain&gt; column_constraints = 1;</code>
      */
 
-    public Builder putAllColumn(
-        java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> values) {
-      internalGetMutableColumn().getMutableMap()
+    public Builder putAllColumnConstraints(
+        java.util.Map<java.lang.String, alluxio.grpc.Domain> values) {
+      internalGetMutableColumnConstraints().getMutableMap()
           .putAll(values);
       return this;
     }
@@ -667,39 +667,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.FileStatistics)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.Constraint)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.FileStatistics)
-  private static final alluxio.grpc.FileStatistics DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.Constraint)
+  private static final alluxio.grpc.Constraint DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.FileStatistics();
+    DEFAULT_INSTANCE = new alluxio.grpc.Constraint();
   }
 
-  public static alluxio.grpc.FileStatistics getDefaultInstance() {
+  public static alluxio.grpc.Constraint getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<FileStatistics>
-      PARSER = new com.google.protobuf.AbstractParser<FileStatistics>() {
-    public FileStatistics parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<Constraint>
+      PARSER = new com.google.protobuf.AbstractParser<Constraint>() {
+    public Constraint parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new FileStatistics(input, extensionRegistry);
+      return new Constraint(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<FileStatistics> parser() {
+  public static com.google.protobuf.Parser<Constraint> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<FileStatistics> getParserForType() {
+  public com.google.protobuf.Parser<Constraint> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.FileStatistics getDefaultInstanceForType() {
+  public alluxio.grpc.Constraint getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

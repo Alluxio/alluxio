@@ -11,7 +11,9 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.Constraint;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
 import alluxio.master.Master;
 
@@ -87,4 +89,16 @@ public interface CatalogMaster extends Master {
    * @return a list containing the data files paths
    */
   List<String> getDataFiles(String databaseName, String tableName) throws IOException;
+
+
+  /**
+   * Get a map of partitions and related partition info based on constraints.
+   *
+   * @param dbName database name
+   * @param tableName table name
+   * @param constraint constraint
+   *
+   * @return a map of partitions and related partition info
+   */
+  Map<String, PartitionInfo> getPartitions(String dbName, String tableName, Constraint constraint);
 }

@@ -15,8 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.ColumnStatistics;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.FileStatisticsOrBuilder;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
@@ -26,6 +28,8 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.Table;
@@ -34,8 +38,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Hive database implementation.
@@ -121,6 +127,7 @@ public class HiveDatabase implements UnderDatabase {
     Table table = null;
     try {
       table = mHive.getTable(mDbName, tableName);
+
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
       // make sure the parent exists
       mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
@@ -129,9 +136,38 @@ public class HiveDatabase implements UnderDatabase {
           .mount(tableUri, new AlluxioURI(table.getDataLocation().toString()));
       LOG.info("mounted table {} location {} to Alluxio location {}", tableName,
           table.getDataLocation(), tableUri);
+      List<String> colNames = table.getAllCols().stream().map(FieldSchema::getName)
+          .collect(Collectors.toList());
+      List<ColumnStatisticsObj> columnStats =
+          mHive.getTableColumnStatistics(mDbName, tableName, colNames);
+      FileStatistics.Builder builder = FileStatistics.newBuilder();
+      for (ColumnStatisticsObj columnStat : columnStats) {
+        if (columnStat.isSetStatsData()) {
+          long distinct_count;
+          switch (columnStat.getColType()) {
+            case "string":
+              distinct_count = columnStat.getStatsData().getStringStats().getNumDVs();
+              break;
+            case "int":
+              distinct_count = columnStat.getStatsData().getDecimalStats().getNumDVs();
+              break;
+            case "float":
+              distinct_count = columnStat.getStatsData().getDoubleStats().getNumDVs();
+              break;
+            case "bigint":
+              distinct_count = columnStat.getStatsData().getLongStats().getNumDVs();
+              break;
+            default:
+              distinct_count = -1;
+          }
+          builder.putColumn(columnStat.getColName(),
+              ColumnStatistics.newBuilder().setRecordCount(distinct_count).build());
+        }
+      }
+
       // TODO(gpang): manage the mount mapping for statistics/metadata
       return new HiveTable(tableName, HiveUtils.toProto(table.getAllCols()), tableUri.getPath(),
-          null);
+          Collections.singletonMap("unpartitioned", builder.build()));
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     } catch (AlluxioException e) {

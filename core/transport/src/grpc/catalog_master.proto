@@ -138,10 +138,61 @@ message ColumnStatistics {
 }
 
 message FileStatistics {
-    map<uint32, ColumnStatistics> column = 1;
+    map<string, ColumnStatistics> column = 1; //map column names to column statistics
 }
+
 message GetStatisticsPResponse {
     map<string, FileStatistics> statistics = 1;
+}
+
+message Value {
+    oneof value {
+        int64 scala_type = 1;
+        float float_type = 2;
+        string string_type = 3;
+    }
+}
+
+message Range {
+    optional Value low = 1;
+    optional Value high = 2;
+}
+
+message RangeSet {
+    repeated Range ranges = 1;
+}
+
+message EquatableValueSet {
+    repeated Value candidates = 1;
+}
+
+message AllOrNoneSet {
+    optional bool all = 1;
+}
+
+message Domain {
+    oneof value_set {
+        RangeSet range = 1;
+        EquatableValueSet equatable = 2;
+        AllOrNoneSet all_or_none = 3;
+    }
+}
+
+message Constraint {
+    map<string, Domain> column_constraints = 1; // maps column to constraint, columns not present are not constrained
+}
+
+message GetPartitionsPRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional Constraint constraint = 3;
+}
+
+message PartitionInfo {
+    optional string file_path = 1;
+}
+message GetPartitionsPResponse {
+    map<string, PartitionInfo> partitions = 1;
 }
 
 /**
@@ -182,4 +233,6 @@ service CatalogMasterClientService {
     rpc GetDataFiles(GetDataFilesPRequest) returns (GetDataFilesPResponse);
 
     rpc GetStatistics(GetStatisticsPRequest) returns (GetStatisticsPResponse);
+
+    rpc GetPartitions(GetPartitionsPRequest) returns (GetPartitionsPResponse);
 }

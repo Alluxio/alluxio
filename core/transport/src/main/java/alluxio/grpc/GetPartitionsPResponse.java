@@ -4,18 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.FileStatistics}
+ * Protobuf type {@code alluxio.grpc.GetPartitionsPResponse}
  */
-public  final class FileStatistics extends
+public  final class GetPartitionsPResponse extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.FileStatistics)
-    FileStatisticsOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.GetPartitionsPResponse)
+    GetPartitionsPResponseOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use FileStatistics.newBuilder() to construct.
-  private FileStatistics(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use GetPartitionsPResponse.newBuilder() to construct.
+  private GetPartitionsPResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private FileStatistics() {
+  private GetPartitionsPResponse() {
   }
 
   @java.lang.Override
@@ -23,7 +23,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private FileStatistics(
+  private GetPartitionsPResponse(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -51,15 +51,15 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              column_ = com.google.protobuf.MapField.newMapField(
-                  ColumnDefaultEntryHolder.defaultEntry);
+              partitions_ = com.google.protobuf.MapField.newMapField(
+                  PartitionsDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000001;
             }
-            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.ColumnStatistics>
-            column__ = input.readMessage(
-                ColumnDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            column_.getMutableMap().put(
-                column__.getKey(), column__.getValue());
+            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.PartitionInfo>
+            partitions__ = input.readMessage(
+                PartitionsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            partitions_.getMutableMap().put(
+                partitions__.getKey(), partitions__.getValue());
             break;
           }
         }
@@ -76,7 +76,7 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_descriptor;
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor;
   }
 
   @SuppressWarnings({"rawtypes"})
@@ -84,7 +84,7 @@ private static final long serialVersionUID = 0L;
       int number) {
     switch (number) {
       case 1:
-        return internalGetColumn();
+        return internalGetPartitions();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -92,97 +92,81 @@ private static final long serialVersionUID = 0L;
   }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_fieldAccessorTable
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.FileStatistics.class, alluxio.grpc.FileStatistics.Builder.class);
+            alluxio.grpc.GetPartitionsPResponse.class, alluxio.grpc.GetPartitionsPResponse.Builder.class);
   }
 
-  public static final int COLUMN_FIELD_NUMBER = 1;
-  private static final class ColumnDefaultEntryHolder {
+  public static final int PARTITIONS_FIELD_NUMBER = 1;
+  private static final class PartitionsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
-        java.lang.String, alluxio.grpc.ColumnStatistics> defaultEntry =
+        java.lang.String, alluxio.grpc.PartitionInfo> defaultEntry =
             com.google.protobuf.MapEntry
-            .<java.lang.String, alluxio.grpc.ColumnStatistics>newDefaultInstance(
-                alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_ColumnEntry_descriptor, 
+            .<java.lang.String, alluxio.grpc.PartitionInfo>newDefaultInstance(
+                alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_PartitionsEntry_descriptor, 
                 com.google.protobuf.WireFormat.FieldType.STRING,
                 "",
                 com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                alluxio.grpc.ColumnStatistics.getDefaultInstance());
+                alluxio.grpc.PartitionInfo.getDefaultInstance());
   }
   private com.google.protobuf.MapField<
-      java.lang.String, alluxio.grpc.ColumnStatistics> column_;
-  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ColumnStatistics>
-  internalGetColumn() {
-    if (column_ == null) {
+      java.lang.String, alluxio.grpc.PartitionInfo> partitions_;
+  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.PartitionInfo>
+  internalGetPartitions() {
+    if (partitions_ == null) {
       return com.google.protobuf.MapField.emptyMapField(
-          ColumnDefaultEntryHolder.defaultEntry);
+          PartitionsDefaultEntryHolder.defaultEntry);
     }
-    return column_;
+    return partitions_;
   }
 
-  public int getColumnCount() {
-    return internalGetColumn().getMap().size();
+  public int getPartitionsCount() {
+    return internalGetPartitions().getMap().size();
   }
   /**
-   * <pre>
-   *map column names to column statistics
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
    */
 
-  public boolean containsColumn(
+  public boolean containsPartitions(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetColumn().getMap().containsKey(key);
+    return internalGetPartitions().getMap().containsKey(key);
   }
   /**
-   * Use {@link #getColumnMap()} instead.
+   * Use {@link #getPartitionsMap()} instead.
    */
   @java.lang.Deprecated
-  public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> getColumn() {
-    return getColumnMap();
+  public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> getPartitions() {
+    return getPartitionsMap();
   }
   /**
-   * <pre>
-   *map column names to column statistics
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
    */
 
-  public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> getColumnMap() {
-    return internalGetColumn().getMap();
+  public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> getPartitionsMap() {
+    return internalGetPartitions().getMap();
   }
   /**
-   * <pre>
-   *map column names to column statistics
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
    */
 
-  public alluxio.grpc.ColumnStatistics getColumnOrDefault(
+  public alluxio.grpc.PartitionInfo getPartitionsOrDefault(
       java.lang.String key,
-      alluxio.grpc.ColumnStatistics defaultValue) {
+      alluxio.grpc.PartitionInfo defaultValue) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> map =
-        internalGetColumn().getMap();
+    java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> map =
+        internalGetPartitions().getMap();
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <pre>
-   *map column names to column statistics
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
    */
 
-  public alluxio.grpc.ColumnStatistics getColumnOrThrow(
+  public alluxio.grpc.PartitionInfo getPartitionsOrThrow(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> map =
-        internalGetColumn().getMap();
+    java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> map =
+        internalGetPartitions().getMap();
     if (!map.containsKey(key)) {
       throw new java.lang.IllegalArgumentException();
     }
@@ -204,8 +188,8 @@ private static final long serialVersionUID = 0L;
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
-        internalGetColumn(),
-        ColumnDefaultEntryHolder.defaultEntry,
+        internalGetPartitions(),
+        PartitionsDefaultEntryHolder.defaultEntry,
         1);
     unknownFields.writeTo(output);
   }
@@ -215,15 +199,15 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.ColumnStatistics> entry
-         : internalGetColumn().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.ColumnStatistics>
-      column__ = ColumnDefaultEntryHolder.defaultEntry.newBuilderForType()
+    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.PartitionInfo> entry
+         : internalGetPartitions().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.PartitionInfo>
+      partitions__ = PartitionsDefaultEntryHolder.defaultEntry.newBuilderForType()
           .setKey(entry.getKey())
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, column__);
+          .computeMessageSize(1, partitions__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -235,14 +219,14 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.FileStatistics)) {
+    if (!(obj instanceof alluxio.grpc.GetPartitionsPResponse)) {
       return super.equals(obj);
     }
-    alluxio.grpc.FileStatistics other = (alluxio.grpc.FileStatistics) obj;
+    alluxio.grpc.GetPartitionsPResponse other = (alluxio.grpc.GetPartitionsPResponse) obj;
 
     boolean result = true;
-    result = result && internalGetColumn().equals(
-        other.internalGetColumn());
+    result = result && internalGetPartitions().equals(
+        other.internalGetPartitions());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -254,78 +238,78 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (!internalGetColumn().getMap().isEmpty()) {
-      hash = (37 * hash) + COLUMN_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetColumn().hashCode();
+    if (!internalGetPartitions().getMap().isEmpty()) {
+      hash = (37 * hash) + PARTITIONS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetPartitions().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(byte[] data)
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetPartitionsPResponse parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileStatistics parseDelimitedFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.FileStatistics parseFrom(
+  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -337,7 +321,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.FileStatistics prototype) {
+  public static Builder newBuilder(alluxio.grpc.GetPartitionsPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -352,15 +336,15 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.FileStatistics}
+   * Protobuf type {@code alluxio.grpc.GetPartitionsPResponse}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.FileStatistics)
-      alluxio.grpc.FileStatisticsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.GetPartitionsPResponse)
+      alluxio.grpc.GetPartitionsPResponseOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor;
     }
 
     @SuppressWarnings({"rawtypes"})
@@ -368,7 +352,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 1:
-          return internalGetColumn();
+          return internalGetPartitions();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -379,7 +363,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 1:
-          return internalGetMutableColumn();
+          return internalGetMutablePartitions();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -387,12 +371,12 @@ private static final long serialVersionUID = 0L;
     }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_fieldAccessorTable
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.FileStatistics.class, alluxio.grpc.FileStatistics.Builder.class);
+              alluxio.grpc.GetPartitionsPResponse.class, alluxio.grpc.GetPartitionsPResponse.Builder.class);
     }
 
-    // Construct using alluxio.grpc.FileStatistics.newBuilder()
+    // Construct using alluxio.grpc.GetPartitionsPResponse.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -409,32 +393,32 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      internalGetMutableColumn().clear();
+      internalGetMutablePartitions().clear();
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_FileStatistics_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor;
     }
 
-    public alluxio.grpc.FileStatistics getDefaultInstanceForType() {
-      return alluxio.grpc.FileStatistics.getDefaultInstance();
+    public alluxio.grpc.GetPartitionsPResponse getDefaultInstanceForType() {
+      return alluxio.grpc.GetPartitionsPResponse.getDefaultInstance();
     }
 
-    public alluxio.grpc.FileStatistics build() {
-      alluxio.grpc.FileStatistics result = buildPartial();
+    public alluxio.grpc.GetPartitionsPResponse build() {
+      alluxio.grpc.GetPartitionsPResponse result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.FileStatistics buildPartial() {
-      alluxio.grpc.FileStatistics result = new alluxio.grpc.FileStatistics(this);
+    public alluxio.grpc.GetPartitionsPResponse buildPartial() {
+      alluxio.grpc.GetPartitionsPResponse result = new alluxio.grpc.GetPartitionsPResponse(this);
       int from_bitField0_ = bitField0_;
-      result.column_ = internalGetColumn();
-      result.column_.makeImmutable();
+      result.partitions_ = internalGetPartitions();
+      result.partitions_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -466,18 +450,18 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.FileStatistics) {
-        return mergeFrom((alluxio.grpc.FileStatistics)other);
+      if (other instanceof alluxio.grpc.GetPartitionsPResponse) {
+        return mergeFrom((alluxio.grpc.GetPartitionsPResponse)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.FileStatistics other) {
-      if (other == alluxio.grpc.FileStatistics.getDefaultInstance()) return this;
-      internalGetMutableColumn().mergeFrom(
-          other.internalGetColumn());
+    public Builder mergeFrom(alluxio.grpc.GetPartitionsPResponse other) {
+      if (other == alluxio.grpc.GetPartitionsPResponse.getDefaultInstance()) return this;
+      internalGetMutablePartitions().mergeFrom(
+          other.internalGetPartitions());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -491,11 +475,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.FileStatistics parsedMessage = null;
+      alluxio.grpc.GetPartitionsPResponse parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.FileStatistics) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.GetPartitionsPResponse) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -507,114 +491,94 @@ private static final long serialVersionUID = 0L;
     private int bitField0_;
 
     private com.google.protobuf.MapField<
-        java.lang.String, alluxio.grpc.ColumnStatistics> column_;
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ColumnStatistics>
-    internalGetColumn() {
-      if (column_ == null) {
+        java.lang.String, alluxio.grpc.PartitionInfo> partitions_;
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.PartitionInfo>
+    internalGetPartitions() {
+      if (partitions_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
-            ColumnDefaultEntryHolder.defaultEntry);
+            PartitionsDefaultEntryHolder.defaultEntry);
       }
-      return column_;
+      return partitions_;
     }
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ColumnStatistics>
-    internalGetMutableColumn() {
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.PartitionInfo>
+    internalGetMutablePartitions() {
       onChanged();;
-      if (column_ == null) {
-        column_ = com.google.protobuf.MapField.newMapField(
-            ColumnDefaultEntryHolder.defaultEntry);
+      if (partitions_ == null) {
+        partitions_ = com.google.protobuf.MapField.newMapField(
+            PartitionsDefaultEntryHolder.defaultEntry);
       }
-      if (!column_.isMutable()) {
-        column_ = column_.copy();
+      if (!partitions_.isMutable()) {
+        partitions_ = partitions_.copy();
       }
-      return column_;
+      return partitions_;
     }
 
-    public int getColumnCount() {
-      return internalGetColumn().getMap().size();
+    public int getPartitionsCount() {
+      return internalGetPartitions().getMap().size();
     }
     /**
-     * <pre>
-     *map column names to column statistics
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
      */
 
-    public boolean containsColumn(
+    public boolean containsPartitions(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetColumn().getMap().containsKey(key);
+      return internalGetPartitions().getMap().containsKey(key);
     }
     /**
-     * Use {@link #getColumnMap()} instead.
+     * Use {@link #getPartitionsMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> getColumn() {
-      return getColumnMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> getPartitions() {
+      return getPartitionsMap();
     }
     /**
-     * <pre>
-     *map column names to column statistics
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
      */
 
-    public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> getColumnMap() {
-      return internalGetColumn().getMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> getPartitionsMap() {
+      return internalGetPartitions().getMap();
     }
     /**
-     * <pre>
-     *map column names to column statistics
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
      */
 
-    public alluxio.grpc.ColumnStatistics getColumnOrDefault(
+    public alluxio.grpc.PartitionInfo getPartitionsOrDefault(
         java.lang.String key,
-        alluxio.grpc.ColumnStatistics defaultValue) {
+        alluxio.grpc.PartitionInfo defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> map =
-          internalGetColumn().getMap();
+      java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> map =
+          internalGetPartitions().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <pre>
-     *map column names to column statistics
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
      */
 
-    public alluxio.grpc.ColumnStatistics getColumnOrThrow(
+    public alluxio.grpc.PartitionInfo getPartitionsOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> map =
-          internalGetColumn().getMap();
+      java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> map =
+          internalGetPartitions().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
       }
       return map.get(key);
     }
 
-    public Builder clearColumn() {
-      internalGetMutableColumn().getMutableMap()
+    public Builder clearPartitions() {
+      internalGetMutablePartitions().getMutableMap()
           .clear();
       return this;
     }
     /**
-     * <pre>
-     *map column names to column statistics
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
      */
 
-    public Builder removeColumn(
+    public Builder removePartitions(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableColumn().getMutableMap()
+      internalGetMutablePartitions().getMutableMap()
           .remove(key);
       return this;
     }
@@ -622,37 +586,29 @@ private static final long serialVersionUID = 0L;
      * Use alternate mutation accessors instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics>
-    getMutableColumn() {
-      return internalGetMutableColumn().getMutableMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo>
+    getMutablePartitions() {
+      return internalGetMutablePartitions().getMutableMap();
     }
     /**
-     * <pre>
-     *map column names to column statistics
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
      */
-    public Builder putColumn(
+    public Builder putPartitions(
         java.lang.String key,
-        alluxio.grpc.ColumnStatistics value) {
+        alluxio.grpc.PartitionInfo value) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableColumn().getMutableMap()
+      internalGetMutablePartitions().getMutableMap()
           .put(key, value);
       return this;
     }
     /**
-     * <pre>
-     *map column names to column statistics
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.PartitionInfo&gt; partitions = 1;</code>
      */
 
-    public Builder putAllColumn(
-        java.util.Map<java.lang.String, alluxio.grpc.ColumnStatistics> values) {
-      internalGetMutableColumn().getMutableMap()
+    public Builder putAllPartitions(
+        java.util.Map<java.lang.String, alluxio.grpc.PartitionInfo> values) {
+      internalGetMutablePartitions().getMutableMap()
           .putAll(values);
       return this;
     }
@@ -667,39 +623,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.FileStatistics)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.GetPartitionsPResponse)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.FileStatistics)
-  private static final alluxio.grpc.FileStatistics DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.GetPartitionsPResponse)
+  private static final alluxio.grpc.GetPartitionsPResponse DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.FileStatistics();
+    DEFAULT_INSTANCE = new alluxio.grpc.GetPartitionsPResponse();
   }
 
-  public static alluxio.grpc.FileStatistics getDefaultInstance() {
+  public static alluxio.grpc.GetPartitionsPResponse getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<FileStatistics>
-      PARSER = new com.google.protobuf.AbstractParser<FileStatistics>() {
-    public FileStatistics parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetPartitionsPResponse>
+      PARSER = new com.google.protobuf.AbstractParser<GetPartitionsPResponse>() {
+    public GetPartitionsPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new FileStatistics(input, extensionRegistry);
+      return new GetPartitionsPResponse(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<FileStatistics> parser() {
+  public static com.google.protobuf.Parser<GetPartitionsPResponse> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<FileStatistics> getParserForType() {
+  public com.google.protobuf.Parser<GetPartitionsPResponse> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.FileStatistics getDefaultInstanceForType() {
+  public alluxio.grpc.GetPartitionsPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

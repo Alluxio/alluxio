@@ -16,8 +16,10 @@ import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.Constraint;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
 import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMaster;
@@ -30,6 +32,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,6 +118,11 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   public List<String> getDataFiles(String dbName, String tableName) throws IOException {
     // TODO(gpang): revisit api
     return new ArrayList<>(mCatalog.getStatistics(dbName, tableName).keySet());
+  }
+
+  @Override
+  public Map<String, PartitionInfo> getPartitions(String dbName, String tableName, Constraint constraint) {
+    return mCatalog.getPartitions(dbName, tableName, constraint);
   }
 
   @Override

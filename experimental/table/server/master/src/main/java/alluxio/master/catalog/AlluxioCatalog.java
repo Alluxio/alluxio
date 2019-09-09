@@ -14,10 +14,13 @@ package alluxio.master.catalog;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.Constraint;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.PartitionInfo;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,5 +135,9 @@ public class AlluxioCatalog {
       throws IOException {
     Table table = getTable(dbName, tableName);
     return table.getStatistics();
+  }
+
+  public Map<String, PartitionInfo> getPartitions(String dbName, String tableName, Constraint constraint) {
+    return ImmutableMap.of();
   }
 }
