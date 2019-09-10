@@ -65,6 +65,88 @@ message TableInfo {
     optional Schema schema = 6;
 }
 
+// Parquet metadata related types
+enum Repetition {
+    REPEATED = 1;
+    OPTIONAL = 2;
+    REQUIRED = 3;
+}
+message FieldType {
+    optional Repetition repetition = 1;
+    optional string name = 2;
+    repeated FieldType fields = 3;
+}
+
+message MessageType {
+    optional string name = 1;
+    repeated FieldType type = 2;
+}
+
+message FileMetadata {
+    optional MessageType schema = 1;
+    map<string, string> key_value_metadata = 2;
+    optional string created_by = 3;
+}
+
+message ColumnPath {
+    repeated string path_segment = 1;
+}
+
+
+enum CompressionCodecName {
+    UNCOMPRESSED = 0;
+    SNAPPY = 1;
+    GZIP = 2;
+    LZO = 3;
+    BROTLI = 4;
+    LZ4 = 5;
+    ZSTD = 6;
+}
+
+enum Encoding {
+    PLAIN = 0;
+    RLE = 1;
+    BIT_PACKED = 2;
+    PLAIN_DICTIONARY = 3;
+    DELTA_BINARY_PACKED = 4;
+    DELTA_LENGTH_BYTE_ARRAY = 5;
+    DELTA_BYTE_ARRAY = 6;
+    RLE_DICTIONARY = 7;
+}
+message ColumnChunkMetaData {
+    optional ColumnPath path = 1;
+    enum PrimitiveTypeName {
+        INT64 = 0;
+        INT32 = 1;
+        BOOLEAN = 2;
+        BINARY = 3;
+        FLOAT = 4;
+        DOUBLE = 5;
+        INT96 = 6;
+        FIXED_LEN_BYTE_ARRAY = 7;
+    }
+    optional PrimitiveTypeName type = 2;
+    optional CompressionCodecName codec = 3;
+    repeated Encoding encodings = 4;
+    optional int64 first_data_page = 5;
+    optional int64 page_offset = 6;
+    optional int64 value_count = 7;
+    optional int64 total_size = 8;
+    optional int64 total_uncompressed_size = 9;
+}
+
+message BlockMetadata {
+    optional int64 row_count = 1;
+    optional int64 total_byte_count = 2;
+    optional string path = 3;
+    repeated ColumnChunkMetaData col_data = 4;
+}
+
+message ParquetMetadata {
+    optional FileMetadata file_metadata = 1;
+    repeated BlockMetadata block_metadata = 2;
+}
+
 message PartitionInfo {
   repeated string values = 1; // string value is converted to appropriate partition key type
   optional string dbName = 2;
