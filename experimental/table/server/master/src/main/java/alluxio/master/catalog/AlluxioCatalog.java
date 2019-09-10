@@ -162,7 +162,7 @@ public class AlluxioCatalog {
    * @param constraint the column contraint
    * @return the partition info for the specified table
    */
-  public List<PartitionInfo> getPartitions(String dbName, String tableName,
+  public List<PartitionInfo> readTable(String dbName, String tableName,
       Constraint constraint) throws IOException {
     Table table = getTable(dbName, tableName);
     List<FieldSchema> cols = table.get().getPartitionKeys();
