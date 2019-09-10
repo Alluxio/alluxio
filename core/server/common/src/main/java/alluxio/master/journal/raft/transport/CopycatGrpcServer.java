@@ -97,6 +97,8 @@ public class CopycatGrpcServer implements Server {
       mGrpcServer = GrpcServerBuilder
           .forAddress(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf,
               mUserState)
+          .maxInboundMessageSize((int) mConf
+              .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(
               new GrpcService(new CopycatMessageServiceClientHandler(forkListener, threadContext,
                   mExecutor, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
