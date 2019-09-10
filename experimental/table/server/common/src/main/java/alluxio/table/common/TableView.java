@@ -14,6 +14,7 @@ package alluxio.table.common;
 import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.TableViewInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -41,4 +42,10 @@ public interface TableView {
    * @return the partition keys
    */
   List<FieldSchema> getPartitionCols();
+
+  /**
+   * @param viewName the name of the view
+   * @return the proto representation
+   */
+  TableViewInfo toProto(String viewName);
 }

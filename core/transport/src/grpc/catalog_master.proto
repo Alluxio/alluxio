@@ -56,6 +56,7 @@ enum TableType {
     NATIVE = 0; //native alluxio metastore table, both metadata and datafile managed by alluxio
     IMPORTED = 1; //imported alluxio metastore table, only the metadata is managed by alluxio
 }
+
 message TableInfo {
     optional string table_name = 1;
     optional string db_name = 2;
@@ -63,6 +64,13 @@ message TableInfo {
     optional string base_location = 4;
     optional uint32 version = 5;
     optional Schema schema = 6;
+    repeated TableViewInfo views = 7;
+}
+
+message TableViewInfo {
+    optional string view_name = 1;
+    optional string view_type = 2;
+    repeated FieldSchema clustered_columns = 3;
 }
 
 // Parquet metadata related types

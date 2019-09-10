@@ -14,6 +14,7 @@ package alluxio.table.under.hive;
 import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.TableViewInfo;
 import alluxio.table.common.TableView;
 
 import java.util.List;
@@ -36,10 +37,8 @@ public class HiveTableView implements TableView {
    * @param partitionCols partition columns
    * @param partitions partitions
    */
-  public HiveTableView(String baseLocation,
-      Map<String, FileStatistics> statistics,
-      List<FieldSchema> partitionCols,
-      List<PartitionInfo> partitions) {
+  public HiveTableView(String baseLocation, Map<String, FileStatistics> statistics,
+      List<FieldSchema> partitionCols, List<PartitionInfo> partitions) {
     mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionCols = partitionCols;
@@ -64,5 +63,18 @@ public class HiveTableView implements TableView {
   @Override
   public List<FieldSchema> getPartitionCols() {
     return mPartitionCols;
+  }
+
+  @Override
+  public TableViewInfo toProto(String viewName) {
+    TableViewInfo.Builder builder = TableViewInfo.newBuilder()
+        .setViewName(viewName)
+        .setViewType("todo: hive parquet");
+
+    // add the clustered columns
+    for (FieldSchema column : mPartitionCols) {
+      builder.addClusteredColumns(column);
+    }
+    return builder.build();
   }
 }

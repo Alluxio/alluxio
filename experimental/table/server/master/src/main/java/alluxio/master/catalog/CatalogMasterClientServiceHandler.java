@@ -86,17 +86,8 @@ public class CatalogMasterClientServiceHandler
       StreamObserver<GetTablePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       Table table = mCatalogMaster.getTable(request.getDbName(), request.getTableName());
-      TableInfo info;
       if (table != null) {
-        TableVersion tv = table.get();
-        info = TableInfo.newBuilder().setDbName(request.getDbName())
-            .setTableName(request.getTableName())
-            .setBaseLocation(tv.getBaseLocation())
-            .setSchema(tv.getSchema())
-            .build();
-        return GetTablePResponse.newBuilder()
-            .setTableInfo(info)
-            .build();
+        return GetTablePResponse.newBuilder().setTableInfo(table.toProto()).build();
       }
       return GetTablePResponse.getDefaultInstance();
     }, "getTable", "", responseObserver);

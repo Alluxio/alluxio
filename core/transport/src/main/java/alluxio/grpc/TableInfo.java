@@ -21,6 +21,7 @@ private static final long serialVersionUID = 0L;
     type_ = 0;
     baseLocation_ = "";
     version_ = 0;
+    views_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -101,6 +102,15 @@ private static final long serialVersionUID = 0L;
             bitField0_ |= 0x00000020;
             break;
           }
+          case 58: {
+            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+              views_ = new java.util.ArrayList<alluxio.grpc.TableViewInfo>();
+              mutable_bitField0_ |= 0x00000040;
+            }
+            views_.add(
+                input.readMessage(alluxio.grpc.TableViewInfo.PARSER, extensionRegistry));
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -109,6 +119,9 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+        views_ = java.util.Collections.unmodifiableList(views_);
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -304,6 +317,41 @@ private static final long serialVersionUID = 0L;
     return schema_ == null ? alluxio.grpc.Schema.getDefaultInstance() : schema_;
   }
 
+  public static final int VIEWS_FIELD_NUMBER = 7;
+  private java.util.List<alluxio.grpc.TableViewInfo> views_;
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  public java.util.List<alluxio.grpc.TableViewInfo> getViewsList() {
+    return views_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  public java.util.List<? extends alluxio.grpc.TableViewInfoOrBuilder> 
+      getViewsOrBuilderList() {
+    return views_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  public int getViewsCount() {
+    return views_.size();
+  }
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  public alluxio.grpc.TableViewInfo getViews(int index) {
+    return views_.get(index);
+  }
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  public alluxio.grpc.TableViewInfoOrBuilder getViewsOrBuilder(
+      int index) {
+    return views_.get(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -312,6 +360,12 @@ private static final long serialVersionUID = 0L;
 
     if (hasSchema()) {
       if (!getSchema().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
+    for (int i = 0; i < getViewsCount(); i++) {
+      if (!getViews(i).isInitialized()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -339,6 +393,9 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
       output.writeMessage(6, getSchema());
+    }
+    for (int i = 0; i < views_.size(); i++) {
+      output.writeMessage(7, views_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -368,6 +425,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(6, getSchema());
+    }
+    for (int i = 0; i < views_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(7, views_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -414,6 +475,8 @@ private static final long serialVersionUID = 0L;
       result = result && getSchema()
           .equals(other.getSchema());
     }
+    result = result && getViewsList()
+        .equals(other.getViewsList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -448,6 +511,10 @@ private static final long serialVersionUID = 0L;
     if (hasSchema()) {
       hash = (37 * hash) + SCHEMA_FIELD_NUMBER;
       hash = (53 * hash) + getSchema().hashCode();
+    }
+    if (getViewsCount() > 0) {
+      hash = (37 * hash) + VIEWS_FIELD_NUMBER;
+      hash = (53 * hash) + getViewsList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -575,6 +642,7 @@ private static final long serialVersionUID = 0L;
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
         getSchemaFieldBuilder();
+        getViewsFieldBuilder();
       }
     }
     public Builder clear() {
@@ -595,6 +663,12 @@ private static final long serialVersionUID = 0L;
         schemaBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000020);
+      if (viewsBuilder_ == null) {
+        views_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000040);
+      } else {
+        viewsBuilder_.clear();
+      }
       return this;
     }
 
@@ -646,6 +720,15 @@ private static final long serialVersionUID = 0L;
         result.schema_ = schema_;
       } else {
         result.schema_ = schemaBuilder_.build();
+      }
+      if (viewsBuilder_ == null) {
+        if (((bitField0_ & 0x00000040) == 0x00000040)) {
+          views_ = java.util.Collections.unmodifiableList(views_);
+          bitField0_ = (bitField0_ & ~0x00000040);
+        }
+        result.views_ = views_;
+      } else {
+        result.views_ = viewsBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -713,6 +796,32 @@ private static final long serialVersionUID = 0L;
       if (other.hasSchema()) {
         mergeSchema(other.getSchema());
       }
+      if (viewsBuilder_ == null) {
+        if (!other.views_.isEmpty()) {
+          if (views_.isEmpty()) {
+            views_ = other.views_;
+            bitField0_ = (bitField0_ & ~0x00000040);
+          } else {
+            ensureViewsIsMutable();
+            views_.addAll(other.views_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.views_.isEmpty()) {
+          if (viewsBuilder_.isEmpty()) {
+            viewsBuilder_.dispose();
+            viewsBuilder_ = null;
+            views_ = other.views_;
+            bitField0_ = (bitField0_ & ~0x00000040);
+            viewsBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getViewsFieldBuilder() : null;
+          } else {
+            viewsBuilder_.addAllMessages(other.views_);
+          }
+        }
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -721,6 +830,11 @@ private static final long serialVersionUID = 0L;
     public final boolean isInitialized() {
       if (hasSchema()) {
         if (!getSchema().isInitialized()) {
+          return false;
+        }
+      }
+      for (int i = 0; i < getViewsCount(); i++) {
+        if (!getViews(i).isInitialized()) {
           return false;
         }
       }
@@ -1158,6 +1272,246 @@ private static final long serialVersionUID = 0L;
         schema_ = null;
       }
       return schemaBuilder_;
+    }
+
+    private java.util.List<alluxio.grpc.TableViewInfo> views_ =
+      java.util.Collections.emptyList();
+    private void ensureViewsIsMutable() {
+      if (!((bitField0_ & 0x00000040) == 0x00000040)) {
+        views_ = new java.util.ArrayList<alluxio.grpc.TableViewInfo>(views_);
+        bitField0_ |= 0x00000040;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.TableViewInfo, alluxio.grpc.TableViewInfo.Builder, alluxio.grpc.TableViewInfoOrBuilder> viewsBuilder_;
+
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public java.util.List<alluxio.grpc.TableViewInfo> getViewsList() {
+      if (viewsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(views_);
+      } else {
+        return viewsBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public int getViewsCount() {
+      if (viewsBuilder_ == null) {
+        return views_.size();
+      } else {
+        return viewsBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public alluxio.grpc.TableViewInfo getViews(int index) {
+      if (viewsBuilder_ == null) {
+        return views_.get(index);
+      } else {
+        return viewsBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder setViews(
+        int index, alluxio.grpc.TableViewInfo value) {
+      if (viewsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureViewsIsMutable();
+        views_.set(index, value);
+        onChanged();
+      } else {
+        viewsBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder setViews(
+        int index, alluxio.grpc.TableViewInfo.Builder builderForValue) {
+      if (viewsBuilder_ == null) {
+        ensureViewsIsMutable();
+        views_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        viewsBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder addViews(alluxio.grpc.TableViewInfo value) {
+      if (viewsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureViewsIsMutable();
+        views_.add(value);
+        onChanged();
+      } else {
+        viewsBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder addViews(
+        int index, alluxio.grpc.TableViewInfo value) {
+      if (viewsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureViewsIsMutable();
+        views_.add(index, value);
+        onChanged();
+      } else {
+        viewsBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder addViews(
+        alluxio.grpc.TableViewInfo.Builder builderForValue) {
+      if (viewsBuilder_ == null) {
+        ensureViewsIsMutable();
+        views_.add(builderForValue.build());
+        onChanged();
+      } else {
+        viewsBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder addViews(
+        int index, alluxio.grpc.TableViewInfo.Builder builderForValue) {
+      if (viewsBuilder_ == null) {
+        ensureViewsIsMutable();
+        views_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        viewsBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder addAllViews(
+        java.lang.Iterable<? extends alluxio.grpc.TableViewInfo> values) {
+      if (viewsBuilder_ == null) {
+        ensureViewsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, views_);
+        onChanged();
+      } else {
+        viewsBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder clearViews() {
+      if (viewsBuilder_ == null) {
+        views_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+      } else {
+        viewsBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public Builder removeViews(int index) {
+      if (viewsBuilder_ == null) {
+        ensureViewsIsMutable();
+        views_.remove(index);
+        onChanged();
+      } else {
+        viewsBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public alluxio.grpc.TableViewInfo.Builder getViewsBuilder(
+        int index) {
+      return getViewsFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public alluxio.grpc.TableViewInfoOrBuilder getViewsOrBuilder(
+        int index) {
+      if (viewsBuilder_ == null) {
+        return views_.get(index);  } else {
+        return viewsBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public java.util.List<? extends alluxio.grpc.TableViewInfoOrBuilder> 
+         getViewsOrBuilderList() {
+      if (viewsBuilder_ != null) {
+        return viewsBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(views_);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public alluxio.grpc.TableViewInfo.Builder addViewsBuilder() {
+      return getViewsFieldBuilder().addBuilder(
+          alluxio.grpc.TableViewInfo.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public alluxio.grpc.TableViewInfo.Builder addViewsBuilder(
+        int index) {
+      return getViewsFieldBuilder().addBuilder(
+          index, alluxio.grpc.TableViewInfo.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+     */
+    public java.util.List<alluxio.grpc.TableViewInfo.Builder> 
+         getViewsBuilderList() {
+      return getViewsFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.TableViewInfo, alluxio.grpc.TableViewInfo.Builder, alluxio.grpc.TableViewInfoOrBuilder> 
+        getViewsFieldBuilder() {
+      if (viewsBuilder_ == null) {
+        viewsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.TableViewInfo, alluxio.grpc.TableViewInfo.Builder, alluxio.grpc.TableViewInfoOrBuilder>(
+                views_,
+                ((bitField0_ & 0x00000040) == 0x00000040),
+                getParentForChildren(),
+                isClean());
+        views_ = null;
+      }
+      return viewsBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

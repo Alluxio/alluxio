@@ -11,6 +11,7 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.TableInfo;
 import alluxio.table.common.udb.UdbTable;
 
 import java.util.ArrayList;
@@ -20,31 +21,47 @@ import java.util.ArrayList;
  */
 public class Table {
   private final String mName;
+  private final Database mDatabase;
   private final UdbTable mUdbTable;
   private final ArrayList<TableVersion> mVersions;
 
-  /**
-   * Creates an instance.
-   *
-   * @param udbTable the udb table
-   */
-  public Table(UdbTable udbTable) {
+  private Table(Database database, UdbTable udbTable) {
+    mDatabase = database;
     mUdbTable = udbTable;
-
     mName = mUdbTable.getName();
     mVersions = new ArrayList<>(2);
-    TableVersion tableVersion = new TableVersion(mUdbTable.getSchema());
-    tableVersion.addView(TableVersion.DEFAULT_VIEW_NAME, mUdbTable.getView());
-    mVersions.add(tableVersion);
+  }
+
+  /**
+   * @param database the database
+   * @param udbTable the udb table
+   * @return a new instance
+   */
+  public static Table create(Database database, UdbTable udbTable) {
+    Table table = new Table(database, udbTable);
+
+    // add initial version of table
+    TableVersion tableVersion = new TableVersion(table, udbTable.getSchema());
+    tableVersion.addView(TableVersion.DEFAULT_VIEW_NAME, udbTable.getView());
+    table.addVersion(tableVersion);
+    return table;
   }
 
   /**
    * @return the latest version of the table
    */
   public TableVersion get() {
+    // TODO(gpang): better version number management
     synchronized (mVersions) {
       return mVersions.get(mVersions.size() - 1);
     }
+  }
+
+  /**
+   * @return the database
+   */
+  public Database getDatabase() {
+    return mDatabase;
   }
 
   /**
@@ -52,5 +69,23 @@ public class Table {
    */
   public String getName() {
     return mName;
+  }
+
+  /**
+   * Adds a new version to the table.
+   *
+   * @param tableVersion the new table version
+   */
+  private void addVersion(TableVersion tableVersion) {
+    synchronized (mVersions) {
+      mVersions.add(tableVersion);
+    }
+  }
+
+  /**
+   * @return the proto representation
+   */
+  public TableInfo toProto() {
+    return get().toProto();
   }
 }
