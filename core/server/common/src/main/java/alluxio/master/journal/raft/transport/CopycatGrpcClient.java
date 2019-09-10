@@ -81,18 +81,17 @@ public class CopycatGrpcClient implements Client {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
-            .setClientType("CopycatClient")
-            .setSubject(mUserState.getSubject())
+            .setClientType("CopycatClient").setSubject(mUserState.getSubject())
             .setKeepAliveTime(
                 mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIME_MS),
                 TimeUnit.MILLISECONDS)
             .setKeepAliveTimeout(
                 mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIMEOUT_MS),
                 TimeUnit.MILLISECONDS)
-            .setFlowControlWindow(
-                mConf.getInt(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_FLOWCONTROL_WINDOW))
-            .setMaxInboundMessageSize(
-                mConf.getInt(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+            .setFlowControlWindow((int) mConf
+                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_FLOWCONTROL_WINDOW))
+            .setMaxInboundMessageSize((int) mConf
+                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
             .build();
 
         // Create stub for receiving stream from server.
