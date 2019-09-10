@@ -43,12 +43,7 @@ check_fuse_jar() {
 }
 
 set_java_opt() {
-  JAVA_OPTS+="
-    -server
-    -Xms1G
-    -Xmx1G
-    -XX:MaxDirectMemorySize=4g
-  "
+  JAVA_OPTS+=" -server -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
 
   ALLUXIO_FUSE_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
   ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
@@ -64,21 +59,33 @@ mount_fuse() {
   else
     full_mount_option="big_writes"
   fi
-  (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
+
+  if [[ ${NO_DAEMON} -eq "1" ]]; then
+    # Assumes that the end of ALLUXIO_FUSE_JAVA_OPTS is -Dalluxio.logger.type=FUSE_LOGGER
+    ALLUXIO_FUSE_JAVA_OPTS+=",Console"
+  fi
+
+  local cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -o ${full_mount_option} \
     -m ${mount_point} \
-    -r ${alluxio_root} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
-  # sleep: workaround to let the bg java process exit on errors, if any
-  sleep 2s
-  if kill -0 $! > /dev/null 2>&1 ; then
-    echo "Successfully mounted Alluxio path \"${alluxio_root}\" to ${mount_point}."
-    echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
-    return 0
+    -r ${alluxio_root}"
+
+  if [[ ${NO_DAEMON} -eq "1" ]]; then
+    exec ${cmd}
   else
-    echo "Failed to mount Alluxio path \"${alluxio_root}\" to ${mount_point}."
-    echo "See ${ALLUXIO_LOGS_DIR}/fuse.out for more details"
-    return 1
+    (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
+    # sleep: workaround to let the bg java process exit on errors, if any
+    sleep 2s
+    if kill -0 $! > /dev/null 2>&1 ; then
+      echo "Successfully mounted Alluxio path \"${alluxio_root}\" to ${mount_point}."
+      echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
+      return 0
+    else
+      echo "Failed to mount Alluxio path \"${alluxio_root}\" to ${mount_point}."
+      echo "See ${ALLUXIO_LOGS_DIR}/fuse.out for more details"
+      return 1
+    fi
   fi
 }
 
@@ -128,10 +135,13 @@ fi
 case $1 in
   mount)
     shift
-    while getopts "o:" option; do
+    while getopts "o:n" option; do
       case "${option}" in
         o)
           mount_option=${OPTARG}
+          ;;
+        n)
+          NO_DAEMON="1"
           ;;
         *)
           echo -e "${USAGE_MSG}" >&2
@@ -152,7 +162,14 @@ case $1 in
       mount_fuse $1 $2
       exit $?
     fi
-    echo -e "Usage\n\talluxio-fuse mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
+    MOUNT_USAGE="Usage: \talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
+\talluxio_path defaults to the root of the namespace("/")
+
+-o \tmount options for the fuse daemon
+
+-n \tno-daemon. This launches the process in the foreground and logs to stdout
+    "
+    echo -e "${MOUNT_USAGE}" >&2
     exit 1
     ;;
   umount|unmount)
