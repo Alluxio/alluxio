@@ -11,11 +11,14 @@
 
 package alluxio.master.journal.tool;
 
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat;
-import alluxio.master.journal.checkpoint.TarballCheckpointFormat;
+import alluxio.master.metastore.rocks.RocksInodeStore;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,9 +108,24 @@ public abstract class AbstractJournalDumper {
   }
 
   private void readRocksCheckpoint(CheckpointInputStream checkpoint, Path path) throws IOException {
-    TarballCheckpointFormat.TarballCheckpointReader reader =
-        new TarballCheckpointFormat.TarballCheckpointReader(checkpoint);
-    reader.unpackToDirectory(path);
+    // An empty dir for storing the db.
+    Path dbPath = Paths.get(path.toFile().getPath() + "-rocks-db");
+    // Create RocksInodeStore over checkpoint stream for extracting the inodes.
+    try (PrintStream out =
+        new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
+      // Create and restore RocksInodeStore from the checkpoint.
+      RocksInodeStore inodeStore = new RocksInodeStore(dbPath.toAbsolutePath().toString());
+      inodeStore.restoreFromCheckpoint(checkpoint);
+      // Dump entries.
+      final String ENTRY_SEPARATOR = Strings.repeat("-", 80);
+      for (InodeView inode : (Iterable<InodeView>) () -> inodeStore.iterator()) {
+        out.println(ENTRY_SEPARATOR);
+        out.println(inode.toProto());
+      }
+    } finally {
+      // Remove the temp db directory.
+      FileUtils.deletePathRecursively(dbPath.toFile().getPath());
+    }
   }
 
   private void readRegularCheckpoint(CheckpointInputStream checkpoint, Path path)
