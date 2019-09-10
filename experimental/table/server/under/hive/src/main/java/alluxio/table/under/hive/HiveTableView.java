@@ -24,7 +24,6 @@ import java.util.Map;
  * Hive table view implementation.
  */
 public class HiveTableView implements TableView {
-  private final HiveTable mTable;
   private final String mBaseLocation;
   private final Map<String, FileStatistics> mStatistics;
   private final List<FieldSchema> mPartitionCols;
@@ -33,17 +32,13 @@ public class HiveTableView implements TableView {
   /**
    * Creates a new instance.
    *
-   * @param table the hive table
    * @param baseLocation the base location
    * @param statistics the table statistics
    * @param partitionCols partition columns
    * @param partitions partitions
    */
-  public HiveTableView(HiveTable table, String baseLocation,
-      Map<String, FileStatistics> statistics,
-      List<FieldSchema> partitionCols,
-      List<PartitionInfo> partitions) {
-    mTable = table;
+  public HiveTableView(String baseLocation, Map<String, FileStatistics> statistics,
+      List<FieldSchema> partitionCols, List<PartitionInfo> partitions) {
     mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionCols = partitionCols;

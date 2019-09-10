@@ -68,7 +68,7 @@ public class HiveTable implements UdbTable {
 
   @Override
   public TableView getView() {
-    return new HiveTableView(this, mBaseLocation, mStatistics, mPartitionKeys, getPartitions());
+    return new HiveTableView(mBaseLocation, mStatistics, mPartitionKeys, getPartitions());
   }
 
   @Override
