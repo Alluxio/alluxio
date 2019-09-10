@@ -72,11 +72,14 @@ public class HiveTableView implements TableView {
 
   @Override
   public TableViewInfo toProto(String viewName) {
-    // TODO(gpang): implement clustered columns.
-    return TableViewInfo.newBuilder()
+    TableViewInfo.Builder builder = TableViewInfo.newBuilder()
         .setViewName(viewName)
-        .setViewType("todo: hive parquet")
-        .addClusteredColumns(mTable.getSchema().getCols(mTable.getSchema().getColsCount() - 1))
-        .build();
+        .setViewType("todo: hive parquet");
+
+    // add the clustered columns
+    for (FieldSchema column : mPartitionCols) {
+      builder.addClusteredColumns(column);
+    }
+    return builder.build();
   }
 }
