@@ -31,13 +31,12 @@ import java.io.IOException;
  */
 public class BackupCommand extends AbstractFsAdminCommand {
 
-  private static final Option LOCAL_OPTION =
+  private static final Option UFS_OPTION =
       Option.builder()
-          .longOpt("local")
+          .longOpt("ufs")
           .required(false)
           .hasArg(false)
-          .desc("whether to write the backup to the master's local filesystem instead of the root"
-              + " UFS")
+          .desc("whether to write the backup to the root UFS instead of the local filesystem of leader master")
           .build();
   /**
    * @param context fsadmin command context
@@ -54,7 +53,7 @@ public class BackupCommand extends AbstractFsAdminCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(LOCAL_OPTION);
+    return new Options().addOption(UFS_OPTION);
   }
 
   @Override
@@ -64,7 +63,7 @@ public class BackupCommand extends AbstractFsAdminCommand {
     if (args.length >= 1) {
       opts.setTargetDirectory(args[0]);
     }
-    opts.setLocalFileSystem(cl.hasOption(LOCAL_OPTION.getLongOpt()));
+    opts.setUseRootUnderFileSystem(cl.hasOption(UFS_OPTION.getLongOpt()));
     // Create progress thread for showing progress while backup is in progress.
     Thread progressThread = CommonUtils.createProgressThread(5 * Constants.SECOND_MS, System.out);
     progressThread.start();
@@ -74,27 +73,27 @@ public class BackupCommand extends AbstractFsAdminCommand {
     } finally {
       progressThread.interrupt();
     }
-    if (opts.getLocalFileSystem()) {
-      mPrintStream.printf("Successfully backed up journal to %s on master %s with %d entries%n",
-          resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());
-    } else {
+    if (opts.getUseRootUnderFileSystem()) {
       mPrintStream.printf("Successfully backed up journal to %s with %d entries%n",
           resp.getBackupUri(), resp.getEntryCount());
+    } else {
+      mPrintStream.printf("Successfully backed up journal to %s on master %s with %d entries%n",
+          resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());
     }
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "backup [directory] [--local]";
+    return "backup [directory] [--ufs]";
   }
 
   @Override
   public String getDescription() {
     return "backup backs up all Alluxio metadata to the backup directory configured on master. The"
-        + " directory to back up to can be overridden by specifying a directory here. The directory"
-        + " path is relative to the root UFS. To write the backup to the local disk of the primary"
-        + " master, use --local and specify a filesystem path. Backing up metadata"
+        + " directory to back up to can be overridden by specifying a directory here."
+        + " By default, backup backs up to the local disk of the primary master,"
+        + " use --ufs to backup to a directory path relative to the UFS. Backing up metadata"
         + " requires a pause in master metadata changes, so use this command sparingly to"
         + " avoid interfering with other users of the system.";
   }

@@ -124,7 +124,7 @@ public final class BackwardsCompatibilityJournalGenerator {
       AlluxioURI backup = cluster.getMetaMasterClient()
           .backup(BackupPOptions.newBuilder()
               .setTargetDirectory(new File(generator.getOutputDirectory()).getAbsolutePath())
-              .setLocalFileSystem(true).build())
+              .build())
           .getBackupUri();
       FileUtils.moveFile(new File(backup.getPath()), backupDst);
       cluster.stopMasters();

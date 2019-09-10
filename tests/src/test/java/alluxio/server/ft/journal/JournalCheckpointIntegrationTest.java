@@ -102,8 +102,7 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
         new RetryHandlingMetaMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     AlluxioURI backupURI = metaClient.backup(BackupPOptions.newBuilder()
-        .setTargetDirectory(backup.getAbsolutePath())
-        .setLocalFileSystem(true).build()).getBackupUri();
+        .setTargetDirectory(backup.getAbsolutePath()).build()).getBackupUri();
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
     mCluster.formatAndRestartMasters();
   }

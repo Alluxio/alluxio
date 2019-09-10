@@ -234,138 +234,138 @@ public final class MetaMasterProto {
   static {
     java.lang.String[] descriptorData = {
       "\n\026grpc/meta_master.proto\022\021alluxio.grpc.m" +
-      "eta\032\021grpc/common.proto\"B\n\016BackupPOptions" +
-      "\022\027\n\017targetDirectory\030\001 \001(\t\022\027\n\017localFileSy" +
-      "stem\030\002 \001(\010\"J\n\017BackupPResponse\022\021\n\tbackupU" +
-      "ri\030\001 \001(\t\022\020\n\010hostname\030\002 \001(\t\022\022\n\nentryCount" +
-      "\030\003 \001(\003\"D\n\020ConfigProperties\0220\n\nproperties" +
-      "\030\001 \003(\0132\034.alluxio.grpc.ConfigProperty\"_\n\030" +
-      "GetConfigurationPOptions\022\020\n\010rawValue\030\001 \001" +
-      "(\010\022\031\n\021ignoreClusterConf\030\002 \001(\010\022\026\n\016ignoreP" +
-      "athConf\030\003 \001(\010\"\261\002\n\031GetConfigurationPRespo" +
-      "nse\0224\n\016clusterConfigs\030\001 \003(\0132\034.alluxio.gr" +
-      "pc.ConfigProperty\022R\n\013pathConfigs\030\002 \003(\0132=" +
-      ".alluxio.grpc.meta.GetConfigurationPResp" +
-      "onse.PathConfigsEntry\022\031\n\021clusterConfigHa" +
-      "sh\030\003 \001(\t\022\026\n\016pathConfigHash\030\004 \001(\t\032W\n\020Path" +
-      "ConfigsEntry\022\013\n\003key\030\001 \001(\t\0222\n\005value\030\002 \001(\013" +
-      "2#.alluxio.grpc.meta.ConfigProperties:\0028" +
-      "\001\",\n\032InconsistentPropertyValues\022\016\n\006value" +
-      "s\030\001 \003(\t\"\307\001\n\024InconsistentProperty\022\014\n\004name" +
-      "\030\001 \001(\t\022C\n\006values\030\002 \003(\01323.alluxio.grpc.me" +
-      "ta.InconsistentProperty.ValuesEntry\032\\\n\013V" +
-      "aluesEntry\022\013\n\003key\030\001 \001(\t\022<\n\005value\030\002 \001(\0132-" +
-      ".alluxio.grpc.meta.InconsistentPropertyV" +
-      "alues:\0028\001\"U\n\026InconsistentProperties\022;\n\np" +
-      "roperties\030\001 \003(\0132\'.alluxio.grpc.meta.Inco" +
-      "nsistentProperty\"\371\002\n\021ConfigCheckReport\022@" +
-      "\n\006errors\030\001 \003(\01320.alluxio.grpc.meta.Confi" +
-      "gCheckReport.ErrorsEntry\022>\n\005warns\030\002 \003(\0132" +
-      "/.alluxio.grpc.meta.ConfigCheckReport.Wa" +
-      "rnsEntry\022/\n\006status\030\003 \001(\0162\037.alluxio.grpc." +
-      "meta.ConfigStatus\032X\n\013ErrorsEntry\022\013\n\003key\030" +
-      "\001 \001(\t\0228\n\005value\030\002 \001(\0132).alluxio.grpc.meta" +
-      ".InconsistentProperties:\0028\001\032W\n\nWarnsEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\0228\n\005value\030\002 \001(\0132).alluxio." +
-      "grpc.meta.InconsistentProperties:\0028\001\"\031\n\027" +
-      "GetConfigReportPOptions\"P\n\030GetConfigRepo" +
-      "rtPResponse\0224\n\006report\030\001 \001(\0132$.alluxio.gr" +
-      "pc.meta.ConfigCheckReport\"\227\002\n\nMasterInfo" +
-      "\022\033\n\023leaderMasterAddress\030\001 \001(\t\0221\n\017masterA" +
-      "ddresses\030\002 \003(\0132\030.alluxio.grpc.NetAddress" +
-      "\022\017\n\007rpcPort\030\003 \001(\005\022\020\n\010safeMode\030\004 \001(\010\022\023\n\013s" +
-      "tartTimeMs\030\005 \001(\003\022\020\n\010upTimeMs\030\006 \001(\003\022\017\n\007ve" +
-      "rsion\030\007 \001(\t\022\017\n\007webPort\030\010 \001(\005\0221\n\017workerAd" +
-      "dresses\030\t \003(\0132\030.alluxio.grpc.NetAddress\022" +
-      "\032\n\022zookeeperAddresses\030\n \003(\t\"K\n\025GetMaster" +
-      "InfoPOptions\0222\n\006filter\030\001 \003(\0162\".alluxio.g" +
-      "rpc.meta.MasterInfoField\"K\n\026GetMasterInf" +
-      "oPResponse\0221\n\nmasterInfo\030\001 \001(\0132\035.alluxio" +
-      ".grpc.meta.MasterInfo\"5\n\013MetricValue\022\023\n\013" +
-      "doubleValue\030\001 \001(\001\022\021\n\tlongValue\030\002 \001(\003\"\024\n\022" +
-      "GetMetricsPOptions\"\253\001\n\023GetMetricsPRespon" +
-      "se\022D\n\007metrics\030\001 \003(\01323.alluxio.grpc.meta." +
-      "GetMetricsPResponse.MetricsEntry\032N\n\014Metr" +
-      "icsEntry\022\013\n\003key\030\001 \001(\t\022-\n\005value\030\002 \001(\0132\036.a" +
-      "lluxio.grpc.meta.MetricValue:\0028\001\"\024\n\022Chec" +
-      "kpointPOptions\"-\n\023CheckpointPResponse\022\026\n" +
-      "\016masterHostname\030\001 \001(\t\"\036\n\034SetPathConfigur" +
-      "ationPOptions\"\366\001\n\034SetPathConfigurationPR" +
-      "equest\022\014\n\004path\030\001 \001(\t\022S\n\nproperties\030\002 \003(\013" +
-      "2?.alluxio.grpc.meta.SetPathConfiguratio" +
-      "nPRequest.PropertiesEntry\022@\n\007options\030\003 \001" +
-      "(\0132/.alluxio.grpc.meta.SetPathConfigurat" +
-      "ionPOptions\0321\n\017PropertiesEntry\022\013\n\003key\030\001 " +
-      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\037\n\035SetPathConfigu" +
-      "rationPResponse\"!\n\037RemovePathConfigurati" +
-      "onPOptions\"\202\001\n\037RemovePathConfigurationPR" +
-      "equest\022\014\n\004path\030\001 \001(\t\022\014\n\004keys\030\002 \003(\t\022C\n\007op" +
-      "tions\030\003 \001(\01322.alluxio.grpc.meta.RemovePa" +
-      "thConfigurationPOptions\"\"\n RemovePathCon" +
-      "figurationPResponse\"\027\n\025GetConfigHashPOpt" +
-      "ions\"K\n\026GetConfigHashPResponse\022\031\n\021cluste" +
-      "rConfigHash\030\001 \001(\t\022\026\n\016pathConfigHash\030\002 \001(" +
-      "\t\"\025\n\023GetMasterIdPOptions\"\177\n\023GetMasterIdP" +
-      "Request\022/\n\rmasterAddress\030\001 \001(\0132\030.alluxio" +
-      ".grpc.NetAddress\0227\n\007options\030\002 \001(\0132&.allu" +
-      "xio.grpc.meta.GetMasterIdPOptions\"(\n\024Get" +
-      "MasterIdPResponse\022\020\n\010masterId\030\001 \001(\003\"G\n\026R" +
-      "egisterMasterPOptions\022-\n\007configs\030\001 \003(\0132\034" +
-      ".alluxio.grpc.ConfigProperty\"f\n\026Register" +
-      "MasterPRequest\022\020\n\010masterId\030\001 \001(\003\022:\n\007opti" +
-      "ons\030\002 \001(\0132).alluxio.grpc.meta.RegisterMa" +
-      "sterPOptions\"\031\n\027RegisterMasterPResponse\"" +
-      "\031\n\027MasterHeartbeatPOptions\"h\n\027MasterHear" +
-      "tbeatPRequest\022\020\n\010masterId\030\001 \001(\003\022;\n\007optio" +
-      "ns\030\002 \001(\0132*.alluxio.grpc.meta.MasterHeart" +
-      "beatPOptions\"K\n\030MasterHeartbeatPResponse" +
-      "\022/\n\007command\030\001 \001(\0162\036.alluxio.grpc.meta.Me" +
-      "taCommand*0\n\014ConfigStatus\022\n\n\006PASSED\020\001\022\010\n" +
-      "\004WARN\020\002\022\n\n\006FAILED\020\003*J\n\005Scope\022\n\n\006MASTER\020\001" +
-      "\022\n\n\006WORKER\020\002\022\n\n\006CLIENT\020\004\022\n\n\006SERVER\020\003\022\007\n\003" +
-      "ALL\020\007\022\010\n\004NONE\020\000*\314\001\n\017MasterInfoField\022\031\n\025L" +
-      "EADER_MASTER_ADDRESS\020\000\022\024\n\020MASTER_ADDRESS" +
-      "ES\020\001\022\014\n\010RPC_PORT\020\002\022\r\n\tSAFE_MODE\020\003\022\021\n\rSTA" +
-      "RT_TIME_MS\020\004\022\016\n\nUP_TIME_MS\020\005\022\013\n\007VERSION\020" +
-      "\006\022\014\n\010WEB_PORT\020\007\022\024\n\020WORKER_ADDRESSES\020\010\022\027\n" +
-      "\023ZOOKEEPER_ADDRESSES\020\t*Y\n\013MetaCommand\022\027\n" +
-      "\023MetaCommand_Unknown\020\000\022\027\n\023MetaCommand_No" +
-      "thing\020\001\022\030\n\024MetaCommand_Register\020\0022\365\003\n\036Me" +
-      "taMasterConfigurationService\022m\n\020GetConfi" +
-      "guration\022+.alluxio.grpc.meta.GetConfigur" +
-      "ationPOptions\032,.alluxio.grpc.meta.GetCon" +
-      "figurationPResponse\022y\n\024SetPathConfigurat" +
-      "ion\022/.alluxio.grpc.meta.SetPathConfigura" +
-      "tionPRequest\0320.alluxio.grpc.meta.SetPath" +
-      "ConfigurationPResponse\022\202\001\n\027RemovePathCon" +
-      "figuration\0222.alluxio.grpc.meta.RemovePat" +
-      "hConfigurationPRequest\0323.alluxio.grpc.me" +
-      "ta.RemovePathConfigurationPResponse\022d\n\rG" +
-      "etConfigHash\022(.alluxio.grpc.meta.GetConf" +
-      "igHashPOptions\032).alluxio.grpc.meta.GetCo" +
-      "nfigHashPResponse2\366\003\n\027MetaMasterClientSe" +
-      "rvice\022O\n\006Backup\022!.alluxio.grpc.meta.Back" +
-      "upPOptions\032\".alluxio.grpc.meta.BackupPRe" +
-      "sponse\022j\n\017GetConfigReport\022*.alluxio.grpc" +
-      ".meta.GetConfigReportPOptions\032+.alluxio." +
-      "grpc.meta.GetConfigReportPResponse\022d\n\rGe" +
-      "tMasterInfo\022(.alluxio.grpc.meta.GetMaste" +
-      "rInfoPOptions\032).alluxio.grpc.meta.GetMas" +
-      "terInfoPResponse\022[\n\nGetMetrics\022%.alluxio" +
-      ".grpc.meta.GetMetricsPOptions\032&.alluxio." +
-      "grpc.meta.GetMetricsPResponse\022[\n\nCheckpo" +
-      "int\022%.alluxio.grpc.meta.CheckpointPOptio" +
-      "ns\032&.alluxio.grpc.meta.CheckpointPRespon" +
-      "se2\316\002\n\027MetaMasterMasterService\022^\n\013GetMas" +
-      "terId\022&.alluxio.grpc.meta.GetMasterIdPRe" +
-      "quest\032\'.alluxio.grpc.meta.GetMasterIdPRe" +
-      "sponse\022g\n\016RegisterMaster\022).alluxio.grpc." +
-      "meta.RegisterMasterPRequest\032*.alluxio.gr" +
-      "pc.meta.RegisterMasterPResponse\022j\n\017Maste" +
-      "rHeartbeat\022*.alluxio.grpc.meta.MasterHea" +
-      "rtbeatPRequest\032+.alluxio.grpc.meta.Maste" +
-      "rHeartbeatPResponseB!\n\014alluxio.grpcB\017Met" +
-      "aMasterProtoP\001"
+      "eta\032\021grpc/common.proto\"I\n\016BackupPOptions" +
+      "\022\027\n\017targetDirectory\030\001 \001(\t\022\036\n\026useRootUnde" +
+      "rFileSystem\030\002 \001(\010\"J\n\017BackupPResponse\022\021\n\t" +
+      "backupUri\030\001 \001(\t\022\020\n\010hostname\030\002 \001(\t\022\022\n\nent" +
+      "ryCount\030\003 \001(\003\"D\n\020ConfigProperties\0220\n\npro" +
+      "perties\030\001 \003(\0132\034.alluxio.grpc.ConfigPrope" +
+      "rty\"_\n\030GetConfigurationPOptions\022\020\n\010rawVa" +
+      "lue\030\001 \001(\010\022\031\n\021ignoreClusterConf\030\002 \001(\010\022\026\n\016" +
+      "ignorePathConf\030\003 \001(\010\"\261\002\n\031GetConfiguratio" +
+      "nPResponse\0224\n\016clusterConfigs\030\001 \003(\0132\034.all" +
+      "uxio.grpc.ConfigProperty\022R\n\013pathConfigs\030" +
+      "\002 \003(\0132=.alluxio.grpc.meta.GetConfigurati" +
+      "onPResponse.PathConfigsEntry\022\031\n\021clusterC" +
+      "onfigHash\030\003 \001(\t\022\026\n\016pathConfigHash\030\004 \001(\t\032" +
+      "W\n\020PathConfigsEntry\022\013\n\003key\030\001 \001(\t\0222\n\005valu" +
+      "e\030\002 \001(\0132#.alluxio.grpc.meta.ConfigProper" +
+      "ties:\0028\001\",\n\032InconsistentPropertyValues\022\016" +
+      "\n\006values\030\001 \003(\t\"\307\001\n\024InconsistentProperty\022" +
+      "\014\n\004name\030\001 \001(\t\022C\n\006values\030\002 \003(\01323.alluxio." +
+      "grpc.meta.InconsistentProperty.ValuesEnt" +
+      "ry\032\\\n\013ValuesEntry\022\013\n\003key\030\001 \001(\t\022<\n\005value\030" +
+      "\002 \001(\0132-.alluxio.grpc.meta.InconsistentPr" +
+      "opertyValues:\0028\001\"U\n\026InconsistentProperti" +
+      "es\022;\n\nproperties\030\001 \003(\0132\'.alluxio.grpc.me" +
+      "ta.InconsistentProperty\"\371\002\n\021ConfigCheckR" +
+      "eport\022@\n\006errors\030\001 \003(\01320.alluxio.grpc.met" +
+      "a.ConfigCheckReport.ErrorsEntry\022>\n\005warns" +
+      "\030\002 \003(\0132/.alluxio.grpc.meta.ConfigCheckRe" +
+      "port.WarnsEntry\022/\n\006status\030\003 \001(\0162\037.alluxi" +
+      "o.grpc.meta.ConfigStatus\032X\n\013ErrorsEntry\022" +
+      "\013\n\003key\030\001 \001(\t\0228\n\005value\030\002 \001(\0132).alluxio.gr" +
+      "pc.meta.InconsistentProperties:\0028\001\032W\n\nWa" +
+      "rnsEntry\022\013\n\003key\030\001 \001(\t\0228\n\005value\030\002 \001(\0132).a" +
+      "lluxio.grpc.meta.InconsistentProperties:" +
+      "\0028\001\"\031\n\027GetConfigReportPOptions\"P\n\030GetCon" +
+      "figReportPResponse\0224\n\006report\030\001 \001(\0132$.all" +
+      "uxio.grpc.meta.ConfigCheckReport\"\227\002\n\nMas" +
+      "terInfo\022\033\n\023leaderMasterAddress\030\001 \001(\t\0221\n\017" +
+      "masterAddresses\030\002 \003(\0132\030.alluxio.grpc.Net" +
+      "Address\022\017\n\007rpcPort\030\003 \001(\005\022\020\n\010safeMode\030\004 \001" +
+      "(\010\022\023\n\013startTimeMs\030\005 \001(\003\022\020\n\010upTimeMs\030\006 \001(" +
+      "\003\022\017\n\007version\030\007 \001(\t\022\017\n\007webPort\030\010 \001(\005\0221\n\017w" +
+      "orkerAddresses\030\t \003(\0132\030.alluxio.grpc.NetA" +
+      "ddress\022\032\n\022zookeeperAddresses\030\n \003(\t\"K\n\025Ge" +
+      "tMasterInfoPOptions\0222\n\006filter\030\001 \003(\0162\".al" +
+      "luxio.grpc.meta.MasterInfoField\"K\n\026GetMa" +
+      "sterInfoPResponse\0221\n\nmasterInfo\030\001 \001(\0132\035." +
+      "alluxio.grpc.meta.MasterInfo\"5\n\013MetricVa" +
+      "lue\022\023\n\013doubleValue\030\001 \001(\001\022\021\n\tlongValue\030\002 " +
+      "\001(\003\"\024\n\022GetMetricsPOptions\"\253\001\n\023GetMetrics" +
+      "PResponse\022D\n\007metrics\030\001 \003(\01323.alluxio.grp" +
+      "c.meta.GetMetricsPResponse.MetricsEntry\032" +
+      "N\n\014MetricsEntry\022\013\n\003key\030\001 \001(\t\022-\n\005value\030\002 " +
+      "\001(\0132\036.alluxio.grpc.meta.MetricValue:\0028\001\"" +
+      "\024\n\022CheckpointPOptions\"-\n\023CheckpointPResp" +
+      "onse\022\026\n\016masterHostname\030\001 \001(\t\"\036\n\034SetPathC" +
+      "onfigurationPOptions\"\366\001\n\034SetPathConfigur" +
+      "ationPRequest\022\014\n\004path\030\001 \001(\t\022S\n\npropertie" +
+      "s\030\002 \003(\0132?.alluxio.grpc.meta.SetPathConfi" +
+      "gurationPRequest.PropertiesEntry\022@\n\007opti" +
+      "ons\030\003 \001(\0132/.alluxio.grpc.meta.SetPathCon" +
+      "figurationPOptions\0321\n\017PropertiesEntry\022\013\n" +
+      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\037\n\035SetPath" +
+      "ConfigurationPResponse\"!\n\037RemovePathConf" +
+      "igurationPOptions\"\202\001\n\037RemovePathConfigur" +
+      "ationPRequest\022\014\n\004path\030\001 \001(\t\022\014\n\004keys\030\002 \003(" +
+      "\t\022C\n\007options\030\003 \001(\01322.alluxio.grpc.meta.R" +
+      "emovePathConfigurationPOptions\"\"\n Remove" +
+      "PathConfigurationPResponse\"\027\n\025GetConfigH" +
+      "ashPOptions\"K\n\026GetConfigHashPResponse\022\031\n" +
+      "\021clusterConfigHash\030\001 \001(\t\022\026\n\016pathConfigHa" +
+      "sh\030\002 \001(\t\"\025\n\023GetMasterIdPOptions\"\177\n\023GetMa" +
+      "sterIdPRequest\022/\n\rmasterAddress\030\001 \001(\0132\030." +
+      "alluxio.grpc.NetAddress\0227\n\007options\030\002 \001(\013" +
+      "2&.alluxio.grpc.meta.GetMasterIdPOptions" +
+      "\"(\n\024GetMasterIdPResponse\022\020\n\010masterId\030\001 \001" +
+      "(\003\"G\n\026RegisterMasterPOptions\022-\n\007configs\030" +
+      "\001 \003(\0132\034.alluxio.grpc.ConfigProperty\"f\n\026R" +
+      "egisterMasterPRequest\022\020\n\010masterId\030\001 \001(\003\022" +
+      ":\n\007options\030\002 \001(\0132).alluxio.grpc.meta.Reg" +
+      "isterMasterPOptions\"\031\n\027RegisterMasterPRe" +
+      "sponse\"\031\n\027MasterHeartbeatPOptions\"h\n\027Mas" +
+      "terHeartbeatPRequest\022\020\n\010masterId\030\001 \001(\003\022;" +
+      "\n\007options\030\002 \001(\0132*.alluxio.grpc.meta.Mast" +
+      "erHeartbeatPOptions\"K\n\030MasterHeartbeatPR" +
+      "esponse\022/\n\007command\030\001 \001(\0162\036.alluxio.grpc." +
+      "meta.MetaCommand*0\n\014ConfigStatus\022\n\n\006PASS" +
+      "ED\020\001\022\010\n\004WARN\020\002\022\n\n\006FAILED\020\003*J\n\005Scope\022\n\n\006M" +
+      "ASTER\020\001\022\n\n\006WORKER\020\002\022\n\n\006CLIENT\020\004\022\n\n\006SERVE" +
+      "R\020\003\022\007\n\003ALL\020\007\022\010\n\004NONE\020\000*\314\001\n\017MasterInfoFie" +
+      "ld\022\031\n\025LEADER_MASTER_ADDRESS\020\000\022\024\n\020MASTER_" +
+      "ADDRESSES\020\001\022\014\n\010RPC_PORT\020\002\022\r\n\tSAFE_MODE\020\003" +
+      "\022\021\n\rSTART_TIME_MS\020\004\022\016\n\nUP_TIME_MS\020\005\022\013\n\007V" +
+      "ERSION\020\006\022\014\n\010WEB_PORT\020\007\022\024\n\020WORKER_ADDRESS" +
+      "ES\020\010\022\027\n\023ZOOKEEPER_ADDRESSES\020\t*Y\n\013MetaCom" +
+      "mand\022\027\n\023MetaCommand_Unknown\020\000\022\027\n\023MetaCom" +
+      "mand_Nothing\020\001\022\030\n\024MetaCommand_Register\020\002" +
+      "2\365\003\n\036MetaMasterConfigurationService\022m\n\020G" +
+      "etConfiguration\022+.alluxio.grpc.meta.GetC" +
+      "onfigurationPOptions\032,.alluxio.grpc.meta" +
+      ".GetConfigurationPResponse\022y\n\024SetPathCon" +
+      "figuration\022/.alluxio.grpc.meta.SetPathCo" +
+      "nfigurationPRequest\0320.alluxio.grpc.meta." +
+      "SetPathConfigurationPResponse\022\202\001\n\027Remove" +
+      "PathConfiguration\0222.alluxio.grpc.meta.Re" +
+      "movePathConfigurationPRequest\0323.alluxio." +
+      "grpc.meta.RemovePathConfigurationPRespon" +
+      "se\022d\n\rGetConfigHash\022(.alluxio.grpc.meta." +
+      "GetConfigHashPOptions\032).alluxio.grpc.met" +
+      "a.GetConfigHashPResponse2\366\003\n\027MetaMasterC" +
+      "lientService\022O\n\006Backup\022!.alluxio.grpc.me" +
+      "ta.BackupPOptions\032\".alluxio.grpc.meta.Ba" +
+      "ckupPResponse\022j\n\017GetConfigReport\022*.allux" +
+      "io.grpc.meta.GetConfigReportPOptions\032+.a" +
+      "lluxio.grpc.meta.GetConfigReportPRespons" +
+      "e\022d\n\rGetMasterInfo\022(.alluxio.grpc.meta.G" +
+      "etMasterInfoPOptions\032).alluxio.grpc.meta" +
+      ".GetMasterInfoPResponse\022[\n\nGetMetrics\022%." +
+      "alluxio.grpc.meta.GetMetricsPOptions\032&.a" +
+      "lluxio.grpc.meta.GetMetricsPResponse\022[\n\n" +
+      "Checkpoint\022%.alluxio.grpc.meta.Checkpoin" +
+      "tPOptions\032&.alluxio.grpc.meta.Checkpoint" +
+      "PResponse2\316\002\n\027MetaMasterMasterService\022^\n" +
+      "\013GetMasterId\022&.alluxio.grpc.meta.GetMast" +
+      "erIdPRequest\032\'.alluxio.grpc.meta.GetMast" +
+      "erIdPResponse\022g\n\016RegisterMaster\022).alluxi" +
+      "o.grpc.meta.RegisterMasterPRequest\032*.all" +
+      "uxio.grpc.meta.RegisterMasterPResponse\022j" +
+      "\n\017MasterHeartbeat\022*.alluxio.grpc.meta.Ma" +
+      "sterHeartbeatPRequest\032+.alluxio.grpc.met" +
+      "a.MasterHeartbeatPResponseB!\n\014alluxio.gr" +
+      "pcB\017MetaMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -385,7 +385,7 @@ public final class MetaMasterProto {
     internal_static_alluxio_grpc_meta_BackupPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_meta_BackupPOptions_descriptor,
-        new java.lang.String[] { "TargetDirectory", "LocalFileSystem", });
+        new java.lang.String[] { "TargetDirectory", "UseRootUnderFileSystem", });
     internal_static_alluxio_grpc_meta_BackupPResponse_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_alluxio_grpc_meta_BackupPResponse_fieldAccessorTable = new

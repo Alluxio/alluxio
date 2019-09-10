@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPOptionsOrBuilder;
 import alluxio.master.BackupManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -109,7 +110,7 @@ public final class DailyMetadataBackup {
   private void dailyBackup() {
     try {
       BackupResponse resp = mMetaMaster.backup(BackupPOptions.newBuilder()
-          .setTargetDirectory(mBackupDir).setLocalFileSystem(mIsLocal).build());
+          .setTargetDirectory(mBackupDir).build());
       if (mIsLocal) {
         LOG.info("Successfully backed up journal to {} on master {} with {} entries.",
             resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());

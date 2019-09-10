@@ -59,7 +59,7 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
       }
       File backupsDir = AlluxioTestDirectory.createTemporaryDirectory("backups");
       AlluxioURI zkBackup = metaClient.backup(BackupPOptions.newBuilder()
-          .setTargetDirectory(backupsDir.getAbsolutePath()).setLocalFileSystem(false).build())
+          .setTargetDirectory(backupsDir.getAbsolutePath()).setUseRootUnderFileSystem(true).build())
           .getBackupUri();
       cluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, zkBackup.toString());
 

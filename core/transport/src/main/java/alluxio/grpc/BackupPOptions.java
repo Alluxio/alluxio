@@ -17,7 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private BackupPOptions() {
     targetDirectory_ = "";
-    localFileSystem_ = false;
+    useRootUnderFileSystem_ = false;
   }
 
   @java.lang.Override
@@ -59,7 +59,7 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
             bitField0_ |= 0x00000002;
-            localFileSystem_ = input.readBool();
+            useRootUnderFileSystem_ = input.readBool();
             break;
           }
         }
@@ -129,19 +129,19 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int LOCALFILESYSTEM_FIELD_NUMBER = 2;
-  private boolean localFileSystem_;
+  public static final int USEROOTUNDERFILESYSTEM_FIELD_NUMBER = 2;
+  private boolean useRootUnderFileSystem_;
   /**
-   * <code>optional bool localFileSystem = 2;</code>
+   * <code>optional bool useRootUnderFileSystem = 2;</code>
    */
-  public boolean hasLocalFileSystem() {
+  public boolean hasUseRootUnderFileSystem() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional bool localFileSystem = 2;</code>
+   * <code>optional bool useRootUnderFileSystem = 2;</code>
    */
-  public boolean getLocalFileSystem() {
-    return localFileSystem_;
+  public boolean getUseRootUnderFileSystem() {
+    return useRootUnderFileSystem_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -160,7 +160,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, targetDirectory_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeBool(2, localFileSystem_);
+      output.writeBool(2, useRootUnderFileSystem_);
     }
     unknownFields.writeTo(output);
   }
@@ -175,7 +175,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(2, localFileSystem_);
+        .computeBoolSize(2, useRootUnderFileSystem_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -198,10 +198,10 @@ private static final long serialVersionUID = 0L;
       result = result && getTargetDirectory()
           .equals(other.getTargetDirectory());
     }
-    result = result && (hasLocalFileSystem() == other.hasLocalFileSystem());
-    if (hasLocalFileSystem()) {
-      result = result && (getLocalFileSystem()
-          == other.getLocalFileSystem());
+    result = result && (hasUseRootUnderFileSystem() == other.hasUseRootUnderFileSystem());
+    if (hasUseRootUnderFileSystem()) {
+      result = result && (getUseRootUnderFileSystem()
+          == other.getUseRootUnderFileSystem());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -218,10 +218,10 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + TARGETDIRECTORY_FIELD_NUMBER;
       hash = (53 * hash) + getTargetDirectory().hashCode();
     }
-    if (hasLocalFileSystem()) {
-      hash = (37 * hash) + LOCALFILESYSTEM_FIELD_NUMBER;
+    if (hasUseRootUnderFileSystem()) {
+      hash = (37 * hash) + USEROOTUNDERFILESYSTEM_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getLocalFileSystem());
+          getUseRootUnderFileSystem());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -354,7 +354,7 @@ private static final long serialVersionUID = 0L;
       super.clear();
       targetDirectory_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      localFileSystem_ = false;
+      useRootUnderFileSystem_ = false;
       bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
@@ -387,7 +387,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.localFileSystem_ = localFileSystem_;
+      result.useRootUnderFileSystem_ = useRootUnderFileSystem_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -435,8 +435,8 @@ private static final long serialVersionUID = 0L;
         targetDirectory_ = other.targetDirectory_;
         onChanged();
       }
-      if (other.hasLocalFileSystem()) {
-        setLocalFileSystem(other.getLocalFileSystem());
+      if (other.hasUseRootUnderFileSystem()) {
+        setUseRootUnderFileSystem(other.getUseRootUnderFileSystem());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -542,34 +542,34 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private boolean localFileSystem_ ;
+    private boolean useRootUnderFileSystem_ ;
     /**
-     * <code>optional bool localFileSystem = 2;</code>
+     * <code>optional bool useRootUnderFileSystem = 2;</code>
      */
-    public boolean hasLocalFileSystem() {
+    public boolean hasUseRootUnderFileSystem() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional bool localFileSystem = 2;</code>
+     * <code>optional bool useRootUnderFileSystem = 2;</code>
      */
-    public boolean getLocalFileSystem() {
-      return localFileSystem_;
+    public boolean getUseRootUnderFileSystem() {
+      return useRootUnderFileSystem_;
     }
     /**
-     * <code>optional bool localFileSystem = 2;</code>
+     * <code>optional bool useRootUnderFileSystem = 2;</code>
      */
-    public Builder setLocalFileSystem(boolean value) {
+    public Builder setUseRootUnderFileSystem(boolean value) {
       bitField0_ |= 0x00000002;
-      localFileSystem_ = value;
+      useRootUnderFileSystem_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bool localFileSystem = 2;</code>
+     * <code>optional bool useRootUnderFileSystem = 2;</code>
      */
-    public Builder clearLocalFileSystem() {
+    public Builder clearUseRootUnderFileSystem() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      localFileSystem_ = false;
+      useRootUnderFileSystem_ = false;
       onChanged();
       return this;
     }

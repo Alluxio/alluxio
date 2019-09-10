@@ -22,11 +22,11 @@ public interface BackupPOptionsOrBuilder extends
       getTargetDirectoryBytes();
 
   /**
-   * <code>optional bool localFileSystem = 2;</code>
+   * <code>optional bool useRootUnderFileSystem = 2;</code>
    */
-  boolean hasLocalFileSystem();
+  boolean hasUseRootUnderFileSystem();
   /**
-   * <code>optional bool localFileSystem = 2;</code>
+   * <code>optional bool useRootUnderFileSystem = 2;</code>
    */
-  boolean getLocalFileSystem();
+  boolean getUseRootUnderFileSystem();
 }

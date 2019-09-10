@@ -115,13 +115,13 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
       fs.createDirectory(dir1,
           CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
       AlluxioURI backup1 = metaClient.backup(BackupPOptions.newBuilder()
-          .setTargetDirectory(backups.getAbsolutePath()).setLocalFileSystem(false).build())
+          .setTargetDirectory(backups.getAbsolutePath()).setUseRootUnderFileSystem(true).build())
           .getBackupUri();
       AlluxioURI dir2 = new AlluxioURI("/dir2");
       fs.createDirectory(dir2,
           CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
       AlluxioURI backup2 = metaClient.backup(BackupPOptions.newBuilder()
-          .setTargetDirectory(backups.getAbsolutePath()).setLocalFileSystem(false).build())
+          .setTargetDirectory(backups.getAbsolutePath()).setUseRootUnderFileSystem(true).build())
           .getBackupUri();
 
       restartMastersFromBackup(backup2);

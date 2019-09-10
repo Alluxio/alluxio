@@ -120,9 +120,15 @@ $ ./bin/alluxio fsadmin backup
 ```
 
 By default, this will write a backup named
-`alluxio-backup-YYYY-MM-DD-timestamp.gz` to the `/alluxio_backups` directory of
-the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
-backup directory can be configured by setting `alluxio.master.backup.directory`
+`alluxio-backup-YYYY-MM-DD-timestamp.gz` to the `${ALLUXIO_HOME}/alluxio_backups` directory of
+the local disk of the leader master. This default backup directory can be configured by setting `alluxio.master.backup.directory` 
+or can be override directly with given `backup [directory]`.
+
+```console
+$ ./bin/alluxio fsadmin backup /alluxio_backups --ufs
+```
+
+This will write a backup to the `/alluxio_backups` directory of the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. 
 
 ```
 alluxio.master.backup.directory=/alluxio/backups
@@ -166,7 +172,8 @@ $ ./bin/alluxio formatMasters
 $ ./bin/alluxio-start.sh -i <backup_uri> masters
 ```
 
-The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
+If backups to the local disk of the leader master, copy the backup file to same location in each master.
+If backups to an under storage system, make sure the `<backup_uri>` is a full URI path that is available to all masters, e.g.
 `hdfs://[namenodeserver]:[namenodeport]/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz`
 
 If starting up masters individually, pass the `-i` argument to each one. The master which

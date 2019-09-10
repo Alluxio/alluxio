@@ -27,23 +27,23 @@ Usage: alluxio fsadmin [generic options]
 
 ### backup
 
-The `backup` command creates a backup of Alluxio metadata. By default, this is the '$ALLUXIO_HOME/alluxio_backups'
+The `backup` command creates a backup of Alluxio metadata. By default, this is the '${ALLUXIO_HOME}/alluxio_backups'
 on the primary Alluxio Master.
 
-Back up to the default backup folder (this default can be configured by setting `alluxio.master.backup.directory`)
+Back up to the default backup folder in the local disk of leader master. 
+The default can be configured by setting `alluxio.master.backup.directory` or directly pass in through the `backup [direcroty]`.
 ```
 ./bin/alluxio fsadmin backup
 Successfully backed up journal to /opt/alluxio/alluxio_backups/alluxio-backup-2019-06-13-1560446387260.gz
-```
-Back up to a specific directory in the under storage.
-```
-./bin/alluxio fsadmin backup /alluxio/special_backups
-Successfully backed up journal to hdfs://mycluster/alluxio/special_backups/alluxio-backup-2018-5-29-1527644810.gz
-```
-Back up to a specific directory on the leading master's local filesystem.
-```
-./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
+
+./bin/alluxio fsadmin backup /opt/alluxio/backups/
 Successfully backed up journal to /opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
+```
+
+Back up to a specific directory in the root under storage system.
+```
+./bin/alluxio fsadmin backup /alluxio/special_backups --ufs
+Successfully backed up journal to hdfs://mycluster/alluxio/special_backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
 
 ### checkpoint 
