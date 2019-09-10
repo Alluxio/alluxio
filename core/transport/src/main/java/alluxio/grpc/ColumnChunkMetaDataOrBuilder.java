@@ -30,26 +30,26 @@ public interface ColumnChunkMetaDataOrBuilder extends
   alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName getType();
 
   /**
-   * <code>optional .alluxio.grpc.CompressionCodecName codec = 3;</code>
+   * <code>optional .alluxio.grpc.ColumnChunkMetaData.CompressionCodecName codec = 3;</code>
    */
   boolean hasCodec();
   /**
-   * <code>optional .alluxio.grpc.CompressionCodecName codec = 3;</code>
+   * <code>optional .alluxio.grpc.ColumnChunkMetaData.CompressionCodecName codec = 3;</code>
    */
-  alluxio.grpc.CompressionCodecName getCodec();
+  alluxio.grpc.ColumnChunkMetaData.CompressionCodecName getCodec();
 
   /**
-   * <code>repeated .alluxio.grpc.Encoding encodings = 4;</code>
+   * <code>repeated .alluxio.grpc.ColumnChunkMetaData.Encoding encodings = 4;</code>
    */
-  java.util.List<alluxio.grpc.Encoding> getEncodingsList();
+  java.util.List<alluxio.grpc.ColumnChunkMetaData.Encoding> getEncodingsList();
   /**
-   * <code>repeated .alluxio.grpc.Encoding encodings = 4;</code>
+   * <code>repeated .alluxio.grpc.ColumnChunkMetaData.Encoding encodings = 4;</code>
    */
   int getEncodingsCount();
   /**
-   * <code>repeated .alluxio.grpc.Encoding encodings = 4;</code>
+   * <code>repeated .alluxio.grpc.ColumnChunkMetaData.Encoding encodings = 4;</code>
    */
-  alluxio.grpc.Encoding getEncodings(int index);
+  alluxio.grpc.ColumnChunkMetaData.Encoding getEncodings(int index);
 
   /**
    * <code>optional int64 first_data_page = 5;</code>

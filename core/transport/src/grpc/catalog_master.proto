@@ -101,26 +101,7 @@ message ColumnPath {
 }
 
 
-enum CompressionCodecName {
-    UNCOMPRESSED = 0;
-    SNAPPY = 1;
-    GZIP = 2;
-    LZO = 3;
-    BROTLI = 4;
-    LZ4 = 5;
-    ZSTD = 6;
-}
 
-enum Encoding {
-    PLAIN = 0;
-    RLE = 1;
-    BIT_PACKED = 2;
-    PLAIN_DICTIONARY = 3;
-    DELTA_BINARY_PACKED = 4;
-    DELTA_LENGTH_BYTE_ARRAY = 5;
-    DELTA_BYTE_ARRAY = 6;
-    RLE_DICTIONARY = 7;
-}
 message ColumnChunkMetaData {
     optional ColumnPath path = 1;
     enum PrimitiveTypeName {
@@ -134,7 +115,26 @@ message ColumnChunkMetaData {
         FIXED_LEN_BYTE_ARRAY = 7;
     }
     optional PrimitiveTypeName type = 2;
+    enum CompressionCodecName {
+        UNCOMPRESSED = 0;
+        SNAPPY = 1;
+        GZIP = 2;
+        LZO = 3;
+        BROTLI = 4;
+        LZ4 = 5;
+        ZSTD = 6;
+    }
     optional CompressionCodecName codec = 3;
+    enum Encoding {
+        PLAIN = 0;
+        RLE = 1;
+        BIT_PACKED = 2;
+        PLAIN_DICTIONARY = 3;
+        DELTA_BINARY_PACKED = 4;
+        DELTA_LENGTH_BYTE_ARRAY = 5;
+        DELTA_BYTE_ARRAY = 6;
+        RLE_DICTIONARY = 7;
+    }
     repeated Encoding encodings = 4;
     optional int64 first_data_page = 5;
     optional int64 page_offset = 6;
