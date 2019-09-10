@@ -1316,6 +1316,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_NETWORK_REQUEST_TIMEOUT_MS =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_NETWORK_REQUEST_TIMEOUT_MS)
+          .setDefaultValue("5sec")
+          .setDescription("Timeout for communication between embedded journal masters.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_NETWORK_FLOWCONTROL_WINDOW =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_NETWORK_FLOWCONTROL_WINDOW)
+          .setDefaultValue("2MB")
+          .setDescription("The HTTP2 flow control window used by copycat connections. Larger "
+              + "value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIME_MS =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIME_MS)
+          .setDefaultValue(Long.MAX_VALUE)
+          .setDescription(
+              "The amount of time for a copycat client (for block reads and block writes) "
+                  + "to wait for a response before pinging the server to see if it is still alive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIMEOUT_MS =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIMEOUT_MS)
+          .setDefaultValue("30sec")
+          .setDescription(
+              "The maximum time for a copycat client (for block reads and block writes) "
+                  + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("64KB")
+          .setDescription("The max inbound message size used by copycat connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_RPC_ADDRESSES =
       new Builder(Name.MASTER_RPC_ADDRESSES).setDescription(
           "A list of comma-separated host:port RPC addresses where the client should look for "
@@ -3933,6 +3973,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.shutdown.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
         "alluxio.master.embedded.journal.triggered.snapshot.wait.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_NETWORK_REQUEST_TIMEOUT_MS =
+        "alluxio.master.embedded.journal.network.request.timeout.ms";
+    public static final String MASTER_EMBEDDED_JOURNAL_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.master.embedded.journal.network.flowcontrol.window";
+    public static final String MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIME_MS =
+        "alluxio.master.embedded.journal.network.keepalive.time.ms";
+    public static final String MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIMEOUT_MS =
+        "alluxio.master.embedded.journal.network.keepalive.timeout.ms";
+    public static final String MASTER_EMBEDDED_JOURNAL_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.master.embedded.journal.network.max.inbound.message.size";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
