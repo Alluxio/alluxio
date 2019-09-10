@@ -23,14 +23,12 @@ import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllDatabasesPResponse;
 import alluxio.grpc.GetAllTablesPRequest;
 import alluxio.grpc.GetAllTablesPResponse;
-import alluxio.grpc.GetDataFilesPRequest;
-import alluxio.grpc.GetDataFilesPResponse;
-import alluxio.grpc.GetPartitionsPRequest;
-import alluxio.grpc.GetPartitionsPResponse;
 import alluxio.grpc.GetStatisticsPRequest;
 import alluxio.grpc.GetStatisticsPResponse;
 import alluxio.grpc.GetTablePRequest;
 import alluxio.grpc.GetTablePResponse;
+import alluxio.grpc.ReadTablePRequest;
+import alluxio.grpc.ReadTablePResponse;
 import alluxio.grpc.TableInfo;
 
 import com.google.common.base.Preconditions;
@@ -144,18 +142,10 @@ public class CatalogMasterClientServiceHandler
   }
 
   @Override
-  public void getDataFiles(GetDataFilesPRequest request,
-      StreamObserver<GetDataFilesPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetDataFilesPResponse.newBuilder()
-            .addAllDataFile(mCatalogMaster.getDataFiles(request.getDbName(),
-                request.getTableName())).build(), "getStatistics", "", responseObserver);
-  }
-
-  @Override
-  public void getPartitions(GetPartitionsPRequest request,
-      StreamObserver<GetPartitionsPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetPartitionsPResponse.newBuilder()
-        .addAllPartitions(mCatalogMaster.getPartitions(request.getDbName(), request.getTableName(),
-            request.getConstraint())).build(), "getPartitions", "", responseObserver);
+  public void readTable(ReadTablePRequest request,
+      StreamObserver<ReadTablePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> ReadTablePResponse.newBuilder().addAllPartitions(mCatalogMaster
+        .readTable(request.getDbName(), request.getTableName(), request.getConstraint()))
+        .build(), "readTable", "", responseObserver);
   }
 }

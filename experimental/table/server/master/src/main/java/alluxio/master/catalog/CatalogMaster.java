@@ -103,14 +103,13 @@ public interface CatalogMaster extends Master {
   List<String> getDataFiles(String databaseName, String tableName) throws IOException;
 
   /**
-   * Get a map of partitions and related partition info based on constraints.
+   * Returns metadata for reading a table given constraints.
    *
    * @param dbName database name
    * @param tableName table name
    * @param constraint constraint
-   *
    * @return a map of partitions and related partition info
    */
-  List<PartitionInfo> getPartitions(String dbName, String tableName, Constraint constraint)
+  List<PartitionInfo> readTable(String dbName, String tableName, Constraint constraint)
       throws IOException;
 }

@@ -4,18 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.GetPartitionsPResponse}
+ * Protobuf type {@code alluxio.grpc.ReadTablePResponse}
  */
-public  final class GetPartitionsPResponse extends
+public  final class ReadTablePResponse extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.GetPartitionsPResponse)
-    GetPartitionsPResponseOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.ReadTablePResponse)
+    ReadTablePResponseOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use GetPartitionsPResponse.newBuilder() to construct.
-  private GetPartitionsPResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use ReadTablePResponse.newBuilder() to construct.
+  private ReadTablePResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private GetPartitionsPResponse() {
+  private ReadTablePResponse() {
     partitions_ = java.util.Collections.emptyList();
   }
 
@@ -24,7 +24,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private GetPartitionsPResponse(
+  private ReadTablePResponse(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -76,14 +76,14 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor;
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePResponse_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_fieldAccessorTable
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePResponse_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.GetPartitionsPResponse.class, alluxio.grpc.GetPartitionsPResponse.Builder.class);
+            alluxio.grpc.ReadTablePResponse.class, alluxio.grpc.ReadTablePResponse.Builder.class);
   }
 
   public static final int PARTITIONS_FIELD_NUMBER = 1;
@@ -158,10 +158,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.GetPartitionsPResponse)) {
+    if (!(obj instanceof alluxio.grpc.ReadTablePResponse)) {
       return super.equals(obj);
     }
-    alluxio.grpc.GetPartitionsPResponse other = (alluxio.grpc.GetPartitionsPResponse) obj;
+    alluxio.grpc.ReadTablePResponse other = (alluxio.grpc.ReadTablePResponse) obj;
 
     boolean result = true;
     result = result && getPartitionsList()
@@ -186,69 +186,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
+  public static alluxio.grpc.ReadTablePResponse parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
+  public static alluxio.grpc.ReadTablePResponse parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
+  public static alluxio.grpc.ReadTablePResponse parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
+  public static alluxio.grpc.ReadTablePResponse parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(byte[] data)
+  public static alluxio.grpc.ReadTablePResponse parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
+  public static alluxio.grpc.ReadTablePResponse parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.ReadTablePResponse parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
+  public static alluxio.grpc.ReadTablePResponse parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.ReadTablePResponse parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseDelimitedFrom(
+  public static alluxio.grpc.ReadTablePResponse parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
+  public static alluxio.grpc.ReadTablePResponse parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetPartitionsPResponse parseFrom(
+  public static alluxio.grpc.ReadTablePResponse parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -260,7 +260,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.GetPartitionsPResponse prototype) {
+  public static Builder newBuilder(alluxio.grpc.ReadTablePResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -275,25 +275,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.GetPartitionsPResponse}
+   * Protobuf type {@code alluxio.grpc.ReadTablePResponse}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.GetPartitionsPResponse)
-      alluxio.grpc.GetPartitionsPResponseOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.ReadTablePResponse)
+      alluxio.grpc.ReadTablePResponseOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePResponse_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_fieldAccessorTable
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.GetPartitionsPResponse.class, alluxio.grpc.GetPartitionsPResponse.Builder.class);
+              alluxio.grpc.ReadTablePResponse.class, alluxio.grpc.ReadTablePResponse.Builder.class);
     }
 
-    // Construct using alluxio.grpc.GetPartitionsPResponse.newBuilder()
+    // Construct using alluxio.grpc.ReadTablePResponse.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -322,23 +322,23 @@ private static final long serialVersionUID = 0L;
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_GetPartitionsPResponse_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePResponse_descriptor;
     }
 
-    public alluxio.grpc.GetPartitionsPResponse getDefaultInstanceForType() {
-      return alluxio.grpc.GetPartitionsPResponse.getDefaultInstance();
+    public alluxio.grpc.ReadTablePResponse getDefaultInstanceForType() {
+      return alluxio.grpc.ReadTablePResponse.getDefaultInstance();
     }
 
-    public alluxio.grpc.GetPartitionsPResponse build() {
-      alluxio.grpc.GetPartitionsPResponse result = buildPartial();
+    public alluxio.grpc.ReadTablePResponse build() {
+      alluxio.grpc.ReadTablePResponse result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.GetPartitionsPResponse buildPartial() {
-      alluxio.grpc.GetPartitionsPResponse result = new alluxio.grpc.GetPartitionsPResponse(this);
+    public alluxio.grpc.ReadTablePResponse buildPartial() {
+      alluxio.grpc.ReadTablePResponse result = new alluxio.grpc.ReadTablePResponse(this);
       int from_bitField0_ = bitField0_;
       if (partitionsBuilder_ == null) {
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -380,16 +380,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.GetPartitionsPResponse) {
-        return mergeFrom((alluxio.grpc.GetPartitionsPResponse)other);
+      if (other instanceof alluxio.grpc.ReadTablePResponse) {
+        return mergeFrom((alluxio.grpc.ReadTablePResponse)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.GetPartitionsPResponse other) {
-      if (other == alluxio.grpc.GetPartitionsPResponse.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.ReadTablePResponse other) {
+      if (other == alluxio.grpc.ReadTablePResponse.getDefaultInstance()) return this;
       if (partitionsBuilder_ == null) {
         if (!other.partitions_.isEmpty()) {
           if (partitions_.isEmpty()) {
@@ -429,11 +429,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.GetPartitionsPResponse parsedMessage = null;
+      alluxio.grpc.ReadTablePResponse parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.GetPartitionsPResponse) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.ReadTablePResponse) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -694,39 +694,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.GetPartitionsPResponse)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.ReadTablePResponse)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.GetPartitionsPResponse)
-  private static final alluxio.grpc.GetPartitionsPResponse DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.ReadTablePResponse)
+  private static final alluxio.grpc.ReadTablePResponse DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.GetPartitionsPResponse();
+    DEFAULT_INSTANCE = new alluxio.grpc.ReadTablePResponse();
   }
 
-  public static alluxio.grpc.GetPartitionsPResponse getDefaultInstance() {
+  public static alluxio.grpc.ReadTablePResponse getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetPartitionsPResponse>
-      PARSER = new com.google.protobuf.AbstractParser<GetPartitionsPResponse>() {
-    public GetPartitionsPResponse parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<ReadTablePResponse>
+      PARSER = new com.google.protobuf.AbstractParser<ReadTablePResponse>() {
+    public ReadTablePResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new GetPartitionsPResponse(input, extensionRegistry);
+      return new ReadTablePResponse(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<GetPartitionsPResponse> parser() {
+  public static com.google.protobuf.Parser<ReadTablePResponse> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<GetPartitionsPResponse> getParserForType() {
+  public com.google.protobuf.Parser<ReadTablePResponse> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.GetPartitionsPResponse getDefaultInstanceForType() {
+  public alluxio.grpc.ReadTablePResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

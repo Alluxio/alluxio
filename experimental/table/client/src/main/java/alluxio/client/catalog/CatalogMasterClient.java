@@ -23,9 +23,10 @@ import alluxio.master.MasterClientContext;
 
 import org.apache.iceberg.Schema;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A client to use for interacting with a catalog master.
@@ -123,6 +124,18 @@ public interface CatalogMasterClient extends Client {
       throws AlluxioStatusException;
 
   /**
+   * Returns metadata for reading a table given constraints.
+   *
+   * @param databaseName database name
+   * @param tableName table name
+   * @param constraint constraint on the columns
+   * @return list of partitions
+   * @throws AlluxioStatusException
+   */
+  List<PartitionInfo> readTable(String databaseName, String tableName,
+      Constraint constraint) throws AlluxioStatusException;
+
+  /**
    * Get table column statistics with given database name,
    * table name and list of column names.
    *
@@ -136,18 +149,6 @@ public interface CatalogMasterClient extends Client {
           String databaseName,
           String tableName,
           List<String> columnNames) throws AlluxioStatusException;
-
-  /**
-   * Get partition names with given database name and table name.
-   *
-   * @param databaseName database name
-   * @param tableName table name
-   * @param constraint constraint on the columns
-   * @return list of partitions
-   * @throws AlluxioStatusException
-   */
-  List<PartitionInfo> getPartitionByConstraint(String databaseName, String tableName,
-      Constraint constraint) throws AlluxioStatusException;
 
   /**
    * Get partition names with given database name and table name.
@@ -204,14 +205,4 @@ public interface CatalogMasterClient extends Client {
           String tableName,
           List<String> partitionNames,
           List<String> columnNames) throws AlluxioStatusException;
-
-  /**
-   * Get a list of datafiles associated with a table.
-   *
-   * @param dbName database name
-   * @param tableName table name
-   * @return a list of data files
-   * @throws AlluxioStatusException
-   */
-  List<String> getDataFiles(String dbName, String tableName) throws AlluxioStatusException;
 }

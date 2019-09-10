@@ -194,20 +194,10 @@ message GetTablePResponse {
     optional TableInfo table_info = 1;
 }
 
-message LoadTablePRequest {
-    optional string db_name = 1;
-    optional string table_name = 2;
-    optional string data_location = 3;
-}
-
 message CreateTablePRequest {
     optional string db_name = 1;
     optional string table_name = 2;
     optional Schema schema = 3;
-}
-
-message LoadTablePResponse {
-    optional bool success = 1;
 }
 
 message CreateTablePResponse {
@@ -297,13 +287,13 @@ message Constraint {
     map<string, Domain> column_constraints = 1; // maps column to constraint, columns not present are not constrained
 }
 
-message GetPartitionsPRequest {
+message ReadTablePRequest {
     optional string db_name = 1;
     optional string table_name = 2;
     optional Constraint constraint = 3;
 }
 
-message GetPartitionsPResponse {
+message ReadTablePResponse {
     repeated PartitionInfo partitions = 1;
 }
 
@@ -328,11 +318,6 @@ service CatalogMasterClientService {
     rpc GetTable(GetTablePRequest) returns (GetTablePResponse);
 
     /**
-     * Load a data table into the metastore
-     */
-    rpc LoadTable(LoadTablePRequest) returns (LoadTablePResponse);
-
-    /**
      * Create a new table in the metastore
      */
     rpc CreateTable(CreateTablePRequest) returns (CreateTablePResponse);
@@ -347,9 +332,7 @@ service CatalogMasterClientService {
      */
     rpc AttachDatabase(AttachDatabasePRequest) returns (AttachDatabasePResponse);
 
-    rpc GetDataFiles(GetDataFilesPRequest) returns (GetDataFilesPResponse);
-
     rpc GetStatistics(GetStatisticsPRequest) returns (GetStatisticsPResponse);
 
-    rpc GetPartitions(GetPartitionsPRequest) returns (GetPartitionsPResponse);
+    rpc ReadTable(ReadTablePRequest) returns (ReadTablePResponse);
 }

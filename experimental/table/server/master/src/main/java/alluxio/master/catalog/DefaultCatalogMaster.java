@@ -126,9 +126,9 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public List<PartitionInfo> getPartitions(String dbName, String tableName, Constraint constraint)
+  public List<PartitionInfo> readTable(String dbName, String tableName, Constraint constraint)
       throws IOException {
-    return mCatalog.getPartitions(dbName, tableName, constraint);
+    return mCatalog.readTable(dbName, tableName, constraint);
   }
 
   @Override
