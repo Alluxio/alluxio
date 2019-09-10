@@ -15,6 +15,8 @@ import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
+import alluxio.grpc.TableInfo;
+import alluxio.grpc.TableViewInfo;
 import alluxio.table.common.TableView;
 
 import java.util.Collections;
@@ -27,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TableVersion {
   public static final String DEFAULT_VIEW_NAME = "default";
+  private final Table mTable;
   private final Schema mSchema;
   /** this maps names to views of the table. Views are read-only per version. */
   private final Map<String, TableView> mViews;
@@ -34,9 +37,11 @@ public class TableVersion {
   /**
    * Creates an instance.
    *
+   * @param table the table
    * @param schema the table schema
    */
-  public TableVersion(Schema schema) {
+  public TableVersion(Table table, Schema schema) {
+    mTable = table;
     mSchema = schema;
     mViews = new ConcurrentHashMap<>();
     mViews.size(); // TODO(gpang): read the field
@@ -101,5 +106,22 @@ public class TableVersion {
       return view.getPartitions();
     }
     return Collections.emptyList();
+  }
+
+  /**
+   * @return the proto representation
+   */
+  public TableInfo toProto() {
+    TableInfo.Builder builder = TableInfo.newBuilder()
+        .setDbName(mTable.getDatabase().getName())
+        .setTableName(mTable.getName())
+        .setBaseLocation(getBaseLocation())
+        .setSchema(getSchema());
+
+    for (Map.Entry<String, TableView> entry : mViews.entrySet()) {
+      TableViewInfo viewInfo = entry.getValue().toProto(entry.getKey());
+      builder.addViews(viewInfo);
+    }
+    return builder.build();
   }
 }
