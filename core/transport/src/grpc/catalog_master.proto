@@ -159,6 +159,7 @@ message PartitionInfo {
   optional int64 writeId = 10;
   optional bool isStatsCompliant = 11;
   optional ColumnStatisticsInfo col_stats = 12; // column statistics for partition
+  map<string, ParquetMetadata> file_metadata = 13; // a map between file names and its parquet metadata info
 }
 
 message ColumnStatisticsInfo {
