@@ -79,4 +79,28 @@ public interface TableInfoOrBuilder extends
    * <code>optional .alluxio.grpc.Schema schema = 6;</code>
    */
   alluxio.grpc.SchemaOrBuilder getSchemaOrBuilder();
+
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  java.util.List<alluxio.grpc.TableViewInfo> 
+      getViewsList();
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  alluxio.grpc.TableViewInfo getViews(int index);
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  int getViewsCount();
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  java.util.List<? extends alluxio.grpc.TableViewInfoOrBuilder> 
+      getViewsOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.TableViewInfo views = 7;</code>
+   */
+  alluxio.grpc.TableViewInfoOrBuilder getViewsOrBuilder(
+      int index);
 }

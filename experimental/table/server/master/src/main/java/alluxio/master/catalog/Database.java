@@ -123,7 +123,7 @@ public class Database {
       if (table == null) {
         // add table from udb
         UdbTable udbTable = mUdb.getTable(tableName);
-        mTables.putIfAbsent(tableName, new Table(udbTable));
+        mTables.putIfAbsent(tableName, Table.create(this, udbTable));
       } else {
         // sync metadata from udb
         // TODO(gpang): implement
