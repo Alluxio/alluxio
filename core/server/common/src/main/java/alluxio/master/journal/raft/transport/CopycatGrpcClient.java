@@ -32,7 +32,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Copycat transport {@link Client} implementation that uses Alluxio gRPC.
@@ -82,16 +81,8 @@ public class CopycatGrpcClient implements Client {
         GrpcChannel channel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
             .setClientType("CopycatClient").setSubject(mUserState.getSubject())
-            .setKeepAliveTime(
-                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIME_MS),
-                TimeUnit.MILLISECONDS)
-            .setKeepAliveTimeout(
-                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_KEEPALIVE_TIMEOUT_MS),
-                TimeUnit.MILLISECONDS)
-            .setFlowControlWindow((int) mConf
-                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_FLOWCONTROL_WINDOW))
             .setMaxInboundMessageSize((int) mConf
-                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
             .build();
 
         // Create stub for receiving stream from server.
@@ -101,7 +92,7 @@ public class CopycatGrpcClient implements Client {
         // Create client connection that is bound to remote server stream.
         CopycatGrpcConnection clientConnection =
             new CopycatGrpcClientConnection(threadContext, mExecutor, channel,
-                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_NETWORK_REQUEST_TIMEOUT_MS));
+                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
         LOG.debug("Created copycat connection for target: {}", address);
