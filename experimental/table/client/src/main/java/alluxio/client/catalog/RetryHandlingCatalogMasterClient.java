@@ -12,9 +12,9 @@
 package alluxio.client.catalog;
 
 import alluxio.AbstractMasterClient;
+import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.experimental.ProtoUtils;
-import alluxio.Constants;
 import alluxio.grpc.AttachDatabasePRequest;
 import alluxio.grpc.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.ColumnStatisticsInfo;
@@ -25,20 +25,20 @@ import alluxio.grpc.Database;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllTablesPRequest;
-import alluxio.grpc.GetDataFilesPRequest;
-import alluxio.grpc.GetPartitionsPRequest;
 import alluxio.grpc.GetStatisticsPRequest;
 import alluxio.grpc.GetTablePRequest;
 import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.ReadTablePRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.TableInfo;
 import alluxio.master.MasterClientContext;
 
 import org.apache.iceberg.Schema;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A wrapper for the gRPC client to interact with the catalog master.
@@ -127,6 +127,14 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
+  public List<PartitionInfo> readTable(String databaseName, String tableName, Constraint constraint)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.readTable(
+        ReadTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName)
+            .setConstraint(constraint).build()).getPartitionsList());
+  }
+
+  @Override
   public Map<String, FileStatistics> getTableColumnStatistics(
           String databaseName,
           String tableName,
@@ -134,22 +142,6 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient.getStatistics(
         GetStatisticsPRequest.newBuilder().setDbName(databaseName)
             .setTableName(tableName).build()).getStatisticsMap());
-  }
-
-  @Override
-  public List<PartitionInfo> getPartitionByConstraint(String databaseName, String tableName,
-      Constraint constraint) throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getPartitions(
-        GetPartitionsPRequest.newBuilder().setDbName(databaseName)
-            .setTableName(tableName).setConstraint(constraint).build()).getPartitionsList());
-  }
-
-  @Override
-  public List<String> getDataFiles(String dbName, String tableName)
-      throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getDataFiles(
-        GetDataFilesPRequest.newBuilder().setDbName(dbName)
-            .setTableName(tableName).build()).getDataFileList());
   }
 
   @Override

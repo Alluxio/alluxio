@@ -4,21 +4,20 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.LoadTablePRequest}
+ * Protobuf type {@code alluxio.grpc.ReadTablePRequest}
  */
-public  final class LoadTablePRequest extends
+public  final class ReadTablePRequest extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.LoadTablePRequest)
-    LoadTablePRequestOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.ReadTablePRequest)
+    ReadTablePRequestOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use LoadTablePRequest.newBuilder() to construct.
-  private LoadTablePRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use ReadTablePRequest.newBuilder() to construct.
+  private ReadTablePRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private LoadTablePRequest() {
+  private ReadTablePRequest() {
     dbName_ = "";
     tableName_ = "";
-    dataLocation_ = "";
   }
 
   @java.lang.Override
@@ -26,7 +25,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private LoadTablePRequest(
+  private ReadTablePRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -65,9 +64,16 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 26: {
-            com.google.protobuf.ByteString bs = input.readBytes();
+            alluxio.grpc.Constraint.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000004) == 0x00000004)) {
+              subBuilder = constraint_.toBuilder();
+            }
+            constraint_ = input.readMessage(alluxio.grpc.Constraint.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(constraint_);
+              constraint_ = subBuilder.buildPartial();
+            }
             bitField0_ |= 0x00000004;
-            dataLocation_ = bs;
             break;
           }
         }
@@ -84,14 +90,14 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_LoadTablePRequest_descriptor;
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePRequest_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_LoadTablePRequest_fieldAccessorTable
+    return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePRequest_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.LoadTablePRequest.class, alluxio.grpc.LoadTablePRequest.Builder.class);
+            alluxio.grpc.ReadTablePRequest.class, alluxio.grpc.ReadTablePRequest.Builder.class);
   }
 
   private int bitField0_;
@@ -179,46 +185,25 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int DATA_LOCATION_FIELD_NUMBER = 3;
-  private volatile java.lang.Object dataLocation_;
+  public static final int CONSTRAINT_FIELD_NUMBER = 3;
+  private alluxio.grpc.Constraint constraint_;
   /**
-   * <code>optional string data_location = 3;</code>
+   * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
    */
-  public boolean hasDataLocation() {
+  public boolean hasConstraint() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional string data_location = 3;</code>
+   * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
    */
-  public java.lang.String getDataLocation() {
-    java.lang.Object ref = dataLocation_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        dataLocation_ = s;
-      }
-      return s;
-    }
+  public alluxio.grpc.Constraint getConstraint() {
+    return constraint_ == null ? alluxio.grpc.Constraint.getDefaultInstance() : constraint_;
   }
   /**
-   * <code>optional string data_location = 3;</code>
+   * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
    */
-  public com.google.protobuf.ByteString
-      getDataLocationBytes() {
-    java.lang.Object ref = dataLocation_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      dataLocation_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
+  public alluxio.grpc.ConstraintOrBuilder getConstraintOrBuilder() {
+    return constraint_ == null ? alluxio.grpc.Constraint.getDefaultInstance() : constraint_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -240,7 +225,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, dataLocation_);
+      output.writeMessage(3, getConstraint());
     }
     unknownFields.writeTo(output);
   }
@@ -257,7 +242,8 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, dataLocation_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(3, getConstraint());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -269,10 +255,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.LoadTablePRequest)) {
+    if (!(obj instanceof alluxio.grpc.ReadTablePRequest)) {
       return super.equals(obj);
     }
-    alluxio.grpc.LoadTablePRequest other = (alluxio.grpc.LoadTablePRequest) obj;
+    alluxio.grpc.ReadTablePRequest other = (alluxio.grpc.ReadTablePRequest) obj;
 
     boolean result = true;
     result = result && (hasDbName() == other.hasDbName());
@@ -285,10 +271,10 @@ private static final long serialVersionUID = 0L;
       result = result && getTableName()
           .equals(other.getTableName());
     }
-    result = result && (hasDataLocation() == other.hasDataLocation());
-    if (hasDataLocation()) {
-      result = result && getDataLocation()
-          .equals(other.getDataLocation());
+    result = result && (hasConstraint() == other.hasConstraint());
+    if (hasConstraint()) {
+      result = result && getConstraint()
+          .equals(other.getConstraint());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -309,78 +295,78 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + TABLE_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getTableName().hashCode();
     }
-    if (hasDataLocation()) {
-      hash = (37 * hash) + DATA_LOCATION_FIELD_NUMBER;
-      hash = (53 * hash) + getDataLocation().hashCode();
+    if (hasConstraint()) {
+      hash = (37 * hash) + CONSTRAINT_FIELD_NUMBER;
+      hash = (53 * hash) + getConstraint().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.LoadTablePRequest parseFrom(
+  public static alluxio.grpc.ReadTablePRequest parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(
+  public static alluxio.grpc.ReadTablePRequest parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(
+  public static alluxio.grpc.ReadTablePRequest parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(
+  public static alluxio.grpc.ReadTablePRequest parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(byte[] data)
+  public static alluxio.grpc.ReadTablePRequest parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(
+  public static alluxio.grpc.ReadTablePRequest parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.ReadTablePRequest parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(
+  public static alluxio.grpc.ReadTablePRequest parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.LoadTablePRequest parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.ReadTablePRequest parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.LoadTablePRequest parseDelimitedFrom(
+  public static alluxio.grpc.ReadTablePRequest parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(
+  public static alluxio.grpc.ReadTablePRequest parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.LoadTablePRequest parseFrom(
+  public static alluxio.grpc.ReadTablePRequest parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -392,7 +378,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.LoadTablePRequest prototype) {
+  public static Builder newBuilder(alluxio.grpc.ReadTablePRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -407,25 +393,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.LoadTablePRequest}
+   * Protobuf type {@code alluxio.grpc.ReadTablePRequest}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.LoadTablePRequest)
-      alluxio.grpc.LoadTablePRequestOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.ReadTablePRequest)
+      alluxio.grpc.ReadTablePRequestOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_LoadTablePRequest_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePRequest_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_LoadTablePRequest_fieldAccessorTable
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.LoadTablePRequest.class, alluxio.grpc.LoadTablePRequest.Builder.class);
+              alluxio.grpc.ReadTablePRequest.class, alluxio.grpc.ReadTablePRequest.Builder.class);
     }
 
-    // Construct using alluxio.grpc.LoadTablePRequest.newBuilder()
+    // Construct using alluxio.grpc.ReadTablePRequest.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -438,6 +424,7 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getConstraintFieldBuilder();
       }
     }
     public Builder clear() {
@@ -446,30 +433,34 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       tableName_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
-      dataLocation_ = "";
+      if (constraintBuilder_ == null) {
+        constraint_ = null;
+      } else {
+        constraintBuilder_.clear();
+      }
       bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_LoadTablePRequest_descriptor;
+      return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ReadTablePRequest_descriptor;
     }
 
-    public alluxio.grpc.LoadTablePRequest getDefaultInstanceForType() {
-      return alluxio.grpc.LoadTablePRequest.getDefaultInstance();
+    public alluxio.grpc.ReadTablePRequest getDefaultInstanceForType() {
+      return alluxio.grpc.ReadTablePRequest.getDefaultInstance();
     }
 
-    public alluxio.grpc.LoadTablePRequest build() {
-      alluxio.grpc.LoadTablePRequest result = buildPartial();
+    public alluxio.grpc.ReadTablePRequest build() {
+      alluxio.grpc.ReadTablePRequest result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.LoadTablePRequest buildPartial() {
-      alluxio.grpc.LoadTablePRequest result = new alluxio.grpc.LoadTablePRequest(this);
+    public alluxio.grpc.ReadTablePRequest buildPartial() {
+      alluxio.grpc.ReadTablePRequest result = new alluxio.grpc.ReadTablePRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -483,7 +474,11 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000004;
       }
-      result.dataLocation_ = dataLocation_;
+      if (constraintBuilder_ == null) {
+        result.constraint_ = constraint_;
+      } else {
+        result.constraint_ = constraintBuilder_.build();
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -516,16 +511,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.LoadTablePRequest) {
-        return mergeFrom((alluxio.grpc.LoadTablePRequest)other);
+      if (other instanceof alluxio.grpc.ReadTablePRequest) {
+        return mergeFrom((alluxio.grpc.ReadTablePRequest)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.LoadTablePRequest other) {
-      if (other == alluxio.grpc.LoadTablePRequest.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.ReadTablePRequest other) {
+      if (other == alluxio.grpc.ReadTablePRequest.getDefaultInstance()) return this;
       if (other.hasDbName()) {
         bitField0_ |= 0x00000001;
         dbName_ = other.dbName_;
@@ -536,10 +531,8 @@ private static final long serialVersionUID = 0L;
         tableName_ = other.tableName_;
         onChanged();
       }
-      if (other.hasDataLocation()) {
-        bitField0_ |= 0x00000004;
-        dataLocation_ = other.dataLocation_;
-        onChanged();
+      if (other.hasConstraint()) {
+        mergeConstraint(other.getConstraint());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -554,11 +547,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.LoadTablePRequest parsedMessage = null;
+      alluxio.grpc.ReadTablePRequest parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.LoadTablePRequest) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.ReadTablePRequest) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -721,80 +714,122 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object dataLocation_ = "";
+    private alluxio.grpc.Constraint constraint_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.Constraint, alluxio.grpc.Constraint.Builder, alluxio.grpc.ConstraintOrBuilder> constraintBuilder_;
     /**
-     * <code>optional string data_location = 3;</code>
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
      */
-    public boolean hasDataLocation() {
+    public boolean hasConstraint() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string data_location = 3;</code>
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
      */
-    public java.lang.String getDataLocation() {
-      java.lang.Object ref = dataLocation_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          dataLocation_ = s;
+    public alluxio.grpc.Constraint getConstraint() {
+      if (constraintBuilder_ == null) {
+        return constraint_ == null ? alluxio.grpc.Constraint.getDefaultInstance() : constraint_;
+      } else {
+        return constraintBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
+     */
+    public Builder setConstraint(alluxio.grpc.Constraint value) {
+      if (constraintBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
         }
-        return s;
+        constraint_ = value;
+        onChanged();
       } else {
-        return (java.lang.String) ref;
+        constraintBuilder_.setMessage(value);
       }
-    }
-    /**
-     * <code>optional string data_location = 3;</code>
-     */
-    public com.google.protobuf.ByteString
-        getDataLocationBytes() {
-      java.lang.Object ref = dataLocation_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        dataLocation_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string data_location = 3;</code>
-     */
-    public Builder setDataLocation(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-      dataLocation_ = value;
-      onChanged();
+      bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional string data_location = 3;</code>
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
      */
-    public Builder clearDataLocation() {
+    public Builder setConstraint(
+        alluxio.grpc.Constraint.Builder builderForValue) {
+      if (constraintBuilder_ == null) {
+        constraint_ = builderForValue.build();
+        onChanged();
+      } else {
+        constraintBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000004;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
+     */
+    public Builder mergeConstraint(alluxio.grpc.Constraint value) {
+      if (constraintBuilder_ == null) {
+        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+            constraint_ != null &&
+            constraint_ != alluxio.grpc.Constraint.getDefaultInstance()) {
+          constraint_ =
+            alluxio.grpc.Constraint.newBuilder(constraint_).mergeFrom(value).buildPartial();
+        } else {
+          constraint_ = value;
+        }
+        onChanged();
+      } else {
+        constraintBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000004;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
+     */
+    public Builder clearConstraint() {
+      if (constraintBuilder_ == null) {
+        constraint_ = null;
+        onChanged();
+      } else {
+        constraintBuilder_.clear();
+      }
       bitField0_ = (bitField0_ & ~0x00000004);
-      dataLocation_ = getDefaultInstance().getDataLocation();
-      onChanged();
       return this;
     }
     /**
-     * <code>optional string data_location = 3;</code>
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
      */
-    public Builder setDataLocationBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-      dataLocation_ = value;
+    public alluxio.grpc.Constraint.Builder getConstraintBuilder() {
+      bitField0_ |= 0x00000004;
       onChanged();
-      return this;
+      return getConstraintFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
+     */
+    public alluxio.grpc.ConstraintOrBuilder getConstraintOrBuilder() {
+      if (constraintBuilder_ != null) {
+        return constraintBuilder_.getMessageOrBuilder();
+      } else {
+        return constraint_ == null ?
+            alluxio.grpc.Constraint.getDefaultInstance() : constraint_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.Constraint constraint = 3;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.Constraint, alluxio.grpc.Constraint.Builder, alluxio.grpc.ConstraintOrBuilder> 
+        getConstraintFieldBuilder() {
+      if (constraintBuilder_ == null) {
+        constraintBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.Constraint, alluxio.grpc.Constraint.Builder, alluxio.grpc.ConstraintOrBuilder>(
+                getConstraint(),
+                getParentForChildren(),
+                isClean());
+        constraint_ = null;
+      }
+      return constraintBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -807,39 +842,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.LoadTablePRequest)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.ReadTablePRequest)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.LoadTablePRequest)
-  private static final alluxio.grpc.LoadTablePRequest DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.ReadTablePRequest)
+  private static final alluxio.grpc.ReadTablePRequest DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.LoadTablePRequest();
+    DEFAULT_INSTANCE = new alluxio.grpc.ReadTablePRequest();
   }
 
-  public static alluxio.grpc.LoadTablePRequest getDefaultInstance() {
+  public static alluxio.grpc.ReadTablePRequest getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<LoadTablePRequest>
-      PARSER = new com.google.protobuf.AbstractParser<LoadTablePRequest>() {
-    public LoadTablePRequest parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<ReadTablePRequest>
+      PARSER = new com.google.protobuf.AbstractParser<ReadTablePRequest>() {
+    public ReadTablePRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new LoadTablePRequest(input, extensionRegistry);
+      return new ReadTablePRequest(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<LoadTablePRequest> parser() {
+  public static com.google.protobuf.Parser<ReadTablePRequest> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<LoadTablePRequest> getParserForType() {
+  public com.google.protobuf.Parser<ReadTablePRequest> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.LoadTablePRequest getDefaultInstanceForType() {
+  public alluxio.grpc.ReadTablePRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

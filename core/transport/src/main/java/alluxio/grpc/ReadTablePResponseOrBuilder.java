@@ -3,8 +3,8 @@
 
 package alluxio.grpc;
 
-public interface GetPartitionsPResponseOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:alluxio.grpc.GetPartitionsPResponse)
+public interface ReadTablePResponseOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:alluxio.grpc.ReadTablePResponse)
     com.google.protobuf.MessageOrBuilder {
 
   /**
