@@ -83,7 +83,7 @@ public final class NetworkAddressUtils {
      * underlying Raft implementation doesn't differentiate between bind and connect hosts.
      */
     MASTER_RAFT("Alluxio Master Raft service", PropertyKey.MASTER_HOSTNAME,
-        PropertyKey.MASTER_HOSTNAME, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
+        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
 
     /**
      * Job master RPC service (gRPC).
