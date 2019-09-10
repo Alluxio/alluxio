@@ -109,7 +109,7 @@ public abstract class AbstractJournalDumper {
 
   private void readRocksCheckpoint(CheckpointInputStream checkpoint, Path path) throws IOException {
     // An empty dir for storing the db.
-    Path dbPath = Paths.get(path.toFile().getPath() + "rocks-db");
+    Path dbPath = Paths.get(path.toFile().getPath() + "-rocks-db");
     // Create RocksInodeStore over checkpoint stream for extracting the inodes.
     try (PrintStream out =
         new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
