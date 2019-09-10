@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.BackupPOptionsOrBuilder;
 import alluxio.master.BackupManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;

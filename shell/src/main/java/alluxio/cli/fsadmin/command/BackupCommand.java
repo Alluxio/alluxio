@@ -36,7 +36,8 @@ public class BackupCommand extends AbstractFsAdminCommand {
           .longOpt("ufs")
           .required(false)
           .hasArg(false)
-          .desc("whether to write the backup to the root UFS instead of the local filesystem of leader master")
+          .desc("whether to write the backup to the root UFS "
+              + "instead of the local filesystem of leader master")
           .build();
   /**
    * @param context fsadmin command context
