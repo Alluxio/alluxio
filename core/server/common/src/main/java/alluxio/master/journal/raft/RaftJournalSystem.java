@@ -255,7 +255,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   private static List<Address> getClusterAddresses(RaftJournalConfiguration conf) {
     return conf.getClusterAddresses().stream()
-        .map(addr -> new Address(addr.getHostName(), addr.getPort()))
+        .map(addr -> new Address(addr))
         .collect(Collectors.toList());
   }
 

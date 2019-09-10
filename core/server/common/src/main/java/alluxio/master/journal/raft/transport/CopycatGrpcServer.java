@@ -19,6 +19,7 @@ import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.security.user.UserState;
+import alluxio.util.network.NetworkAddressUtils;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.transport.Address;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -96,8 +98,12 @@ public class CopycatGrpcServer implements Server {
       };
 
       // Create gRPC server.
+      InetSocketAddress rpcBindAddress = new InetSocketAddress(
+          NetworkAddressUtils.getBindHost(NetworkAddressUtils.ServiceType.MASTER_RAFT, mConf),
+          address.port());
+      LOG.info("Copycat server rpc bind address is {}", rpcBindAddress.toString());
       mGrpcServer = GrpcServerBuilder
-          .forAddress(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf,
+          .forAddress(GrpcServerAddress.create(address.host(), rpcBindAddress), mConf,
               mUserState)
           .maxInboundMessageSize((int) mConf
               .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
