@@ -118,8 +118,6 @@ message ColumnPath {
     repeated string path_segment = 1;
 }
 
-
-
 message ColumnChunkMetaData {
     optional ColumnPath path = 1;
     optional PrimitiveTypeName type = 2;

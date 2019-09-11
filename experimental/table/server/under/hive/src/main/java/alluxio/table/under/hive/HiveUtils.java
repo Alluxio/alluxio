@@ -25,6 +25,8 @@ import alluxio.grpc.Repetition;
 import alluxio.grpc.Schema;
 import alluxio.grpc.Type;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.parquet.column.Encoding;
@@ -100,8 +102,8 @@ public class HiveUtils {
     throw new IllegalArgumentException("Unsupported hive type: " + hiveType);
   }
 
-  private static final Map<PrimitiveType.PrimitiveTypeName, PrimitiveTypeName> TYPEMAP
-      = new ImmutableMap.Builder<PrimitiveType.PrimitiveTypeName, PrimitiveTypeName>()
+  private static final BiMap<PrimitiveType.PrimitiveTypeName, PrimitiveTypeName> TYPEMAP
+      = new ImmutableBiMap.Builder<PrimitiveType.PrimitiveTypeName, PrimitiveTypeName>()
       .put(PrimitiveType.PrimitiveTypeName.BINARY, PrimitiveTypeName.PARQUETTYPE_BINARY)
       .put(PrimitiveType.PrimitiveTypeName.INT32, PrimitiveTypeName.PARQUETTYPE_INT32)
       .put(PrimitiveType.PrimitiveTypeName.INT64, PrimitiveTypeName.PARQUETTYPE_INT64)
@@ -113,14 +115,14 @@ public class HiveUtils {
           PrimitiveTypeName.PARQUETTYPE_FIXED_LEN_BYTE_ARRAY)
       .build();
 
-  private static final Map<org.apache.parquet.schema.Type.Repetition, Repetition> REPETITIONMAP
-      = ImmutableMap.of(org.apache.parquet.schema.Type.Repetition.OPTIONAL, Repetition.OPTIONAL,
+  private static final BiMap<org.apache.parquet.schema.Type.Repetition, Repetition> REPETITIONMAP
+      = ImmutableBiMap.of(org.apache.parquet.schema.Type.Repetition.OPTIONAL, Repetition.OPTIONAL,
       org.apache.parquet.schema.Type.Repetition.REPEATED, Repetition.REPEATED,
       org.apache.parquet.schema.Type.Repetition.REQUIRED, Repetition.REQUIRED);
 
-  private static final Map<org.apache.parquet.column.Encoding,
+  private static final BiMap<org.apache.parquet.column.Encoding,
       ColumnChunkMetaData.Encoding> ENCODINGMAP =
-      new ImmutableMap.Builder<org.apache.parquet.column.Encoding,
+      new ImmutableBiMap.Builder<org.apache.parquet.column.Encoding,
       ColumnChunkMetaData.Encoding>()
       .put(Encoding.PLAIN, ColumnChunkMetaData.Encoding.PLAIN)
       .put(Encoding.RLE, ColumnChunkMetaData.Encoding.RLE)
@@ -132,9 +134,9 @@ public class HiveUtils {
       .put(Encoding.PLAIN_DICTIONARY, ColumnChunkMetaData.Encoding.PLAIN_DICTIONARY)
       .build();
 
-  private static final Map<CompressionCodecName,
+  private static final BiMap<CompressionCodecName,
       ColumnChunkMetaData.CompressionCodecName> CODECMAP =
-      new ImmutableMap.Builder<CompressionCodecName, ColumnChunkMetaData.CompressionCodecName>()
+      new ImmutableBiMap.Builder<CompressionCodecName, ColumnChunkMetaData.CompressionCodecName>()
           .put(CompressionCodecName.BROTLI, ColumnChunkMetaData.CompressionCodecName.BROTLI)
           .put(CompressionCodecName.GZIP, ColumnChunkMetaData.CompressionCodecName.GZIP)
           .put(CompressionCodecName.LZ4, ColumnChunkMetaData.CompressionCodecName.LZ4)
@@ -218,5 +220,75 @@ public class HiveUtils {
     builder.setType(TYPEMAP.get(columnChunkMetaData.getType()));
     builder.setCodec(CODECMAP.get(columnChunkMetaData.getCodec()));
     return builder.build();
+  }
+
+  /**
+   * Convert from the proto represetation to ParquetMetadata.
+   *
+   * @param parquetMetadata parquet metadata
+   * @return proto representation of the parquet metadata
+   */
+  public static org.apache.parquet.hadoop.metadata.ParquetMetadata fromProto(
+      ParquetMetadata parquetMetadata) {
+    return new org.apache.parquet.hadoop.metadata.ParquetMetadata(
+        fromProto(parquetMetadata.getFileMetadata()),
+        parquetMetadata.getBlockMetadataList().stream().map(HiveUtils::fromProto)
+            .collect(Collectors.toList()));
+  }
+
+  private static BlockMetaData fromProto(BlockMetadata blockMetadata) {
+    BlockMetaData metadata = new BlockMetaData();
+    for (ColumnChunkMetaData chunkMetaData : blockMetadata.getColDataList()) {
+      metadata.addColumn(fromProto(chunkMetaData));
+    }
+    metadata.setPath(blockMetadata.getPath());
+    metadata.setRowCount(blockMetadata.getRowCount());
+    metadata.setTotalByteSize(blockMetadata.getTotalByteCount());
+    return metadata;
+  }
+
+  private static org.apache.parquet.hadoop.metadata.ColumnChunkMetaData fromProto(ColumnChunkMetaData chunkMetaData) {
+    // use a non-deprecated constructor, add stats to the proto
+    return org.apache.parquet.hadoop.metadata.ColumnChunkMetaData.get(
+        org.apache.parquet.hadoop.metadata.ColumnPath.get(
+            chunkMetaData.getPath().getPathSegmentList().toArray(new String[0])),
+        TYPEMAP.inverse().get(chunkMetaData.getType()),
+        CODECMAP.inverse().get(chunkMetaData.getCodec()),
+        null,
+        chunkMetaData.getEncodingsList().stream().map((x) -> ENCODINGMAP.inverse().get(x)).collect(Collectors.toSet()),
+        null,
+        chunkMetaData.getFirstDataPage(),
+        chunkMetaData.getPageOffset(),
+        chunkMetaData.getValueCount(),
+        chunkMetaData.getTotalSize(),
+        chunkMetaData.getTotalUncompressedSize()
+    );
+  }
+
+  private static FileMetaData fromProto(FileMetadata parquetMetadata) {
+    return new FileMetaData(fromProto(parquetMetadata.getSchema()),
+        parquetMetadata.getKeyValueMetadataMap(),
+        parquetMetadata.getCreatedBy());
+  }
+
+  private static org.apache.parquet.schema.MessageType fromProto(MessageType schema) {
+    return new org.apache.parquet.schema.MessageType(schema.getName(),
+        schema.getTypeList().stream().map(HiveUtils::fromProto).collect(Collectors.toList()));
+  }
+
+  private static org.apache.parquet.schema.Type fromProto(FieldType fieldType) {
+    if (fieldType.hasTypeId()) {
+      //primitive type
+      return new org.apache.parquet.schema.PrimitiveType(
+          REPETITIONMAP.inverse().get(fieldType.getRepetition()),
+          TYPEMAP.inverse().get(fieldType.getTypeId()),
+          fieldType.getName());
+    } else {
+      return new org.apache.parquet.schema.GroupType(
+          REPETITIONMAP.inverse().get(fieldType.getRepetition()),
+          fieldType.getName(),
+          fieldType.getGroup().getFieldsList().stream().map(HiveUtils::fromProto)
+              .collect(Collectors.toList()));
+    }
   }
 }
