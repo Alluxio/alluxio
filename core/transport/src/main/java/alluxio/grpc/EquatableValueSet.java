@@ -17,6 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private EquatableValueSet() {
     candidates_ = java.util.Collections.emptyList();
+    whiteList_ = false;
   }
 
   @java.lang.Override
@@ -59,6 +60,11 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(alluxio.grpc.Value.PARSER, extensionRegistry));
             break;
           }
+          case 16: {
+            bitField0_ |= 0x00000001;
+            whiteList_ = input.readBool();
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -86,6 +92,7 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.EquatableValueSet.class, alluxio.grpc.EquatableValueSet.Builder.class);
   }
 
+  private int bitField0_;
   public static final int CANDIDATES_FIELD_NUMBER = 1;
   private java.util.List<alluxio.grpc.Value> candidates_;
   /**
@@ -121,6 +128,21 @@ private static final long serialVersionUID = 0L;
     return candidates_.get(index);
   }
 
+  public static final int WHITE_LIST_FIELD_NUMBER = 2;
+  private boolean whiteList_;
+  /**
+   * <code>optional bool white_list = 2;</code>
+   */
+  public boolean hasWhiteList() {
+    return ((bitField0_ & 0x00000001) == 0x00000001);
+  }
+  /**
+   * <code>optional bool white_list = 2;</code>
+   */
+  public boolean getWhiteList() {
+    return whiteList_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -136,6 +158,9 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < candidates_.size(); i++) {
       output.writeMessage(1, candidates_.get(i));
     }
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      output.writeBool(2, whiteList_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -147,6 +172,10 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < candidates_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, candidates_.get(i));
+    }
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(2, whiteList_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -166,6 +195,11 @@ private static final long serialVersionUID = 0L;
     boolean result = true;
     result = result && getCandidatesList()
         .equals(other.getCandidatesList());
+    result = result && (hasWhiteList() == other.hasWhiteList());
+    if (hasWhiteList()) {
+      result = result && (getWhiteList()
+          == other.getWhiteList());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -180,6 +214,11 @@ private static final long serialVersionUID = 0L;
     if (getCandidatesCount() > 0) {
       hash = (37 * hash) + CANDIDATES_FIELD_NUMBER;
       hash = (53 * hash) + getCandidatesList().hashCode();
+    }
+    if (hasWhiteList()) {
+      hash = (37 * hash) + WHITE_LIST_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getWhiteList());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -317,6 +356,8 @@ private static final long serialVersionUID = 0L;
       } else {
         candidatesBuilder_.clear();
       }
+      whiteList_ = false;
+      bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
@@ -340,6 +381,7 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.EquatableValueSet buildPartial() {
       alluxio.grpc.EquatableValueSet result = new alluxio.grpc.EquatableValueSet(this);
       int from_bitField0_ = bitField0_;
+      int to_bitField0_ = 0;
       if (candidatesBuilder_ == null) {
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
           candidates_ = java.util.Collections.unmodifiableList(candidates_);
@@ -349,6 +391,11 @@ private static final long serialVersionUID = 0L;
       } else {
         result.candidates_ = candidatesBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        to_bitField0_ |= 0x00000001;
+      }
+      result.whiteList_ = whiteList_;
+      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -415,6 +462,9 @@ private static final long serialVersionUID = 0L;
             candidatesBuilder_.addAllMessages(other.candidates_);
           }
         }
+      }
+      if (other.hasWhiteList()) {
+        setWhiteList(other.getWhiteList());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -682,6 +732,38 @@ private static final long serialVersionUID = 0L;
         candidates_ = null;
       }
       return candidatesBuilder_;
+    }
+
+    private boolean whiteList_ ;
+    /**
+     * <code>optional bool white_list = 2;</code>
+     */
+    public boolean hasWhiteList() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool white_list = 2;</code>
+     */
+    public boolean getWhiteList() {
+      return whiteList_;
+    }
+    /**
+     * <code>optional bool white_list = 2;</code>
+     */
+    public Builder setWhiteList(boolean value) {
+      bitField0_ |= 0x00000002;
+      whiteList_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool white_list = 2;</code>
+     */
+    public Builder clearWhiteList() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      whiteList_ = false;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
