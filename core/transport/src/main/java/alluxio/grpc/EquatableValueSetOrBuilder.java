@@ -30,4 +30,13 @@ public interface EquatableValueSetOrBuilder extends
    */
   alluxio.grpc.ValueOrBuilder getCandidatesOrBuilder(
       int index);
+
+  /**
+   * <code>optional bool white_list = 2;</code>
+   */
+  boolean hasWhiteList();
+  /**
+   * <code>optional bool white_list = 2;</code>
+   */
+  boolean getWhiteList();
 }
