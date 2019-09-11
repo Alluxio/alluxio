@@ -27,7 +27,6 @@ import alluxio.grpc.Type;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.parquet.column.Encoding;
 import org.apache.parquet.hadoop.metadata.BlockMetaData;
@@ -37,7 +36,6 @@ import org.apache.parquet.schema.PrimitiveType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -247,7 +245,8 @@ public class HiveUtils {
     return metadata;
   }
 
-  private static org.apache.parquet.hadoop.metadata.ColumnChunkMetaData fromProto(ColumnChunkMetaData chunkMetaData) {
+  private static org.apache.parquet.hadoop.metadata.ColumnChunkMetaData fromProto(
+      ColumnChunkMetaData chunkMetaData) {
     // use a non-deprecated constructor, add stats to the proto
     return org.apache.parquet.hadoop.metadata.ColumnChunkMetaData.get(
         org.apache.parquet.hadoop.metadata.ColumnPath.get(
@@ -255,7 +254,8 @@ public class HiveUtils {
         TYPEMAP.inverse().get(chunkMetaData.getType()),
         CODECMAP.inverse().get(chunkMetaData.getCodec()),
         null,
-        chunkMetaData.getEncodingsList().stream().map((x) -> ENCODINGMAP.inverse().get(x)).collect(Collectors.toSet()),
+        chunkMetaData.getEncodingsList().stream().map(
+            (x) -> ENCODINGMAP.inverse().get(x)).collect(Collectors.toSet()),
         null,
         chunkMetaData.getFirstDataPage(),
         chunkMetaData.getPageOffset(),
