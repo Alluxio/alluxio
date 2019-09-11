@@ -27,19 +27,22 @@ Usage: alluxio fsadmin [generic options]
 
 ### backup
 
-The `backup` command creates a backup of Alluxio metadata. By default, this is the '$ALLUXIO_HOME/alluxio_backups'
-on the primary Alluxio Master.
+The `backup` command backs up all Alluxio metadata to the backup directory configured on the leader master.
 
-Back up to the default backup folder (this default can be configured by setting `alluxio.master.backup.directory`)
+Back up to the default backup folder `/alluxio_backups` of the root under storage system. 
+This default backup directory can be configured by setting `alluxio.master.backup.directory`. 
 ```
 ./bin/alluxio fsadmin backup
-Successfully backed up journal to /opt/alluxio/alluxio_backups/alluxio-backup-2019-06-13-1560446387260.gz
+Successfully backed up journal to hdfs://host:port/alluxio_backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
-Back up to a specific directory in the under storage.
+Note that the user running the `backup` command need to have write permission to the backup folder of root under storage system.
+
+Back up to a specific directory in the root under storage system.
 ```
 ./bin/alluxio fsadmin backup /alluxio/special_backups
-Successfully backed up journal to hdfs://mycluster/alluxio/special_backups/alluxio-backup-2018-5-29-1527644810.gz
+Successfully backed up journal to hdfs://host:port/alluxio/special_backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
+
 Back up to a specific directory on the leading master's local filesystem.
 ```
 ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
