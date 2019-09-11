@@ -55,5 +55,4 @@ public class CatalogMasterTest {
     mCatalogMaster.attachDatabase("alluxiodb", "hive", new CatalogConfiguration(config));
     mCatalogMaster.getAllTables("alluxiodb");
   }
-
 }
