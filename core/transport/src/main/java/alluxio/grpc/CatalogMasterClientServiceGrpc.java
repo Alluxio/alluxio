@@ -95,6 +95,38 @@ public final class CatalogMasterClientServiceGrpc {
      return getGetAllTablesMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetDatabasePRequest,
+      alluxio.grpc.GetDatabasePResponse> getGetDatabaseMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetDatabase",
+      requestType = alluxio.grpc.GetDatabasePRequest.class,
+      responseType = alluxio.grpc.GetDatabasePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetDatabasePRequest,
+      alluxio.grpc.GetDatabasePResponse> getGetDatabaseMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetDatabasePRequest, alluxio.grpc.GetDatabasePResponse> getGetDatabaseMethod;
+    if ((getGetDatabaseMethod = CatalogMasterClientServiceGrpc.getGetDatabaseMethod) == null) {
+      synchronized (CatalogMasterClientServiceGrpc.class) {
+        if ((getGetDatabaseMethod = CatalogMasterClientServiceGrpc.getGetDatabaseMethod) == null) {
+          CatalogMasterClientServiceGrpc.getGetDatabaseMethod = getGetDatabaseMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetDatabasePRequest, alluxio.grpc.GetDatabasePResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.CatalogMasterClientService", "GetDatabase"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetDatabasePRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetDatabasePResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("GetDatabase"))
+                  .build();
+          }
+        }
+     }
+     return getGetDatabaseMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetTablePRequest,
       alluxio.grpc.GetTablePResponse> getGetTableMethod;
 
@@ -343,6 +375,17 @@ public final class CatalogMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Gets a database by name from the catalog master
+     * </pre>
+     */
+    public void getDatabase(alluxio.grpc.GetDatabasePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetDatabasePResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetDatabaseMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a specific table info
      * </pre>
      */
@@ -414,6 +457,13 @@ public final class CatalogMasterClientServiceGrpc {
                 alluxio.grpc.GetAllTablesPRequest,
                 alluxio.grpc.GetAllTablesPResponse>(
                   this, METHODID_GET_ALL_TABLES)))
+          .addMethod(
+            getGetDatabaseMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetDatabasePRequest,
+                alluxio.grpc.GetDatabasePResponse>(
+                  this, METHODID_GET_DATABASE)))
           .addMethod(
             getGetTableMethod(),
             asyncUnaryCall(
@@ -504,6 +554,18 @@ public final class CatalogMasterClientServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.GetAllTablesPResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getGetAllTablesMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Gets a database by name from the catalog master
+     * </pre>
+     */
+    public void getDatabase(alluxio.grpc.GetDatabasePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetDatabasePResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetDatabaseMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -618,6 +680,17 @@ public final class CatalogMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Gets a database by name from the catalog master
+     * </pre>
+     */
+    public alluxio.grpc.GetDatabasePResponse getDatabase(alluxio.grpc.GetDatabasePRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetDatabaseMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a specific table info
      * </pre>
      */
@@ -723,6 +796,18 @@ public final class CatalogMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Gets a database by name from the catalog master
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetDatabasePResponse> getDatabase(
+        alluxio.grpc.GetDatabasePRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetDatabaseMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a specific table info
      * </pre>
      */
@@ -787,12 +872,13 @@ public final class CatalogMasterClientServiceGrpc {
 
   private static final int METHODID_GET_ALL_DATABASES = 0;
   private static final int METHODID_GET_ALL_TABLES = 1;
-  private static final int METHODID_GET_TABLE = 2;
-  private static final int METHODID_CREATE_TABLE = 3;
-  private static final int METHODID_CREATE_DATABASE = 4;
-  private static final int METHODID_ATTACH_DATABASE = 5;
-  private static final int METHODID_GET_STATISTICS = 6;
-  private static final int METHODID_READ_TABLE = 7;
+  private static final int METHODID_GET_DATABASE = 2;
+  private static final int METHODID_GET_TABLE = 3;
+  private static final int METHODID_CREATE_TABLE = 4;
+  private static final int METHODID_CREATE_DATABASE = 5;
+  private static final int METHODID_ATTACH_DATABASE = 6;
+  private static final int METHODID_GET_STATISTICS = 7;
+  private static final int METHODID_READ_TABLE = 8;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -818,6 +904,10 @@ public final class CatalogMasterClientServiceGrpc {
         case METHODID_GET_ALL_TABLES:
           serviceImpl.getAllTables((alluxio.grpc.GetAllTablesPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetAllTablesPResponse>) responseObserver);
+          break;
+        case METHODID_GET_DATABASE:
+          serviceImpl.getDatabase((alluxio.grpc.GetDatabasePRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetDatabasePResponse>) responseObserver);
           break;
         case METHODID_GET_TABLE:
           serviceImpl.getTable((alluxio.grpc.GetTablePRequest) request,
@@ -906,6 +996,7 @@ public final class CatalogMasterClientServiceGrpc {
               .setSchemaDescriptor(new CatalogMasterClientServiceFileDescriptorSupplier())
               .addMethod(getGetAllDatabasesMethod())
               .addMethod(getGetAllTablesMethod())
+              .addMethod(getGetDatabaseMethod())
               .addMethod(getGetTableMethod())
               .addMethod(getCreateTableMethod())
               .addMethod(getCreateDatabaseMethod())

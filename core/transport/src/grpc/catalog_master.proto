@@ -200,6 +200,14 @@ message GetAllTablesPResponse {
     repeated string table = 1;
 }
 
+message GetDatabasePRequest {
+    optional string db_name = 1;
+}
+
+message GetDatabasePResponse {
+    optional Database db = 1;
+}
+
 message GetTablePRequest {
     optional string db_name = 1;
     optional string table_name = 2;
@@ -326,6 +334,11 @@ service CatalogMasterClientService {
      * Returns all tables in the database
      */
     rpc GetAllTables(GetAllTablesPRequest) returns (GetAllTablesPResponse);
+
+    /**
+    * Gets a database by name from the catalog master
+    */
+    rpc GetDatabase(GetDatabasePRequest) returns (GetDatabasePResponse);
 
     /**
      * Returns a specific table info
