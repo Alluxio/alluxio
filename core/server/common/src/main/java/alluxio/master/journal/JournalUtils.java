@@ -27,7 +27,7 @@ import alluxio.util.StreamUtils;
 
 import com.esotericsoftware.kryo.io.OutputChunked;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,7 +178,7 @@ public final class JournalUtils {
       String format, Object... args) throws RuntimeException {
     String message = String.format("Journal replay error: " + format, args);
     if (t != null) {
-      message += "\n" + ExceptionUtils.getStackTrace(t);
+      message += "\n" + Throwables.getStackTraceAsString(t);
     }
     if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
       throw new RuntimeException(message);

@@ -20,7 +20,7 @@ import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.RunTaskContext;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +83,8 @@ public final class TaskExecutor implements Runnable {
       return;
     } catch (Throwable t) {
       if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
-        mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, ExceptionUtils.getStackTrace(t));
+        mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId,
+            Throwables.getStackTraceAsString(t));
       } else {
         mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t.getMessage());
       }

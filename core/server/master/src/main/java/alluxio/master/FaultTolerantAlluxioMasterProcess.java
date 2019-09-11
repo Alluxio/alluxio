@@ -23,7 +23,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +123,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       try {
         startServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
-        Throwable root = ExceptionUtils.getRootCause(t);
+        Throwable root = Throwables.getRootCause(t);
         if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
           return;
         }

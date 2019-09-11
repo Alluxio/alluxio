@@ -24,7 +24,7 @@ import com.qiniu.util.Auth;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.commons.httpclient.HttpStatus;
+import org.apache.http.HttpStatus;
 
 import java.io.File;
 import java.io.IOException;
