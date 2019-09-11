@@ -18,7 +18,6 @@ private static final long serialVersionUID = 0L;
   private FieldType() {
     repetition_ = 1;
     name_ = "";
-    fields_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -69,13 +68,29 @@ private static final long serialVersionUID = 0L;
             name_ = bs;
             break;
           }
-          case 26: {
-            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-              fields_ = new java.util.ArrayList<alluxio.grpc.FieldType>();
-              mutable_bitField0_ |= 0x00000004;
+          case 24: {
+            int rawValue = input.readEnum();
+            alluxio.grpc.PrimitiveTypeName value = alluxio.grpc.PrimitiveTypeName.valueOf(rawValue);
+            if (value == null) {
+              unknownFields.mergeVarintField(3, rawValue);
+            } else {
+              typeInfoCase_ = 3;
+              typeInfo_ = rawValue;
             }
-            fields_.add(
-                input.readMessage(alluxio.grpc.FieldType.PARSER, extensionRegistry));
+            break;
+          }
+          case 34: {
+            alluxio.grpc.GroupType.Builder subBuilder = null;
+            if (typeInfoCase_ == 4) {
+              subBuilder = ((alluxio.grpc.GroupType) typeInfo_).toBuilder();
+            }
+            typeInfo_ =
+                input.readMessage(alluxio.grpc.GroupType.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom((alluxio.grpc.GroupType) typeInfo_);
+              typeInfo_ = subBuilder.buildPartial();
+            }
+            typeInfoCase_ = 4;
             break;
           }
         }
@@ -86,9 +101,6 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-        fields_ = java.util.Collections.unmodifiableList(fields_);
-      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -106,6 +118,44 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
+  private int typeInfoCase_ = 0;
+  private java.lang.Object typeInfo_;
+  public enum TypeInfoCase
+      implements com.google.protobuf.Internal.EnumLite {
+    TYPE_ID(3),
+    GROUP(4),
+    TYPEINFO_NOT_SET(0);
+    private final int value;
+    private TypeInfoCase(int value) {
+      this.value = value;
+    }
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static TypeInfoCase valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static TypeInfoCase forNumber(int value) {
+      switch (value) {
+        case 3: return TYPE_ID;
+        case 4: return GROUP;
+        case 0: return TYPEINFO_NOT_SET;
+        default: return null;
+      }
+    }
+    public int getNumber() {
+      return this.value;
+    }
+  };
+
+  public TypeInfoCase
+  getTypeInfoCase() {
+    return TypeInfoCase.forNumber(
+        typeInfoCase_);
+  }
+
   public static final int REPETITION_FIELD_NUMBER = 1;
   private int repetition_;
   /**
@@ -164,39 +214,49 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int FIELDS_FIELD_NUMBER = 3;
-  private java.util.List<alluxio.grpc.FieldType> fields_;
+  public static final int TYPE_ID_FIELD_NUMBER = 3;
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.PrimitiveTypeName type_id = 3;</code>
    */
-  public java.util.List<alluxio.grpc.FieldType> getFieldsList() {
-    return fields_;
+  public boolean hasTypeId() {
+    return typeInfoCase_ == 3;
   }
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.PrimitiveTypeName type_id = 3;</code>
    */
-  public java.util.List<? extends alluxio.grpc.FieldTypeOrBuilder> 
-      getFieldsOrBuilderList() {
-    return fields_;
+  public alluxio.grpc.PrimitiveTypeName getTypeId() {
+    if (typeInfoCase_ == 3) {
+      alluxio.grpc.PrimitiveTypeName result = alluxio.grpc.PrimitiveTypeName.valueOf(
+          (java.lang.Integer) typeInfo_);
+      return result == null ? alluxio.grpc.PrimitiveTypeName.PARQUETTYPE_INT64 : result;
+    }
+    return alluxio.grpc.PrimitiveTypeName.PARQUETTYPE_INT64;
+  }
+
+  public static final int GROUP_FIELD_NUMBER = 4;
+  /**
+   * <code>optional .alluxio.grpc.GroupType group = 4;</code>
+   */
+  public boolean hasGroup() {
+    return typeInfoCase_ == 4;
   }
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.GroupType group = 4;</code>
    */
-  public int getFieldsCount() {
-    return fields_.size();
+  public alluxio.grpc.GroupType getGroup() {
+    if (typeInfoCase_ == 4) {
+       return (alluxio.grpc.GroupType) typeInfo_;
+    }
+    return alluxio.grpc.GroupType.getDefaultInstance();
   }
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.GroupType group = 4;</code>
    */
-  public alluxio.grpc.FieldType getFields(int index) {
-    return fields_.get(index);
-  }
-  /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-   */
-  public alluxio.grpc.FieldTypeOrBuilder getFieldsOrBuilder(
-      int index) {
-    return fields_.get(index);
+  public alluxio.grpc.GroupTypeOrBuilder getGroupOrBuilder() {
+    if (typeInfoCase_ == 4) {
+       return (alluxio.grpc.GroupType) typeInfo_;
+    }
+    return alluxio.grpc.GroupType.getDefaultInstance();
   }
 
   private byte memoizedIsInitialized = -1;
@@ -217,8 +277,11 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
     }
-    for (int i = 0; i < fields_.size(); i++) {
-      output.writeMessage(3, fields_.get(i));
+    if (typeInfoCase_ == 3) {
+      output.writeEnum(3, ((java.lang.Integer) typeInfo_));
+    }
+    if (typeInfoCase_ == 4) {
+      output.writeMessage(4, (alluxio.grpc.GroupType) typeInfo_);
     }
     unknownFields.writeTo(output);
   }
@@ -235,9 +298,13 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
     }
-    for (int i = 0; i < fields_.size(); i++) {
+    if (typeInfoCase_ == 3) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, fields_.get(i));
+        .computeEnumSize(3, ((java.lang.Integer) typeInfo_));
+    }
+    if (typeInfoCase_ == 4) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, (alluxio.grpc.GroupType) typeInfo_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -264,8 +331,21 @@ private static final long serialVersionUID = 0L;
       result = result && getName()
           .equals(other.getName());
     }
-    result = result && getFieldsList()
-        .equals(other.getFieldsList());
+    result = result && getTypeInfoCase().equals(
+        other.getTypeInfoCase());
+    if (!result) return false;
+    switch (typeInfoCase_) {
+      case 3:
+        result = result && getTypeId()
+            .equals(other.getTypeId());
+        break;
+      case 4:
+        result = result && getGroup()
+            .equals(other.getGroup());
+        break;
+      case 0:
+      default:
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -285,9 +365,17 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
     }
-    if (getFieldsCount() > 0) {
-      hash = (37 * hash) + FIELDS_FIELD_NUMBER;
-      hash = (53 * hash) + getFieldsList().hashCode();
+    switch (typeInfoCase_) {
+      case 3:
+        hash = (37 * hash) + TYPE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + getTypeId().getNumber();
+        break;
+      case 4:
+        hash = (37 * hash) + GROUP_FIELD_NUMBER;
+        hash = (53 * hash) + getGroup().hashCode();
+        break;
+      case 0:
+      default:
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -414,7 +502,6 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getFieldsFieldBuilder();
       }
     }
     public Builder clear() {
@@ -423,12 +510,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       name_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
-      if (fieldsBuilder_ == null) {
-        fields_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
-      } else {
-        fieldsBuilder_.clear();
-      }
+      typeInfoCase_ = 0;
+      typeInfo_ = null;
       return this;
     }
 
@@ -461,16 +544,18 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000002;
       }
       result.name_ = name_;
-      if (fieldsBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
-          fields_ = java.util.Collections.unmodifiableList(fields_);
-          bitField0_ = (bitField0_ & ~0x00000004);
+      if (typeInfoCase_ == 3) {
+        result.typeInfo_ = typeInfo_;
+      }
+      if (typeInfoCase_ == 4) {
+        if (groupBuilder_ == null) {
+          result.typeInfo_ = typeInfo_;
+        } else {
+          result.typeInfo_ = groupBuilder_.build();
         }
-        result.fields_ = fields_;
-      } else {
-        result.fields_ = fieldsBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
+      result.typeInfoCase_ = typeInfoCase_;
       onBuilt();
       return result;
     }
@@ -520,30 +605,17 @@ private static final long serialVersionUID = 0L;
         name_ = other.name_;
         onChanged();
       }
-      if (fieldsBuilder_ == null) {
-        if (!other.fields_.isEmpty()) {
-          if (fields_.isEmpty()) {
-            fields_ = other.fields_;
-            bitField0_ = (bitField0_ & ~0x00000004);
-          } else {
-            ensureFieldsIsMutable();
-            fields_.addAll(other.fields_);
-          }
-          onChanged();
+      switch (other.getTypeInfoCase()) {
+        case TYPE_ID: {
+          setTypeId(other.getTypeId());
+          break;
         }
-      } else {
-        if (!other.fields_.isEmpty()) {
-          if (fieldsBuilder_.isEmpty()) {
-            fieldsBuilder_.dispose();
-            fieldsBuilder_ = null;
-            fields_ = other.fields_;
-            bitField0_ = (bitField0_ & ~0x00000004);
-            fieldsBuilder_ = 
-              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getFieldsFieldBuilder() : null;
-          } else {
-            fieldsBuilder_.addAllMessages(other.fields_);
-          }
+        case GROUP: {
+          mergeGroup(other.getGroup());
+          break;
+        }
+        case TYPEINFO_NOT_SET: {
+          break;
         }
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -572,6 +644,21 @@ private static final long serialVersionUID = 0L;
       }
       return this;
     }
+    private int typeInfoCase_ = 0;
+    private java.lang.Object typeInfo_;
+    public TypeInfoCase
+        getTypeInfoCase() {
+      return TypeInfoCase.forNumber(
+          typeInfoCase_);
+    }
+
+    public Builder clearTypeInfo() {
+      typeInfoCase_ = 0;
+      typeInfo_ = null;
+      onChanged();
+      return this;
+    }
+
     private int bitField0_;
 
     private int repetition_ = 1;
@@ -686,244 +773,181 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<alluxio.grpc.FieldType> fields_ =
-      java.util.Collections.emptyList();
-    private void ensureFieldsIsMutable() {
-      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-        fields_ = new java.util.ArrayList<alluxio.grpc.FieldType>(fields_);
-        bitField0_ |= 0x00000004;
-       }
+    /**
+     * <code>optional .alluxio.grpc.PrimitiveTypeName type_id = 3;</code>
+     */
+    public boolean hasTypeId() {
+      return typeInfoCase_ == 3;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PrimitiveTypeName type_id = 3;</code>
+     */
+    public alluxio.grpc.PrimitiveTypeName getTypeId() {
+      if (typeInfoCase_ == 3) {
+        alluxio.grpc.PrimitiveTypeName result = alluxio.grpc.PrimitiveTypeName.valueOf(
+            (java.lang.Integer) typeInfo_);
+        return result == null ? alluxio.grpc.PrimitiveTypeName.PARQUETTYPE_INT64 : result;
+      }
+      return alluxio.grpc.PrimitiveTypeName.PARQUETTYPE_INT64;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PrimitiveTypeName type_id = 3;</code>
+     */
+    public Builder setTypeId(alluxio.grpc.PrimitiveTypeName value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      typeInfoCase_ = 3;
+      typeInfo_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.PrimitiveTypeName type_id = 3;</code>
+     */
+    public Builder clearTypeId() {
+      if (typeInfoCase_ == 3) {
+        typeInfoCase_ = 0;
+        typeInfo_ = null;
+        onChanged();
+      }
+      return this;
     }
 
-    private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.FieldType, alluxio.grpc.FieldType.Builder, alluxio.grpc.FieldTypeOrBuilder> fieldsBuilder_;
-
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.GroupType, alluxio.grpc.GroupType.Builder, alluxio.grpc.GroupTypeOrBuilder> groupBuilder_;
     /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
      */
-    public java.util.List<alluxio.grpc.FieldType> getFieldsList() {
-      if (fieldsBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(fields_);
+    public boolean hasGroup() {
+      return typeInfoCase_ == 4;
+    }
+    /**
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
+     */
+    public alluxio.grpc.GroupType getGroup() {
+      if (groupBuilder_ == null) {
+        if (typeInfoCase_ == 4) {
+          return (alluxio.grpc.GroupType) typeInfo_;
+        }
+        return alluxio.grpc.GroupType.getDefaultInstance();
       } else {
-        return fieldsBuilder_.getMessageList();
+        if (typeInfoCase_ == 4) {
+          return groupBuilder_.getMessage();
+        }
+        return alluxio.grpc.GroupType.getDefaultInstance();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
      */
-    public int getFieldsCount() {
-      if (fieldsBuilder_ == null) {
-        return fields_.size();
-      } else {
-        return fieldsBuilder_.getCount();
-      }
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public alluxio.grpc.FieldType getFields(int index) {
-      if (fieldsBuilder_ == null) {
-        return fields_.get(index);
-      } else {
-        return fieldsBuilder_.getMessage(index);
-      }
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public Builder setFields(
-        int index, alluxio.grpc.FieldType value) {
-      if (fieldsBuilder_ == null) {
+    public Builder setGroup(alluxio.grpc.GroupType value) {
+      if (groupBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureFieldsIsMutable();
-        fields_.set(index, value);
+        typeInfo_ = value;
         onChanged();
       } else {
-        fieldsBuilder_.setMessage(index, value);
+        groupBuilder_.setMessage(value);
       }
+      typeInfoCase_ = 4;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
      */
-    public Builder setFields(
-        int index, alluxio.grpc.FieldType.Builder builderForValue) {
-      if (fieldsBuilder_ == null) {
-        ensureFieldsIsMutable();
-        fields_.set(index, builderForValue.build());
+    public Builder setGroup(
+        alluxio.grpc.GroupType.Builder builderForValue) {
+      if (groupBuilder_ == null) {
+        typeInfo_ = builderForValue.build();
         onChanged();
       } else {
-        fieldsBuilder_.setMessage(index, builderForValue.build());
+        groupBuilder_.setMessage(builderForValue.build());
       }
+      typeInfoCase_ = 4;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
      */
-    public Builder addFields(alluxio.grpc.FieldType value) {
-      if (fieldsBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
+    public Builder mergeGroup(alluxio.grpc.GroupType value) {
+      if (groupBuilder_ == null) {
+        if (typeInfoCase_ == 4 &&
+            typeInfo_ != alluxio.grpc.GroupType.getDefaultInstance()) {
+          typeInfo_ = alluxio.grpc.GroupType.newBuilder((alluxio.grpc.GroupType) typeInfo_)
+              .mergeFrom(value).buildPartial();
+        } else {
+          typeInfo_ = value;
         }
-        ensureFieldsIsMutable();
-        fields_.add(value);
         onChanged();
       } else {
-        fieldsBuilder_.addMessage(value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public Builder addFields(
-        int index, alluxio.grpc.FieldType value) {
-      if (fieldsBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
+        if (typeInfoCase_ == 4) {
+          groupBuilder_.mergeFrom(value);
         }
-        ensureFieldsIsMutable();
-        fields_.add(index, value);
-        onChanged();
+        groupBuilder_.setMessage(value);
+      }
+      typeInfoCase_ = 4;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
+     */
+    public Builder clearGroup() {
+      if (groupBuilder_ == null) {
+        if (typeInfoCase_ == 4) {
+          typeInfoCase_ = 0;
+          typeInfo_ = null;
+          onChanged();
+        }
       } else {
-        fieldsBuilder_.addMessage(index, value);
+        if (typeInfoCase_ == 4) {
+          typeInfoCase_ = 0;
+          typeInfo_ = null;
+        }
+        groupBuilder_.clear();
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
      */
-    public Builder addFields(
-        alluxio.grpc.FieldType.Builder builderForValue) {
-      if (fieldsBuilder_ == null) {
-        ensureFieldsIsMutable();
-        fields_.add(builderForValue.build());
-        onChanged();
+    public alluxio.grpc.GroupType.Builder getGroupBuilder() {
+      return getGroupFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
+     */
+    public alluxio.grpc.GroupTypeOrBuilder getGroupOrBuilder() {
+      if ((typeInfoCase_ == 4) && (groupBuilder_ != null)) {
+        return groupBuilder_.getMessageOrBuilder();
       } else {
-        fieldsBuilder_.addMessage(builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public Builder addFields(
-        int index, alluxio.grpc.FieldType.Builder builderForValue) {
-      if (fieldsBuilder_ == null) {
-        ensureFieldsIsMutable();
-        fields_.add(index, builderForValue.build());
-        onChanged();
-      } else {
-        fieldsBuilder_.addMessage(index, builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public Builder addAllFields(
-        java.lang.Iterable<? extends alluxio.grpc.FieldType> values) {
-      if (fieldsBuilder_ == null) {
-        ensureFieldsIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, fields_);
-        onChanged();
-      } else {
-        fieldsBuilder_.addAllMessages(values);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public Builder clearFields() {
-      if (fieldsBuilder_ == null) {
-        fields_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-      } else {
-        fieldsBuilder_.clear();
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public Builder removeFields(int index) {
-      if (fieldsBuilder_ == null) {
-        ensureFieldsIsMutable();
-        fields_.remove(index);
-        onChanged();
-      } else {
-        fieldsBuilder_.remove(index);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public alluxio.grpc.FieldType.Builder getFieldsBuilder(
-        int index) {
-      return getFieldsFieldBuilder().getBuilder(index);
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public alluxio.grpc.FieldTypeOrBuilder getFieldsOrBuilder(
-        int index) {
-      if (fieldsBuilder_ == null) {
-        return fields_.get(index);  } else {
-        return fieldsBuilder_.getMessageOrBuilder(index);
+        if (typeInfoCase_ == 4) {
+          return (alluxio.grpc.GroupType) typeInfo_;
+        }
+        return alluxio.grpc.GroupType.getDefaultInstance();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+     * <code>optional .alluxio.grpc.GroupType group = 4;</code>
      */
-    public java.util.List<? extends alluxio.grpc.FieldTypeOrBuilder> 
-         getFieldsOrBuilderList() {
-      if (fieldsBuilder_ != null) {
-        return fieldsBuilder_.getMessageOrBuilderList();
-      } else {
-        return java.util.Collections.unmodifiableList(fields_);
-      }
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public alluxio.grpc.FieldType.Builder addFieldsBuilder() {
-      return getFieldsFieldBuilder().addBuilder(
-          alluxio.grpc.FieldType.getDefaultInstance());
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public alluxio.grpc.FieldType.Builder addFieldsBuilder(
-        int index) {
-      return getFieldsFieldBuilder().addBuilder(
-          index, alluxio.grpc.FieldType.getDefaultInstance());
-    }
-    /**
-     * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
-     */
-    public java.util.List<alluxio.grpc.FieldType.Builder> 
-         getFieldsBuilderList() {
-      return getFieldsFieldBuilder().getBuilderList();
-    }
-    private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.FieldType, alluxio.grpc.FieldType.Builder, alluxio.grpc.FieldTypeOrBuilder> 
-        getFieldsFieldBuilder() {
-      if (fieldsBuilder_ == null) {
-        fieldsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            alluxio.grpc.FieldType, alluxio.grpc.FieldType.Builder, alluxio.grpc.FieldTypeOrBuilder>(
-                fields_,
-                ((bitField0_ & 0x00000004) == 0x00000004),
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.GroupType, alluxio.grpc.GroupType.Builder, alluxio.grpc.GroupTypeOrBuilder> 
+        getGroupFieldBuilder() {
+      if (groupBuilder_ == null) {
+        if (!(typeInfoCase_ == 4)) {
+          typeInfo_ = alluxio.grpc.GroupType.getDefaultInstance();
+        }
+        groupBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.GroupType, alluxio.grpc.GroupType.Builder, alluxio.grpc.GroupTypeOrBuilder>(
+                (alluxio.grpc.GroupType) typeInfo_,
                 getParentForChildren(),
                 isClean());
-        fields_ = null;
+        typeInfo_ = null;
       }
-      return fieldsBuilder_;
+      typeInfoCase_ = 4;
+      onChanged();;
+      return groupBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

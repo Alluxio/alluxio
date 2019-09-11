@@ -69,7 +69,7 @@ private static final long serialVersionUID = 0L;
           }
           case 24: {
             int rawValue = input.readEnum();
-            alluxio.grpc.TableType value = alluxio.grpc.TableType.valueOf(rawValue);
+            alluxio.grpc.TableInfo.TableType value = alluxio.grpc.TableInfo.TableType.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(3, rawValue);
             } else {
@@ -136,6 +136,112 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_TableInfo_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             alluxio.grpc.TableInfo.class, alluxio.grpc.TableInfo.Builder.class);
+  }
+
+  /**
+   * Protobuf enum {@code alluxio.grpc.TableInfo.TableType}
+   */
+  public enum TableType
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <pre>
+     *native alluxio metastore table, both metadata and datafile managed by alluxio
+     * </pre>
+     *
+     * <code>NATIVE = 0;</code>
+     */
+    NATIVE(0),
+    /**
+     * <pre>
+     *imported alluxio metastore table, only the metadata is managed by alluxio
+     * </pre>
+     *
+     * <code>IMPORTED = 1;</code>
+     */
+    IMPORTED(1),
+    ;
+
+    /**
+     * <pre>
+     *native alluxio metastore table, both metadata and datafile managed by alluxio
+     * </pre>
+     *
+     * <code>NATIVE = 0;</code>
+     */
+    public static final int NATIVE_VALUE = 0;
+    /**
+     * <pre>
+     *imported alluxio metastore table, only the metadata is managed by alluxio
+     * </pre>
+     *
+     * <code>IMPORTED = 1;</code>
+     */
+    public static final int IMPORTED_VALUE = 1;
+
+
+    public final int getNumber() {
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static TableType valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static TableType forNumber(int value) {
+      switch (value) {
+        case 0: return NATIVE;
+        case 1: return IMPORTED;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<TableType>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        TableType> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<TableType>() {
+            public TableType findValueByNumber(int number) {
+              return TableType.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return alluxio.grpc.TableInfo.getDescriptor().getEnumTypes().get(0);
+    }
+
+    private static final TableType[] VALUES = values();
+
+    public static TableType valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private TableType(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:alluxio.grpc.TableInfo.TableType)
   }
 
   private int bitField0_;
@@ -226,17 +332,17 @@ private static final long serialVersionUID = 0L;
   public static final int TYPE_FIELD_NUMBER = 3;
   private int type_;
   /**
-   * <code>optional .alluxio.grpc.TableType type = 3;</code>
+   * <code>optional .alluxio.grpc.TableInfo.TableType type = 3;</code>
    */
   public boolean hasType() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional .alluxio.grpc.TableType type = 3;</code>
+   * <code>optional .alluxio.grpc.TableInfo.TableType type = 3;</code>
    */
-  public alluxio.grpc.TableType getType() {
-    alluxio.grpc.TableType result = alluxio.grpc.TableType.valueOf(type_);
-    return result == null ? alluxio.grpc.TableType.NATIVE : result;
+  public alluxio.grpc.TableInfo.TableType getType() {
+    alluxio.grpc.TableInfo.TableType result = alluxio.grpc.TableInfo.TableType.valueOf(type_);
+    return result == null ? alluxio.grpc.TableInfo.TableType.NATIVE : result;
   }
 
   public static final int BASE_LOCATION_FIELD_NUMBER = 4;
@@ -1014,22 +1120,22 @@ private static final long serialVersionUID = 0L;
 
     private int type_ = 0;
     /**
-     * <code>optional .alluxio.grpc.TableType type = 3;</code>
+     * <code>optional .alluxio.grpc.TableInfo.TableType type = 3;</code>
      */
     public boolean hasType() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional .alluxio.grpc.TableType type = 3;</code>
+     * <code>optional .alluxio.grpc.TableInfo.TableType type = 3;</code>
      */
-    public alluxio.grpc.TableType getType() {
-      alluxio.grpc.TableType result = alluxio.grpc.TableType.valueOf(type_);
-      return result == null ? alluxio.grpc.TableType.NATIVE : result;
+    public alluxio.grpc.TableInfo.TableType getType() {
+      alluxio.grpc.TableInfo.TableType result = alluxio.grpc.TableInfo.TableType.valueOf(type_);
+      return result == null ? alluxio.grpc.TableInfo.TableType.NATIVE : result;
     }
     /**
-     * <code>optional .alluxio.grpc.TableType type = 3;</code>
+     * <code>optional .alluxio.grpc.TableInfo.TableType type = 3;</code>
      */
-    public Builder setType(alluxio.grpc.TableType value) {
+    public Builder setType(alluxio.grpc.TableInfo.TableType value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -1039,7 +1145,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.TableType type = 3;</code>
+     * <code>optional .alluxio.grpc.TableInfo.TableType type = 3;</code>
      */
     public Builder clearType() {
       bitField0_ = (bitField0_ & ~0x00000004);

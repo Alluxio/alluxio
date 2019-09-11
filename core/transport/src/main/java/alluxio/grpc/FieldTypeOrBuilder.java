@@ -31,26 +31,26 @@ public interface FieldTypeOrBuilder extends
       getNameBytes();
 
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.PrimitiveTypeName type_id = 3;</code>
    */
-  java.util.List<alluxio.grpc.FieldType> 
-      getFieldsList();
+  boolean hasTypeId();
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.PrimitiveTypeName type_id = 3;</code>
    */
-  alluxio.grpc.FieldType getFields(int index);
+  alluxio.grpc.PrimitiveTypeName getTypeId();
+
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.GroupType group = 4;</code>
    */
-  int getFieldsCount();
+  boolean hasGroup();
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.GroupType group = 4;</code>
    */
-  java.util.List<? extends alluxio.grpc.FieldTypeOrBuilder> 
-      getFieldsOrBuilderList();
+  alluxio.grpc.GroupType getGroup();
   /**
-   * <code>repeated .alluxio.grpc.FieldType fields = 3;</code>
+   * <code>optional .alluxio.grpc.GroupType group = 4;</code>
    */
-  alluxio.grpc.FieldTypeOrBuilder getFieldsOrBuilder(
-      int index);
+  alluxio.grpc.GroupTypeOrBuilder getGroupOrBuilder();
+
+  public alluxio.grpc.FieldType.TypeInfoCase getTypeInfoCase();
 }

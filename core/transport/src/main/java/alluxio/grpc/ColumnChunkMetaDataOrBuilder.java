@@ -21,13 +21,13 @@ public interface ColumnChunkMetaDataOrBuilder extends
   alluxio.grpc.ColumnPathOrBuilder getPathOrBuilder();
 
   /**
-   * <code>optional .alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName type = 2;</code>
+   * <code>optional .alluxio.grpc.PrimitiveTypeName type = 2;</code>
    */
   boolean hasType();
   /**
-   * <code>optional .alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName type = 2;</code>
+   * <code>optional .alluxio.grpc.PrimitiveTypeName type = 2;</code>
    */
-  alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName getType();
+  alluxio.grpc.PrimitiveTypeName getType();
 
   /**
    * <code>optional .alluxio.grpc.ColumnChunkMetaData.CompressionCodecName codec = 3;</code>

@@ -72,7 +72,7 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
             int rawValue = input.readEnum();
-            alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName value = alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName.valueOf(rawValue);
+            alluxio.grpc.PrimitiveTypeName value = alluxio.grpc.PrimitiveTypeName.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(2, rawValue);
             } else {
@@ -175,150 +175,6 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.CatalogMasterProto.internal_static_alluxio_grpc_ColumnChunkMetaData_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             alluxio.grpc.ColumnChunkMetaData.class, alluxio.grpc.ColumnChunkMetaData.Builder.class);
-  }
-
-  /**
-   * Protobuf enum {@code alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName}
-   */
-  public enum PrimitiveTypeName
-      implements com.google.protobuf.ProtocolMessageEnum {
-    /**
-     * <code>INT64 = 0;</code>
-     */
-    INT64(0),
-    /**
-     * <code>INT32 = 1;</code>
-     */
-    INT32(1),
-    /**
-     * <code>BOOLEAN = 2;</code>
-     */
-    BOOLEAN(2),
-    /**
-     * <code>BINARY = 3;</code>
-     */
-    BINARY(3),
-    /**
-     * <code>FLOAT = 4;</code>
-     */
-    FLOAT(4),
-    /**
-     * <code>DOUBLE = 5;</code>
-     */
-    DOUBLE(5),
-    /**
-     * <code>INT96 = 6;</code>
-     */
-    INT96(6),
-    /**
-     * <code>FIXED_LEN_BYTE_ARRAY = 7;</code>
-     */
-    FIXED_LEN_BYTE_ARRAY(7),
-    ;
-
-    /**
-     * <code>INT64 = 0;</code>
-     */
-    public static final int INT64_VALUE = 0;
-    /**
-     * <code>INT32 = 1;</code>
-     */
-    public static final int INT32_VALUE = 1;
-    /**
-     * <code>BOOLEAN = 2;</code>
-     */
-    public static final int BOOLEAN_VALUE = 2;
-    /**
-     * <code>BINARY = 3;</code>
-     */
-    public static final int BINARY_VALUE = 3;
-    /**
-     * <code>FLOAT = 4;</code>
-     */
-    public static final int FLOAT_VALUE = 4;
-    /**
-     * <code>DOUBLE = 5;</code>
-     */
-    public static final int DOUBLE_VALUE = 5;
-    /**
-     * <code>INT96 = 6;</code>
-     */
-    public static final int INT96_VALUE = 6;
-    /**
-     * <code>FIXED_LEN_BYTE_ARRAY = 7;</code>
-     */
-    public static final int FIXED_LEN_BYTE_ARRAY_VALUE = 7;
-
-
-    public final int getNumber() {
-      return value;
-    }
-
-    /**
-     * @deprecated Use {@link #forNumber(int)} instead.
-     */
-    @java.lang.Deprecated
-    public static PrimitiveTypeName valueOf(int value) {
-      return forNumber(value);
-    }
-
-    public static PrimitiveTypeName forNumber(int value) {
-      switch (value) {
-        case 0: return INT64;
-        case 1: return INT32;
-        case 2: return BOOLEAN;
-        case 3: return BINARY;
-        case 4: return FLOAT;
-        case 5: return DOUBLE;
-        case 6: return INT96;
-        case 7: return FIXED_LEN_BYTE_ARRAY;
-        default: return null;
-      }
-    }
-
-    public static com.google.protobuf.Internal.EnumLiteMap<PrimitiveTypeName>
-        internalGetValueMap() {
-      return internalValueMap;
-    }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
-        PrimitiveTypeName> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<PrimitiveTypeName>() {
-            public PrimitiveTypeName findValueByNumber(int number) {
-              return PrimitiveTypeName.forNumber(number);
-            }
-          };
-
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
-      return getDescriptor().getValues().get(ordinal());
-    }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
-      return getDescriptor();
-    }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
-      return alluxio.grpc.ColumnChunkMetaData.getDescriptor().getEnumTypes().get(0);
-    }
-
-    private static final PrimitiveTypeName[] VALUES = values();
-
-    public static PrimitiveTypeName valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-      if (desc.getType() != getDescriptor()) {
-        throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
-      }
-      return VALUES[desc.getIndex()];
-    }
-
-    private final int value;
-
-    private PrimitiveTypeName(int value) {
-      this.value = value;
-    }
-
-    // @@protoc_insertion_point(enum_scope:alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName)
   }
 
   /**
@@ -433,7 +289,7 @@ private static final long serialVersionUID = 0L;
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return alluxio.grpc.ColumnChunkMetaData.getDescriptor().getEnumTypes().get(1);
+      return alluxio.grpc.ColumnChunkMetaData.getDescriptor().getEnumTypes().get(0);
     }
 
     private static final CompressionCodecName[] VALUES = values();
@@ -577,7 +433,7 @@ private static final long serialVersionUID = 0L;
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return alluxio.grpc.ColumnChunkMetaData.getDescriptor().getEnumTypes().get(2);
+      return alluxio.grpc.ColumnChunkMetaData.getDescriptor().getEnumTypes().get(1);
     }
 
     private static final Encoding[] VALUES = values();
@@ -625,17 +481,17 @@ private static final long serialVersionUID = 0L;
   public static final int TYPE_FIELD_NUMBER = 2;
   private int type_;
   /**
-   * <code>optional .alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName type = 2;</code>
+   * <code>optional .alluxio.grpc.PrimitiveTypeName type = 2;</code>
    */
   public boolean hasType() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName type = 2;</code>
+   * <code>optional .alluxio.grpc.PrimitiveTypeName type = 2;</code>
    */
-  public alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName getType() {
-    alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName result = alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName.valueOf(type_);
-    return result == null ? alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName.INT64 : result;
+  public alluxio.grpc.PrimitiveTypeName getType() {
+    alluxio.grpc.PrimitiveTypeName result = alluxio.grpc.PrimitiveTypeName.valueOf(type_);
+    return result == null ? alluxio.grpc.PrimitiveTypeName.PARQUETTYPE_INT64 : result;
   }
 
   public static final int CODEC_FIELD_NUMBER = 3;
@@ -1396,22 +1252,22 @@ private static final long serialVersionUID = 0L;
 
     private int type_ = 0;
     /**
-     * <code>optional .alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName type = 2;</code>
+     * <code>optional .alluxio.grpc.PrimitiveTypeName type = 2;</code>
      */
     public boolean hasType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName type = 2;</code>
+     * <code>optional .alluxio.grpc.PrimitiveTypeName type = 2;</code>
      */
-    public alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName getType() {
-      alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName result = alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName.valueOf(type_);
-      return result == null ? alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName.INT64 : result;
+    public alluxio.grpc.PrimitiveTypeName getType() {
+      alluxio.grpc.PrimitiveTypeName result = alluxio.grpc.PrimitiveTypeName.valueOf(type_);
+      return result == null ? alluxio.grpc.PrimitiveTypeName.PARQUETTYPE_INT64 : result;
     }
     /**
-     * <code>optional .alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName type = 2;</code>
+     * <code>optional .alluxio.grpc.PrimitiveTypeName type = 2;</code>
      */
-    public Builder setType(alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName value) {
+    public Builder setType(alluxio.grpc.PrimitiveTypeName value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -1421,7 +1277,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.ColumnChunkMetaData.PrimitiveTypeName type = 2;</code>
+     * <code>optional .alluxio.grpc.PrimitiveTypeName type = 2;</code>
      */
     public Builder clearType() {
       bitField0_ = (bitField0_ & ~0x00000002);
