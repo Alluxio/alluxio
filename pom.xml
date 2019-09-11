@@ -596,6 +596,11 @@
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.gluster</groupId>
         <artifactId>glusterfs-hadoop</artifactId>
         <version>${glusterfs-hadoop.version}</version>
