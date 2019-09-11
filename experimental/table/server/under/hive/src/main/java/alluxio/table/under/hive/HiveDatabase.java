@@ -168,7 +168,7 @@ public class HiveDatabase implements UnderDatabase {
       List<Partition> partitions = mHive.getPartitions(table);
 
       // TODO(gpang): manage the mount mapping for statistics/metadata
-      return new HiveTable(tableName, HiveUtils.toProtoSchema(table.getAllCols()),
+      return new HiveTable(mHive, tableName, HiveUtils.toProtoSchema(table.getAllCols()),
           tableUri.getPath(), Collections.singletonMap("unpartitioned", builder.build()),
           HiveUtils.toProto(table.getPartitionKeys()), partitions);
     } catch (HiveException e) {
