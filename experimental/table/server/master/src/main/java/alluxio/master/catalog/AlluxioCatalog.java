@@ -138,6 +138,9 @@ public class AlluxioCatalog {
    */
   public List<String> getAllTables(String dbName) throws IOException {
     Database db = mDBs.get(dbName);
+    if (db == null) {
+      throw new IOException(String.format("Database %s does not exist", dbName));
+    }
     return db.getTables().stream().map(Table::getName).collect(Collectors.toList());
   }
 

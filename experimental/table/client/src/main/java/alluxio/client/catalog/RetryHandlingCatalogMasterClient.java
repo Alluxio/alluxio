@@ -25,6 +25,7 @@ import alluxio.grpc.Database;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GetAllDatabasesPRequest;
 import alluxio.grpc.GetAllTablesPRequest;
+import alluxio.grpc.GetDatabasePRequest;
 import alluxio.grpc.GetStatisticsPRequest;
 import alluxio.grpc.GetTablePRequest;
 import alluxio.grpc.PartitionInfo;
@@ -85,7 +86,8 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
 
   @Override
   public Database getDatabase(String databaseName) throws AlluxioStatusException {
-    return null;
+    return retryRPC(() -> mClient.getDatabase(GetDatabasePRequest.newBuilder()
+        .setDbName(databaseName).build())).getDb();
   }
 
   @Override
