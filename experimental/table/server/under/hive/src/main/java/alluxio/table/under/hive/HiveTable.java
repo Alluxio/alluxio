@@ -85,8 +85,14 @@ public class HiveTable implements UdbTable {
   public List<PartitionInfo> getPartitions() {
     List<PartitionInfo> partList = new ArrayList<>();
     for (Partition part: mPartitionInfo) {
-      partList.add(PartitionInfo.newBuilder().setTableName(mName)
-          .addAllValues(part.getValues()).setSd(part.getLocation()).build());
+      PartitionInfo.Builder pib = PartitionInfo.newBuilder()
+          .setTableName(mName)
+          .setSd(part.getLocation())
+          ;
+      if (part.getValues() != null) {
+        pib.addAllValues(part.getValues());
+      }
+      partList.add(pib.build());
     }
     return partList;
   }
