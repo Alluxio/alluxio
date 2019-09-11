@@ -4,44 +4,40 @@
 package alluxio.grpc;
 
 /**
- * Protobuf enum {@code alluxio.grpc.TableType}
+ * <pre>
+ * Parquet metadata related types
+ * </pre>
+ *
+ * Protobuf enum {@code alluxio.grpc.Repetition}
  */
-public enum TableType
+public enum Repetition
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <pre>
-   *native alluxio metastore table, both metadata and datafile managed by alluxio
-   * </pre>
-   *
-   * <code>NATIVE = 0;</code>
+   * <code>REPEATED = 1;</code>
    */
-  NATIVE(0),
+  REPEATED(1),
   /**
-   * <pre>
-   *imported alluxio metastore table, only the metadata is managed by alluxio
-   * </pre>
-   *
-   * <code>IMPORTED = 1;</code>
+   * <code>OPTIONAL = 2;</code>
    */
-  IMPORTED(1),
+  OPTIONAL(2),
+  /**
+   * <code>REQUIRED = 3;</code>
+   */
+  REQUIRED(3),
   ;
 
   /**
-   * <pre>
-   *native alluxio metastore table, both metadata and datafile managed by alluxio
-   * </pre>
-   *
-   * <code>NATIVE = 0;</code>
+   * <code>REPEATED = 1;</code>
    */
-  public static final int NATIVE_VALUE = 0;
+  public static final int REPEATED_VALUE = 1;
   /**
-   * <pre>
-   *imported alluxio metastore table, only the metadata is managed by alluxio
-   * </pre>
-   *
-   * <code>IMPORTED = 1;</code>
+   * <code>OPTIONAL = 2;</code>
    */
-  public static final int IMPORTED_VALUE = 1;
+  public static final int OPTIONAL_VALUE = 2;
+  /**
+   * <code>REQUIRED = 3;</code>
+   */
+  public static final int REQUIRED_VALUE = 3;
 
 
   public final int getNumber() {
@@ -52,27 +48,28 @@ public enum TableType
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static TableType valueOf(int value) {
+  public static Repetition valueOf(int value) {
     return forNumber(value);
   }
 
-  public static TableType forNumber(int value) {
+  public static Repetition forNumber(int value) {
     switch (value) {
-      case 0: return NATIVE;
-      case 1: return IMPORTED;
+      case 1: return REPEATED;
+      case 2: return OPTIONAL;
+      case 3: return REQUIRED;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<TableType>
+  public static com.google.protobuf.Internal.EnumLiteMap<Repetition>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      TableType> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<TableType>() {
-          public TableType findValueByNumber(int number) {
-            return TableType.forNumber(number);
+      Repetition> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<Repetition>() {
+          public Repetition findValueByNumber(int number) {
+            return Repetition.forNumber(number);
           }
         };
 
@@ -89,9 +86,9 @@ public enum TableType
     return alluxio.grpc.CatalogMasterProto.getDescriptor().getEnumTypes().get(1);
   }
 
-  private static final TableType[] VALUES = values();
+  private static final Repetition[] VALUES = values();
 
-  public static TableType valueOf(
+  public static Repetition valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -102,10 +99,10 @@ public enum TableType
 
   private final int value;
 
-  private TableType(int value) {
+  private Repetition(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:alluxio.grpc.TableType)
+  // @@protoc_insertion_point(enum_scope:alluxio.grpc.Repetition)
 }
 

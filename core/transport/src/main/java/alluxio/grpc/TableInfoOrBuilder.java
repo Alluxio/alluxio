@@ -36,13 +36,13 @@ public interface TableInfoOrBuilder extends
       getDbNameBytes();
 
   /**
-   * <code>optional .alluxio.grpc.TableType type = 3;</code>
+   * <code>optional .alluxio.grpc.TableInfo.TableType type = 3;</code>
    */
   boolean hasType();
   /**
-   * <code>optional .alluxio.grpc.TableType type = 3;</code>
+   * <code>optional .alluxio.grpc.TableInfo.TableType type = 3;</code>
    */
-  alluxio.grpc.TableType getType();
+  alluxio.grpc.TableInfo.TableType getType();
 
   /**
    * <code>optional string base_location = 4;</code>
