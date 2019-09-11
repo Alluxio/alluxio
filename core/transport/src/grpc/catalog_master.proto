@@ -275,9 +275,11 @@ message GetStatisticsPResponse {
 
 message Value {
     oneof value {
-        int64 scala_type = 1;
+        int64 integer_type = 1;
         float float_type = 2;
         string string_type = 3;
+        bool boolean_type = 4;
+        double double_type = 5;
     }
 }
 
@@ -292,6 +294,7 @@ message RangeSet {
 
 message EquatableValueSet {
     repeated Value candidates = 1;
+    optional bool white_list = 2;
 }
 
 message AllOrNoneSet {

@@ -8,13 +8,13 @@ public interface ValueOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional int64 scala_type = 1;</code>
+   * <code>optional int64 integer_type = 1;</code>
    */
-  boolean hasScalaType();
+  boolean hasIntegerType();
   /**
-   * <code>optional int64 scala_type = 1;</code>
+   * <code>optional int64 integer_type = 1;</code>
    */
-  long getScalaType();
+  long getIntegerType();
 
   /**
    * <code>optional float float_type = 2;</code>
@@ -38,6 +38,24 @@ public interface ValueOrBuilder extends
    */
   com.google.protobuf.ByteString
       getStringTypeBytes();
+
+  /**
+   * <code>optional bool boolean_type = 4;</code>
+   */
+  boolean hasBooleanType();
+  /**
+   * <code>optional bool boolean_type = 4;</code>
+   */
+  boolean getBooleanType();
+
+  /**
+   * <code>optional double double_type = 5;</code>
+   */
+  boolean hasDoubleType();
+  /**
+   * <code>optional double double_type = 5;</code>
+   */
+  double getDoubleType();
 
   public alluxio.grpc.Value.ValueCase getValueCase();
 }

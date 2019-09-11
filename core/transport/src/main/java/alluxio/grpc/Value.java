@@ -65,6 +65,16 @@ private static final long serialVersionUID = 0L;
             value_ = bs;
             break;
           }
+          case 32: {
+            valueCase_ = 4;
+            value_ = input.readBool();
+            break;
+          }
+          case 41: {
+            valueCase_ = 5;
+            value_ = input.readDouble();
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -94,9 +104,11 @@ private static final long serialVersionUID = 0L;
   private java.lang.Object value_;
   public enum ValueCase
       implements com.google.protobuf.Internal.EnumLite {
-    SCALA_TYPE(1),
+    INTEGER_TYPE(1),
     FLOAT_TYPE(2),
     STRING_TYPE(3),
+    BOOLEAN_TYPE(4),
+    DOUBLE_TYPE(5),
     VALUE_NOT_SET(0);
     private final int value;
     private ValueCase(int value) {
@@ -112,9 +124,11 @@ private static final long serialVersionUID = 0L;
 
     public static ValueCase forNumber(int value) {
       switch (value) {
-        case 1: return SCALA_TYPE;
+        case 1: return INTEGER_TYPE;
         case 2: return FLOAT_TYPE;
         case 3: return STRING_TYPE;
+        case 4: return BOOLEAN_TYPE;
+        case 5: return DOUBLE_TYPE;
         case 0: return VALUE_NOT_SET;
         default: return null;
       }
@@ -130,17 +144,17 @@ private static final long serialVersionUID = 0L;
         valueCase_);
   }
 
-  public static final int SCALA_TYPE_FIELD_NUMBER = 1;
+  public static final int INTEGER_TYPE_FIELD_NUMBER = 1;
   /**
-   * <code>optional int64 scala_type = 1;</code>
+   * <code>optional int64 integer_type = 1;</code>
    */
-  public boolean hasScalaType() {
+  public boolean hasIntegerType() {
     return valueCase_ == 1;
   }
   /**
-   * <code>optional int64 scala_type = 1;</code>
+   * <code>optional int64 integer_type = 1;</code>
    */
-  public long getScalaType() {
+  public long getIntegerType() {
     if (valueCase_ == 1) {
       return (java.lang.Long) value_;
     }
@@ -213,6 +227,40 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int BOOLEAN_TYPE_FIELD_NUMBER = 4;
+  /**
+   * <code>optional bool boolean_type = 4;</code>
+   */
+  public boolean hasBooleanType() {
+    return valueCase_ == 4;
+  }
+  /**
+   * <code>optional bool boolean_type = 4;</code>
+   */
+  public boolean getBooleanType() {
+    if (valueCase_ == 4) {
+      return (java.lang.Boolean) value_;
+    }
+    return false;
+  }
+
+  public static final int DOUBLE_TYPE_FIELD_NUMBER = 5;
+  /**
+   * <code>optional double double_type = 5;</code>
+   */
+  public boolean hasDoubleType() {
+    return valueCase_ == 5;
+  }
+  /**
+   * <code>optional double double_type = 5;</code>
+   */
+  public double getDoubleType() {
+    if (valueCase_ == 5) {
+      return (java.lang.Double) value_;
+    }
+    return 0D;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -236,6 +284,14 @@ private static final long serialVersionUID = 0L;
     if (valueCase_ == 3) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, value_);
     }
+    if (valueCase_ == 4) {
+      output.writeBool(
+          4, (boolean)((java.lang.Boolean) value_));
+    }
+    if (valueCase_ == 5) {
+      output.writeDouble(
+          5, (double)((java.lang.Double) value_));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -256,6 +312,16 @@ private static final long serialVersionUID = 0L;
     }
     if (valueCase_ == 3) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, value_);
+    }
+    if (valueCase_ == 4) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(
+            4, (boolean)((java.lang.Boolean) value_));
+    }
+    if (valueCase_ == 5) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeDoubleSize(
+            5, (double)((java.lang.Double) value_));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -278,8 +344,8 @@ private static final long serialVersionUID = 0L;
     if (!result) return false;
     switch (valueCase_) {
       case 1:
-        result = result && (getScalaType()
-            == other.getScalaType());
+        result = result && (getIntegerType()
+            == other.getIntegerType());
         break;
       case 2:
         result = result && (
@@ -290,6 +356,16 @@ private static final long serialVersionUID = 0L;
       case 3:
         result = result && getStringType()
             .equals(other.getStringType());
+        break;
+      case 4:
+        result = result && (getBooleanType()
+            == other.getBooleanType());
+        break;
+      case 5:
+        result = result && (
+            java.lang.Double.doubleToLongBits(getDoubleType())
+            == java.lang.Double.doubleToLongBits(
+                other.getDoubleType()));
         break;
       case 0:
       default:
@@ -307,9 +383,9 @@ private static final long serialVersionUID = 0L;
     hash = (19 * hash) + getDescriptor().hashCode();
     switch (valueCase_) {
       case 1:
-        hash = (37 * hash) + SCALA_TYPE_FIELD_NUMBER;
+        hash = (37 * hash) + INTEGER_TYPE_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getScalaType());
+            getIntegerType());
         break;
       case 2:
         hash = (37 * hash) + FLOAT_TYPE_FIELD_NUMBER;
@@ -319,6 +395,16 @@ private static final long serialVersionUID = 0L;
       case 3:
         hash = (37 * hash) + STRING_TYPE_FIELD_NUMBER;
         hash = (53 * hash) + getStringType().hashCode();
+        break;
+      case 4:
+        hash = (37 * hash) + BOOLEAN_TYPE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getBooleanType());
+        break;
+      case 5:
+        hash = (37 * hash) + DOUBLE_TYPE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getDoubleType()));
         break;
       case 0:
       default:
@@ -487,6 +573,12 @@ private static final long serialVersionUID = 0L;
       if (valueCase_ == 3) {
         result.value_ = value_;
       }
+      if (valueCase_ == 4) {
+        result.value_ = value_;
+      }
+      if (valueCase_ == 5) {
+        result.value_ = value_;
+      }
       result.bitField0_ = to_bitField0_;
       result.valueCase_ = valueCase_;
       onBuilt();
@@ -531,8 +623,8 @@ private static final long serialVersionUID = 0L;
     public Builder mergeFrom(alluxio.grpc.Value other) {
       if (other == alluxio.grpc.Value.getDefaultInstance()) return this;
       switch (other.getValueCase()) {
-        case SCALA_TYPE: {
-          setScalaType(other.getScalaType());
+        case INTEGER_TYPE: {
+          setIntegerType(other.getIntegerType());
           break;
         }
         case FLOAT_TYPE: {
@@ -543,6 +635,14 @@ private static final long serialVersionUID = 0L;
           valueCase_ = 3;
           value_ = other.value_;
           onChanged();
+          break;
+        }
+        case BOOLEAN_TYPE: {
+          setBooleanType(other.getBooleanType());
+          break;
+        }
+        case DOUBLE_TYPE: {
+          setDoubleType(other.getDoubleType());
           break;
         }
         case VALUE_NOT_SET: {
@@ -593,33 +693,33 @@ private static final long serialVersionUID = 0L;
     private int bitField0_;
 
     /**
-     * <code>optional int64 scala_type = 1;</code>
+     * <code>optional int64 integer_type = 1;</code>
      */
-    public boolean hasScalaType() {
+    public boolean hasIntegerType() {
       return valueCase_ == 1;
     }
     /**
-     * <code>optional int64 scala_type = 1;</code>
+     * <code>optional int64 integer_type = 1;</code>
      */
-    public long getScalaType() {
+    public long getIntegerType() {
       if (valueCase_ == 1) {
         return (java.lang.Long) value_;
       }
       return 0L;
     }
     /**
-     * <code>optional int64 scala_type = 1;</code>
+     * <code>optional int64 integer_type = 1;</code>
      */
-    public Builder setScalaType(long value) {
+    public Builder setIntegerType(long value) {
       valueCase_ = 1;
       value_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 scala_type = 1;</code>
+     * <code>optional int64 integer_type = 1;</code>
      */
-    public Builder clearScalaType() {
+    public Builder clearIntegerType() {
       if (valueCase_ == 1) {
         valueCase_ = 0;
         value_ = null;
@@ -748,6 +848,78 @@ private static final long serialVersionUID = 0L;
   valueCase_ = 3;
       value_ = value;
       onChanged();
+      return this;
+    }
+
+    /**
+     * <code>optional bool boolean_type = 4;</code>
+     */
+    public boolean hasBooleanType() {
+      return valueCase_ == 4;
+    }
+    /**
+     * <code>optional bool boolean_type = 4;</code>
+     */
+    public boolean getBooleanType() {
+      if (valueCase_ == 4) {
+        return (java.lang.Boolean) value_;
+      }
+      return false;
+    }
+    /**
+     * <code>optional bool boolean_type = 4;</code>
+     */
+    public Builder setBooleanType(boolean value) {
+      valueCase_ = 4;
+      value_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool boolean_type = 4;</code>
+     */
+    public Builder clearBooleanType() {
+      if (valueCase_ == 4) {
+        valueCase_ = 0;
+        value_ = null;
+        onChanged();
+      }
+      return this;
+    }
+
+    /**
+     * <code>optional double double_type = 5;</code>
+     */
+    public boolean hasDoubleType() {
+      return valueCase_ == 5;
+    }
+    /**
+     * <code>optional double double_type = 5;</code>
+     */
+    public double getDoubleType() {
+      if (valueCase_ == 5) {
+        return (java.lang.Double) value_;
+      }
+      return 0D;
+    }
+    /**
+     * <code>optional double double_type = 5;</code>
+     */
+    public Builder setDoubleType(double value) {
+      valueCase_ = 5;
+      value_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional double double_type = 5;</code>
+     */
+    public Builder clearDoubleType() {
+      if (valueCase_ == 5) {
+        valueCase_ = 0;
+        value_ = null;
+        onChanged();
+      }
       return this;
     }
     public final Builder setUnknownFields(
