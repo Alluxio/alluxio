@@ -10,7 +10,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-  
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -23,6 +23,8 @@ spec:
     name: rpc
   - port: 19999
     name: web
+  - port: 19200
+    name: embedded-journal
   clusterIP: None
   selector:
     app: alluxio-master-0
@@ -62,6 +64,8 @@ spec:
         env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-0 "
+          - name: ALLUXIO_USER_JAVA_OPTS
+            value: " -Dalluxio.master.hostname=alluxio-master-0 "
         envFrom:
         - configMapRef:
             name: alluxio-config
@@ -70,6 +74,8 @@ spec:
           name: rpc
         - containerPort: 19999
           name: web
+        - containerPort: 19200
+          name: embedded-journal
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
@@ -86,7 +92,9 @@ spec:
         command: ["/entrypoint.sh"]
         args: ["job-master"]
         env:
-        - name: ALLUXIO_MASTER_JAVA_OPTS
+        - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
+          value: " -Dalluxio.master.hostname=alluxio-master-0 "
+        - name: ALLUXIO_USER_JAVA_OPTS
           value: " -Dalluxio.master.hostname=alluxio-master-0 "
         envFrom:
         - configMapRef:
@@ -113,6 +121,8 @@ spec:
     name: rpc
   - port: 19999
     name: web
+  - port: 19200
+    name: embedded-journal
   clusterIP: None
   selector:
     app: alluxio-master-1
@@ -152,6 +162,8 @@ spec:
         env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-1 "
+          - name: ALLUXIO_USER_JAVA_OPTS
+            value: " -Dalluxio.master.hostname=alluxio-master-1 "
         envFrom:
         - configMapRef:
             name: alluxio-config
@@ -160,6 +172,8 @@ spec:
           name: rpc
         - containerPort: 19999
           name: web
+        - containerPort: 19200
+          name: embedded-journal
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
@@ -176,7 +190,9 @@ spec:
         command: ["/entrypoint.sh"]
         args: ["job-master"]
         env:
-        - name: ALLUXIO_MASTER_JAVA_OPTS
+        - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
+          value: " -Dalluxio.master.hostname=alluxio-master-1 "
+        - name: ALLUXIO_USER_JAVA_OPTS
           value: " -Dalluxio.master.hostname=alluxio-master-1 "
         envFrom:
         - configMapRef:
@@ -203,6 +219,8 @@ spec:
     name: rpc
   - port: 19999
     name: web
+  - port: 19200
+    name: embedded-journal
   clusterIP: None
   selector:
     app: alluxio-master-2
@@ -242,6 +260,8 @@ spec:
         env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-2 "
+          - name: ALLUXIO_USER_JAVA_OPTS
+            value: " -Dalluxio.master.hostname=alluxio-master-2 "
         envFrom:
         - configMapRef:
             name: alluxio-config
@@ -250,6 +270,8 @@ spec:
           name: rpc
         - containerPort: 19999
           name: web
+        - containerPort: 19200
+          name: embedded-journal
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
@@ -266,7 +288,9 @@ spec:
         command: ["/entrypoint.sh"]
         args: ["job-master"]
         env:
-        - name: ALLUXIO_MASTER_JAVA_OPTS
+        - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
+          value: " -Dalluxio.master.hostname=alluxio-master-2 "
+        - name: ALLUXIO_USER_JAVA_OPTS
           value: " -Dalluxio.master.hostname=alluxio-master-2 "
         envFrom:
         - configMapRef:

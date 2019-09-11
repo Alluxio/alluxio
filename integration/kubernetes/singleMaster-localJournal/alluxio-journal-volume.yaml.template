@@ -11,18 +11,6 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: alluxio-pv-claim
-spec:
-  storageClassName: standard
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: "1Gi"
----
 kind: PersistentVolume
 apiVersion: v1
 metadata:

@@ -10,10 +10,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-#
-#
-#
-#
+
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -111,4 +108,3 @@ spec:
         hostPath:
           path: /tmp/alluxio-domain
           type: DirectoryOrCreate
-
