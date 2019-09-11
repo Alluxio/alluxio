@@ -70,11 +70,6 @@ private static final long serialVersionUID = 0L;
             value_ = input.readBool();
             break;
           }
-          case 41: {
-            valueCase_ = 5;
-            value_ = input.readDouble();
-            break;
-          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -105,10 +100,9 @@ private static final long serialVersionUID = 0L;
   public enum ValueCase
       implements com.google.protobuf.Internal.EnumLite {
     INTEGER_TYPE(1),
-    FLOAT_TYPE(2),
+    DOUBLE_TYPE(2),
     STRING_TYPE(3),
     BOOLEAN_TYPE(4),
-    DOUBLE_TYPE(5),
     VALUE_NOT_SET(0);
     private final int value;
     private ValueCase(int value) {
@@ -125,10 +119,9 @@ private static final long serialVersionUID = 0L;
     public static ValueCase forNumber(int value) {
       switch (value) {
         case 1: return INTEGER_TYPE;
-        case 2: return FLOAT_TYPE;
+        case 2: return DOUBLE_TYPE;
         case 3: return STRING_TYPE;
         case 4: return BOOLEAN_TYPE;
-        case 5: return DOUBLE_TYPE;
         case 0: return VALUE_NOT_SET;
         default: return null;
       }
@@ -161,17 +154,17 @@ private static final long serialVersionUID = 0L;
     return 0L;
   }
 
-  public static final int FLOAT_TYPE_FIELD_NUMBER = 2;
+  public static final int DOUBLE_TYPE_FIELD_NUMBER = 2;
   /**
-   * <code>optional float float_type = 2;</code>
+   * <code>optional float double_type = 2;</code>
    */
-  public boolean hasFloatType() {
+  public boolean hasDoubleType() {
     return valueCase_ == 2;
   }
   /**
-   * <code>optional float float_type = 2;</code>
+   * <code>optional float double_type = 2;</code>
    */
-  public float getFloatType() {
+  public float getDoubleType() {
     if (valueCase_ == 2) {
       return (java.lang.Float) value_;
     }
@@ -244,23 +237,6 @@ private static final long serialVersionUID = 0L;
     return false;
   }
 
-  public static final int DOUBLE_TYPE_FIELD_NUMBER = 5;
-  /**
-   * <code>optional double double_type = 5;</code>
-   */
-  public boolean hasDoubleType() {
-    return valueCase_ == 5;
-  }
-  /**
-   * <code>optional double double_type = 5;</code>
-   */
-  public double getDoubleType() {
-    if (valueCase_ == 5) {
-      return (java.lang.Double) value_;
-    }
-    return 0D;
-  }
-
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -288,10 +264,6 @@ private static final long serialVersionUID = 0L;
       output.writeBool(
           4, (boolean)((java.lang.Boolean) value_));
     }
-    if (valueCase_ == 5) {
-      output.writeDouble(
-          5, (double)((java.lang.Double) value_));
-    }
     unknownFields.writeTo(output);
   }
 
@@ -317,11 +289,6 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(
             4, (boolean)((java.lang.Boolean) value_));
-    }
-    if (valueCase_ == 5) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeDoubleSize(
-            5, (double)((java.lang.Double) value_));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -349,9 +316,9 @@ private static final long serialVersionUID = 0L;
         break;
       case 2:
         result = result && (
-            java.lang.Float.floatToIntBits(getFloatType())
+            java.lang.Float.floatToIntBits(getDoubleType())
             == java.lang.Float.floatToIntBits(
-                other.getFloatType()));
+                other.getDoubleType()));
         break;
       case 3:
         result = result && getStringType()
@@ -360,12 +327,6 @@ private static final long serialVersionUID = 0L;
       case 4:
         result = result && (getBooleanType()
             == other.getBooleanType());
-        break;
-      case 5:
-        result = result && (
-            java.lang.Double.doubleToLongBits(getDoubleType())
-            == java.lang.Double.doubleToLongBits(
-                other.getDoubleType()));
         break;
       case 0:
       default:
@@ -388,9 +349,9 @@ private static final long serialVersionUID = 0L;
             getIntegerType());
         break;
       case 2:
-        hash = (37 * hash) + FLOAT_TYPE_FIELD_NUMBER;
+        hash = (37 * hash) + DOUBLE_TYPE_FIELD_NUMBER;
         hash = (53 * hash) + java.lang.Float.floatToIntBits(
-            getFloatType());
+            getDoubleType());
         break;
       case 3:
         hash = (37 * hash) + STRING_TYPE_FIELD_NUMBER;
@@ -400,11 +361,6 @@ private static final long serialVersionUID = 0L;
         hash = (37 * hash) + BOOLEAN_TYPE_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
             getBooleanType());
-        break;
-      case 5:
-        hash = (37 * hash) + DOUBLE_TYPE_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            java.lang.Double.doubleToLongBits(getDoubleType()));
         break;
       case 0:
       default:
@@ -576,9 +532,6 @@ private static final long serialVersionUID = 0L;
       if (valueCase_ == 4) {
         result.value_ = value_;
       }
-      if (valueCase_ == 5) {
-        result.value_ = value_;
-      }
       result.bitField0_ = to_bitField0_;
       result.valueCase_ = valueCase_;
       onBuilt();
@@ -627,8 +580,8 @@ private static final long serialVersionUID = 0L;
           setIntegerType(other.getIntegerType());
           break;
         }
-        case FLOAT_TYPE: {
-          setFloatType(other.getFloatType());
+        case DOUBLE_TYPE: {
+          setDoubleType(other.getDoubleType());
           break;
         }
         case STRING_TYPE: {
@@ -639,10 +592,6 @@ private static final long serialVersionUID = 0L;
         }
         case BOOLEAN_TYPE: {
           setBooleanType(other.getBooleanType());
-          break;
-        }
-        case DOUBLE_TYPE: {
-          setDoubleType(other.getDoubleType());
           break;
         }
         case VALUE_NOT_SET: {
@@ -729,33 +678,33 @@ private static final long serialVersionUID = 0L;
     }
 
     /**
-     * <code>optional float float_type = 2;</code>
+     * <code>optional float double_type = 2;</code>
      */
-    public boolean hasFloatType() {
+    public boolean hasDoubleType() {
       return valueCase_ == 2;
     }
     /**
-     * <code>optional float float_type = 2;</code>
+     * <code>optional float double_type = 2;</code>
      */
-    public float getFloatType() {
+    public float getDoubleType() {
       if (valueCase_ == 2) {
         return (java.lang.Float) value_;
       }
       return 0F;
     }
     /**
-     * <code>optional float float_type = 2;</code>
+     * <code>optional float double_type = 2;</code>
      */
-    public Builder setFloatType(float value) {
+    public Builder setDoubleType(float value) {
       valueCase_ = 2;
       value_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional float float_type = 2;</code>
+     * <code>optional float double_type = 2;</code>
      */
-    public Builder clearFloatType() {
+    public Builder clearDoubleType() {
       if (valueCase_ == 2) {
         valueCase_ = 0;
         value_ = null;
@@ -880,42 +829,6 @@ private static final long serialVersionUID = 0L;
      */
     public Builder clearBooleanType() {
       if (valueCase_ == 4) {
-        valueCase_ = 0;
-        value_ = null;
-        onChanged();
-      }
-      return this;
-    }
-
-    /**
-     * <code>optional double double_type = 5;</code>
-     */
-    public boolean hasDoubleType() {
-      return valueCase_ == 5;
-    }
-    /**
-     * <code>optional double double_type = 5;</code>
-     */
-    public double getDoubleType() {
-      if (valueCase_ == 5) {
-        return (java.lang.Double) value_;
-      }
-      return 0D;
-    }
-    /**
-     * <code>optional double double_type = 5;</code>
-     */
-    public Builder setDoubleType(double value) {
-      valueCase_ = 5;
-      value_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional double double_type = 5;</code>
-     */
-    public Builder clearDoubleType() {
-      if (valueCase_ == 5) {
         valueCase_ = 0;
         value_ = null;
         onChanged();

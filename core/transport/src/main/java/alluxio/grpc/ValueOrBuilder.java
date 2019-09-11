@@ -17,13 +17,13 @@ public interface ValueOrBuilder extends
   long getIntegerType();
 
   /**
-   * <code>optional float float_type = 2;</code>
+   * <code>optional float double_type = 2;</code>
    */
-  boolean hasFloatType();
+  boolean hasDoubleType();
   /**
-   * <code>optional float float_type = 2;</code>
+   * <code>optional float double_type = 2;</code>
    */
-  float getFloatType();
+  float getDoubleType();
 
   /**
    * <code>optional string string_type = 3;</code>
@@ -47,15 +47,6 @@ public interface ValueOrBuilder extends
    * <code>optional bool boolean_type = 4;</code>
    */
   boolean getBooleanType();
-
-  /**
-   * <code>optional double double_type = 5;</code>
-   */
-  boolean hasDoubleType();
-  /**
-   * <code>optional double double_type = 5;</code>
-   */
-  double getDoubleType();
 
   public alluxio.grpc.Value.ValueCase getValueCase();
 }

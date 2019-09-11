@@ -411,62 +411,62 @@ public final class CatalogMasterProto {
       ".GetStatisticsPResponse.StatisticsEntry\032" +
       "O\n\017StatisticsEntry\022\013\n\003key\030\001 \001(\t\022+\n\005value" +
       "\030\002 \001(\0132\034.alluxio.grpc.FileStatistics:\0028\001" +
-      "\"\204\001\n\005Value\022\026\n\014integer_type\030\001 \001(\003H\000\022\024\n\nfl" +
-      "oat_type\030\002 \001(\002H\000\022\025\n\013string_type\030\003 \001(\tH\000\022" +
-      "\026\n\014boolean_type\030\004 \001(\010H\000\022\025\n\013double_type\030\005" +
-      " \001(\001H\000B\007\n\005value\"L\n\005Range\022 \n\003low\030\001 \001(\0132\023." +
-      "alluxio.grpc.Value\022!\n\004high\030\002 \001(\0132\023.allux" +
-      "io.grpc.Value\"/\n\010RangeSet\022#\n\006ranges\030\001 \003(" +
-      "\0132\023.alluxio.grpc.Range\"P\n\021EquatableValue" +
-      "Set\022\'\n\ncandidates\030\001 \003(\0132\023.alluxio.grpc.V" +
-      "alue\022\022\n\nwhite_list\030\002 \001(\010\"\033\n\014AllOrNoneSet" +
-      "\022\013\n\003all\030\001 \001(\010\"\247\001\n\006Domain\022\'\n\005range\030\001 \001(\0132" +
-      "\026.alluxio.grpc.RangeSetH\000\0224\n\tequatable\030\002" +
-      " \001(\0132\037.alluxio.grpc.EquatableValueSetH\000\022" +
-      "1\n\013all_or_none\030\003 \001(\0132\032.alluxio.grpc.AllO" +
-      "rNoneSetH\000B\013\n\tvalue_set\"\251\001\n\nConstraint\022K" +
-      "\n\022column_constraints\030\001 \003(\0132/.alluxio.grp" +
-      "c.Constraint.ColumnConstraintsEntry\032N\n\026C" +
-      "olumnConstraintsEntry\022\013\n\003key\030\001 \001(\t\022#\n\005va" +
-      "lue\030\002 \001(\0132\024.alluxio.grpc.Domain:\0028\001\"f\n\021R" +
-      "eadTablePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntab" +
-      "le_name\030\002 \001(\t\022,\n\nconstraint\030\003 \001(\0132\030.allu" +
-      "xio.grpc.Constraint\"E\n\022ReadTablePRespons" +
-      "e\022/\n\npartitions\030\001 \003(\0132\033.alluxio.grpc.Par" +
-      "titionInfo*\304\001\n\013FieldTypeId\022\013\n\007BOOLEAN\020\000\022" +
-      "\013\n\007INTEGER\020\001\022\010\n\004LONG\020\002\022\t\n\005FLOAT\020\003\022\n\n\006DOU" +
-      "BLE\020\004\022\010\n\004DATE\020\005\022\010\n\004TIME\020\006\022\r\n\tTIMESTAMP\020\007" +
-      "\022\n\n\006STRING\020\010\022\010\n\004UUID\020\t\022\t\n\005FIXED\020\n\022\n\n\006BIN" +
-      "ARY\020\013\022\013\n\007DECIMAL\020\014\022\n\n\006STRUCT\020\r\022\010\n\004LIST\020\016" +
-      "\022\007\n\003MAP\020\017*6\n\nRepetition\022\014\n\010REPEATED\020\001\022\014\n" +
-      "\010OPTIONAL\020\002\022\014\n\010REQUIRED\020\003*\336\001\n\021PrimitiveT" +
-      "ypeName\022\025\n\021PARQUETTYPE_INT64\020\000\022\025\n\021PARQUE" +
-      "TTYPE_INT32\020\001\022\027\n\023PARQUETTYPE_BOOLEAN\020\002\022\026" +
-      "\n\022PARQUETTYPE_BINARY\020\003\022\025\n\021PARQUETTYPE_FL" +
-      "OAT\020\004\022\026\n\022PARQUETTYPE_DOUBLE\020\005\022\025\n\021PARQUET" +
-      "TYPE_INT96\020\006\022$\n PARQUETTYPE_FIXED_LEN_BY" +
-      "TE_ARRAY\020\0072\272\006\n\032CatalogMasterClientServic" +
-      "e\022`\n\017GetAllDatabases\022%.alluxio.grpc.GetA" +
-      "llDatabasesPRequest\032&.alluxio.grpc.GetAl" +
-      "lDatabasesPResponse\022W\n\014GetAllTables\022\".al" +
-      "luxio.grpc.GetAllTablesPRequest\032#.alluxi" +
-      "o.grpc.GetAllTablesPResponse\022T\n\013GetDatab" +
-      "ase\022!.alluxio.grpc.GetDatabasePRequest\032\"" +
-      ".alluxio.grpc.GetDatabasePResponse\022K\n\010Ge" +
-      "tTable\022\036.alluxio.grpc.GetTablePRequest\032\037" +
-      ".alluxio.grpc.GetTablePResponse\022T\n\013Creat" +
-      "eTable\022!.alluxio.grpc.CreateTablePReques" +
-      "t\032\".alluxio.grpc.CreateTablePResponse\022]\n" +
-      "\016CreateDatabase\022$.alluxio.grpc.CreateDat" +
-      "abasePRequest\032%.alluxio.grpc.CreateDatab" +
-      "asePResponse\022]\n\016AttachDatabase\022$.alluxio" +
-      ".grpc.AttachDatabasePRequest\032%.alluxio.g" +
-      "rpc.AttachDatabasePResponse\022Z\n\rGetStatis" +
-      "tics\022#.alluxio.grpc.GetStatisticsPReques" +
-      "t\032$.alluxio.grpc.GetStatisticsPResponse\022" +
-      "N\n\tReadTable\022\037.alluxio.grpc.ReadTablePRe" +
-      "quest\032 .alluxio.grpc.ReadTablePResponseB" +
-      "$\n\014alluxio.grpcB\022CatalogMasterProtoP\001"
+      "\"n\n\005Value\022\026\n\014integer_type\030\001 \001(\003H\000\022\025\n\013dou" +
+      "ble_type\030\002 \001(\002H\000\022\025\n\013string_type\030\003 \001(\tH\000\022" +
+      "\026\n\014boolean_type\030\004 \001(\010H\000B\007\n\005value\"L\n\005Rang" +
+      "e\022 \n\003low\030\001 \001(\0132\023.alluxio.grpc.Value\022!\n\004h" +
+      "igh\030\002 \001(\0132\023.alluxio.grpc.Value\"/\n\010RangeS" +
+      "et\022#\n\006ranges\030\001 \003(\0132\023.alluxio.grpc.Range\"" +
+      "P\n\021EquatableValueSet\022\'\n\ncandidates\030\001 \003(\013" +
+      "2\023.alluxio.grpc.Value\022\022\n\nwhite_list\030\002 \001(" +
+      "\010\"\033\n\014AllOrNoneSet\022\013\n\003all\030\001 \001(\010\"\247\001\n\006Domai" +
+      "n\022\'\n\005range\030\001 \001(\0132\026.alluxio.grpc.RangeSet" +
+      "H\000\0224\n\tequatable\030\002 \001(\0132\037.alluxio.grpc.Equ" +
+      "atableValueSetH\000\0221\n\013all_or_none\030\003 \001(\0132\032." +
+      "alluxio.grpc.AllOrNoneSetH\000B\013\n\tvalue_set" +
+      "\"\251\001\n\nConstraint\022K\n\022column_constraints\030\001 " +
+      "\003(\0132/.alluxio.grpc.Constraint.ColumnCons" +
+      "traintsEntry\032N\n\026ColumnConstraintsEntry\022\013" +
+      "\n\003key\030\001 \001(\t\022#\n\005value\030\002 \001(\0132\024.alluxio.grp" +
+      "c.Domain:\0028\001\"f\n\021ReadTablePRequest\022\017\n\007db_" +
+      "name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022,\n\nconstr" +
+      "aint\030\003 \001(\0132\030.alluxio.grpc.Constraint\"E\n\022" +
+      "ReadTablePResponse\022/\n\npartitions\030\001 \003(\0132\033" +
+      ".alluxio.grpc.PartitionInfo*\304\001\n\013FieldTyp" +
+      "eId\022\013\n\007BOOLEAN\020\000\022\013\n\007INTEGER\020\001\022\010\n\004LONG\020\002\022" +
+      "\t\n\005FLOAT\020\003\022\n\n\006DOUBLE\020\004\022\010\n\004DATE\020\005\022\010\n\004TIME" +
+      "\020\006\022\r\n\tTIMESTAMP\020\007\022\n\n\006STRING\020\010\022\010\n\004UUID\020\t\022" +
+      "\t\n\005FIXED\020\n\022\n\n\006BINARY\020\013\022\013\n\007DECIMAL\020\014\022\n\n\006S" +
+      "TRUCT\020\r\022\010\n\004LIST\020\016\022\007\n\003MAP\020\017*6\n\nRepetition" +
+      "\022\014\n\010REPEATED\020\001\022\014\n\010OPTIONAL\020\002\022\014\n\010REQUIRED" +
+      "\020\003*\336\001\n\021PrimitiveTypeName\022\025\n\021PARQUETTYPE_" +
+      "INT64\020\000\022\025\n\021PARQUETTYPE_INT32\020\001\022\027\n\023PARQUE" +
+      "TTYPE_BOOLEAN\020\002\022\026\n\022PARQUETTYPE_BINARY\020\003\022" +
+      "\025\n\021PARQUETTYPE_FLOAT\020\004\022\026\n\022PARQUETTYPE_DO" +
+      "UBLE\020\005\022\025\n\021PARQUETTYPE_INT96\020\006\022$\n PARQUET" +
+      "TYPE_FIXED_LEN_BYTE_ARRAY\020\0072\272\006\n\032CatalogM" +
+      "asterClientService\022`\n\017GetAllDatabases\022%." +
+      "alluxio.grpc.GetAllDatabasesPRequest\032&.a" +
+      "lluxio.grpc.GetAllDatabasesPResponse\022W\n\014" +
+      "GetAllTables\022\".alluxio.grpc.GetAllTables" +
+      "PRequest\032#.alluxio.grpc.GetAllTablesPRes" +
+      "ponse\022T\n\013GetDatabase\022!.alluxio.grpc.GetD" +
+      "atabasePRequest\032\".alluxio.grpc.GetDataba" +
+      "sePResponse\022K\n\010GetTable\022\036.alluxio.grpc.G" +
+      "etTablePRequest\032\037.alluxio.grpc.GetTableP" +
+      "Response\022T\n\013CreateTable\022!.alluxio.grpc.C" +
+      "reateTablePRequest\032\".alluxio.grpc.Create" +
+      "TablePResponse\022]\n\016CreateDatabase\022$.allux" +
+      "io.grpc.CreateDatabasePRequest\032%.alluxio" +
+      ".grpc.CreateDatabasePResponse\022]\n\016AttachD" +
+      "atabase\022$.alluxio.grpc.AttachDatabasePRe" +
+      "quest\032%.alluxio.grpc.AttachDatabasePResp" +
+      "onse\022Z\n\rGetStatistics\022#.alluxio.grpc.Get" +
+      "StatisticsPRequest\032$.alluxio.grpc.GetSta" +
+      "tisticsPResponse\022N\n\tReadTable\022\037.alluxio." +
+      "grpc.ReadTablePRequest\032 .alluxio.grpc.Re" +
+      "adTablePResponseB$\n\014alluxio.grpcB\022Catalo" +
+      "gMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -756,7 +756,7 @@ public final class CatalogMasterProto {
     internal_static_alluxio_grpc_Value_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_Value_descriptor,
-        new java.lang.String[] { "IntegerType", "FloatType", "StringType", "BooleanType", "DoubleType", "Value", });
+        new java.lang.String[] { "IntegerType", "DoubleType", "StringType", "BooleanType", "Value", });
     internal_static_alluxio_grpc_Range_descriptor =
       getDescriptor().getMessageTypes().get(38);
     internal_static_alluxio_grpc_Range_fieldAccessorTable = new
