@@ -26,7 +26,6 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-
 import org.apache.http.HttpStatus;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.StorageObjectsChunk;
