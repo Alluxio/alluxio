@@ -78,8 +78,10 @@ public class CopycatGrpcClient implements Client {
     final CompletableFuture<Connection> buildFuture = CompletableFuture.supplyAsync(() -> {
       try {
         // Create a new gRPC channel for requested connection.
+        String hostName = address.socketAddress().isUnresolved() ? address.host() : address.socketAddress().getAddress().getHostName();
+        LOG.info("Copycat transport client connecting to hostname {} socketAddress {}", hostName, address.socketAddress());
         GrpcChannel channel = GrpcChannelBuilder
-            .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
+            .newBuilder(GrpcServerAddress.create(hostName, address.socketAddress()), mConf)
             .setClientType("CopycatClient").setSubject(mUserState.getSubject())
             .setMaxInboundMessageSize((int) mConf
                 .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
