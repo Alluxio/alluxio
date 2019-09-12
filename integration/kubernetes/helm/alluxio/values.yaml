@@ -18,6 +18,7 @@ group: 0
 fsGroup: 0
 
 resources:
+  masterCount: 1 # For multiMaster mode increase this to >1
   master:
     replicaCount: 1
     limits:
@@ -67,6 +68,23 @@ volumes:
     domainHostPath: "/tmp/alluxio-domain"
     ramdisk:
       size: 1Gi
+
+# Alluxio supports journal type of UFS and EMBEDDED
+# UFS journal with HDFS example
+# journal:
+#   type: "UFS"
+#   folder: "hdfs://{$hostname}:{$hostport}/journal"
+# EMBEDDED journal to /journal example
+# journal:
+#   type: "EMBEDDED"
+#   folder: "/journal"
+journal:
+  type: "UFS"
+  ufsType: "local" # Ignored if type is "EMBEDDED"
+  folder: "/journal"
+
+const:
+  configName: "alluxio-config"
 
 # These options must be passed in using the "helm -f" option
 # properties:
