@@ -220,13 +220,12 @@ In fact, the default templates you ran in the previous section are just symbolic
 *singleMaster-localJournal* directory gives you the necessary Kubernetes ConfigMap, 1 Alluxio master process and a set of Alluxio workers.
 The Alluxio master writes journal to the PersistentVolume defined in *alluxio-journal-volume.yaml.template*.
 
-*multiMaster-EmbeddedJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters and 2 Alluxio workers.
-The Alluxio masters each writes to its `alluxio-journal-volume`, which is an `emptyDir` that gets wiped out when the Pod goes down.
+*multiMaster-EmbeddedJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters and a set of Alluxio workers.
+The Alluxio masters each write to its `alluxio-journal-volume`, which is an `emptyDir` that gets wiped out when the Pod is shut down.
 
 *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters with a set of workers.
-The journals are in a shared UFS location. In the templates we use HDFS as the UFS.
-There are some extra setup you have to do before the Alluxio processes are able to connect to your HDFS.
-The next section will go over what extra setup is needed for HDFS connection.
+The journal is in a shared UFS location. In this template we use HDFS as the UFS.
+The following section will go over an extra setup that is needed for connecting to HDFS.
 
 ###### Modify *singleMaster-hdfsJournal* template for HDFS connection
 
@@ -239,7 +238,7 @@ Kubernetes Pods don't recognize network hostnames that are not managed by Kubern
 [Kubernetes add hostAliases](https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/#adding-additional-entries-with-hostaliases)
 
 For example if your HDFS service can be reached at `hdfs://hdfs-host:9000` where `hdfs-host` is a hostname,
-you will need to add the `hostAliases` in the `spec` for this Pod (Note that `hostAliases` is an array.). You will need to find the IP address for this hostname `hdfs-cluster`.
+you will need to add the `hostAliases` in the `spec` for this Pod (note that `hostAliases` is an array). You will need to find the IP address for this hostname `hdfs-host`.
 
 ```yaml
 spec:
@@ -266,9 +265,9 @@ spec:
         app: alluxio-master-0
     spec:
       hostAliases:
-      - ip: "ip for hdfs-cluster"
+      - ip: "ip for hdfs-host"
         hostnames:
-        - "hdfs-cluster"
+        - "hdfs-host"
 ```
 
 ###### Step 2: Create Kubernetes Secret for HDFS configuration files. 
@@ -286,9 +285,9 @@ For more details see [Create Kubernetes Secret for HDFS](#example-hdfs-as-the-un
 ###### Step 3: Modify *alluxio-configMap.yaml.template*.
 
 Now that your pods know how to talk to your HDFS service,
-you need to update `-Dalluxio.master.journal.folder` and `alluxio.master.mount.table.root.ufs` to point them to the correct HDFS destination. 
+you need to update `alluxio.master.journal.folder` and `alluxio.master.mount.table.root.ufs` to point them to the correct HDFS destination. 
 
-You will also see the `alluxio.underfs.hdfs.configuration` that is pointing to the Kubernetes Secret you just created.
+You will also see `alluxio.underfs.hdfs.configuration` is pointing to the Kubernetes Secret you just created.
 
 
 ### Access the Web UI
