@@ -19,11 +19,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 // TODO(david): make this class templated
+
+/**
+ * Domain represetation to check values.
+ *
+ * @param <T> type of the element
+ */
 public abstract class Domain<T> {
   abstract boolean isInDomain(T obj);
 
   /**
-   * Parse from protobuf domain to Domain class
+   * Parse from protobuf domain to Domain class.
+   *
    * @param domain proto representation
    * @return a Domain object
    */
@@ -38,7 +45,7 @@ public abstract class Domain<T> {
     if (domain.hasRange()) {
       return new RangeDomain(domain.getRange().getRangesList());
     }
-    return null;
+    return new AllOrNoneDomain(false);
   }
 
   private static Comparable convert(Value candidate) {
@@ -62,6 +69,7 @@ public abstract class Domain<T> {
 
     public AllOrNoneDomain(boolean all) {
       super();
+      mAll = all;
     }
 
     @Override
@@ -73,6 +81,7 @@ public abstract class Domain<T> {
   private static class EquatableDomain<T> extends Domain<T> {
     private boolean mWhiteList;
     private List<Object> mObjects;
+
     public EquatableDomain(boolean whiteList, List<Value> candidatesList) {
       super();
       mWhiteList = whiteList;
@@ -90,6 +99,7 @@ public abstract class Domain<T> {
 
   private static class RangeDomain extends Domain {
     private List<Pair<Comparable, Comparable>> mRanges;
+
     public RangeDomain(List<Range> rangesList) {
       super();
       mRanges = new ArrayList<>();
@@ -102,7 +112,7 @@ public abstract class Domain<T> {
     boolean isInDomain(Object obj) {
       for (Pair<Comparable, Comparable> pair : mRanges) {
         if (pair.getFirst().compareTo(obj) <= 0
-          && pair.getSecond().compareTo(obj) >=0) {
+            && pair.getSecond().compareTo(obj) >= 0) {
           return true;
         }
       }

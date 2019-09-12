@@ -18,14 +18,12 @@ import alluxio.grpc.AllOrNoneSet;
 import alluxio.grpc.Constraint;
 import alluxio.grpc.Domain;
 import alluxio.grpc.FieldSchema;
-import alluxio.grpc.FieldTypeId;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.PartitionInfo;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
 import com.google.common.base.Preconditions;
-import org.apache.iceberg.types.Types;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import static alluxio.grpc.FieldTypeId.BOOLEAN;
 
 // TODO(yuzhu): journal the state of the catalog
 /**
@@ -177,7 +173,8 @@ public class AlluxioCatalog {
 
     List<PartitionInfo> parts = table.get().getPartitionInfo();
 
-    Map<FieldSchema, Domain> partitionConstraints = new LinkedHashMap<>(); //maintain insertion order
+    Map<FieldSchema, Domain> partitionConstraints = new LinkedHashMap<>();
+    //maintain insertion order
 
     for (FieldSchema col : cols) {
       Domain domain = constraint.getColumnConstraintsMap().get(col.getName());
@@ -201,7 +198,7 @@ public class AlluxioCatalog {
     return returnList;
   }
 
-  private boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
+  private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
     Comparable object;
     // TODO(yuzhu): handle more complex data types
     switch (schema.getType().getType()) {
@@ -223,7 +220,8 @@ public class AlluxioCatalog {
     return alluxio.master.catalog.Domain.parseFrom(constraint).isInDomain(object);
   }
 
-  private boolean checkDomain(PartitionInfo partitionInfo, Map<FieldSchema, Domain> constraints) {
+  private static boolean checkDomain(PartitionInfo partitionInfo,
+      Map<FieldSchema, Domain> constraints) {
     Preconditions.checkArgument(constraints.size() == partitionInfo.getValuesList().size(),
         "partition key size is not the same as constraint size");
     int index = 0;
