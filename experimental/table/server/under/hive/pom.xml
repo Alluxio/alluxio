@@ -36,8 +36,16 @@
       <artifactId>kryo</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.apache</groupId>
-      <artifactId>incubator-iceberg</artifactId>
+      <groupId>com.github.apache.incubator-iceberg</groupId>
+      <artifactId>iceberg-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.apache.incubator-iceberg</groupId>
+      <artifactId>iceberg-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.apache.incubator-iceberg</groupId>
+      <artifactId>iceberg-parquet</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
