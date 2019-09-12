@@ -17,15 +17,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.AllOrNoneSet;
 import alluxio.grpc.Constraint;
 import alluxio.grpc.Domain;
-import alluxio.grpc.EquatableValueSet;
 import alluxio.grpc.FieldSchema;
-import alluxio.grpc.FieldTypeId;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.PartitionInfo;
-import alluxio.grpc.Range;
-import alluxio.grpc.RangeSet;
-import alluxio.grpc.Type;
-import alluxio.grpc.Value;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
