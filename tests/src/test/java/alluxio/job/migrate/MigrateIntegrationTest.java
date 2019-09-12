@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
@@ -82,10 +83,12 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     File ufsMountPoint2 = mFolder.newFolder();
     mFileSystem.mount(new AlluxioURI("/mount1"), new AlluxioURI(ufsMountPoint1.getAbsolutePath()));
     mFileSystem.mount(new AlluxioURI("/mount2"), new AlluxioURI(ufsMountPoint2.getAbsolutePath()));
-    mFileSystem.createDirectory(new AlluxioURI("/mount1/source"));
+    mFileSystem.createDirectory(new AlluxioURI("/mount1/source"),
+        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     createFileWithTestBytes("/mount1/source/foo");
     createFileWithTestBytes("/mount1/source/bar");
-    mFileSystem.createDirectory(new AlluxioURI("/mount1/source/baz"));
+    mFileSystem.createDirectory(new AlluxioURI("/mount1/source/baz"),
+        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     createFileWithTestBytes("/mount1/source/baz/bat");
     long jobId = mJobMaster.run(new MigrateConfig("/mount1/source", "/mount2/destination",
         WriteType.CACHE_THROUGH.toString(), true, mDeleteSource));
