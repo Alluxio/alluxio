@@ -28,6 +28,7 @@ enum FieldTypeId {
     MAP = 15;
 }
 
+// TODO(yuzhu): change the type representation to be more general, not iceberg specific
 message Type {
     required FieldTypeId type = 1;
     optional string primitive_field = 2; // parse directly from a string
