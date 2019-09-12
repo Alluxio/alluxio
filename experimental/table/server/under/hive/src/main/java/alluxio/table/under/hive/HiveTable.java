@@ -85,7 +85,7 @@ public class HiveTable implements UdbTable {
   }
 
   // TODO(yuzhu): clean this up to use proper method to get a list of datafiles
-  private Map<String, ParquetMetadata> getPartitionMetadata(Path path, Hive hive) {
+  private static Map<String, ParquetMetadata> getPartitionMetadata(Path path, Hive hive) {
     Map<String, ParquetMetadata> metadataMap = new HashMap<>();
     try {
       FileSystem fs = path.getFileSystem(hive.getConf());
