@@ -8,22 +8,22 @@ public interface ValueOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional int64 integer_type = 1;</code>
+   * <code>optional int64 long_type = 1;</code>
    */
-  boolean hasIntegerType();
+  boolean hasLongType();
   /**
-   * <code>optional int64 integer_type = 1;</code>
+   * <code>optional int64 long_type = 1;</code>
    */
-  long getIntegerType();
+  long getLongType();
 
   /**
-   * <code>optional float double_type = 2;</code>
+   * <code>optional double double_type = 2;</code>
    */
   boolean hasDoubleType();
   /**
-   * <code>optional float double_type = 2;</code>
+   * <code>optional double double_type = 2;</code>
    */
-  float getDoubleType();
+  double getDoubleType();
 
   /**
    * <code>optional string string_type = 3;</code>

@@ -54,9 +54,9 @@ private static final long serialVersionUID = 0L;
             value_ = input.readInt64();
             break;
           }
-          case 21: {
+          case 17: {
             valueCase_ = 2;
-            value_ = input.readFloat();
+            value_ = input.readDouble();
             break;
           }
           case 26: {
@@ -99,7 +99,7 @@ private static final long serialVersionUID = 0L;
   private java.lang.Object value_;
   public enum ValueCase
       implements com.google.protobuf.Internal.EnumLite {
-    INTEGER_TYPE(1),
+    LONG_TYPE(1),
     DOUBLE_TYPE(2),
     STRING_TYPE(3),
     BOOLEAN_TYPE(4),
@@ -118,7 +118,7 @@ private static final long serialVersionUID = 0L;
 
     public static ValueCase forNumber(int value) {
       switch (value) {
-        case 1: return INTEGER_TYPE;
+        case 1: return LONG_TYPE;
         case 2: return DOUBLE_TYPE;
         case 3: return STRING_TYPE;
         case 4: return BOOLEAN_TYPE;
@@ -137,17 +137,17 @@ private static final long serialVersionUID = 0L;
         valueCase_);
   }
 
-  public static final int INTEGER_TYPE_FIELD_NUMBER = 1;
+  public static final int LONG_TYPE_FIELD_NUMBER = 1;
   /**
-   * <code>optional int64 integer_type = 1;</code>
+   * <code>optional int64 long_type = 1;</code>
    */
-  public boolean hasIntegerType() {
+  public boolean hasLongType() {
     return valueCase_ == 1;
   }
   /**
-   * <code>optional int64 integer_type = 1;</code>
+   * <code>optional int64 long_type = 1;</code>
    */
-  public long getIntegerType() {
+  public long getLongType() {
     if (valueCase_ == 1) {
       return (java.lang.Long) value_;
     }
@@ -156,19 +156,19 @@ private static final long serialVersionUID = 0L;
 
   public static final int DOUBLE_TYPE_FIELD_NUMBER = 2;
   /**
-   * <code>optional float double_type = 2;</code>
+   * <code>optional double double_type = 2;</code>
    */
   public boolean hasDoubleType() {
     return valueCase_ == 2;
   }
   /**
-   * <code>optional float double_type = 2;</code>
+   * <code>optional double double_type = 2;</code>
    */
-  public float getDoubleType() {
+  public double getDoubleType() {
     if (valueCase_ == 2) {
-      return (java.lang.Float) value_;
+      return (java.lang.Double) value_;
     }
-    return 0F;
+    return 0D;
   }
 
   public static final int STRING_TYPE_FIELD_NUMBER = 3;
@@ -254,8 +254,8 @@ private static final long serialVersionUID = 0L;
           1, (long)((java.lang.Long) value_));
     }
     if (valueCase_ == 2) {
-      output.writeFloat(
-          2, (float)((java.lang.Float) value_));
+      output.writeDouble(
+          2, (double)((java.lang.Double) value_));
     }
     if (valueCase_ == 3) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, value_);
@@ -279,8 +279,8 @@ private static final long serialVersionUID = 0L;
     }
     if (valueCase_ == 2) {
       size += com.google.protobuf.CodedOutputStream
-        .computeFloatSize(
-            2, (float)((java.lang.Float) value_));
+        .computeDoubleSize(
+            2, (double)((java.lang.Double) value_));
     }
     if (valueCase_ == 3) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, value_);
@@ -311,13 +311,13 @@ private static final long serialVersionUID = 0L;
     if (!result) return false;
     switch (valueCase_) {
       case 1:
-        result = result && (getIntegerType()
-            == other.getIntegerType());
+        result = result && (getLongType()
+            == other.getLongType());
         break;
       case 2:
         result = result && (
-            java.lang.Float.floatToIntBits(getDoubleType())
-            == java.lang.Float.floatToIntBits(
+            java.lang.Double.doubleToLongBits(getDoubleType())
+            == java.lang.Double.doubleToLongBits(
                 other.getDoubleType()));
         break;
       case 3:
@@ -344,14 +344,14 @@ private static final long serialVersionUID = 0L;
     hash = (19 * hash) + getDescriptor().hashCode();
     switch (valueCase_) {
       case 1:
-        hash = (37 * hash) + INTEGER_TYPE_FIELD_NUMBER;
+        hash = (37 * hash) + LONG_TYPE_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getIntegerType());
+            getLongType());
         break;
       case 2:
         hash = (37 * hash) + DOUBLE_TYPE_FIELD_NUMBER;
-        hash = (53 * hash) + java.lang.Float.floatToIntBits(
-            getDoubleType());
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getDoubleType()));
         break;
       case 3:
         hash = (37 * hash) + STRING_TYPE_FIELD_NUMBER;
@@ -576,8 +576,8 @@ private static final long serialVersionUID = 0L;
     public Builder mergeFrom(alluxio.grpc.Value other) {
       if (other == alluxio.grpc.Value.getDefaultInstance()) return this;
       switch (other.getValueCase()) {
-        case INTEGER_TYPE: {
-          setIntegerType(other.getIntegerType());
+        case LONG_TYPE: {
+          setLongType(other.getLongType());
           break;
         }
         case DOUBLE_TYPE: {
@@ -642,33 +642,33 @@ private static final long serialVersionUID = 0L;
     private int bitField0_;
 
     /**
-     * <code>optional int64 integer_type = 1;</code>
+     * <code>optional int64 long_type = 1;</code>
      */
-    public boolean hasIntegerType() {
+    public boolean hasLongType() {
       return valueCase_ == 1;
     }
     /**
-     * <code>optional int64 integer_type = 1;</code>
+     * <code>optional int64 long_type = 1;</code>
      */
-    public long getIntegerType() {
+    public long getLongType() {
       if (valueCase_ == 1) {
         return (java.lang.Long) value_;
       }
       return 0L;
     }
     /**
-     * <code>optional int64 integer_type = 1;</code>
+     * <code>optional int64 long_type = 1;</code>
      */
-    public Builder setIntegerType(long value) {
+    public Builder setLongType(long value) {
       valueCase_ = 1;
       value_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 integer_type = 1;</code>
+     * <code>optional int64 long_type = 1;</code>
      */
-    public Builder clearIntegerType() {
+    public Builder clearLongType() {
       if (valueCase_ == 1) {
         valueCase_ = 0;
         value_ = null;
@@ -678,31 +678,31 @@ private static final long serialVersionUID = 0L;
     }
 
     /**
-     * <code>optional float double_type = 2;</code>
+     * <code>optional double double_type = 2;</code>
      */
     public boolean hasDoubleType() {
       return valueCase_ == 2;
     }
     /**
-     * <code>optional float double_type = 2;</code>
+     * <code>optional double double_type = 2;</code>
      */
-    public float getDoubleType() {
+    public double getDoubleType() {
       if (valueCase_ == 2) {
-        return (java.lang.Float) value_;
+        return (java.lang.Double) value_;
       }
-      return 0F;
+      return 0D;
     }
     /**
-     * <code>optional float double_type = 2;</code>
+     * <code>optional double double_type = 2;</code>
      */
-    public Builder setDoubleType(float value) {
+    public Builder setDoubleType(double value) {
       valueCase_ = 2;
       value_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional float double_type = 2;</code>
+     * <code>optional double double_type = 2;</code>
      */
     public Builder clearDoubleType() {
       if (valueCase_ == 2) {

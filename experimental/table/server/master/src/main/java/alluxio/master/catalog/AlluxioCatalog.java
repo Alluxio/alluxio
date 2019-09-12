@@ -17,9 +17,15 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.AllOrNoneSet;
 import alluxio.grpc.Constraint;
 import alluxio.grpc.Domain;
+import alluxio.grpc.EquatableValueSet;
 import alluxio.grpc.FieldSchema;
+import alluxio.grpc.FieldTypeId;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.Range;
+import alluxio.grpc.RangeSet;
+import alluxio.grpc.Type;
+import alluxio.grpc.Value;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
@@ -208,11 +214,14 @@ public class AlluxioCatalog {
       case INTEGER:
         object = Integer.valueOf(value);
         break;
+      case LONG:
+        object = Long.valueOf(value);
+        break;
       case STRING:
         object = value;
         break;
       case DOUBLE:
-        object = value;
+        object = Double.valueOf(value);
         break;
       default:
         return false;

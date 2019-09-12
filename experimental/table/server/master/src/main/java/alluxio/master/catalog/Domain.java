@@ -58,8 +58,8 @@ public abstract class Domain<T> {
     if (candidate.hasDoubleType()) {
       return candidate.getDoubleType();
     }
-    if (candidate.hasIntegerType()) {
-      return candidate.getIntegerType();
+    if (candidate.hasLongType()) {
+      return candidate.getLongType();
     }
     return null;
   }

@@ -276,8 +276,8 @@ message GetStatisticsPResponse {
 
 message Value {
     oneof value {
-        int64 integer_type = 1;
-        float double_type = 2;
+        int64 long_type = 1;
+        double double_type = 2;
         string string_type = 3;
         bool boolean_type = 4;
     }
