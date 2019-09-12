@@ -98,8 +98,8 @@ public class HiveTable implements UdbTable {
             try (ParquetFileReader reader = ParquetFileReader.open(in)) {
               footer = reader.getFooter();
             }
-          } catch (IOException e) {
-            LOG.warn("Unable to read parquet footer {}", status.getPath());
+          } catch (IOException | RuntimeException e) {
+            LOG.warn("Unable to read parquet footer {}, exception {}", status.getPath(), e);
           }
           if (footer != null) {
             metadataMap.put(status.getPath().toString(), HiveUtils.toProto(footer));
