@@ -543,7 +543,7 @@ public final class CommonUtils {
           throw new TimeoutException(
               String.format("Timed out after %dms", timeoutMs - remainingMs));
         }
-        CommonUtils.sleepMs(Math.min(remainingMs, 50));
+        CommonUtils.sleepMs(Math.min(remainingMs, 2));
       }
     } finally {
       service.shutdownNow();
