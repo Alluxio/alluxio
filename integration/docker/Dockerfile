@@ -53,4 +53,8 @@ USER ${ALLUXIO_UID}
 # add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
 
+WORKDIR /opt/alluxio
+
+ENV PATH="/opt/alluxio/bin:${PATH}"
+
 ENTRYPOINT ["/entrypoint.sh"]
