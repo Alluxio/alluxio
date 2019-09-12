@@ -32,7 +32,7 @@
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <hive-metastore.verison>2.3.2</hive-metastore.verison>
+    <hive-metastore.verison>2.3.6</hive-metastore.verison>
     <iceberg.version>8c0f53bb</iceberg.version>
   </properties>
 
@@ -54,8 +54,13 @@
         <version>${iceberg.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.github.apache</groupId>
-        <artifactId>incubator-iceberg</artifactId>
+        <groupId>com.github.apache.incubator-iceberg</groupId>
+        <artifactId>iceberg-core</artifactId>
+        <version>${iceberg.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.apache.incubator-iceberg</groupId>
+        <artifactId>iceberg-parquet</artifactId>
         <version>${iceberg.version}</version>
       </dependency>
     </dependencies>
