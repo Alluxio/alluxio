@@ -90,7 +90,8 @@ public class HiveTable implements UdbTable {
     try {
       FileSystem fs = path.getFileSystem(hive.getConf());
       for (FileStatus status : fs.listStatus(path)) {
-        if (status.isFile() && !status.getPath().getName().endsWith(".crc")) {
+        if (status.isFile() && !status.getPath().getName().endsWith(".crc")
+            && !status.getPath().getName().equals("_SUCCESS")) {
           // it is a data file
           org.apache.parquet.hadoop.metadata.ParquetMetadata footer = null;
           try {
@@ -98,8 +99,8 @@ public class HiveTable implements UdbTable {
             try (ParquetFileReader reader = ParquetFileReader.open(in)) {
               footer = reader.getFooter();
             }
-          } catch (IOException e) {
-            LOG.warn("Unable to read parquet footer {}", status.getPath());
+          } catch (IOException | RuntimeException e) {
+            LOG.warn("Unable to read parquet footer {}, exception {}", status.getPath(), e);
           }
           if (footer != null) {
             metadataMap.put(status.getPath().toString(), HiveUtils.toProto(footer));
