@@ -260,7 +260,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private static Address getLocalAddress(RaftJournalConfiguration conf) {
-    return new Address(conf.getLocalAddress().getHostName(), conf.getLocalAddress().getPort());
+    return new Address(conf.getLocalAddress());
   }
 
   /**

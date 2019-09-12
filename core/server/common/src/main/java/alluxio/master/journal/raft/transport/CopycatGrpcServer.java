@@ -88,7 +88,7 @@ public class CopycatGrpcServer implements Server {
       return mListenFuture;
     }
 
-    LOG.info("Copycat transport server connect address: {}", address);
+    LOG.debug("Copycat transport server connect address: {}", address);
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     mListenFuture = CompletableFuture.runAsync(() -> {
       // Listener that notifies both this server instance and given listener.
@@ -101,9 +101,8 @@ public class CopycatGrpcServer implements Server {
       InetSocketAddress rpcBindAddress = new InetSocketAddress(
           NetworkAddressUtils.getBindHost(NetworkAddressUtils.ServiceType.MASTER_RAFT, mConf),
           address.port());
-      LOG.info("Copycat transport server bind address: {}", rpcBindAddress.toString());
-      String hostName = address.socketAddress().isUnresolved() ? address.host() : address.socketAddress().getAddress().getHostName();
-      LOG.info("Copycat transport server host address: {}", hostName);
+      String hostName = address.socketAddress().isUnresolved() ? address.host()
+          : address.socketAddress().getAddress().getHostName(); // use unresolved hostname
       mGrpcServer = GrpcServerBuilder
           .forAddress(GrpcServerAddress.create(hostName, rpcBindAddress), mConf, mUserState)
           .maxInboundMessageSize((int) mConf

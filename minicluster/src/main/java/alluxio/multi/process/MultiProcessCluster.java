@@ -664,17 +664,17 @@ public final class MultiProcessCluster {
       case UFS_NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
             "Running with multiple masters requires Zookeeper or Embedded Journal");
-        return new SingleMasterInquireClient(new InetSocketAddress(
+        return new SingleMasterInquireClient(InetSocketAddress.createUnresolved(
             mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
       case EMBEDDED:
         if (mMasterAddresses.size() > 1) {
           List<InetSocketAddress> addresses = new ArrayList<>(mMasterAddresses.size());
           for (MasterNetAddress address : mMasterAddresses) {
-            addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
+            addresses.add(InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
           }
           return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
         } else {
-          return new SingleMasterInquireClient(new InetSocketAddress(
+          return new SingleMasterInquireClient(InetSocketAddress.createUnresolved(
               mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
         }
       case ZOOKEEPER_HA:

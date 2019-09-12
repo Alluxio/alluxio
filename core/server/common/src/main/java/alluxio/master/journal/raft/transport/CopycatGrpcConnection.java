@@ -25,6 +25,7 @@ import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.serializer.SerializationException;
 import io.atomix.catalyst.transport.Connection;
 import io.atomix.catalyst.util.Assert;
+import io.atomix.copycat.protocol.ConnectResponse;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
