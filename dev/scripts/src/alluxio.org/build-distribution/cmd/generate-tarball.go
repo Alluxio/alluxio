@@ -25,6 +25,10 @@ import (
 	"v.io/x/lib/cmdline"
 )
 
+const (
+	// The version of the hadoop client that the Alluxio client will be built for
+	defaultHadoopClient = "hadoop-2.7"
+)
 var (
 	cmdSingle = &cmdline.Command{
 		Name:   "single",
@@ -40,7 +44,7 @@ var (
 )
 
 func init() {
-	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", "hadoop-2.7", "the hadoop distribution to build this Alluxio distribution tarball")
+	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", "hadoop-2.2", "the hadoop distribution to build this Alluxio distribution tarball")
 	cmdSingle.Flags.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
 			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
@@ -164,8 +168,6 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string) {
 	chdir(srcPath)
 	pathsToCopy := []string{
-		"integration/docker/bin/alluxio-job-worker.sh",
-		"integration/docker/bin/alluxio-job-master.sh",
 		"bin/alluxio",
 		"bin/alluxio-masters.sh",
 		"bin/alluxio-monitor.sh",
@@ -189,24 +191,31 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile",
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
-		"integration/docker/bin/alluxio-master.sh",
-		"integration/docker/bin/alluxio-proxy.sh",
-		"integration/docker/bin/alluxio-worker.sh",
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
-		"integration/kubernetes/alluxio-fuse.yaml.template",
-		"integration/kubernetes/alluxio-fuse-client.yaml.template",
-		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-configMap.yaml.template",
+		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-master.yaml.template",
 		"integration/kubernetes/alluxio-worker.yaml.template",
+		"integration/kubernetes/alluxio-fuse.yaml.template",
+		"integration/kubernetes/alluxio-fuse-client.yaml.template",
 		"integration/kubernetes/helm/alluxio/Chart.yaml",
 		"integration/kubernetes/helm/alluxio/templates/_helpers.tpl",
 		"integration/kubernetes/helm/alluxio/templates/alluxio-configMap.yaml",
 		"integration/kubernetes/helm/alluxio/templates/alluxio-master.yaml",
 		"integration/kubernetes/helm/alluxio/templates/alluxio-worker.yaml",
 		"integration/kubernetes/helm/alluxio/templates/service-account.yaml",
+		"integration/kubernetes/singleMaster-localJournal/alluxio-configMap.yaml.template",
+		"integration/kubernetes/singleMaster-localJournal/alluxio-journal-volume.yaml.template",
+		"integration/kubernetes/singleMaster-localJournal/alluxio-master.yaml.template",
+		"integration/kubernetes/singleMaster-localJournal/alluxio-worker.yaml.template",
+		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-configMap.yaml.template",
+		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-master.yaml.template",
+		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-worker.yaml.template",
+		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-configMap.yaml.template",
+		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-master.yaml.template",
+		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-worker.yaml.template",
 		"integration/kubernetes/helm/alluxio/values.yaml",
 		"integration/mesos/bin/alluxio-env-mesos.sh",
 		"integration/mesos/bin/alluxio-mesos-start.sh",
@@ -248,9 +257,9 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 }
 
 func generateTarball(hadoopClients []string) error {
-	hadoopVersion, ok := hadoopDistributions[hadoopClients[0]]
+	hadoopVersion, ok := hadoopDistributions[defaultHadoopClient]
 	if !ok {
-		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopClients[0])
+		return fmt.Errorf("hadoop distribution %s not recognized\n", defaultHadoopClient)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -346,7 +355,7 @@ func generateTarball(hadoopClients []string) error {
 	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)
 
 	chdir(cwd)
-	os.Setenv("COPYFILE_DISABLE", "1")
+	os.Setenv("COPYFILE_DISABLE","1")
 	run("creating the new distribution tarball", "tar", "-czvf", tarball, dstDir)
 	run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
 
