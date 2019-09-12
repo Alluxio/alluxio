@@ -17,12 +17,14 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.security.user.UserState;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Connection;
 import io.atomix.catalyst.transport.Server;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,9 +101,10 @@ public class CopycatGrpcServer implements Server {
               mUserState)
           .maxInboundMessageSize((int) mConf
               .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
-          .addService(
-              new GrpcService(new CopycatMessageServiceClientHandler(forkListener, threadContext,
-                  mExecutor, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
+          .addService(new GrpcService(ServerInterceptors.intercept(
+              new CopycatMessageServiceClientHandler(address, forkListener, threadContext,
+                  mExecutor, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)),
+              new ClientIpAddressInjector())))
           .build();
 
       try {

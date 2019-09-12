@@ -17,7 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private CopycatResponseHeader() {
     requestId_ = 0L;
-    failed_ = false;
+    isThrowable_ = false;
   }
 
   @java.lang.Override
@@ -58,7 +58,7 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
             bitField0_ |= 0x00000002;
-            failed_ = input.readBool();
+            isThrowable_ = input.readBool();
             break;
           }
         }
@@ -101,19 +101,19 @@ private static final long serialVersionUID = 0L;
     return requestId_;
   }
 
-  public static final int FAILED_FIELD_NUMBER = 2;
-  private boolean failed_;
+  public static final int ISTHROWABLE_FIELD_NUMBER = 2;
+  private boolean isThrowable_;
   /**
-   * <code>optional bool failed = 2;</code>
+   * <code>optional bool isThrowable = 2;</code>
    */
-  public boolean hasFailed() {
+  public boolean hasIsThrowable() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional bool failed = 2;</code>
+   * <code>optional bool isThrowable = 2;</code>
    */
-  public boolean getFailed() {
-    return failed_;
+  public boolean getIsThrowable() {
+    return isThrowable_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -132,7 +132,7 @@ private static final long serialVersionUID = 0L;
       output.writeInt64(1, requestId_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeBool(2, failed_);
+      output.writeBool(2, isThrowable_);
     }
     unknownFields.writeTo(output);
   }
@@ -148,7 +148,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(2, failed_);
+        .computeBoolSize(2, isThrowable_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -171,10 +171,10 @@ private static final long serialVersionUID = 0L;
       result = result && (getRequestId()
           == other.getRequestId());
     }
-    result = result && (hasFailed() == other.hasFailed());
-    if (hasFailed()) {
-      result = result && (getFailed()
-          == other.getFailed());
+    result = result && (hasIsThrowable() == other.hasIsThrowable());
+    if (hasIsThrowable()) {
+      result = result && (getIsThrowable()
+          == other.getIsThrowable());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -192,10 +192,10 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getRequestId());
     }
-    if (hasFailed()) {
-      hash = (37 * hash) + FAILED_FIELD_NUMBER;
+    if (hasIsThrowable()) {
+      hash = (37 * hash) + ISTHROWABLE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getFailed());
+          getIsThrowable());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -328,7 +328,7 @@ private static final long serialVersionUID = 0L;
       super.clear();
       requestId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
-      failed_ = false;
+      isThrowable_ = false;
       bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
@@ -361,7 +361,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.failed_ = failed_;
+      result.isThrowable_ = isThrowable_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -407,8 +407,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasRequestId()) {
         setRequestId(other.getRequestId());
       }
-      if (other.hasFailed()) {
-        setFailed(other.getFailed());
+      if (other.hasIsThrowable()) {
+        setIsThrowable(other.getIsThrowable());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -470,34 +470,34 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private boolean failed_ ;
+    private boolean isThrowable_ ;
     /**
-     * <code>optional bool failed = 2;</code>
+     * <code>optional bool isThrowable = 2;</code>
      */
-    public boolean hasFailed() {
+    public boolean hasIsThrowable() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional bool failed = 2;</code>
+     * <code>optional bool isThrowable = 2;</code>
      */
-    public boolean getFailed() {
-      return failed_;
+    public boolean getIsThrowable() {
+      return isThrowable_;
     }
     /**
-     * <code>optional bool failed = 2;</code>
+     * <code>optional bool isThrowable = 2;</code>
      */
-    public Builder setFailed(boolean value) {
+    public Builder setIsThrowable(boolean value) {
       bitField0_ |= 0x00000002;
-      failed_ = value;
+      isThrowable_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bool failed = 2;</code>
+     * <code>optional bool isThrowable = 2;</code>
      */
-    public Builder clearFailed() {
+    public Builder clearIsThrowable() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      failed_ = false;
+      isThrowable_ = false;
       onChanged();
       return this;
     }

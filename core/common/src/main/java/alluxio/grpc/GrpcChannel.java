@@ -131,6 +131,13 @@ public final class GrpcChannel extends Channel {
   }
 
   /**
+   * @return a short identifier for the channel
+   */
+  public String toStringShort() {
+    return mChannelKey.toStringShort();
+  }
+
+  /**
    * An interceptor that is used to track server calls and invalidate the channel status. Upon
    * receiving Unauthenticated or Unavailable code from the server it invalidates the channel by
    * marking it unhealthy for channel owner to be able to detect and re-authenticate or re-create

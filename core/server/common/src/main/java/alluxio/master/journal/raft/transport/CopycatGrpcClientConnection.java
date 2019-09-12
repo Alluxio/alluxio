@@ -41,7 +41,7 @@ public class CopycatGrpcClientConnection extends CopycatGrpcConnection {
    */
   public CopycatGrpcClientConnection(ThreadContext context, ExecutorService executor,
       GrpcChannel channel, long requestTimeoutMs) {
-    super(ConnectionOwner.CLIENT, context, executor, requestTimeoutMs);
+    super(ConnectionOwner.CLIENT, channel.toStringShort(), context, executor, requestTimeoutMs);
     mChannel = channel;
   }
 

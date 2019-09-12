@@ -17,11 +17,11 @@ public interface CopycatResponseHeaderOrBuilder extends
   long getRequestId();
 
   /**
-   * <code>optional bool failed = 2;</code>
+   * <code>optional bool isThrowable = 2;</code>
    */
-  boolean hasFailed();
+  boolean hasIsThrowable();
   /**
-   * <code>optional bool failed = 2;</code>
+   * <code>optional bool isThrowable = 2;</code>
    */
-  boolean getFailed();
+  boolean getIsThrowable();
 }
