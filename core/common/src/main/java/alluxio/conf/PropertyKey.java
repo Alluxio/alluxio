@@ -661,6 +661,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_BREADCRUMBS_ENABLED =
+      new Builder(Name.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)
+          .setAlias("alluxio.underfs.object.breadcrumbs.enabled")
+          .setDefaultValue(true)
+          .setDescription("Set this to false to prevent Alluxio from creating zero byte objects "
+              + "during read or list operations on object store UFS. Leaving this on enables more"
+              + " efficient listing of prefixes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
       new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
           .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
@@ -1148,6 +1158,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_ENABLED =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_ENABLED)
+          .setDescription("If enabled, Alluxio will attempt to mount UFS for foreign URIs.")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_ROOT =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_ROOT)
+          .setDescription("Alluxio root path for auto-mounted UFSes. "
+              + "This directory should already exist in Alluxio.")
+          .setDefaultValue("/auto-mount")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_READONLY =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_READONLY)
+          .setDescription("If true, UFSes are auto-mounted as read-only.")
+          .setDefaultValue(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHIMFS_AUTO_MOUNT_SHARED =
+      new Builder(Name.MASTER_SHIMFS_AUTO_MOUNT_SHARED)
+          .setDescription("If true, UFSes are auto-mounted as shared.")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   /**
    * Master related properties.
@@ -1274,6 +1313,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)
           .setDefaultValue("2hour")
           .setDescription("Maximum time to wait for the triggered snapshot to finish.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS)
+          .setDefaultValue("5sec")
+          .setDescription("Timeout for requests between embedded journal masters.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The max inbound message size used by copycat client/server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2766,7 +2819,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
-          .setDefaultValue("512MB")
+          .setDefaultValue("64MB")
           .setDescription("Default block size for Alluxio files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3737,6 +3790,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_WEB_PARENT_NAMES = "alluxio.underfs.web.parent.names";
     public static final String UNDERFS_WEB_TITLES = "alluxio.underfs.web.titles";
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
+    public static final String UNDERFS_OBJECT_BREADCRUMBS_ENABLED =
+        "alluxio.underfs.object.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
@@ -3892,6 +3947,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.shutdown.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
         "alluxio.master.embedded.journal.triggered.snapshot.wait.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
+        "alluxio.master.embedded.journal.transport.request.timeout.ms";
+    public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.master.embedded.journal.transport.max.inbound.message.size";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
@@ -3995,6 +4054,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_ENABLED =
+        "alluxio.master.shimfs.auto.mount.enabled";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_ROOT =
+        "alluxio.master.shimfs.auto.mount.root";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_READONLY =
+        "alluxio.master.shimfs.auto.mount.readonly";
+    public static final String MASTER_SHIMFS_AUTO_MOUNT_SHARED =
+        "alluxio.master.shimfs.auto.mount.shared";
 
     //
     // File system master related properties

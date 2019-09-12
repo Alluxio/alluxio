@@ -84,7 +84,6 @@
               <excludes>
                 <!--In hadoop-1 profile, we skip build delegate file systems which require hadoop-2 -->
                 <exclude>**/AlluxioFileSystem.java</exclude>
-                <exclude>**/AlluxioShimFileSystem.java</exclude>
               </excludes>
             </configuration>
           </plugin>

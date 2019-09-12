@@ -16,7 +16,7 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 import {Button, ButtonGroup, Form, FormGroup, Input, Label} from 'reactstrap';
 
-import {IFileInfo} from '../../constants';
+import {IFileViewData} from '../../constants';
 import {disableFormSubmit} from '../../utilities';
 
 export interface IFileViewProps {
@@ -32,17 +32,7 @@ export interface IFileViewProps {
   queryStringPrefix: string;
   queryStringSuffix: string;
   textAreaHeight?: number;
-  viewData: {
-    currentDirectory?: IFileInfo;
-    'currentPath': string;
-    'debug': boolean;
-    'fatalError': string;
-    'fileData': string;
-    'fileInfos': IFileInfo[];
-    'invalidPathError': string;
-    'ntotalFile': number;
-    'viewingOffset': number;
-  },
+  viewData: IFileViewData,
   proxyDownloadApiUrl?: {
     'prefix': string,
     'suffix': string
@@ -64,7 +54,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
         </h5>
         <Form className="mb-3 viewData-file-form" id="viewDataFileForm" inline={true} onSubmit={disableFormSubmit}>
           <FormGroup className="mb-2 mr-sm-2 w-100">
-            <Input className="w-100" type="textarea" value={viewData.fileData} style={{height: textAreaHeight}}
+            <Input className="w-100" type="textarea" value={viewData.fileData || ''} style={{height: textAreaHeight}}
                    readOnly={true}/>
           </FormGroup>
         </Form>
@@ -76,7 +66,8 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             <Input className="col-3" type="number" id="viewDataFileOffset" placeholder="Enter an offset"
                    value={offset} onChange={offsetInputHandler}
                    onKeyUp={this.createInputEnterHandler(history, () =>
-                   `${queryStringPrefix}?path=${path}${queryStringSuffix}`)}/>
+                   `${queryStringPrefix}?path=${path}${queryStringSuffix}`)}
+                   onFocus={(evt: React.FocusEvent<HTMLInputElement>) => evt.currentTarget.select()} />
           </FormGroup>
           <FormGroup className="col-5">
             <Label for="viewDataFileEnd" className="mr-sm-2">Relative to</Label>
@@ -90,7 +81,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             </ButtonGroup>
           </FormGroup>
           <FormGroup className="col-2">
-            <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="secondary">Go</Button>
+            <Button tag={Link} to={`${queryStringPrefix}?path=${encodeURIComponent(path || '')}${queryStringSuffix}`} color="secondary">Go</Button>
           </FormGroup>
           {this.renderDownloadLink()}
         </Form>

@@ -19,7 +19,6 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.Constants;
 
 import com.google.common.base.Optional;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -39,7 +38,7 @@ public final class ShellUtilsTest {
     String testString = "alluxio";
     // Execute echo for testing command execution.
     String result = ShellUtils.execCommand("bash", "-c", "echo " + testString);
-    Assert.assertEquals(testString + "\n", result);
+    assertEquals(testString + "\n", result);
   }
 
   /**
@@ -51,7 +50,7 @@ public final class ShellUtilsTest {
   public void execGetGroupCommand() throws Exception {
     String result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand("root"));
     // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
-    Assert.assertTrue(result.contains("root") || result.contains("admin"));
+    assertTrue(result.contains("root") || result.contains("admin"));
   }
 
   @Test

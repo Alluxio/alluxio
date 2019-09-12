@@ -12,6 +12,7 @@
 import {AxiosResponse} from 'axios';
 
 import {IScopedPropertyInfo, IStorageTierInfo} from '../../constants';
+import {ICommonState} from "@alluxio/common-ui/src/constants";
 
 export interface IOverview {
   'debug': boolean;

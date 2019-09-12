@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     add-apt-repository -y ppa:openjdk-r/ppa && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-	openjdk-8-jdk openjdk-8-jre-headless libfuse-dev && \
+	openjdk-8-jdk openjdk-8-jre-headless fuse && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
@@ -50,6 +50,8 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
       mkdir -p /journal && \
       chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /opt/* /journal && \
       chmod -R g=u /opt/* /journal; \
+      mkdir /alluxio-fuse && \
+      chown ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /alluxio-fuse; \
     fi
 
 USER ${ALLUXIO_UID}

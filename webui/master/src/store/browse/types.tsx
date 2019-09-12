@@ -11,7 +11,8 @@
 
 import {AxiosResponse} from 'axios';
 
-import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
+import {IFileBlockInfo, IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
+import {IInit} from "../init/types";
 
 export interface IBrowse {
   'accessControlException': string;

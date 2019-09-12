@@ -11,5 +11,6 @@
 
 export * from './data/headerNavigation';
 export * from './data/footerNavigation';
+export * from './data/routePaths';
 
 export * from './types/IStorageTierInfo';

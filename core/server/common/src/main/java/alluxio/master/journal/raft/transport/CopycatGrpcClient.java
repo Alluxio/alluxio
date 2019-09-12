@@ -80,15 +80,19 @@ public class CopycatGrpcClient implements Client {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
-            .setClientType("CopycatClient").setSubject(mUserState.getSubject()).build();
+            .setClientType("CopycatClient").setSubject(mUserState.getSubject())
+            .setMaxInboundMessageSize((int) mConf
+                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
+            .build();
 
         // Create stub for receiving stream from server.
         CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =
             CopycatMessageServerGrpc.newStub(channel);
 
         // Create client connection that is bound to remote server stream.
-        CopycatGrpcConnection clientConnection = new CopycatGrpcClientConnection(threadContext,
-            mExecutor, channel, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+        CopycatGrpcConnection clientConnection =
+            new CopycatGrpcClientConnection(threadContext, mExecutor, channel,
+                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
         LOG.debug("Created copycat connection for target: {}", address);

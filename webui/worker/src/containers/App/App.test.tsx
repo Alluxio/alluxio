@@ -22,6 +22,9 @@ import configureStore from '../../configureStore'
 import {initialState, IApplicationState} from '../../store';
 import {initialInitState} from '../../store/init/reducer';
 import ConnectedApp, {AllProps, App} from './App';
+import {Footer, Header} from "@alluxio/common-ui/src/components";
+import {routePaths} from "../../constants";
+import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
 
 configure({adapter: new Adapter()});
 
@@ -32,15 +35,16 @@ describe('App', () => {
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});
-    history.push('/');
+    history.push(routePaths.root);
     store = configureStore(history, initialState);
     props = {
-      fetchRequest: sinon.spy(() => {}),
       history: history,
       init: initialInitState.data,
-      loading: initialInitState.loading,
-      refresh: initialRefreshState.data,
-      triggerRefresh: sinon.spy(() => {})
+      triggerRefresh: sinon.spy(() => {}),
+      class: '',
+      refresh: initialState.refresh.data,
+      errors: createAlertErrors(false),
+      loading: false
     };
   });
 
@@ -55,32 +59,30 @@ describe('App', () => {
       expect(shallowWrapper.length).toEqual(1);
     });
 
+    it('Should render a Header', () => {
+      expect(shallowWrapper.find(Header)).toHaveLength(1);
+    });
+
+    it('Should render a Footer', () => {
+      expect(shallowWrapper.find(Footer)).toHaveLength(1);
+    });
+
+    Object.values(routePaths).forEach(path => {
+      it(`Should render Route for ${path}`, () => {
+        expect(shallowWrapper
+            .findWhere(n => n.name() === 'Route' && n.prop('path') === path))
+            .toHaveLength(1);
+      });
+    });
+
+    it('Should render a Route for redirects', () => {
+      expect(shallowWrapper
+          .findWhere(n => n.name() === 'Route' && n.prop('path') === undefined))
+          .toHaveLength(1);
+    });
+
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
-    });
-  });
-
-  describe('Connected component', () => {
-    let reactWrapper: ReactWrapper;
-
-    beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp {...props} history={history}/></Provider>);
-    });
-
-    it('Renders without crashing', () => {
-      expect(reactWrapper.length).toEqual(1);
-    });
-
-    it('Contains the overview component', () => {
-      expect(reactWrapper.find('.overview-page').length).toEqual(1);
-    });
-
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
-    });
-
-    it('Matches snapshot', () => {
-      expect(reactWrapper).toMatchSnapshot();
     });
   });
 });
