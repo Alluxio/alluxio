@@ -299,7 +299,8 @@ public class AlluxioFuseFileSystemTest {
     // getattr() will not be blocked when writing
     mFuseFs.getattr(path, stat);
     // If getattr() is blocking, it will continuously get status of the file
-    verify(mFileSystem, atMost(300)).getStatus(expectedPath);
+    // TODO(gpang): why does this depend on wait for interval?
+    verify(mFileSystem, atMost(3000)).getStatus(expectedPath);
     assertEquals(0, stat.st_size.longValue());
 
     mFuseFs.release(path, mFileInfo);
