@@ -63,7 +63,8 @@ public class HiveUtils {
     for (FieldSchema field : hiveSchema) {
       alluxio.grpc.FieldSchema aFieldSchema = alluxio.grpc.FieldSchema.newBuilder()
           .setName(field.getName())
-          .setType(Type.newBuilder().setType(toProto(field.getType())))
+          .setType(Type.newBuilder()
+              .setType(toProto(field.getType()))) // does not support complex types now
           .build();
       list.add(aFieldSchema);
     }

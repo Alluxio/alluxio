@@ -23,6 +23,7 @@ import alluxio.grpc.PartitionInfo;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,14 +170,14 @@ public class AlluxioCatalog {
       Constraint constraint) throws IOException {
     Table table = getTable(dbName, tableName);
     List<FieldSchema> cols = table.get().getPartitionKeys();
-    List<String> colNames = cols.stream().map(FieldSchema::getName).collect(Collectors.toList());
 
     List<PartitionInfo> parts = table.get().getPartitionInfo();
 
-    Map<String, Domain> partitionConstraints = new LinkedHashMap<>(); //maintain insertion order
+    Map<FieldSchema, Domain> partitionConstraints = new LinkedHashMap<>();
+    //maintain insertion order
 
-    for (String col : colNames) {
-      Domain domain = constraint.getColumnConstraintsMap().get(col);
+    for (FieldSchema col : cols) {
+      Domain domain = constraint.getColumnConstraintsMap().get(col.getName());
       if (domain != null) {
         partitionConstraints.put(col, domain);
       } else {
@@ -197,7 +198,42 @@ public class AlluxioCatalog {
     return returnList;
   }
 
-  private boolean checkDomain(PartitionInfo partitionInfo, Map<String, Domain> constraints) {
+  private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
+    Comparable object;
+    // TODO(yuzhu): handle more complex data types
+    switch (schema.getType().getType()) {
+      case BOOLEAN:
+        object = Boolean.valueOf(value);
+        break;
+      case INTEGER:
+        object = Integer.valueOf(value);
+        break;
+      case LONG:
+        object = Long.valueOf(value);
+        break;
+      case STRING:
+        object = value;
+        break;
+      case DOUBLE:
+        object = Double.valueOf(value);
+        break;
+      default:
+        return false;
+    }
+    return alluxio.master.catalog.Domain.parseFrom(constraint).isInDomain(object);
+  }
+
+  private static boolean checkDomain(PartitionInfo partitionInfo,
+      Map<FieldSchema, Domain> constraints) {
+    Preconditions.checkArgument(constraints.size() == partitionInfo.getValuesList().size(),
+        "partition key size is not the same as constraint size");
+    int index = 0;
+    for (Map.Entry<FieldSchema, Domain> entry : constraints.entrySet()) {
+      String val = partitionInfo.getValuesList().get(index++);
+      if (!checkDomain(val, entry.getKey(), entry.getValue())) {
+        return false;
+      }
+    }
     return true;
   }
 }

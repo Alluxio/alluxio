@@ -4,6 +4,10 @@
 package alluxio.grpc;
 
 /**
+ * <pre>
+ * TODO(yuzhu): change the type representation to be more general, not iceberg specific
+ * </pre>
+ *
  * Protobuf type {@code alluxio.grpc.Type}
  */
 public  final class Type extends
@@ -425,6 +429,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * TODO(yuzhu): change the type representation to be more general, not iceberg specific
+   * </pre>
+   *
    * Protobuf type {@code alluxio.grpc.Type}
    */
   public static final class Builder extends
