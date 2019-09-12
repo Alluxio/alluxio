@@ -192,8 +192,10 @@ public class HiveUtils {
 
   private static BlockMetadata toProto(BlockMetaData blockMetaData) {
     BlockMetadata.Builder builder = BlockMetadata.newBuilder();
-    builder.setPath(blockMetaData.getPath())
-        .setRowCount(blockMetaData.getRowCount())
+    if (blockMetaData.getPath() != null) {
+      builder.setPath(blockMetaData.getPath());
+    }
+    builder.setRowCount(blockMetaData.getRowCount())
         .setTotalByteCount(blockMetaData.getTotalByteSize());
     builder.addAllColData(blockMetaData.getColumns().stream().map(
         HiveUtils::toProto).collect(Collectors.toList()));
