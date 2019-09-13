@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.wire.JobInfo;
 
@@ -103,7 +105,8 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
    * Creates a file with the given name containing TEST_BYTES.
    */
   private void createFileWithTestBytes(String filename) throws Exception {
-    try (FileOutStream out = mFileSystem.createFile(new AlluxioURI(filename))) {
+    try (FileOutStream out = mFileSystem.createFile(new AlluxioURI(filename),
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build())) {
       out.write(TEST_BYTES);
     }
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(filename)));
