@@ -61,6 +61,7 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-2.8": {"hadoop-2.8", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.0": {"hadoop-3.0", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.1": {"hadoop-3.1", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.0 -PhdfsActiveSync"},
+	"ufs-hadoop-3.2": {"hadoop-3.2", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.0 -PhdfsActiveSync"},
 }
 
 func validModules(modules map[string]module) []string {
