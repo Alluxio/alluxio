@@ -11,6 +11,11 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.FieldSchema;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.ParquetMetadata;
@@ -18,15 +23,12 @@ import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
 import alluxio.table.common.TableView;
 import alluxio.table.common.udb.UdbTable;
+import alluxio.table.under.hive.parquet.AlluxioInputFile;
+import alluxio.table.under.hive.util.PathTranslator;
+import alluxio.util.ConfigurationUtils;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.parquet.hadoop.ParquetFileReader;
-import org.apache.parquet.hadoop.util.HadoopInputFile;
 import org.apache.parquet.io.InputFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,18 +45,20 @@ import java.util.Map;
 public class HiveTable implements UdbTable {
   private static final Logger LOG = LoggerFactory.getLogger(HiveTable.class);
 
+  private final HiveDatabase mHiveDatabase;
+  private final PathTranslator mPathTranslator;
   private final String mName;
   private final Schema mSchema;
   private final String mBaseLocation;
   private final Map<String, FileStatistics> mStatistics;
   private final List<PartitionInfo> mPartitionInfo;
   private final List<FieldSchema> mPartitionKeys;
-  private final Hive mHive;
 
   /**
    * Creates a new instance.
    *
-   * @param hive the hive client
+   * @param hiveDatabase the hive db
+   * @param pathTranslator the path translator
    * @param name the table name
    * @param schema the table schema
    * @param baseLocation the base location
@@ -62,21 +66,24 @@ public class HiveTable implements UdbTable {
    * @param cols partition keys
    * @param partitions partition list
    */
-  public HiveTable(Hive hive, String name, Schema schema, String baseLocation,
-      Map<String, FileStatistics> statistics, List<FieldSchema> cols,
-      List<Partition> partitions) {
-    mHive = hive;
+  public HiveTable(HiveDatabase hiveDatabase, PathTranslator pathTranslator, String name,
+      Schema schema, String baseLocation, Map<String, FileStatistics> statistics,
+      List<FieldSchema> cols, List<Partition> partitions) throws IOException {
+    // TODO(gpang): don't throw exception in constructor
+    mHiveDatabase = hiveDatabase;
+    mPathTranslator = pathTranslator;
     mName = name;
     mSchema = schema;
     mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionKeys = cols;
     mPartitionInfo = new ArrayList<>();
-    for (Partition part: partitions) {
-      PartitionInfo.Builder pib = PartitionInfo.newBuilder()
-          .setTableName(mName)
-          .setSd(part.getLocation())
-          .putAllFileMetadata(getPartitionMetadata(part.getPartitionPath(), mHive));
+    for (Partition part : partitions) {
+      PartitionInfo.Builder pib = PartitionInfo.newBuilder().setTableName(mName)
+          .setSd(mPathTranslator.toAlluxioPath(part.getLocation().toString())).putAllFileMetadata(
+              getPartitionMetadata(
+                  mPathTranslator.toAlluxioPath(part.getPartitionPath().toString()),
+                  mHiveDatabase.getUdbContext().getFileSystem()));
       if (part.getValues() != null) {
         pib.addAllValues(part.getValues());
       }
@@ -85,30 +92,36 @@ public class HiveTable implements UdbTable {
   }
 
   // TODO(yuzhu): clean this up to use proper method to get a list of datafiles
-  private static Map<String, ParquetMetadata> getPartitionMetadata(Path path, Hive hive) {
+  private static Map<String, ParquetMetadata> getPartitionMetadata(String path,
+      FileSystem alluxioFs) {
     Map<String, ParquetMetadata> metadataMap = new HashMap<>();
     try {
-      FileSystem fs = path.getFileSystem(hive.getConf());
-      for (FileStatus status : fs.listStatus(path)) {
-        if (status.isFile() && !status.getPath().getName().endsWith(".crc")
-            && !status.getPath().getName().equals("_SUCCESS")) {
+      for (URIStatus status : alluxioFs.listStatus(new AlluxioURI(path))) {
+        if (!status.isFolder() && !status.getName().endsWith(".crc")
+            && !status.getName().equals("_SUCCESS")) {
           // it is a data file
           org.apache.parquet.hadoop.metadata.ParquetMetadata footer = null;
           try {
-            InputFile in = HadoopInputFile.fromPath(status.getPath(), new Configuration());
+            InputFile in = AlluxioInputFile.create(alluxioFs, status);
             try (ParquetFileReader reader = ParquetFileReader.open(in)) {
               footer = reader.getFooter();
             }
           } catch (IOException | RuntimeException e) {
-            LOG.warn("Unable to read parquet footer {}, exception {}", status.getPath(), e);
+            LOG.warn("Unable to read parquet footer {}", status.getPath(), e);
           }
           if (footer != null) {
-            metadataMap.put(status.getPath().toString(), HiveUtils.toProto(footer));
+            String alluxioFilePath = status.getPath();
+            if (alluxioFilePath.startsWith("/")) {
+              // prefix with the scheme and authority
+              alluxioFilePath = ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global())
+                  + alluxioFilePath;
+            }
+            metadataMap.put(alluxioFilePath, HiveUtils.toProto(footer));
           }
         }
       }
-    } catch (IOException e) {
-      LOG.warn("Unable to read parquet footer from partition location {}", path.toString());
+    } catch (IOException | AlluxioException e) {
+      LOG.warn("Unable to read parquet footer from partition location {}", path, e);
     }
     return metadataMap;
   }

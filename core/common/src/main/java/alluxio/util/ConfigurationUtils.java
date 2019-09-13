@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -587,5 +588,24 @@ public final class ConfigurationUtils {
     });
     LOG.info("Alluxio client has loaded path level configurations");
     return PathConfiguration.create(pathConfs);
+  }
+
+  /**
+   * @param conf the configuration
+   * @return the alluxio scheme and authority determined by the configuration
+   */
+  public static String getSchemeAuthority(AlluxioConfiguration conf) {
+    if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      return Constants.HEADER + "zk@" + conf.get(PropertyKey.ZOOKEEPER_ADDRESS);
+    }
+    List<InetSocketAddress> addresses = getMasterRpcAddresses(conf);
+
+    if (addresses.size() > 1) {
+      return Constants.HEADER + addresses.stream().map(InetSocketAddress::toString)
+          .collect(Collectors.joining(","));
+    }
+
+    return Constants.HEADER + conf.get(PropertyKey.MASTER_HOSTNAME) + ":" + conf
+        .get(PropertyKey.MASTER_RPC_PORT);
   }
 }
