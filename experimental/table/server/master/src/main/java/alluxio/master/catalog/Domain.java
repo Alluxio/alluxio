@@ -111,8 +111,8 @@ public abstract class Domain<T> {
     @Override
     boolean isInDomain(Object obj) {
       for (Pair<Comparable, Comparable> pair : mRanges) {
-        if (pair.getFirst().compareTo(obj) <= 0
-            && pair.getSecond().compareTo(obj) >= 0) {
+        if ((pair.getFirst() == null || pair.getFirst().compareTo(obj) <= 0)
+            && (pair.getSecond() == null || pair.getSecond().compareTo(obj) >= 0)) {
           return true;
         }
       }
