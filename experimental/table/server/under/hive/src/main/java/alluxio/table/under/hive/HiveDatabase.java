@@ -22,6 +22,7 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.common.udb.UdbConfiguration;
+import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
@@ -108,6 +109,13 @@ public class HiveDatabase implements UnderDatabase {
     return new HiveDatabase(udbContext, configuration, catalog, hive, dbName);
   }
 
+  /**
+   * @return the udb context
+   */
+  public UdbContext getUdbContext() {
+    return mUdbContext;
+  }
+
   @Override
   public String getType() {
     return HiveDatabaseFactory.TYPE;
@@ -136,6 +144,9 @@ public class HiveDatabase implements UnderDatabase {
           .mount(tableUri, new AlluxioURI(table.getDataLocation().toString()));
       LOG.info("mounted table {} location {} to Alluxio location {}", tableName,
           table.getDataLocation(), tableUri);
+      PathTranslator pathTranslator =
+          new PathTranslator(tableUri.toString(), table.getDataLocation().toString());
+
       List<String> colNames = table.getAllCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
       List<ColumnStatisticsObj> columnStats =
@@ -167,9 +178,9 @@ public class HiveDatabase implements UnderDatabase {
       // Potentially expensive call
       List<Partition> partitions = mHive.getPartitions(table);
 
-      // TODO(gpang): manage the mount mapping for statistics/metadata
-      return new HiveTable(mHive, tableName, HiveUtils.toProtoSchema(table.getAllCols()),
-          tableUri.getPath(), Collections.singletonMap("unpartitioned", builder.build()),
+      return new HiveTable(this, pathTranslator, tableName,
+          HiveUtils.toProtoSchema(table.getAllCols()), tableUri.getPath(),
+          Collections.singletonMap("unpartitioned", builder.build()),
           HiveUtils.toProto(table.getPartitionKeys()), partitions);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);

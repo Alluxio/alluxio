@@ -14,8 +14,6 @@ package alluxio.master.catalog;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.Constraint;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.GrpcService;
@@ -27,9 +25,6 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableSet;
@@ -53,7 +48,6 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(FileSystemMaster.class);
 
   private final AlluxioCatalog mCatalog;
-  private final UnderFileSystem mUfs;
 
   /**
    * Constructor for DefaultCatalogMaster.
@@ -63,13 +57,6 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   public DefaultCatalogMaster(CoreMasterContext context) {
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.CATALOG_MASTER_NAME));
-    if (URIUtils.isLocalFilesystem(ServerConfiguration
-        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
-      mUfs = UnderFileSystem.Factory
-          .create("/", UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
-    } else {
-      mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    }
     mCatalog = new AlluxioCatalog();
   }
 

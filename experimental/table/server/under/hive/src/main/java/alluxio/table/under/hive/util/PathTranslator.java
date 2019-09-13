@@ -1,0 +1,63 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.table.under.hive.util;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+/**
+ * Utilities to convert to and from ufs paths and alluxio paths.
+ */
+public class PathTranslator {
+  private static final Logger LOG = LoggerFactory.getLogger(PathTranslator.class);
+
+  private final String mAlluxioPath;
+  private final String mUfsPath;
+
+  /**
+   * Creates a new instance.
+   *
+   * @param alluxioPath the alluxio path
+   * @param ufsPath the corresponding ufs path
+   */
+  public PathTranslator(String alluxioPath, String ufsPath) {
+    while (alluxioPath.endsWith("/")) {
+      // strip trailing slashes
+      alluxioPath = alluxioPath.substring(0, alluxioPath.length() - 1);
+    }
+    mAlluxioPath = alluxioPath;
+
+    while (ufsPath.endsWith("/")) {
+      // strip trailing slashes
+      ufsPath = ufsPath.substring(0, ufsPath.length() - 1);
+    }
+    mUfsPath = ufsPath;
+  }
+
+  /**
+   * Returns the corresponding alluxio path, for the specified ufs path.
+   *
+   * @param ufsPath the ufs path to translate
+   * @return the corresponding alluxio path
+   * @throws IOException if the ufs path is not mounted
+   */
+  public String toAlluxioPath(String ufsPath) throws IOException {
+    if (!ufsPath.startsWith(mUfsPath)) {
+      throw new IOException(String
+          .format("Ufs path (%s) is not prefixed with the mounted ufs path (%s)", ufsPath,
+              mUfsPath));
+    }
+    return mAlluxioPath + ufsPath.substring(mUfsPath.length());
+  }
+}

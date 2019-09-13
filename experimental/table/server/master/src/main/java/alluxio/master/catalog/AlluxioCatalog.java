@@ -65,9 +65,8 @@ public class AlluxioCatalog {
    */
   public boolean attachDatabase(String type, String dbName, CatalogConfiguration configuration)
       throws IOException {
-    Database db = Database
-        .create(new UdbContext(mUdbRegistry, mFileSystem, type, dbName), type, dbName,
-            configuration);
+    UdbContext context = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
+    Database db = Database.create(context, type, dbName, configuration);
     if (mDBs.putIfAbsent(dbName, db) != null) {
       return false;
     }
