@@ -16,12 +16,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.master.PortRegistry.Registry;
 
+import io.grpc.Server;
+import io.grpc.netty.NettyServerBuilder;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -85,5 +92,55 @@ public final class PortRegistryTest {
       }
     }
     assertThat(successes, greaterThan(2));
+  }
+
+  @Test
+  public void reserveSamePort() throws Exception {
+    int port = 0;
+    for (int i = 0; i < 1000; i++) {
+      try (ServerSocket socket = new ServerSocket(port)) {
+        socket.setReuseAddress(true);
+        port = socket.getLocalPort();
+      }
+    }
+  }
+
+  @Test
+  public void reservation() throws Exception {
+    for (int i = 0; i < 20000; i++) {
+      int port = mRegistry.reservePort();
+
+      Server server = NettyServerBuilder.forAddress(new InetSocketAddress(port))
+          .channelType(NioServerSocketChannel.class).build();
+      try {
+        server.start();
+      } catch (Exception e) {
+        fail("failed to serve on port: " + port);
+      }
+
+      assertEquals(port, server.getPort());
+      assertFalse(server.isShutdown());
+      assertFalse(server.isTerminated());
+      server.shutdownNow();
+      server.awaitTermination();
+      assertTrue(server.isShutdown());
+      assertTrue(server.isTerminated());
+
+      mRegistry.release(port);
+    }
+  }
+
+  @Ignore("This takes longer and is only for performance evaluations")
+  @Test
+  public void reservePerformance() {
+    int count = 200000;
+    long startMs = System.currentTimeMillis();
+    for (int i = 0; i < count; i++) {
+      int port = mRegistry.reservePort();
+      mRegistry.release(port);
+    }
+    long endMs = System.currentTimeMillis();
+    System.out
+        .println(String.format("count: %d duration: %.1f s", count, (endMs - startMs) / 1000.0));
   }
 }
