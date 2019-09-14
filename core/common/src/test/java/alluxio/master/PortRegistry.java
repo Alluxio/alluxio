@@ -23,6 +23,7 @@ import java.nio.channels.OverlappingFileLockException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Registry for reserving ports during tests.
@@ -71,9 +72,26 @@ public final class PortRegistry {
    *         by the time this method returns.
    */
   public static int getFreePort() {
+    ServerSocket socket = null;
+
+    // Passing ServerSocket port 0 sometimes returns a socket that has a conflicting port (by
+    // another process). However, explicitly passing in a port number does not have the same issue.
+    // Therefore, we must manually find a random port.
+    for (int i = 0; i < 1000; i++) {
+      try {
+        socket = new ServerSocket(ThreadLocalRandom.current().nextInt(32768, 65535), 50, null);
+        break;
+      } catch (IOException e) {
+        // retry
+      }
+    }
+
+    if (socket == null) {
+      throw new RuntimeException("Failed to find a free port");
+    }
+
     int port;
     try {
-      ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
       port = socket.getLocalPort();
       socket.close();
