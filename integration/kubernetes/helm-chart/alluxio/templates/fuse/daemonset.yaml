@@ -50,28 +50,6 @@ spec:
                 operator: In
                 values:
                 - alluxio-worker
-      initContainers:
-        - name: umount-fuse-if-need
-          image: {{ .Values.fuse.image }}:{{ .Values.fuse.imageTag }}
-          imagePullPolicy: {{ .Values.fuse.imagePullPolicy }}
-          command:
-          - sh
-          - -c
-          - '/opt/alluxio/integration/fuse/bin/alluxio-fuse unmount /alluxio-fuse || true'
-          securityContext:
-            privileged: true
-            capabilities:
-              add:
-                - SYS_ADMIN
-          envFrom:
-          - configMapRef:
-              name: {{ template "alluxio.fullname" . }}-fuse-config
-          volumeMounts:
-            - name: alluxio-fuse-device
-              mountPath: /dev/fuse
-            - name: alluxio-fuse-mount
-              mountPath: /alluxio-fuse
-              mountPropagation: Bidirectional
       containers:
         - name: alluxio-fuse
           image: {{ .Values.fuse.image }}:{{ .Values.fuse.imageTag }}
@@ -134,12 +112,26 @@ spec:
             {{- if .Values.tieredstore }} 
             {{- if .Values.tieredstore.levels }} 
             {{- range .Values.tieredstore.levels }}
+            {{- if .mediumtype }}
+            {{- if contains "," .mediumtype }}
+            {{- $type := .type }}
+            {{- $path := .path }}
+            {{- $split := split "," .mediumtype }}
+            {{- range $key, $val := $split }} 
+            {{- if eq $type "hostPath"}}
+            - mountPath:  {{ index ($path | split ",") $key }}
+              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+            {{- end}}
+            {{- end}}
+            {{- end}}
+            {{- else}}
             {{- if eq .type "hostPath"}}
             - name: {{ .alias | lower }}
               mountPath: {{ .path }}
             {{- else }}
             # report error and exit
             {{ .name }} with {{ .type }} is not supported in shortCircuitPolicy local
+            {{- end }} 
             {{- end }} 
             {{- end }} 
             {{- end }} 
@@ -165,6 +157,28 @@ spec:
         {{- if .Values.tieredstore }} 
         {{- if .Values.tieredstore.levels }} 
         {{- range .Values.tieredstore.levels }}
+        {{- if .mediumtype }}
+        {{- if contains "," .mediumtype }}
+           {{- $split := split "," .mediumtype }}
+           {{- $type := .type }}
+           {{- $path := .path }}
+           {{- range $key, $val := $split }} 
+        {{- if eq $type "hostPath"}}
+        - hostPath:
+            path: {{ index ($path | split ",") $key }}
+            type: DirectoryOrCreate
+          name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+        {{- else }}
+        - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+          emptyDir:
+            medium: "Memory"
+            {{- if .quota }} 
+            sizeLimit: {{ .quota }}
+            {{- end}} 
+        {{- end}}
+        {{- end}}
+        {{- end}}
+        {{- else}}
         {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
@@ -173,6 +187,7 @@ spec:
         {{- else }}
         # report error and exit
 
+        {{- end }}
         {{- end }} 
         {{- end }} 
         {{- end }} 

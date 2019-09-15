@@ -27,6 +27,8 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-master
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
 {{- if .Values.master.nodeSelector }}
 {{ toYaml .Values.master.nodeSelector | trim | indent 8  }}
@@ -125,6 +127,12 @@ spec:
             {{- end }}
             {{- end }}
             {{- end }}
+            {{- if .Values.mounts }}   
+            {{- range .Values.mounts }}
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
+            {{- end }}
+            {{- end }}
         - name: alluxio-job-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -160,14 +168,20 @@ spec:
             name: job-rpc
           - containerPort: 20002
             name: job-web
+          volumeMounts:
           {{- if .Values.secrets }}
           {{- if .Values.secrets.master }}
-          volumeMounts:
             {{- range $key, $val := .Values.secrets.master }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
               readOnly: true
             {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.mounts }}   
+          {{- range .Values.mounts }}
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
           {{- end }}
           {{- end }}
       restartPolicy: Always
@@ -202,3 +216,10 @@ spec:
               - key: format-master.sh
                 path: format-master.sh
                 mode: 365
+        {{- if .Values.mounts }}   
+        {{- range .Values.mounts }}
+        - name: "{{ .name }}"
+          persistentVolumeClaim:
+            claimName: "{{ .name }}"
+        {{- end }}
+        {{- end }}

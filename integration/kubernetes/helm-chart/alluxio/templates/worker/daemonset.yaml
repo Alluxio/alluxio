@@ -89,12 +89,32 @@ spec:
             {{- end }}
             {{- if .Values.tieredstore }} 
             {{- if .Values.tieredstore.levels }} 
-            {{- range .Values.tieredstore.levels }} 
+            {{- range .Values.tieredstore.levels }}
+            {{- if .mediumtype }}
+            {{- if contains "," .mediumtype }}
+            {{- $type := .type }}
+            {{- $path := .path }}
+            {{- $split := split "," .mediumtype }}
+            {{- range $key, $val := $split }} 
+            {{- if eq $type "hostPath"}}
+            - mountPath:  {{ index ($path | split ",") $key }}
+              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+            {{- end}}
+            {{- end}}
+            {{- end}}
+            {{- else}}
             - mountPath: {{ .path }}
               name: {{ .alias | lower }}
+            {{- end}}
             {{- end}} 
             {{- end}} 
-            {{- end}} 
+            {{- end}}
+            {{- if .Values.mounts }}   
+            {{- range .Values.mounts }}
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
+            {{- end }}
+            {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -152,12 +172,32 @@ spec:
             {{- end }}
             {{- if .Values.tieredstore }} 
             {{- if .Values.tieredstore.levels }} 
-            {{- range .Values.tieredstore.levels }} 
+            {{- range .Values.tieredstore.levels }}
+            {{- if .mediumtype }}
+            {{- if contains "," .mediumtype }}
+            {{- $type := .type }}
+            {{- $path := .path }}
+            {{- $split := split "," .mediumtype }}
+            {{- range $key, $val := $split }} 
+            {{- if eq $type "hostPath"}}
+            - mountPath:  {{ index ($path | split ",") $key }}
+              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+            {{- end}}
+            {{- end}}
+            {{- end}}
+            {{- else}}
             - mountPath: {{ .path }}
               name: {{ .alias | lower }}
+            {{- end}}
             {{- end}} 
             {{- end}} 
             {{- end}} 
+            {{- if .Values.mounts }}   
+            {{- range .Values.mounts }}
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
+            {{- end }}
+            {{- end }}
       restartPolicy: Always
       volumes:
         - name: alluxio-domain
@@ -177,6 +217,28 @@ spec:
         {{- if .Values.tieredstore }} 
         {{- if .Values.tieredstore.levels }} 
         {{- range .Values.tieredstore.levels }}
+        {{- if .mediumtype }}
+        {{- if contains "," .mediumtype }}
+           {{- $split := split "," .mediumtype }}
+           {{- $type := .type }}
+           {{- $path := .path }}
+           {{- range $key, $val := $split }} 
+        {{- if eq $type "hostPath"}}
+        - hostPath:
+            path: {{ index ($path | split ",") $key }}
+            type: DirectoryOrCreate
+          name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+        {{- else }}
+        - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+          emptyDir:
+            medium: "Memory"
+            {{- if .quota }} 
+            sizeLimit: {{ .quota }}
+            {{- end}} 
+        {{- end}}
+        {{- end}}
+        {{- end}}
+        {{- else}}
         {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
@@ -189,7 +251,15 @@ spec:
             {{- if .quota }} 
             sizeLimit: {{ .quota }}
             {{- end}} 
+        {{- end}}
+        {{- end}}
         {{- end}} 
         {{- end}} 
-        {{- end}} 
-        {{- end}} 
+        {{- end}}
+        {{- if .Values.mounts }}   
+        {{- range .Values.mounts }}
+        - name: "{{ .name }}"
+          persistentVolumeClaim:
+            claimName: "{{ .name }}"
+        {{- end }}
+        {{- end }}
