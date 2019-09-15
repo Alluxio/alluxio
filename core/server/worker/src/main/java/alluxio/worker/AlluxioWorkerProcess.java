@@ -11,14 +11,15 @@
 
 package alluxio.worker;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
+import alluxio.network.PortUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -74,9 +74,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /** Worker Web UI server. */
   private WebServer mWebServer;
-
-  /** Used for auto binding. **/
-  private ServerSocket mBindSocket;
 
   /** The bind address for the rpc server. */
   private InetSocketAddress mRpcBindAddress;
@@ -133,19 +130,13 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
                   ServerConfiguration.global());
       if (configuredBindAddress.getPort() == 0) {
-        mBindSocket = new ServerSocket(0);
-        bindPort = mBindSocket.getLocalPort();
+        bindPort = PortUtils.getFreePort();
       } else {
         bindPort = configuredBindAddress.getPort();
       }
       mRpcBindAddress = new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC,
           ServerConfiguration.global());
-      if (mBindSocket != null) {
-        // Socket opened for auto bind.
-        // Close it.
-        mBindSocket.close();
-      }
       // Setup Data server
       mDataServer =
           DataServer.Factory.create(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);

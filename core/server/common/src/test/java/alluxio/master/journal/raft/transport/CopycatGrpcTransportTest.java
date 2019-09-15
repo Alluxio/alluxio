@@ -13,6 +13,7 @@ package alluxio.master.journal.raft.transport;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.network.PortUtils;
 import alluxio.security.user.ServerUserState;
 
 import io.atomix.catalyst.buffer.BufferInput;
@@ -36,7 +37,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.net.ServerSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -170,9 +170,7 @@ public class CopycatGrpcTransportTest {
   private Address bindServer(ThreadContext context, Server server, Consumer<Connection> listener)
       throws Exception {
 
-    ServerSocket autoBindSocket = new ServerSocket(0);
-    Address serverAddress = new Address("localhost", autoBindSocket.getLocalPort());
-    autoBindSocket.close();
+    Address serverAddress = new Address("localhost", PortUtils.getFreePort());
 
     context.execute(() -> {
       try {

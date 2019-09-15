@@ -11,17 +11,18 @@
 
 package alluxio.worker;
 
+import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.RuntimeConstants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.network.PortUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
@@ -38,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -65,9 +65,6 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
 
   /** gRPC server. */
   private GrpcServer mGrpcServer;
-
-  /** Used for auto binding. **/
-  private ServerSocket mBindSocket;
 
   /** The connect address for the rpc server. */
   private InetSocketAddress mRpcConnectAddress;
@@ -109,8 +106,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
               NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC,
                   ServerConfiguration.global());
       if (configuredBindAddress.getPort() == 0) {
-        mBindSocket = new ServerSocket(0);
-        mRPCPort = mBindSocket.getLocalPort();
+        mRPCPort = PortUtils.getFreePort();
       } else {
         mRPCPort = configuredBindAddress.getPort();
       }
@@ -198,12 +194,6 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
 
   private void startServingRPCServer() {
     try {
-      if (mBindSocket != null) {
-        // Socket opened for auto bind.
-        // Close it.
-        mBindSocket.close();
-      }
-
       LOG.info("Starting gRPC server on address {}", mRpcConnectAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
