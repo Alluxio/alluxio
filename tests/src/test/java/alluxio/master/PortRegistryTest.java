@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.master.PortRegistry.Registry;
+import alluxio.network.PortUtils;
 
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
@@ -43,7 +44,7 @@ public final class PortRegistryTest {
     int port = -1;
     boolean locked = false;
     for (int i = 0; i < 100; i++) {
-      port = PortRegistry.getFreePort();
+      port = PortUtils.getFreePort();
       if (mRegistry.lockPort(port)) {
         locked = true;
         break;
@@ -67,7 +68,7 @@ public final class PortRegistryTest {
 
   @Test
   public void lockAndRelease() {
-    int port = PortRegistry.getFreePort();
+    int port = PortUtils.getFreePort();
     int successes = 0;
     for (int i = 0; i < 10; i++) {
       if (mRegistry.lockPort(port)) {

@@ -20,6 +20,7 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
+import alluxio.network.PortUtils;
 import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -93,14 +94,8 @@ public abstract class MasterProcess implements Process {
           String.format("%s port must be nonzero in single-master mode", service));
     }
     if (port == 0) {
-      try {
-        ServerSocket s = new ServerSocket(0);
-        s.setReuseAddress(true);
-        conf.set(service.getPortKey(), s.getLocalPort());
-        s.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      port = PortUtils.getFreePort();
+      conf.set(service.getPortKey(), port);
     }
     return NetworkAddressUtils.getBindAddress(service, conf);
   }
