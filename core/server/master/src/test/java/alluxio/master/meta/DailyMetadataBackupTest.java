@@ -50,6 +50,7 @@ public class DailyMetadataBackupTest {
   private MetaMaster mMetaMaster;
   private ControllableScheduler mScheduler;
   private UnderFileSystem mUfs;
+  private UfsManager mUfsManager;
   private UfsManager.UfsClient mUfsClient;
   private Random mRandom;
   private String mBackupDir;
@@ -75,6 +76,8 @@ public class DailyMetadataBackupTest {
         // Noop
       }
     });
+    mUfsManager = Mockito.mock(UfsManager.class);
+    when(mUfsManager.getRoot()).thenReturn(mUfsClient);
 
     mScheduler = new ControllableScheduler();
   }
@@ -89,7 +92,7 @@ public class DailyMetadataBackupTest {
             PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED,
             String.valueOf(fileToRetain)), ServerConfiguration.global()).toResource()) {
       DailyMetadataBackup dailyBackup =
-          new DailyMetadataBackup(mMetaMaster, mScheduler, mUfsClient);
+          new DailyMetadataBackup(mMetaMaster, mScheduler, mUfsManager);
       dailyBackup.start();
 
       int backUpFileNum = 0;
