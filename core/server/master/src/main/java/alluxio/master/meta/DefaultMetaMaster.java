@@ -391,7 +391,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       if (options.getLocalFileSystem()) {
         rootUfs = "file:///";
       }
-      AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
+      AlluxioURI backupUri =
+          new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
       return new BackupResponse(
           backupUri,
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
