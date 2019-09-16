@@ -54,6 +54,9 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
       chown ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /alluxio-fuse; \
     fi
 
+# disable JVM DNS cache
+RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
+
 USER ${ALLUXIO_UID}
 
 ENTRYPOINT ["/entrypoint.sh"]
