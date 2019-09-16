@@ -16,6 +16,7 @@ function printUsage {
   echo "MODE is one of:"
   echo -e " single-ufs        \t Generate Alluxio YAML templates for a single-master environment using UFS journal."
   echo -e " multi-embedded    \t Generate Alluxio YAML templates with multiple masters using embedded journal."
+  echo -e " all               \t Generate Alluxio YAML templates for all combinations."
   echo
   echo "UFS is only for single-ufs mode. It should be one of:"
   echo -e " local             \t Use a local destination for UFS journal."
@@ -33,19 +34,19 @@ function generatePodTemplatesWithConfig {
   echo "Generating templates into $dir"
   config=./config.yaml
   if [[ ! -f "$config" ]]; then
-    echo "A config file $config is needed to generate templates for HA mode UFS!"
+    echo "A config file $config is needed in $dir!"
     echo "See https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html#example-hdfs-as-the-under-store"
     echo "for the format of config.yaml."
     exit 1
   fi
-  helm template helm/alluxio/ -x templates/alluxio-master.yaml -f ./config.yaml > "$dir/alluxio-master.yaml.template"
-  helm template helm/alluxio/ -x templates/alluxio-worker.yaml -f ./config.yaml > "$dir/alluxio-worker.yaml.template"
-  helm template helm/alluxio/ -x templates/alluxio-configMap.yaml -f ./config.yaml > "$dir/alluxio-configMap.yaml.template"
+  helm template helm/alluxio/ -x templates/alluxio-master.yaml -f ./$dir/config.yaml > "$dir/alluxio-master.yaml.template"
+  helm template helm/alluxio/ -x templates/alluxio-worker.yaml -f ./$dir/config.yaml > "$dir/alluxio-worker.yaml.template"
+  helm template helm/alluxio/ -x templates/alluxio-configMap.yaml -f ./$dir/config.yaml > "$dir/alluxio-configMap.yaml.template"
 }
 
-function generateVolumeTemplates {
+function generateVolumeTemplatesWithConfig {
   echo "Generating persistent volume templates into $dir"
-  helm template helm/alluxio/ -x templates/alluxio-journal-volume.yaml > "$dir/alluxio-journal-volume.yaml.template"
+  helm template helm/alluxio/ -x templates/alluxio-journal-volume.yaml -f ./$dir/config.yaml > "$dir/alluxio-journal-volume.yaml.template"
 }
 
 function generateSingleUfsTemplates {
@@ -55,8 +56,8 @@ function generateSingleUfsTemplates {
     "local")
       echo "Using local journal"
       dir="singleMaster-localJournal"
-      generateVolumeTemplates
-      generatePodTemplates
+      generateVolumeTemplatesWithConfig
+      generatePodTemplatesWithConfig
       ;;
     "hdfs")
       echo "Journal UFS $ufs"
@@ -68,6 +69,17 @@ function generateSingleUfsTemplates {
       printUsage
       exit 1
   esac
+}
+
+function generateMultiEmbeddedTemplates {
+  dir="multiMaster-embeddedJournal"
+  generatePodTemplatesWithConfig
+}
+
+function generateAllTemplates {
+  generateSingleUfsTemplates "local"
+  generateSingleUfsTemplates "hdfs"
+  generateMultiEmbeddedTemplates
 }
 
 function main {
@@ -84,8 +96,11 @@ function main {
       ;;
     "multi-embedded")
       echo "Generating templates for $mode"
-      dir="multiMaster-embeddedJournal"
-      generatePodTemplates
+      generateMultiEmbeddedTemplates
+      ;;
+    "all")
+      echo "Generating templates for all combinations"
+      generateAllTemplates
       ;;
     *)
       echo "Unknown mode $mode"

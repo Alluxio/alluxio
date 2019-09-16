@@ -1,0 +1,7 @@
+resources:
+  masterCount: 1
+
+journal:
+  type: "UFS"
+  ufsType: "local"
+  folder: "/journal"

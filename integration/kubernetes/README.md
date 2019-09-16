@@ -27,16 +27,18 @@ In fact, templates in the 3 directories are generated with Helm templates define
 
 The following section will require some prerequisite knowledge about [Helm Chart Templates](https://helm.sh/docs/chart_template_guide/#the-chart-template-developer-s-guide)
 
-#### Step 1: Update values.yaml
+#### Step 1: Update config.yaml
 
-The Helm templates are configured with `helm/alluxio/values.yaml`. 
+The Helm templates are configured with `helm/alluxio/values.yaml`.
+We use the `config.yaml` in the target directory to override the parameters in `helm/alluxio/values.yaml`.
+
 You should make sure the following 2 values align with the templates you want to generate:
 
 ```yaml
 # Example: For singleMaster localJournal
 resources:
   masterCount: 1 # For multiMaster mode increase this to >1
-  ...
+
 journal:
   type: "UFS"
   ufsType: "local" # Ignored if type is "EMBEDDED"
@@ -45,16 +47,12 @@ journal:
 
 The 2 values above are the default for *singleMaster* setup. For *multiMaster* mode, `resources.masterCount` should be greater than 1.
 
-#### Step 2: Create config.yaml
+For *singleMaster-hdfsJournal*, `config.yaml` contains some extra parameters for HDFS.
+See `singleMaster-hdfsJournal/config.yaml` for the example and
+[Create Helm config.yaml for HDFS](https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html#example-hdfs-as-the-under-store)
+for documentation.
 
-A `config.yaml` supplies additional parameters to Helm. If you you are generating templates for *singleMaster-localJournal* or *multiMaster-embeddedJournal* and you have no extra parameter to use,
-you can skip this step.
-
-For *singleMaster-hdfsJournal*, you must configure `config.yaml` for the extra parameters for the UFS.
-See [Create Helm config.yaml for HDFS](https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html#example-hdfs-as-the-under-store)
-for what the config.yaml will need for using HDFS.
-
-#### Step 3: Generate templates
+#### Step 2: Generate templates
 
 Now that you have set up all that Helm needs, you can use the helper script `helm-generate.sh` to help you quickly generate the templates(overwriting the existing ones).
 The script takes only one argument, the target setup name.
@@ -67,11 +65,18 @@ bash helm-generate.sh multi-embedded
 
 ```
 
-For *singleMaster-hdfsJournal* the script relies on the `config.yaml` file you just created under the hood.
+For all modes the script relies on the `config.yaml` file in the target directory.
 
 ```bash
 # Example: This will regenerate the templates for hdfsJournal
 bash helm-generate.sh single-ufs hdfs
+```
+
+You can also regenerate all templates.
+
+```bash
+# Example: This will regenerate templates for all combinations
+bash helm-generate.sh all
 ```
 
 Feel free to configure and run Helm yourself if the helper script does not satisfy what you need.

@@ -1,0 +1,18 @@
+resources:
+  masterCount: 1
+
+journal:
+  type: "UFS"
+  ufsType: "HDFS"
+  folder: "hdfs://{$hostname}:{$hostport}/journal"
+
+properties:
+  alluxio.master.mount.table.root.ufs: "hdfs://{$hostname}:{$hostport}/{$underFSStorage}"
+  alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+

@@ -1,0 +1,7 @@
+resources:
+  masterCount: 3
+
+journal:
+  type: "EMBEDDED"
+  ufsType: "local" # This field will not be looked at
+  folder: "/journal"
