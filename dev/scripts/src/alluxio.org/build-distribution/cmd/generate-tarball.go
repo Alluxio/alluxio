@@ -44,7 +44,7 @@ var (
 )
 
 func init() {
-	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", "hadoop-2.2", "the hadoop distribution to build this Alluxio distribution tarball")
+	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
 	cmdSingle.Flags.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
 			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
@@ -60,7 +60,7 @@ func single(_ *cmdline.Env, _ []string) error {
 	if err := checkRootFlags(); err != nil {
 		return err
 	}
-	if err := generateTarball([]string{hadoopDistributionFlag}); err != nil {
+	if err := generateTarball([]string{}); err != nil {
 		return err
 	}
 	return nil
@@ -147,7 +147,7 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
 			moduleMvnArgs = append(moduleMvnArgs, arg)
 		}
-		var versionMvnArg = "2.2.0"
+		var versionMvnArg = "2.7.3"
 		for _, arg := range moduleMvnArgs {
 			if strings.Contains(arg, "ufs.hadoop.version") {
 				versionMvnArg = strings.Split(arg, "=")[1]
@@ -256,10 +256,10 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
-func generateTarball(hadoopClients []string) error {
-	hadoopVersion, ok := hadoopDistributions[defaultHadoopClient]
+func generateTarball(extraHadoopClients []string) error {
+	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
-		return fmt.Errorf("hadoop distribution %s not recognized\n", defaultHadoopClient)
+		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistributionFlag)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
