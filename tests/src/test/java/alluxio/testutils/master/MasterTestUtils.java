@@ -33,10 +33,13 @@ import alluxio.underfs.MasterUfsManager;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class MasterTestUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterTestUtils.class);
 
   /**
    * Creates a new leader {@link FileSystemMaster} from journal along with its dependencies, and
@@ -111,6 +114,7 @@ public class MasterTestUtils {
   private static FsMasterResource createFileSystemMasterFromJournal(boolean isLeader,
       UserState userState, String journalFolder) throws Exception {
     String masterJournal = journalFolder;
+    LOG.info("createFileSystemMasterFromJournal: masterJournal: {}", masterJournal);
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
     long startTimeMs = System.currentTimeMillis();

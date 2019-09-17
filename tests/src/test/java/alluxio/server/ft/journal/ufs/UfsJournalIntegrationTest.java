@@ -13,12 +13,12 @@ package alluxio.server.ft.journal.ufs;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -53,6 +53,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -65,6 +67,7 @@ import java.util.Map;
  * Test master journal, including checkpoint and entry log.
  */
 public class UfsJournalIntegrationTest extends BaseIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsJournalIntegrationTest.class);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -609,8 +612,12 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)),
         new NoopMaster(), 0, Collections::emptySet);
     if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
+      LOG.info("deleteFsMasterJournalLogs: deleting currentLog: {}",
+          UfsJournalSnapshot.getCurrentLog(journal));
       UnderFileSystem.Factory.create(journalFolder, ServerConfiguration.global())
           .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());
+    } else {
+      LOG.info("deleteFsMasterJournalLogs: journalFolder: {}", journalFolder);
     }
   }
 
