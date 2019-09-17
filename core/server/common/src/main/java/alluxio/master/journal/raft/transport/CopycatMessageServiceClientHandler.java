@@ -13,10 +13,15 @@ package alluxio.master.journal.raft.transport;
 
 import alluxio.grpc.CopycatMessage;
 import alluxio.grpc.CopycatMessageServerGrpc;
+import alluxio.security.authentication.ClientIpAddressInjector;
 
+import com.google.common.base.MoreObjects;
 import io.atomix.catalyst.concurrent.ThreadContext;
+import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Connection;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +33,8 @@ import java.util.function.Consumer;
  */
 public class CopycatMessageServiceClientHandler
     extends CopycatMessageServerGrpc.CopycatMessageServerImplBase {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(CopycatMessageServiceClientHandler.class);
 
   /** Copycat provided listener for storing incoming connections. */
   private final Consumer<Connection> mListener;
@@ -37,15 +44,19 @@ public class CopycatMessageServiceClientHandler
   private final long mRequestTimeoutMs;
   /** Executor for building server connections. */
   private final ExecutorService mExecutor;
+  /** Address for the server that is serving this handler. */
+  private final Address mServerAddress;
 
   /**
+   * @param serverAddress server address
    * @param listener listener for incoming connections
    * @param context copycat thread context
    * @param executor transport executor
    * @param requestTimeoutMs request timeout value for new connections
    */
-  public CopycatMessageServiceClientHandler(Consumer<Connection> listener, ThreadContext context,
-      ExecutorService executor, long requestTimeoutMs) {
+  public CopycatMessageServiceClientHandler(Address serverAddress, Consumer<Connection> listener,
+      ThreadContext context, ExecutorService executor, long requestTimeoutMs) {
+    mServerAddress = serverAddress;
     mListener = listener;
     mContext = context;
     mExecutor = executor;
@@ -59,15 +70,23 @@ public class CopycatMessageServiceClientHandler
    * @return server's stream observer
    */
   public StreamObserver<CopycatMessage> connect(StreamObserver<CopycatMessage> responseObserver) {
+    // Transport level identifier for this connection.
+    String transportId = MoreObjects.toStringHelper(this)
+        .add("ServerAddress", mServerAddress)
+        .add("ClientAddress", ClientIpAddressInjector.getIpAddress())
+        .toString();
+    LOG.debug("Creating a copycat server connection: {}", transportId);
+
     // Create server connection that is bound to given client stream.
-    CopycatGrpcConnection clientConnection =
-        new CopycatGrpcServerConnection(mContext, mExecutor, mRequestTimeoutMs);
-    clientConnection.setTargetObserver(responseObserver);
+    CopycatGrpcConnection serverConnection =
+        new CopycatGrpcServerConnection(transportId, mContext, mExecutor, mRequestTimeoutMs);
+    serverConnection.setTargetObserver(responseObserver);
+    LOG.debug("Created a copycat server connection: {}", serverConnection);
 
     // Update copycat with new connection.
     try {
       mContext.execute(() -> {
-        mListener.accept(clientConnection);
+        mListener.accept(serverConnection);
       }).get();
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
@@ -77,6 +96,6 @@ public class CopycatMessageServiceClientHandler
       throw new RuntimeException("Failed to register new connection with copycat", ee.getCause());
     }
 
-    return clientConnection;
+    return serverConnection;
   }
 }

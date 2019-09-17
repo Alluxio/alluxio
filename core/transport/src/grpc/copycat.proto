@@ -11,7 +11,7 @@ message CopycatRequestHeader {
 }
 message CopycatResponseHeader {
     optional int64 requestId = 1;
-    optional bool failed = 2;
+    optional bool isThrowable = 2;
 }
 message CopycatMessage {
     optional CopycatRequestHeader requestHeader = 1;
