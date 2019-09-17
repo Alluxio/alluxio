@@ -16,9 +16,9 @@ import alluxio.ConfigurationRule;
 import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
-import alluxio.cli.fsadmin.command.QuorumCommand;
-import alluxio.cli.fsadmin.quorum.QuorumInfoCommand;
-import alluxio.cli.fsadmin.quorum.QuorumRemoveCommand;
+import alluxio.cli.fsadmin.journal.QuorumCommand;
+import alluxio.cli.fsadmin.journal.QuorumInfoCommand;
+import alluxio.cli.fsadmin.journal.QuorumRemoveCommand;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -87,7 +87,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
     try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
       // Validate quorum state is dumped as expected.
       mOutput.reset();
-      shell.run("quorum", "info", "-domain", "MASTER");
+      shell.run("journal", "quorum", "info", "-domain", "MASTER");
       output = mOutput.toString().trim();
       Assert.assertTrue(output.contains(
           String.format(QuorumInfoCommand.OUTPUT_HEADER_DOMAIN, JournalDomain.MASTER.name())));
@@ -109,7 +109,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       // Use shell "quorum info" for validation.
       CommonUtils.waitFor("Quorum noticing change.", () -> {
         mOutput.reset();
-        shell.run("quorum", "info", "-domain", "MASTER");
+        shell.run("journal", "quorum", "info", "-domain", "MASTER");
         return mOutput.toString().trim().contains(QuorumServerState.UNAVAILABLE.name());
       }, WaitForOptions.defaults().setTimeoutMs(2
           * (int) ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)));
@@ -163,7 +163,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
           String serverAddress = String.format("%s:%d", serverInfo.getServerAddress().getHost(),
               serverInfo.getServerAddress().getRpcPort());
-          shell.run("quorum", "remove", "-domain", "MASTER", "-address", serverAddress);
+          shell.run("journal", "quorum", "remove", "-domain", "MASTER", "-address", serverAddress);
 
           output = mOutput.toString().trim();
           Assert.assertEquals(String.format(QuorumRemoveCommand.OUTPUT_RESULT, serverAddress,
@@ -197,53 +197,54 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
       // Validate quorum sub-commands are validated.
       mOutput.reset();
-      shell.run("quorum", "nonexistentCommand");
+      shell.run("journal", "quorum", "nonexistentCommand");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumCommand.description(), lastLine(output));
 
       // Validate option counts are validated for "quorum info"
       mOutput.reset();
-      shell.run("quorum", "info");
+      shell.run("journal", "quorum", "info");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumInfoCommand.description(), lastLine(output));
 
       mOutput.reset();
-      shell.run("quorum", "info", "-op1", "val1", "-op2", "val2");
+      shell.run("journal", "quorum", "info", "-op1", "val1", "-op2", "val2");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumInfoCommand.description(), lastLine(output));
 
-      // Validate option counts are validated for "quorum remove"
+      // Validate option counts are validated for "quorum", "remove"
       mOutput.reset();
-      shell.run("quorum", "remove");
+      shell.run("journal", "quorum", "remove");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumRemoveCommand.description(), lastLine(output));
       mOutput.reset();
-      shell.run("quorum", "remove", "-op1", "val1");
+      shell.run("journal", "quorum", "remove", "-op1", "val1");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumRemoveCommand.description(), lastLine(output));
 
-      shell.run("quorum", "remove", "-op1", "val1", "-op2", "val2", "-op3", "val3");
+      shell.run("journal", "quorum", "remove", "-op1", "val1", "-op2", "val2", "-op3", "val3");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumRemoveCommand.description(), lastLine(output));
 
       // Validate option validation works for "quorum info".
       mOutput.reset();
-      shell.run("quorum", "info", "-domain", "UNKNOWN");
+      shell.run("journal", "quorum", "info", "-domain", "UNKNOWN");
       output = mOutput.toString().trim();
       Assert.assertEquals(ExceptionMessage.INVALID_OPTION_VALUE.getMessage(
           QuorumInfoCommand.DOMAIN_OPTION_NAME, Arrays.toString(JournalDomain.values())), output);
 
-      // Validate option validation works for "quorum remove"
+      // Validate option validation works for "journal quorum remove"
       // Validate -domain is validated.
       mOutput.reset();
-      shell.run("quorum", "remove", "-domain", "UNKNOWN", "-address", "host:0");
+      shell.run("journal", "quorum", "remove", "-domain", "UNKNOWN", "-address", "host:0");
       output = mOutput.toString().trim();
       Assert.assertEquals(ExceptionMessage.INVALID_OPTION_VALUE.getMessage(
           QuorumInfoCommand.DOMAIN_OPTION_NAME, Arrays.toString(JournalDomain.values())), output);
 
       // Validate -address is validated.
       mOutput.reset();
-      shell.run("quorum", "remove", "-domain", "JOB_MASTER", "-address", "hostname:invalid_port");
+      shell.run("journal", "quorum", "remove", "-domain", "JOB_MASTER", "-address",
+          "hostname:invalid_port");
       output = mOutput.toString().trim();
       Assert.assertEquals(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage(), output);
     }
