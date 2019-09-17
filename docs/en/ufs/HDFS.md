@@ -23,7 +23,7 @@ with the correct Hadoop version (recommended), or
 (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
-work with Apache Hadoop HDFS of version `2.2.0`. To work with Hadoop distributions of other
+work with Apache Hadoop HDFS of version `2.7.3`. To work with Hadoop distributions of other
 versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 
