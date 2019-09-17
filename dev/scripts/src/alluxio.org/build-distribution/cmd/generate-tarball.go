@@ -256,7 +256,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
-func generateTarball(extraHadoopClients []string) error {
+func generateTarball(hadoopClients []string) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
 		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistributionFlag)
