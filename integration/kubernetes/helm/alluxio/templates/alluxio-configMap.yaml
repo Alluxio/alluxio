@@ -8,6 +8,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 {{ $masterCount := int .Values.resources.masterCount }}
 {{- $isSingleMaster := eq $masterCount 1 }}
 {{- $isHaEmbedded := and (eq .Values.journal.type "EMBEDDED") (gt $masterCount 1) }}
