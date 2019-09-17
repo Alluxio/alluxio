@@ -132,7 +132,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
     // Create a new cluster.
     mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
     // Init configuration for integration test
-    mLocalAlluxioCluster.initConfiguration();
+    mLocalAlluxioCluster
+        .initConfiguration(mConfiguration.getOrDefault(PropertyKey.TEST_NAME, "test"));
     // Overwrite the test configuration with test specific parameters
     for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());

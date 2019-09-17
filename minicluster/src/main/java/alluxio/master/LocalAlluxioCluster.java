@@ -119,8 +119,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  public void initConfiguration() throws IOException {
-    setAlluxioWorkDirectory();
+  public void initConfiguration(String testName) throws IOException {
+    setAlluxioWorkDirectory(testName);
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
         .testConfigurationDefaults(ServerConfiguration.global(),
