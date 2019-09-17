@@ -8,9 +8,6 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-#
-# This script generates a Docker image for the repository from its current state.
-#
 
 resources:
   masterCount: 1
