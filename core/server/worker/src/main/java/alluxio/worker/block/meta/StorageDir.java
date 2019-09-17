@@ -288,6 +288,8 @@ public final class StorageDir {
     long blockSize = blockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
+      LOG.error("no space on worker: capacity: {} availableBytes: {} blockSize: {}",
+          mCapacityBytes, getAvailableBytes(), blockSize);
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
           blockSize, getAvailableBytes(), blockMeta.getBlockLocation().tierAlias());
     }
