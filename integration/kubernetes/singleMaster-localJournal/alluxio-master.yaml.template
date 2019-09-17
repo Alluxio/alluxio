@@ -11,6 +11,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -108,3 +109,4 @@ spec:
         persistentVolumeClaim:
           claimName: alluxio-pv-claim
 ---
+

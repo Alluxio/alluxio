@@ -108,3 +108,4 @@ spec:
         hostPath:
           path: /tmp/alluxio-domain
           type: DirectoryOrCreate
+
