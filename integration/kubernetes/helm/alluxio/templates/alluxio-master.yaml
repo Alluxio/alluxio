@@ -10,13 +10,13 @@
 #
 
 {{ $root := . -}}
-{{ $masterCount := int .Values.resources.masterCount }}
-{{ $isSingleMaster := eq $masterCount 1 }}
-{{ $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
-{{ $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
-{{ $isUfsLocal := and (eq .Values.journal.type "UFS") (eq .Values.journal.ufsType "local") }}
-{{ $isSingleUfsLocal := and $isUfsLocal $isSingleMaster }}
-{{ $needJournalVolume := or $isEmbedded $isUfsLocal }}
+{{- $masterCount := int .Values.resources.masterCount }}
+{{- $isSingleMaster := eq $masterCount 1 }}
+{{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
+{{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
+{{- $isUfsLocal := and (eq .Values.journal.type "UFS") (eq .Values.journal.ufsType "local") }}
+{{- $isSingleUfsLocal := and $isUfsLocal $isSingleMaster }}
+{{- $needJournalVolume := or $isEmbedded $isUfsLocal }}
 {{- if $isUfsLocal}}
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -32,8 +32,8 @@ spec:
 ---
 {{- end}}
 {{- range $i := until $masterCount }}
-  {{ $masterName := printf "alluxio-master-%v" $i }}
-  {{ $masterJavaOpts := printf " -Dalluxio.master.hostname=alluxio-master-%v " $i }}
+  {{- $masterName := printf "alluxio-master-%v" $i }}
+  {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=alluxio-master-%v " $i }}
 apiVersion: v1
 kind: Service
 metadata:
