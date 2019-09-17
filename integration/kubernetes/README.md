@@ -30,7 +30,8 @@ The following section will require some prerequisite knowledge about [Helm Chart
 #### Step 1: Update config.yaml
 
 The Helm templates are configured with `helm/alluxio/values.yaml`.
-We use the `config.yaml` in the target directory to override the parameters in `helm/alluxio/values.yaml`.
+We use the `config.yaml` in the corresponding template directory to override the parameters in `helm/alluxio/values.yaml`.
+For example `singleMaster-localJournal/config.yaml` sets parameters specific to its deployment scenario.
 
 You should make sure the following 2 values align with the templates you want to generate:
 
@@ -65,7 +66,7 @@ bash helm-generate.sh multi-embedded
 
 ```
 
-For all modes the script relies on the `config.yaml` file in the target directory.
+For all modes the script relies on the `config.yaml` file in the corresponding template directory.
 
 ```bash
 # Example: This will regenerate the templates for hdfsJournal

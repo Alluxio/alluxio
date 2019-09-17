@@ -32,7 +32,7 @@ function generatePodTemplates {
 
 function generatePodTemplatesWithConfig {
   echo "Generating templates into $dir"
-  config=./config.yaml
+  config=./$dir/config.yaml
   if [[ ! -f "$config" ]]; then
     echo "A config file $config is needed in $dir!"
     echo "See https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html#example-hdfs-as-the-under-store"
