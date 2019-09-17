@@ -15,6 +15,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.security.user.UserState;
+import alluxio.underfs.MasterUfsManager;
 
 import com.google.common.base.Preconditions;
 
@@ -27,6 +28,7 @@ public class CoreMasterContext extends MasterContext {
   private final BlockStore.Factory mBlockStoreFactory;
   private final InodeStore.Factory mInodeStoreFactory;
   private final JournalSystem mJournalSystem;
+  private final MasterUfsManager mUfsManager;
   private final long mStartTimeMs;
   private final int mPort;
 
@@ -41,6 +43,7 @@ public class CoreMasterContext extends MasterContext {
         Preconditions.checkNotNull(builder.mInodeStoreFactory, "inodeStoreFactory");
     mJournalSystem = Preconditions.checkNotNull(builder.mJournalSystem, "journalSystem");
     mStartTimeMs = builder.mStartTimeMs;
+    mUfsManager = builder.mUfsManager;
     mPort = builder.mPort;
   }
 
@@ -93,6 +96,13 @@ public class CoreMasterContext extends MasterContext {
   }
 
   /**
+   * @return the UFS manager
+   */
+  public MasterUfsManager getUfsManager() {
+    return mUfsManager;
+  }
+
+  /**
    * @return a new builder
    */
   public static Builder newBuilder() {
@@ -109,6 +119,7 @@ public class CoreMasterContext extends MasterContext {
     private BackupManager mBackupManager;
     private BlockStore.Factory mBlockStoreFactory;
     private InodeStore.Factory mInodeStoreFactory;
+    private MasterUfsManager mUfsManager;
     private long mStartTimeMs;
     private int mPort;
 
@@ -181,6 +192,15 @@ public class CoreMasterContext extends MasterContext {
      */
     public Builder setPort(int port) {
       mPort = port;
+      return this;
+    }
+
+    /**
+     * @param ufsManager ufsManager
+     * @return the builder
+     */
+    public Builder setUfsManager(MasterUfsManager ufsManager) {
+      mUfsManager = ufsManager;
       return this;
     }
 
