@@ -43,22 +43,25 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class DistributedLoadCommand extends AbstractFileSystemCommand {
-  public static final Option REPLICATION =
+  private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
           .required(false)
           .hasArg(true)
-          .desc("number of replicas to have for each block of the loaded file")
+          .numberOfArgs(1)
+          .type(Number.class)
+          .argName("replicas")
+          .desc("number of replicas to have for each block of the loaded file, default value is 1")
           .build();
-  public static final Option THREAD_OPTION =
+  private static final Option THREADS_OPTION =
       Option.builder()
           .longOpt("thread")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
-          .argName("threads")
           .type(Number.class)
-          .desc("Number of mThreads used to load files in parallel, default value is CPU cores * 2")
+          .argName("threads")
+          .desc("Number of threads used to load files in parallel, default value is CPU cores * 2")
           .build();
 
   private ThreadPoolExecutor mDistributedLoadServicePool;
@@ -82,8 +85,8 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION)
-        .addOption(THREAD_OPTION);
+    return new Options().addOption(REPLICATION_OPTION)
+        .addOption(THREADS_OPTION);
   }
 
   @Override
@@ -96,11 +99,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = 1;
-    if (cl.hasOption(REPLICATION.getLongOpt())) {
-      replication = Integer.parseInt(cl.getOptionValue(REPLICATION.getLongOpt()));
+    if (cl.hasOption(REPLICATION_OPTION.getLongOpt())) {
+      replication = Integer.parseInt(cl.getOptionValue(REPLICATION_OPTION.getLongOpt()));
     }
-    if (cl.hasOption(THREAD_OPTION.getLongOpt())) {
-      mThreads = Integer.parseInt(cl.getOptionValue(THREAD_OPTION.getLongOpt()));
+    if (cl.hasOption(THREADS_OPTION.getLongOpt())) {
+      mThreads = Integer.parseInt(cl.getOptionValue(THREADS_OPTION.getLongOpt()));
     }
     mDistributedLoadServicePool = new ThreadPoolExecutor(mThreads, mThreads, 60,
         TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
@@ -163,8 +166,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException      when non-Alluxio exception occurs
    */
   private void distributedLoad(AlluxioURI filePath, int replication)
       throws AlluxioException, IOException, InterruptedException {
@@ -194,7 +195,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     } else {
       if (status.getInAlluxioPercentage() == 100) {
         // The file has already been fully loaded into Alluxio.
-        System.out.println(filePath + " already in Alluxio fully");
+        System.out.println(filePath + " is already fully loaded in Alluxio");
         return;
       }
       if (mFutures.size() >= mThreads) {
