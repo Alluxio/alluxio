@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
   // How long to wait for a response from the cluster before giving up and trying again.
-  private static final long PROCESS_TIMEOUT_S = 30;
+  private final long mWriteTimeoutMs;
 
   private final AtomicLong mNextSequenceNumberToWrite;
   private final AtomicLong mLastSubmittedSequenceNumber;
@@ -60,6 +60,8 @@ public class RaftJournalWriter implements JournalWriter {
     mLastCommittedSequenceNumber = new AtomicLong(-1);
     mClient = client;
     mClosed = false;
+    mWriteTimeoutMs =
+        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
   }
 
   @Override
@@ -88,8 +90,8 @@ public class RaftJournalWriter implements JournalWriter {
         // number when applying them. This could happen if submit fails and we re-submit the same
         // entry on retry.
         mLastSubmittedSequenceNumber.set(flushSN);
-        mClient.submit(new JournalEntryCommand(mJournalEntryBuilder.build())).get(PROCESS_TIMEOUT_S,
-            TimeUnit.SECONDS);
+        mClient.submit(new JournalEntryCommand(mJournalEntryBuilder.build())).get(mWriteTimeoutMs,
+            TimeUnit.MILLISECONDS);
         mLastCommittedSequenceNumber.set(flushSN);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -97,9 +99,9 @@ public class RaftJournalWriter implements JournalWriter {
       } catch (ExecutionException e) {
         throw new IOException(e.getCause());
       } catch (TimeoutException e) {
-        throw new IOException(
-            String.format("Timed out after waiting %s seconds for journal entries to be processed",
-                PROCESS_TIMEOUT_S), e);
+        throw new IOException(String.format(
+            "Timed out after waiting %s milliseconds for journal entries to be processed",
+            mWriteTimeoutMs), e);
       }
       mJournalEntryBuilder = null;
     }

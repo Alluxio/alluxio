@@ -1309,6 +1309,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT)
+          .setDefaultValue("30sec")
+          .setDescription("Maximum time to wait for a write/flush on embedded journal.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)
           .setDefaultValue("2hour")
@@ -3945,6 +3952,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
         "alluxio.master.embedded.journal.shutdown.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
+        "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
         "alluxio.master.embedded.journal.triggered.snapshot.wait.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
