@@ -70,7 +70,7 @@ public class CopycatGrpcClient implements Client {
 
   @Override
   public CompletableFuture<Connection> connect(Address address) {
-    LOG.debug("Copycat transport client connecting to: {}", address);
+    LOG.debug("Creating a copycat client connection to: {}", address);
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     // Future for this connection.
     final CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
@@ -95,7 +95,7 @@ public class CopycatGrpcClient implements Client {
                 mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
-        LOG.debug("Created copycat connection for target: {}", address);
+        LOG.debug("Created a copycat client connection: {}", clientConnection);
         mConnections.add(clientConnection);
         return clientConnection;
       } catch (Throwable e) {

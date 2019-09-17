@@ -40,16 +40,16 @@ public final class CopycatProto {
     java.lang.String[] descriptorData = {
       "\n\022grpc/copycat.proto\022\024alluxio.grpc.copyc" +
       "at\")\n\024CopycatRequestHeader\022\021\n\trequestId\030" +
-      "\001 \001(\003\":\n\025CopycatResponseHeader\022\021\n\treques" +
-      "tId\030\001 \001(\003\022\016\n\006failed\030\002 \001(\010\"\251\001\n\016CopycatMes" +
-      "sage\022A\n\rrequestHeader\030\001 \001(\0132*.alluxio.gr" +
-      "pc.copycat.CopycatRequestHeader\022C\n\016respo" +
-      "nseHeader\030\002 \001(\0132+.alluxio.grpc.copycat.C" +
-      "opycatResponseHeader\022\017\n\007message\030\003 \001(\0142q\n" +
-      "\024CopycatMessageServer\022Y\n\007connect\022$.allux" +
-      "io.grpc.copycat.CopycatMessage\032$.alluxio" +
-      ".grpc.copycat.CopycatMessage(\0010\001B\036\n\014allu" +
-      "xio.grpcB\014CopycatProtoP\001"
+      "\001 \001(\003\"?\n\025CopycatResponseHeader\022\021\n\treques" +
+      "tId\030\001 \001(\003\022\023\n\013isThrowable\030\002 \001(\010\"\251\001\n\016Copyc" +
+      "atMessage\022A\n\rrequestHeader\030\001 \001(\0132*.allux" +
+      "io.grpc.copycat.CopycatRequestHeader\022C\n\016" +
+      "responseHeader\030\002 \001(\0132+.alluxio.grpc.copy" +
+      "cat.CopycatResponseHeader\022\017\n\007message\030\003 \001" +
+      "(\0142q\n\024CopycatMessageServer\022Y\n\007connect\022$." +
+      "alluxio.grpc.copycat.CopycatMessage\032$.al" +
+      "luxio.grpc.copycat.CopycatMessage(\0010\001B\036\n" +
+      "\014alluxio.grpcB\014CopycatProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -74,7 +74,7 @@ public final class CopycatProto {
     internal_static_alluxio_grpc_copycat_CopycatResponseHeader_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_copycat_CopycatResponseHeader_descriptor,
-        new java.lang.String[] { "RequestId", "Failed", });
+        new java.lang.String[] { "RequestId", "IsThrowable", });
     internal_static_alluxio_grpc_copycat_CopycatMessage_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_alluxio_grpc_copycat_CopycatMessage_fieldAccessorTable = new

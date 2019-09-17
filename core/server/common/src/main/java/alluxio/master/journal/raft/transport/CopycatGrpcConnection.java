@@ -16,6 +16,7 @@ import alluxio.grpc.CopycatRequestHeader;
 import alluxio.grpc.CopycatResponseHeader;
 import alluxio.resource.LockResource;
 
+import com.google.common.base.MoreObjects;
 import com.google.protobuf.UnsafeByteOperations;
 import io.atomix.catalyst.concurrent.Listener;
 import io.atomix.catalyst.concurrent.Listeners;
@@ -51,6 +52,9 @@ public abstract class CopycatGrpcConnection
     implements Connection, StreamObserver<CopycatMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcConnection.class);
 
+  /** Used to assign a JVM bound Id to connections.  */
+  private static AtomicLong sConnectionIdCounter = new AtomicLong(0);
+
   /** Exception listeners for this connection.  */
   private final Listeners<Throwable> mExceptionListeners;
   /** Close listeners for this connection.  */
@@ -79,6 +83,9 @@ public abstract class CopycatGrpcConnection
   /** Type of connection owner. */
   private final ConnectionOwner mConnectionOwner;
 
+  /** Unique Id of connection. */
+  private final String mConnectionId;
+
   /** Target's stream observer. */
   private StreamObserver<CopycatMessage> mTargetObserver;
 
@@ -100,13 +107,19 @@ public abstract class CopycatGrpcConnection
    * Note: {@link #setTargetObserver} should be called explicitly before using the connection.
    *
    * @param connectionOwner owner of connection
+   * @param transportId transport level Id
    * @param context copycat thread context
    * @param executor transport executor
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public CopycatGrpcConnection(ConnectionOwner connectionOwner, ThreadContext context,
-      ExecutorService executor, long requestTimeoutMs) {
+  public CopycatGrpcConnection(ConnectionOwner connectionOwner, String transportId,
+      ThreadContext context, ExecutorService executor, long requestTimeoutMs) {
     mConnectionOwner = connectionOwner;
+    mConnectionId = MoreObjects.toStringHelper(this)
+        .add("ConnectionOwner", mConnectionOwner)
+        .add("ConnectionId", sConnectionIdCounter.incrementAndGet())
+        .add("TransportId", transportId)
+        .toString();
     mContext = context;
     mExecutor = executor;
     mRequestTimeoutMs = requestTimeoutMs;
@@ -192,8 +205,8 @@ public abstract class CopycatGrpcConnection
       }
 
       // Request is sent over.
-      LOG.debug("Submitted '{}' request: {} for type: {}. FireAndForget: {}", mConnectionOwner,
-          requestId, request.getClass().getName(), fireAndForget);
+      LOG.debug("Submitted request({}) of type: {}. Connection: {} FireAndForget: {}", requestId,
+          request.getClass().getName(), mConnectionId, fireAndForget);
 
       return future;
     }
@@ -232,8 +245,8 @@ public abstract class CopycatGrpcConnection
     try {
       // Deserialize request object.
       Object request = mContext.serializer().readObject(requestMessage.getMessage().newInput());
-      LOG.debug("Handling request: {} of type: {} at '{}'", requestId, request.getClass().getName(),
-          mConnectionOwner);
+      LOG.debug("Handling request({}) of type: {}. Connection: {}", requestId,
+          request.getClass().getName(), mConnectionId);
       // Find handler for the request.
       CopycatGrpcConnection.HandlerHolder handler = mHandlers.get(request.getClass());
       if (handler != null) {
@@ -294,12 +307,12 @@ public abstract class CopycatGrpcConnection
    * @param responseObject response object  to send
    */
   private void sendResponse(long requestId, ThreadContext context, Object responseObject) {
-    LOG.debug("Sending response of type: {} for request: {} from: '{}'",
+    LOG.debug("Sending response of type: {} for request({}). Connection: {}",
         responseObjectType(responseObject), requestId, mConnectionOwner);
     // Create response message.
     CopycatMessage.Builder messageBuilder =
         CopycatMessage.newBuilder().setResponseHeader(CopycatResponseHeader.newBuilder()
-            .setRequestId(requestId).setFailed(responseObject instanceof Throwable));
+            .setRequestId(requestId).setIsThrowable(responseObject instanceof Throwable));
     // Serialize and embed response object if provided.
     if (responseObject != null) {
       messageBuilder.setMessage(UnsafeByteOperations
@@ -315,26 +328,26 @@ public abstract class CopycatGrpcConnection
 
     if (future == null) {
       LOG.debug(
-          "Could not find a pending request for id: {}. "
-              + "Connection is closed or the request has been timed out.",
-          response.getResponseHeader().getRequestId());
+          "Received a response for nonexistent request({})."
+              + "Connection is closed or the request has been timed out. Connection: {}",
+          response.getResponseHeader().getRequestId(), mConnectionId);
       return;
     }
 
     try {
-      if (response.getResponseHeader().getFailed()) {
+      if (response.getResponseHeader().getIsThrowable()) {
         Throwable error = mContext.serializer().readObject(response.getMessage().newInput());
-        LOG.debug("Received error response for request: {}.",
-            response.getResponseHeader().getRequestId(), error);
+        LOG.debug("Received an exception for request({}). Connection: {}",
+            response.getResponseHeader().getRequestId(), mConnectionId, error);
         future.getContext().executor().execute(() -> future.completeExceptionally(error));
       } else {
         AtomicReference<Object> responseObjectRef = new AtomicReference<>(null);
         if (response.hasMessage()) {
           responseObjectRef.set(mContext.serializer().readObject(response.getMessage().newInput()));
         }
-        LOG.debug("Received response of type: {} request: {}.",
+        LOG.debug("Received response of type: {} for request({}). Connection: {}",
             responseObjectType(responseObjectRef.get()),
-            response.getResponseHeader().getRequestId());
+            response.getResponseHeader().getRequestId(), mConnectionId);
         // Complete request future on originating context as per interface contract.
         future.getContext().executor().execute(() -> future.complete(responseObjectRef.get()));
       }
@@ -369,7 +382,7 @@ public abstract class CopycatGrpcConnection
   public CompletableFuture<Void> close() {
     return CompletableFuture.runAsync(() -> {
       if (!mClosed) {
-        LOG.debug("Closing '{}' connection.", mConnectionOwner);
+        LOG.debug("Closing connection: {}", mConnectionId);
 
         // Connection can't be used after this.
         // Lock and set the state.
@@ -406,8 +419,8 @@ public abstract class CopycatGrpcConnection
 
   @Override
   public void onNext(CopycatMessage message) {
-    LOG.debug("Received message at '{}' with requestHeader: {}, responseHeader: {}",
-        mConnectionOwner, message.getRequestHeader(), message.getResponseHeader());
+    LOG.debug("Received a new message. Connection: {}, RequestHeader: {}, ResponseHeader: {}",
+        mConnectionId, message.getRequestHeader(), message.getResponseHeader());
     // A message can be a request or a response.
     if (message.hasRequestHeader()) {
       handleRequestMessage(message);
@@ -420,7 +433,7 @@ public abstract class CopycatGrpcConnection
 
   @Override
   public void onError(Throwable t) {
-    LOG.debug("'{}' connection failed.", mConnectionOwner, t);
+    LOG.debug("Connection failed: {}", mConnectionId, t);
 
     // Connection can't be used after this.
     // Lock and set the state.
@@ -447,7 +460,7 @@ public abstract class CopycatGrpcConnection
 
   @Override
   public void onCompleted() {
-    LOG.debug("'{}' connection completed.", mConnectionOwner);
+    LOG.debug("Connection completed: {}", mConnectionId);
     mStreamCompleted = true;
     // Server owns client's stream.
     if (mConnectionOwner == ConnectionOwner.SERVER) {
@@ -458,6 +471,11 @@ public abstract class CopycatGrpcConnection
     // Connection can't be used after stream is closed.
     // Close it.
     close();
+  }
+
+  @Override
+  public String toString() {
+    return mConnectionId;
   }
 
   /**
@@ -471,7 +489,8 @@ public abstract class CopycatGrpcConnection
       Map.Entry<Long, ContextualFuture> requestEntry = responseIterator.next();
       CopycatGrpcConnection.ContextualFuture future = requestEntry.getValue();
       if (future.getCreationTime() + mRequestTimeoutMs < currentTimeMillis) {
-        LOG.debug("Timing out request: {}", requestEntry.getKey());
+        LOG.debug("Timing out request({}). Connection: {}", requestEntry.getKey(),
+            mConnectionId);
         responseIterator.remove();
         future.getContext().executor().execute(
             () -> future.completeExceptionally(new TimeoutException("Request timed out.")));
@@ -494,8 +513,8 @@ public abstract class CopycatGrpcConnection
       Map.Entry<Long, CopycatGrpcConnection.ContextualFuture> responseEntry =
           responseFutureIter.next();
 
-      LOG.debug("Closing request:{} with error: {}", responseEntry.getKey(),
-          error.getClass().getName());
+      LOG.debug("Closing request({}) with error: {}. Connection: {}", responseEntry.getKey(),
+          error.getClass().getName(), mConnectionId);
 
       CopycatGrpcConnection.ContextualFuture<?> responseFuture = responseEntry.getValue();
       responseFuture.getContext().executor()
