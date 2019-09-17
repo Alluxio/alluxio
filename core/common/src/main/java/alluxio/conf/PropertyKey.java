@@ -423,6 +423,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey TEST_NAME =
+      new Builder(Name.TEST_NAME)
+          .setDefaultValue("test")
+          .setDescription("The name of the test")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey TMP_DIRS =
       new Builder(Name.TMP_DIRS)
           .setDefaultValue("/tmp")
@@ -3763,6 +3770,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.host.resolution.timeout";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
+    public static final String TEST_NAME = "alluxio.test.name";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String USER_LOGS_DIR = "alluxio.user.logs.dir";
     public static final String VERSION = "alluxio.version";

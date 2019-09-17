@@ -338,7 +338,8 @@ public abstract class AbstractLocalAlluxioCluster {
    * Sets Alluxio work directory.
    */
   protected void setAlluxioWorkDirectory() {
-    mWorkDirectory =
-        AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
+    mWorkDirectory = AlluxioTestDirectory.createTemporaryDirectory(
+        ServerConfiguration.global().getOrDefault(PropertyKey.TEST_NAME, "test-cluster"))
+        .getAbsolutePath();
   }
 }

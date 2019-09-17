@@ -53,6 +53,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,8 +71,13 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalIntegrationTest.class);
 
   @Rule
+  public TestName mTestName = new TestName();
+
+  @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.TEST_NAME,
+              this.getClass().getSimpleName() + "." + mTestName.getMethodName())
           .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
               Integer.toString(Constants.KB))
