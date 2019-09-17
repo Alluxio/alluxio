@@ -18,6 +18,7 @@ import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.security.user.UserState;
+import alluxio.underfs.MasterUfsManager;
 
 /**
  * Util methods to help with master testing.
@@ -55,6 +56,7 @@ public final class MasterTestUtils {
         .setInodeStoreFactory(x -> new HeapInodeStore())
         .setStartTimeMs(-1)
         .setPort(-1)
+        .setUfsManager(new MasterUfsManager())
         .build();
   }
 
