@@ -77,7 +77,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.TEST_NAME,
-              this.getClass().getSimpleName() + "." + mTestName.getMethodName())
+              getClass().getSimpleName() + "." + mTestName.getMethodName())
           .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
               Integer.toString(Constants.KB))
