@@ -118,4 +118,3 @@ spec:
         secret:
           secretName: alluxio-hdfs-config
           defaultMode: 256
-
