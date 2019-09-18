@@ -27,6 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -86,18 +87,23 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
 
+  /** The supplier for the name of the cluster/test. */
+  private final Supplier<String> mNameSupplier;
+
   /**
    * Creates a new instance.
    *
    * @param startCluster whether or not to start the cluster before the test method starts
    * @param numWorkers the number of Alluxio workers to launch
    * @param configuration configuration for configuring the cluster
+   * @param nameSupplier the name supplier for this cluster/test
    */
   private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
-      Map<PropertyKey, String> configuration) {
+      Map<PropertyKey, String> configuration, Supplier<String> nameSupplier) {
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
+    mNameSupplier = nameSupplier;
     MetricsSystem.resetCountersAndGauges();
   }
 
@@ -132,8 +138,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     // Create a new cluster.
     mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
     // Init configuration for integration test
-    mLocalAlluxioCluster
-        .initConfiguration(mConfiguration.getOrDefault(PropertyKey.TEST_NAME, "test"));
+    mLocalAlluxioCluster.initConfiguration(mNameSupplier);
     // Overwrite the test configuration with test specific parameters
     for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
@@ -188,6 +193,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     private boolean mStartCluster;
     private int mNumWorkers;
     private Map<PropertyKey, String> mConfiguration;
+    private Supplier<String> mNameSupplier;
 
     /**
      * Constructs the builder with default values.
@@ -196,6 +202,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
       mStartCluster = true;
       mNumWorkers = 1;
       mConfiguration = new HashMap<>();
+      mNameSupplier = LocalAlluxioCluster.DEFAULT_NAME_SUPPLIER;
     }
 
     /**
@@ -203,6 +210,15 @@ public final class LocalAlluxioClusterResource implements TestRule {
      */
     public Builder setStartCluster(boolean startCluster) {
       mStartCluster = startCluster;
+      return this;
+    }
+
+    /**
+     * @param nameSupplier the name supplier for this cluster/test
+     * @return the builder
+     */
+    public Builder setNameSupplier(Supplier<String> nameSupplier) {
+      mNameSupplier = nameSupplier;
       return this;
     }
 
@@ -228,7 +244,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
      */
     public LocalAlluxioClusterResource build() {
       return new LocalAlluxioClusterResource(mStartCluster,
-          mNumWorkers, mConfiguration);
+          mNumWorkers, mConfiguration, mNameSupplier);
     }
   }
 

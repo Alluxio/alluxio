@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -43,6 +44,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
+  public static final Supplier<String> DEFAULT_NAME_SUPPLIER = () -> "test";
+
   private static final Logger LOG = LoggerFactory.getLogger(LocalAlluxioCluster.class);
 
   private LocalAlluxioMaster mMaster;
@@ -119,8 +122,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  public void initConfiguration(String testName) throws IOException {
-    setAlluxioWorkDirectory(testName);
+  public void initConfiguration(Supplier<String> nameSupplier) throws IOException {
+    setAlluxioWorkDirectory(nameSupplier);
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
         .testConfigurationDefaults(ServerConfiguration.global(),

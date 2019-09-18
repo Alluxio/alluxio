@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -261,15 +262,15 @@ public abstract class AbstractLocalAlluxioCluster {
    * Creates a default {@link ServerConfiguration} for testing.
    */
   public void initConfiguration() throws IOException {
-    initConfiguration("test");
+    initConfiguration(LocalAlluxioCluster.DEFAULT_NAME_SUPPLIER);
   }
 
   /**
    * Creates a default {@link ServerConfiguration} for testing.
    *
-   * @param testName the test name
+   * @param nameSupplier the name supplier for the test/cluster
    */
-  public abstract void initConfiguration(String testName) throws IOException;
+  public abstract void initConfiguration(Supplier<String> nameSupplier) throws IOException;
 
   /**
    * Returns a {@link FileSystem} client.
@@ -346,9 +347,10 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Sets Alluxio work directory.
    *
-   * @param testName the test name
+   * @param nameSupplier the name supplier for the test/cluster
    */
-  protected void setAlluxioWorkDirectory(String testName) {
-    mWorkDirectory = AlluxioTestDirectory.createTemporaryDirectory(testName).getAbsolutePath();
+  protected void setAlluxioWorkDirectory(Supplier<String> nameSupplier) {
+    mWorkDirectory =
+        AlluxioTestDirectory.createTemporaryDirectory(nameSupplier.get()).getAbsolutePath();
   }
 }

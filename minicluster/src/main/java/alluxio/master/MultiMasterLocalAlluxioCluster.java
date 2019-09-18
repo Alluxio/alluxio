@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -81,8 +82,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  public void initConfiguration(String testName) throws IOException {
-    setAlluxioWorkDirectory(testName);
+  public void initConfiguration(Supplier<String> nameSupplier) throws IOException {
+    setAlluxioWorkDirectory(nameSupplier);
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
         .testConfigurationDefaults(ServerConfiguration.global(),
