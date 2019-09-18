@@ -53,8 +53,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +69,7 @@ import java.util.Map;
 public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalIntegrationTest.class);
 
-  public TestName mTestName = new TestName();
-
+  @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
@@ -84,12 +81,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.MASTER_METASTORE_DIR,
               AlluxioTestDirectory.createTemporaryDirectory("meta"))
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL, "0s")
-          .setNameSupplier(() -> getClass().getSimpleName() + "." + mTestName.getMethodName())
           .build();
-
-  @Rule
-  public RuleChain mRules = RuleChain.outerRule(mTestName)
-      .around(mLocalAlluxioClusterResource);
 
   private LocalAlluxioCluster mLocalAlluxioCluster;
   private FileSystem mFileSystem;
