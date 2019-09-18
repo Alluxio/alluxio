@@ -23,6 +23,9 @@ import alluxio.job.load.LoadConfig;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,6 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class DistributedLoadCommand extends AbstractFileSystemCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(DistributedLoadCommand.class);
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -115,6 +119,10 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;
+    } catch (ExecutionException e) {
+      System.out.println(e.getMessage());
+      LOG.error("Error running " + StringUtils.join(args, " "), e);
+      return -1;
     }
     return 0;
   }
@@ -139,7 +147,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   /**
    * Wait one job to complete.
    */
-  private void waitJob() {
+  private void waitJob() throws ExecutionException, InterruptedException {
     while (true) {
       Future<AlluxioURI> future = null;
       try {
@@ -152,11 +160,9 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           return;
         }
       } catch (ExecutionException e) {
-        e.printStackTrace();
-        mFutures.remove(future);
-        return;
+        throw e;
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        throw e;
       }
     }
   }
@@ -168,7 +174,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    * @param replication The replication of file to load into Alluxio memory
    */
   private void distributedLoad(AlluxioURI filePath, int replication)
-      throws AlluxioException, IOException, InterruptedException {
+      throws AlluxioException, IOException, InterruptedException, ExecutionException {
     load(filePath, replication);
     // Wait remaining jobs to complete.
     while (!mFutures.isEmpty()) {
@@ -184,7 +190,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    * @throws IOException      when non-Alluxio exception occurs
    */
   private void load(AlluxioURI filePath, int replication)
-      throws IOException, AlluxioException {
+      throws IOException, AlluxioException, ExecutionException, InterruptedException {
     URIStatus status = mFileSystem.getStatus(filePath);
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
