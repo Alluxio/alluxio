@@ -11,7 +11,7 @@
 
 package alluxio.metrics.sink;
 
-import com.codahale.metrics.jmx.JmxReporter;
+import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 
 import java.util.Properties;
