@@ -168,6 +168,26 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   }
 
   /**
+   * Add one job.
+   */
+  private void addJob(URIStatus status, int replication)
+      throws ExecutionException, InterruptedException {
+    AlluxioURI filePath = new AlluxioURI(status.getPath());
+    if (status.getInAlluxioPercentage() == 100) {
+      // The file has already been fully loaded into Alluxio.
+      System.out.println(filePath + " is already fully loaded in Alluxio");
+      return;
+    }
+    if (mFutures.size() >= mThreads) {
+      // Wait one job to complete.
+      waitJob();
+    }
+    Callable<AlluxioURI> call = newJob(filePath, replication);
+    mFutures.add(mDistributedLoadService.submit(call));
+    System.out.println(filePath + " loading");
+  }
+
+  /**
    * Distributed loads a file or directory in Alluxio space, makes it resident in memory.
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
@@ -195,22 +215,15 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
       for (URIStatus uriStatus : statuses) {
-        AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        load(newPath, replication);
+        if (uriStatus.isFolder()) {
+          AlluxioURI subPath = new AlluxioURI(uriStatus.getPath());
+          load(subPath, replication);
+        } else {
+          addJob(uriStatus, replication);
+        }
       }
     } else {
-      if (status.getInAlluxioPercentage() == 100) {
-        // The file has already been fully loaded into Alluxio.
-        System.out.println(filePath + " is already fully loaded in Alluxio");
-        return;
-      }
-      if (mFutures.size() >= mThreads) {
-        // Wait one job to complete.
-        waitJob();
-      }
-      Callable<AlluxioURI> call = newJob(filePath, replication);
-      mFutures.add(mDistributedLoadService.submit(call));
-      System.out.println(filePath + " loading");
+      addJob(status, replication);
     }
   }
 
