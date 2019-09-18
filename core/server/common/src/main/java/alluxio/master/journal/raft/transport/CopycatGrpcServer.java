@@ -101,10 +101,8 @@ public class CopycatGrpcServer implements Server {
       InetSocketAddress rpcBindAddress = new InetSocketAddress(
           NetworkAddressUtils.getBindHost(NetworkAddressUtils.ServiceType.MASTER_RAFT, mConf),
           address.port());
-      String hostName = address.socketAddress().isUnresolved() ? address.host()
-          : address.socketAddress().getAddress().getHostName(); // use unresolved hostname
       mGrpcServer = GrpcServerBuilder
-          .forAddress(GrpcServerAddress.create(hostName, rpcBindAddress), mConf, mUserState)
+          .forAddress(GrpcServerAddress.create(address.host(), rpcBindAddress), mConf, mUserState)
           .maxInboundMessageSize((int) mConf
               .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(

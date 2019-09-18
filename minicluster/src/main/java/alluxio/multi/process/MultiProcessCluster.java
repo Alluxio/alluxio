@@ -670,7 +670,8 @@ public final class MultiProcessCluster {
         if (mMasterAddresses.size() > 1) {
           List<InetSocketAddress> addresses = new ArrayList<>(mMasterAddresses.size());
           for (MasterNetAddress address : mMasterAddresses) {
-            addresses.add(InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
+            addresses.add(
+                InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
           }
           return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
         } else {
