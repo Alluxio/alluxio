@@ -40,7 +40,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.Map;
@@ -75,15 +74,14 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   private FileSystem mFileSystem;
   private LocalAlluxioCluster mLocalAlluxioCluster;
 
+  @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           .setStartCluster(true).build();
-
-  @Rule
-  public RuleChain mRules = RuleChain.outerRule(mFolder).around(mLocalAlluxioClusterResource);
 
   @Before
   public void before() throws Exception {
