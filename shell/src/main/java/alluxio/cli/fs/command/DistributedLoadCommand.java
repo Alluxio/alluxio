@@ -55,7 +55,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           .numberOfArgs(1)
           .type(Number.class)
           .argName("replicas")
-          .desc("number of replicas to have for each block of the loaded file, default value is 1")
+          .desc("Number of block replicas of each loaded file, default value is 1")
           .build();
   private static final Option THREADS_OPTION =
       Option.builder()
@@ -128,7 +128,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * Create a new job to load a file in Alluxio space, makes it resident in memory.
+   * Creates a new job to load a file in Alluxio space, makes it resident in memory.
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
@@ -145,26 +145,19 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * Wait one job to complete.
+   * Waits one job to complete.
    */
   private void waitJob() throws ExecutionException, InterruptedException {
     while (true) {
       Future<AlluxioURI> future = null;
-      try {
-        // Take one completed job.
-        future = mDistributedLoadService.take();
-        if (future != null) {
-          AlluxioURI uri = future.get();
-          System.out.println(uri + " loaded");
-          mFutures.remove(future);
-          return;
-        }
-      } catch (ExecutionException e) {
-        throw e;
-      } catch (InterruptedException e) {
-        throw e;
+      // Take one completed job.
+      future = mDistributedLoadService.take();
+      if (future != null) {
+        AlluxioURI uri = future.get();
+        System.out.println(uri + " is loaded");
+        mFutures.remove(future);
+        return;
       }
-    }
   }
 
   /**
