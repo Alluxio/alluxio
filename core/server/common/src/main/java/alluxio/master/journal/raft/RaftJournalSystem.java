@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -542,7 +543,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * @throws IOException
    */
   public synchronized void removeQuorumServer(NetAddress serverNetAddress) throws IOException {
-    Address serverAddress = new Address(serverNetAddress.getHost(), serverNetAddress.getRpcPort());
+    Address serverAddress = new Address(InetSocketAddress
+        .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort()));
     try {
       mServer.cluster()
           .remove(new ServerMember(Member.Type.ACTIVE, serverAddress, serverAddress, Instant.MIN))
