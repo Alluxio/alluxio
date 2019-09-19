@@ -940,7 +940,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // If the breadcrumb exists, this is a no-op
       if (!mUfsConf.isReadOnly()
-          && mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)) {
+          && mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)) {
         mkdirsInternal(dir);
       }
       return objs;
@@ -1046,7 +1046,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           if (!child.isEmpty() && !children.containsKey(child)) {
             // This directory has not been created through Alluxio.
             if (!mUfsConf.isReadOnly()
-                && mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)) {
+                && mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)) {
               mkdirsInternal(commonPrefix);
             }
             // If both a file and a directory existed with the same name, the path will be
