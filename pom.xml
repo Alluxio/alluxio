@@ -149,7 +149,7 @@
     <junit.version>4.12</junit.version>
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
-    <metrics.version>3.1.2</metrics.version>
+    <metrics.version>4.1.0</metrics.version>
     <powermock.version>1.6.1</powermock.version>
     <prometheus.version>0.6.0</prometheus.version>
     <guava.version>27.0.1-jre</guava.version>
@@ -313,6 +313,11 @@
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-jvm</artifactId>
+        <version>${metrics.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-jmx</artifactId>
         <version>${metrics.version}</version>
       </dependency>
       <dependency>
@@ -506,12 +511,12 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.9</version>
+        <version>4.5.10</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
-        <version>4.4.6</version>
+        <version>4.4.12</version>
       </dependency>
       <dependency>
         <groupId>io.atomix.copycat.alluxio</groupId>
