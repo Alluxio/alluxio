@@ -26,4 +26,7 @@ public final class Property {
       new UdbProperty("database-name", "The name of the database in the hive metastore.", "");
   public static final UdbProperty HIVE_METASTORE_URIS =
       new UdbProperty("hive.metastore.uris", "The thrift URI for the hive metastore.", "");
+  // pass through options encoded as json
+  public static final UdbProperty MOUNT_OPTIONS =
+      new UdbProperty("hive.metastore.mount.options", "The mount options to be passed through", "");
 }

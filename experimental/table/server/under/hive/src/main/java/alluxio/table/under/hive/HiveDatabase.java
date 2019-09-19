@@ -18,6 +18,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.ColumnStatistics;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileStatistics;
+import alluxio.grpc.MountPOptions;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
@@ -27,6 +28,10 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.google.protobuf.util.JsonFormat;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -40,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -137,13 +143,32 @@ public class HiveDatabase implements UnderDatabase {
       table = mHive.getTable(mDbName, tableName);
 
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
+
+      String mountOptions = mConfiguration.get(Property.MOUNT_OPTIONS);
+      Map<String,String> mountOptionMap = Collections.emptyMap();
+      if (!mountOptions.isEmpty()) {
+        mountOptionMap = new ObjectMapper().readValue(
+            mountOptions, new TypeReference<Map<String, String>>() {});
+      }
+
       // make sure the parent exists
       mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
           CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
-      mUdbContext.getFileSystem()
-          .mount(tableUri, new AlluxioURI(table.getDataLocation().toString()));
-      LOG.info("mounted table {} location {} to Alluxio location {}", tableName,
-          table.getDataLocation(), tableUri);
+      AlluxioURI ufsLocation = new AlluxioURI(table.getDataLocation().toString());
+
+      String mountOption = mountOptionMap.get(ufsLocation.getAuthority().toString());
+      MountPOptions option = MountPOptions.getDefaultInstance();
+      if (mountOption != null) {
+        // it has a mount option to be passed through
+        JsonFormat.Parser jsonParser = JsonFormat.parser();
+        MountPOptions.Builder builder = MountPOptions.newBuilder();
+        jsonParser.merge(mountOption, builder);
+        option = builder.build();
+      }
+
+      mUdbContext.getFileSystem().mount(tableUri, ufsLocation, option);
+      LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
+          tableName, table.getDataLocation(), tableUri, mountOption);
       PathTranslator pathTranslator =
           new PathTranslator(tableUri.toString(), table.getDataLocation().toString());
 
