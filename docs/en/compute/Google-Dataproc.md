@@ -24,9 +24,9 @@ Blob Store.
 
 * Account with Cloud Dataproc API enabled
 * A GCS Bucket
-* gcloud CLI: Make sure that the AWS CLI is set up and ready with the required AWS Access/Secret key
+* gcloud CLI: Make sure that the CLI is set up with any necessary credentials
 
-An GCS bucket can be configured as Alluxio's Root Under File System and to serve as the location for the
+A GCS bucket required as Alluxio's Root Under File System and to serve as the location for the
 bootstrap script.
 If required, the root UFS can be reconfigured to be HDFS or any other supported under store.
 
@@ -36,8 +36,8 @@ When creating a Dataproc cluster, Alluxio can be installed using an
 [initialization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions)
 
 1. The Alluxio initialization action is hosted in a publicly readable
-GCS location **gs://alluxio-public/alluxio.sh**.
-* A required argument when is the root UFS URI using **alluxio_root_ufs_uri**.
+GCS location **gs://alluxio-public/dataproc/2.0.1/alluxio-dataproc.sh**.
+* A required argument is the root UFS URI using **alluxio_root_ufs_uri**.
 * Additional properties can be specified using the metadata key **alluxio_site_properties** delimited
 using `;`
 ```console
@@ -75,8 +75,7 @@ If a specific value is desired, set `alluxio.worker.memory.size` in the provided
 
 The Alluxio bootstrap also takes care of setting up Spark for you.
 To run a Spark application accessing data from Alluxio, simply refer to the path as
-`alluxio://<cluster_name>-m:19998/<path_to_file>`; where `<cluster_name>-m` is the dataproc master
-hostname.
+`alluxio:///<path_to_file>`.
 Follow the steps in our Alluxio on Spark
 [documentation]({{ '/en/compute/Spark.html#examples-use-alluxio-as-input-and-output' | relativize_url }})
 to get started.
