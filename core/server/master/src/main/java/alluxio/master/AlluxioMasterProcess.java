@@ -270,6 +270,8 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
+        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
     startServingWebServer();
     startJvmMonitorProcess();
     LOG.info(

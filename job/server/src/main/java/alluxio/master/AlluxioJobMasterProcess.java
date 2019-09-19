@@ -177,6 +177,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   }
 
   protected void startServing(String startMessage, String stopMessage) {
+    LOG.info("Alluxio job master web server version {} starting{}. webAddress={}",
+        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
     startServingWebServer();
     LOG.info(
         "Alluxio job master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",

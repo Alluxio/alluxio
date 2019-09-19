@@ -156,6 +156,7 @@ public abstract class WebServer {
    */
   public void start() {
     try {
+      LOG.info("{} starting @ {}", mServiceName, mAddress);
       mServer.start();
       LOG.info("{} started @ {}", mServiceName, mAddress);
     } catch (Exception e) {
