@@ -158,6 +158,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         mFutures.remove(future);
         return;
       }
+    }
   }
 
   /**
