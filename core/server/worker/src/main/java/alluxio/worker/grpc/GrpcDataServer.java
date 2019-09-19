@@ -106,10 +106,10 @@ public final class GrpcDataServer implements DataServer {
           .build()
           .start();
     } catch (IOException e) {
-      LOG.error("Server failed to start on {}", bindAddress.toString(), e);
+      LOG.error("Alluxio worker gRPC server failed to start on {}", bindAddress.toString(), e);
       throw new RuntimeException(e);
     }
-    LOG.info("Server started, listening on {}", bindAddress.toString());
+    LOG.info("Alluxio worker gRPC server started, listening on {}", bindAddress.toString());
   }
 
   private GrpcServerBuilder createServerBuilder(String hostName,
@@ -152,10 +152,10 @@ public final class GrpcDataServer implements DataServer {
   public void close() throws IOException {
     mFsContext.close();
     if (mServer != null) {
-      LOG.info("Shutting down RPC Server at {}.", getBindAddress());
+      LOG.info("Shutting down Alluxio worker gRPC server at {}.", getBindAddress());
       boolean completed = mServer.shutdown();
       if (!completed) {
-        LOG.warn("RPC Server shutdown timed out.");
+        LOG.warn("Alluxio worker gRPC server shutdown timed out.");
       }
       completed = mBossGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
           .awaitUninterruptibly(mTimeoutMs);

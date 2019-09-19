@@ -202,7 +202,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   protected void startServingRPCServer() {
     try {
       stopRejectingRpcServer();
-      LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
+      LOG.info("Starting Alluxio job master gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
           ServerConfiguration.global(), ServerUserState.global());
@@ -214,7 +214,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
               new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem))));
 
       mGrpcServer = serverBuilder.build().start();
-      LOG.info("Started gRPC server on address {}", mRpcConnectAddress);
+      LOG.info("Started Alluxio job master gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
@@ -225,9 +225,9 @@ public class AlluxioJobMasterProcess extends MasterProcess {
 
   protected void stopServing() throws Exception {
     if (isServing()) {
-      LOG.info("Stopping RPC server on {} @ {}", this, mRpcBindAddress);
+      LOG.info("Stopping Alluxio job master RPC server on {} @ {}", this, mRpcBindAddress);
       if (!mGrpcServer.shutdown()) {
-        LOG.warn("RPC Server shutdown timed out.");
+        LOG.warn("Alluxio job master RPC server shutdown timed out.");
       }
     }
     if (mWebServer != null) {
