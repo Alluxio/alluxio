@@ -259,13 +259,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Creates a default {@link ServerConfiguration} for testing.
-   */
-  public void initConfiguration() throws IOException {
-    initConfiguration(LocalAlluxioCluster.DEFAULT_TEST_NAME);
-  }
-
-  /**
-   * Creates a default {@link ServerConfiguration} for testing.
    *
    * @param name the name of the test/cluster
    */

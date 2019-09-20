@@ -151,11 +151,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
       @Override
       public void evaluate() throws Throwable {
         IntegrationTestUtils.reserveMasterPorts();
-        mTestName = description.getTestClass().getSimpleName() + "-" + description.getMethodName();
-        // cannot use these characters in the name/path: . [ ]
-        mTestName = mTestName.replace(".", "-");
-        mTestName = mTestName.replace("[", "-");
-        mTestName = mTestName.replace("]", "");
+        mTestName = IntegrationTestUtils
+            .getTestName(description.getTestClass().getSimpleName(), description.getMethodName());
         try {
           try {
             boolean startCluster = mStartCluster;
