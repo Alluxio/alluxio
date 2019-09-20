@@ -1295,7 +1295,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "in a single heartbeat. Setting higher values might require increasing"
               + "election timeout due to increased network delay. Setting lower values "
               + "might stall knowledge propagation between the leader and followers.")
-          .setDefaultValue(1024 * 32)
+          .setDefaultValue("32KB")
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
