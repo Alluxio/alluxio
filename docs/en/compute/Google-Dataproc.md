@@ -24,7 +24,9 @@ Blob Store.
 
 * Account with Cloud Dataproc API enabled
 * A GCS Bucket
-* gcloud CLI: Make sure that the CLI is set up with any necessary credentials
+* gcloud CLI: Make sure that the CLI is set up with necessary GCS interoperable storage access keys.
+Note: GCS interoperability should be enabled in the Interoperability tab in
+[GCS setting](https://console.cloud.google.com/storage/settings).
 
 A GCS bucket required as Alluxio's Root Under File System and to serve as the location for the
 bootstrap script.
