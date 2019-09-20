@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -20,6 +21,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 
+import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
@@ -30,6 +32,7 @@ import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -38,13 +41,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link FileInStream} with additional statistics gathering in a {@link Statistics} object.
  */
 @NotThreadSafe
-public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
+public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable,
+        ByteBufferReadable {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsFileInputStream.class);
 
   private final Statistics mStatistics;
   private final FileInStream mInputStream;
 
   private boolean mClosed = false;
+  private byte[] mReadBuffer;
 
   /**
    * Constructs a new stream for reading a file from HDFS.
@@ -120,6 +125,27 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       mStatistics.incrementBytesRead(bytesRead);
     }
     return bytesRead;
+  }
+
+  @Override
+  public int read(ByteBuffer buf) throws IOException {
+    int count;
+    if (buf.remaining() == 0) {
+      return 0;
+    } else if (buf.hasArray()) {
+      count = read(buf.array(), buf.position(), buf.remaining());
+      buf.position(buf.position() + count);
+      return count;
+    } else {
+      if (mReadBuffer == null) {
+        mReadBuffer = new byte[8 * Constants.KB];
+      }
+      count = read(mReadBuffer, 0, Math.min(mReadBuffer.length, buf.remaining()));
+      if (count > 0) {
+        buf.put(mReadBuffer, 0, count);
+      }
+      return count;
+    }
   }
 
   @Override
