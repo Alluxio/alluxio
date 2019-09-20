@@ -41,7 +41,7 @@ public class MultiMasterJournalTest extends BaseIntegrationTest {
   public TtlIntervalRule mTtlRule = new TtlIntervalRule(200);
 
   @Rule
-  private TestName mTestName = new TestName();
+  public TestName mTestName = new TestName();
 
   @Before
   public void before() throws Exception {

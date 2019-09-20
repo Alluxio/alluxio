@@ -68,7 +68,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
       };
 
   @Rule
-  private TestName mTestName = new TestName();
+  public TestName mTestName = new TestName();
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =

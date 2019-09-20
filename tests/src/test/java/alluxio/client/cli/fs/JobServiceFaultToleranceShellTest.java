@@ -42,7 +42,7 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
   private ByteArrayOutputStream mOutput;
 
   @Rule
-  private TestName mTestName = new TestName();
+  public TestName mTestName = new TestName();
 
   @Before
   public void before() throws Exception {
