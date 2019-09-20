@@ -13,7 +13,7 @@ package alluxio.underfs.gcs;
 
 import alluxio.retry.RetryPolicy;
 
-import org.apache.commons.httpclient.HttpStatus;
+import org.apache.http.HttpStatus;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;

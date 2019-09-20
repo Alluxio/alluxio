@@ -12,12 +12,13 @@
 package alluxio.util.network;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.HeadMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.http.Header;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,20 +47,22 @@ public final class HttpUtils {
       throws IOException {
     Preconditions.checkNotNull(timeout, "timeout");
     Preconditions.checkNotNull(processInputStream, "processInputStream");
-    PostMethod postMethod = new PostMethod(url);
-    try {
-      HttpClient httpClient = new HttpClient();
-      httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
-      httpClient.getHttpConnectionManager().getParams().setSoTimeout(timeout);
-      int statusCode = httpClient.executeMethod(postMethod);
+
+    RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout(timeout)
+        .setConnectTimeout(timeout)
+        .setSocketTimeout(timeout)
+        .build();
+    try (CloseableHttpClient client =
+             HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
+      HttpResponse response = client.execute(RequestBuilder.post(url).build());
+      int statusCode = response.getStatusLine().getStatusCode();
       if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_CREATED) {
-        InputStream inputStream = postMethod.getResponseBodyAsStream();
+        InputStream inputStream = response.getEntity().getContent();
         processInputStream.process(inputStream);
       } else {
         throw new IOException("Failed to perform POST request. Status code: " + statusCode);
       }
-    } finally {
-      postMethod.releaseConnection();
     }
   }
 
@@ -93,19 +96,25 @@ public final class HttpUtils {
   public static InputStream getInputStream(String url, Integer timeout) throws IOException {
     Preconditions.checkNotNull(url, "url");
     Preconditions.checkNotNull(timeout, "timeout");
-    GetMethod getMethod = new GetMethod(url);
-    HttpClient httpClient = new HttpClient();
-    httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
-    httpClient.getHttpConnectionManager().getParams().setSoTimeout(timeout);
-    int statusCode = httpClient.executeMethod(getMethod);
+    RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout(timeout)
+        .setConnectTimeout(timeout)
+        .setSocketTimeout(timeout)
+        .build();
+    CloseableHttpClient client =
+        HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
+
+    HttpResponse response = client.execute(RequestBuilder.get(url).build());
+    int statusCode = response.getStatusLine().getStatusCode();
+
     if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_CREATED) {
       throw new IOException("Failed to perform GET request. Status code: " + statusCode);
     }
-    InputStream inputStream = getMethod.getResponseBodyAsStream();
+    InputStream inputStream = response.getEntity().getContent();
     return new BufferedInputStream(inputStream) {
       @Override
       public void close() throws IOException {
-        getMethod.releaseConnection();
+        client.close();
       }
     };
   }
@@ -160,21 +169,23 @@ public final class HttpUtils {
   public static Header[] head(String url, Integer timeout) {
     Preconditions.checkNotNull(url, "url");
     Preconditions.checkNotNull(timeout, "timeout");
-    HeadMethod headMethod = new HeadMethod(url);
-    try {
-      HttpClient httpClient = new HttpClient();
-      httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
-      httpClient.getHttpConnectionManager().getParams().setSoTimeout(timeout);
-      int statusCode = httpClient.executeMethod(headMethod);
+
+    RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout(timeout)
+        .setConnectTimeout(timeout)
+        .setSocketTimeout(timeout)
+        .build();
+    try (CloseableHttpClient client =
+             HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
+      HttpResponse response = client.execute(RequestBuilder.head(url).build());
+      int statusCode = response.getStatusLine().getStatusCode();
       if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_CREATED) {
-        return headMethod.getResponseHeaders();
+        return response.getAllHeaders();
       } else {
         LOG.error("Failed to perform HEAD request. Status code: {}", statusCode);
       }
     } catch (Exception e) {
       LOG.error("Failed to execute URL request: {}", url, e);
-    } finally {
-      headMethod.releaseConnection();
     }
 
     return null;

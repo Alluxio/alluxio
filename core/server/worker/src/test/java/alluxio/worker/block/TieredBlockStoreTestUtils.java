@@ -24,8 +24,8 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 
