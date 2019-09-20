@@ -19,20 +19,20 @@ import static org.mockito.Mockito.spy;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.master.FsMasterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystem;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
@@ -173,7 +173,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
         any(UnderFileSystemConfiguration.class));
-    createFsMasterFromJournal();
+    createFsMasterFromJournal().close();
   }
 
   @Test
@@ -202,7 +202,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
         any(UnderFileSystemConfiguration.class));
-    createFsMasterFromJournal();
+    createFsMasterFromJournal().close();
   }
 
   /**
@@ -235,7 +235,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   /**
    * Creates file system master from journal.
    */
-  private MasterRegistry createFsMasterFromJournal() throws Exception {
+  private FsMasterResource createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -312,12 +312,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
             } catch (IOException e) {
               break;
             }
-          } else if (mOpType == 1) {
-            // TODO(gene): Add this back when there is new RawTable client API.
-            // if (mFileSystem.createRawTable(new AlluxioURI(TEST_TABLE_DIR + mSuccessNum), 1) ==
-            // -1) {
-            // break;
-            // }
           }
           // The create operation may succeed at the master side but still returns false due to the
           // shutdown. So the mSuccessNum may be less than the actual success number.
