@@ -87,6 +87,6 @@ public class AttachDatabaseCommand extends AbstractCatalogCommand {
 
   @Override
   public String getUsage() {
-    return "attachdb <dbName> <dbType> [-o|--option <option>]";
+    return "attachdb <dbName> <dbType> [-o|--option <key=value>]";
   }
 }
