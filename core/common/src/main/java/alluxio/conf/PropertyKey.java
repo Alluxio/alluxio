@@ -1289,11 +1289,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "(alluxio.master.embedded.journal.election.timeout).")
           .setDefaultValue("1s")
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE)
-          .setDescription(" Amount of data that is appended from leader to followers "
-              + "in single batch. Setting higher values might require increasing"
-              + "election timeout due to increased network delay.")
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE_BYTES =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE_BYTES)
+          .setDescription("Amount of data that is appended from leader to followers "
+              + "in a single heartbeat. Setting higher values might require increasing"
+              + "election timeout due to increased network delay. Setting lower values "
+              + "might stall knowledge propagation between the leader and followers.")
           .setDefaultValue(1024 * 32)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
@@ -3951,7 +3952,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
         "alluxio.master.embedded.journal.election.timeout";
-    public static final String MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
+    public static final String MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE_BYTES =
         "alluxio.master.embedded.journal.appender.batch.size";
     public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
         "alluxio.master.embedded.journal.heartbeat.interval";
