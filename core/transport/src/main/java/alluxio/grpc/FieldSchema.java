@@ -19,6 +19,7 @@ private static final long serialVersionUID = 0L;
     id_ = 0;
     name_ = "";
     optional_ = false;
+    comment_ = "";
   }
 
   @java.lang.Override
@@ -79,6 +80,12 @@ private static final long serialVersionUID = 0L;
           case 32: {
             bitField0_ |= 0x00000008;
             optional_ = input.readBool();
+            break;
+          }
+          case 42: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000010;
+            comment_ = bs;
             break;
           }
         }
@@ -199,6 +206,48 @@ private static final long serialVersionUID = 0L;
     return optional_;
   }
 
+  public static final int COMMENT_FIELD_NUMBER = 5;
+  private volatile java.lang.Object comment_;
+  /**
+   * <code>optional string comment = 5;</code>
+   */
+  public boolean hasComment() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <code>optional string comment = 5;</code>
+   */
+  public java.lang.String getComment() {
+    java.lang.Object ref = comment_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        comment_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string comment = 5;</code>
+   */
+  public com.google.protobuf.ByteString
+      getCommentBytes() {
+    java.lang.Object ref = comment_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      comment_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -229,6 +278,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       output.writeBool(4, optional_);
     }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, comment_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -251,6 +303,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(4, optional_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, comment_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -288,6 +343,11 @@ private static final long serialVersionUID = 0L;
       result = result && (getOptional()
           == other.getOptional());
     }
+    result = result && (hasComment() == other.hasComment());
+    if (hasComment()) {
+      result = result && getComment()
+          .equals(other.getComment());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -315,6 +375,10 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + OPTIONAL_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getOptional());
+    }
+    if (hasComment()) {
+      hash = (37 * hash) + COMMENT_FIELD_NUMBER;
+      hash = (53 * hash) + getComment().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -458,6 +522,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000004);
       optional_ = false;
       bitField0_ = (bitField0_ & ~0x00000008);
+      comment_ = "";
+      bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
 
@@ -502,6 +568,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000008;
       }
       result.optional_ = optional_;
+      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.comment_ = comment_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -557,6 +627,11 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasOptional()) {
         setOptional(other.getOptional());
+      }
+      if (other.hasComment()) {
+        bitField0_ |= 0x00000010;
+        comment_ = other.comment_;
+        onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -845,6 +920,82 @@ private static final long serialVersionUID = 0L;
     public Builder clearOptional() {
       bitField0_ = (bitField0_ & ~0x00000008);
       optional_ = false;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object comment_ = "";
+    /**
+     * <code>optional string comment = 5;</code>
+     */
+    public boolean hasComment() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional string comment = 5;</code>
+     */
+    public java.lang.String getComment() {
+      java.lang.Object ref = comment_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          comment_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string comment = 5;</code>
+     */
+    public com.google.protobuf.ByteString
+        getCommentBytes() {
+      java.lang.Object ref = comment_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        comment_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string comment = 5;</code>
+     */
+    public Builder setComment(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+      comment_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string comment = 5;</code>
+     */
+    public Builder clearComment() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      comment_ = getDefaultInstance().getComment();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string comment = 5;</code>
+     */
+    public Builder setCommentBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+      comment_ = value;
       onChanged();
       return this;
     }

@@ -103,4 +103,17 @@ public interface TableInfoOrBuilder extends
    */
   alluxio.grpc.TableViewInfoOrBuilder getViewsOrBuilder(
       int index);
+
+  /**
+   * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+   */
+  boolean hasUdbInfo();
+  /**
+   * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+   */
+  alluxio.grpc.UdbTableInfo getUdbInfo();
+  /**
+   * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+   */
+  alluxio.grpc.UdbTableInfoOrBuilder getUdbInfoOrBuilder();
 }

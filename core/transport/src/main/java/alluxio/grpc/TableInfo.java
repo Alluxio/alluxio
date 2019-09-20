@@ -111,6 +111,19 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(alluxio.grpc.TableViewInfo.PARSER, extensionRegistry));
             break;
           }
+          case 66: {
+            alluxio.grpc.UdbTableInfo.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000040) == 0x00000040)) {
+              subBuilder = udbInfo_.toBuilder();
+            }
+            udbInfo_ = input.readMessage(alluxio.grpc.UdbTableInfo.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(udbInfo_);
+              udbInfo_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000040;
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -458,6 +471,27 @@ private static final long serialVersionUID = 0L;
     return views_.get(index);
   }
 
+  public static final int UDB_INFO_FIELD_NUMBER = 8;
+  private alluxio.grpc.UdbTableInfo udbInfo_;
+  /**
+   * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+   */
+  public boolean hasUdbInfo() {
+    return ((bitField0_ & 0x00000040) == 0x00000040);
+  }
+  /**
+   * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+   */
+  public alluxio.grpc.UdbTableInfo getUdbInfo() {
+    return udbInfo_ == null ? alluxio.grpc.UdbTableInfo.getDefaultInstance() : udbInfo_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+   */
+  public alluxio.grpc.UdbTableInfoOrBuilder getUdbInfoOrBuilder() {
+    return udbInfo_ == null ? alluxio.grpc.UdbTableInfo.getDefaultInstance() : udbInfo_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -472,6 +506,12 @@ private static final long serialVersionUID = 0L;
     }
     for (int i = 0; i < getViewsCount(); i++) {
       if (!getViews(i).isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
+    if (hasUdbInfo()) {
+      if (!getUdbInfo().isInitialized()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -502,6 +542,9 @@ private static final long serialVersionUID = 0L;
     }
     for (int i = 0; i < views_.size(); i++) {
       output.writeMessage(7, views_.get(i));
+    }
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      output.writeMessage(8, getUdbInfo());
     }
     unknownFields.writeTo(output);
   }
@@ -535,6 +578,10 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < views_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(7, views_.get(i));
+    }
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(8, getUdbInfo());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -583,6 +630,11 @@ private static final long serialVersionUID = 0L;
     }
     result = result && getViewsList()
         .equals(other.getViewsList());
+    result = result && (hasUdbInfo() == other.hasUdbInfo());
+    if (hasUdbInfo()) {
+      result = result && getUdbInfo()
+          .equals(other.getUdbInfo());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -621,6 +673,10 @@ private static final long serialVersionUID = 0L;
     if (getViewsCount() > 0) {
       hash = (37 * hash) + VIEWS_FIELD_NUMBER;
       hash = (53 * hash) + getViewsList().hashCode();
+    }
+    if (hasUdbInfo()) {
+      hash = (37 * hash) + UDB_INFO_FIELD_NUMBER;
+      hash = (53 * hash) + getUdbInfo().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -749,6 +805,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
         getSchemaFieldBuilder();
         getViewsFieldBuilder();
+        getUdbInfoFieldBuilder();
       }
     }
     public Builder clear() {
@@ -775,6 +832,12 @@ private static final long serialVersionUID = 0L;
       } else {
         viewsBuilder_.clear();
       }
+      if (udbInfoBuilder_ == null) {
+        udbInfo_ = null;
+      } else {
+        udbInfoBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000080);
       return this;
     }
 
@@ -835,6 +898,14 @@ private static final long serialVersionUID = 0L;
         result.views_ = views_;
       } else {
         result.views_ = viewsBuilder_.build();
+      }
+      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+        to_bitField0_ |= 0x00000040;
+      }
+      if (udbInfoBuilder_ == null) {
+        result.udbInfo_ = udbInfo_;
+      } else {
+        result.udbInfo_ = udbInfoBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -928,6 +999,9 @@ private static final long serialVersionUID = 0L;
           }
         }
       }
+      if (other.hasUdbInfo()) {
+        mergeUdbInfo(other.getUdbInfo());
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -941,6 +1015,11 @@ private static final long serialVersionUID = 0L;
       }
       for (int i = 0; i < getViewsCount(); i++) {
         if (!getViews(i).isInitialized()) {
+          return false;
+        }
+      }
+      if (hasUdbInfo()) {
+        if (!getUdbInfo().isInitialized()) {
           return false;
         }
       }
@@ -1618,6 +1697,124 @@ private static final long serialVersionUID = 0L;
         views_ = null;
       }
       return viewsBuilder_;
+    }
+
+    private alluxio.grpc.UdbTableInfo udbInfo_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.UdbTableInfo, alluxio.grpc.UdbTableInfo.Builder, alluxio.grpc.UdbTableInfoOrBuilder> udbInfoBuilder_;
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    public boolean hasUdbInfo() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    public alluxio.grpc.UdbTableInfo getUdbInfo() {
+      if (udbInfoBuilder_ == null) {
+        return udbInfo_ == null ? alluxio.grpc.UdbTableInfo.getDefaultInstance() : udbInfo_;
+      } else {
+        return udbInfoBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    public Builder setUdbInfo(alluxio.grpc.UdbTableInfo value) {
+      if (udbInfoBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        udbInfo_ = value;
+        onChanged();
+      } else {
+        udbInfoBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000080;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    public Builder setUdbInfo(
+        alluxio.grpc.UdbTableInfo.Builder builderForValue) {
+      if (udbInfoBuilder_ == null) {
+        udbInfo_ = builderForValue.build();
+        onChanged();
+      } else {
+        udbInfoBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000080;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    public Builder mergeUdbInfo(alluxio.grpc.UdbTableInfo value) {
+      if (udbInfoBuilder_ == null) {
+        if (((bitField0_ & 0x00000080) == 0x00000080) &&
+            udbInfo_ != null &&
+            udbInfo_ != alluxio.grpc.UdbTableInfo.getDefaultInstance()) {
+          udbInfo_ =
+            alluxio.grpc.UdbTableInfo.newBuilder(udbInfo_).mergeFrom(value).buildPartial();
+        } else {
+          udbInfo_ = value;
+        }
+        onChanged();
+      } else {
+        udbInfoBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000080;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    public Builder clearUdbInfo() {
+      if (udbInfoBuilder_ == null) {
+        udbInfo_ = null;
+        onChanged();
+      } else {
+        udbInfoBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000080);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    public alluxio.grpc.UdbTableInfo.Builder getUdbInfoBuilder() {
+      bitField0_ |= 0x00000080;
+      onChanged();
+      return getUdbInfoFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    public alluxio.grpc.UdbTableInfoOrBuilder getUdbInfoOrBuilder() {
+      if (udbInfoBuilder_ != null) {
+        return udbInfoBuilder_.getMessageOrBuilder();
+      } else {
+        return udbInfo_ == null ?
+            alluxio.grpc.UdbTableInfo.getDefaultInstance() : udbInfo_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.UdbTableInfo udb_info = 8;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.UdbTableInfo, alluxio.grpc.UdbTableInfo.Builder, alluxio.grpc.UdbTableInfoOrBuilder> 
+        getUdbInfoFieldBuilder() {
+      if (udbInfoBuilder_ == null) {
+        udbInfoBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.UdbTableInfo, alluxio.grpc.UdbTableInfo.Builder, alluxio.grpc.UdbTableInfoOrBuilder>(
+                getUdbInfo(),
+                getParentForChildren(),
+                isClean());
+        udbInfo_ = null;
+      }
+      return udbInfoBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

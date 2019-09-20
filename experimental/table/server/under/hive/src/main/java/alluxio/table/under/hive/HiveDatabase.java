@@ -177,11 +177,10 @@ public class HiveDatabase implements UnderDatabase {
       }
       // Potentially expensive call
       List<Partition> partitions = mHive.getPartitions(table);
-
       return new HiveTable(this, pathTranslator, tableName,
           HiveUtils.toProtoSchema(table.getAllCols()), tableUri.getPath(),
           Collections.singletonMap("unpartitioned", builder.build()),
-          HiveUtils.toProto(table.getPartitionKeys()), partitions);
+          HiveUtils.toProto(table.getPartitionKeys()), partitions, table);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     } catch (AlluxioException e) {

@@ -40,6 +40,7 @@ message FieldSchema {
     optional string name = 2;
     optional Type type = 3;
     optional bool optional = 4;
+    optional string comment = 5;
 }
 
 message Schema {
@@ -51,6 +52,54 @@ message Database {
     optional string description = 2;
     optional string location = 3;
     map<string, string> parameter = 4;
+}
+
+message StorageFormat {
+    optional string ser_de = 1;
+    optional string input_format = 2;
+    optional string output_format = 3;
+}
+
+message HiveBucketProperty {
+    repeated string bucketed_by = 1;
+    optional int64 bucket_count = 2;
+    repeated SortingColumn sorted_by = 3;
+}
+
+message SortingColumn {
+    required string column_name = 1;
+    enum SortingOrder {
+        ASCENDING = 0;
+        DESCENDING = 1;
+    }
+    required SortingOrder order = 2;
+}
+
+message Storage {
+    optional StorageFormat storage_format = 1;
+    optional string location = 2;
+    optional HiveBucketProperty bucket_property = 3;
+    optional bool skewed = 4;
+    map<string, string> serde_parameters = 5;
+}
+
+message HiveTableInfo {
+    optional string database_name = 1;
+    optional string table_name = 2;
+    optional string owner = 3;
+    optional string table_type = 4;
+    repeated FieldSchema data_columns = 5;
+    repeated FieldSchema partition_columns = 6;
+    optional Storage storage = 7;
+    map<string, string> parameters = 8;
+    optional string view_original_text = 9;
+    optional string view_expanded_text = 10;
+}
+
+message UdbTableInfo {
+    oneof udb_table_info {
+        HiveTableInfo hive_table_info = 1;
+    }
 }
 
 message TableInfo {
@@ -65,6 +114,7 @@ message TableInfo {
     optional uint32 version = 5;
     optional Schema schema = 6;
     repeated TableViewInfo views = 7;
+    optional UdbTableInfo udb_info = 8;
 }
 
 message TableViewInfo {
