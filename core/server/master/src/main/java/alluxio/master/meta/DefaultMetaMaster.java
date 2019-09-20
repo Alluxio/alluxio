@@ -47,14 +47,14 @@ import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
+import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
@@ -145,8 +145,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** The address of this master. */
   private Address mMasterAddress;
 
-  /** The root ufs. */
-  private final UnderFileSystem mUfs;
+  /** The manager of all ufs. */
+  private final UfsManager mUfsManager;
 
   /** The metadata daily backup. */
   private DailyMetadataBackup mDailyBackup;
@@ -247,13 +247,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
 
-    if (URIUtils.isLocalFilesystem(ServerConfiguration
-        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
-      mUfs = UnderFileSystem.Factory
-          .create("/", UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
-    } else {
-      mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    }
+    mUfsManager = masterContext.getUfsManager();
 
     mPathProperties = new PathProperties();
     mState = new State();
@@ -306,7 +300,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
-            ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfs);
+            ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfsManager);
         mDailyBackup.start();
       }
       if (mState.getClusterID() == INVALID_CLUSTER_ID) {
@@ -362,6 +356,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   public BackupResponse backup(BackupPOptions options) throws IOException {
     String dir = options.hasTargetDirectory() ? options.getTargetDirectory()
         : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+<<<<<<< HEAD
     UnderFileSystem ufs = mUfs;
     if (options.getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
       ufs = UnderFileSystem.Factory.create("/",
@@ -387,27 +382,51 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       try {
         try (OutputStream ufsStream = ufs.create(backupFilePath)) {
           mBackupManager.backup(ufsStream, entryCount);
+=======
+    try (CloseableResource<UnderFileSystem> ufsResource =
+             mUfsManager.getRoot().acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      if (!ufs.isDirectory(dir)) {
+        if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
+            .setCreateParent(true))) {
+          throw new IOException(String.format("Failed to create directory %s", dir));
+>>>>>>> 8d263b3aaeb52a171799a77e25c93d90a48aeee2
         }
-      } catch (Throwable t) {
-        try {
-          ufs.deleteExistingFile(backupFilePath);
-        } catch (Throwable t2) {
-          LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
-          t.addSuppressed(t2);
-        }
-        throw t;
       }
+      String backupFilePath;
+      AtomicLong entryCount = new AtomicLong(0);
+      try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
+        Instant now = Instant.now();
+        String backupFileName = String.format(BackupManager.BACKUP_FILE_FORMAT,
+            DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
+            now.toEpochMilli());
+        backupFilePath = PathUtils.concatPath(dir, backupFileName);
+        try {
+          try (OutputStream ufsStream = ufs.create(backupFilePath)) {
+            mBackupManager.backup(ufsStream, entryCount);
+          }
+        } catch (Throwable t) {
+          try {
+            ufs.deleteExistingFile(backupFilePath);
+          } catch (Throwable t2) {
+            LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
+            t.addSuppressed(t2);
+          }
+          throw t;
+        }
+      }
+      String rootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      if (options.getLocalFileSystem()) {
+        rootUfs = "file:///";
+      }
+      AlluxioURI backupUri =
+          new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
+      return new BackupResponse(
+          backupUri,
+          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+              ServerConfiguration.global()),
+          entryCount.get());
     }
-    String rootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    if (options.getLocalFileSystem()) {
-      rootUfs = "file:///";
-    }
-    AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
-    return new BackupResponse(
-        backupUri,
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ServerConfiguration.global()),
-        entryCount.get());
   }
 
   @Override

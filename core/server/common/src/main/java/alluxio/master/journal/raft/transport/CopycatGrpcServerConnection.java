@@ -19,17 +19,19 @@ import java.util.concurrent.ExecutorService;
  * {@link CopycatGrpcConnection} implementation for server.
  */
 public class CopycatGrpcServerConnection extends CopycatGrpcConnection {
+
   /**
    * Creates a connection object for server.
    *
    * Note: {@link #setTargetObserver} should be called explicitly before using the connection.
    *
+   * @param transportId transport Id for this connection
    * @param context copycat thread context
    * @param executor transport executor
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public CopycatGrpcServerConnection(ThreadContext context, ExecutorService executor,
-      long requestTimeoutMs) {
-    super(ConnectionOwner.SERVER, context, executor, requestTimeoutMs);
+  public CopycatGrpcServerConnection(String transportId, ThreadContext context,
+      ExecutorService executor, long requestTimeoutMs) {
+    super(ConnectionOwner.SERVER, transportId, context, executor, requestTimeoutMs);
   }
 }

@@ -80,7 +80,7 @@ $ helm repo add alluxio-local http://127.0.0.1:8879
 $ helm repo update alluxio-local
 ```
 
-Once the helm repository is available, Alluxio prepare the Alluxio configuration:
+Once the helm repository is available, prepare the Alluxio configuration:
 ```console
 $ cat << EOF > config.yaml
 properties:
@@ -159,6 +159,8 @@ EOF
 
 #### Using `kubectl`
 
+##### Using the default YAML templates
+
 Copy the template.
 ```console
 $ cp alluxio-configMap.yaml.template alluxio-configMap.yaml
@@ -205,6 +207,88 @@ If using peristent volumes for Alluxio master, the status of the volume should c
 ```console
 $ kubectl get pv alluxio-journal-volume
 ```
+
+##### Find existing YAML templates for your deployment scenario
+
+Alluxio comes with a few sets of YAML templates for some common deployment scenarios.
+They are in *singleMaster-localJournal*, *singleMaster-hdfsJournal* and *multiMaster-embeddedJournal* directories.
+In fact, the default templates you ran in the previous section are just symbolic links to the ones in *singleMaster-localJournal*.
+
+*singleMaster* means the templates generate 1 Alluxio master process, while *multiMaster* means 3.
+*embedded* and *ufs* are the 2 [journal modes]({{ '/en/operation/Journal.html' | relativize_url }}) that Alluxio supports.
+
+*singleMaster-localJournal* directory gives you the necessary Kubernetes ConfigMap, 1 Alluxio master process and a set of Alluxio workers.
+The Alluxio master writes journal to the PersistentVolume defined in *alluxio-journal-volume.yaml.template*.
+
+*multiMaster-EmbeddedJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters and a set of Alluxio workers.
+The Alluxio masters each write to its `alluxio-journal-volume`, which is an `emptyDir` that gets wiped out when the Pod is shut down.
+
+*singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters with a set of workers.
+The journal is in a shared UFS location. In this template we use HDFS as the UFS.
+The following section will go over an extra setup that is needed for connecting to HDFS.
+
+###### Modify *singleMaster-hdfsJournal* template for HDFS connection
+
+This section explains how to set up the templates for connecting to HDFS.
+In this case your HDFS should be accessible to your Kubernetes cluster, but is not managed by Kubernetes. 
+
+###### Step 1: Add `hostAliases` for your HDFS connection. 
+
+Kubernetes Pods don't recognize network hostnames that are not managed by Kubernetes (not Kubernetes Services), unless specified by 
+[Kubernetes add hostAliases](https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/#adding-additional-entries-with-hostaliases)
+
+For example if your HDFS service can be reached at `hdfs://hdfs-host:9000` where `hdfs-host` is a hostname,
+you will need to add the `hostAliases` in the `spec` for this Pod (note that `hostAliases` is an array). You will need to find the IP address for this hostname `hdfs-host`.
+
+```yaml
+spec:
+  hostAliases:
+  - ip: "ip for hdfs-host"
+    hostnames:
+    - "hdfs-host"
+```
+
+For the case of a StatefulSet or ReplicaSet as used in alluxio-master.yaml.template and alluxio-worker.yaml.template,
+`hostAliases` section should be added to each section of `spec.template.spec` like below.
+
+```yaml
+kind: StatefulSet
+metadata:
+  name: alluxio-master-0
+spec:
+  ...
+  serviceName: "alluxio-master-0"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: alluxio-master-0
+    spec:
+      hostAliases:
+      - ip: "ip for hdfs-host"
+        hostnames:
+        - "hdfs-host"
+```
+
+###### Step 2: Create Kubernetes Secret for HDFS configuration files. 
+
+You need to run the following command to create a Kubernetes Secret for Alluxio to use.
+
+```bash
+kubectl create secret generic alluxio-hdfs-config --from-file={$path-to}/core-site.xml --from-file={$path-to}/hdfs-site.xml
+```
+
+These two config files will be named `alluxio-hdfs-config` and referred to in *alluxio-master.yaml.template*.
+Alluxio processes need the HDFS configuration files to work with it properly, and this is controlled by property `alluxio.underfs.hdfs.configuration`.
+For more details see [Create Kubernetes Secret for HDFS](#example-hdfs-as-the-under-store).
+
+###### Step 3: Modify *alluxio-configMap.yaml.template*.
+
+Now that your pods know how to talk to your HDFS service,
+you need to update `alluxio.master.journal.folder` and `alluxio.master.mount.table.root.ufs` to point them to the correct HDFS destination. 
+
+You will also see `alluxio.underfs.hdfs.configuration` is pointing to the Kubernetes Secret you just created.
+
 
 ### Access the Web UI
 
