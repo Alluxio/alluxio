@@ -892,7 +892,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         continue;
       }
       synchronized (block) {
-        LOG.info("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
+        LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
         workerInfo.removeBlock(block.getBlockId());
         block.removeWorker(workerInfo.getId());
         if (block.getNumLocations() == 0) {
