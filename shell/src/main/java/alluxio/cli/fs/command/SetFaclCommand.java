@@ -85,11 +85,6 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "setfacl";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION).addOption(SET_OPTION).addOption(MODIFY_OPTION)
         .addOption(REMOVE_OPTION).addOption(REMOVE_ALL_OPTION).addOption(DEFAULT_OPTION)
@@ -174,16 +169,6 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "setfacl [-d] [-R] [--set | -m | -x <acl_entries> <path>] | [-b | -k <path>]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Sets the access control list (ACL) for a path.";
   }
 
   @Override

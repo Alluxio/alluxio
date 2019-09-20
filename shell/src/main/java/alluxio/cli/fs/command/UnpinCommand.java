@@ -39,11 +39,6 @@ public final class UnpinCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "unpin";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     FileSystemCommandUtils.setPinned(mFileSystem, path, false, Collections.emptyList());
@@ -56,16 +51,6 @@ public final class UnpinCommand extends AbstractFileSystemCommand {
     AlluxioURI path = new AlluxioURI(args[0]);
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "unpin <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Unpins the given file or folder from memory (works recursively for a directory).";
   }
 
   @Override

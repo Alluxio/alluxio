@@ -37,11 +37,6 @@ public final class MvCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "mv";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
@@ -55,15 +50,5 @@ public final class MvCommand extends AbstractFileSystemCommand {
     mFileSystem.rename(srcPath, dstPath);
     System.out.println("Renamed " + srcPath + " to " + dstPath);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "mv <src> <dst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Renames a file or directory.";
   }
 }

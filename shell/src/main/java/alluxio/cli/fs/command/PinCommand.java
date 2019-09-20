@@ -42,11 +42,6 @@ public final class PinCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "pin";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     String[] args = cl.getArgs();
@@ -79,17 +74,6 @@ public final class PinCommand extends AbstractFileSystemCommand {
 
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "pin <path> media1 media2 media3 ...";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Pins the given file or directory in memory (works recursively for directories). "
-      + "Pinned files are never evicted from memory, unless TTL is set.";
   }
 
   @Override

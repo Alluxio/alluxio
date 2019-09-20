@@ -47,11 +47,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "distributedLoad";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(Option.builder()
         .longOpt(REPLICATION)
@@ -110,15 +105,5 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       }
     }
     System.out.println(filePath + " loaded");
-  }
-
-  @Override
-  public String getUsage() {
-    return "distributedLoad [--replication <num>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Loads a file or directory in Alluxio space, making it resident in memory.";
   }
 }

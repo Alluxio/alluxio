@@ -12,6 +12,7 @@
 package alluxio.cli.extensions.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.CommandDocumentation;
 import alluxio.cli.CommandUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -57,6 +59,18 @@ public final class LsCommand implements Command {
   @Override
   public String getDescription() {
     return "Lists JAR names for all installed extensions.";
+  }
+
+  @Override
+  @Nullable
+  public CommandDocumentation getDocumentation() {
+    return null;
+  }
+
+  // TODO(zac) implement documentation generation logic
+  @Override
+  public String getExample() {
+    return "$ ./bin/alluxio extensions ls";
   }
 
   @Override

@@ -48,11 +48,6 @@ public class BackupCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "backup";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(LOCAL_OPTION);
   }
@@ -82,21 +77,6 @@ public class BackupCommand extends AbstractFsAdminCommand {
           resp.getBackupUri(), resp.getEntryCount());
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "backup [directory] [--local]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "backup backs up all Alluxio metadata to the backup directory configured on master. The"
-        + " directory to back up to can be overridden by specifying a directory here. The directory"
-        + " path is relative to the root UFS. To write the backup to the local disk of the primary"
-        + " master, use --local and specify a filesystem path. Backing up metadata"
-        + " requires a pause in master metadata changes, so use this command sparingly to"
-        + " avoid interfering with other users of the system.";
   }
 
   @Override

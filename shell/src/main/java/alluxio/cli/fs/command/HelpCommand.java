@@ -69,11 +69,6 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "help";
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     SortedSet<String> sortedCmds;
@@ -96,17 +91,6 @@ public final class HelpCommand extends AbstractFileSystemCommand {
       }
       return 0;
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "help [<command>]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints help message for the given command. "
-        + "If there isn't given command, prints help messages for all supported commands.";
   }
 
   @Override

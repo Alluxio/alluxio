@@ -48,11 +48,6 @@ public final class StatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "stat";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(
         Option.builder("f")
@@ -97,25 +92,6 @@ public final class StatCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "stat [-f <format>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays info for the specified path both file and directory."
-        + " Specify -f to display info in given format:"
-        + "   \"%N\": name of the file;"
-        + "   \"%z\": size of file in bytes;"
-        + "   \"%u\": owner;"
-        + "   \"%g\": group name of owner;"
-        + "   \"%y\" or \"%Y\": modification time,"
-        + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
-        + " %Y it shows milliseconds since January 1, 1970 UTC;"
-        + "   \"%b\": Number of blocks allocated for file";
   }
 
   @Override

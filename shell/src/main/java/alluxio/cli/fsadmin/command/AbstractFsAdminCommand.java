@@ -12,11 +12,16 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.CommandDocumentation;
+import alluxio.cli.CommandUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.MetaMasterConfigClient;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.PrintStream;
 
@@ -33,6 +38,8 @@ public abstract class AbstractFsAdminCommand implements Command {
   protected final JournalMasterClient mMasterJournalMasterClient;
   protected final JournalMasterClient mJobMasterJournalMasterClient;
 
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory());
+
   protected AbstractFsAdminCommand(Context context) {
     mFsClient = context.getFsClient();
     mBlockClient = context.getBlockClient();
@@ -41,5 +48,32 @@ public abstract class AbstractFsAdminCommand implements Command {
     mMasterJournalMasterClient = context.getJournalMasterClientForMaster();
     mJobMasterJournalMasterClient = context.getJournalMasterClientForJobMaster();
     mPrintStream = context.getPrintStream();
+  }
+
+  @Override
+  public String getCommandName() {
+    return getDocumentation().getName();
+  }
+
+  @Override
+  public String getUsage() {
+    return getDocumentation().getUsage();
+  }
+
+  @Override
+  public String getDescription() {
+    return getDocumentation().getDescription();
+  }
+
+  @Override
+  public String getExample() {
+    return getDocumentation().getExamples();
+  }
+
+  @Override
+  public CommandDocumentation getDocumentation() {
+    CommandDocumentation d = CommandUtils.readDocumentation(this.getClass());
+    d.setOptions(CommandUtils.addOptions(this));
+    return d;
   }
 }

@@ -39,11 +39,6 @@ public final class UnsetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "unsetTtl";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -62,15 +57,5 @@ public final class UnsetTtlCommand extends AbstractFileSystemCommand {
     AlluxioURI inputPath = new AlluxioURI(args[0]);
     runWildCardCmd(inputPath, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "unsetTtl <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Unsets the TTL value for the given path.";
   }
 }

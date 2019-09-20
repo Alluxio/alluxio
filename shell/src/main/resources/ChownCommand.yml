@@ -1,0 +1,11 @@
+name: chown
+usage: chown [-R] <owner>[:<group>] <path>
+description: |
+  The `chown` command changes the owner of the file or directory in Alluxio.
+  For security reasons, the ownership of a file can only be altered by a super user.
+examples: |
+  For example, `chown` can be used as a quick way to change the owner of file.
+  ```console
+  $ ./bin/alluxio fs chown alluxio-user /input/file1
+  $ ./bin/alluxio fs chown alluxio-user:alluxio-group /input/file2
+  ```

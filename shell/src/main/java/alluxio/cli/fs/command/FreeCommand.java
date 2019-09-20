@@ -60,11 +60,6 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "free";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     int interval =
@@ -94,17 +89,6 @@ public final class FreeCommand extends AbstractFileSystemCommand {
       throw new RuntimeException(e);
     }
     System.out.println(path + " was successfully freed from memory.");
-  }
-
-  @Override
-  public String getUsage() {
-    return "free [-f] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Frees the space occupied by a file or a directory in Alluxio."
-        + " Specify -f to force freeing pinned files in the directory.";
   }
 
   @Override

@@ -228,11 +228,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "ls";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options()
         .addOption(FORCE_OPTION)
@@ -327,19 +322,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays information for all files and directories directly under the specified path, "
-        + "including permission, owner, group, size (bytes for files or the number of children "
-        + "for directories, persistence state, last modified time, the percentage of content"
-        + " already in Alluxio and the path in order.";
   }
 
   @Override

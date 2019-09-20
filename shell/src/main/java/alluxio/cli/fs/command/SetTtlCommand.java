@@ -56,11 +56,6 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "setTtl";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
     String operation = cl.getOptionValue(TTL_ACTION);
@@ -96,18 +91,5 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "setTtl [--action delete|free] <path> <time to live>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Sets a new TTL value for the file at path, "
-        + "performing an action, delete(default)/free after TTL expiry. "
-        + "The TTL to set can be in one of the unit: ms, millisecond, s, second, m, min, minute, "
-        + "h, hour, d, day, default to ms";
   }
 }

@@ -1,0 +1,18 @@
+name: load
+usage: load [--local] <path>
+description: |
+  The `load` command moves data from the under storage system into Alluxio storage.
+  If there is a Alluxio worker on the machine this command is run from,
+  the data will be loaded to that worker. Otherwise, a random worker will be selected to serve the data.
+
+  If the data is already loaded into Alluxio, load is a no-op unless the `--local` flag is used. The `--local`
+  flag forces the data to be loaded to a local worker even if the data is already available on a remote worker.
+  If load is run on a directory, files in the directory will be recursively loaded.
+examples: |
+  For example, `loadMetadata` can be used when other systems output to the under storage directly
+  and the application running on Alluxio needs to use the output of those systems.
+  ```console
+  $ ./bin/alluxio fs loadMetadata /hdfs/data/2015/logs-1.txt
+
+  $ ./bin/alluxio fs loadMetadata --local /tmp/file3/examples.txt
+  ```

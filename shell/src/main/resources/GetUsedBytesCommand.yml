@@ -1,0 +1,9 @@
+name: getUsedBytes
+usage: getUsedBytes
+description: |
+  The `getUsedBytes` command returns the number of used bytes in Alluxio.
+examples: |
+  For example, `getUsedBytes` can be used to monitor the health of the cluster.
+  ```console
+  $ ./bin/alluxio fs getUsedBytes
+  ```

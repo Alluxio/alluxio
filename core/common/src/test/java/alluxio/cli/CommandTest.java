@@ -23,6 +23,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import javax.annotation.Nullable;
+
 /**
  * Unit tests for {@link Command}.
  */
@@ -49,6 +51,11 @@ public final class CommandTest {
     }
 
     @Override
+    public String getExample() {
+      return "Examples";
+    }
+
+    @Override
     public void validateArgs(CommandLine cl) throws InvalidArgumentException {
       CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     }
@@ -56,6 +63,12 @@ public final class CommandTest {
     @Override
     public String getUsage() {
       return "usage";
+    }
+
+    @Override
+    @Nullable
+    public CommandDocumentation getDocumentation() {
+      return null;
     }
 
     @Override

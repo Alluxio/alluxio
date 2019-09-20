@@ -67,11 +67,6 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "updateMount";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
         .addOption(OPTION_OPTION);
@@ -96,16 +91,6 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
     mFileSystem.updateMount(alluxioPath, optionsBuilder.build());
     System.out.println("Updated mount point options at " + alluxioPath);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Updates options for a mount point while keeping the Alluxio metadata under the path.";
   }
 
   @Override

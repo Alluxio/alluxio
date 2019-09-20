@@ -38,11 +38,6 @@ public final class CountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "count";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -81,15 +76,5 @@ public final class CountCommand extends AbstractFileSystemCommand {
       rtn[2] += toAdd[2];
     }
     return rtn;
-  }
-
-  @Override
-  public String getUsage() {
-    return "count <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays the number of files and directories matching the specified prefix.";
   }
 }

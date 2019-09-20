@@ -34,11 +34,6 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "checkpoint";
-  }
-
-  @Override
   public int run(CommandLine cl) throws IOException {
     Thread thread = CommonUtils.createProgressThread(System.out);
     thread.start();
@@ -49,19 +44,6 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
       thread.interrupt();
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "checkpoint";
-  }
-
-  @Override
-  public String getDescription() {
-    return "creates a checkpoint in the primary master journal system. This command "
-        + "is mainly used for debugging and to avoid master journal logs "
-        + "from growing unbounded. Checkpointing requires a pause in master metadata changes, "
-        + "so use this command sparingly to avoid interfering with other users of the system.";
   }
 
   @Override

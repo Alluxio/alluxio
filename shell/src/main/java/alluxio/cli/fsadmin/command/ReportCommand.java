@@ -84,11 +84,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "report";
-  }
-
-  @Override
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
 
@@ -170,22 +165,12 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         .addOption(SPECIFIED_OPTION);
   }
 
-  @Override
-  public String getUsage() {
-    return usage();
-  }
-
   /**
    * @return the usage for the report command
    */
   @VisibleForTesting
   public static String usage() {
     return "report [category] [category args]";
-  }
-
-  @Override
-  public String getDescription() {
-    return description();
   }
 
   /**

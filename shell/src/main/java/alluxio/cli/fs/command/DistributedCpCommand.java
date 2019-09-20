@@ -41,11 +41,6 @@ public final class DistributedCpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "distributedCp";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
@@ -68,15 +63,5 @@ public final class DistributedCpCommand extends AbstractFileSystemCommand {
     }
     System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "distributedCp <src> <dst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Copies a file or directory in parallel at file level.";
   }
 }

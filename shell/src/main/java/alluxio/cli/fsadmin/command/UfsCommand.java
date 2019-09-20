@@ -50,11 +50,6 @@ public final class UfsCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "ufs";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -97,15 +92,5 @@ public final class UfsCommand extends AbstractFsAdminCommand {
     }
     System.out.println("No attribute to update");
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Update attributes for a ufs path.";
   }
 }

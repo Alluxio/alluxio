@@ -108,4 +108,15 @@ public interface Command {
    * @return the description information of the command
    */
   String getDescription();
+
+  /**
+   * @return the documentation of the command
+   */
+  CommandDocumentation getDocumentation();
+
+  /**
+   *
+   * @return code examples of the command
+   */
+  String getExample();
 }

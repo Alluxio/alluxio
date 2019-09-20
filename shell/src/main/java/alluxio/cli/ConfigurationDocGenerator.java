@@ -11,6 +11,9 @@
 
 package alluxio.cli;
 
+import alluxio.cli.fs.FileSystemShellUtils;
+import alluxio.cli.fsadmin.FileSystemAdminShell;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
@@ -24,8 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +45,10 @@ public final class ConfigurationDocGenerator {
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
+
+  //CLI Variables
+  private static final String FS_YML_DIR = "docs/_data/table/en/cli/fs";
+  private static final String FSADMIN_YML_DIR = "docs/_data/table/en/cli/fsadmin";
 
   private ConfigurationDocGenerator() {} // prevent instantiation
 
@@ -203,6 +210,39 @@ public final class ConfigurationDocGenerator {
   }
 
   /**
+   * Write yaml files containing the fields outlined in each command's resource file.
+   *
+   * @param commands to get documentation from
+   * @param filePath to generate documentaion
+   * @throws IOException
+   */
+  public static void writeCommandDocs(Map<String, Command> commands, String filePath)
+      throws IOException {
+    if (commands.size() == 0) {
+      return;
+    }
+    Closer closer = Closer.create();
+    String cmdPath;
+    try {
+      for (Map.Entry<String, Command> cmd : commands.entrySet()) {
+        cmdPath = PathUtils.concatPath(filePath, cmd.getValue().getCommandName() + ".yml");
+        CommandUtils.writeDocumentation(cmdPath, cmd.getValue().getDocumentation());
+      }
+
+      LOG.info("Command YML files were created successfully.");
+    } catch (Exception e) {
+      throw closer.rethrow(e);
+    } finally {
+      try {
+        closer.close();
+      } catch (IOException e) {
+        LOG.error("Error while flushing/closing YML files for documentation of commands "
+                + "FileWriter", e);
+      }
+    }
+  }
+
+  /**
    * Main entry for this util class.
    *
    * @param args arguments for command line
@@ -211,12 +251,27 @@ public final class ConfigurationDocGenerator {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     defaultKeys.removeIf(key -> key.isHidden());
     String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
-        .get(PropertyKey.HOME);
+            .get(PropertyKey.HOME);
+
     // generate CSV files
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath);
     // generate YML files
     filePath = PathUtils.concatPath(homeDir, YML_FILE_DIR);
     writeYMLFile(defaultKeys, filePath);
+
+    // for Alluxio fs Commands
+    Closer mCloser = Closer.create();
+    InstancedConfiguration cmdConfig = new InstancedConfiguration(ConfigurationUtils.defaults());
+    Map<String, Command> fsCommands = FileSystemShellUtils.loadCommands(
+            mCloser.register(FileSystemContext.create(cmdConfig)));
+    filePath = PathUtils.concatPath(homeDir, FS_YML_DIR);
+    writeCommandDocs(fsCommands, filePath);
+
+    // for ALluxio fsadmin commands
+    Map<String, Command> fsadminCommands =
+              new FileSystemAdminShell(cmdConfig).loadCommands();
+    filePath = PathUtils.concatPath(homeDir, FSADMIN_YML_DIR);
+    writeCommandDocs(fsadminCommands, filePath);
   }
 }

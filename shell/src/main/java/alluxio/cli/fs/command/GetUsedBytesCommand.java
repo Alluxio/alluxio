@@ -38,11 +38,6 @@ public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "getUsedBytes";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
@@ -53,15 +48,5 @@ public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
     long usedBytes = blockStore.getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "getUsedBytes";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Gets number of bytes used in the Alluxio file system.";
   }
 }

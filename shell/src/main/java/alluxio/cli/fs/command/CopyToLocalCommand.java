@@ -40,11 +40,6 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "copyToLocal";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(CpCommand.BUFFER_SIZE_OPTION);
   }
@@ -61,17 +56,5 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
     cl.getArgList().set(1, "file://" + new File(dst).getAbsolutePath());
     mCpCommand.run(cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "copyToLocal "
-        + "[--buffersize <bytes>] "
-        + " <src> <localDst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Copies a file or a directory from the Alluxio filesystem to the local filesystem.";
   }
 }

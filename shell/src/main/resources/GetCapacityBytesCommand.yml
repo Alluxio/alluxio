@@ -1,0 +1,9 @@
+name: getCapacityBytes
+usage: getCapacityBytes
+description: |
+  The `getCapacityBytes` command returns the maximum number of bytes Alluxio is configured to store.
+examples: |
+  For example, `getCapacityBytes` can be used to verify if your cluster is set up as expected.
+  ```console
+  $ ./bin/alluxio fs getCapacityBytes
+  ```

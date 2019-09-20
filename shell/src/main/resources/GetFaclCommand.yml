@@ -1,0 +1,9 @@
+name: getfacl
+usage: getfacl <path>
+description: |
+  The `getfacl` command returns the ACL entries for a specified file or directory.
+examples: |
+  For example, getfacl can be used to verify that an ACL is changed successfully after a call to setfacl.
+  ```console
+  $ ./bin/alluxio fs getfacl /testdir/testfile
+  ```

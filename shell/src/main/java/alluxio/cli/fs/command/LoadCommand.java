@@ -54,11 +54,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "load";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options()
         .addOption(LOCAL_OPTION);
@@ -120,16 +115,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
     }
     System.out.println(filePath + " loaded");
-  }
-
-  @Override
-  public String getUsage() {
-    return "load [--local] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Loads a file or directory in Alluxio space, makes it resident in Alluxio.";
   }
 
   @Override

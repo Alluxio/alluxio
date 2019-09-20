@@ -86,11 +86,6 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "persist";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(PARALLELISM_OPTION).addOption(TIMEOUT_OPTION)
         .addOption(WAIT_OPTION);
@@ -99,17 +94,6 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
-  }
-
-  @Override
-  public String getUsage() {
-    return "persist [-p|--parallelism <#>] [-t|--timeout <milliseconds>] "
-        + "[-w|--wait <milliseconds>] <path> [<path> ...]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Persists files or directories currently stored only in Alluxio to the UnderFileSystem.";
   }
 
   @Override

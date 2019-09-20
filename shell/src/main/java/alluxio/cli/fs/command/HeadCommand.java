@@ -52,11 +52,6 @@ public final class HeadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "head";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -97,16 +92,6 @@ public final class HeadCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "head [-c <bytes>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints the file's first n bytes (by default, 1KB) to the console.";
   }
 
   @Override

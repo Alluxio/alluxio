@@ -1,0 +1,48 @@
+name: report
+usage: report [category] [category args]
+description: |
+  Report Alluxio running cluster information.
+  Where `[category]` is an optional argument. If no arguments are passed in,
+  summary information will be printed out.
+  `[category]` can be one of the following:
+    - `capacity`         worker capacity information
+    - `metrics`          metrics information
+    - `summary`          cluster summary
+    - `ufs`              under storage system information
+
+  If no argument is passed in, `report` will report the leading master, worker number,
+  and capacity information.
+examples: |
+  ```console
+  $ ./bin/alluxio fsadmin report
+  Alluxio cluster summary:
+      Master Address: localhost:19998
+      Zookeeper Enabled: false
+      Live Workers: 1
+      Lost Workers: 0
+      Total Capacity: 10.45GB
+      Used Capacity: 0B
+      (only a subset of the results is shown)
+
+  # Capacity information of all workers
+  $ ./bin/alluxio fsadmin report capacity
+  # Capacity information of live workers
+  $ ./bin/alluxio fsadmin report capacity -live
+  # Capacity information of specified workers
+  $ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
+
+  $ ./bin/alluxio fsadmin report metrics
+
+  $ ./bin/alluxio fsadmin report ufs
+  Alluxio under storage system information:
+  hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not shared, properties={})
+
+  $ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
+  ```
+subCommands: |
+  - `capacity` will report Alluxio cluster capacity information for different subsets of workers:
+    - Usage: `capacity [-live] [-lost] [-workers <worker_names>]`
+  - `metrcis` will report the metrics information of an Alluxio cluster
+    - Usage: `metrics`
+  - `ufs` will report all the mounted under storage system information of Alluxio cluster.
+    - Usage: `ufs`

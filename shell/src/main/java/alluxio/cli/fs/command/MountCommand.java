@@ -69,11 +69,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "mount";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
         .addOption(OPTION_OPTION);
@@ -104,16 +99,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
     mFileSystem.mount(alluxioPath, ufsPath, optionsBuilder.build());
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Mounts a UFS path onto an Alluxio path.";
   }
 
   @Override

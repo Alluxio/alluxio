@@ -37,11 +37,6 @@ public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "getCapacityBytes";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
@@ -52,15 +47,5 @@ public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
     long capacityBytes = alluxioBlockStore.getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "getCapacityBytes";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Gets the capacity of the Alluxio file system.";
   }
 }

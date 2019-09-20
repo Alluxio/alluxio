@@ -1,0 +1,9 @@
+name: stopSync
+usage: stopSync <path>
+description: |
+  The `stopSync` command stops the automatic syncing process of the specified path.
+examples: |
+  ```console
+  $ ./bin/alluxio fs stopSync /path/file
+  ```
+

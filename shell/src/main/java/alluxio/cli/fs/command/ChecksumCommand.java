@@ -56,11 +56,6 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "checksum";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -85,15 +80,5 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
     try (FileInStream fis = mFileSystem.openFile(filePath, options)) {
       return DigestUtils.md5Hex(fis);
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "checksum <Alluxio path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Calculates the md5 checksum of a file in the Alluxio filesystem.";
   }
 }

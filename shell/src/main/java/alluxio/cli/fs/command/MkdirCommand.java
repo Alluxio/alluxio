@@ -41,11 +41,6 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "mkdir";
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String path : args) {
@@ -57,16 +52,6 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
       System.out.println("Successfully created directory " + inputPath);
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "mkdir <path1> [path2] ... [pathn]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Creates the specified directories, including any parent directories that are required.";
   }
 
   @Override

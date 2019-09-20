@@ -65,11 +65,6 @@ public final class RmCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "rm";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options()
         .addOption(RECURSIVE_OPTION)
@@ -109,18 +104,6 @@ public final class RmCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "rm [-R] [-U] [--alluxioOnly] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Removes the specified file. Specify -R to remove file or directory recursively."
-        + " Specify -U to remove directories without checking UFS contents are in sync."
-        + " Specify -alluxioOnly to remove data and metadata from alluxio space only.";
   }
 
   @Override

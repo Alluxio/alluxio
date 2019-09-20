@@ -58,11 +58,6 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "chmod";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
@@ -97,16 +92,5 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
     AlluxioURI path = new AlluxioURI(args[1]);
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "chmod [-R] <mode> <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Changes the permission of a file or directory specified by args."
-        + " Specify -R to change the permission recursively.";
   }
 }

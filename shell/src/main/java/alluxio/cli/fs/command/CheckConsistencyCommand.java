@@ -56,7 +56,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           .required(false)
           .hasArg(true)
           .desc("Number of threads used when repairing consistency. Defaults to <number of cores>"
-              + " * 2. This option has no effect if -r is not specified")
+                  + " * 2. This option has no effect if -r is not specified")
           .build();
 
   private static final String PARSE_THREADS_FAILURE_FMT = "The threads option must be a positive "
@@ -97,11 +97,6 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "checkConsistency";
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
@@ -135,7 +130,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    * @throws IOException
    */
   private void runConsistencyCheck(AlluxioURI path, boolean repairConsistency, int repairThreads)
-      throws AlluxioException, IOException {
+     throws AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
         checkConsistency(path, FileSystemOptions.checkConsistencyDefaults(
             mFsContext.getPathConf(path)));
@@ -217,20 +212,5 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
       AggregateException e = new AggregateException(exceptions);
       throw new IOException("Failed to successfully repair all paths", e);
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "checkConsistency [-r] [-t|--threads <threads>] <Alluxio path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Checks the consistency of a persisted file or directory in Alluxio. Any files or "
-        + "directories which only exist in Alluxio or do not match the metadata of files in the "
-        + "under storage will be returned. An administrator should then reconcile the  "
-        + "differences. Specify -r to repair the inconsistent files. Use -t or --threads to "
-        + "specify the number of threads that should be used when repairing. Defaults to "
-        + "2*<number of CPU cores>";
   }
 }

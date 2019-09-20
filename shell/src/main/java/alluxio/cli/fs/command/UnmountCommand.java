@@ -37,11 +37,6 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "unmount";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -59,15 +54,5 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
     AlluxioURI inputPath = new AlluxioURI(args[0]);
     runWildCardCmd(inputPath, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "unmount <alluxioPath>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Unmounts an Alluxio path.";
   }
 }

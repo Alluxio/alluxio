@@ -40,11 +40,6 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "distributedMv";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
@@ -70,15 +65,5 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     }
     System.out.println("Moved " + srcPath + " to " + dstPath);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "distributedMv <src> <dst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Moves a file or directory in parallel at file level.";
   }
 }

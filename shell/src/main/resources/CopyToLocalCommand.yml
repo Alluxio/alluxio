@@ -1,0 +1,11 @@
+name: copyToLocal
+usage: copyToLocal [--buffersize <bytes>] <src> <remoteDst>
+description: |
+  The `copyToLocal` command copies a file in Alluxio to the local file system.
+  If a directory is specified, the directory and all its contents will be copied recursively.
+examples: |
+  For example, `copyToLocal` can be used as a quick way to download output data for additional investigation or debugging.
+  ```console
+  $ ./bin/alluxio fs copyToLocal /output/part-00000 part-00000
+  $ wc -l part-00000
+  ```

@@ -52,11 +52,6 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "setReplication";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION).addOption(MAX_OPTION)
         .addOption(MIN_OPTION);
@@ -112,18 +107,5 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
     }
     setReplication(path, replicationMax, replicationMin, recursive);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "setReplication [-R] [--max <num> | --min <num>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Sets the minimum/maximum number of replicas for the file or directory at given path. "
-        + "Specify '-1' as the argument of '--max' option to indicate no limit of the maximum "
-        + "number of replicas. If 'path' is a directory and '-R' is specified, it will recursively "
-        + "set all files in this directory.";
   }
 }

@@ -1,0 +1,10 @@
+name: updateMount
+usage: updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>
+description: |
+  The `updateMount` command updates options for a mount point while keeping the Alluxio metadata under the path.
+examples: |
+  ```console
+  $ ./bin/alluxio fs upadateMount /s3/data
+
+  $ ./bin/alluxio fs upadateMount --readonly /s3/data
+  ```

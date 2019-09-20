@@ -37,11 +37,6 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "getfacl";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
@@ -64,16 +59,6 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "getfacl <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays the access control lists (ACLs) for a path.";
   }
 
   @Override

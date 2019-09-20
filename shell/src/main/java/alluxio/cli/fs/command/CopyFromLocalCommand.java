@@ -60,11 +60,6 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "copyFromLocal";
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(CpCommand.THREAD_OPTION)
         .addOption(CpCommand.BUFFER_SIZE_OPTION);
@@ -82,19 +77,5 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
     cl.getArgList().set(0, "file://" + new File(srcPath).getAbsolutePath());
     mCpCommand.run(cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "copyFromLocal "
-        + "[--thread <num>] "
-        + "[--buffersize <bytes>] "
-        + "<src> <remoteDst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Copies a file or a directory from local filesystem to Alluxio filesystem "
-        + "in parallel at file level.";
   }
 }

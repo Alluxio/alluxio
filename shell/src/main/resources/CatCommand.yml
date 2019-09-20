@@ -1,0 +1,11 @@
+name: cat
+usage: cat <path>
+description: |
+  The `cat` command prints the contents of a file in Alluxio to the console.
+  If you wish to copy the file to your local file system, copyToLocal should be used.
+examples: |
+  For example, when testing a new computation job, `cat` can be used as a quick way to check the output.
+  ```console
+  $ ./bin/alluxio fs cat /output/part-00000
+  ```
+options:

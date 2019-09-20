@@ -11,6 +11,7 @@
 
 package alluxio.cli.extensions.command;
 
+import alluxio.cli.CommandDocumentation;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -57,6 +59,19 @@ public final class InstallCommand implements Command {
   @Override
   public String getDescription() {
     return "Installs an extension into hosts configured in conf/masters and conf/workers.";
+  }
+
+  @Override
+  @Nullable
+  public CommandDocumentation getDocumentation() {
+    return null;
+  }
+
+  // TODO(zac) implement documentation generation logic
+  @Override
+  @Nullable
+  public String getExample() {
+    return null;
   }
 
   @Override

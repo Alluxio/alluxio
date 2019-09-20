@@ -1,0 +1,30 @@
+name: stat
+usage: stat [-f <format>] <path>
+description: |
+  The `stat` command dumps the FileInfo representation of a file or a directory to the console.
+  It is primarily intended to assist power users in debugging their system.
+  Generally viewing the file info in the UI will be easier to understand.
+
+  One can specify `-f <arg>` to display info in given format:
+
+    `%N`: name of the file
+    `%z`: size of file in bytes
+    `%u`: owner
+    `%g`: group name of owner
+    `%y` or `%Y`: modification time, where `%y` shows the UTC date in the form `yyyy-MM-dd HH:mm:ss`
+      and `%Y` shows the number of milliseconds since January 1, 1970 UTC
+    `%b`: Number of blocks allocated for file
+examples: |
+  For example, `stat` can be used to debug the block locations of a file. This is useful
+  when trying to achieve locality for compute workloads.
+  ```console
+  # Displays file's stat
+  $ ./bin/alluxio fs stat /data/2015/logs-1.txt
+
+  # Displays directory's stat
+  $ ./bin/alluxio fs stat /data/2015
+
+  # Displays the size of file
+  $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+  ```
+

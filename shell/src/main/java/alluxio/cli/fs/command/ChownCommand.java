@@ -63,11 +63,6 @@ public final class ChownCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "chown";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
@@ -129,16 +124,5 @@ public final class ChownCommand extends AbstractFileSystemCommand {
     }
     System.out.println("Failed to parse " + args[0] + " as user or user:group");
     return -1;
-  }
-
-  @Override
-  public String getUsage() {
-    return "chown [-R] <owner>[:<group>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Changes the owner of a file or directory specified by args."
-        + " Specify -R to change the owner recursively.";
   }
 }

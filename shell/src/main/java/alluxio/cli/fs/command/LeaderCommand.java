@@ -42,11 +42,6 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "leader";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
@@ -73,15 +68,5 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
       }
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "leader";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints the current leader master host name.";
   }
 }

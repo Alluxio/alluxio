@@ -28,7 +28,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -47,11 +46,6 @@ public final class TailCommand extends AbstractFileSystemCommand {
    */
   public TailCommand(FileSystemContext fsContext) {
     super(fsContext);
-  }
-
-  @Override
-  public String getCommandName() {
-    return "tail";
   }
 
   @Override
@@ -89,16 +83,6 @@ public final class TailCommand extends AbstractFileSystemCommand {
     AlluxioURI path = new AlluxioURI(args[0]);
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "tail [-c <bytes>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints the file's last n bytes (by default, 1KB) to the console.";
   }
 
   @Override

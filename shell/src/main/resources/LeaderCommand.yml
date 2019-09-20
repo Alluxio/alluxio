@@ -1,0 +1,9 @@
+name: leader
+usage: leader
+description: |
+  The `leader` command prints the current Alluxio leading master hostname.
+examples: |
+  ```console
+  $ ./bin/alluxio fs leader
+  localhost
+  ```

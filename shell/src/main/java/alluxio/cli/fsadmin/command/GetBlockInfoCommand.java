@@ -48,11 +48,6 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "getBlockInfo";
-  }
-
-  @Override
   public int run(CommandLine cl) throws IOException {
     if (cl.hasOption(HELP_OPTION_NAME)) {
       System.out.println(getUsage());
@@ -94,16 +89,6 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
       System.out.printf("This block belongs to file {id=%s}%n", fileId);
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "getBlockInfo [blockId]";
-  }
-
-  @Override
-  public String getDescription() {
-    return "get the block information and file path of a specified block id.";
   }
 
   @Override

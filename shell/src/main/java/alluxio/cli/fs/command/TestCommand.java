@@ -71,11 +71,6 @@ public final class TestCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "test";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -165,15 +160,5 @@ public final class TestCommand extends AbstractFileSystemCommand {
     } catch (AlluxioException | IOException e) {
       return 1;
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "test [-d|-f|-e|-s|-z] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Test a property of a path, returning 0 if the property is true, or 1 otherwise.";
   }
 }

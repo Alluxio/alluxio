@@ -39,11 +39,6 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "masterInfo";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
@@ -66,16 +61,5 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
       System.out.println("Failed to find all master addresses");
     }
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "masterInfo";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints information regarding master fault tolerance such as leader address, list of "
-        + "master addresses, and the configured Zookeeper address.";
   }
 }

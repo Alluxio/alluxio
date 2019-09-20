@@ -13,6 +13,8 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.Command;
+import alluxio.cli.CommandDocumentation;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -20,6 +22,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.util.ConfigurationUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 
@@ -39,7 +43,11 @@ public abstract class AbstractFileSystemCommand implements Command {
 
   protected FileSystem mFileSystem;
   protected FileSystemContext mFsContext;
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory());
 
+  static {
+    OBJECT_MAPPER.findAndRegisterModules();
+  }
   // The FilesystemContext contains configuration information and is also used to instantiate a
   // filesystem client, if null - load default properties
   protected AbstractFileSystemCommand(@Nullable FileSystemContext fsContext) {
@@ -99,4 +107,32 @@ public abstract class AbstractFileSystemCommand implements Command {
       throw new IOException(Joiner.on('\n').join(errorMessages));
     }
   }
+
+  @Override
+  public String getCommandName() {
+    return getDocumentation().getName();
+  }
+
+  @Override
+  public String getUsage() {
+    return getDocumentation().getUsage();
+  }
+
+  @Override
+  public String getDescription() {
+    return getDocumentation().getDescription();
+  }
+
+  @Override
+  public String getExample() {
+    return getDocumentation().getExamples();
+  }
+
+  @Override
+  public CommandDocumentation getDocumentation() {
+    CommandDocumentation d = CommandUtils.readDocumentation(this.getClass());
+    d.setOptions(CommandUtils.addOptions(this));
+    return d;
+  }
 }
+

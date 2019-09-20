@@ -41,11 +41,6 @@ public final class CatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "cat";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
@@ -61,16 +56,6 @@ public final class CatCommand extends AbstractFileSystemCommand {
         read = is.read(buf);
       }
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "cat <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Prints the file's contents to the console.";
   }
 
   @Override

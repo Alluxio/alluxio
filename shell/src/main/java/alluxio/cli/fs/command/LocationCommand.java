@@ -41,11 +41,6 @@ public final class LocationCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "location";
-  }
-
-  @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(plainPath);
@@ -65,16 +60,6 @@ public final class LocationCommand extends AbstractFileSystemCommand {
     AlluxioURI path = new AlluxioURI(args[0]);
     runWildCardCmd(path, cl);
     return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "location <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays the list of hosts storing the specified file.";
   }
 
   @Override

@@ -296,11 +296,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public String getCommandName() {
-    return "cp";
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
     if (cl.hasOption(BUFFER_SIZE_OPTION.getLongOpt())) {
@@ -783,21 +778,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
     } finally {
       tmpDst.delete();
     }
-  }
-
-  @Override
-  public String getUsage() {
-    return "cp "
-        + "[-R] "
-        + "[--buffersize <bytes>] "
-        + "<src> <dst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Copies a file or a directory in the Alluxio filesystem or between local filesystem "
-        + "and Alluxio filesystem. The -R flag is needed to copy directories in the Alluxio "
-        + "filesystem. Local Path with schema \"file\".";
   }
 
   private static boolean isAlluxio(String scheme) {
