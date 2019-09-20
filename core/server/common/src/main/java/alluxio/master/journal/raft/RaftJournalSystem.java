@@ -224,7 +224,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         // TODO(andrew): Ensure that this supplier will really only be called once.
         .withStateMachine(new OnceSupplier<>(mStateMachine))
         .withAppenderBatchSize((int) ServerConfiguration
-            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE_BYTES))
+            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE))
         .build();
     mPrimarySelector.init(mServer);
   }
