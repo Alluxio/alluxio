@@ -30,7 +30,6 @@ import alluxio.util.URIUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.util.JsonFormat;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
@@ -45,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -145,7 +143,7 @@ public class HiveDatabase implements UnderDatabase {
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
 
       String mountOptions = mConfiguration.get(Property.MOUNT_OPTIONS);
-      Map<String,String> mountOptionMap = Collections.emptyMap();
+      Map<String, String> mountOptionMap = Collections.emptyMap();
       if (!mountOptions.isEmpty()) {
         mountOptionMap = new ObjectMapper().readValue(
             mountOptions, new TypeReference<Map<String, String>>() {});
@@ -170,7 +168,8 @@ public class HiveDatabase implements UnderDatabase {
       LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
           tableName, table.getDataLocation(), tableUri, mountOption);
       PathTranslator pathTranslator =
-          new PathTranslator(tableUri.toString(), table.getDataLocation().toString());
+          new PathTranslator();
+      pathTranslator.addMapping(tableUri.toString(), table.getDataLocation().toString());
 
       List<String> colNames = table.getAllCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
