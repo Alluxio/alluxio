@@ -24,6 +24,7 @@ import alluxio.master.job.command.CommandManager;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -153,10 +154,12 @@ public final class JobCoordinator {
    * @param taskInfoList List of @TaskInfo instances to update
    */
   public synchronized void updateTasks(List<TaskInfo> taskInfoList) {
-    for (TaskInfo taskInfo : taskInfoList) {
-      mJobInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
+    synchronized (mJobInfo) {
+      for (TaskInfo taskInfo : taskInfoList) {
+        mJobInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
+      }
+      updateStatus();
     }
-    updateStatus();
   }
 
   /**
@@ -164,6 +167,13 @@ public final class JobCoordinator {
    */
   public synchronized boolean isJobFinished() {
     return mJobInfo.getStatus().isFinished();
+  }
+
+  /**
+   * @return the id corresponding to the job
+   */
+  public long getJobId() {
+    return mJobInfo.getId();
   }
 
   /**
@@ -269,5 +279,24 @@ public final class JobCoordinator {
       taskResults.put(mTaskIdToWorkerInfo.get(taskInfo.getTaskId()), taskInfo.getResult());
     }
     return definition.join(mJobInfo.getJobConfig(), taskResults);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof JobCoordinator)) {
+      return false;
+    }
+
+    JobCoordinator other = (JobCoordinator) o;
+    return Objects.equal(mJobInfo, other.mJobInfo);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mJobInfo);
   }
 }

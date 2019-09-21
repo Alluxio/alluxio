@@ -15,21 +15,34 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.job.load.LoadConfig;
 import alluxio.master.MasterClientContext;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Collection;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream} of under storage type being async
@@ -96,6 +109,69 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     CommonUtils.sleepMs(1);
     checkPersistStateAndWaitForPersist(filePath, 2);
   }
+
+  @Test
+
+  @LocalAlluxioClusterResource.Config(confParams = {
+      "alluxio.user.block.size.bytes.default", "256",
+      "alluxio.user.file.buffer.bytes", "1k",
+      "alluxio.worker.memory.size", "32M",
+      "alluxio.job.master.finished.job.retention.time", "0sec",
+      "alluxio.job.master.job.capacity", "500",
+      "alluxio.master.replication.check.interval", "2s"
+
+  })
+
+  public void badSpaceReserverTest() throws Exception {
+    FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
+    String dir = "/test";
+    fs.createDirectory(new AlluxioURI(dir));
+    long totalCapacity = FormatUtils.parseSpaceSize("32M");
+    double capMultiplier = 0.94;
+    long bytesToWrite = (long) Math.ceil(capMultiplier * totalCapacity);
+    long fileSize = 4 * Constants.MB; // bytes per fil
+    long filesToWrite = bytesToWrite / fileSize;
+    ConcurrentSkipListSet<String> files = new ConcurrentSkipListSet<>();
+    for (int i = 0; i < filesToWrite; i++) {
+      files.add(PathUtils.concatPath(dir, UUID.randomUUID().toString()));
+    }
+    ExecutorService svc = Executors.newWorkStealingPool(4);
+    doSomethingAllFiles(svc, files, name -> FileSystemTestUtils.createByteFile(fs,
+        name,
+        (int) fileSize,
+        CreateFilePOptions.newBuilder()
+            .setWriteType(WritePType.THROUGH)
+            .setRecursive(true)
+            .build()
+    ));
+    fs.setAttribute(new AlluxioURI(dir), SetAttributePOptions.newBuilder()
+        .setReplicationMax(0)
+        .setReplicationMin(0)
+        .setRecursive(true)
+        .build());
+    doSomethingAllFiles(svc, files, name -> {
+      try {
+        JobGrpcClientUtils.run(new LoadConfig(name, 1), 2, ServerConfiguration.global());
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    });
+    Thread.sleep(Constants.HOUR);
+    svc.shutdown();
+  }
+
+  void doSomethingAllFiles(ExecutorService svc, Collection<String> operands,
+      Consumer<String> callable) throws Exception {
+    operands.stream().map(path -> svc.submit(() -> callable.accept(path)))
+        .collect(Collectors.toList()).forEach(f -> {
+      try {
+        f.get();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
+  }
+
 
   @Test
   public void asyncWriteWithPersistWaitTime() throws Exception {

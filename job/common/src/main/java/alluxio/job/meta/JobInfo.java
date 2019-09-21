@@ -17,6 +17,7 @@ import alluxio.job.wire.TaskInfo;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -64,7 +65,7 @@ public final class JobInfo implements Comparable<JobInfo> {
    */
   @Override
   public synchronized int compareTo(JobInfo other) {
-    return Long.compare(mLastStatusChangeMs, other.getLastStatusChangeMs());
+    return Long.compare(mLastStatusChangeMs, other.mLastStatusChangeMs);
   }
 
   /**
@@ -176,5 +177,24 @@ public final class JobInfo implements Comparable<JobInfo> {
    */
   public synchronized List<TaskInfo> getTaskInfoList() {
     return Lists.newArrayList(mTaskIdToInfo.values());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof JobInfo)) {
+      return false;
+    }
+
+    JobInfo other = (JobInfo) o;
+    return Objects.equal(mId, other.mId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mId);
   }
 }

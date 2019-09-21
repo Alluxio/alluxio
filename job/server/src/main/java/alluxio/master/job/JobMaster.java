@@ -61,8 +61,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -135,13 +139,13 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * Used to store JobCoordinator instances per job Id.
    * This member is accessed concurrently and its instance type is ConcurrentHashMap.
    */
-  private final Map<Long, JobCoordinator> mIdToJobCoordinator;
+  private final ConcurrentMap<Long, JobCoordinator> mIdToJobCoordinator;
 
   /**
    * Used to keep track of finished jobs that are still within retention policy.
    * This member is accessed concurrently and its instance type is ConcurrentSkipListSet.
    */
-  private final SortedSet<JobInfo> mFinishedJobs;
+  private final ConcurrentSkipListMap<Long, JobInfo> mFinishedJobs;
 
   /**
    * Creates a new instance of {@link JobMaster}.
@@ -159,7 +163,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
     mIdToJobCoordinator = new ConcurrentHashMap<>();
-    mFinishedJobs = new ConcurrentSkipListSet<>();
+    mFinishedJobs = new ConcurrentSkipListMap<>();
   }
 
   @Override
@@ -218,21 +222,56 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
           throw new ResourceExhaustedException(
               ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
         }
-        // Discard old jobs that have completion time beyond retention policy
-        Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
         // Used to denote whether space could be reserved for the new job
         // It's 'true' if job master is at full capacity
         boolean isFull = true;
-        while (jobIterator.hasNext()) {
-          JobInfo oldestJob = jobIterator.next();
-          long completedBeforeMs = CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs();
-          if (completedBeforeMs < RETENTION_MS) {
+        // Entries will never be inserted at the beginning of the map.
+        for (Map.Entry<Long, JobInfo> oldest = mFinishedJobs.firstEntry(); oldest != null; oldest = mFinishedJobs.firstEntry()) {
+          JobInfo oldestJob = oldest.getValue();
+          long timeSinceCompletion = CommonUtils.getCurrentMs() - oldest.getKey();
+          if (timeSinceCompletion < RETENTION_MS) {
             // mFinishedJobs is sorted. Can't iterate to a job within retention policy
             break;
           }
-          jobIterator.remove();
-          mIdToJobCoordinator.remove(oldestJob.getId());
-          isFull = false;
+          int mfSizeBefore = mFinishedJobs.size();
+          JobInfo removed = mFinishedJobs.remove(oldest.getKey());
+          int mfSizeAfter = mFinishedJobs.size();
+          if (removed != null) {
+            LOG.error("mFinished.remove removed jobId {}", removed.getId());
+            if (!removed.equals(oldestJob)) {
+              LOG.error("big error");
+            }
+          } else {
+            LOG.error("mFinished.remove FAILED to remove expected JobId {}", oldestJob.getId());
+          }
+          if (mfSizeAfter > mfSizeBefore) {
+            LOG.error("nana");
+          }
+          if (mfSizeAfter - mfSizeBefore >= 2) {
+            LOG.error("wtf");
+          }
+          // This job status may have changed since it was inserted, so check with the coordinator
+          // If it has changed since. This entry is valid and we cannot consider the job
+          // "finished" if the status change time is different. Otherwise, if the status hasn't
+          // changed, the job is still completed and we can remove it from the coordinator map
+          if (oldest.getKey() == oldestJob.getLastStatusChangeMs()) {
+            // What if it isn't in the map?
+            int sizeBefore = mIdToJobCoordinator.size();
+            JobCoordinator jc = mIdToJobCoordinator.remove(oldestJob.getId());
+            if (jc != null) {
+              LOG.error("mIdToJobCoord.remove job id: {}", jc.getJobId());
+              isFull = false;
+            } else {
+              LOG.error("mIdToJobCoord.remove FAILED to remove job id: {}", oldestJob.getId());
+              LOG.error("this shouldn't have happened.");
+            }
+            int sizeAfter = mIdToJobCoordinator.size();
+            if (sizeBefore == sizeAfter) {
+              LOG.error("big uh oh");
+            }
+          } else {
+            int i = 1;
+          }
         }
         if (isFull) {
           throw new ResourceExhaustedException(
@@ -241,11 +280,26 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       }
       long jobId = mJobIdGenerator.getNewJobId();
       JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
-          getWorkerInfoList(), jobId, jobConfig, (jobInfo) -> {
-            Status status = jobInfo.getStatus();
-            mFinishedJobs.remove(jobInfo);
-            if (status.isFinished()) {
-              mFinishedJobs.add(jobInfo);
+          getWorkerInfoList(), jobId, jobConfig, jobInfo -> {
+            if (jobInfo == null) {
+              return null;
+            }
+            synchronized (mFinishedJobs) {
+              Status status = jobInfo.getStatus();
+              int sizeBefore = mFinishedJobs.size();
+              JobInfo f = mFinishedJobs.get(jobInfo.getLastStatusChangeMs());
+              long lastStatusChange = jobInfo.getLastStatusChangeMs();
+              LOG.error("mFinished.put before - STATUS: {} - size: {} - id: {}", status,
+                  sizeBefore, jobInfo.getId());
+              if (status.isFinished()) {
+                mFinishedJobs.put(lastStatusChange, jobInfo);
+              }
+              int sizeAfter = mFinishedJobs.size();
+              LOG.error("mFinished.put after - STATUS: {} - size: {} - id: {}", status,
+                  sizeAfter, jobInfo.getId());
+              if (status.isFinished() && f == null && sizeBefore == sizeAfter) {
+                LOG.error("hm");
+              }
             }
             return null;
           });
