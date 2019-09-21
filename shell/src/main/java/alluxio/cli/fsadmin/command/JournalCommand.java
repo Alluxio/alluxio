@@ -12,8 +12,8 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.Command;
-import alluxio.cli.fsadmin.quorum.QuorumInfoCommand;
-import alluxio.cli.fsadmin.quorum.QuorumRemoveCommand;
+import alluxio.cli.fsadmin.journal.CheckpointCommand;
+import alluxio.cli.fsadmin.journal.QuorumCommand;
 import alluxio.conf.AlluxioConfiguration;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -25,14 +25,14 @@ import java.util.function.BiFunction;
 /**
  * Command for seeing/managing quorum state of embedded journal.
  */
-public class QuorumCommand extends AbstractFsAdminCommand {
+public class JournalCommand extends AbstractFsAdminCommand {
 
   private static final Map<String, BiFunction<Context, AlluxioConfiguration, ? extends Command>>
       SUB_COMMANDS = new HashMap<>();
 
   static {
-    SUB_COMMANDS.put("info", QuorumInfoCommand::new);
-    SUB_COMMANDS.put("remove", QuorumRemoveCommand::new);
+    SUB_COMMANDS.put("checkpoint", CheckpointCommand::new);
+    SUB_COMMANDS.put("quorum", QuorumCommand::new);
   }
 
   private Map<String, Command> mSubCommands = new HashMap<>();
@@ -41,7 +41,7 @@ public class QuorumCommand extends AbstractFsAdminCommand {
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
-  public QuorumCommand(Context context, AlluxioConfiguration alluxioConf) {
+  public JournalCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
     SUB_COMMANDS.forEach((name, constructor) -> {
       mSubCommands.put(name, constructor.apply(context, alluxioConf));
@@ -53,7 +53,7 @@ public class QuorumCommand extends AbstractFsAdminCommand {
    */
   @VisibleForTesting
   public static String description() {
-    return "Manage embedded journal quorum configuration. "
+    return "Provide operations for the journal. "
         + "See sub-commands' descriptions for more details.";
   }
 
@@ -69,7 +69,7 @@ public class QuorumCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getCommandName() {
-    return "quorum";
+    return "journal";
   }
 
   @Override
