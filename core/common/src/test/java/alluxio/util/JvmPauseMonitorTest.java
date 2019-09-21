@@ -11,11 +11,12 @@
 
 package alluxio.util;
 
+import static org.junit.Assert.assertNotEquals;
+
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -42,7 +43,7 @@ public final class JvmPauseMonitorTest {
         break;
       }
     }
-    Assert.assertNotEquals(jvmPauseMonitor.getWarnTimeExceeded(), 0);
-    Assert.assertNotEquals(jvmPauseMonitor.getTotalExtraTime(), 0);
+    assertNotEquals(jvmPauseMonitor.getWarnTimeExceeded(), 0);
+    assertNotEquals(jvmPauseMonitor.getTotalExtraTime(), 0);
   }
 }
