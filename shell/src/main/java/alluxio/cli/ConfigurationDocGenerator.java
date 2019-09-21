@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.annotation.PublicApi;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
@@ -37,6 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * CSV_FILE_DIR utility to generate property keys to csv files.
  */
 @ThreadSafe
+@PublicApi
 public final class ConfigurationDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationDocGenerator.class);
   private static final String CSV_FILE_DIR = "docs/_data/table/";

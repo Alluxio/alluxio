@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
@@ -35,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's first n bytes (by default, 1KB) to the console.
  */
 @ThreadSafe
+@PublicApi
 public final class HeadCommand extends AbstractFileSystemCommand {
   private static final Option BYTES_OPTION = Option.builder("c")
       .required(false)

@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.conf.AlluxioConfiguration;
@@ -27,6 +28,7 @@ import java.io.IOException;
 /**
  * Command for getting information from a block id.
  */
+@PublicApi
 public class GetBlockInfoCommand extends AbstractFsAdminCommand {
   private static final String HELP_OPTION_NAME = "h";
   private static final Option HELP_OPTION =

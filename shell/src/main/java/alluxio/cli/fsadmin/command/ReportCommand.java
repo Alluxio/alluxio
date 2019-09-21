@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
@@ -31,6 +32,7 @@ import java.io.IOException;
 /**
  * Reports Alluxio running cluster information.
  */
+@PublicApi
 public final class ReportCommand extends AbstractFsAdminCommand {
   public static final String HELP_OPTION_NAME = "h";
   public static final String LIVE_OPTION_NAME = "live";

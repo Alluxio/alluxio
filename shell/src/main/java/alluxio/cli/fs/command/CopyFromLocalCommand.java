@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This command will fail if "remote path" already exists.
  */
 @ThreadSafe
+@PublicApi
 public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CopyFromLocalCommand.class);
 

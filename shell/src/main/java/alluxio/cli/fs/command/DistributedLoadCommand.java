@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -45,6 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Loads a file or directory in Alluxio space, makes it resident in memory.
  */
 @ThreadSafe
+@PublicApi
 public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(DistributedLoadCommand.class);
   private static final Option REPLICATION_OPTION =

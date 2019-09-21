@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.RuntimeConstants;
+import alluxio.annotation.PublicApi;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -19,6 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The version of the current build.
  */
 @ThreadSafe
+@PublicApi
 public final class Version {
 
   private Version() {} // prevent instantiation

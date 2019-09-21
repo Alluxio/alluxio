@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystemContext;
@@ -29,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Displays a list of hosts that have the file specified in args stored.
  */
 @ThreadSafe
+@PublicApi
 public final class LocationCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to display a list of hosts that have the file specified in args
