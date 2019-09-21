@@ -9,9 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command;
+package alluxio.cli.fsadmin.journal;
 
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
+import alluxio.cli.fsadmin.command.Context;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;

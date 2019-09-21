@@ -11,22 +11,21 @@
 
 package alluxio.client.cli.fsadmin.command;
 
+import alluxio.cli.fsadmin.command.JournalCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for checkpoint command.
+ * Tests for fsadmin command: journal.
  */
-public final class CheckpointCommandIntegrationTest extends AbstractFsAdminShellTest {
+public final class JournalCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
-  public void checkpoint() throws Exception {
-    int ret = mFsAdminShell.run("journal", "checkpoint");
-    Assert.assertEquals(0, ret);
-    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(String
-        .format("Successfully took a checkpoint on master %s%n",
-        mLocalAlluxioClusterResource.get().getHostname())));
+  public void journalCommand() throws Exception {
+    // Validate journal sub-commands are validated.
+    mOutput.reset();
+    mFsAdminShell.run("journal", "nonexistentCommand");
+    Assert.assertTrue(mOutput.toString().trim().contains(JournalCommand.description()));
   }
 }
