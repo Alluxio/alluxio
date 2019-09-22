@@ -67,7 +67,8 @@ public final class JobGrpcClientUtils {
       if (jobInfo.getStatus() == Status.COMPLETED || jobInfo.getStatus() == Status.CANCELED) {
         return;
       }
-      LOG.warn("Job {} failed to complete: {}", jobId, jobInfo.getErrorMessage());
+      LOG.warn("Job {} failed to complete and retry {}: {}",
+          jobId, retryPolicy.getAttemptCount(), jobInfo.getErrorMessage());
     }
     throw new RuntimeException("Failed to successfully complete the job.");
   }
