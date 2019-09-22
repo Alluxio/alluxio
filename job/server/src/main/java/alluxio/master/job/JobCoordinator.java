@@ -34,6 +34,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -70,7 +71,7 @@ public final class JobCoordinator {
 
   private JobCoordinator(CommandManager commandManager, JobServerContext jobServerContext,
       List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
-      Function<JobInfo, Void> statusChangeCallback) {
+      Consumer<JobInfo> statusChangeCallback) {
     Preconditions.checkNotNull(jobConfig);
     mJobServerContext = jobServerContext;
     mJobInfo = new JobInfo(jobId, jobConfig, statusChangeCallback);
@@ -92,7 +93,7 @@ public final class JobCoordinator {
    */
   public static JobCoordinator create(CommandManager commandManager,
       JobServerContext jobServerContext, List<WorkerInfo> workerInfoList, Long jobId,
-      JobConfig jobConfig, Function<JobInfo, Void> statusChangeCallback)
+      JobConfig jobConfig, Consumer<JobInfo> statusChangeCallback)
       throws JobDoesNotExistException {
     Preconditions.checkNotNull(commandManager, "commandManager");
     JobCoordinator jobCoordinator = new JobCoordinator(commandManager, jobServerContext,

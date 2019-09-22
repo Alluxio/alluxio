@@ -42,13 +42,7 @@ public final class JobInfoTest {
   public void callback() {
     final String result = "I was here!";
     JobConfig jobConfig = new TestJobConfig("unused");
-    JobInfo a = new JobInfo(0L, jobConfig, new Function<JobInfo, Void>() {
-      @Override
-      public Void apply(JobInfo jobInfo) {
-        jobInfo.setResult(result);
-        return null;
-      }
-    });
+    JobInfo a = new JobInfo(0L, jobConfig, jobInfo -> jobInfo.setResult(result));
     a.setStatus(Status.COMPLETED);
     Assert.assertEquals(result, a.getResult());
   }

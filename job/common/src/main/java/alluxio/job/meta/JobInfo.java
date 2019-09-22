@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,10 +36,10 @@ public final class JobInfo implements Comparable<JobInfo> {
   private final long mId;
   private final JobConfig mJobConfig;
   private final Map<Integer, TaskInfo> mTaskIdToInfo;
-  private long mLastStatusChangeMs;
+  private volatile long mLastStatusChangeMs;
   private String mErrorMessage;
-  private Status mStatus;
-  private Function<JobInfo, Void> mStatusChangeCallback;
+  private volatile Status mStatus;
+  private Consumer<JobInfo> mStatusChangeCallback;
   private String mResult;
 
   /**
@@ -48,7 +49,7 @@ public final class JobInfo implements Comparable<JobInfo> {
    * @param jobConfig the job configuration
    * @param statusChangeCallback the callback to invoke upon status change
    */
-  public JobInfo(long id, JobConfig jobConfig, Function<JobInfo, Void> statusChangeCallback) {
+  public JobInfo(long id, JobConfig jobConfig, Consumer<JobInfo> statusChangeCallback) {
     mId = id;
     mJobConfig = Preconditions.checkNotNull(jobConfig);
     mTaskIdToInfo = Maps.newHashMap();
@@ -147,7 +148,7 @@ public final class JobInfo implements Comparable<JobInfo> {
     mStatus = status;
     mLastStatusChangeMs = CommonUtils.getCurrentMs();
     if (mStatusChangeCallback != null && status != oldStatus) {
-      mStatusChangeCallback.apply(this);
+      mStatusChangeCallback.accept(this);
     }
   }
 
