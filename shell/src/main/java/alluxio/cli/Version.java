@@ -14,7 +14,6 @@ package alluxio.cli;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 
-import com.google.rpc.Help;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -22,8 +21,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-
-import java.io.PrintWriter;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -74,6 +71,9 @@ public final class Version {
     System.exit(1);
   }
 
+  /**
+   * Prints the usage of the version command.
+   */
   public static void printUsage(Options options) {
     new HelpFormatter().printHelp("version", options);
   }
