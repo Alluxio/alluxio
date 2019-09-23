@@ -141,6 +141,26 @@ public interface FileSystemMaster extends Master {
       UnavailableException, IOException;
 
   /**
+   * Enumerates given path to given batch tracker.
+   * If the given path is a file, the list only
+   * contains a single object. If it is a directory, the resulting list contains all direct children
+   * of the directory.
+   * <p>
+   * This operation requires users to have READ permission on the path, and also
+   * EXECUTE permission on the path if it is a directory.
+   *
+   * @param path the path to get the {@link FileInfo} list for
+   * @param context the method context
+   * @param batchTracker the tracker that will receive batches of statuses
+   * @throws AccessControlException if permission checking fails
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the path is invalid
+   */
+  void listStatus(AlluxioURI path, ListStatusContext context,
+      BatchTracker<ListStatusBatch> batchTracker) throws AccessControlException,
+      FileDoesNotExistException, InvalidPathException, UnavailableException, IOException;
+
+  /**
    * @return a read-only view of the file system master
    */
   FileSystemMasterView getFileSystemMasterView();

@@ -822,17 +822,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException {
+  public void listStatus(AlluxioURI path, ListStatusContext context,
+      BatchTracker<ListStatusBatch> batchTracker) throws AccessControlException,
+      FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
     try (RpcContext rpcContext = createRpcContext();
-         LockedInodePath inodePath = mInodeTree
-             .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
-         FileSystemMasterAuditContext auditContext =
-             createAuditContext("listStatus", path, null, inodePath.getInodeOrNull())) {
+        LockedInodePath inodePath =
+            mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
+        FileSystemMasterAuditContext auditContext =
+            createAuditContext("listStatus", path, null, inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       } catch (AccessControlException e) {
@@ -840,8 +840,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         throw e;
       }
 
-      DescendantType descendantType = context.getOptions().getRecursive() ? DescendantType.ALL
-          : DescendantType.ONE;
+      DescendantType descendantType =
+          context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
       // Possible ufs sync.
       if (syncMetadata(rpcContext, inodePath, lockingScheme, descendantType)) {
         // If synced, do not load metadata.
@@ -887,20 +887,43 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
-      List<FileInfo> ret = new ArrayList<>();
-      DescendantType descendantTypeForListStatus = (context.getOptions().getRecursive())
-          ? DescendantType.ALL : DescendantType.ONE;
-      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus, ret);
+      final int resultMessageLength = ServerConfiguration.getInt(
+              PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
+      ListStatusBatch currentBatch = new ListStatusBatch(resultMessageLength);
+      DescendantType descendantTypeForListStatus =
+          (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
+      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
+          currentBatch, batchTracker);
 
       // If we are listing the status of a directory, we remove the directory info that we inserted
-      if (inode.isDirectory() && ret.size() >= 1) {
-        ret.remove(ret.size() - 1);
+      if (inode.isDirectory() && currentBatch.size() > 0) {
+        currentBatch.pop();
+      }
+      // Send the batch with the remainders.
+      if (currentBatch.size() > 0) {
+        batchTracker.onNext(currentBatch);
+        currentBatch.clear();
       }
 
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
-      return ret;
     }
+  }
+
+  @Override
+  public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
+    final List<FileInfo> fileInfos = new ArrayList<>();
+    // Call batching listStatus() with inline batch tracker that populates the internal list.
+    BatchTracker<ListStatusBatch> inlineBatchTracker = new BatchTracker<ListStatusBatch>() {
+      @Override
+      public void onNext(ListStatusBatch batch) {
+        fileInfos.addAll(batch.toList());
+      }
+    };
+
+    listStatus(path, context, inlineBatchTracker);
+    return fileInfos;
   }
 
   /**
@@ -913,12 +936,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
    *                       should be returned
-   * @param statusList To be populated with the status of the files and directories requested
+   * @param batch used to store batch of the status of the files and directories requested
+   * @param batchTracker the tracker that will receive batches of statuses
    */
   private void listStatusInternal(RpcContext rpcContext, LockedInodePath currInodePath,
-      AuditContext auditContext, DescendantType descendantType, List<FileInfo> statusList)
-      throws FileDoesNotExistException, UnavailableException,
-      AccessControlException, InvalidPathException {
+      AuditContext auditContext, DescendantType descendantType, ListStatusBatch batch,
+      BatchTracker<ListStatusBatch> batchTracker) throws FileDoesNotExistException,
+      UnavailableException, AccessControlException, InvalidPathException {
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -949,15 +973,22 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
-          listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
-              statusList);
+          listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType, batch,
+              batchTracker);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{0}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
         }
       }
     }
-    statusList.add(getFileInfoInternal(currInodePath));
+    // Send the batch if it is complete.
+    if (batch.isComplete()) {
+      batchTracker.onNext(batch);
+      batch.clear();
+    }
+    // Adding the item after sending the batch will make sure,
+    // entry for the directory itself could be pruned at {@link #listStatus}.
+    batch.add(getFileInfoInternal(currInodePath));
   }
 
   /**
