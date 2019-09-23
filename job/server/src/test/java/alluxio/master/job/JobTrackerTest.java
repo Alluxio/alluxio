@@ -1,6 +1,10 @@
 package alluxio.master.job;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.exception.status.ResourceExhaustedException;
@@ -17,8 +21,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.powermock.reflect.Whitebox;
 
 import java.util.List;
+import java.util.Queue;
 
 public class JobTrackerTest {
 
@@ -103,6 +109,18 @@ public class JobTrackerTest {
     addJob(tracker, 100);
   }
 
+  @Test
+  public void testGetCoordinator() throws Exception {
+    long jobId = addJob(100);
+    assertNull("job id should not exist", mTracker.getCoordinator(-1));
+    assertNotNull("job should exit", mTracker.getCoordinator(jobId));
+    assertFalse("job should not be finished", mTracker.getCoordinator(jobId).isJobFinished());
+    finishAllJobs();
+    assertTrue("job should be finished", mTracker.getCoordinator(jobId).isJobFinished());
+    assertEquals("finished should be of size 1", 1, ((Queue)Whitebox.getInternalState(mTracker,
+        "mFinished")).size());
+  }
+
   long addJob(int sleepTimeMs) throws Exception {
     return addJob(mTracker, sleepTimeMs);
   }
@@ -123,6 +141,8 @@ public class JobTrackerTest {
       int expectedCount = initial + i;
       assertEquals(String.format("tracker should have %d job(s)", expectedCount), expectedCount,
           tracker.coordinators().size());
+      assertEquals(String.format("tracker should have %d job ids", expectedCount), expectedCount,
+          tracker.jobs().size());
     }
   }
 
