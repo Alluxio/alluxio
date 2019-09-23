@@ -670,6 +670,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_DIRECT_PERSIST_ENABLED =
+      new Builder(Name.UNDERFS_OBJECT_STORE_DIRECT_PERSIST_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("When set to false, persisting files to object stores in background"
+              + "(e.g., writing files using ASYNC_THROUGH) will first create temporary objects "
+              + "suffixed by \".alluxio.TIMESTAMP.tmp\" in the object store which will then be "
+              + "renamed to the final UFS path. When set to true, the data will be "
+              + "written to the final UFS path directly without staging in the object store first "
+              + "with a temp suffix. Note that enabling the direct persist can significantly "
+              + "speed up the async persist jobs by making less data copy on object store, but "
+              + "may also run the risk of multiple clients racing to write to the same path in "
+              + "Alluxio before the files are fully persisted.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
       new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
           .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
@@ -3806,6 +3821,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
     public static final String UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
         "alluxio.underfs.object.store.breadcrumbs.enabled";
+    public static final String UNDERFS_OBJECT_STORE_DIRECT_PERSIST_ENABLED =
+        "alluxio.underfs.object.store.direct.persist.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =

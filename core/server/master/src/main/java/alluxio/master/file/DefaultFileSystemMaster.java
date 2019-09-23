@@ -3972,7 +3972,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         cleanup(ufsResource.get(), tempUfsPath);
         // if the persist destination is on object store, let persist job copy files to destination
         // directly
-        if (ufsResource.get().isObjectStorage()) {
+        if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_DIRECT_PERSIST_ENABLED)
+            && ufsResource.get().isObjectStorage()) {
           tempUfsPath = resolution.getUri().toString();
         } else {
           tempUfsPath = PathUtils.temporaryFileName(
