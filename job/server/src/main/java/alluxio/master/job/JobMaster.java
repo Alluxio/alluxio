@@ -78,7 +78,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * The max number of jobs to purge when the master reaches maximum capacity.
    */
   private static final long MAX_PURGE_COUNT =
-      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
+      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT);
   /**
    * The total number of jobs that the JobMaster may run at any moment.
    */

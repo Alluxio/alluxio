@@ -262,8 +262,9 @@ public final class JobCoordinator {
 
       // all the tasks completed, run join
       try {
-        mJobInfo.setStatus(Status.COMPLETED);
+        // Try to join first, so that in case of failure we don't move to a completed state yet
         mJobInfo.setResult(join(taskInfoList));
+        mJobInfo.setStatus(Status.COMPLETED);
       } catch (Exception e) {
         mJobInfo.setStatus(Status.FAILED);
         mJobInfo.setErrorMessage(e.getMessage());
