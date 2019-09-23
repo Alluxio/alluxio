@@ -79,11 +79,11 @@ public final class NetworkAddressUtils {
         PropertyKey.JOB_MASTER_HOSTNAME, PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT),
 
     /**
-     * Master Raft service (Netty). When running with container virtual networking, the hostname
-     * may resolve to an address which the service cannot bind to.
+     * Master Raft service (Netty). The bind and connect hosts are the same because the
+     * underlying Raft implementation doesn't differentiate between bind and connect hosts.
      */
     MASTER_RAFT("Alluxio Master Raft service", PropertyKey.MASTER_HOSTNAME,
-        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
+        PropertyKey.MASTER_HOSTNAME, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
 
     /**
      * Job master RPC service (gRPC).

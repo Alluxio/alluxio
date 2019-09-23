@@ -88,7 +88,7 @@ public class CopycatGrpcServer implements Server {
       return mListenFuture;
     }
 
-    LOG.debug("Copycat transport server connect address: {}", address);
+    LOG.debug("Copycat transport server binding to: {}", address);
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     mListenFuture = CompletableFuture.runAsync(() -> {
       // Listener that notifies both this server instance and given listener.
@@ -98,11 +98,9 @@ public class CopycatGrpcServer implements Server {
       };
 
       // Create gRPC server.
-      InetSocketAddress rpcBindAddress = new InetSocketAddress(
-          NetworkAddressUtils.getBindHost(NetworkAddressUtils.ServiceType.MASTER_RAFT, mConf),
-          address.port());
       mGrpcServer = GrpcServerBuilder
-          .forAddress(GrpcServerAddress.create(address.host(), rpcBindAddress), mConf, mUserState)
+          .forAddress(GrpcServerAddress.create(address.host(),
+              new InetSocketAddress(address.host(), address.port())), mConf, mUserState)
           .maxInboundMessageSize((int) mConf
               .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(
