@@ -1207,7 +1207,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_DIRECTORY =
       new Builder(Name.MASTER_BACKUP_DIRECTORY)
-          .setDefaultValue(String.format("/alluxio_backups"))
+          .setDefaultValue("/alluxio_backups")
           .setDescription("Default directory for writing master metadata backups. This path is "
               + "an absolute path of the root UFS. For example, if the root ufs "
               + "directory is hdfs://host:port/alluxio/data, the default backup directory will be "
