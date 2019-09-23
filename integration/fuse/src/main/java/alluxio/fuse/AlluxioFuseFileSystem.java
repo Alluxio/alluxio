@@ -11,17 +11,9 @@
 
 package alluxio.fuse;
 
-import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.CAPACITY_BYTES;
-import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS;
-import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.FREE_BYTES;
-import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.USED_BYTES;
-import static alluxio.wire.BlockMasterInfo.BlockMasterInfoField.USED_BYTES_ON_TIERS;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -34,13 +26,10 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.wire.BlockMasterInfo;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -59,16 +48,12 @@ import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseContext;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
-import ru.serce.jnrfuse.struct.Statvfs;
 import ru.serce.jnrfuse.struct.Timespec;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -83,16 +68,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
-  /**
-   * df command will treat -1 as an unknown value.
-   */
-  @VisibleForTesting
-  public static final int UNKNOWN_INODES = -1;
-  /**
-   * Most FileSystems on linux limit the length of file name beyond 255 characters.
-   */
-  @VisibleForTesting
-  public static final int MAX_NAME_LENGTH = 255;
 
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
@@ -189,7 +164,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     if (!mIsUserGroupTranslation) {
       LOG.info("Cannot change the owner of path {}. Please set {} to be true to enable "
-          + "user group translation in Alluxio-Fuse.",
+              + "user group translation in Alluxio-Fuse.",
           path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED.getName());
       return -ErrorCodes.ENOSYS();
     }
@@ -245,24 +220,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
-<<<<<<< HEAD
-||||||| parent of a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
-      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-        LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})", path,
-            MAX_OPEN_FILES);
-        return -ErrorCodes.EMFILE();
-      }
-      FileOutStream os = mFileSystem.createFile(uri,
-          CreateFilePOptions.newBuilder()
-              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
-              .build());
-=======
-      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-        LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})", path,
-            MAX_OPEN_FILES);
-        return -ErrorCodes.EMFILE();
-      }
-      SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
+      SetAttributeOptions options = SetAttributeOptions.defaults();
       FuseContext fc = getContext();
       long uid = fc.uid.get();
       long gid = fc.gid.get();
@@ -274,7 +232,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Failed to get group name from gid {}.", gid);
           return -ErrorCodes.EFAULT();
         }
-        attributeOptionsBuilder.setGroup(groupName);
+        options.setGroup(groupName);
       }
       if (uid != UID) {
         String userName = AlluxioFuseUtils.getUserName(uid);
@@ -283,14 +241,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Failed to get user name from uid {}", uid);
           return -ErrorCodes.EFAULT();
         }
-        attributeOptionsBuilder.setOwner(userName);
+        options.setOwner(userName);
       }
-      SetAttributePOptions setAttributePOptions = attributeOptionsBuilder.build();
-      FileOutStream os = mFileSystem.createFile(uri,
-          CreateFilePOptions.newBuilder()
-              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
-              .build());
->>>>>>> a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
       synchronized (mOpenFiles) {
         if (mOpenFiles.size() >= MAX_OPEN_FILES) {
           LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", uri,
@@ -308,8 +260,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         mNextOpenFileId += 1;
       }
       if (gid != GID || uid != UID) {
-        LOG.debug("Set attributes of path {} to {}", path, setAttributePOptions);
-        mFileSystem.setAttribute(uri, setAttributePOptions);
+        LOG.debug("{} setattr {}", path, options);
+        mFileSystem.setAttribute(uri, options);
       }
       LOG.debug("{} created and opened", path);
     } catch (FileAlreadyExistsException e) {
@@ -465,35 +417,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int mkdir(String path, @mode_t long mode) {
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
-<<<<<<< HEAD
-||||||| parent of a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
-    if (turi.getName().length() > MAX_NAME_LENGTH) {
-      LOG.error("Failed to create directory {}, directory name is longer than {} characters",
-          path, MAX_NAME_LENGTH);
-      return -ErrorCodes.ENAMETOOLONG();
-    }
-=======
-    if (turi.getName().length() > MAX_NAME_LENGTH) {
-      LOG.error("Failed to create directory {}, directory name is longer than {} characters",
-          path, MAX_NAME_LENGTH);
-      return -ErrorCodes.ENAMETOOLONG();
-    }
     FuseContext fc = getContext();
     long uid = fc.uid.get();
     long gid = fc.gid.get();
->>>>>>> a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
+    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
     try {
-<<<<<<< HEAD
-      mFileSystem.createDirectory(turi, CreateDirectoryOptions.defaults().setMode(
-          new Mode((short) mode)));
-||||||| parent of a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
-      mFileSystem.createDirectory(turi,
-          CreateDirectoryPOptions.newBuilder()
-              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
-              .build());
-=======
       String groupName = AlluxioFuseUtils.getGroupName(gid);
       if (groupName.isEmpty()) {
         // This should never be reached since input gid is always valid
@@ -506,13 +435,11 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         LOG.error("Failed to get user name from uid {}", uid);
         return -ErrorCodes.EFAULT();
       }
-      mFileSystem.createDirectory(turi,
-          CreateDirectoryPOptions.newBuilder()
-              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
-              .build());
-      mFileSystem.setAttribute(turi, SetAttributePOptions.newBuilder()
-          .setOwner(userName).setGroup(groupName).build());
->>>>>>> a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
+      mFileSystem.createDirectory(turi, CreateDirectoryOptions.defaults()
+          .setMode(new Mode((short) mode)));
+      mFileSystem.setAttribute(turi, SetAttributeOptions.defaults()
+          .setOwner(userName)
+          .setGroup(groupName));
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Cannot make dir. {} already exists", path, e);
       return -ErrorCodes.EEXIST();
@@ -613,7 +540,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int read(String path, Pointer buf, @size_t long size, @off_t long offset,
-      FuseFileInfo fi) {
+                  FuseFileInfo fi) {
 
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot read more than Integer.MAX_VALUE");
@@ -675,7 +602,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int readdir(String path, Pointer buff, FuseFillDir filter,
-      @off_t long offset, FuseFileInfo fi) {
+                     @off_t long offset, FuseFileInfo fi) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
@@ -805,57 +732,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int rmdir(String path) {
     LOG.trace("rmdir({})", path);
     return rmInternal(path, false);
-  }
-
-  /**
-   * Gets the filesystem statistics.
-   *
-   * @param path The FS path of the directory
-   * @param stbuf Statistics of a filesystem
-   * @return 0 on success, a negative value on error
-   */
-  @Override
-  public int statfs(String path, Statvfs stbuf) {
-    LOG.trace("statfs({})", path);
-
-    try {
-      BlockMasterClient blockClient =
-          BlockMasterClient.Factory.create(MasterClientConfig.defaults());
-      Set<BlockMasterInfo.BlockMasterInfoField> blockMasterInfoFilter =
-          new HashSet<>(Arrays.asList(
-              CAPACITY_BYTES,
-              FREE_BYTES,
-              USED_BYTES,
-              CAPACITY_BYTES_ON_TIERS,
-              USED_BYTES_ON_TIERS));
-      BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
-
-      // although user may set different block size for different files,
-      // small block size can result more accurate compute.
-      long blockSize = 4 * Constants.KB;
-      // fs block size
-      // The size in bytes of the minimum unit of allocation on this file system
-      stbuf.f_bsize.set(blockSize);
-      // The preferred length of I/O requests for files on this file system.
-      stbuf.f_frsize.set(blockSize);
-      // total data blocks in fs
-      stbuf.f_blocks.set(blockMasterInfo.getCapacityBytes() / blockSize);
-      // free blocks in fs
-      long freeBlocks = blockMasterInfo.getFreeBytes() / blockSize;
-      stbuf.f_bfree.set(freeBlocks);
-      stbuf.f_bavail.set(freeBlocks);
-      // inode info in fs
-      // TODO(liuhongtong): support inode info
-      stbuf.f_files.set(UNKNOWN_INODES);
-      stbuf.f_ffree.set(UNKNOWN_INODES);
-      stbuf.f_favail.set(UNKNOWN_INODES);
-      // max file name length
-      stbuf.f_namemax.set(MAX_NAME_LENGTH);
-    } catch (IOException e) {
-      LOG.error("statfs({}) failed:", path, e);
-      return -ErrorCodes.EIO();
-    }
-    return 0;
   }
 
   /**
