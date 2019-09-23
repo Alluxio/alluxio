@@ -16,7 +16,6 @@ import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -141,9 +140,17 @@ public final class JobInfo implements Comparable<JobInfo> {
   }
 
   /**
+   * Sets the status of a job.
+   *
+   * A job can only move from one status to another if the job hasn't already finished. If a job
+   * is finished and the caller tries to change the status, this method is a no-op.
+   *
    * @param status the job status
    */
   public synchronized void setStatus(Status status) {
+    if (mStatus.isFinished()) {
+      return;
+    }
     Status oldStatus = mStatus;
     mStatus = status;
     mLastStatusChangeMs = CommonUtils.getCurrentMs();

@@ -16,7 +16,6 @@ import alluxio.job.TestJobConfig;
 import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.Test;
 

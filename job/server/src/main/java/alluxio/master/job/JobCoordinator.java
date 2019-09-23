@@ -23,7 +23,6 @@ import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
 import alluxio.wire.WorkerInfo;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -182,9 +181,13 @@ public final class JobCoordinator {
    *
    * @param errorMessage Error message to set for failure
    */
-  public synchronized void setJobAsFailed(String errorMessage) {
-    mJobInfo.setStatus(Status.FAILED);
-    mJobInfo.setErrorMessage(errorMessage);
+  public void setJobAsFailed(String errorMessage) {
+    synchronized (mJobInfo) {
+      if (!mJobInfo.getStatus().isFinished()) {
+        mJobInfo.setStatus(Status.FAILED);
+        mJobInfo.setErrorMessage(errorMessage);
+      }
+    }
   }
 
   /**
@@ -201,9 +204,13 @@ public final class JobCoordinator {
     if (taskInfo.getStatus().isFinished()) {
       return;
     }
-    taskInfo.setStatus(Status.FAILED);
-    taskInfo.setErrorMessage("Job worker was lost before the task could complete");
-    updateStatus();
+    synchronized (mJobInfo) {
+      if (!mJobInfo.getStatus().isFinished()) {
+        taskInfo.setStatus(Status.FAILED);
+        taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+        updateStatus();
+      }
+    }
   }
 
   /**
@@ -217,7 +224,7 @@ public final class JobCoordinator {
    * Updates the status of the job. When all the tasks are completed, run the join method in the
    * definition.
    */
-  private void updateStatus() {
+  private synchronized void updateStatus() {
     int completed = 0;
     List<TaskInfo> taskInfoList = mJobInfo.getTaskInfoList();
     for (TaskInfo info : taskInfoList) {

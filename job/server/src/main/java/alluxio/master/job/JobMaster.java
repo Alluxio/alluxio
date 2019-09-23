@@ -31,7 +31,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
-import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.meta.MasterWorkerInfo;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.AbstractMaster;
@@ -116,15 +115,13 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private final AtomicLong mNextWorkerId = new AtomicLong(CommonUtils.getCurrentMs());
 
   /**
-   * Used to generate Id for new jobs.
-   */
-  private final JobIdGenerator mJobIdGenerator;
-
-  /**
    * Manager for worker tasks.
    */
   private final CommandManager mCommandManager;
 
+  /**
+   * Manager for adding and removing jobs.
+   */
   private final JobTracker mTracker;
 
   /**
@@ -140,7 +137,6 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     super(masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
-    mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
     mTracker = new JobTracker(mCapacity, RETENTION_MS);
   }
@@ -194,7 +190,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     Context forkedCtx = Context.current().fork();
     Context prevCtx = forkedCtx.attach();
     try {
-      return mTracker.addJob(jobConfig, mJobIdGenerator, mCommandManager, mJobServerContext,
+      return mTracker.addJob(jobConfig, mCommandManager, mJobServerContext,
           getWorkerInfoList());
     } finally {
       forkedCtx.detach(prevCtx);

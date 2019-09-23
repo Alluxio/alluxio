@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream} of under storage type being async
  * persist.
- *
  */
 public final class FileOutStreamAsyncWriteIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
@@ -57,7 +56,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
-        .setRecursive(true).build());
+            .setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -111,7 +110,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   @Test
-
   @LocalAlluxioClusterResource.Config(confParams = {
       "alluxio.user.block.size.bytes.default", "256",
       "alluxio.user.file.buffer.bytes", "1k",
@@ -119,9 +117,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       "alluxio.job.master.finished.job.retention.time", "0sec",
       "alluxio.job.master.job.capacity", "500",
       "alluxio.master.replication.check.interval", "2s"
-
-  })
-
+      })
   public void badSpaceReserverTest() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     String dir = "/test";
@@ -164,14 +160,13 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       Consumer<String> callable) throws Exception {
     operands.stream().map(path -> svc.submit(() -> callable.accept(path)))
         .collect(Collectors.toList()).forEach(f -> {
-      try {
-        f.get();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    });
+          try {
+            f.get();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        });
   }
-
 
   @Test
   public void asyncWriteWithPersistWaitTime() throws Exception {
@@ -189,7 +184,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     URIStatus status = mFileSystem.getStatus(filePath);
     alluxio.worker.file.FileSystemMasterClient fsMasterClient = new
         alluxio.worker.file.FileSystemMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
 
     Assert.assertTrue(fsMasterClient.getPinList().contains(status.getFileId()));
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
