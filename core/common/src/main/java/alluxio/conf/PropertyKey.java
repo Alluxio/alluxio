@@ -3528,9 +3528,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_FINISHED_JOB_PURGE_COUNT =
       new Builder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
-          .setDescription("The maximum amount of jobs to purge at any single time when the job " +
-              "master reaches its maximum capacity. It is recommended to set this value when " +
-              "setting the capacity of the job master to a large ( > 10M) value")
+          .setDescription("The maximum amount of jobs to purge at any single time when the job "
+              + "master reaches its maximum capacity. It is recommended to set this value when "
+              + "setting the capacity of the job master to a large ( > 10M) value")
           .setDefaultValue("-1")
           .build();
   public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_TIME =

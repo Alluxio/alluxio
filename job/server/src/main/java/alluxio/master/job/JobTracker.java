@@ -84,6 +84,7 @@ public class JobTracker {
    *
    * @param capacity the capacity of jobs that can be handled
    * @param retentionMs the minimum amount of time to retain jobs
+   * @param maxJobPurgeCount the max amount of jobs to purge when reaching max capacity
    */
   public JobTracker(long capacity, long retentionMs, long maxJobPurgeCount) {
     Preconditions.checkArgument(capacity > 0);

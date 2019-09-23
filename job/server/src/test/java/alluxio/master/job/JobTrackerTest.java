@@ -15,7 +15,6 @@ import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.Lists;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,11 +46,6 @@ public class JobTrackerTest {
     mWorkers = Lists.newArrayList(new WorkerInfo());
   }
 
-  @After
-  public void after() {
-
-  }
-
   @Test
   public void testAddJobIncreaesCount() throws Exception {
     assertEquals("tracker should be empty", 0, mTracker.coordinators().size());
@@ -62,11 +56,7 @@ public class JobTrackerTest {
   @Test
   public void testAddJobUpToCapacity() throws Exception {
     assertEquals("tracker should be empty", 0, mTracker.coordinators().size());
-    for (int i = 0; i < CAPACITY; i++) {
-      addJob(100);
-      assertEquals(String.format("tracker should have %d job(s)", i+1), i+1,
-          mTracker.coordinators().size());
-    }
+    fillJobTracker(CAPACITY);
     mException.expect(ResourceExhaustedException.class);
     addJob(100);
   }
@@ -117,24 +107,24 @@ public class JobTrackerTest {
     assertFalse("job should not be finished", mTracker.getCoordinator(jobId).isJobFinished());
     finishAllJobs();
     assertTrue("job should be finished", mTracker.getCoordinator(jobId).isJobFinished());
-    assertEquals("finished should be of size 1", 1, ((Queue)Whitebox.getInternalState(mTracker,
+    assertEquals("finished should be of size 1", 1, ((Queue) Whitebox.getInternalState(mTracker,
         "mFinished")).size());
   }
 
-  long addJob(int sleepTimeMs) throws Exception {
+  private long addJob(int sleepTimeMs) throws Exception {
     return addJob(mTracker, sleepTimeMs);
   }
 
-  long addJob(JobTracker tracker, int sleepTimeMs) throws Exception {
+  private long addJob(JobTracker tracker, int sleepTimeMs) throws Exception {
     return tracker.addJob(new SleepJobConfig(sleepTimeMs), mMockCommandManager,
         mMockJobServerContext, mWorkers);
   }
 
-  void fillJobTracker(long nJobs) throws Exception {
+  private void fillJobTracker(long nJobs) throws Exception {
     fillJobTracker(mTracker, nJobs);
   }
 
-  void fillJobTracker(JobTracker tracker,  long nJobs) throws Exception {
+  private void fillJobTracker(JobTracker tracker,  long nJobs) throws Exception {
     int initial = tracker.coordinators().size();
     for (int i = 1; i <= nJobs; i++) {
       addJob(tracker, 100);
@@ -146,14 +136,13 @@ public class JobTrackerTest {
     }
   }
 
-  void finishAllJobs() {
+  private void finishAllJobs() {
     // Put all jobs in a failed state
     finishAllJobs(mTracker);
   }
 
-  void finishAllJobs(JobTracker tracker) {
+  private void finishAllJobs(JobTracker tracker) {
     // Put all jobs in a failed state
     tracker.coordinators().forEach(c -> c.setJobAsFailed("failed for test"));
   }
-
 }
