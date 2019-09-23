@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -97,8 +98,8 @@ public class CopycatGrpcServer implements Server {
 
       // Create gRPC server.
       mGrpcServer = GrpcServerBuilder
-          .forAddress(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf,
-              mUserState)
+          .forAddress(GrpcServerAddress.create(address.host(),
+              new InetSocketAddress(address.host(), address.port())), mConf, mUserState)
           .maxInboundMessageSize((int) mConf
               .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(
