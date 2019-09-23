@@ -19,7 +19,6 @@ import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.security.user.UserState;
-import alluxio.util.network.NetworkAddressUtils;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.transport.Address;
