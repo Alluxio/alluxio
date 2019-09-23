@@ -14,6 +14,7 @@ import alluxio.master.job.command.CommandManager;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,13 +86,15 @@ public class JobTracker {
    * @param retentionMs the minimum amount of time to retain jobs
    */
   public JobTracker(long capacity, long retentionMs, long maxJobPurgeCount) {
+    Preconditions.checkArgument(capacity > 0);
     mCapacity = capacity;
+    Preconditions.checkArgument(retentionMs >= 0);
     mRetentionMs = retentionMs;
+    mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
     mFinished = new LinkedBlockingQueue<>();
     mJobIdGenerator = new JobIdGenerator();
-    mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
   }
 
   private void statusChangeCallback(JobInfo jobInfo) {
@@ -162,7 +165,7 @@ public class JobTracker {
         return false;
       }
       int removeCount = 0;
-      while (!mFinished.isEmpty() || removeCount > mMaxJobPurgeCount) {
+      while (!mFinished.isEmpty() && removeCount < mMaxJobPurgeCount) {
         JobInfo oldestJob = mFinished.peek();
         if (oldestJob == null) { // no items to remove
           break;
