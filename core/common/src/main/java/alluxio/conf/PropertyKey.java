@@ -661,9 +661,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OBJECT_BREADCRUMBS_ENABLED =
-      new Builder(Name.UNDERFS_OBJECT_BREADCRUMBS_ENABLED)
-          .setAlias("alluxio.underfs.object.breadcrumbs.enabled")
+  public static final PropertyKey UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
+      new Builder(Name.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)
           .setDefaultValue(true)
           .setDescription("Set this to false to prevent Alluxio from creating zero byte objects "
               + "during read or list operations on object store UFS. Leaving this on enables more"
@@ -3718,8 +3717,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_WEB_PARENT_NAMES = "alluxio.underfs.web.parent.names";
     public static final String UNDERFS_WEB_TITLES = "alluxio.underfs.web.titles";
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
-    public static final String UNDERFS_OBJECT_BREADCRUMBS_ENABLED =
-            "alluxio.underfs.object.breadcrumbs.enabled";
+    public static final String UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
+        "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
