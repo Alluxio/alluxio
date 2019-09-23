@@ -51,6 +51,7 @@ import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
+import ru.serce.jnrfuse.struct.FuseContext;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 import ru.serce.jnrfuse.struct.Timespec;
@@ -277,6 +278,30 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
             MAX_OPEN_FILES);
         return -ErrorCodes.EMFILE();
       }
+      SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
+      FuseContext fc = getContext();
+      long uid = fc.uid.get();
+      long gid = fc.gid.get();
+
+      if (gid != GID) {
+        String groupName = AlluxioFuseUtils.getGroupName(gid);
+        if (groupName.isEmpty()) {
+          // This should never be reached since input gid is always valid
+          LOG.error("Failed to get group name from gid {}.", gid);
+          return -ErrorCodes.EFAULT();
+        }
+        attributeOptionsBuilder.setGroup(groupName);
+      }
+      if (uid != UID) {
+        String userName = AlluxioFuseUtils.getUserName(uid);
+        if (userName.isEmpty()) {
+          // This should never be reached since input uid is always valid
+          LOG.error("Failed to get user name from uid {}", uid);
+          return -ErrorCodes.EFAULT();
+        }
+        attributeOptionsBuilder.setOwner(userName);
+      }
+      SetAttributePOptions setAttributePOptions = attributeOptionsBuilder.build();
       FileOutStream os = mFileSystem.createFile(uri,
           CreateFilePOptions.newBuilder()
               .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
@@ -287,6 +312,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
+      }
+      if (gid != GID || uid != UID) {
+        LOG.debug("Set attributes of path {} to {}", path, setAttributePOptions);
+        mFileSystem.setAttribute(uri, setAttributePOptions);
       }
       LOG.debug("{} created and opened", path);
     } catch (FileAlreadyExistsException e) {
@@ -422,18 +451,34 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int mkdir(String path, @mode_t long mode) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    final String name = turi.getName();
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
     if (turi.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to create directory {}, directory name is longer than {} characters",
           path, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
+    FuseContext fc = getContext();
+    long uid = fc.uid.get();
+    long gid = fc.gid.get();
     try {
+      String groupName = AlluxioFuseUtils.getGroupName(gid);
+      if (groupName.isEmpty()) {
+        // This should never be reached since input gid is always valid
+        LOG.error("Failed to get group name from gid {}.", gid);
+        return -ErrorCodes.EFAULT();
+      }
+      String userName = AlluxioFuseUtils.getUserName(uid);
+      if (userName.isEmpty()) {
+        // This should never be reached since input uid is always valid
+        LOG.error("Failed to get user name from uid {}", uid);
+        return -ErrorCodes.EFAULT();
+      }
       mFileSystem.createDirectory(turi,
           CreateDirectoryPOptions.newBuilder()
               .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
               .build());
+      mFileSystem.setAttribute(turi, SetAttributePOptions.newBuilder()
+          .setOwner(userName).setGroup(groupName).build());
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Failed to create directory {}, directory already exists", path);
       return -ErrorCodes.EEXIST();
