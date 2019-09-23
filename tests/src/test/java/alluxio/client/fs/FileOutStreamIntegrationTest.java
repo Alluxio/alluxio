@@ -194,6 +194,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests canceling after multiple blocks have been written correctly cleans up temporary worker
    * resources.
    */
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_WORKER_HEARTBEAT_INTERVAL, "250ms"})
   @Test
   public void cancelWrite() throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
