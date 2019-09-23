@@ -368,7 +368,9 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     }
     for (Map.Entry<Long, List<TaskInfo>> taskInfosPair : taskInfosPerJob.entrySet()) {
       JobCoordinator jobCoordinator = mIdToJobCoordinator.get(taskInfosPair.getKey());
-      jobCoordinator.updateTasks(taskInfosPair.getValue());
+      if (jobCoordinator != null) {
+        jobCoordinator.updateTasks(taskInfosPair.getValue());
+      }
     }
     return mCommandManager.pollAllPendingCommands(workerId);
   }
