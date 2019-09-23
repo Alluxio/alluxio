@@ -3526,6 +3526,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "job master.")
           .setDefaultValue(1024)
           .build();
+  public static final PropertyKey JOB_MASTER_FINISHED_JOB_PURGE_COUNT =
+      new Builder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
+          .setDescription("The maximum amount of jobs to purge at any single time when the job " +
+              "master reaches its maximum capacity. It is recommended to set this value when " +
+              "setting the capacity of the job master to a large ( > 10M) value")
+          .setDefaultValue("-1")
+          .build();
   public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
       new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME)
           .setDescription("The length of time the Alluxio Job Master should save information about "
@@ -4370,6 +4377,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String JOB_MASTER_CLIENT_THREADS =
         "alluxio.job.master.client.threads";
+    public static final String JOB_MASTER_FINISHED_JOB_PURGE_COUNT =
+        "alluxio.job.master.finished.job.purge.count";
     public static final String JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
         "alluxio.job.master.finished.job.retention.time";
     public static final String JOB_MASTER_JOB_CAPACITY = "alluxio.job.master.job.capacity";

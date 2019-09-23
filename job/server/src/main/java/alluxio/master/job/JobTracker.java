@@ -37,6 +37,23 @@ public class JobTracker {
   private static final Logger LOG = LoggerFactory.getLogger(JobTracker.class);
 
   /**
+   * The maximum amount of jobs that will get purged when removing jobs from the queue.
+   *
+   * By default this value will be -1 (unlimited), however situations may arise where it is
+   * desirable to cap the amount of jobs removed. A scenario where the max capacity is large
+   * (10M+) could cause an RPC to the job master to time out due to significant time to remove a
+   * large number of jobs. While one RPC of 10M may seem insignificant, providing guarantees that
+   * RPCs won't fail on long-running production clusters is probably something that we want to
+   * provide.
+   *
+   * One caveat to setting this value is that there will be a lower bound on the amount of
+   * memory that the job master will use when it is at capacity. This may or may not be a
+   * reasonable trade-off to guarantee that RPCs don't time out due to job eviction.
+   * @see PropertyKey#JOB_MASTER_FINISHED_JOB_PURGE_COUNT
+   */
+  private final long mMaxJobPurgeCount;
+
+  /**
    * The maximum amount of jobs that can be tracked at any one time.
    */
   private final long mCapacity;
@@ -67,13 +84,14 @@ public class JobTracker {
    * @param capacity the capacity of jobs that can be handled
    * @param retentionMs the minimum amount of time to retain jobs
    */
-  public JobTracker(long capacity, long retentionMs) {
+  public JobTracker(long capacity, long retentionMs, long maxJobPurgeCount) {
     mCapacity = capacity;
     mRetentionMs = retentionMs;
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
     mFinished = new LinkedBlockingQueue<>();
     mJobIdGenerator = new JobIdGenerator();
+    mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
   }
 
   private void statusChangeCallback(JobInfo jobInfo) {
@@ -117,7 +135,7 @@ public class JobTracker {
   public synchronized long addJob(JobConfig jobConfig, CommandManager manager,
       JobServerContext ctx, List<WorkerInfo> workers) throws
       JobDoesNotExistException, ResourceExhaustedException {
-    if (removeFinished(mCoordinators.size() >= mCapacity, -1)) {
+    if (removeFinished()) {
       long jobId = mJobIdGenerator.getNewJobId();
       JobCoordinator jobCoordinator = JobCoordinator.create(manager, ctx,
           workers, jobId, jobConfig, this::statusChangeCallback);
@@ -132,12 +150,11 @@ public class JobTracker {
   /**
    * Removes all finished jobs outside of the retention time from the queue.
    *
-   * @param isFull whether or not the job tracker is currently full
-   * @param limit the max number of jobs which should be removed, -1 for unlimited
    * @return true if at least one job was removed, or if the initial
    */
-  private synchronized boolean removeFinished(boolean isFull, int limit) {
+  private synchronized boolean removeFinished() {
     boolean removedJob = false;
+    boolean isFull = mCoordinators.size() >= mCapacity;
     if (isFull) { // coordinators at max capacity
       // Try to clear the queue
       if (mFinished.isEmpty()) {
@@ -145,8 +162,7 @@ public class JobTracker {
         return false;
       }
       int removeCount = 0;
-      int removeLimit = limit == -1 ? Integer.MAX_VALUE : limit;
-      while (!mFinished.isEmpty() || removeCount > removeLimit) {
+      while (!mFinished.isEmpty() || removeCount > mMaxJobPurgeCount) {
         JobInfo oldestJob = mFinished.peek();
         if (oldestJob == null) { // no items to remove
           break;
@@ -175,6 +191,7 @@ public class JobTracker {
           LOG.warn("Did not find a coordinator with id {}", oldestJob.getId());
         } else {
           removedJob = true;
+          removeCount++;
         }
       }
     }

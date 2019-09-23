@@ -68,8 +68,22 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
+
+  /**
+   * The minimum amount of time to retain finished jobs.
+   */
   private static final long RETENTION_MS =
       ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
+  /**
+   * The max number of jobs to purge when the master reaches maximum capacity.
+   */
+  private static final long MAX_PURGE_COUNT =
+      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
+  /**
+   * The total number of jobs that the JobMaster may run at any moment.
+   */
+  private static final long JOB_CAPACITY =
+      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
 
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =
@@ -92,11 +106,6 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * The Filesystem context that the job master uses for its client.
    */
   private final JobServerContext mJobServerContext;
-
-  /**
-   * The total number of jobs that the JobMaster may run at any moment.
-   */
-  private final long mCapacity = ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
 
   /**
    * All worker information. Access must be controlled on mWorkers using the RW lock(mWorkerRWLock).
@@ -138,7 +147,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mCommandManager = new CommandManager();
-    mTracker = new JobTracker(mCapacity, RETENTION_MS);
+    mTracker = new JobTracker(JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
   }
 
   @Override
