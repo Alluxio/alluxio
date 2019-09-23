@@ -83,8 +83,8 @@ public final class HeartbeatThread implements Runnable {
 
   /**
    * Convenience method for
-   * {@link #HeartbeatThread(String, String, HeartbeatExecutor, long, AlluxioConfiguration)} where
-   * threadId is null.
+   * {@link #HeartbeatThread(String, String, HeartbeatExecutor, long, AlluxioConfiguration, UserState)}
+   * where threadId is null.
    *
    * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
    * @param executor the heartbeat executor
