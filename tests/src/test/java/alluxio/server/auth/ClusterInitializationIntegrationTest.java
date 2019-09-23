@@ -20,7 +20,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.PermissionDeniedException;
-import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.security.authentication.AuthType;
@@ -28,6 +27,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.TestUserState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.master.FsMasterResource;
 import alluxio.testutils.master.MasterTestUtils;
 
 import org.junit.Rule;
@@ -80,13 +80,14 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
     mLocalAlluxioClusterResource.get().stopFS();
 
     // user alluxio can recover master from journal
-    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-    FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
+    try (FsMasterResource masterResource = MasterTestUtils
+        .createLeaderFileSystemMasterFromJournal()) {
+      FileSystemMaster fileSystemMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
-    AuthenticatedClientUser.set(SUPER_USER);
-    assertEquals(SUPER_USER, fileSystemMaster
-        .getFileInfo(new AlluxioURI("/testFile"), GetStatusContext.defaults()).getOwner());
-    registry.stop();
+      AuthenticatedClientUser.set(SUPER_USER);
+      assertEquals(SUPER_USER, fileSystemMaster
+          .getFileInfo(new AlluxioURI("/testFile"), GetStatusContext.defaults()).getOwner());
+    }
   }
 
   /**
@@ -106,6 +107,6 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
         .getMessage("Unauthorized user on root"));
     // user jack cannot recover master from journal, in which the root is owned by alluxio.
     MasterTestUtils.createLeaderFileSystemMasterFromJournal(
-        new TestUserState(USER, ServerConfiguration.global()));
+        new TestUserState(USER, ServerConfiguration.global())).close();
   }
 }

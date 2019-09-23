@@ -20,10 +20,10 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.master.FsMasterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.testutils.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystem;
@@ -248,17 +248,19 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   @Test
   public void mountAfterMasterRestart() throws Exception {
     mLocalAlluxioCluster.stopFS();
-    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-    Map<String, MountPointInfo> mountTable = fsMaster.getMountTable();
-    Assert.assertTrue(mountTable.containsKey(MOUNT_POINT1));
-    Assert.assertTrue(mountTable.containsKey(MOUNT_POINT2));
-    MountPointInfo mountPointInfo1 = mountTable.get(MOUNT_POINT1);
-    MountPointInfo mountPointInfo2 = mountTable.get(MOUNT_POINT2);
-    Assert.assertEquals(mUfsUri1, mountPointInfo1.getUfsUri());
-    Assert.assertEquals(mUfsUri2, mountPointInfo2.getUfsUri());
-    Assert.assertEquals(UFS_CONF1, mountPointInfo1.getProperties());
-    Assert.assertEquals(UFS_CONF2, mountPointInfo2.getProperties());
+    try (FsMasterResource masterResource = MasterTestUtils
+        .createLeaderFileSystemMasterFromJournal()) {
+      FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
+      Map<String, MountPointInfo> mountTable = fsMaster.getMountTable();
+      Assert.assertTrue(mountTable.containsKey(MOUNT_POINT1));
+      Assert.assertTrue(mountTable.containsKey(MOUNT_POINT2));
+      MountPointInfo mountPointInfo1 = mountTable.get(MOUNT_POINT1);
+      MountPointInfo mountPointInfo2 = mountTable.get(MOUNT_POINT2);
+      Assert.assertEquals(mUfsUri1, mountPointInfo1.getUfsUri());
+      Assert.assertEquals(mUfsUri2, mountPointInfo2.getUfsUri());
+      Assert.assertEquals(UFS_CONF1, mountPointInfo1.getProperties());
+      Assert.assertEquals(UFS_CONF2, mountPointInfo2.getProperties());
+    }
   }
 
   @Test
@@ -285,16 +287,19 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   public void mountWithCredentials() throws Exception {
     MountPOptions options3 = MountPOptions.newBuilder().putAllProperties(UFS_CONF3).build();
     mFileSystem.mount(mMountPoint3, new AlluxioURI(mUfsUri3), options3);
-    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-    Map<String, MountPointInfo> mountTable = fsMaster.getMountTable();
-    Assert.assertTrue(mountTable.containsKey(MOUNT_POINT3));
-    MountPointInfo mountPointInfo3 = mountTable.get(MOUNT_POINT3);
-    Assert.assertEquals(mUfsUri3, mountPointInfo3.getUfsUri());
-    Assert.assertEquals(UFS_CONF3.size(), mountPointInfo3.getProperties().size());
-    Assert.assertTrue(mountPointInfo3.getProperties().containsKey(PropertyKey.Name.S3A_ACCESS_KEY));
-    Assert.assertNotEquals(UFS_CONF3.get(PropertyKey.Name.S3A_ACCESS_KEY),
-        mountPointInfo3.getProperties().get(PropertyKey.Name.S3A_ACCESS_KEY));
+    try (FsMasterResource masterResource = MasterTestUtils
+        .createLeaderFileSystemMasterFromJournal()) {
+      FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
+      Map<String, MountPointInfo> mountTable = fsMaster.getMountTable();
+      Assert.assertTrue(mountTable.containsKey(MOUNT_POINT3));
+      MountPointInfo mountPointInfo3 = mountTable.get(MOUNT_POINT3);
+      Assert.assertEquals(mUfsUri3, mountPointInfo3.getUfsUri());
+      Assert.assertEquals(UFS_CONF3.size(), mountPointInfo3.getProperties().size());
+      Assert
+          .assertTrue(mountPointInfo3.getProperties().containsKey(PropertyKey.Name.S3A_ACCESS_KEY));
+      Assert.assertNotEquals(UFS_CONF3.get(PropertyKey.Name.S3A_ACCESS_KEY),
+          mountPointInfo3.getProperties().get(PropertyKey.Name.S3A_ACCESS_KEY));
+    }
   }
 
   @Test
