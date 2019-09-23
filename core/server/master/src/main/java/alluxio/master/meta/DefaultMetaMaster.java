@@ -51,6 +51,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -356,41 +357,20 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   public BackupResponse backup(BackupPOptions options) throws IOException {
     String dir = options.hasTargetDirectory() ? options.getTargetDirectory()
         : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-<<<<<<< HEAD
-    UnderFileSystem ufs = mUfs;
-    if (options.getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
-      ufs = UnderFileSystem.Factory.create("/",
-          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
-      LOG.info("Backing up to local filesystem in directory {}", dir);
-    } else {
-      LOG.info("Backing up to root UFS in directory {}", dir);
-    }
-    if (!ufs.isDirectory(dir)) {
-      if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
-          .setCreateParent(true))) {
-        throw new IOException(String.format("Failed to create directory %s", dir));
-      }
-    }
-    String backupFilePath;
-    AtomicLong entryCount = new AtomicLong(0);
-    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
-      Instant now = Instant.now();
-      String backupFileName = String.format(BackupManager.BACKUP_FILE_FORMAT,
-          DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
-          now.toEpochMilli());
-      backupFilePath = PathUtils.concatPath(dir, backupFileName);
-      try {
-        try (OutputStream ufsStream = ufs.create(backupFilePath)) {
-          mBackupManager.backup(ufsStream, entryCount);
-=======
     try (CloseableResource<UnderFileSystem> ufsResource =
              mUfsManager.getRoot().acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
+      if (options.getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
+        ufs = UnderFileSystem.Factory.create("/",
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+        LOG.info("Backing up to local filesystem in directory {}", dir);
+      } else {
+        LOG.info("Backing up to root UFS in directory {}", dir);
+      }
       if (!ufs.isDirectory(dir)) {
         if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
             .setCreateParent(true))) {
           throw new IOException(String.format("Failed to create directory %s", dir));
->>>>>>> 8d263b3aaeb52a171799a77e25c93d90a48aeee2
         }
       }
       String backupFilePath;
