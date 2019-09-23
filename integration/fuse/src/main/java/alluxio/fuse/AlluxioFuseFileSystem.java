@@ -57,6 +57,7 @@ import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
+import ru.serce.jnrfuse.struct.FuseContext;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 import ru.serce.jnrfuse.struct.Timespec;
@@ -244,6 +245,52 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
+<<<<<<< HEAD
+||||||| parent of a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
+      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
+        LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})", path,
+            MAX_OPEN_FILES);
+        return -ErrorCodes.EMFILE();
+      }
+      FileOutStream os = mFileSystem.createFile(uri,
+          CreateFilePOptions.newBuilder()
+              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .build());
+=======
+      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
+        LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})", path,
+            MAX_OPEN_FILES);
+        return -ErrorCodes.EMFILE();
+      }
+      SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
+      FuseContext fc = getContext();
+      long uid = fc.uid.get();
+      long gid = fc.gid.get();
+
+      if (gid != GID) {
+        String groupName = AlluxioFuseUtils.getGroupName(gid);
+        if (groupName.isEmpty()) {
+          // This should never be reached since input gid is always valid
+          LOG.error("Failed to get group name from gid {}.", gid);
+          return -ErrorCodes.EFAULT();
+        }
+        attributeOptionsBuilder.setGroup(groupName);
+      }
+      if (uid != UID) {
+        String userName = AlluxioFuseUtils.getUserName(uid);
+        if (userName.isEmpty()) {
+          // This should never be reached since input uid is always valid
+          LOG.error("Failed to get user name from uid {}", uid);
+          return -ErrorCodes.EFAULT();
+        }
+        attributeOptionsBuilder.setOwner(userName);
+      }
+      SetAttributePOptions setAttributePOptions = attributeOptionsBuilder.build();
+      FileOutStream os = mFileSystem.createFile(uri,
+          CreateFilePOptions.newBuilder()
+              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .build());
+>>>>>>> a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
       synchronized (mOpenFiles) {
         if (mOpenFiles.size() >= MAX_OPEN_FILES) {
           LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", uri,
@@ -259,6 +306,10 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
+      }
+      if (gid != GID || uid != UID) {
+        LOG.debug("Set attributes of path {} to {}", path, setAttributePOptions);
+        mFileSystem.setAttribute(uri, setAttributePOptions);
       }
       LOG.debug("{} created and opened", path);
     } catch (FileAlreadyExistsException e) {
@@ -416,9 +467,52 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int mkdir(String path, @mode_t long mode) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
+<<<<<<< HEAD
+||||||| parent of a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
+    if (turi.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to create directory {}, directory name is longer than {} characters",
+          path, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
+=======
+    if (turi.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to create directory {}, directory name is longer than {} characters",
+          path, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
+    FuseContext fc = getContext();
+    long uid = fc.uid.get();
+    long gid = fc.gid.get();
+>>>>>>> a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
     try {
+<<<<<<< HEAD
       mFileSystem.createDirectory(turi, CreateDirectoryOptions.defaults().setMode(
           new Mode((short) mode)));
+||||||| parent of a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
+      mFileSystem.createDirectory(turi,
+          CreateDirectoryPOptions.newBuilder()
+              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .build());
+=======
+      String groupName = AlluxioFuseUtils.getGroupName(gid);
+      if (groupName.isEmpty()) {
+        // This should never be reached since input gid is always valid
+        LOG.error("Failed to get group name from gid {}.", gid);
+        return -ErrorCodes.EFAULT();
+      }
+      String userName = AlluxioFuseUtils.getUserName(uid);
+      if (userName.isEmpty()) {
+        // This should never be reached since input uid is always valid
+        LOG.error("Failed to get user name from uid {}", uid);
+        return -ErrorCodes.EFAULT();
+      }
+      mFileSystem.createDirectory(turi,
+          CreateDirectoryPOptions.newBuilder()
+              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .build());
+      mFileSystem.setAttribute(turi, SetAttributePOptions.newBuilder()
+          .setOwner(userName).setGroup(groupName).build());
+>>>>>>> a3987c6527... Support true owner and group by Alluxio FUSE with allow_other options
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Cannot make dir. {} already exists", path, e);
       return -ErrorCodes.EEXIST();
