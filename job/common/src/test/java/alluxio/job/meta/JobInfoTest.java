@@ -26,12 +26,12 @@ public final class JobInfoTest {
     JobConfig jobConfig = new TestJobConfig("unused");
     JobInfo a = new JobInfo(0L, jobConfig, null);
     CommonUtils.sleepMs(1);
-    JobInfo b = new JobInfo(0L, jobConfig, null);
+    JobInfo b = new JobInfo(1L, jobConfig, null);
     Assert.assertEquals(-1, a.compareTo(b));
     b.setStatus(Status.RUNNING);
     CommonUtils.sleepMs(1);
     a.setStatus(Status.RUNNING);
-    Assert.assertEquals(1, a.compareTo(b));
+    Assert.assertEquals(-1, a.compareTo(b));
     a.setStatus(Status.COMPLETED);
     CommonUtils.sleepMs(1);
     b.setStatus(Status.COMPLETED);
