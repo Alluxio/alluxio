@@ -11,6 +11,7 @@
 
 package alluxio.master.catalog;
 
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.Schema;
 import alluxio.table.common.udb.UdbContext;
@@ -88,8 +89,12 @@ public class Database {
    * @param tableName the table name
    * @return the {@link Table} for the specified table name
    */
-  public Table getTable(String tableName) {
-    return mTables.get(tableName);
+  public Table getTable(String tableName) throws NotFoundException {
+    Table table = mTables.get(tableName);
+    if (table == null) {
+      throw new NotFoundException("Table does not exist: " + tableName);
+    }
+    return table;
   }
 
   /**
