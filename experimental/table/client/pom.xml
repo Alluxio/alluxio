@@ -36,6 +36,10 @@
       <artifactId>netty-all</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport-native-unix-common</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
