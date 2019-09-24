@@ -129,7 +129,7 @@ public class AlluxioCatalog {
   private Database getDatabaseByName(String dbName) throws NotFoundException {
     Database db = mDBs.get(dbName);
     if (db == null) {
-      throw new NotFoundException(String.format("Database %s does not exist", dbName));
+      throw new NotFoundException("Database " + dbName + " does not exist");
     }
     return db;
   }

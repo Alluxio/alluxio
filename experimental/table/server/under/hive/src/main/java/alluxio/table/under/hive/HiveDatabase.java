@@ -184,7 +184,7 @@ public class HiveDatabase implements UnderDatabase {
           Collections.singletonMap("unpartitioned", builder.build()),
           HiveUtils.toProto(table.getPartitionKeys()), partitions, table);
     } catch (InvalidTableException e) {
-      throw new NotFoundException("Table " + tableName + " not found", e);
+      throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     } catch (AlluxioException e) {

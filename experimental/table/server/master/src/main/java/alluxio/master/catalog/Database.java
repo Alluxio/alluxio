@@ -92,7 +92,7 @@ public class Database {
   public Table getTable(String tableName) throws NotFoundException {
     Table table = mTables.get(tableName);
     if (table == null) {
-      throw new NotFoundException("Table does not exist: " + tableName);
+      throw new NotFoundException("Table " + tableName + " does not exist.");
     }
     return table;
   }
