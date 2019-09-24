@@ -22,6 +22,9 @@ import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.meta.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -104,16 +107,25 @@ public class JobTracker {
       return;
     }
     Status status = jobInfo.getStatus();
-    if (status.isFinished()) {
-      if (!mFinished.offer(jobInfo)) {
-        LOG.warn("Failed to add job to finished queue");
-        // TODO(zac) If adding to the finished queue fails, should we wait and retry?
-        // Because capacity is not specified, max capacity is around Integer.MAX_INT
-        // One option is to at this point just immediately remove from tracking so we don't
-        // end up with ghost jobs, or provide some way through the REST API to remove jobs from
-        // mCoordinators at runtime
+    if (!status.isFinished()) {
+      return;
+    }
+    // Retry if offering to mFinished doesn't work
+    for (int i = 0; i < 2; i++) {
+      if (mFinished.offer(jobInfo)) {
+        return;
+      }
+      if (!removeFinished()) {
+        // Still couldn't add to mFinished - remove from coordinators so that it doesn't
+        // get stuck
+        LOG.warn("Failed to remove any jobs from the finished queue in status change callback");
       }
     }
+    // If the program reaches here, adding to the queue failed, even after attempting to purge
+    // old jobs - remove from the coordinator map preemptively so that it doesn't get lost
+    // forever even if it's still within the retention time
+    LOG.warn("Failed to offer job id {} to finished queue, removing from tracking preemptively",
+        jobInfo.getId());
   }
 
   /**
