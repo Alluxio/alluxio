@@ -3970,7 +3970,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         // If previous persist job failed, clean up the temporary file.
         cleanup(ufsResource.get(), tempUfsPath);
-        // if the persist destination is on object store, let persist job copy files to destination
+        // Generate a temporary path to be used by the persist job.
+        // If the persist destination is on object store, let persist job copy files to destination
         // directly
         if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_DIRECT_PERSIST_ENABLED)
             && ufsResource.get().isObjectStorage()) {
@@ -3981,7 +3982,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         }
       }
 
-      // Generate a temporary path to be used by the persist job.
       alluxio.job.persist.PersistConfig config =
           new alluxio.job.persist.PersistConfig(uri.getPath(), resolution.getMountId(), false,
               tempUfsPath);
