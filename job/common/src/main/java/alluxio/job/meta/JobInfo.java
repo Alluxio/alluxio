@@ -16,13 +16,14 @@ import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,14 +32,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class JobInfo implements Comparable<JobInfo> {
+  private String mErrorMessage;
   private final long mId;
   private final JobConfig mJobConfig;
-  private final Map<Integer, TaskInfo> mTaskIdToInfo;
-  private long mLastStatusChangeMs;
-  private String mErrorMessage;
-  private Status mStatus;
-  private Function<JobInfo, Void> mStatusChangeCallback;
+  private volatile long mLastStatusChangeMs;
   private String mResult;
+  private volatile Status mStatus;
+  private Consumer<JobInfo> mStatusChangeCallback;
+  private final Map<Integer, TaskInfo> mTaskIdToInfo;
 
   /**
    * Creates a new instance of {@link JobInfo}.
@@ -47,7 +48,7 @@ public final class JobInfo implements Comparable<JobInfo> {
    * @param jobConfig the job configuration
    * @param statusChangeCallback the callback to invoke upon status change
    */
-  public JobInfo(long id, JobConfig jobConfig, Function<JobInfo, Void> statusChangeCallback) {
+  public JobInfo(long id, JobConfig jobConfig, Consumer<JobInfo> statusChangeCallback) {
     mId = id;
     mJobConfig = Preconditions.checkNotNull(jobConfig);
     mTaskIdToInfo = Maps.newHashMap();
@@ -60,11 +61,17 @@ public final class JobInfo implements Comparable<JobInfo> {
   /**
    * {@inheritDoc}
    *
-   * This method orders jobs using the time their status was last modified.
+   * This method orders jobs using the time their status was last modified. If the status is
+   * equal, they are compared by jobId
    */
   @Override
   public synchronized int compareTo(JobInfo other) {
-    return Long.compare(mLastStatusChangeMs, other.getLastStatusChangeMs());
+    int res = Long.compare(mLastStatusChangeMs, other.mLastStatusChangeMs);
+    if (res != 0) {
+      return res;
+    }
+    // Order by jobId as a secondary measure
+    return Long.compare(mId, other.mId);
   }
 
   /**
@@ -139,14 +146,22 @@ public final class JobInfo implements Comparable<JobInfo> {
   }
 
   /**
+   * Sets the status of a job.
+   *
+   * A job can only move from one status to another if the job hasn't already finished. If a job
+   * is finished and the caller tries to change the status, this method is a no-op.
+   *
    * @param status the job status
    */
   public synchronized void setStatus(Status status) {
+    if (mStatus.isFinished()) {
+      return;
+    }
     Status oldStatus = mStatus;
     mStatus = status;
     mLastStatusChangeMs = CommonUtils.getCurrentMs();
     if (mStatusChangeCallback != null && status != oldStatus) {
-      mStatusChangeCallback.apply(this);
+      mStatusChangeCallback.accept(this);
     }
   }
 
@@ -176,5 +191,24 @@ public final class JobInfo implements Comparable<JobInfo> {
    */
   public synchronized List<TaskInfo> getTaskInfoList() {
     return Lists.newArrayList(mTaskIdToInfo.values());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof JobInfo)) {
+      return false;
+    }
+
+    JobInfo other = (JobInfo) o;
+    return Objects.equal(mId, other.mId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mId);
   }
 }

@@ -26,7 +26,6 @@ import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.underfs.UfsManager;
 
-import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -133,10 +132,11 @@ public final class JobMasterTest {
   @Test
   public void cancel() throws Exception {
     JobCoordinator coordinator = Mockito.mock(JobCoordinator.class);
-    Map<Long, JobCoordinator> map = Maps.newHashMap();
     long jobId = 1L;
-    map.put(jobId, coordinator);
-    Whitebox.setInternalState(mJobMaster, "mIdToJobCoordinator", map);
+    JobTracker tracker = new JobTracker(10, 0, -1);
+    ((Map<Long, JobCoordinator>) Whitebox.getInternalState(tracker, "mCoordinators"))
+        .put(jobId, coordinator);
+    Whitebox.setInternalState(mJobMaster, "mTracker", tracker);
     mJobMaster.cancel(jobId);
     Mockito.verify(coordinator).cancel();
   }
