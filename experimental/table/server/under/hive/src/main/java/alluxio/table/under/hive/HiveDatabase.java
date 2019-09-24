@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ColumnStatistics;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileStatistics;
@@ -32,6 +33,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.iceberg.catalog.TableIdentifier;
@@ -181,6 +183,8 @@ public class HiveDatabase implements UnderDatabase {
           HiveUtils.toProtoSchema(table.getAllCols()), tableUri.getPath(),
           Collections.singletonMap("unpartitioned", builder.build()),
           HiveUtils.toProto(table.getPartitionKeys()), partitions, table);
+    } catch (InvalidTableException e) {
+      throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     } catch (AlluxioException e) {

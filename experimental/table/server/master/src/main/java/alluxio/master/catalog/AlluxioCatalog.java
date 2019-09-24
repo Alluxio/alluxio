@@ -14,6 +14,7 @@ package alluxio.master.catalog;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.AllOrNoneSet;
 import alluxio.grpc.Constraint;
 import alluxio.grpc.Domain;
@@ -98,10 +99,7 @@ public class AlluxioCatalog {
    */
   public Table createTable(String dbName, String tableName, alluxio.grpc.Schema schema)
       throws IOException {
-    Database db = mDBs.get(dbName);
-    if (db == null) {
-      throw new IOException("Database name does not exist: " + dbName);
-    }
+    Database db = getDatabaseByName(dbName);
     return db.createTable(tableName, schema);
   }
 
@@ -113,11 +111,9 @@ public class AlluxioCatalog {
    * @return a table object
    */
   public Table getTable(String dbName, String tableName) throws IOException {
-    Database db = mDBs.get(dbName);
-    if (db == null) {
-      throw new IOException("Database name does not exist: " + dbName);
-    }
-    return db.getTable(tableName);
+    Database db = getDatabaseByName(dbName);
+    Table table = db.getTable(tableName);
+    return table;
   }
 
   /**
@@ -130,6 +126,14 @@ public class AlluxioCatalog {
     return new ArrayList<>(mDBs.keySet());
   }
 
+  private Database getDatabaseByName(String dbName) throws NotFoundException {
+    Database db = mDBs.get(dbName);
+    if (db == null) {
+      throw new NotFoundException("Database " + dbName + " does not exist");
+    }
+    return db;
+  }
+
   /**
    * Get a list of tables in a database.
    *
@@ -137,10 +141,7 @@ public class AlluxioCatalog {
    * @return a list of table names in the database
    */
   public List<String> getAllTables(String dbName) throws IOException {
-    Database db = mDBs.get(dbName);
-    if (db == null) {
-      throw new IOException(String.format("Database %s does not exist", dbName));
-    }
+    Database db = getDatabaseByName(dbName);
     return db.getTables().stream().map(Table::getName).collect(Collectors.toList());
   }
 
