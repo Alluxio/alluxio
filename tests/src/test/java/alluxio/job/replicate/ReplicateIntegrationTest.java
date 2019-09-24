@@ -23,6 +23,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobIntegrationTest;
+import alluxio.master.job.JobTracker;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
@@ -32,6 +33,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 /**
  * Integration tests for {@link ReplicateDefinition}.
@@ -71,8 +73,12 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "1",
+      PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0"})
   public void replicateFullBlockFromUFS() throws Exception {
     // run the replicate job for mBlockId1
+    // hack - use a job tracker with capacity of 1
+    Whitebox.setInternalState(mJobMaster, "mTracker", new JobTracker(1, 0, -1));
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId1, 1)));
 
     BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
@@ -84,8 +90,12 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "1",
+      PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0"})
   public void replicateLastBlockFromUFS() throws Exception {
     // run the replicate job for mBlockId2
+    // hack - use a job tracker with capacity of 1
+    Whitebox.setInternalState(mJobMaster, "mTracker", new JobTracker(1, 0, -1));
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId2, 1)));
 
     BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
