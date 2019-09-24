@@ -153,7 +153,7 @@ public final class JobCoordinator {
    *
    * @param taskInfoList List of @TaskInfo instances to update
    */
-  public synchronized void updateTasks(List<TaskInfo> taskInfoList) {
+  public void updateTasks(List<TaskInfo> taskInfoList) {
     synchronized (mJobInfo) {
       for (TaskInfo taskInfo : taskInfoList) {
         mJobInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
@@ -195,16 +195,16 @@ public final class JobCoordinator {
    *
    * @param workerId the id of the worker to fail tasks for
    */
-  public synchronized void failTasksForWorker(long workerId) {
-    Integer taskId = mWorkerIdToTaskId.get(workerId);
-    if (taskId == null) {
-      return;
-    }
-    TaskInfo taskInfo = mJobInfo.getTaskInfo(taskId);
-    if (taskInfo.getStatus().isFinished()) {
-      return;
-    }
+  public void failTasksForWorker(long workerId) {
     synchronized (mJobInfo) {
+      Integer taskId = mWorkerIdToTaskId.get(workerId);
+      if (taskId == null) {
+        return;
+      }
+      TaskInfo taskInfo = mJobInfo.getTaskInfo(taskId);
+      if (taskInfo.getStatus().isFinished()) {
+        return;
+      }
       if (!mJobInfo.getStatus().isFinished()) {
         taskInfo.setStatus(Status.FAILED);
         taskInfo.setErrorMessage("Job worker was lost before the task could complete");

@@ -70,20 +70,20 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
 
   /**
-   * The minimum amount of time to retain finished jobs.
+   * The total number of jobs that the JobMaster may run at any moment.
    */
-  private static final long RETENTION_MS =
-      ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
+  private static final long JOB_CAPACITY =
+      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
   /**
    * The max number of jobs to purge when the master reaches maximum capacity.
    */
   private static final long MAX_PURGE_COUNT =
       ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT);
   /**
-   * The total number of jobs that the JobMaster may run at any moment.
+   * The minimum amount of time to retain finished jobs.
    */
-  private static final long JOB_CAPACITY =
-      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
+  private static final long RETENTION_MS =
+      ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
 
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =

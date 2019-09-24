@@ -32,14 +32,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class JobInfo implements Comparable<JobInfo> {
+  private String mErrorMessage;
   private final long mId;
   private final JobConfig mJobConfig;
-  private final Map<Integer, TaskInfo> mTaskIdToInfo;
   private volatile long mLastStatusChangeMs;
-  private String mErrorMessage;
+  private String mResult;
   private volatile Status mStatus;
   private Consumer<JobInfo> mStatusChangeCallback;
-  private String mResult;
+  private final Map<Integer, TaskInfo> mTaskIdToInfo;
 
   /**
    * Creates a new instance of {@link JobInfo}.
