@@ -65,29 +65,19 @@ public class JobTracker {
    */
   private final long mMaxJobPurgeCount;
 
-  /**
-   * The maximum amount of jobs that can be tracked at any one time.
-   */
+  /** The maximum amount of jobs that can be tracked at any one time. */
   private final long mCapacity;
 
-  /**
-   * The minimum amount of time that finished jobs should be retained for.
-   */
+  /** The minimum amount of time that finished jobs should be retained for. */
   private final long mRetentionMs;
 
-  /**
-   * Used to generate Id for new jobs.
-   */
+  /** Used to generate Id for new jobs. */
   private final JobIdGenerator mJobIdGenerator;
 
-  /**
-   * The main index to track jobs through their Job Id.
-   */
+  /** The main index to track jobs through their Job Id. */
   private final ConcurrentHashMap<Long, JobCoordinator> mCoordinators;
 
-  /**
-   * A FIFO queue used to track jobs which have status {@link Status#isFinished()} as true.
-   */
+  /** A FIFO queue used to track jobs which have status {@link Status#isFinished()} as true. */
   private final LinkedBlockingQueue<JobInfo> mFinished;
 
   /**
@@ -115,10 +105,11 @@ public class JobTracker {
     }
     Status status = jobInfo.getStatus();
     if (status.isFinished()) {
-      if (mFinished.offer(jobInfo)) {
+      if (!mFinished.offer(jobInfo)) {
         LOG.warn("Failed to add job to finished queue");
         // TODO(zac) If adding to the finished queue fails, should we wait and retry?
-        // another option is to at this point just immediately remove from tracking so we don't
+        // Because capacity is not specified, max capacity is around Integer.MAX_INT
+        // One option is to at this point just immediately remove from tracking so we don't
         // end up with ghost jobs, or provide some way through the REST API to remove jobs from
         // mCoordinators at runtime
       }
@@ -165,52 +156,55 @@ public class JobTracker {
   /**
    * Removes all finished jobs outside of the retention time from the queue.
    *
-   * @return true if at least one job was removed, or if the initial
+   * @return true if at least one job was removed, or if not at maximum capacity yet, false if at
+   *         capacity and no job was removed
    */
   private synchronized boolean removeFinished() {
     boolean removedJob = false;
     boolean isFull = mCoordinators.size() >= mCapacity;
-    if (isFull) { // coordinators at max capacity
-      // Try to clear the queue
-      if (mFinished.isEmpty()) {
-        // The job master is at full capacity and no job has finished.
-        return false;
+    if (!isFull) {
+      return true;
+    }
+    // coordinators at max capacity
+    // Try to clear the queue
+    if (mFinished.isEmpty()) {
+      // The job master is at full capacity and no job has finished.
+      return false;
+    }
+    int removeCount = 0;
+    while (!mFinished.isEmpty() && removeCount < mMaxJobPurgeCount) {
+      JobInfo oldestJob = mFinished.peek();
+      if (oldestJob == null) { // no items to remove
+        break;
       }
-      int removeCount = 0;
-      while (!mFinished.isEmpty() && removeCount < mMaxJobPurgeCount) {
-        JobInfo oldestJob = mFinished.peek();
-        if (oldestJob == null) { // no items to remove
-          break;
-        }
-        long timeSinceCompletion = CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs();
-        // Once inserted into mFinished, the status of a job should not change - so the peek()
-        // /poll() methods guarantee to some extent that the job at the top of the queue is one
-        // of the oldest jobs. Thus, if it is still within retention time here, we likely can't
-        // remove anything else from the queue. Though it should be noted that it is not strictly
-        // guaranteed that the job at the top of is the oldest.
-        if (timeSinceCompletion < mRetentionMs) {
-          break;
-        }
+      long timeSinceCompletion = CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs();
+      // Once inserted into mFinished, the status of a job should not change - so the peek()
+      // /poll() methods guarantee to some extent that the job at the top of the queue is one
+      // of the oldest jobs. Thus, if it is still within retention time here, we likely can't
+      // remove anything else from the queue. Though it should be noted that it is not strictly
+      // guaranteed that the job at the top of is the oldest.
+      if (timeSinceCompletion < mRetentionMs) {
+        break;
+      }
 
-        // Remove the top item since we know it's old enough now.
-        // Assumes there are no concurrent poll() operations taking place between here and the
-        // first peek()
-        if (mFinished.poll() == null) {
-          // This should not happen because peek() returned an element
-          // there should be no other concurrent operations that remove from mFinished
-          LOG.warn("Polling the queue resulted in a null element");
-          break;
-        }
-        // Remove from the job coordinator
-        if (mCoordinators.remove(oldestJob.getId()) == null) {
-          LOG.warn("Did not find a coordinator with id {}", oldestJob.getId());
-        } else {
-          removedJob = true;
-          removeCount++;
-        }
+      // Remove the top item since we know it's old enough now.
+      // Assumes there are no concurrent poll() operations taking place between here and the
+      // first peek()
+      if (mFinished.poll() == null) {
+        // This should not happen because peek() returned an element
+        // there should be no other concurrent operations that remove from mFinished
+        LOG.warn("Polling the queue resulted in a null element");
+        break;
+      }
+      // Remove from the job coordinator
+      if (mCoordinators.remove(oldestJob.getId()) == null) {
+        LOG.warn("Did not find a coordinator with id {}", oldestJob.getId());
+      } else {
+        removedJob = true;
+        removeCount++;
       }
     }
-    return removedJob || !isFull;
+    return removedJob;
   }
 
   /**
