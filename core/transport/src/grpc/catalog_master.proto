@@ -10,22 +10,24 @@ import "grpc/common.proto";
 
 enum FieldTypeId {
     BOOLEAN = 0;
-    INTEGER = 1;
-    LONG = 2;
-    FLOAT = 3;
-    DOUBLE = 4;
-    DATE = 5;
-    TIME = 6;
-    TIMESTAMP = 7;
-    STRING = 8;
-    UUID = 9;
-    FIXED = 10;
-    BINARY = 11;
-    DECIMAL= 12;
+    BYTE = 1;
+    SHORT = 2;
+    INTEGER = 3;
+    LONG = 4;
+    FLOAT = 5;
+    DOUBLE = 6;
+    DATE = 7;
+    TIME = 8;
+    TIMESTAMP = 9;
+    STRING = 10;
+    UUID = 11;
+    FIXED = 12;
+    BINARY = 13;
+    DECIMAL= 14;
     // the following are composite types, we will support them later
-    STRUCT = 13;
-    LIST = 14;
-    MAP = 15;
+    STRUCT = 15;
+    LIST = 16;
+    MAP = 17;
 }
 
 // TODO(yuzhu): change the type representation to be more general, not iceberg specific
