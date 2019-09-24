@@ -14,6 +14,7 @@ package alluxio.master.catalog;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.AllOrNoneSet;
 import alluxio.grpc.Constraint;
 import alluxio.grpc.Domain;
@@ -115,9 +116,13 @@ public class AlluxioCatalog {
   public Table getTable(String dbName, String tableName) throws IOException {
     Database db = mDBs.get(dbName);
     if (db == null) {
-      throw new IOException("Database name does not exist: " + dbName);
+      throw new NotFoundException("Database does not exist: " + dbName);
     }
-    return db.getTable(tableName);
+    Table table = db.getTable(tableName);
+    if (table == null) {
+      throw new NotFoundException("Table does not exist: " + tableName);
+    }
+    return table;
   }
 
   /**
@@ -139,7 +144,7 @@ public class AlluxioCatalog {
   public List<String> getAllTables(String dbName) throws IOException {
     Database db = mDBs.get(dbName);
     if (db == null) {
-      throw new IOException(String.format("Database %s does not exist", dbName));
+      throw new NotFoundException(String.format("Database %s does not exist", dbName));
     }
     return db.getTables().stream().map(Table::getName).collect(Collectors.toList());
   }
