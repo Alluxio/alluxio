@@ -121,7 +121,7 @@ The remainder of this section describes various configuration options with examp
 
 First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
 ```console
-$ kubectl create secret generic alluxio-hdfs-config --from-file=./core-site.xml --from-file=./hdfs-site.xml
+$ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
 Then mount these secrets to the Alluxio master and worker containers as follows:
 ```console
@@ -289,7 +289,7 @@ spec:
 create a Kubernetes Secret for the HDFS client configuration.
 
 ```console
-kubectl create secret generic alluxio-hdfs-config --from-file=./core-site.xml --from-file=./hdfs-site.xml
+kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
 These two configuration files are referred in `alluxio-master.yaml` and `alluxio-worker.yaml`.
 Alluxio processes need the HDFS configuration files to connect, and the location of these files in
