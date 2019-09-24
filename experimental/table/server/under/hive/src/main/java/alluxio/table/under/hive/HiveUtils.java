@@ -65,7 +65,7 @@ public class HiveUtils {
           .setName(field.getName())
           .setType(Type.newBuilder()
               .setType(toProto(field.getType()))) // does not support complex types now
-          .setComment(field.getComment())
+          .setComment(field.getComment() != null ? field.getComment() : "")
           .build();
       list.add(aFieldSchema);
     }
