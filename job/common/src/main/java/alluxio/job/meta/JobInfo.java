@@ -61,11 +61,17 @@ public final class JobInfo implements Comparable<JobInfo> {
   /**
    * {@inheritDoc}
    *
-   * This method orders jobs using the time their status was last modified.
+   * This method orders jobs using the time their status was last modified. If the status is
+   * equal, they are compared by jobId
    */
   @Override
   public synchronized int compareTo(JobInfo other) {
-    return Long.compare(mLastStatusChangeMs, other.mLastStatusChangeMs);
+    int res = Long.compare(mLastStatusChangeMs, other.mLastStatusChangeMs);
+    if (res != 0) {
+      return res;
+    }
+    // Order by jobId as a secondary measure
+    return Long.compare(mId, other.mId);
   }
 
   /**
