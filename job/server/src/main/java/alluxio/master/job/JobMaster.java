@@ -31,10 +31,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
-import alluxio.job.meta.JobIdGenerator;
-import alluxio.job.meta.JobInfo;
 import alluxio.job.meta.MasterWorkerInfo;
-import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
@@ -58,12 +55,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -75,6 +68,20 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
+
+  /**
+   * The total number of jobs that the JobMaster may run at any moment.
+   */
+  private static final long JOB_CAPACITY =
+      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
+  /**
+   * The max number of jobs to purge when the master reaches maximum capacity.
+   */
+  private static final long MAX_PURGE_COUNT =
+      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT);
+  /**
+   * The minimum amount of time to retain finished jobs.
+   */
   private static final long RETENTION_MS =
       ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
 
@@ -101,11 +108,6 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private final JobServerContext mJobServerContext;
 
   /**
-   * The total number of jobs that the JobMaster may run at any moment.
-   */
-  private final long mCapacity = ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
-
-  /**
    * All worker information. Access must be controlled on mWorkers using the RW lock(mWorkerRWLock).
    */
   @GuardedBy("mWorkerRWLock")
@@ -122,51 +124,37 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private final AtomicLong mNextWorkerId = new AtomicLong(CommonUtils.getCurrentMs());
 
   /**
-   * Used to generate Id for new jobs.
-   */
-  private final JobIdGenerator mJobIdGenerator;
-
-  /**
    * Manager for worker tasks.
    */
   private final CommandManager mCommandManager;
 
   /**
-   * Used to store JobCoordinator instances per job Id.
-   * This member is accessed concurrently and its instance type is ConcurrentHashMap.
+   * Manager for adding and removing jobs.
    */
-  private final Map<Long, JobCoordinator> mIdToJobCoordinator;
-
-  /**
-   * Used to keep track of finished jobs that are still within retention policy.
-   * This member is accessed concurrently and its instance type is ConcurrentSkipListSet.
-   */
-  private final SortedSet<JobInfo> mFinishedJobs;
+  private final JobTracker mTracker;
 
   /**
    * Creates a new instance of {@link JobMaster}.
    *
    * @param masterContext the context for Alluxio master
-   * @param filesystem the Alluxio filesystem client the job master uses to communicate
-   * @param fsContext the filesystem client's underlying context
-   * @param ufsManager the ufs manager
+   * @param filesystem    the Alluxio filesystem client the job master uses to communicate
+   * @param fsContext     the filesystem client's underlying context
+   * @param ufsManager    the ufs manager
    */
   public JobMaster(MasterContext masterContext, FileSystem filesystem,
       FileSystemContext fsContext, UfsManager ufsManager) {
     super(masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
-    mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
-    mIdToJobCoordinator = new ConcurrentHashMap<>();
-    mFinishedJobs = new ConcurrentSkipListSet<>();
+    mTracker = new JobTracker(JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
   }
 
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     // Fail any jobs that were still running when the last job master stopped.
-    for (JobCoordinator jobCoordinator : mIdToJobCoordinator.values()) {
+    for (JobCoordinator jobCoordinator : mTracker.coordinators()) {
       if (!jobCoordinator.isJobFinished()) {
         jobCoordinator.setJobAsFailed("Job failed: Job master shut down during execution");
       }
@@ -200,8 +188,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    *
    * @param jobConfig the job configuration
    * @return the job id tracking the progress
-   *
-   * @throws JobDoesNotExistException when the job doesn't exist
+   * @throws JobDoesNotExistException   when the job doesn't exist
    * @throws ResourceExhaustedException if the job master is too busy to run the job
    */
   public synchronized long run(JobConfig jobConfig)
@@ -212,45 +199,8 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     Context forkedCtx = Context.current().fork();
     Context prevCtx = forkedCtx.attach();
     try {
-      if (mIdToJobCoordinator.size() == mCapacity) {
-        if (mFinishedJobs.isEmpty()) {
-          // The job master is at full capacity and no job has finished.
-          throw new ResourceExhaustedException(
-              ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
-        }
-        // Discard old jobs that have completion time beyond retention policy
-        Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
-        // Used to denote whether space could be reserved for the new job
-        // It's 'true' if job master is at full capacity
-        boolean isFull = true;
-        while (jobIterator.hasNext()) {
-          JobInfo oldestJob = jobIterator.next();
-          long completedBeforeMs = CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs();
-          if (completedBeforeMs < RETENTION_MS) {
-            // mFinishedJobs is sorted. Can't iterate to a job within retention policy
-            break;
-          }
-          jobIterator.remove();
-          mIdToJobCoordinator.remove(oldestJob.getId());
-          isFull = false;
-        }
-        if (isFull) {
-          throw new ResourceExhaustedException(
-              ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
-        }
-      }
-      long jobId = mJobIdGenerator.getNewJobId();
-      JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
-          getWorkerInfoList(), jobId, jobConfig, (jobInfo) -> {
-            Status status = jobInfo.getStatus();
-            mFinishedJobs.remove(jobInfo);
-            if (status.isFinished()) {
-              mFinishedJobs.add(jobInfo);
-            }
-            return null;
-          });
-      mIdToJobCoordinator.put(jobId, jobCoordinator);
-      return jobId;
+      return mTracker.addJob(jobConfig, mCommandManager, mJobServerContext,
+          getWorkerInfoList());
     } finally {
       forkedCtx.detach(prevCtx);
     }
@@ -263,7 +213,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * @throws JobDoesNotExistException when the job does not exist
    */
   public void cancel(long jobId) throws JobDoesNotExistException {
-    JobCoordinator jobCoordinator = mIdToJobCoordinator.get(jobId);
+    JobCoordinator jobCoordinator = mTracker.getCoordinator(jobId);
     if (jobCoordinator == null) {
       throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
     }
@@ -274,7 +224,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return list all the job ids
    */
   public List<Long> list() {
-    return Lists.newArrayList(mIdToJobCoordinator.keySet());
+    return Lists.newArrayList(mTracker.jobs());
   }
 
   /**
@@ -285,7 +235,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * @throws JobDoesNotExistException if the job does not exist
    */
   public alluxio.job.wire.JobInfo getStatus(long jobId) throws JobDoesNotExistException {
-    JobCoordinator jobCoordinator = mIdToJobCoordinator.get(jobId);
+    JobCoordinator jobCoordinator = mTracker.getCoordinator(jobId);
     if (jobCoordinator == null) {
       throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
     }
@@ -310,7 +260,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
                 + "address",
             workerNetAddress);
         MasterWorkerInfo deadWorker = mWorkers.getFirstByField(mAddressIndex, workerNetAddress);
-        for (JobCoordinator jobCoordinator : mIdToJobCoordinator.values()) {
+        for (JobCoordinator jobCoordinator : mTracker.coordinators()) {
           jobCoordinator.failTasksForWorker(deadWorker.getId());
         }
         mWorkers.remove(deadWorker);
@@ -367,7 +317,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       taskInfosPerJob.get(taskInfo.getJobId()).add(taskInfo);
     }
     for (Map.Entry<Long, List<TaskInfo>> taskInfosPair : taskInfosPerJob.entrySet()) {
-      JobCoordinator jobCoordinator = mIdToJobCoordinator.get(taskInfosPair.getKey());
+      JobCoordinator jobCoordinator = mTracker.getCoordinator(taskInfosPair.getKey());
       if (jobCoordinator != null) {
         jobCoordinator.updateTasks(taskInfosPair.getValue());
       }
@@ -397,7 +347,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
           if (lastUpdate > masterWorkerTimeoutMs) {
             LOG.warn("The worker {} timed out after {}ms without a heartbeat!", worker, lastUpdate);
             lostWorkers.add(worker);
-            for (JobCoordinator jobCoordinator : mIdToJobCoordinator.values()) {
+            for (JobCoordinator jobCoordinator : mTracker.coordinators()) {
               jobCoordinator.failTasksForWorker(worker.getId());
             }
           }
