@@ -198,9 +198,13 @@ public class HiveTable implements UdbTable {
         .putAllSerdeParameters(sd.getParameters()).build();
     builder.addAllDataColumns(HiveUtils.toProto(mTable.getCols()))
         .addAllPartitionColumns(HiveUtils.toProto(mTable.getPartCols()))
-        .setStorage(storage).putAllParameters(mTable.getParameters())
-        .setViewOriginalText(mTable.getViewOriginalText())
-        .setViewExpandedText(mTable.getViewExpandedText());
+        .setStorage(storage).putAllParameters(mTable.getParameters());
+    if (mTable.getViewOriginalText() != null) {
+      builder.setViewOriginalText(mTable.getViewOriginalText());
+    }
+    if (mTable.getViewExpandedText() != null) {
+      builder.setViewExpandedText(mTable.getViewExpandedText());
+    }
     return UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build();
   }
 }
