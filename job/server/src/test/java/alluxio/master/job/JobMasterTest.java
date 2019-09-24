@@ -26,7 +26,6 @@ import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.underfs.UfsManager;
 
-import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

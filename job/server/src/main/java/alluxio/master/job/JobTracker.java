@@ -22,9 +22,6 @@ import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.meta.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
-import alluxio.retry.CountingRetry;
-import alluxio.retry.RetryPolicy;
-import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
