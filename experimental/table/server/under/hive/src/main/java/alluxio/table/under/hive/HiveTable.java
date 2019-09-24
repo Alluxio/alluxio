@@ -174,13 +174,15 @@ public class HiveTable implements UdbTable {
     builder.setDatabaseName(mTable.getDbName()).setTableName(mTable.getTableName())
         .setOwner(mTable.getOwner()).setTableType(mTable.getTableType().toString());
 
-    StorageFormat format = StorageFormat.newBuilder()
-        .setInputFormat(mTable.getSd().getInputFormat())
-        .setOutputFormat(mTable.getSd().getOutputFormat())
-        .setSerDe(mTable.getSd().getSerdeInfo().getName()).build(); // Check SerDe info
-    Storage.Builder storageBuilder = Storage.newBuilder();
-
     StorageDescriptor sd = mTable.getSd();
+    String serDe = sd == null || sd.getSerdeInfo() == null ? ""
+        : sd.getSerdeInfo().getSerializationLib();
+
+    StorageFormat format = StorageFormat.newBuilder()
+        .setInputFormat(sd == null ? "" : sd.getInputFormat())
+        .setOutputFormat(sd == null ? "" : sd.getOutputFormat())
+        .setSerDe(serDe).build(); // Check SerDe info
+    Storage.Builder storageBuilder = Storage.newBuilder();
 
     List<SortingColumn> sortingColumns = mTable.getSortCols().stream().map(
         order -> SortingColumn.newBuilder().setColumnName(order.getCol())
