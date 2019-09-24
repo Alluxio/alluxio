@@ -43,7 +43,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
-            .setRecursive(true).build());
+        .setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -112,7 +112,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     URIStatus status = mFileSystem.getStatus(filePath);
     alluxio.worker.file.FileSystemMasterClient fsMasterClient = new
         alluxio.worker.file.FileSystemMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
 
     Assert.assertTrue(fsMasterClient.getPinList().contains(status.getFileId()));
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);

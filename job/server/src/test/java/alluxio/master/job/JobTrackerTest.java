@@ -114,7 +114,7 @@ public class JobTrackerTest {
   public void testGetCoordinator() throws Exception {
     long jobId = addJob(100);
     assertNull("job id should not exist", mTracker.getCoordinator(-1));
-    assertNotNull("job should exit", mTracker.getCoordinator(jobId));
+    assertNotNull("job should exist", mTracker.getCoordinator(jobId));
     assertFalse("job should not be finished", mTracker.getCoordinator(jobId).isJobFinished());
     finishAllJobs();
     assertTrue("job should be finished", mTracker.getCoordinator(jobId).isJobFinished());
