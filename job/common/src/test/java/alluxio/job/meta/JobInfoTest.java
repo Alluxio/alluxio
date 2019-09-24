@@ -16,7 +16,6 @@ import alluxio.job.TestJobConfig;
 import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,13 +41,7 @@ public final class JobInfoTest {
   public void callback() {
     final String result = "I was here!";
     JobConfig jobConfig = new TestJobConfig("unused");
-    JobInfo a = new JobInfo(0L, jobConfig, new Function<JobInfo, Void>() {
-      @Override
-      public Void apply(JobInfo jobInfo) {
-        jobInfo.setResult(result);
-        return null;
-      }
-    });
+    JobInfo a = new JobInfo(0L, jobConfig, jobInfo -> jobInfo.setResult(result));
     a.setStatus(Status.COMPLETED);
     Assert.assertEquals(result, a.getResult());
   }
