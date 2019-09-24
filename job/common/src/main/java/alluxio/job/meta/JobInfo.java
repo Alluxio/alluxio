@@ -64,7 +64,7 @@ public final class JobInfo implements Comparable<JobInfo> {
    */
   @Override
   public synchronized int compareTo(JobInfo other) {
-    return Long.compare(mLastStatusChangeMs, other.getLastStatusChangeMs());
+    return Long.compare(mId, other.getId());
   }
 
   /**
