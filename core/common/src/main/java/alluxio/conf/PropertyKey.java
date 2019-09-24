@@ -666,7 +666,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(true)
           .setDescription("Set this to false to prevent Alluxio from creating zero byte objects "
               + "during read or list operations on object store UFS. Leaving this on enables more"
-              + " efficient listing of prefixes.")
+              + " efficient listing of prefixes. Available in 2.0.2 onwards")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
