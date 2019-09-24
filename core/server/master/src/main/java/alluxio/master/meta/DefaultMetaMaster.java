@@ -51,6 +51,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -359,6 +360,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     try (CloseableResource<UnderFileSystem> ufsResource =
              mUfsManager.getRoot().acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
+      if (options.getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
+        // TODO(lu) Support getting UFS based on type from UfsManager
+        ufs = UnderFileSystem.Factory.create("/",
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+        LOG.info("Backing up to local filesystem in directory {}", dir);
+      } else {
+        LOG.info("Backing up to root UFS in directory {}", dir);
+      }
       if (!ufs.isDirectory(dir)) {
         if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
             .setCreateParent(true))) {

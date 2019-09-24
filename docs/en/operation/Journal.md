@@ -168,6 +168,8 @@ $ ./bin/alluxio-start.sh -i <backup_uri> masters
 
 The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
 `hdfs://[namenodeserver]:[namenodeport]/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz`
+If backups to the local disk of the leader master, copy the backup file to the same location in each master 
+and pass in the local backup file path.
 
 If starting up masters individually, pass the `-i` argument to each one. The master which
 becomes leader first will import the journal backup, and the rest will ignore the `-i`.
