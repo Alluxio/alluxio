@@ -76,7 +76,7 @@ spec:
         - containerPort: 19999
           name: web
         - containerPort: 19200
-          name: ej
+          name: embedded
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
@@ -174,7 +174,7 @@ spec:
         - containerPort: 19999
           name: web
         - containerPort: 19200
-          name: ej
+          name: embedded
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
@@ -272,7 +272,7 @@ spec:
         - containerPort: 19999
           name: web
         - containerPort: 19200
-          name: ej
+          name: embedded
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal

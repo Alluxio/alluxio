@@ -103,7 +103,7 @@ spec:
           name: web
         {{- if $isEmbedded }}
         - containerPort: 19200
-          name: ej
+          name: embedded
         {{- end}}
         volumeMounts:
         {{- if $needJournalVolume }}
