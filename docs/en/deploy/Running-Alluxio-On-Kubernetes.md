@@ -285,7 +285,17 @@ spec:
         - "hdfs-host"
 ```
 
-**Step 2: Modify `alluxio-configMap.yaml.template`.** Now that your pods know how to talk to your
+**Step 2: Create Kubernetes Secret for HDFS configuration files.** Run the following command to
+create a Kubernetes Secret for the HDFS client configuration.
+
+```console
+kubectl create secret generic alluxio-hdfs-config --from-file=./core-site.xml --from-file=./hdfs-site.xml
+```
+These two configuration files are referred in `alluxio-master.yaml` and `alluxio-worker.yaml`.
+Alluxio processes need the HDFS configuration files to connect, and the location of these files in
+the container is controlled by property `alluxio.underfs.hdfs.configuration`.
+
+**Step 3: Modify `alluxio-configMap.yaml.template`.** Now that your pods know how to talk to your
 HDFS service, update `alluxio.master.journal.folder` and `alluxio.master.mount.table.root.ufs` to
 point to the desired HDFS destination.
 
