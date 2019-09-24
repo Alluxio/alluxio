@@ -118,9 +118,11 @@ public class JobTracker {
         LOG.warn("Failed to remove any jobs from the finished queue in status change callback");
       }
     }
-    // If the program reaches here, adding to the queue failed, even after attempting to purge
-    // old jobs - remove from the coordinator map preemptively so that it doesn't get lost
-    // forever even if it's still within the retention time
+    if (mFinished.offer(jobInfo)) {
+      return;
+    }
+    //remove from the coordinator map preemptively so that it doesn't get lost forever even if
+    // it's still within the retention time
     LOG.warn("Failed to offer job id {} to finished queue, removing from tracking preemptively",
         jobInfo.getId());
   }
