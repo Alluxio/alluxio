@@ -73,6 +73,8 @@ public final class Version {
 
   /**
    * Prints the usage of the version command.
+   *
+   * @param options the set of command line options to put in the help text
    */
   public static void printUsage(Options options) {
     new HelpFormatter().printHelp("version", options);
