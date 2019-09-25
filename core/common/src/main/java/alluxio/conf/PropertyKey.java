@@ -1280,7 +1280,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(
               "The election timeout for the embedded journal. When this period elapses without a "
                   + "master receiving any messages, the master will attempt to become the primary.")
-          .setDefaultValue("5s")
+          .setDefaultValue("10s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
@@ -1289,7 +1289,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               "The period between sending heartbeats from the embedded journal primary to "
                   + "followers. This should be less than half of the election timeout "
                   + "(alluxio.master.embedded.journal.election.timeout).")
-          .setDefaultValue("1s")
+          .setDefaultValue("3s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
@@ -1298,7 +1298,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "in a single heartbeat. Setting higher values might require increasing "
               + "election timeout due to increased network delay. Setting lower values "
               + "might stall knowledge propagation between the leader and followers.")
-          .setDefaultValue("32KB")
+          .setDefaultValue("512KB")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
