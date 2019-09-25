@@ -17,7 +17,7 @@ ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 
-RUN apk --no-cache --update add bash libc6-compat shadow && \
+RUN apk --no-cache --update add bash libc6-compat shadow sudo && \
     rm -rf /var/cache/apk/*
 
 ADD ${ALLUXIO_TARBALL} /opt/
