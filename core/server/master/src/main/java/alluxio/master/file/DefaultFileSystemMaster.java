@@ -889,17 +889,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       auditContext.setSrcInode(inode);
       DescendantType descendantTypeForListStatus =
           (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
-      if (inode.isFile()) {
-        listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
-            resultStream);
-      } else {
-        for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-          try (LockedInodePath childInodePath = inodePath.lockChild(child, LockPattern.READ)) {
-            listStatusInternal(rpcContext, childInodePath, auditContext,
-                descendantTypeForListStatus, resultStream);
-          }
-        }
-      }
+      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
+          resultStream, 0);
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
     }
@@ -924,10 +915,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
    *        should be returned
    * @param resultStream the stream to receive individual results
+   * @param depth internal use field for tracking depth relative to root item
    */
   private void listStatusInternal(RpcContext rpcContext, LockedInodePath currInodePath,
-      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream)
-      throws FileDoesNotExistException, UnavailableException, AccessControlException,
+      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
+      int depth) throws FileDoesNotExistException, UnavailableException, AccessControlException,
       InvalidPathException {
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
@@ -957,22 +949,20 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // TODO(david): Make extending InodePath more efficient
         childComponentsHint[childComponentsHint.length - 1] = child.getName();
 
-        /**
-         * listStatusInternal adds an item for the root inode as well.
-         * When listing a directory, an item for directory is not wanted in the result stream.
-         * So here the initial branching on the root directory is handled.
-         */
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
           listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
-              resultStream);
+              resultStream, depth + 1);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{0}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
         }
       }
     }
-    resultStream.submit(getFileInfoInternal(currInodePath));
+    // Listing a directory should not emit item for the directory itself.
+    if (depth != 0 || inode.isFile()) {
+      resultStream.submit(getFileInfoInternal(currInodePath));
+    }
   }
 
   /**
