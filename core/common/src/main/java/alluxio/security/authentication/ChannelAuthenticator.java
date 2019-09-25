@@ -174,9 +174,9 @@ public class ChannelAuthenticator {
           code = ((AlluxioStatusException) e).getStatusCode();
         }
         String message = String.format(
-            "Channel authentication failed with code:%s. ChannelKey: %s, AuthType: %s",
-            code.name(), mChannelKey.toStringShort(), mAuthType);
-        LOG.warn(message, e);
+            "Channel authentication failed with code:%s. ChannelKey: %s, AuthType: %s, Error: %s",
+            code.name(), mChannelKey.toStringShort(), mAuthType, e.toString());
+        LOG.warn(message);
         throw AlluxioStatusException
             .from(Status.fromCode(code).withDescription(message).withCause(e));
       }
