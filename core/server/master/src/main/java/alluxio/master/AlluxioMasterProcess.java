@@ -34,8 +34,10 @@ import alluxio.resource.CloseableResource;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 
@@ -173,7 +175,18 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
-    try (CloseableResource<UnderFileSystem> closeUfs = mUfsManager.getRoot().acquireUfsResource();
+    CloseableResource<UnderFileSystem> ufsResource;
+    if (URIUtils.isLocalFilesystem(backup.toString())) {
+      UnderFileSystem ufs = UnderFileSystem.Factory.create("/",
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+      ufsResource = new CloseableResource<UnderFileSystem>(ufs) {
+        @Override
+        public void close() { }
+      };
+    } else {
+      ufsResource = mUfsManager.getRoot().acquireUfsResource();
+    }
+    try (CloseableResource<UnderFileSystem> closeUfs = ufsResource;
          InputStream ufsIn = closeUfs.get().open(backup.getPath())) {
       LOG.info("Initializing metadata from backup {}", backup);
       mBackupManager.initFromBackup(ufsIn);
