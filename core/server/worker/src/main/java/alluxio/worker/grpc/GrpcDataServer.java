@@ -106,8 +106,10 @@ public final class GrpcDataServer implements DataServer {
           .build()
           .start();
     } catch (IOException e) {
-      LOG.error("Alluxio worker gRPC server failed to start on {}", bindAddress.toString(), e);
-      throw new RuntimeException(e);
+      String message =
+          String.format("Alluxio worker gRPC server failed to start on %s", bindAddress.toString());
+      LOG.error(message, e);
+      throw new RuntimeException(message, e);
     }
     LOG.info("Alluxio worker gRPC server started, listening on {}", bindAddress.toString());
   }
