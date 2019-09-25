@@ -21,10 +21,13 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -38,10 +41,14 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster;
   private ByteArrayOutputStream mOutput;
 
+  @Rule
+  public TestName mTestName = new TestName();
+
   @Before
   public void before() throws Exception {
     mLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(2);
-    mLocalAlluxioCluster.initConfiguration();
+    mLocalAlluxioCluster.initConfiguration(
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
     mLocalAlluxioCluster.start();
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();

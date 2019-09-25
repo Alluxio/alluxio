@@ -340,6 +340,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public String toString() {
-    return "Alluxio worker";
+    return "Alluxio worker @" + mRpcConnectAddress;
   }
 }

@@ -43,6 +43,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
+  public static final String DEFAULT_TEST_NAME = "test";
+
   private static final Logger LOG = LoggerFactory.getLogger(LocalAlluxioCluster.class);
 
   private LocalAlluxioMaster mMaster;
@@ -119,8 +121,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  public void initConfiguration() throws IOException {
-    setAlluxioWorkDirectory();
+  public void initConfiguration(String name) throws IOException {
+    setAlluxioWorkDirectory(name);
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
         .testConfigurationDefaults(ServerConfiguration.global(),
