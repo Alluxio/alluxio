@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{ $isRoot := eq (int .Values.user) 0 }}
+{{- $ugi := printf "%v:%v" .Values.user .Values.group }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -26,9 +28,16 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       securityContext:
-        runAsUser: {{ .Values.user }}
-        runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
+      {{- if not $isRoot }}
+      initContainers:
+        - name: socket-chown
+          image: busybox
+          command: ["/bin/chown","-R",{{ $ugi | quote }}, "/opt/domain"]
+          volumeMounts:
+          - name: alluxio-domain
+            mountPath: /opt/domain
+      {{- end }}
       containers:
       - name: alluxio-worker
         image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -40,6 +49,9 @@ spec:
           requests:
             cpu: {{ .Values.resources.worker.requests.cpu }}
             memory: {{ .Values.resources.worker.requests.memory }}
+        securityContext:
+          runAsUser: {{ .Values.user }}
+          runAsGroup: {{ .Values.group }}
         command: ["/entrypoint.sh"]
         args: ["worker-only", "--no-format"]
         env:
@@ -81,6 +93,9 @@ spec:
           requests:
             cpu: {{ .Values.resources.jobWorker.requests.cpu }}
             memory: {{ .Values.resources.jobWorker.requests.memory }}
+        securityContext:
+          runAsUser: {{ .Values.user }}
+          runAsGroup: {{ .Values.group }}
         command: ["/entrypoint.sh"]
         args: ["job-worker"]
         env:

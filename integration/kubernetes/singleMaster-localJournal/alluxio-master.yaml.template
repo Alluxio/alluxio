@@ -56,9 +56,14 @@ spec:
         app: alluxio-master-0
     spec:
       securityContext:
-        runAsUser: 0
-        runAsGroup: 0
-        fsGroup: 0
+        fsGroup: 1000
+      initContainers:
+      - name: journal-chown
+        image: busybox
+        command: ["/bin/chown","-R","1000:1000", "/journal"]
+        volumeMounts:
+          - name: alluxio-journal
+            mountPath: /journal
       containers:
       - name: alluxio-master
         image: alluxio/alluxio:2.1.0-SNAPSHOT
@@ -70,6 +75,9 @@ spec:
           requests:
             cpu: 1
             memory: 1G
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
         command: ["/entrypoint.sh"]
         args: ["master-only", "--no-format"]
         envFrom:
@@ -93,6 +101,9 @@ spec:
           requests:
             cpu: 1
             memory: 1024M
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
         command: ["/entrypoint.sh"]
         args: ["job-master"]
         envFrom:
