@@ -76,8 +76,10 @@ spec:
       {{- if and $isSingleUfsLocal (not $isRoot) }}
       initContainers:
       - name: journal-chown
-        image: busybox
-        command: ["/bin/chown","-R",{{ $ugi | quote }}, "/journal"]
+        securityContext:
+          runAsUser: 0
+        image: {{ $root.Values.image }}:{{ $root.Values.imageTag }}
+        command: ["/bin/chown","-R", {{ $ugi | quote }}, "/journal"]
         volumeMounts:
           - name: alluxio-journal
             mountPath: /journal

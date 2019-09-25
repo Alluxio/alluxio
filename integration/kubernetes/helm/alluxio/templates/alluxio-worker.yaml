@@ -32,8 +32,10 @@ spec:
       {{- if not $isRoot }}
       initContainers:
         - name: socket-chown
-          image: busybox
-          command: ["/bin/chown","-R",{{ $ugi | quote }}, "/opt/domain"]
+          securityContext:
+            runAsUser: 0
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          command: ["/bin/chown","-R", {{ $ugi | quote }}, "/opt/domain"]
           volumeMounts:
           - name: alluxio-domain
             mountPath: /opt/domain
