@@ -82,6 +82,7 @@ public final class JobInfo implements Comparable<JobInfo> {
     TaskInfo oldValue = mTaskIdToInfo.putIfAbsent(taskId,
         new TaskInfo().setJobId(mId).setTaskId(taskId).setStatus(Status.CREATED).setErrorMessage("")
             .setResult(null));
+    // the task is expected to not exist in the map.
     Preconditions.checkState(oldValue == null,
         String.format("JobId %d cannot add duplicate taskId %d", mId, taskId));
   }
@@ -154,16 +155,18 @@ public final class JobInfo implements Comparable<JobInfo> {
    *
    * @param status the job status
    */
-  public synchronized void setStatus(Status status) {
-    // this is synchronized to serialize all setStatus calls.
-    if (mStatus.isFinished()) {
-      return;
-    }
-    Status oldStatus = mStatus;
-    mStatus = status;
-    mLastStatusChangeMs = CommonUtils.getCurrentMs();
-    if (mStatusChangeCallback != null && status != oldStatus) {
-      mStatusChangeCallback.accept(this);
+  public void setStatus(Status status) {
+    synchronized (this) {
+      // this is synchronized to serialize all setStatus calls.
+      if (mStatus.isFinished()) {
+        return;
+      }
+      Status oldStatus = mStatus;
+      mStatus = status;
+      mLastStatusChangeMs = CommonUtils.getCurrentMs();
+      if (mStatusChangeCallback != null && status != oldStatus) {
+        mStatusChangeCallback.accept(this);
+      }
     }
   }
 
