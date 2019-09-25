@@ -11,6 +11,7 @@
 
 package alluxio.cli.job.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.file.FileSystemContext;
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Lists the job ids in the history.
  */
 @ThreadSafe
+@PublicApi
 public final class ListCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(ListCommand.class);
 

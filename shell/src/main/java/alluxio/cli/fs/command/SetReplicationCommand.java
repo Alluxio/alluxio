@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -30,6 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Changes the replication level of a file or directory specified by args.
  */
 @ThreadSafe
+@PublicApi
 public final class SetReplicationCommand extends AbstractFileSystemCommand {
 
   private static final Option MAX_OPTION =

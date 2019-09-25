@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -27,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Renames a file or directory specified by args. Will fail if the new path name already exists.
  */
 @ThreadSafe
+@PublicApi
 public final class MvCommand extends AbstractFileSystemCommand {
 
   /**

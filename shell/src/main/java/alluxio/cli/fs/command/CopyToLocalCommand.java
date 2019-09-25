@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -27,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Copies a file or a directory from the Alluxio filesystem to the local filesystem.
  */
 @ThreadSafe
+@PublicApi
 public final class CopyToLocalCommand extends AbstractFileSystemCommand {
 
   private CpCommand mCpCommand;
