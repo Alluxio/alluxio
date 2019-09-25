@@ -10,7 +10,7 @@
 #
 
 {{ $isRoot := eq (int .Values.user) 0 }}
-{{- $ugi := printf "%v:%v" .Values.user .Values.group }}
+{{- $ugi := printf "%v:%v" .Values.user .Values.group -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
