@@ -211,8 +211,11 @@ public final class FileSystemMasterClientServiceHandler
     final int listStatusBatchSize =
         ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
-    try (ListStatusResultStream resultStream =
-        new ListStatusResultStream(listStatusBatchSize, responseObserver)) {
+    // Result streamer for listStatus.
+    ListStatusResultStream resultStream =
+        new ListStatusResultStream(listStatusBatchSize, responseObserver);
+
+    try {
       RpcUtils.callAndReturn(LOG, () -> {
         AlluxioURI pathUri = getAlluxioURI(request.getPath());
         mFileSystemMaster.listStatus(pathUri,
@@ -221,8 +224,9 @@ public final class FileSystemMasterClientServiceHandler
         return null;
       }, "ListStatus", false, "request: %s", request);
     } catch (Exception e) {
-      responseObserver.onError(e);
-      return;
+      resultStream.fail(e);
+    } finally {
+      resultStream.complete();
     }
   }
 

@@ -25,13 +25,15 @@ import java.util.stream.Collectors;
 /**
  * Used to define a single batch of listing.
  */
-public class ListStatusResultStream implements ResultStream<FileInfo>, AutoCloseable {
+public class ListStatusResultStream implements ResultStream<FileInfo> {
   /** List of file infos. */
   private List<FileInfo> mInfos;
   /** Batch size. */
   private int mBatchSize;
   /** Cliet-side gRPC stream observer. */
   private StreamObserver<ListStatusPResponse> mClientObserver;
+  /** Whether stream is still active. */
+  private boolean mStreamActive = true;
 
   /**
    * Creates a new result streamer for listStatus call.
@@ -50,16 +52,49 @@ public class ListStatusResultStream implements ResultStream<FileInfo>, AutoClose
   public void submit(FileInfo item) {
     mInfos.add(item);
     if (mInfos.size() >= mBatchSize) {
-      mClientObserver.onNext(toProto());
+      sendCurrentBatch();
     }
   }
 
-  @Override
-  public void close() throws Exception {
+  /**
+   * Sends the current batch if there are any items.
+   */
+  private void sendCurrentBatch() {
     if (mInfos.size() > 0) {
       mClientObserver.onNext(toProto());
+      mInfos.clear();
     }
-    mClientObserver.onCompleted();
+  }
+
+  /**
+   * Used to complete the stream.
+   * It sends any remaining items and closes the underlying stream.
+   */
+  public void complete() {
+    if (!mStreamActive) {
+      return;
+    }
+    try {
+      sendCurrentBatch();
+      mClientObserver.onCompleted();
+    } finally {
+      mStreamActive = false;
+    }
+  }
+
+  /**
+   * Used to fail streaming with an error.
+   *
+   * @param error streaming error
+   */
+  public void fail(Throwable error) {
+    if (mStreamActive) {
+      try {
+        mClientObserver.onError(error);
+      } finally {
+        mStreamActive = false;
+      }
+    }
   }
 
   /**
