@@ -18,7 +18,7 @@ Alluxio 统一了存储在这些不同存储系统中的数据，为其上层数
 
 Alluxio 项目源自 UC Berkeley 的 [AMPLab](https://amplab.cs.berkeley.edu/software/)（见[论文](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html)），在伯克利数据分析栈 (Berkeley Data Analytics Stack, [BDAS](https://amplab.cs.berkeley.edu/bdas/)) 中扮演数据访问层的角色。
 它以 Apache License 2.0 协议的方式开源。
-Alluxio 是发展最快的开源大数据项目之一，已经吸引了超过 300 个组织机构的1000多名贡献者参与到 Alluxio 的开发中，包括
+Alluxio 是发展最快的开源大数据项目之一，已经吸引了超过 300 个组织机构的[1000多名贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到 Alluxio 的开发中，包括
 [阿里巴巴](http://www.alibaba.com)、
 [Alluxio](https://www.alluxio.io)、
 [百度](https://www.baidu.com)、
@@ -85,6 +85,11 @@ Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的
 对于无法使用 Google Group 的用户，请使用它的[镜像](http://alluxio-users.85194.x6.nabble.com/))
 或者我们的[社区Slack频道](https://alluxio.io/slack).。
 
+Alluxio微信公众号二维码（下图）
+<p align="left">
+<img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2019/04/public_account_qrcode.png" width="120" alt="QRCode"/>
+</p>
+
 [下载](https://alluxio.io/download/) | 
 [用户文档]({{ '/cn/Getting-Started.html' | relativize_url }}) | 
 [开发者文档]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }}) | 
@@ -94,8 +99,4 @@ Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的
 [用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [视频](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
 [Github](https://github.com/alluxio/alluxio/) |
-[已发布版本](https://www.alluxio.io/download/releases) |
-Alluxio微信公众号二维码（下图）
-<p align="left">
-<img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2019/04/public_account_qrcode.png" width="120" alt="QRCode"/>
-</p>
+[已发布版本](https://www.alluxio.io/download/releases)
