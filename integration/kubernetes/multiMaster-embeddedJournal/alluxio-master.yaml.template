@@ -25,7 +25,7 @@ spec:
   - port: 19999
     name: web
   - port: 19200
-    name: embedded-journal
+    name: embedded
   clusterIP: None
   selector:
     app: alluxio-master-0
@@ -76,7 +76,7 @@ spec:
         - containerPort: 19999
           name: web
         - containerPort: 19200
-          name: embedded-journal
+          name: embedded
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
@@ -123,7 +123,7 @@ spec:
   - port: 19999
     name: web
   - port: 19200
-    name: embedded-journal
+    name: embedded
   clusterIP: None
   selector:
     app: alluxio-master-1
@@ -174,7 +174,7 @@ spec:
         - containerPort: 19999
           name: web
         - containerPort: 19200
-          name: embedded-journal
+          name: embedded
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
@@ -221,7 +221,7 @@ spec:
   - port: 19999
     name: web
   - port: 19200
-    name: embedded-journal
+    name: embedded
   clusterIP: None
   selector:
     app: alluxio-master-2
@@ -272,7 +272,7 @@ spec:
         - containerPort: 19999
           name: web
         - containerPort: 19200
-          name: embedded-journal
+          name: embedded
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal

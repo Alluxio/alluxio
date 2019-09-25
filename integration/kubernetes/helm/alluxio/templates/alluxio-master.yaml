@@ -48,7 +48,7 @@ spec:
     name: web
   {{- if $isEmbedded }}
   - port: 19200
-    name: embedded-journal
+    name: embedded
   {{- end}}
   clusterIP: None
   selector:
@@ -103,7 +103,7 @@ spec:
           name: web
         {{- if $isEmbedded }}
         - containerPort: 19200
-          name: embedded-journal
+          name: embedded
         {{- end}}
         volumeMounts:
         {{- if $needJournalVolume }}
