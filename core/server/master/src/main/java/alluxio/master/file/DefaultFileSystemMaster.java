@@ -823,8 +823,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public void listStatus(AlluxioURI path, ListStatusContext context,
-      BatchTracker<ListStatusBatch> batchTracker) throws AccessControlException,
-      FileDoesNotExistException, InvalidPathException, IOException {
+      ResultStream<FileInfo> resultStream)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
@@ -887,24 +887,19 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
-      final int resultMessageLength = ServerConfiguration.getInt(
-              PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
-      ListStatusBatch currentBatch = new ListStatusBatch(resultMessageLength);
       DescendantType descendantTypeForListStatus =
           (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
-      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
-          currentBatch, batchTracker);
-
-      // If we are listing the status of a directory, we remove the directory info that we inserted
-      if (inode.isDirectory() && currentBatch.size() > 0) {
-        currentBatch.pop();
+      if (inode.isFile()) {
+        listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
+            resultStream);
+      } else {
+        for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
+          try (LockedInodePath childInodePath = inodePath.lockChild(child, LockPattern.READ)) {
+            listStatusInternal(rpcContext, childInodePath, auditContext,
+                descendantTypeForListStatus, resultStream);
+          }
+        }
       }
-      // Send the batch with the remainders.
-      if (currentBatch.size() > 0) {
-        batchTracker.onNext(currentBatch);
-        currentBatch.clear();
-      }
-
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
     }
@@ -914,35 +909,26 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     final List<FileInfo> fileInfos = new ArrayList<>();
-    // Call batching listStatus() with inline batch tracker that populates the internal list.
-    BatchTracker<ListStatusBatch> inlineBatchTracker = new BatchTracker<ListStatusBatch>() {
-      @Override
-      public void onNext(ListStatusBatch batch) {
-        fileInfos.addAll(batch.toList());
-      }
-    };
-
-    listStatus(path, context, inlineBatchTracker);
+    listStatus(path, context, (item) -> fileInfos.add(item));
     return fileInfos;
   }
 
   /**
-   * Lists the status of the path in {@link LockedInodePath}, possibly recursively depending on
-   * the descendantType. The result is returned via a list specified by statusList, in postorder
+   * Lists the status of the path in {@link LockedInodePath}, possibly recursively depending on the
+   * descendantType. The result is returned via a list specified by statusList, in postorder
    * traversal order.
    *
    * @param rpcContext the context for the RPC call
    * @param currInodePath the inode path to find the status
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
-   *                       should be returned
-   * @param batch used to store batch of the status of the files and directories requested
-   * @param batchTracker the tracker that will receive batches of statuses
+   *        should be returned
+   * @param resultStream the stream to receive individual results
    */
   private void listStatusInternal(RpcContext rpcContext, LockedInodePath currInodePath,
-      AuditContext auditContext, DescendantType descendantType, ListStatusBatch batch,
-      BatchTracker<ListStatusBatch> batchTracker) throws FileDoesNotExistException,
-      UnavailableException, AccessControlException, InvalidPathException {
+      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream)
+      throws FileDoesNotExistException, UnavailableException, AccessControlException,
+      InvalidPathException {
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -971,24 +957,22 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // TODO(david): Make extending InodePath more efficient
         childComponentsHint[childComponentsHint.length - 1] = child.getName();
 
+        /**
+         * listStatusInternal adds an item for the root inode as well.
+         * When listing a directory, an item for directory is not wanted in the result stream.
+         * So here the initial branching on the root directory is handled.
+         */
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
-          listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType, batch,
-              batchTracker);
+          listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
+              resultStream);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{0}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
         }
       }
     }
-    // Send the batch if it is complete.
-    if (batch.isComplete()) {
-      batchTracker.onNext(batch);
-      batch.clear();
-    }
-    // Adding the item after sending the batch will make sure,
-    // entry for the directory itself could be pruned at {@link #listStatus}.
-    batch.add(getFileInfoInternal(currInodePath));
+    resultStream.submit(getFileInfoInternal(currInodePath));
   }
 
   /**

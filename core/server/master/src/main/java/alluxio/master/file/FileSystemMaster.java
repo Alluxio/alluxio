@@ -151,14 +151,14 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the path to get the {@link FileInfo} list for
    * @param context the method context
-   * @param batchTracker the tracker that will receive batches of statuses
+   * @param resultStream the stream to receive individual results
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  void listStatus(AlluxioURI path, ListStatusContext context,
-      BatchTracker<ListStatusBatch> batchTracker) throws AccessControlException,
-      FileDoesNotExistException, InvalidPathException, UnavailableException, IOException;
+  void listStatus(AlluxioURI path, ListStatusContext context, ResultStream<FileInfo> resultStream)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException,
+      UnavailableException, IOException;
 
   /**
    * @return a read-only view of the file system master

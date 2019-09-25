@@ -12,15 +12,15 @@
 package alluxio.master.file;
 
 /**
- * Used to receive batches from FileSystemMaster methods.
+ * Used to receive stream of items.
  *
- * @param <T> batch type
+ * @param <T> type of individual stream item
  */
-public interface BatchTracker<T> {
-  /**
-   * Called when a next batch is ready.
-   *
-   * @param batch the next batch
-   */
-  void onNext(T batch);
+public interface ResultStream<T> {
+    /**
+     * Submits a new item to stream.
+     *
+     * @param item the next item
+     */
+  void submit(T item);
 }

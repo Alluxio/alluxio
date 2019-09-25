@@ -13,6 +13,8 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
@@ -81,7 +83,6 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
-import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -207,35 +208,20 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void listStatus(ListStatusPRequest request,
       StreamObserver<ListStatusPResponse> responseObserver) {
+    final int listStatusBatchSize =
+        ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
-    // Tracker implementation that will send batches over gRPC stream.
-    BatchTracker<ListStatusBatch> batchTracker = (batch) -> {
-      // Stream back the next packet.
-      RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<ListStatusPResponse>() {
-        @Override
-        public ListStatusPResponse call() throws Exception {
-          return batch.toProto();
-        }
-
-        @Override
-        public void exceptionCaught(Throwable throwable) {
-          responseObserver.onError(throwable);
-        }
-      }, "ListStatus", true, false, responseObserver, "Batch: %s", batch);
-    };
-
-    try {
+    try (ListStatusResultStream resultStream =
+        new ListStatusResultStream(listStatusBatchSize, responseObserver)) {
       RpcUtils.callAndReturn(LOG, () -> {
         AlluxioURI pathUri = getAlluxioURI(request.getPath());
         mFileSystemMaster.listStatus(pathUri,
-            ListStatusContext.create(request.getOptions().toBuilder()), batchTracker);
-        // Complete the stream successfully.
-        responseObserver.onCompleted();
+            ListStatusContext.create(request.getOptions().toBuilder()), resultStream);
         // Return just something.
         return null;
       }, "ListStatus", false, "request: %s", request);
-    } catch (StatusException se) {
-      responseObserver.onError(se);
+    } catch (Exception e) {
+      responseObserver.onError(e);
       return;
     }
   }
