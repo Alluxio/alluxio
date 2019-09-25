@@ -11,11 +11,11 @@
 
 package alluxio.master.job;
 
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
 import alluxio.job.JobServerContext;
-import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.meta.JobInfo;
 import alluxio.job.wire.Status;
