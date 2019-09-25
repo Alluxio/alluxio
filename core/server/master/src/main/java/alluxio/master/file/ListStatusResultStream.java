@@ -18,6 +18,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Used to define a single batch of listing.
  */
+@ThreadSafe
 public class ListStatusResultStream implements ResultStream<FileInfo> {
   /** List of file infos. */
   private List<FileInfo> mInfos;
@@ -49,7 +51,7 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
   }
 
   @Override
-  public void submit(FileInfo item) {
+  public synchronized void submit(FileInfo item) {
     mInfos.add(item);
     if (mInfos.size() >= mBatchSize) {
       sendCurrentBatch();
@@ -70,7 +72,7 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
    * Used to complete the stream.
    * It sends any remaining items and closes the underlying stream.
    */
-  public void complete() {
+  public synchronized void complete() {
     if (!mStreamActive) {
       return;
     }
@@ -87,7 +89,7 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
    *
    * @param error streaming error
    */
-  public void fail(Throwable error) {
+  public synchronized void fail(Throwable error) {
     if (mStreamActive) {
       try {
         mClientObserver.onError(error);
