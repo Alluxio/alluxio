@@ -32,6 +32,7 @@ import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.master.FsMasterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystem;
@@ -49,6 +50,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -68,6 +70,9 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
       ServerConfiguration.global());
+
+  @Rule
+  private TestName mTestName = new TestName();
 
   @Rule
   public ConfigurationRule mConfigRule =
@@ -182,7 +187,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     UnderFileSystemFactory factory = null;
     try {
       cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
-      cluster.initConfiguration();
+      cluster.initConfiguration(
+          IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
       cluster.start();
       cluster.stopLeader();
       factory = mountUnmount(cluster.getClient());
@@ -245,7 +251,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   private LocalAlluxioCluster setupSingleMasterCluster() throws Exception {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster();
-    cluster.initConfiguration();
+    cluster.initConfiguration(
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
     ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
     cluster.start();
     return cluster;

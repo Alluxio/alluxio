@@ -86,6 +86,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
 
+  /** The name of the test/cluster. */
+  private String mTestName = "test";
+
   /**
    * Creates a new instance.
    *
@@ -132,7 +135,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     // Create a new cluster.
     mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
     // Init configuration for integration test
-    mLocalAlluxioCluster.initConfiguration();
+    mLocalAlluxioCluster.initConfiguration(mTestName);
     // Overwrite the test configuration with test specific parameters
     for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
@@ -148,6 +151,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
       @Override
       public void evaluate() throws Throwable {
         IntegrationTestUtils.reserveMasterPorts();
+        mTestName = IntegrationTestUtils
+            .getTestName(description.getTestClass().getSimpleName(), description.getMethodName());
         try {
           try {
             boolean startCluster = mStartCluster;
@@ -226,8 +231,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster,
-          mNumWorkers, mConfiguration);
+      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
     }
   }
 

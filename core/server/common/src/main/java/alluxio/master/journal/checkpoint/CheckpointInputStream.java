@@ -13,6 +13,9 @@ package alluxio.master.journal.checkpoint;
 
 import alluxio.RuntimeConstants;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -26,6 +29,7 @@ import java.io.InputStream;
  * @see CheckpointOutputStream
  */
 public final class CheckpointInputStream extends DataInputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(CheckpointInputStream.class);
   private final CheckpointType mType;
 
   /**
@@ -37,6 +41,7 @@ public final class CheckpointInputStream extends DataInputStream {
     try {
       id = readLong();
     } catch (EOFException e) {
+      LOG.error("Failed to read checkpoint type.", e);
       throw new IllegalStateException(String.format(
           "EOF while parsing checkpoint type. Was your checkpoint written by alluxio-1.x? See %s"
               + " for instructions on how to upgrade from alluxio-1.x to alluxio-2.x",
