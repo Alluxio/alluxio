@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileInStream;
@@ -66,6 +67,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Copies a file or a directory in the Alluxio filesystem.
  */
 @ThreadSafe
+@PublicApi
 public final class CpCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CpCommand.class);
   private static final String COPY_SUCCEED_MESSAGE = "Copied %s to %s";

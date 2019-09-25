@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.ClientContext;
+import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
@@ -44,6 +45,7 @@ import java.util.function.Supplier;
 /**
  * Utility for printing Alluxio configuration.
  */
+@PublicApi
 public final class GetConf {
   private static final String USAGE =
       "USAGE: GetConf [--unit <arg>] [--source] [--master] [key]\n\n"

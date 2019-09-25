@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
@@ -29,6 +30,7 @@ import java.io.IOException;
 /**
  * Command for backing up Alluxio master metadata.
  */
+@PublicApi
 public class BackupCommand extends AbstractFsAdminCommand {
 
   private static final Option LOCAL_OPTION =

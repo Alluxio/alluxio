@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
@@ -41,6 +42,7 @@ import javax.security.auth.Subject;
  * Ideally only a single {@link ClientContext} should be needed when initializing an application.
  * This will use as few network resources as possible.
  */
+@PublicApi
 public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
   private volatile String mClusterConfHash;

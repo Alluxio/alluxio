@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -29,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * required. This command fails if a directory or file with the same path already exists.
  */
 @ThreadSafe
+@PublicApi
 public final class MkdirCommand extends AbstractFileSystemCommand {
 
   /**

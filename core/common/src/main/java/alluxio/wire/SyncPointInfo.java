@@ -12,12 +12,14 @@
 package alluxio.wire;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.grpc.SyncPointStatus;
 
 /**
  * This class represents the state of a sync point, whether the intial syncing is done,
  * in progress or not going to be done.
  */
+@PublicApi
 public class SyncPointInfo {
   /**
    * Indicates the status of the initial sync of the active sync point.

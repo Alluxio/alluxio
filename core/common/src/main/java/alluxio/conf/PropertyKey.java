@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
+import alluxio.annotation.PublicApi;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.Scope;
 import alluxio.grpc.WritePType;
@@ -48,6 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Configuration property keys. This class provides a set of pre-defined property keys.
  */
 @ThreadSafe
+@PublicApi
 public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.class);
 

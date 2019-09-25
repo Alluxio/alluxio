@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
@@ -24,6 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The mount point information.
  */
 @NotThreadSafe
+@PublicApi
 public class MountPointInfo implements Serializable {
   private static final long serialVersionUID = -2912330427506888886L;
 

@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.Command;
 import alluxio.cli.fsadmin.journal.CheckpointCommand;
 import alluxio.cli.fsadmin.journal.QuorumCommand;
@@ -25,6 +26,7 @@ import java.util.function.BiFunction;
 /**
  * Command for seeing/managing quorum state of embedded journal.
  */
+@PublicApi
 public class JournalCommand extends AbstractFsAdminCommand {
 
   private static final Map<String, BiFunction<Context, AlluxioConfiguration, ? extends Command>>

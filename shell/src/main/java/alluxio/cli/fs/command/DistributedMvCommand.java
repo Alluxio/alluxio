@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobGrpcClientUtils;
@@ -30,6 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Moves a file or directory specified by args.
  */
 @ThreadSafe
+@PublicApi
 public final class DistributedMvCommand extends AbstractFileSystemCommand {
 
   /**

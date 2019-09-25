@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
+import alluxio.annotation.PublicApi;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The version of the current build.
  */
 @ThreadSafe
+@PublicApi
 public final class Version {
 
   private static final Option REVISION_OPT = Option.builder("r")
