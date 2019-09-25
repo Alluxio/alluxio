@@ -65,6 +65,7 @@ public class HiveUtils {
           .setName(field.getName())
           .setType(Type.newBuilder()
               .setType(toProto(field.getType()))) // does not support complex types now
+          .setComment(field.getComment() != null ? field.getComment() : "")
           .build();
       list.add(aFieldSchema);
     }
@@ -74,8 +75,8 @@ public class HiveUtils {
   private static FieldTypeId toProto(String hiveType) {
     switch (hiveType) {
       case "boolean": return FieldTypeId.BOOLEAN;
-      case "tinyint": return FieldTypeId.INTEGER;
-      case "smallint": return FieldTypeId.INTEGER;
+      case "tinyint": return FieldTypeId.BYTE;
+      case "smallint": return FieldTypeId.SHORT;
       case "int": return FieldTypeId.INTEGER;
       case "integer": return FieldTypeId.INTEGER;
       case "bigint": return FieldTypeId.LONG;

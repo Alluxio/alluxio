@@ -83,6 +83,15 @@ public class Table {
   }
 
   /**
+   * Returns the udb table.
+   *
+   * @return udb table
+   */
+  public UdbTable getUdbTable() {
+    return mUdbTable;
+  }
+
+  /**
    * @return the proto representation
    */
   public TableInfo toProto() {

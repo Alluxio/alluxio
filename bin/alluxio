@@ -19,6 +19,7 @@ function printUsage {
   echo -e "  formatMaster  \t Format Alluxio master"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
+  echo -e "  catalog       \t Command line tool for interacting with the alluxio catalog service"
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
   echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
@@ -265,6 +266,11 @@ function main {
   ;;
   "job")
     CLASS="alluxio.cli.job.JobShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "catalog")
+    CLASS="alluxio.cli.catalog.CatalogShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;

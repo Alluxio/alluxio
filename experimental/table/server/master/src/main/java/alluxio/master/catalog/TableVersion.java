@@ -122,6 +122,7 @@ public class TableVersion {
       TableViewInfo viewInfo = entry.getValue().toProto(entry.getKey());
       builder.addViews(viewInfo);
     }
+    builder.setUdbInfo(mTable.getUdbTable().toProto());
     return builder.build();
   }
 }

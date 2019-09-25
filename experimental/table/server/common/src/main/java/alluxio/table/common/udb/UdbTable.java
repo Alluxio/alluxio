@@ -14,6 +14,7 @@ package alluxio.table.common.udb;
 import alluxio.grpc.FileStatistics;
 import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.Schema;
+import alluxio.grpc.UdbTableInfo;
 import alluxio.table.common.TableView;
 
 import java.util.List;
@@ -54,4 +55,9 @@ public interface UdbTable {
    * @return returns partition info for the table
    */
   List<PartitionInfo> getPartitions();
+
+  /**
+   * @return returns a proto representing the table
+   */
+  UdbTableInfo toProto();
 }

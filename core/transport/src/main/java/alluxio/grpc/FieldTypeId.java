@@ -13,69 +13,77 @@ public enum FieldTypeId
    */
   BOOLEAN(0),
   /**
-   * <code>INTEGER = 1;</code>
+   * <code>BYTE = 1;</code>
    */
-  INTEGER(1),
+  BYTE(1),
   /**
-   * <code>LONG = 2;</code>
+   * <code>SHORT = 2;</code>
    */
-  LONG(2),
+  SHORT(2),
   /**
-   * <code>FLOAT = 3;</code>
+   * <code>INTEGER = 3;</code>
    */
-  FLOAT(3),
+  INTEGER(3),
   /**
-   * <code>DOUBLE = 4;</code>
+   * <code>LONG = 4;</code>
    */
-  DOUBLE(4),
+  LONG(4),
   /**
-   * <code>DATE = 5;</code>
+   * <code>FLOAT = 5;</code>
    */
-  DATE(5),
+  FLOAT(5),
   /**
-   * <code>TIME = 6;</code>
+   * <code>DOUBLE = 6;</code>
    */
-  TIME(6),
+  DOUBLE(6),
   /**
-   * <code>TIMESTAMP = 7;</code>
+   * <code>DATE = 7;</code>
    */
-  TIMESTAMP(7),
+  DATE(7),
   /**
-   * <code>STRING = 8;</code>
+   * <code>TIME = 8;</code>
    */
-  STRING(8),
+  TIME(8),
   /**
-   * <code>UUID = 9;</code>
+   * <code>TIMESTAMP = 9;</code>
    */
-  UUID(9),
+  TIMESTAMP(9),
   /**
-   * <code>FIXED = 10;</code>
+   * <code>STRING = 10;</code>
    */
-  FIXED(10),
+  STRING(10),
   /**
-   * <code>BINARY = 11;</code>
+   * <code>UUID = 11;</code>
    */
-  BINARY(11),
+  UUID(11),
   /**
-   * <code>DECIMAL = 12;</code>
+   * <code>FIXED = 12;</code>
    */
-  DECIMAL(12),
+  FIXED(12),
+  /**
+   * <code>BINARY = 13;</code>
+   */
+  BINARY(13),
+  /**
+   * <code>DECIMAL = 14;</code>
+   */
+  DECIMAL(14),
   /**
    * <pre>
    * the following are composite types, we will support them later
    * </pre>
    *
-   * <code>STRUCT = 13;</code>
+   * <code>STRUCT = 15;</code>
    */
-  STRUCT(13),
+  STRUCT(15),
   /**
-   * <code>LIST = 14;</code>
+   * <code>LIST = 16;</code>
    */
-  LIST(14),
+  LIST(16),
   /**
-   * <code>MAP = 15;</code>
+   * <code>MAP = 17;</code>
    */
-  MAP(15),
+  MAP(17),
   ;
 
   /**
@@ -83,69 +91,77 @@ public enum FieldTypeId
    */
   public static final int BOOLEAN_VALUE = 0;
   /**
-   * <code>INTEGER = 1;</code>
+   * <code>BYTE = 1;</code>
    */
-  public static final int INTEGER_VALUE = 1;
+  public static final int BYTE_VALUE = 1;
   /**
-   * <code>LONG = 2;</code>
+   * <code>SHORT = 2;</code>
    */
-  public static final int LONG_VALUE = 2;
+  public static final int SHORT_VALUE = 2;
   /**
-   * <code>FLOAT = 3;</code>
+   * <code>INTEGER = 3;</code>
    */
-  public static final int FLOAT_VALUE = 3;
+  public static final int INTEGER_VALUE = 3;
   /**
-   * <code>DOUBLE = 4;</code>
+   * <code>LONG = 4;</code>
    */
-  public static final int DOUBLE_VALUE = 4;
+  public static final int LONG_VALUE = 4;
   /**
-   * <code>DATE = 5;</code>
+   * <code>FLOAT = 5;</code>
    */
-  public static final int DATE_VALUE = 5;
+  public static final int FLOAT_VALUE = 5;
   /**
-   * <code>TIME = 6;</code>
+   * <code>DOUBLE = 6;</code>
    */
-  public static final int TIME_VALUE = 6;
+  public static final int DOUBLE_VALUE = 6;
   /**
-   * <code>TIMESTAMP = 7;</code>
+   * <code>DATE = 7;</code>
    */
-  public static final int TIMESTAMP_VALUE = 7;
+  public static final int DATE_VALUE = 7;
   /**
-   * <code>STRING = 8;</code>
+   * <code>TIME = 8;</code>
    */
-  public static final int STRING_VALUE = 8;
+  public static final int TIME_VALUE = 8;
   /**
-   * <code>UUID = 9;</code>
+   * <code>TIMESTAMP = 9;</code>
    */
-  public static final int UUID_VALUE = 9;
+  public static final int TIMESTAMP_VALUE = 9;
   /**
-   * <code>FIXED = 10;</code>
+   * <code>STRING = 10;</code>
    */
-  public static final int FIXED_VALUE = 10;
+  public static final int STRING_VALUE = 10;
   /**
-   * <code>BINARY = 11;</code>
+   * <code>UUID = 11;</code>
    */
-  public static final int BINARY_VALUE = 11;
+  public static final int UUID_VALUE = 11;
   /**
-   * <code>DECIMAL = 12;</code>
+   * <code>FIXED = 12;</code>
    */
-  public static final int DECIMAL_VALUE = 12;
+  public static final int FIXED_VALUE = 12;
+  /**
+   * <code>BINARY = 13;</code>
+   */
+  public static final int BINARY_VALUE = 13;
+  /**
+   * <code>DECIMAL = 14;</code>
+   */
+  public static final int DECIMAL_VALUE = 14;
   /**
    * <pre>
    * the following are composite types, we will support them later
    * </pre>
    *
-   * <code>STRUCT = 13;</code>
+   * <code>STRUCT = 15;</code>
    */
-  public static final int STRUCT_VALUE = 13;
+  public static final int STRUCT_VALUE = 15;
   /**
-   * <code>LIST = 14;</code>
+   * <code>LIST = 16;</code>
    */
-  public static final int LIST_VALUE = 14;
+  public static final int LIST_VALUE = 16;
   /**
-   * <code>MAP = 15;</code>
+   * <code>MAP = 17;</code>
    */
-  public static final int MAP_VALUE = 15;
+  public static final int MAP_VALUE = 17;
 
 
   public final int getNumber() {
@@ -163,21 +179,23 @@ public enum FieldTypeId
   public static FieldTypeId forNumber(int value) {
     switch (value) {
       case 0: return BOOLEAN;
-      case 1: return INTEGER;
-      case 2: return LONG;
-      case 3: return FLOAT;
-      case 4: return DOUBLE;
-      case 5: return DATE;
-      case 6: return TIME;
-      case 7: return TIMESTAMP;
-      case 8: return STRING;
-      case 9: return UUID;
-      case 10: return FIXED;
-      case 11: return BINARY;
-      case 12: return DECIMAL;
-      case 13: return STRUCT;
-      case 14: return LIST;
-      case 15: return MAP;
+      case 1: return BYTE;
+      case 2: return SHORT;
+      case 3: return INTEGER;
+      case 4: return LONG;
+      case 5: return FLOAT;
+      case 6: return DOUBLE;
+      case 7: return DATE;
+      case 8: return TIME;
+      case 9: return TIMESTAMP;
+      case 10: return STRING;
+      case 11: return UUID;
+      case 12: return FIXED;
+      case 13: return BINARY;
+      case 14: return DECIMAL;
+      case 15: return STRUCT;
+      case 16: return LIST;
+      case 17: return MAP;
       default: return null;
     }
   }
