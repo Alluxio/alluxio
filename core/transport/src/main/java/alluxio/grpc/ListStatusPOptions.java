@@ -19,6 +19,7 @@ private static final long serialVersionUID = 0L;
     loadDirectChildren_ = false;
     loadMetadataType_ = 0;
     recursive_ = false;
+    includeUfsInfo_ = false;
   }
 
   @java.lang.Override
@@ -84,6 +85,11 @@ private static final long serialVersionUID = 0L;
           case 32: {
             bitField0_ |= 0x00000008;
             recursive_ = input.readBool();
+            break;
+          }
+          case 40: {
+            bitField0_ |= 0x00000010;
+            includeUfsInfo_ = input.readBool();
             break;
           }
         }
@@ -186,6 +192,21 @@ private static final long serialVersionUID = 0L;
     return recursive_;
   }
 
+  public static final int INCLUDEUFSINFO_FIELD_NUMBER = 5;
+  private boolean includeUfsInfo_;
+  /**
+   * <code>optional bool includeUfsInfo = 5;</code>
+   */
+  public boolean hasIncludeUfsInfo() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <code>optional bool includeUfsInfo = 5;</code>
+   */
+  public boolean getIncludeUfsInfo() {
+    return includeUfsInfo_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -210,6 +231,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       output.writeBool(4, recursive_);
     }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      output.writeBool(5, includeUfsInfo_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -233,6 +257,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(4, recursive_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(5, includeUfsInfo_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -269,6 +297,11 @@ private static final long serialVersionUID = 0L;
       result = result && (getRecursive()
           == other.getRecursive());
     }
+    result = result && (hasIncludeUfsInfo() == other.hasIncludeUfsInfo());
+    if (hasIncludeUfsInfo()) {
+      result = result && (getIncludeUfsInfo()
+          == other.getIncludeUfsInfo());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -297,6 +330,11 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + RECURSIVE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getRecursive());
+    }
+    if (hasIncludeUfsInfo()) {
+      hash = (37 * hash) + INCLUDEUFSINFO_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIncludeUfsInfo());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -440,6 +478,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000004);
       recursive_ = false;
       bitField0_ = (bitField0_ & ~0x00000008);
+      includeUfsInfo_ = false;
+      bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
 
@@ -484,6 +524,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000008;
       }
       result.recursive_ = recursive_;
+      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.includeUfsInfo_ = includeUfsInfo_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -537,6 +581,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasRecursive()) {
         setRecursive(other.getRecursive());
+      }
+      if (other.hasIncludeUfsInfo()) {
+        setIncludeUfsInfo(other.getIncludeUfsInfo());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -796,6 +843,38 @@ private static final long serialVersionUID = 0L;
     public Builder clearRecursive() {
       bitField0_ = (bitField0_ & ~0x00000008);
       recursive_ = false;
+      onChanged();
+      return this;
+    }
+
+    private boolean includeUfsInfo_ ;
+    /**
+     * <code>optional bool includeUfsInfo = 5;</code>
+     */
+    public boolean hasIncludeUfsInfo() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool includeUfsInfo = 5;</code>
+     */
+    public boolean getIncludeUfsInfo() {
+      return includeUfsInfo_;
+    }
+    /**
+     * <code>optional bool includeUfsInfo = 5;</code>
+     */
+    public Builder setIncludeUfsInfo(boolean value) {
+      bitField0_ |= 0x00000010;
+      includeUfsInfo_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool includeUfsInfo = 5;</code>
+     */
+    public Builder clearIncludeUfsInfo() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      includeUfsInfo_ = false;
       onChanged();
       return this;
     }

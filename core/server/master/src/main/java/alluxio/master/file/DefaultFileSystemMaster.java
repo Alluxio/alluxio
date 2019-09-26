@@ -779,11 +779,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
   }
 
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath)
+      throws FileDoesNotExistException, UnavailableException {
+    return getFileInfoInternal(inodePath, true);
+  }
+
   /**
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
+   * @param includeUfsInformation whether to include ufs level information
    * @return the {@link FileInfo} for the given inode
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath)
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath, boolean includeUfsInformation)
       throws FileDoesNotExistException, UnavailableException {
     Inode inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
@@ -801,15 +807,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     }
     fileInfo.setXAttr(inode.getXAttr());
-    MountTable.Resolution resolution;
-    try {
-      resolution = mMountTable.resolve(uri);
-    } catch (InvalidPathException e) {
-      throw new FileDoesNotExistException(e.getMessage(), e);
+    if (includeUfsInformation) {
+      MountTable.Resolution resolution;
+      try {
+        resolution = mMountTable.resolve(uri);
+      } catch (InvalidPathException e) {
+        throw new FileDoesNotExistException(e.getMessage(), e);
+      }
+      AlluxioURI resolvedUri = resolution.getUri();
+      fileInfo.setUfsPath(resolvedUri.toString());
+      fileInfo.setMountId(resolution.getMountId());
     }
-    AlluxioURI resolvedUri = resolution.getUri();
-    fileInfo.setUfsPath(resolvedUri.toString());
-    fileInfo.setMountId(resolution.getMountId());
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }
@@ -889,7 +897,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       auditContext.setSrcInode(inode);
       DescendantType descendantTypeForListStatus =
           (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
-      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
+      listStatusInternal(rpcContext, context, inodePath, auditContext, descendantTypeForListStatus,
           resultStream, 0);
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
@@ -910,6 +918,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * traversal order.
    *
    * @param rpcContext the context for the RPC call
+   * @param context the listStatus context
    * @param currInodePath the inode path to find the status
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
@@ -917,10 +926,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param resultStream the stream to receive individual results
    * @param depth internal use field for tracking depth relative to root item
    */
-  private void listStatusInternal(RpcContext rpcContext, LockedInodePath currInodePath,
-      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
-      int depth) throws FileDoesNotExistException, UnavailableException, AccessControlException,
-      InvalidPathException {
+  private void listStatusInternal(RpcContext rpcContext, ListStatusContext context,
+      LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
+      ResultStream<FileInfo> resultStream, int depth) throws FileDoesNotExistException,
+      UnavailableException, AccessControlException, InvalidPathException {
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -951,7 +960,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
-          listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
+          listStatusInternal(rpcContext, context, childInodePath, auditContext, nextDescendantType,
               resultStream, depth + 1);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{0}\" is invalid, has been ignored.",
@@ -961,7 +970,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     // Listing a directory should not emit item for the directory itself.
     if (depth != 0 || inode.isFile()) {
-      resultStream.submit(getFileInfoInternal(currInodePath));
+      resultStream.submit(getFileInfoInternal(currInodePath,
+          context.getOptions().getIncludeUfsInfo()));
     }
   }
 

@@ -184,6 +184,7 @@ message ListStatusPOptions {
   optional LoadMetadataPType loadMetadataType = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
   optional bool recursive = 4;
+  optional bool includeUfsInfo = 5;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */

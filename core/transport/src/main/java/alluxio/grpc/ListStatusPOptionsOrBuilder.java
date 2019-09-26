@@ -54,4 +54,13 @@ public interface ListStatusPOptionsOrBuilder extends
    * <code>optional bool recursive = 4;</code>
    */
   boolean getRecursive();
+
+  /**
+   * <code>optional bool includeUfsInfo = 5;</code>
+   */
+  boolean hasIncludeUfsInfo();
+  /**
+   * <code>optional bool includeUfsInfo = 5;</code>
+   */
+  boolean getIncludeUfsInfo();
 }
