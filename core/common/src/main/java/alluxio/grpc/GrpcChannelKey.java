@@ -280,6 +280,7 @@ public class GrpcChannelKey {
         .add("FlowControlWindow", getStringFromOptional(mFlowControlWindow))
         .add("MaxInboundMessageSize", getStringFromOptional(mMaxInboundMessageSize))
         .add("ChannelType", getStringFromOptional(mChannelType))
+        .omitNullValues()
         .toString();
   }
 
@@ -291,6 +292,7 @@ public class GrpcChannelKey {
         .add("ClientType", getStringFromOptional(mClientType))
         .add("ServerAddress", mServerAddress)
         .add("ChannelId", mChannelId)
+        .omitNullValues()
         .toString();
   }
 
