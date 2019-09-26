@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.grpc.catalog.ColumnStatistics;
 import alluxio.grpc.catalog.FileStatistics;
 import alluxio.table.common.udb.UdbConfiguration;
@@ -132,22 +133,57 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
+  private void mountAlluxioPath(String tableName, AlluxioURI ufsPath, AlluxioURI tableUri)
+      throws IOException, AlluxioException {
+    // make sure the parent exists
+    mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+    Map<String, String> mountOptionMap = mConfiguration.getMountOption(
+        ufsPath.getScheme() + "://" + ufsPath.getAuthority().toString());
+    MountPOptions.Builder option = MountPOptions.newBuilder();
+    for (Map.Entry<String, String> entry : mountOptionMap.entrySet()) {
+      if (entry.getKey().equals(UdbConfiguration.READ_ONLY_OPTION)) {
+        option.setReadOnly(Boolean.parseBoolean(entry.getValue()));
+      } else if (entry.getKey().equals(UdbConfiguration.SHARED_OPTION)) {
+        option.setShared(Boolean.parseBoolean(entry.getValue()));
+      } else {
+        option.putProperties(entry.getKey(), entry.getValue());
+      }
+    }
+    mUdbContext.getFileSystem().mount(tableUri, ufsPath, option.build());
+
+    LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
+        tableName, ufsPath, tableUri, option.build());
+  }
+
+  private PathTranslator mountAlluxioPaths(Table table) throws IOException {
+    String tableName = table.getTableName();
+    AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
+
+    try {
+      AlluxioURI ufsLocation = new AlluxioURI(table.getDataLocation().toString());
+      mountAlluxioPath(tableName, ufsLocation, tableUri);
+
+      PathTranslator pathTranslator =
+          new PathTranslator();
+      pathTranslator.addMapping(tableUri.toString(), table.getDataLocation().toString());
+      return pathTranslator;
+    } catch (AlluxioException e) {
+      throw new IOException(
+          "Failed to mount table location. tableName: " + tableName
+              + " tableLocation: " + (table != null ? table.getDataLocation() : "null")
+              + " AlluxioLocation: " + mUdbContext.getTableLocation(tableName)
+              + " error: " + e.getMessage(), e);
+    }
+  }
+
   @Override
   public UdbTable getTable(String tableName) throws IOException {
     Table table = null;
     try {
       table = mHive.getTable(mDbName, tableName);
 
-      AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
-      // make sure the parent exists
-      mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
-          CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
-      mUdbContext.getFileSystem()
-          .mount(tableUri, new AlluxioURI(table.getDataLocation().toString()));
-      LOG.info("mounted table {} location {} to Alluxio location {}", tableName,
-          table.getDataLocation(), tableUri);
-      PathTranslator pathTranslator =
-          new PathTranslator(tableUri.toString(), table.getDataLocation().toString());
+      PathTranslator pathTranslator = mountAlluxioPaths(table);
 
       List<String> colNames = table.getAllCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
@@ -179,6 +215,7 @@ public class HiveDatabase implements UnderDatabase {
       }
       // Potentially expensive call
       List<Partition> partitions = mHive.getPartitions(table);
+      AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
       return new HiveTable(this, pathTranslator, tableName,
           HiveUtils.toProtoSchema(table.getAllCols()), tableUri.getPath(),
           Collections.singletonMap("unpartitioned", builder.build()),
@@ -187,12 +224,6 @@ public class HiveDatabase implements UnderDatabase {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
-    } catch (AlluxioException e) {
-      throw new IOException(
-          "Failed to mount table location. tableName: " + tableName
-              + " tableLocation: " + (table != null ? table.getDataLocation() : "null")
-              + " AlluxioLocation: " + mUdbContext.getTableLocation(tableName)
-              + " error: " + e.getMessage(), e);
     }
   }
 

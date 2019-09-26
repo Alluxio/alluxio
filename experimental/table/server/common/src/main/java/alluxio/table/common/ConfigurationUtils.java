@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
  * This represents a property name and default value for the UDB.
  */
 public class ConfigurationUtils {
+  public static final String MOUNT_PREFIX = "mountoption.";
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
 
   private ConfigurationUtils() {} // prevent instantiation

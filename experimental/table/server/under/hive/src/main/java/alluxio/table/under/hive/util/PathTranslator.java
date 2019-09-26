@@ -11,6 +11,8 @@
 
 package alluxio.table.under.hive.util;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,27 +24,35 @@ import java.io.IOException;
 public class PathTranslator {
   private static final Logger LOG = LoggerFactory.getLogger(PathTranslator.class);
 
-  private final String mAlluxioPath;
-  private final String mUfsPath;
+  private BiMap<String, String> mPathMap;
 
   /**
-   * Creates a new instance.
+   * Construct a path translator.
+   */
+  public PathTranslator() {
+    mPathMap = HashBiMap.create();
+  }
+
+  /**
+   * Add a mapping to the path translator.
    *
    * @param alluxioPath the alluxio path
    * @param ufsPath the corresponding ufs path
+   *
+   * @return PathTranslator object
    */
-  public PathTranslator(String alluxioPath, String ufsPath) {
+  public PathTranslator addMapping(String alluxioPath, String ufsPath) {
     while (alluxioPath.endsWith("/")) {
       // strip trailing slashes
       alluxioPath = alluxioPath.substring(0, alluxioPath.length() - 1);
     }
-    mAlluxioPath = alluxioPath;
 
     while (ufsPath.endsWith("/")) {
       // strip trailing slashes
       ufsPath = ufsPath.substring(0, ufsPath.length() - 1);
     }
-    mUfsPath = ufsPath;
+    mPathMap.put(alluxioPath, ufsPath);
+    return this;
   }
 
   /**
@@ -53,11 +63,12 @@ public class PathTranslator {
    * @throws IOException if the ufs path is not mounted
    */
   public String toAlluxioPath(String ufsPath) throws IOException {
-    if (!ufsPath.startsWith(mUfsPath)) {
-      throw new IOException(String
-          .format("Ufs path (%s) is not prefixed with the mounted ufs path (%s)", ufsPath,
-              mUfsPath));
+    for (BiMap.Entry<String, String> entry : mPathMap.entrySet()) {
+      if (ufsPath.startsWith(entry.getValue())) {
+        return entry.getKey() + ufsPath.substring(entry.getValue().length());
+      }
     }
-    return mAlluxioPath + ufsPath.substring(mUfsPath.length());
+    throw new IOException(String
+        .format("Ufs path (%s) can not be found", ufsPath));
   }
 }
