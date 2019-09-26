@@ -172,14 +172,14 @@ volumes:
 EOF
 ```
 
-##### Install
+#### Install
 
 Once the configuration is finalized, install as follows:
 ```console
 helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
 ```
 
-##### Uninstall
+#### Uninstall
 
 Uninstall Alluxio as follows:
 ```console
@@ -318,6 +318,53 @@ Execute the following to remove the persistent volume storing the Alluxio journa
 will be lost.
 ```console
 $ kubectl delete -f alluxio-journal-volume.yaml
+```
+
+#### Upgrade Alluxio
+
+Upgrading Alluxio in Kubernetes is easy. You can just change the Alluxio docker image version to your desired upper version.
+Then restart the Pod to make it take effect. You should make sure the Alluxio masters and workers are running on the same version for the best compatibility.
+
+For example, if you are currently running Alluxio v2.0.1 on Alluxio masters and you want to upgrade to the latest version.
+Just change the `image` field of all the Alluxio containers to `image: alluxio/alluxio:latest` and restart them.
+
+```yaml
+  containers:
+  - name: alluxio-master
+    image: alluxio/alluxio:2.0.1
+    imagePullPolicy: IfNotPresent
+    command: ["/entrypoint.sh"]
+    args: ["master-only", "--no-format"]
+    ...
+  - name: alluxio-job-master
+    image: alluxio/alluxio:2.0.1
+    imagePullPolicy: IfNotPresent
+    command: ["/entrypoint.sh"]
+    ...
+```
+
+Whether you need to re-format the journal and lose all file metadata depends on whether the journals are compatible.
+
+* If you are upgrading from v1.8 to v2.x, you have to format the journal. And by doing that you lose all the journal and file metadata.
+
+* If you are upgrading from v2.x to a higher minor version v2.y, or from v2.x.y to a higher minor version v2.x.z,
+the higher version Alluxio master will be able to read the lower version Alluxio master journal to recover all the journal and file metadata.
+We do not recommend rolling upgrade the masters with UFS journal, because there can be lower version masters reading journal written by higher version masters.
+And the behavior will be undefined.
+
+* If you are using embedded journal in Alluxio v2.x, the journal in each master will be lost on restart.
+
+In Kubernetes, [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volumes have the same lifespan as the Pods they are on.
+So you should expect contents in *emptyDir* volumes to be lost after the upgrade.
+
+For example, the RAM disk below used by Alluxio workers will be wiped out after the upgrade.
+
+```yaml
+  volumes:
+  - name: alluxio-ramdisk
+    emptyDir:
+      medium: "Memory"
+      sizeLimit: "1Gi"
 ```
 
 ### Access the Web UI
