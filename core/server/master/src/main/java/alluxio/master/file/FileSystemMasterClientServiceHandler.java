@@ -83,8 +83,6 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.SettableFuture;
-import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -210,69 +208,26 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void listStatus(ListStatusPRequest request,
       StreamObserver<ListStatusPResponse> responseObserver) {
+    final int listStatusBatchSize =
+        ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
-    // Receive {@link alluxio.wire.FileInfo} items from master.
-    List<alluxio.wire.FileInfo> fileInfoList;
+    // Result streamer for listStatus.
+    ListStatusResultStream resultStream =
+        new ListStatusResultStream(listStatusBatchSize, responseObserver);
+
     try {
-      fileInfoList = RpcUtils.callAndReturn(LOG, () -> {
+      RpcUtils.callAndReturn(LOG, () -> {
         AlluxioURI pathUri = getAlluxioURI(request.getPath());
-        return mFileSystemMaster.listStatus(pathUri,
-            ListStatusContext.create(request.getOptions().toBuilder()));
+        mFileSystemMaster.listStatus(pathUri,
+            ListStatusContext.create(request.getOptions().toBuilder()), resultStream);
+        // Return just something.
+        return null;
       }, "ListStatus", false, "request: %s", request);
-    } catch (StatusException se) {
-      responseObserver.onError(se);
-      return;
+    } catch (Exception e) {
+      resultStream.fail(e);
+    } finally {
+      resultStream.complete();
     }
-
-    // Stream results back in chunks.
-    final int resultMessageLength = ServerConfiguration.getInt(
-        PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
-
-    // Abort condition for message streaming.
-    SettableFuture<Void> abortCondition = SettableFuture.create();
-    // Current position in the master fileInfo list.
-    int currentIdx = 0;
-    do {
-      // Abort the packet if cancellation was signaled in previous message.
-      if (abortCondition.isCancelled()) {
-        break;
-      }
-
-      // How many remaining items to stream.
-      int remainingItemCount = fileInfoList.size() - currentIdx;
-      // Start index in the master fileInfo list for the next packet.
-      int messageStartIdx = currentIdx;
-      // How many results to stream in this round.
-      int messageItemCount = Math.min(resultMessageLength, remainingItemCount);
-      // Whether this is the last message.
-      boolean isLastPacket = (remainingItemCount == messageItemCount);
-
-      String packetDescription =
-          String.format("ListStatus message. Item count: %s, Remaining item count: %s",
-              messageItemCount, remainingItemCount);
-
-      // Stream back the next packet.
-      RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<ListStatusPResponse>() {
-        @Override
-        public ListStatusPResponse call() throws Exception {
-          return ListStatusPResponse.newBuilder()
-              .addAllFileInfos(
-                  fileInfoList.subList(messageStartIdx, messageStartIdx + messageItemCount).stream()
-                      .map(GrpcUtils::toProto).collect(Collectors.toList()))
-              .build();
-        }
-
-        @Override
-        public void exceptionCaught(Throwable throwable) {
-          responseObserver.onError(throwable);
-          // Notify the abort condition for bailing out after this message.
-          abortCondition.cancel(false);
-        }
-      }, "ListStatus", true, isLastPacket, responseObserver, packetDescription);
-
-      // Update current index to fileInfo master list.
-      currentIdx += messageItemCount;
-    } while (currentIdx < fileInfoList.size());
   }
 
   @Override
