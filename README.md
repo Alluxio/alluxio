@@ -22,19 +22,19 @@ For more details, please refer to Haoyuan Li's PhD dissertation
 ## Who Uses Alluxio
 
 Alluxio is used in production to manage Petabytes of data in many leading companies, with
-the largest deployment exceeding 1300 nodes. Find more use cases at
-[Powered by Alluxio](https://www.alluxio.io/powered-by-alluxio).
+the largest deployment exceeding 1300 nodes. You can find more use cases at
+[Powered by Alluxio](https://www.alluxio.io/powered-by-alluxio) or visit our first community conference ([Data Orchestration Summit](https://www.alluxio.io/data-orchestration-summit-2019/)) to learn from other community members!
 
 ## Community and Events
 Please use the following to reach members of the community:
 
 * Slack: [alluxio-community channel](https://www.alluxio.io/slack)
 * Community Events: [upcoming online office hours, meetups and webinars](https://www.alluxio.io/events)
-* Mailing List: [alluxio-users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
-* Meetup Groups: [Bay Area Meetup](http://www.meetup.com/Alluxio),
+* Meetup Groups: [Global Online Meetup](https://www.meetup.com/Alluxio-Global-Online-Meetup/), [Bay Area Meetup](http://www.meetup.com/Alluxio),
 [New York Meetup](https://www.meetup.com/Alluxio-Open-Source-New-York-Meetup),
-[Beijing Alluxio Meetup](https://www.meetup.com/meetup-group-iLMBZGhS/)
+[Beijing Alluxio Meetup](https://www.meetup.com/meetup-group-iLMBZGhS/), [Austin Meetup](https://www.meetup.com/Cloud-Data-Orchestration-Austin/)
 * Twitter: [@alluxio](https://twitter.com/alluxio)
+* Mailing List: [alluxio-users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
 
 ## Download Alluxio
 
@@ -97,13 +97,13 @@ implementing HDFS's file system API.
 <dependency>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-core-client-fs</artifactId>
-  <version>2.0.0</version>
+  <version>2.0.1</version>
 </dependency>
 ```
 
 ### SBT
 ```
-libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "2.0.0"
+libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "2.0.1"
 ```
 
 ## Contributing
