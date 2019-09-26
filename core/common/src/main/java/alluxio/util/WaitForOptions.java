@@ -18,7 +18,7 @@ import com.google.common.base.Objects;
  * Options for the {@link CommonUtils#waitFor} method.
  */
 public final class WaitForOptions {
-  static final int DEFAULT_INTERVAL = 2;
+  static final int DEFAULT_INTERVAL = 5;
   public static final int NEVER = -1;
 
   /** How often to check for completion. */
