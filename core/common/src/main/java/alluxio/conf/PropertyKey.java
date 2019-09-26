@@ -1279,16 +1279,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
           .setDescription(
               "The election timeout for the embedded journal. When this period elapses without a "
-                  + "master receiving any messages, the master will attempt to become the primary.")
-          .setDefaultValue("5s")
+                  + "master receiving any messages, the master will attempt to become the primary."
+                  + "Election timeout will be waited initially when the cluster is forming. "
+                  + "So larger values for election timeout will cause longer start-up time. "
+                  + "Smaller values might introduce instability to leadership.")
+          .setDefaultValue("10s")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL)
           .setDescription(
               "The period between sending heartbeats from the embedded journal primary to "
                   + "followers. This should be less than half of the election timeout "
-                  + "(alluxio.master.embedded.journal.election.timeout).")
-          .setDefaultValue("1s")
+                  + String.format("{%s}", Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
+                  + ", because the election is driven by heart beats.")
+          .setDefaultValue("3s")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE)
@@ -1296,7 +1304,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "in a single heartbeat. Setting higher values might require increasing "
               + "election timeout due to increased network delay. Setting lower values "
               + "might stall knowledge propagation between the leader and followers.")
-          .setDefaultValue("32KB")
+          .setDefaultValue("512KB")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
@@ -1310,6 +1320,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "losing state in case of power loss or host failure. Use MEMORY for "
               + "optimal performance, but no state persistence across cluster restarts.")
           .setDefaultValue("DISK")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT)
