@@ -27,6 +27,10 @@ public abstract class BaseConfiguration<T extends BaseProperty> {
 
   protected final ConcurrentHashMap<String, String> mValues;
 
+  protected BaseConfiguration() {
+    mValues = new ConcurrentHashMap<>();
+  }
+
   /**
    * Creates an instance.
    *

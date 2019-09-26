@@ -29,9 +29,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.util.JsonFormat;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -136,42 +133,57 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
+  private void mountAlluxioPath(String tableName, AlluxioURI ufsPath, AlluxioURI tableUri)
+      throws IOException, AlluxioException {
+    // make sure the parent exists
+    mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+    Map<String, String> mountOptionMap = mConfiguration.getMountOption(
+        ufsPath.getScheme() + ";//" + ufsPath.getAuthority().toString());
+    MountPOptions.Builder option = MountPOptions.newBuilder();
+    for (Map.Entry<String, String> entry : mountOptionMap.entrySet()) {
+      if (entry.getKey().equals("readonly")) {
+        option.setReadOnly(Boolean.parseBoolean(entry.getValue()));
+      } else if (entry.getKey().equals("shared")) {
+        option.setShared(Boolean.parseBoolean(entry.getValue()));
+      } else {
+        option.putProperties(entry.getKey(), entry.getValue());
+      }
+    }
+    mUdbContext.getFileSystem().mount(tableUri, ufsPath, option.build());
+
+    LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
+        tableName, ufsPath, tableUri, option.build());
+  }
+
+  private PathTranslator mountAlluxioPaths(Table table) throws IOException {
+    String tableName = table.getTableName();
+    AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
+
+    try {
+      AlluxioURI ufsLocation = new AlluxioURI(table.getDataLocation().toString());
+      mountAlluxioPath(tableName, ufsLocation, tableUri);
+
+      PathTranslator pathTranslator =
+          new PathTranslator();
+      pathTranslator.addMapping(tableUri.toString(), table.getDataLocation().toString());
+      return pathTranslator;
+    } catch (AlluxioException e) {
+      throw new IOException(
+          "Failed to mount table location. tableName: " + tableName
+              + " tableLocation: " + (table != null ? table.getDataLocation() : "null")
+              + " AlluxioLocation: " + mUdbContext.getTableLocation(tableName)
+              + " error: " + e.getMessage(), e);
+    }
+  }
+
   @Override
   public UdbTable getTable(String tableName) throws IOException {
     Table table = null;
     try {
       table = mHive.getTable(mDbName, tableName);
 
-      AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
-
-      String mountOptions = mConfiguration.get(Property.MOUNT_OPTIONS);
-      Map<String, String> mountOptionMap = Collections.emptyMap();
-      if (!mountOptions.isEmpty()) {
-        mountOptionMap = new ObjectMapper().readValue(
-            mountOptions, new TypeReference<Map<String, String>>() {});
-      }
-
-      // make sure the parent exists
-      mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
-          CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
-      AlluxioURI ufsLocation = new AlluxioURI(table.getDataLocation().toString());
-
-      String mountOption = mountOptionMap.get(ufsLocation.getAuthority().toString());
-      MountPOptions option = MountPOptions.getDefaultInstance();
-      if (mountOption != null) {
-        // it has a mount option to be passed through
-        JsonFormat.Parser jsonParser = JsonFormat.parser();
-        MountPOptions.Builder builder = MountPOptions.newBuilder();
-        jsonParser.merge(mountOption, builder);
-        option = builder.build();
-      }
-
-      mUdbContext.getFileSystem().mount(tableUri, ufsLocation, option);
-      LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
-          tableName, table.getDataLocation(), tableUri, mountOption);
-      PathTranslator pathTranslator =
-          new PathTranslator();
-      pathTranslator.addMapping(tableUri.toString(), table.getDataLocation().toString());
+      PathTranslator pathTranslator = mountAlluxioPaths(table);
 
       List<String> colNames = table.getAllCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
@@ -203,6 +215,7 @@ public class HiveDatabase implements UnderDatabase {
       }
       // Potentially expensive call
       List<Partition> partitions = mHive.getPartitions(table);
+      AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
       return new HiveTable(this, pathTranslator, tableName,
           HiveUtils.toProtoSchema(table.getAllCols()), tableUri.getPath(),
           Collections.singletonMap("unpartitioned", builder.build()),
@@ -211,12 +224,6 @@ public class HiveDatabase implements UnderDatabase {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (HiveException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
-    } catch (AlluxioException e) {
-      throw new IOException(
-          "Failed to mount table location. tableName: " + tableName
-              + " tableLocation: " + (table != null ? table.getDataLocation() : "null")
-              + " AlluxioLocation: " + mUdbContext.getTableLocation(tableName)
-              + " error: " + e.getMessage(), e);
     }
   }
 
