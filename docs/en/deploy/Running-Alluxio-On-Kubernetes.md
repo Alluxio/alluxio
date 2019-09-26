@@ -322,55 +322,129 @@ $ kubectl delete -f alluxio-journal-volume.yaml
 
 #### Upgrade Alluxio
 
-Upgrading Alluxio in Kubernetes is easy. You can just change the Alluxio docker image version to your desired upper version.
-Then restart the Pod to make it take effect. You should make sure the Alluxio masters and workers are running on the same version for the best compatibility.
+This section will go over how to upgrade Alluxio in your Kubernetes cluster with `kubectl`.
+This section will only cover the basic procedure of how to kill all existing Pods, upgrade the version and bring the Alluxio master and worker Pods back up.
+More advanced rolling update procedure will be covered in the next section. 
 
-For example, if you are currently running Alluxio v2.0.1 on Alluxio masters and you want to upgrade to the latest version.
-Just change the `image` field of all the Alluxio containers to `image: alluxio/alluxio:latest` and restart them.
+**Step 1: Upgrade the docker image version tag**
+ 
+Each released Alluxio version will have the corresponding docker image released on [dockerhub](https://hub.docker.com/r/alluxio/alluxio).
+
+You should update the `image` field of all the Alluxio containers to use the target version tag. Tag `latest` will point to the latest stable version.
+It is recommended that Alluxio masters and workers are running on the same version for the best compatibility.
+
+For example, if you want to upgrade Alluxio to the latest stable version, update the containers as below:
 
 ```yaml
-  containers:
-  - name: alluxio-master
-    image: alluxio/alluxio:2.0.1
-    imagePullPolicy: IfNotPresent
-    command: ["/entrypoint.sh"]
-    args: ["master-only", "--no-format"]
-    ...
-  - name: alluxio-job-master
-    image: alluxio/alluxio:2.0.1
-    imagePullPolicy: IfNotPresent
-    command: ["/entrypoint.sh"]
-    ...
+containers:
+- name: alluxio-master
+  image: alluxio/alluxio:latest
+  imagePullPolicy: IfNotPresent
+  ...
+- name: alluxio-job-master
+  image: alluxio/alluxio:latest
+  imagePullPolicy: IfNotPresent
+  ...
 ```
 
-Whether you need to re-format the journal and lose all file metadata depends on whether the journals are compatible.
+**Step 2: Format journal if necessary**
 
-* If you are upgrading from v1.8 to v2.x, you have to format the journal. And by doing that you lose all the journal and file metadata.
-
-* If you are upgrading from v2.x to a higher minor version v2.y, or from v2.x.y to a higher minor version v2.x.z,
+Note that whether you need to re-format the journal and lose all file metadata depends on whether the journals are compatible.
+If you are upgrading from v1.8 to v2.x, you have to format the journal. And by doing that you lose all the journal and file metadata.
+If you are upgrading from v2.x to a higher minor version v2.y, or from v2.x.y to a higher minor version v2.x.z,
 the higher version Alluxio master will be able to read the lower version Alluxio master journal to recover all the journal and file metadata.
-You are able to do rolling upgrade among Alluxio masters, since only the primary master will write the journal and all the secondary masters only read.
-You can change the Alluxio docker image version for the secondary Alluxio master Pods and restart them.
-Then change the Alluxio docker image version for the primary Alluxio master Pod and restart it.
-In this way no lower version Alluxio master will read the journal written by a higher version master.
 
-* If you are using embedded journal in Alluxio v2.x, the journal in each master will be lost on restart.
-We do not recommend doing rolling upgrade with embedded journal.
+If you need to format the journal, you can update the YAML file for Alluxio master containers to specify this on master startup time.
+Remove the `--no-format` option from Alluxio master startup arguments to force the re-format of journal as illustrated below.
+
+```yaml
+containers:
+- name: alluxio-master
+  command: ["/entrypoint.sh"]
+  # --no-format removed from the args
+  args: ["master-only"]
+  ...
+```
+
+**Step 3: Restart Alluxio master and worker Pods**
+
+Now that Alluxio masters and worker containers all use your desired version. Restart them to let it take effect.
+
+Kill the running Alluxio master and worker Pods first.
+
+```console
+$ kubectl delete -f alluxio-worker.yaml
+$ kubectl delete service alluxio-master-0
+$ kubeclt delete statefulset alluxio-master-0
+```
+
+If you have more alluxio-master Pods, delete them together with the corresponding Services.
+
+```console
+$ kubectl delete service alluxio-master-1
+$ kubeclt delete statefulset alluxio-master-1
+$ kubectl delete service alluxio-master-2
+$ kubeclt delete statefulset alluxio-master-2
+```
+
+The reason why you don't want to do `kubectl delete -f alluxio-master.yaml` is that will delete the Persistent Volume Claim in the `alluxio-master.yaml` if any.
+And that will result in your Persistent Volume getting released and the journal in it will be lost.
+
+Now restart the Alluxio master and worker Pods from the YAML files.
+
+```console
+$ kubectl create -f alluxio-master.yaml
+$ kubectl create -f alluxio-worker.yaml
+```
+
+**Step 4: Verify the Alluxio master and worker Pods are back up**
+
+What a proper validation should be varies from case to case.
+The example is just verifying that Alluxio is running.
+
+```console
+# You should see Alluxio master and worker Pods in Running status
+$ kubectl get pods
+# This runs a comprehensive sanity check
+$ kubectl exec <alluxio-master-pod> -- /opt/alluxio/bin/alluxio runTests
+```
+
+#### Rolling Update Alluxio
+
+In a production environment, it is often more desirable to do rolling updates to maintain the availability.
+
+How the rolling update should be done depends on the journal type of Alluxio masters are configured and what storage Alluxio workers are using.
+We will discuss the scenarios separately.
+
+##### Alluxio Masters
+
+The behavior of Alluxio masters will differ depends on which journal mode they are using. 
+See the detailed discussion in [UFS Journal vs Embedded Journal]({{ '/en/operation/Journal.html#ufs-journal-vs-embedded-journal' | relativize_url }})
+
+###### Case A: Rolling Update with Embedded Journal
+
+We do not recommend doing rolling update with embedded journal. 
+
+The reason is Alluxio masters using embedded journal have to reach a consensus before each journaling to its own journal destination.
 The consensus logic of Alluxio masters can be changed in minor versions so if you have a group of Alluxio masters running different versions,
 the behavior will be undefined. 
 
-In Kubernetes, [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volumes have the same lifespan as the Pods they are on.
-So you should expect contents in *emptyDir* volumes to be lost after the upgrade.
+###### Case B: Rolling Update with UFS Journal
 
-For example, the RAM disk below used by Alluxio workers will be wiped out after the upgrade.
+With UFS journal, there is only one shared journal destination and only the one primary master writes. All the secondary masters only read from it.
 
-```yaml
-  volumes:
-  - name: alluxio-ramdisk
-    emptyDir:
-      medium: "Memory"
-      sizeLimit: "1Gi"
-```
+You are able to do rolling update among Alluxio masters as below.
+
+**Step 1: Update the secondary master Pods and restart them**
+
+**Step 2: Update the primary master Pods and restart them**
+
+In this way no lower version Alluxio master will read the journal written by a higher version master.
+
+##### Alluxio Workers 
+
+The rolling update of Alluxio workers can go parallel to that of Alluxio masters.
+Since Alluxio workers only communicate to masters, they can be updated individually.
 
 ### Access the Web UI
 
