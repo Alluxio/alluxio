@@ -829,10 +829,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     LockingScheme lockingScheme =
         createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
     try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath =
-            mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
-        FileSystemMasterAuditContext auditContext =
-            createAuditContext("listStatus", path, null, inodePath.getInodeOrNull())) {
+         LockedInodePath inodePath = mInodeTree
+             .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
+         FileSystemMasterAuditContext auditContext =
+             createAuditContext("listStatus", path, null, inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       } catch (AccessControlException e) {
@@ -840,8 +840,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         throw e;
       }
 
-      DescendantType descendantType =
-          context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
+      DescendantType descendantType = context.getOptions().getRecursive() ? DescendantType.ALL
+          : DescendantType.ONE;
       // Possible ufs sync.
       if (syncMetadata(rpcContext, inodePath, lockingScheme, descendantType)) {
         // If synced, do not load metadata.
@@ -913,7 +913,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param currInodePath the inode path to find the status
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
-   *        should be returned
+   *                       should be returned
    * @param resultStream the stream to receive individual results
    * @param depth internal use field for tracking depth relative to root item
    */
