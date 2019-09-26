@@ -12,8 +12,8 @@
 package alluxio.master.catalog;
 
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.Schema;
+import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.Schema;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;

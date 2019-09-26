@@ -15,12 +15,12 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.AllOrNoneSet;
-import alluxio.grpc.Constraint;
-import alluxio.grpc.Domain;
-import alluxio.grpc.FieldSchema;
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.catalog.AllOrNoneSet;
+import alluxio.grpc.catalog.Constraint;
+import alluxio.grpc.catalog.Domain;
+import alluxio.grpc.catalog.FieldSchema;
+import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
@@ -97,7 +97,7 @@ public class AlluxioCatalog {
    * @param schema the table schema
    * @return the {@link Table} of the newly created table
    */
-  public Table createTable(String dbName, String tableName, alluxio.grpc.Schema schema)
+  public Table createTable(String dbName, String tableName, alluxio.grpc.catalog.Schema schema)
       throws IOException {
     Database db = getDatabaseByName(dbName);
     return db.createTable(tableName, schema);

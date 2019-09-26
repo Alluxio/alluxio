@@ -16,7 +16,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.experimental.ProtoUtils;
-import alluxio.grpc.TableInfo;
+import alluxio.grpc.catalog.TableInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;

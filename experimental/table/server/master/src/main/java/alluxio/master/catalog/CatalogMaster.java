@@ -11,10 +11,10 @@
 
 package alluxio.master.catalog;
 
-import alluxio.grpc.Constraint;
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.PartitionInfo;
-import alluxio.grpc.Schema;
+import alluxio.grpc.catalog.Constraint;
+import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.grpc.catalog.Schema;
 import alluxio.master.Master;
 
 import java.io.IOException;

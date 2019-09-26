@@ -13,12 +13,12 @@ package alluxio.client.catalog;
 
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.ColumnStatisticsInfo;
-import alluxio.grpc.Constraint;
-import alluxio.grpc.Database;
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.PartitionInfo;
-import alluxio.grpc.TableInfo;
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
+import alluxio.grpc.catalog.Constraint;
+import alluxio.grpc.catalog.Database;
+import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.grpc.catalog.TableInfo;
 import alluxio.master.MasterClientContext;
 
 import org.apache.iceberg.Schema;

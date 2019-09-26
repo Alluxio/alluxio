@@ -11,7 +11,7 @@
 
 package alluxio.master.catalog;
 
-import alluxio.grpc.TableInfo;
+import alluxio.grpc.catalog.TableInfo;
 import alluxio.table.common.udb.UdbTable;
 
 import java.util.ArrayList;
