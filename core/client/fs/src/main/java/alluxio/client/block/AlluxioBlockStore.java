@@ -28,6 +28,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
@@ -171,39 +172,21 @@ public final class AlluxioBlockStore {
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
-    Set<WorkerNetAddress> workerPool;
-    // Note that, it is possible that the blocks have been written as UFS blocks
-    if (options.getStatus().isPersisted()
-        || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED")) {
-      blockWorkerInfo = getEligibleWorkers();
-      if (blockWorkerInfo.isEmpty()) {
-        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-      }
-      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
-    } else {
-      if (locations.isEmpty()) {
-        blockWorkerInfo = getEligibleWorkers();
-        if (blockWorkerInfo.isEmpty()) {
-          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-        }
-        throw new UnavailableException(
-            ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
-      }
-      workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
-    }
+    Set<WorkerNetAddress> workerPool =
+        locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
+
     // Workers to read the block, after considering failed workers.
-    Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
+    Set<WorkerNetAddress> blockWorkers = handleFailedWorkers(workerPool, failedWorkers);
     // TODO(calvin): Consider containing these two variables in one object
     BlockInStreamSource dataSourceType = null;
     WorkerNetAddress dataSource = null;
     locations = locations.stream()
-        .filter(location -> workers.contains(location.getWorkerAddress())).collect(toList());
+        .filter(location -> blockWorkers.contains(location.getWorkerAddress())).collect(toList());
     // First try to read data from Alluxio
     if (!locations.isEmpty()) {
       // TODO(calvin): Get location via a policy
       List<WorkerNetAddress> tieredLocations =
-          locations.stream().map(location -> location.getWorkerAddress())
-              .collect(toList());
+          locations.stream().map(location -> location.getWorkerAddress()).collect(toList());
       Collections.shuffle(tieredLocations);
       Optional<Pair<WorkerNetAddress, Boolean>> nearest =
           BlockLocationUtils.nearest(mTieredIdentity, tieredLocations, mContext.getClusterConf());
@@ -213,14 +196,30 @@ public final class AlluxioBlockStore {
             nearest.get().getSecond() ? BlockInStreamSource.LOCAL : BlockInStreamSource.REMOTE;
       }
     }
+
+    // Note that, it is possible that the blocks have been written as UFS blocks
     // Can't get data from Alluxio, get it from the UFS instead
-    if (dataSource == null) {
+    if (dataSource == null
+        && (options.getStatus().isPersisted()
+            || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED"))) {
+
+      // getEligibleWorkers is very expensive, we only call it when we need to get data from UFS.
+      blockWorkerInfo = getEligibleWorkers();
+      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
+      Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
+      blockWorkerInfo = blockWorkerInfo.stream()
+          .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
+
+      if (blockWorkerInfo.isEmpty()) {
+        throw new UnavailableException(
+            "No Alluxio worker available. Check that your workers are still running");
+      }
+
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
           Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
-      blockWorkerInfo = blockWorkerInfo.stream()
-          .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
+
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
           .setBlockInfo(new BlockInfo()
               .setBlockId(info.getBlockId())
@@ -228,9 +227,9 @@ public final class AlluxioBlockStore {
               .setLocations(locations))
           .setBlockWorkerInfos(blockWorkerInfo);
       dataSource = policy.getWorker(getWorkerOptions);
-    }
-    if (dataSource == null) {
-      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+    } else if (dataSource == null) {
+      throw new NotFoundException(
+          ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
 
     try {
