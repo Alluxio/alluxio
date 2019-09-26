@@ -29,6 +29,10 @@ import java.util.regex.Pattern;
 public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
   private static final Logger LOG = LoggerFactory.getLogger(UdbConfiguration.class);
 
+  private static final Pattern CONFIG_PATTERN = Pattern.compile("(\\(.*\\))\\.(.+?)");
+  public static final String READ_ONLY_OPTION = "readyonly";
+  public static final String SHARED_OPTION = "shared";
+
   protected final Map<String, Map<String, String>> mMountOptions;
 
   protected UdbConfiguration() {
@@ -44,12 +48,10 @@ public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
   public UdbConfiguration(Map<String, String> values) {
     super(values);
     mMountOptions = new HashMap<>(values.size());
-    String mountPrefix = ConfigurationUtils.MOUNT_PREFIX;
-    Pattern datePatt = Pattern.compile("(\\(.*\\))\\.(.+?)");
     for (Map.Entry<String, String> entry : values.entrySet()) {
-      if (entry.getKey().startsWith(mountPrefix)) {
-        String key = entry.getKey().substring(mountPrefix.length());
-        Matcher m = datePatt.matcher(key);
+      if (entry.getKey().startsWith(ConfigurationUtils.MOUNT_PREFIX)) {
+        String key = entry.getKey().substring(ConfigurationUtils.MOUNT_PREFIX.length());
+        Matcher m = CONFIG_PATTERN.matcher(key);
         if (m.matches()) {
           String resource = m.group(1);
           // remove the bracket around the scheme://authority
