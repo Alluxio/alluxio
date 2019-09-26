@@ -1292,8 +1292,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(
               "The period between sending heartbeats from the embedded journal primary to "
                   + "followers. This should be less than half of the election timeout "
-                  + "(alluxio.master.embedded.journal.election.timeout), because the election "
-                  + "is driven by heart beats.")
+                  + String.format("{%s}", Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
+                  + ", because the election is driven by heart beats.")
           .setDefaultValue("3s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
