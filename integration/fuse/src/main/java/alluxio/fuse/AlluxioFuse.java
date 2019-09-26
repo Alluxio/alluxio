@@ -63,10 +63,6 @@ public final class AlluxioFuse {
     final FileSystem tfs = FileSystem.Factory.create(conf);
     final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(tfs, opts, conf);
     final List<String> fuseOpts = opts.getFuseOpts();
-    // Force direct_io in FUSE: writes and reads bypass the kernel page
-    // cache and go directly to alluxio. This avoids extra memory copies
-    // in the write path.
-    fuseOpts.add("-odirect_io");
 
     try {
       fs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
