@@ -14,6 +14,7 @@ package alluxio.grpc;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ChannelAuthenticator;
 
@@ -232,11 +233,16 @@ public final class GrpcChannelBuilder {
         return new GrpcChannel(mChannelKey, underlyingChannel,
             mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
       }
-    } catch (Exception exc) {
+    } catch (Exception e) {
       // Release the managed channel to the pool before throwing.
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey,
           mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
-      throw exc;
+      if (e instanceof UnavailableException) {
+        // Override exception from authentication layer.
+        throw new UnavailableException(
+            String.format("Target Unavailable. %s", mChannelKey.toStringShort()), e.getCause());
+      }
+      throw e;
     }
   }
 }

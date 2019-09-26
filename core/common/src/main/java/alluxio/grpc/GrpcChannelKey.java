@@ -272,14 +272,15 @@ public class GrpcChannelKey {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("ChannelId", mChannelId)
-        .add("ClientType", mClientType)
+        .add("ClientType", getStringFromOptional(mClientType))
         .add("ServerAddress", mServerAddress)
-        .add("KeepAliveTime", mKeepAliveTime)
-        .add("KeepAliveTimeout", mKeepAliveTimeout)
-        .add("FlowControlWindow", mFlowControlWindow)
-        .add("MaxInboundMessageSize", mMaxInboundMessageSize)
-        .add("ChannelType", mChannelType)
+        .add("ChannelId", mChannelId)
+        .add("KeepAliveTime", getStringFromOptional(mKeepAliveTime))
+        .add("KeepAliveTimeout", getStringFromOptional(mKeepAliveTimeout))
+        .add("FlowControlWindow", getStringFromOptional(mFlowControlWindow))
+        .add("MaxInboundMessageSize", getStringFromOptional(mMaxInboundMessageSize))
+        .add("ChannelType", getStringFromOptional(mChannelType))
+        .omitNullValues()
         .toString();
   }
 
@@ -288,10 +289,25 @@ public class GrpcChannelKey {
    */
   public String toStringShort() {
     return MoreObjects.toStringHelper(this)
-        .add("ChannelId", mChannelId)
-        .add("ClientType", mClientType)
+        .add("ClientType", getStringFromOptional(mClientType))
         .add("ServerAddress", mServerAddress)
+        .add("ChannelId", mChannelId)
+        .omitNullValues()
         .toString();
+  }
+
+  /**
+   * Used to get underlying string representation from {@link Optional} fields.
+   *
+   * @param field an optional field
+   * @return underlying string representation or {@code null} if field is not present
+   */
+  private String getStringFromOptional(Optional<?> field) {
+    if (field.isPresent()) {
+      return field.get().toString();
+    } else {
+      return null;
+    }
   }
 
   /**
