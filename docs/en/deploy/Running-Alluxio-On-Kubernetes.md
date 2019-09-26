@@ -349,10 +349,15 @@ Whether you need to re-format the journal and lose all file metadata depends on 
 
 * If you are upgrading from v2.x to a higher minor version v2.y, or from v2.x.y to a higher minor version v2.x.z,
 the higher version Alluxio master will be able to read the lower version Alluxio master journal to recover all the journal and file metadata.
-We do not recommend rolling upgrade the masters with UFS journal, because there can be lower version masters reading journal written by higher version masters.
-And the behavior will be undefined.
+You are able to do rolling upgrade among Alluxio masters, since only the primary master will write the journal and all the secondary masters only read.
+You can change the Alluxio docker image version for the secondary Alluxio master Pods and restart them.
+Then change the Alluxio docker image version for the primary Alluxio master Pod and restart it.
+In this way no lower version Alluxio master will read the journal written by a higher version master.
 
 * If you are using embedded journal in Alluxio v2.x, the journal in each master will be lost on restart.
+We do not recommend doing rolling upgrade with embedded journal.
+The consensus logic of Alluxio masters can be changed in minor versions so if you have a group of Alluxio masters running different versions,
+the behavior will be undefined. 
 
 In Kubernetes, [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volumes have the same lifespan as the Pods they are on.
 So you should expect contents in *emptyDir* volumes to be lost after the upgrade.
