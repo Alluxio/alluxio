@@ -44,9 +44,7 @@ spec:
         app: alluxio-master-0
     spec:
       securityContext:
-        runAsUser: 0
-        runAsGroup: 0
-        fsGroup: 0
+        fsGroup: 1000
       containers:
       - name: alluxio-master
         image: alluxio/alluxio:2.1.0-SNAPSHOT
@@ -58,6 +56,9 @@ spec:
           requests:
             cpu: 1
             memory: 1G
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
         command: ["/entrypoint.sh"]
         args: ["master-only", "--no-format"]
         envFrom:
@@ -82,6 +83,9 @@ spec:
           requests:
             cpu: 1
             memory: 1024M
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
         command: ["/entrypoint.sh"]
         args: ["job-master"]
         envFrom:
