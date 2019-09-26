@@ -12,8 +12,8 @@
 package alluxio.master.catalog;
 
 import alluxio.collections.Pair;
-import alluxio.grpc.Range;
-import alluxio.grpc.Value;
+import alluxio.grpc.catalog.Range;
+import alluxio.grpc.catalog.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ public abstract class Domain<T> {
    * @param domain proto representation
    * @return a Domain object
    */
-  public static Domain parseFrom(alluxio.grpc.Domain domain) {
+  public static Domain parseFrom(alluxio.grpc.catalog.Domain domain) {
     if (domain.hasAllOrNone()) {
       return new AllOrNoneDomain(domain.getAllOrNone().getAll());
     }

@@ -11,9 +11,9 @@
 
 package alluxio.experimental;
 
-import alluxio.grpc.FieldSchema;
-import alluxio.grpc.FieldTypeId;
-import alluxio.grpc.Schema;
+import alluxio.grpc.catalog.FieldSchema;
+import alluxio.grpc.catalog.FieldTypeId;
+import alluxio.grpc.catalog.Schema;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
@@ -51,14 +51,14 @@ public final class ProtoUtils {
   private static FieldSchema toProto(Types.NestedField col) {
     if (col.type().isPrimitiveType()) {
       return FieldSchema.newBuilder().setName(col.name())
-              .setType(alluxio.grpc.Type.newBuilder()
+              .setType(alluxio.grpc.catalog.Type.newBuilder()
                   .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
                   .setPrimitiveField(col.type().toString()).build())
               .setOptional(col.isOptional())
               .build();
     } else { // col is a nested type
       return FieldSchema.newBuilder().setName(col.name())
-          .setType(alluxio.grpc.Type.newBuilder()
+          .setType(alluxio.grpc.catalog.Type.newBuilder()
               .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
               .addAllNestedFields(
                   col.type().asNestedType().fields()
@@ -79,7 +79,7 @@ public final class ProtoUtils {
         .map(ProtoUtils::toProto).collect(Collectors.toList())).build();
   }
 
-  private static Type fromProto(alluxio.grpc.Type type) {
+  private static Type fromProto(alluxio.grpc.catalog.Type type) {
     // TODO(david): replace with a method to detect if a type is a complex type or a primitive type
     if (type.getType().getNumber() < FieldTypeId.STRUCT_VALUE) {
       // primitive type

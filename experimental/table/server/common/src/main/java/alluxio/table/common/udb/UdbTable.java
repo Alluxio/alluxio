@@ -11,10 +11,10 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.PartitionInfo;
-import alluxio.grpc.Schema;
-import alluxio.grpc.UdbTableInfo;
+import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.grpc.catalog.Schema;
+import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.TableView;
 
 import java.util.List;

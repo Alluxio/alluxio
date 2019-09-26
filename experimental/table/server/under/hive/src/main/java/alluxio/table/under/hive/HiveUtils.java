@@ -11,19 +11,19 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.grpc.BlockMetadata;
-import alluxio.grpc.ColumnChunkMetaData;
-import alluxio.grpc.ColumnPath;
-import alluxio.grpc.FieldType;
-import alluxio.grpc.FieldTypeId;
-import alluxio.grpc.FileMetadata;
-import alluxio.grpc.GroupType;
-import alluxio.grpc.MessageType;
-import alluxio.grpc.ParquetMetadata;
-import alluxio.grpc.PrimitiveTypeName;
-import alluxio.grpc.Repetition;
-import alluxio.grpc.Schema;
-import alluxio.grpc.Type;
+import alluxio.grpc.catalog.BlockMetadata;
+import alluxio.grpc.catalog.ColumnChunkMetaData;
+import alluxio.grpc.catalog.ColumnPath;
+import alluxio.grpc.catalog.FieldType;
+import alluxio.grpc.catalog.FieldTypeId;
+import alluxio.grpc.catalog.FileMetadata;
+import alluxio.grpc.catalog.GroupType;
+import alluxio.grpc.catalog.MessageType;
+import alluxio.grpc.catalog.ParquetMetadata;
+import alluxio.grpc.catalog.PrimitiveTypeName;
+import alluxio.grpc.catalog.Repetition;
+import alluxio.grpc.catalog.Schema;
+import alluxio.grpc.catalog.Type;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
@@ -58,10 +58,10 @@ public class HiveUtils {
    * @param hiveSchema the hive schema
    * @return the proto representation
    */
-  public static List<alluxio.grpc.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
-    List<alluxio.grpc.FieldSchema> list = new ArrayList<>();
+  public static List<alluxio.grpc.catalog.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
+    List<alluxio.grpc.catalog.FieldSchema> list = new ArrayList<>();
     for (FieldSchema field : hiveSchema) {
-      alluxio.grpc.FieldSchema aFieldSchema = alluxio.grpc.FieldSchema.newBuilder()
+      alluxio.grpc.catalog.FieldSchema aFieldSchema = alluxio.grpc.catalog.FieldSchema.newBuilder()
           .setName(field.getName())
           .setType(Type.newBuilder()
               .setType(toProto(field.getType()))) // does not support complex types now
@@ -209,8 +209,8 @@ public class HiveUtils {
 
   private static ColumnChunkMetaData toProto(
       org.apache.parquet.hadoop.metadata.ColumnChunkMetaData columnChunkMetaData) {
-    alluxio.grpc.ColumnChunkMetaData.Builder builder =
-        alluxio.grpc.ColumnChunkMetaData.newBuilder();
+    alluxio.grpc.catalog.ColumnChunkMetaData.Builder builder =
+        alluxio.grpc.catalog.ColumnChunkMetaData.newBuilder();
     builder.setPath(toProto(columnChunkMetaData.getPath()))
         .setFirstDataPage(columnChunkMetaData.getFirstDataPageOffset())
         .setPageOffset(columnChunkMetaData.getDictionaryPageOffset())
