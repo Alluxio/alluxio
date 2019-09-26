@@ -30,7 +30,7 @@ public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
   private static final Logger LOG = LoggerFactory.getLogger(UdbConfiguration.class);
 
   private static final Pattern CONFIG_PATTERN = Pattern.compile("(\\(.*\\))\\.(.+?)");
-  public static final String READ_ONLY_OPTION = "readyonly";
+  public static final String READ_ONLY_OPTION = "readonly";
   public static final String SHARED_OPTION = "shared";
 
   protected final Map<String, Map<String, String>> mMountOptions;
