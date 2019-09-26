@@ -1281,7 +1281,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               "The election timeout for the embedded journal. When this period elapses without a "
                   + "master receiving any messages, the master will attempt to become the primary."
                   + "Election timeout will be waited initially when the cluster is forming. "
-                  + "So larger values for election timeout will cause longer star-up time.")
+                  + "So larger values for election timeout will cause longer star-up time. "
+                  + "Smaller values might introduce instability to leadership.")
           .setDefaultValue("10s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1295,6 +1296,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "is driven by heart beats.")
           .setDefaultValue("3s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE)
