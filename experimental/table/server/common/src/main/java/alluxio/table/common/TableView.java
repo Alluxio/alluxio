@@ -11,10 +11,10 @@
 
 package alluxio.table.common;
 
-import alluxio.grpc.FieldSchema;
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.PartitionInfo;
-import alluxio.grpc.TableViewInfo;
+import alluxio.grpc.catalog.FieldSchema;
+import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.grpc.catalog.TableViewInfo;
 
 import java.util.List;
 import java.util.Map;

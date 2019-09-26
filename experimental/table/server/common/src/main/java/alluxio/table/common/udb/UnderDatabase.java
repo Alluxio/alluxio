@@ -11,7 +11,7 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.grpc.FileStatistics;
+import alluxio.grpc.catalog.FileStatistics;
 
 import java.io.IOException;
 import java.util.List;

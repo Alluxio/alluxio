@@ -11,12 +11,12 @@
 
 package alluxio.master.catalog;
 
-import alluxio.grpc.FieldSchema;
-import alluxio.grpc.FileStatistics;
-import alluxio.grpc.PartitionInfo;
-import alluxio.grpc.Schema;
-import alluxio.grpc.TableInfo;
-import alluxio.grpc.TableViewInfo;
+import alluxio.grpc.catalog.FieldSchema;
+import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.grpc.catalog.Schema;
+import alluxio.grpc.catalog.TableInfo;
+import alluxio.grpc.catalog.TableViewInfo;
 import alluxio.table.common.TableView;
 
 import java.util.Collections;

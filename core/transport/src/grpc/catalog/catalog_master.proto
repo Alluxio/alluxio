@@ -1,0 +1,421 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc.catalog";
+option java_outer_classname = "CatalogMasterProto";
+
+package alluxio.grpc.catalog;
+
+import "grpc/common.proto";
+
+enum FieldTypeId {
+    BOOLEAN = 0;
+    BYTE = 1;
+    SHORT = 2;
+    INTEGER = 3;
+    LONG = 4;
+    FLOAT = 5;
+    DOUBLE = 6;
+    DATE = 7;
+    TIME = 8;
+    TIMESTAMP = 9;
+    STRING = 10;
+    UUID = 11;
+    FIXED = 12;
+    BINARY = 13;
+    DECIMAL= 14;
+    // the following are composite types, we will support them later
+    STRUCT = 15;
+    LIST = 16;
+    MAP = 17;
+}
+
+// TODO(yuzhu): change the type representation to be more general, not iceberg specific
+message Type {
+    required FieldTypeId type = 1;
+    optional string primitive_field = 2; // parse directly from a string
+    repeated FieldSchema nested_fields = 3; //a list of fields for complex types
+}
+
+message FieldSchema {
+    optional uint32 id = 1;
+    optional string name = 2;
+    optional Type type = 3;
+    optional bool optional = 4;
+    optional string comment = 5;
+}
+
+message Schema {
+    repeated FieldSchema cols = 1;
+}
+
+message Database {
+    optional string name = 1;
+    optional string description = 2;
+    optional string location = 3;
+    map<string, string> parameter = 4;
+}
+
+message StorageFormat {
+    optional string ser_de = 1;
+    optional string input_format = 2;
+    optional string output_format = 3;
+}
+
+message HiveBucketProperty {
+    repeated string bucketed_by = 1;
+    optional int64 bucket_count = 2;
+    repeated SortingColumn sorted_by = 3;
+}
+
+message SortingColumn {
+    required string column_name = 1;
+    enum SortingOrder {
+        ASCENDING = 0;
+        DESCENDING = 1;
+    }
+    required SortingOrder order = 2;
+}
+
+message Storage {
+    optional StorageFormat storage_format = 1;
+    optional string location = 2;
+    optional HiveBucketProperty bucket_property = 3;
+    optional bool skewed = 4;
+    map<string, string> serde_parameters = 5;
+}
+
+message HiveTableInfo {
+    optional string database_name = 1;
+    optional string table_name = 2;
+    optional string owner = 3;
+    optional string table_type = 4;
+    repeated FieldSchema data_columns = 5;
+    repeated FieldSchema partition_columns = 6;
+    optional Storage storage = 7;
+    map<string, string> parameters = 8;
+    optional string view_original_text = 9;
+    optional string view_expanded_text = 10;
+}
+
+message UdbTableInfo {
+    oneof udb_table_info {
+        HiveTableInfo hive_table_info = 1;
+    }
+}
+
+message TableInfo {
+    optional string table_name = 1;
+    optional string db_name = 2;
+    enum TableType {
+        NATIVE = 0; //native alluxio metastore table, both metadata and datafile managed by alluxio
+        IMPORTED = 1; //imported alluxio metastore table, only the metadata is managed by alluxio
+    }
+    optional TableType type = 3;
+    optional string base_location = 4;
+    optional uint32 version = 5;
+    optional Schema schema = 6;
+    repeated TableViewInfo views = 7;
+    optional UdbTableInfo udb_info = 8;
+}
+
+message TableViewInfo {
+    optional string view_name = 1;
+    optional string view_type = 2;
+    repeated FieldSchema clustered_columns = 3;
+}
+
+// Parquet metadata related types
+enum Repetition {
+    REPEATED = 1;
+    OPTIONAL = 2;
+    REQUIRED = 3;
+}
+
+enum PrimitiveTypeName {
+    // prefix enums with PARQUETTYPE_ to avoid conflict
+    PARQUETTYPE_INT64 = 0;
+    PARQUETTYPE_INT32 = 1;
+    PARQUETTYPE_BOOLEAN = 2;
+    PARQUETTYPE_BINARY = 3;
+    PARQUETTYPE_FLOAT = 4;
+    PARQUETTYPE_DOUBLE = 5;
+    PARQUETTYPE_INT96 = 6;
+    PARQUETTYPE_FIXED_LEN_BYTE_ARRAY = 7;
+}
+
+message GroupType {
+    repeated FieldType fields = 1;
+}
+message FieldType {
+    optional Repetition repetition = 1;
+    optional string name = 2;
+    oneof type_info {
+        PrimitiveTypeName type_id = 3;
+        GroupType group = 4;
+    }
+}
+
+message MessageType {
+    optional string name = 1;
+    repeated FieldType type = 2;
+}
+
+message FileMetadata {
+    optional MessageType schema = 1;
+    map<string, string> key_value_metadata = 2;
+    optional string created_by = 3;
+}
+
+message ColumnPath {
+    repeated string path_segment = 1;
+}
+
+message ColumnChunkMetaData {
+    optional ColumnPath path = 1;
+    optional PrimitiveTypeName type = 2;
+    enum CompressionCodecName {
+        UNCOMPRESSED = 0;
+        SNAPPY = 1;
+        GZIP = 2;
+        LZO = 3;
+        BROTLI = 4;
+        LZ4 = 5;
+        ZSTD = 6;
+    }
+    optional CompressionCodecName codec = 3;
+    enum Encoding {
+        PLAIN = 0;
+        RLE = 1;
+        BIT_PACKED = 2;
+        PLAIN_DICTIONARY = 3;
+        DELTA_BINARY_PACKED = 4;
+        DELTA_LENGTH_BYTE_ARRAY = 5;
+        DELTA_BYTE_ARRAY = 6;
+        RLE_DICTIONARY = 7;
+    }
+    repeated Encoding encodings = 4;
+    optional int64 first_data_page = 5;
+    optional int64 page_offset = 6;
+    optional int64 value_count = 7;
+    optional int64 total_size = 8;
+    optional int64 total_uncompressed_size = 9;
+}
+
+message BlockMetadata {
+    optional int64 row_count = 1;
+    optional int64 total_byte_count = 2;
+    optional string path = 3;
+    repeated ColumnChunkMetaData col_data = 4;
+}
+
+message ParquetMetadata {
+    optional FileMetadata file_metadata = 1;
+    repeated BlockMetadata block_metadata = 2;
+}
+
+message PartitionInfo {
+  repeated string values = 1; // string value is converted to appropriate partition key type
+  optional string dbName = 2;
+  optional string tableName = 3;
+  optional int32 createTime = 4;
+  optional int32 lastAccessTime = 5;
+  optional string sd = 6; // storage descriptor
+  map<string, string> parameters = 7;
+  optional string catName = 9;
+  optional int64 writeId = 10;
+  optional bool isStatsCompliant = 11;
+  optional ColumnStatisticsInfo col_stats = 12; // column statistics for partition
+  map<string, ParquetMetadata> file_metadata = 13; // a map between file names and its parquet metadata info
+}
+
+message ColumnStatisticsInfo {
+    optional string col_name = 1;
+    optional FieldTypeId col_type = 2;
+    optional ColumnStatisticsData data = 3;
+}
+
+message ColumnStatisticsData {
+}
+
+message GetAllDatabasesPRequest {
+}
+
+message GetAllDatabasesPResponse {
+    repeated string database = 1;
+}
+
+message GetAllTablesPRequest {
+    optional string database = 1;
+}
+
+message GetAllTablesPResponse {
+    repeated string table = 1;
+}
+
+message GetDatabasePRequest {
+    optional string db_name = 1;
+}
+
+message GetDatabasePResponse {
+    optional Database db = 1;
+}
+
+message GetTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+}
+
+message GetTablePResponse {
+    optional TableInfo table_info = 1;
+}
+
+message CreateTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional Schema schema = 3;
+}
+
+message CreateTablePResponse {
+    optional bool success = 1;
+    optional TableInfo table_info = 2;
+}
+
+message CreateDatabasePRequest {
+    optional string db_name = 1;
+    map<string, string> options = 2;
+}
+
+message CreateDatabasePResponse {
+    optional bool success = 1;
+}
+
+message GetDataFilesPRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+}
+
+message GetDataFilesPResponse {
+    repeated string data_file = 1;
+}
+
+message GetStatisticsPRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+}
+
+message AttachDatabasePRequest {
+    optional string db_name = 1;
+    optional string db_type = 2;
+    map<string, string> options = 3;
+}
+
+message AttachDatabasePResponse {
+    optional bool success = 1;
+}
+
+message ColumnStatistics {
+    optional uint64 record_count = 1;
+}
+
+message FileStatistics {
+    map<string, ColumnStatistics> column = 1; //map column names to column statistics
+}
+
+message GetStatisticsPResponse {
+    map<string, FileStatistics> statistics = 1;
+}
+
+message Value {
+    oneof value {
+        int64 long_type = 1;
+        double double_type = 2;
+        string string_type = 3;
+        bool boolean_type = 4;
+    }
+}
+
+message Range {
+    optional Value low = 1;
+    optional Value high = 2;
+}
+
+message RangeSet {
+    repeated Range ranges = 1;
+}
+
+message EquatableValueSet {
+    repeated Value candidates = 1;
+    optional bool white_list = 2;
+}
+
+message AllOrNoneSet {
+    optional bool all = 1;
+}
+
+message Domain {
+    oneof value_set {
+        RangeSet range = 1;
+        EquatableValueSet equatable = 2;
+        AllOrNoneSet all_or_none = 3;
+    }
+}
+
+message Constraint {
+    map<string, Domain> column_constraints = 1; // maps column to constraint, columns not present are not constrained
+}
+
+message ReadTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional Constraint constraint = 3;
+}
+
+message ReadTablePResponse {
+    repeated PartitionInfo partitions = 1;
+}
+
+/**
+ * This interface contains catalog master service endpoints for Alluxio clients.
+ */
+service CatalogMasterClientService {
+
+    /**
+     * Returns all databases in the catalog
+     */
+    rpc GetAllDatabases(GetAllDatabasesPRequest) returns (GetAllDatabasesPResponse);
+
+    /**
+     * Returns all tables in the database
+     */
+    rpc GetAllTables(GetAllTablesPRequest) returns (GetAllTablesPResponse);
+
+    /**
+    * Gets a database by name from the catalog master
+    */
+    rpc GetDatabase(GetDatabasePRequest) returns (GetDatabasePResponse);
+
+    /**
+     * Returns a specific table info
+     */
+    rpc GetTable(GetTablePRequest) returns (GetTablePResponse);
+
+    /**
+     * Create a new table in the metastore
+     */
+    rpc CreateTable(CreateTablePRequest) returns (CreateTablePResponse);
+
+    /**
+     * Create a new database in the metastore
+     */
+    rpc CreateDatabase(CreateDatabasePRequest) returns (CreateDatabasePResponse);
+
+    /**
+     * Attach an existing database into the catalog as a new database name
+     */
+    rpc AttachDatabase(AttachDatabasePRequest) returns (AttachDatabasePResponse);
+
+    rpc GetStatistics(GetStatisticsPRequest) returns (GetStatisticsPResponse);
+
+    rpc ReadTable(ReadTablePRequest) returns (ReadTablePResponse);
+}
