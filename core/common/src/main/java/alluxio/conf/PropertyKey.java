@@ -1281,7 +1281,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               "The election timeout for the embedded journal. When this period elapses without a "
                   + "master receiving any messages, the master will attempt to become the primary."
                   + "Election timeout will be waited initially when the cluster is forming. "
-                  + "So larger values for election timeout will cause longer star-up time. "
+                  + "So larger values for election timeout will cause longer start-up time. "
                   + "Smaller values might introduce instability to leadership.")
           .setDefaultValue("10s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1292,7 +1292,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(
               "The period between sending heartbeats from the embedded journal primary to "
                   + "followers. This should be less than half of the election timeout "
-                  + "(alluxio.master.embedded.journal.election.timeout).Because the election "
+                  + "(alluxio.master.embedded.journal.election.timeout), because the election "
                   + "is driven by heart beats.")
           .setDefaultValue("3s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
