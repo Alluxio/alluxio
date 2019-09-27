@@ -171,9 +171,7 @@ public class AlluxioCatalog {
 
     // TODO(david): implement partition pruning
 
-    List<alluxio.grpc.catalog.Partition> returnList =
-        partitions.stream().map(Partition::toProto).collect(Collectors.toList());
-    return returnList;
+    return partitions.stream().map(Partition::toProto).collect(Collectors.toList());
   }
 
   private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {

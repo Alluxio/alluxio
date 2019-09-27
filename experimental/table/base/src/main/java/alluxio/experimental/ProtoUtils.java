@@ -164,20 +164,21 @@ public final class ProtoUtils {
 
   /**
    * @param partition the partition proto
-   * @return the hive partition proto
+   * @return the hive-specific partition proto
    */
   public static PartitionInfo extractHiveLayout(Partition partition)
       throws InvalidProtocolBufferException {
-    if (!partition.hasLayout()) {
-      throw new IllegalStateException("Cannot extract with a missing layout");
+    if (!isHiveLayout(partition)) {
+      if (partition.hasLayout()) {
+        throw new IllegalStateException(
+            "Cannot parse hive-layout. layoutType: " + partition.getLayout().getLayoutType());
+      } else {
+        throw new IllegalStateException("Cannot parse hive-layout from missing layout");
+      }
     }
     Layout layout = partition.getLayout();
-    // TODO(gpang): use a layout registry
-    if (!Objects.equals(layout.getLayoutType(), "hive")) {
-      throw new IllegalStateException("Cannot parse because layout is not of type: hive");
-    }
     if (!layout.hasLayoutData()) {
-      throw new IllegalStateException("Cannot parse with empty layout data");
+      throw new IllegalStateException("Cannot parse hive-layout from empty layout data");
     }
     return PartitionInfo.parseFrom(layout.getLayoutData());
   }
