@@ -21,10 +21,10 @@ private static final long serialVersionUID = 0L;
     tableName_ = "";
     createTime_ = 0;
     lastAccessTime_ = 0;
-    sd_ = "";
     catName_ = "";
     writeId_ = 0L;
     isStatsCompliant_ = false;
+    cols_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -90,9 +90,16 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 50: {
-            com.google.protobuf.ByteString bs = input.readBytes();
+            alluxio.grpc.catalog.Storage.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000010) == 0x00000010)) {
+              subBuilder = storage_.toBuilder();
+            }
+            storage_ = input.readMessage(alluxio.grpc.catalog.Storage.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(storage_);
+              storage_ = subBuilder.buildPartial();
+            }
             bitField0_ |= 0x00000010;
-            sd_ = bs;
             break;
           }
           case 58: {
@@ -150,6 +157,15 @@ private static final long serialVersionUID = 0L;
                 fileMetadata__.getKey(), fileMetadata__.getValue());
             break;
           }
+          case 114: {
+            if (!((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
+              cols_ = new java.util.ArrayList<alluxio.grpc.catalog.FieldSchema>();
+              mutable_bitField0_ |= 0x00001000;
+            }
+            cols_.add(
+                input.readMessage(alluxio.grpc.catalog.FieldSchema.PARSER, extensionRegistry));
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -160,6 +176,9 @@ private static final long serialVersionUID = 0L;
     } finally {
       if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
         values_ = values_.getUnmodifiableView();
+      }
+      if (((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
+        cols_ = java.util.Collections.unmodifiableList(cols_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -350,16 +369,16 @@ private static final long serialVersionUID = 0L;
     return lastAccessTime_;
   }
 
-  public static final int SD_FIELD_NUMBER = 6;
-  private volatile java.lang.Object sd_;
+  public static final int STORAGE_FIELD_NUMBER = 6;
+  private alluxio.grpc.catalog.Storage storage_;
   /**
    * <pre>
    * storage descriptor
    * </pre>
    *
-   * <code>optional string sd = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
    */
-  public boolean hasSd() {
+  public boolean hasStorage() {
     return ((bitField0_ & 0x00000010) == 0x00000010);
   }
   /**
@@ -367,41 +386,20 @@ private static final long serialVersionUID = 0L;
    * storage descriptor
    * </pre>
    *
-   * <code>optional string sd = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
    */
-  public java.lang.String getSd() {
-    java.lang.Object ref = sd_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        sd_ = s;
-      }
-      return s;
-    }
+  public alluxio.grpc.catalog.Storage getStorage() {
+    return storage_ == null ? alluxio.grpc.catalog.Storage.getDefaultInstance() : storage_;
   }
   /**
    * <pre>
    * storage descriptor
    * </pre>
    *
-   * <code>optional string sd = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
    */
-  public com.google.protobuf.ByteString
-      getSdBytes() {
-    java.lang.Object ref = sd_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      sd_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
+  public alluxio.grpc.catalog.StorageOrBuilder getStorageOrBuilder() {
+    return storage_ == null ? alluxio.grpc.catalog.Storage.getDefaultInstance() : storage_;
   }
 
   public static final int PARAMETERS_FIELD_NUMBER = 7;
@@ -677,12 +675,59 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
+  public static final int COLS_FIELD_NUMBER = 14;
+  private java.util.List<alluxio.grpc.catalog.FieldSchema> cols_;
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  public java.util.List<alluxio.grpc.catalog.FieldSchema> getColsList() {
+    return cols_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  public java.util.List<? extends alluxio.grpc.catalog.FieldSchemaOrBuilder> 
+      getColsOrBuilderList() {
+    return cols_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  public int getColsCount() {
+    return cols_.size();
+  }
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  public alluxio.grpc.catalog.FieldSchema getCols(int index) {
+    return cols_.get(index);
+  }
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  public alluxio.grpc.catalog.FieldSchemaOrBuilder getColsOrBuilder(
+      int index) {
+    return cols_.get(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (hasStorage()) {
+      if (!getStorage().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
+    for (int i = 0; i < getColsCount(); i++) {
+      if (!getCols(i).isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -705,7 +750,7 @@ private static final long serialVersionUID = 0L;
       output.writeInt32(5, lastAccessTime_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 6, sd_);
+      output.writeMessage(6, getStorage());
     }
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
@@ -731,6 +776,9 @@ private static final long serialVersionUID = 0L;
         internalGetFileMetadata(),
         FileMetadataDefaultEntryHolder.defaultEntry,
         13);
+    for (int i = 0; i < cols_.size(); i++) {
+      output.writeMessage(14, cols_.get(i));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -762,7 +810,8 @@ private static final long serialVersionUID = 0L;
         .computeInt32Size(5, lastAccessTime_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, sd_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(6, getStorage());
     }
     for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
          : internalGetParameters().getMap().entrySet()) {
@@ -798,6 +847,10 @@ private static final long serialVersionUID = 0L;
           .build();
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(13, fileMetadata__);
+    }
+    for (int i = 0; i < cols_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(14, cols_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -837,10 +890,10 @@ private static final long serialVersionUID = 0L;
       result = result && (getLastAccessTime()
           == other.getLastAccessTime());
     }
-    result = result && (hasSd() == other.hasSd());
-    if (hasSd()) {
-      result = result && getSd()
-          .equals(other.getSd());
+    result = result && (hasStorage() == other.hasStorage());
+    if (hasStorage()) {
+      result = result && getStorage()
+          .equals(other.getStorage());
     }
     result = result && internalGetParameters().equals(
         other.internalGetParameters());
@@ -866,6 +919,8 @@ private static final long serialVersionUID = 0L;
     }
     result = result && internalGetFileMetadata().equals(
         other.internalGetFileMetadata());
+    result = result && getColsList()
+        .equals(other.getColsList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -897,9 +952,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + LASTACCESSTIME_FIELD_NUMBER;
       hash = (53 * hash) + getLastAccessTime();
     }
-    if (hasSd()) {
-      hash = (37 * hash) + SD_FIELD_NUMBER;
-      hash = (53 * hash) + getSd().hashCode();
+    if (hasStorage()) {
+      hash = (37 * hash) + STORAGE_FIELD_NUMBER;
+      hash = (53 * hash) + getStorage().hashCode();
     }
     if (!internalGetParameters().getMap().isEmpty()) {
       hash = (37 * hash) + PARAMETERS_FIELD_NUMBER;
@@ -926,6 +981,10 @@ private static final long serialVersionUID = 0L;
     if (!internalGetFileMetadata().getMap().isEmpty()) {
       hash = (37 * hash) + FILE_METADATA_FIELD_NUMBER;
       hash = (53 * hash) + internalGetFileMetadata().hashCode();
+    }
+    if (getColsCount() > 0) {
+      hash = (37 * hash) + COLS_FIELD_NUMBER;
+      hash = (53 * hash) + getColsList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -1078,7 +1137,9 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getStorageFieldBuilder();
         getColStatsFieldBuilder();
+        getColsFieldBuilder();
       }
     }
     public Builder clear() {
@@ -1093,7 +1154,11 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000008);
       lastAccessTime_ = 0;
       bitField0_ = (bitField0_ & ~0x00000010);
-      sd_ = "";
+      if (storageBuilder_ == null) {
+        storage_ = null;
+      } else {
+        storageBuilder_.clear();
+      }
       bitField0_ = (bitField0_ & ~0x00000020);
       internalGetMutableParameters().clear();
       catName_ = "";
@@ -1109,6 +1174,12 @@ private static final long serialVersionUID = 0L;
       }
       bitField0_ = (bitField0_ & ~0x00000400);
       internalGetMutableFileMetadata().clear();
+      if (colsBuilder_ == null) {
+        cols_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00001000);
+      } else {
+        colsBuilder_.clear();
+      }
       return this;
     }
 
@@ -1157,7 +1228,11 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
         to_bitField0_ |= 0x00000010;
       }
-      result.sd_ = sd_;
+      if (storageBuilder_ == null) {
+        result.storage_ = storage_;
+      } else {
+        result.storage_ = storageBuilder_.build();
+      }
       result.parameters_ = internalGetParameters();
       result.parameters_.makeImmutable();
       if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
@@ -1182,6 +1257,15 @@ private static final long serialVersionUID = 0L;
       }
       result.fileMetadata_ = internalGetFileMetadata();
       result.fileMetadata_.makeImmutable();
+      if (colsBuilder_ == null) {
+        if (((bitField0_ & 0x00001000) == 0x00001000)) {
+          cols_ = java.util.Collections.unmodifiableList(cols_);
+          bitField0_ = (bitField0_ & ~0x00001000);
+        }
+        result.cols_ = cols_;
+      } else {
+        result.cols_ = colsBuilder_.build();
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -1250,10 +1334,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasLastAccessTime()) {
         setLastAccessTime(other.getLastAccessTime());
       }
-      if (other.hasSd()) {
-        bitField0_ |= 0x00000020;
-        sd_ = other.sd_;
-        onChanged();
+      if (other.hasStorage()) {
+        mergeStorage(other.getStorage());
       }
       internalGetMutableParameters().mergeFrom(
           other.internalGetParameters());
@@ -1273,12 +1355,48 @@ private static final long serialVersionUID = 0L;
       }
       internalGetMutableFileMetadata().mergeFrom(
           other.internalGetFileMetadata());
+      if (colsBuilder_ == null) {
+        if (!other.cols_.isEmpty()) {
+          if (cols_.isEmpty()) {
+            cols_ = other.cols_;
+            bitField0_ = (bitField0_ & ~0x00001000);
+          } else {
+            ensureColsIsMutable();
+            cols_.addAll(other.cols_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.cols_.isEmpty()) {
+          if (colsBuilder_.isEmpty()) {
+            colsBuilder_.dispose();
+            colsBuilder_ = null;
+            cols_ = other.cols_;
+            bitField0_ = (bitField0_ & ~0x00001000);
+            colsBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getColsFieldBuilder() : null;
+          } else {
+            colsBuilder_.addAllMessages(other.cols_);
+          }
+        }
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
     }
 
     public final boolean isInitialized() {
+      if (hasStorage()) {
+        if (!getStorage().isInitialized()) {
+          return false;
+        }
+      }
+      for (int i = 0; i < getColsCount(); i++) {
+        if (!getCols(i).isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -1646,15 +1764,17 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object sd_ = "";
+    private alluxio.grpc.catalog.Storage storage_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.catalog.Storage, alluxio.grpc.catalog.Storage.Builder, alluxio.grpc.catalog.StorageOrBuilder> storageBuilder_;
     /**
      * <pre>
      * storage descriptor
      * </pre>
      *
-     * <code>optional string sd = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
      */
-    public boolean hasSd() {
+    public boolean hasStorage() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
@@ -1662,57 +1782,33 @@ private static final long serialVersionUID = 0L;
      * storage descriptor
      * </pre>
      *
-     * <code>optional string sd = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
      */
-    public java.lang.String getSd() {
-      java.lang.Object ref = sd_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          sd_ = s;
+    public alluxio.grpc.catalog.Storage getStorage() {
+      if (storageBuilder_ == null) {
+        return storage_ == null ? alluxio.grpc.catalog.Storage.getDefaultInstance() : storage_;
+      } else {
+        return storageBuilder_.getMessage();
+      }
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
+     */
+    public Builder setStorage(alluxio.grpc.catalog.Storage value) {
+      if (storageBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
         }
-        return s;
+        storage_ = value;
+        onChanged();
       } else {
-        return (java.lang.String) ref;
+        storageBuilder_.setMessage(value);
       }
-    }
-    /**
-     * <pre>
-     * storage descriptor
-     * </pre>
-     *
-     * <code>optional string sd = 6;</code>
-     */
-    public com.google.protobuf.ByteString
-        getSdBytes() {
-      java.lang.Object ref = sd_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        sd_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <pre>
-     * storage descriptor
-     * </pre>
-     *
-     * <code>optional string sd = 6;</code>
-     */
-    public Builder setSd(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000020;
-      sd_ = value;
-      onChanged();
+      bitField0_ |= 0x00000020;
       return this;
     }
     /**
@@ -1720,12 +1816,58 @@ private static final long serialVersionUID = 0L;
      * storage descriptor
      * </pre>
      *
-     * <code>optional string sd = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
      */
-    public Builder clearSd() {
+    public Builder setStorage(
+        alluxio.grpc.catalog.Storage.Builder builderForValue) {
+      if (storageBuilder_ == null) {
+        storage_ = builderForValue.build();
+        onChanged();
+      } else {
+        storageBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000020;
+      return this;
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
+     */
+    public Builder mergeStorage(alluxio.grpc.catalog.Storage value) {
+      if (storageBuilder_ == null) {
+        if (((bitField0_ & 0x00000020) == 0x00000020) &&
+            storage_ != null &&
+            storage_ != alluxio.grpc.catalog.Storage.getDefaultInstance()) {
+          storage_ =
+            alluxio.grpc.catalog.Storage.newBuilder(storage_).mergeFrom(value).buildPartial();
+        } else {
+          storage_ = value;
+        }
+        onChanged();
+      } else {
+        storageBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000020;
+      return this;
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
+     */
+    public Builder clearStorage() {
+      if (storageBuilder_ == null) {
+        storage_ = null;
+        onChanged();
+      } else {
+        storageBuilder_.clear();
+      }
       bitField0_ = (bitField0_ & ~0x00000020);
-      sd_ = getDefaultInstance().getSd();
-      onChanged();
       return this;
     }
     /**
@@ -1733,17 +1875,47 @@ private static final long serialVersionUID = 0L;
      * storage descriptor
      * </pre>
      *
-     * <code>optional string sd = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
      */
-    public Builder setSdBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000020;
-      sd_ = value;
+    public alluxio.grpc.catalog.Storage.Builder getStorageBuilder() {
+      bitField0_ |= 0x00000020;
       onChanged();
-      return this;
+      return getStorageFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
+     */
+    public alluxio.grpc.catalog.StorageOrBuilder getStorageOrBuilder() {
+      if (storageBuilder_ != null) {
+        return storageBuilder_.getMessageOrBuilder();
+      } else {
+        return storage_ == null ?
+            alluxio.grpc.catalog.Storage.getDefaultInstance() : storage_;
+      }
+    }
+    /**
+     * <pre>
+     * storage descriptor
+     * </pre>
+     *
+     * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.catalog.Storage, alluxio.grpc.catalog.Storage.Builder, alluxio.grpc.catalog.StorageOrBuilder> 
+        getStorageFieldBuilder() {
+      if (storageBuilder_ == null) {
+        storageBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.catalog.Storage, alluxio.grpc.catalog.Storage.Builder, alluxio.grpc.catalog.StorageOrBuilder>(
+                getStorage(),
+                getParentForChildren(),
+                isClean());
+        storage_ = null;
+      }
+      return storageBuilder_;
     }
 
     private com.google.protobuf.MapField<
@@ -2312,6 +2484,246 @@ private static final long serialVersionUID = 0L;
       internalGetMutableFileMetadata().getMutableMap()
           .putAll(values);
       return this;
+    }
+
+    private java.util.List<alluxio.grpc.catalog.FieldSchema> cols_ =
+      java.util.Collections.emptyList();
+    private void ensureColsIsMutable() {
+      if (!((bitField0_ & 0x00001000) == 0x00001000)) {
+        cols_ = new java.util.ArrayList<alluxio.grpc.catalog.FieldSchema>(cols_);
+        bitField0_ |= 0x00001000;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.catalog.FieldSchema, alluxio.grpc.catalog.FieldSchema.Builder, alluxio.grpc.catalog.FieldSchemaOrBuilder> colsBuilder_;
+
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public java.util.List<alluxio.grpc.catalog.FieldSchema> getColsList() {
+      if (colsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(cols_);
+      } else {
+        return colsBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public int getColsCount() {
+      if (colsBuilder_ == null) {
+        return cols_.size();
+      } else {
+        return colsBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public alluxio.grpc.catalog.FieldSchema getCols(int index) {
+      if (colsBuilder_ == null) {
+        return cols_.get(index);
+      } else {
+        return colsBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder setCols(
+        int index, alluxio.grpc.catalog.FieldSchema value) {
+      if (colsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureColsIsMutable();
+        cols_.set(index, value);
+        onChanged();
+      } else {
+        colsBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder setCols(
+        int index, alluxio.grpc.catalog.FieldSchema.Builder builderForValue) {
+      if (colsBuilder_ == null) {
+        ensureColsIsMutable();
+        cols_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        colsBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder addCols(alluxio.grpc.catalog.FieldSchema value) {
+      if (colsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureColsIsMutable();
+        cols_.add(value);
+        onChanged();
+      } else {
+        colsBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder addCols(
+        int index, alluxio.grpc.catalog.FieldSchema value) {
+      if (colsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureColsIsMutable();
+        cols_.add(index, value);
+        onChanged();
+      } else {
+        colsBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder addCols(
+        alluxio.grpc.catalog.FieldSchema.Builder builderForValue) {
+      if (colsBuilder_ == null) {
+        ensureColsIsMutable();
+        cols_.add(builderForValue.build());
+        onChanged();
+      } else {
+        colsBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder addCols(
+        int index, alluxio.grpc.catalog.FieldSchema.Builder builderForValue) {
+      if (colsBuilder_ == null) {
+        ensureColsIsMutable();
+        cols_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        colsBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder addAllCols(
+        java.lang.Iterable<? extends alluxio.grpc.catalog.FieldSchema> values) {
+      if (colsBuilder_ == null) {
+        ensureColsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, cols_);
+        onChanged();
+      } else {
+        colsBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder clearCols() {
+      if (colsBuilder_ == null) {
+        cols_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00001000);
+        onChanged();
+      } else {
+        colsBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public Builder removeCols(int index) {
+      if (colsBuilder_ == null) {
+        ensureColsIsMutable();
+        cols_.remove(index);
+        onChanged();
+      } else {
+        colsBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public alluxio.grpc.catalog.FieldSchema.Builder getColsBuilder(
+        int index) {
+      return getColsFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public alluxio.grpc.catalog.FieldSchemaOrBuilder getColsOrBuilder(
+        int index) {
+      if (colsBuilder_ == null) {
+        return cols_.get(index);  } else {
+        return colsBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public java.util.List<? extends alluxio.grpc.catalog.FieldSchemaOrBuilder> 
+         getColsOrBuilderList() {
+      if (colsBuilder_ != null) {
+        return colsBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(cols_);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public alluxio.grpc.catalog.FieldSchema.Builder addColsBuilder() {
+      return getColsFieldBuilder().addBuilder(
+          alluxio.grpc.catalog.FieldSchema.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public alluxio.grpc.catalog.FieldSchema.Builder addColsBuilder(
+        int index) {
+      return getColsFieldBuilder().addBuilder(
+          index, alluxio.grpc.catalog.FieldSchema.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+     */
+    public java.util.List<alluxio.grpc.catalog.FieldSchema.Builder> 
+         getColsBuilderList() {
+      return getColsFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.catalog.FieldSchema, alluxio.grpc.catalog.FieldSchema.Builder, alluxio.grpc.catalog.FieldSchemaOrBuilder> 
+        getColsFieldBuilder() {
+      if (colsBuilder_ == null) {
+        colsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.catalog.FieldSchema, alluxio.grpc.catalog.FieldSchema.Builder, alluxio.grpc.catalog.FieldSchemaOrBuilder>(
+                cols_,
+                ((bitField0_ & 0x00001000) == 0x00001000),
+                getParentForChildren(),
+                isClean());
+        cols_ = null;
+      }
+      return colsBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

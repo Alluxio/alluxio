@@ -432,127 +432,129 @@ public final class CatalogMasterProto {
       "etaData\"\211\001\n\017ParquetMetadata\0229\n\rfile_meta" +
       "data\030\001 \001(\0132\".alluxio.grpc.catalog.FileMe" +
       "tadata\022;\n\016block_metadata\030\002 \003(\0132#.alluxio" +
-      ".grpc.catalog.BlockMetadata\"\233\004\n\rPartitio" +
+      ".grpc.catalog.BlockMetadata\"\360\004\n\rPartitio" +
       "nInfo\022\016\n\006values\030\001 \003(\t\022\016\n\006dbName\030\002 \001(\t\022\021\n" +
       "\ttableName\030\003 \001(\t\022\022\n\ncreateTime\030\004 \001(\005\022\026\n\016" +
-      "lastAccessTime\030\005 \001(\005\022\n\n\002sd\030\006 \001(\t\022G\n\npara" +
-      "meters\030\007 \003(\01323.alluxio.grpc.catalog.Part" +
-      "itionInfo.ParametersEntry\022\017\n\007catName\030\t \001" +
-      "(\t\022\017\n\007writeId\030\n \001(\003\022\030\n\020isStatsCompliant\030" +
-      "\013 \001(\010\022=\n\tcol_stats\030\014 \001(\0132*.alluxio.grpc." +
-      "catalog.ColumnStatisticsInfo\022L\n\rfile_met" +
-      "adata\030\r \003(\01325.alluxio.grpc.catalog.Parti" +
-      "tionInfo.FileMetadataEntry\0321\n\017Parameters" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032Z\n" +
-      "\021FileMetadataEntry\022\013\n\003key\030\001 \001(\t\0224\n\005value" +
-      "\030\002 \001(\0132%.alluxio.grpc.catalog.ParquetMet" +
-      "adata:\0028\001\"\227\001\n\024ColumnStatisticsInfo\022\020\n\010co" +
-      "l_name\030\001 \001(\t\0223\n\010col_type\030\002 \001(\0162!.alluxio" +
-      ".grpc.catalog.FieldTypeId\0228\n\004data\030\003 \001(\0132" +
-      "*.alluxio.grpc.catalog.ColumnStatisticsD" +
-      "ata\"\026\n\024ColumnStatisticsData\"\031\n\027GetAllDat" +
-      "abasesPRequest\",\n\030GetAllDatabasesPRespon" +
-      "se\022\020\n\010database\030\001 \003(\t\"(\n\024GetAllTablesPReq" +
-      "uest\022\020\n\010database\030\001 \001(\t\"&\n\025GetAllTablesPR" +
-      "esponse\022\r\n\005table\030\001 \003(\t\"&\n\023GetDatabasePRe" +
-      "quest\022\017\n\007db_name\030\001 \001(\t\"B\n\024GetDatabasePRe" +
-      "sponse\022*\n\002db\030\001 \001(\0132\036.alluxio.grpc.catalo" +
-      "g.Database\"7\n\020GetTablePRequest\022\017\n\007db_nam" +
-      "e\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\"H\n\021GetTableP" +
-      "Response\0223\n\ntable_info\030\001 \001(\0132\037.alluxio.g" +
-      "rpc.catalog.TableInfo\"h\n\023CreateTablePReq" +
-      "uest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(" +
-      "\t\022,\n\006schema\030\003 \001(\0132\034.alluxio.grpc.catalog" +
-      ".Schema\"\\\n\024CreateTablePResponse\022\017\n\007succe" +
-      "ss\030\001 \001(\010\0223\n\ntable_info\030\002 \001(\0132\037.alluxio.g" +
-      "rpc.catalog.TableInfo\"\245\001\n\026CreateDatabase" +
-      "PRequest\022\017\n\007db_name\030\001 \001(\t\022J\n\007options\030\002 \003" +
-      "(\01329.alluxio.grpc.catalog.CreateDatabase" +
-      "PRequest.OptionsEntry\032.\n\014OptionsEntry\022\013\n" +
-      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"*\n\027CreateD" +
-      "atabasePResponse\022\017\n\007success\030\001 \001(\010\";\n\024Get" +
-      "DataFilesPRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\nta" +
-      "ble_name\030\002 \001(\t\"*\n\025GetDataFilesPResponse\022" +
-      "\021\n\tdata_file\030\001 \003(\t\"<\n\025GetStatisticsPRequ" +
-      "est\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t" +
-      "\"\266\001\n\026AttachDatabasePRequest\022\017\n\007db_name\030\001" +
-      " \001(\t\022\017\n\007db_type\030\002 \001(\t\022J\n\007options\030\003 \003(\01329" +
-      ".alluxio.grpc.catalog.AttachDatabasePReq" +
-      "uest.OptionsEntry\032.\n\014OptionsEntry\022\013\n\003key" +
-      "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"*\n\027AttachDatab" +
-      "asePResponse\022\017\n\007success\030\001 \001(\010\"(\n\020ColumnS" +
-      "tatistics\022\024\n\014record_count\030\001 \001(\004\"\251\001\n\016File" +
-      "Statistics\022@\n\006column\030\001 \003(\01320.alluxio.grp" +
-      "c.catalog.FileStatistics.ColumnEntry\032U\n\013" +
-      "ColumnEntry\022\013\n\003key\030\001 \001(\t\0225\n\005value\030\002 \001(\0132" +
-      "&.alluxio.grpc.catalog.ColumnStatistics:" +
-      "\0028\001\"\303\001\n\026GetStatisticsPResponse\022P\n\nstatis" +
-      "tics\030\001 \003(\0132<.alluxio.grpc.catalog.GetSta" +
-      "tisticsPResponse.StatisticsEntry\032W\n\017Stat" +
-      "isticsEntry\022\013\n\003key\030\001 \001(\t\0223\n\005value\030\002 \001(\0132" +
-      "$.alluxio.grpc.catalog.FileStatistics:\0028" +
-      "\001\"k\n\005Value\022\023\n\tlong_type\030\001 \001(\003H\000\022\025\n\013doubl" +
-      "e_type\030\002 \001(\001H\000\022\025\n\013string_type\030\003 \001(\tH\000\022\026\n" +
-      "\014boolean_type\030\004 \001(\010H\000B\007\n\005value\"\\\n\005Range\022" +
-      "(\n\003low\030\001 \001(\0132\033.alluxio.grpc.catalog.Valu" +
-      "e\022)\n\004high\030\002 \001(\0132\033.alluxio.grpc.catalog.V" +
-      "alue\"7\n\010RangeSet\022+\n\006ranges\030\001 \003(\0132\033.allux" +
-      "io.grpc.catalog.Range\"X\n\021EquatableValueS" +
-      "et\022/\n\ncandidates\030\001 \003(\0132\033.alluxio.grpc.ca" +
-      "talog.Value\022\022\n\nwhite_list\030\002 \001(\010\"\033\n\014AllOr" +
-      "NoneSet\022\013\n\003all\030\001 \001(\010\"\277\001\n\006Domain\022/\n\005range" +
-      "\030\001 \001(\0132\036.alluxio.grpc.catalog.RangeSetH\000" +
-      "\022<\n\tequatable\030\002 \001(\0132\'.alluxio.grpc.catal" +
-      "og.EquatableValueSetH\000\0229\n\013all_or_none\030\003 " +
-      "\001(\0132\".alluxio.grpc.catalog.AllOrNoneSetH" +
-      "\000B\013\n\tvalue_set\"\271\001\n\nConstraint\022S\n\022column_" +
-      "constraints\030\001 \003(\01327.alluxio.grpc.catalog" +
-      ".Constraint.ColumnConstraintsEntry\032V\n\026Co" +
-      "lumnConstraintsEntry\022\013\n\003key\030\001 \001(\t\022+\n\005val" +
-      "ue\030\002 \001(\0132\034.alluxio.grpc.catalog.Domain:\002" +
-      "8\001\"n\n\021ReadTablePRequest\022\017\n\007db_name\030\001 \001(\t" +
-      "\022\022\n\ntable_name\030\002 \001(\t\0224\n\nconstraint\030\003 \001(\013" +
-      "2 .alluxio.grpc.catalog.Constraint\"M\n\022Re" +
-      "adTablePResponse\0227\n\npartitions\030\001 \003(\0132#.a" +
-      "lluxio.grpc.catalog.PartitionInfo*\331\001\n\013Fi" +
-      "eldTypeId\022\013\n\007BOOLEAN\020\000\022\010\n\004BYTE\020\001\022\t\n\005SHOR" +
-      "T\020\002\022\013\n\007INTEGER\020\003\022\010\n\004LONG\020\004\022\t\n\005FLOAT\020\005\022\n\n" +
-      "\006DOUBLE\020\006\022\010\n\004DATE\020\007\022\010\n\004TIME\020\010\022\r\n\tTIMESTA" +
-      "MP\020\t\022\n\n\006STRING\020\n\022\010\n\004UUID\020\013\022\t\n\005FIXED\020\014\022\n\n" +
-      "\006BINARY\020\r\022\013\n\007DECIMAL\020\016\022\n\n\006STRUCT\020\017\022\010\n\004LI" +
-      "ST\020\020\022\007\n\003MAP\020\021*6\n\nRepetition\022\014\n\010REPEATED\020" +
-      "\001\022\014\n\010OPTIONAL\020\002\022\014\n\010REQUIRED\020\003*\336\001\n\021Primit" +
-      "iveTypeName\022\025\n\021PARQUETTYPE_INT64\020\000\022\025\n\021PA" +
-      "RQUETTYPE_INT32\020\001\022\027\n\023PARQUETTYPE_BOOLEAN" +
-      "\020\002\022\026\n\022PARQUETTYPE_BINARY\020\003\022\025\n\021PARQUETTYP" +
-      "E_FLOAT\020\004\022\026\n\022PARQUETTYPE_DOUBLE\020\005\022\025\n\021PAR" +
-      "QUETTYPE_INT96\020\006\022$\n PARQUETTYPE_FIXED_LE" +
-      "N_BYTE_ARRAY\020\0072\312\007\n\032CatalogMasterClientSe" +
-      "rvice\022p\n\017GetAllDatabases\022-.alluxio.grpc." +
-      "catalog.GetAllDatabasesPRequest\032..alluxi" +
-      "o.grpc.catalog.GetAllDatabasesPResponse\022" +
-      "g\n\014GetAllTables\022*.alluxio.grpc.catalog.G" +
-      "etAllTablesPRequest\032+.alluxio.grpc.catal" +
-      "og.GetAllTablesPResponse\022d\n\013GetDatabase\022" +
-      ").alluxio.grpc.catalog.GetDatabasePReque" +
-      "st\032*.alluxio.grpc.catalog.GetDatabasePRe" +
-      "sponse\022[\n\010GetTable\022&.alluxio.grpc.catalo" +
-      "g.GetTablePRequest\032\'.alluxio.grpc.catalo" +
-      "g.GetTablePResponse\022d\n\013CreateTable\022).all" +
-      "uxio.grpc.catalog.CreateTablePRequest\032*." +
-      "alluxio.grpc.catalog.CreateTablePRespons" +
-      "e\022m\n\016CreateDatabase\022,.alluxio.grpc.catal" +
-      "og.CreateDatabasePRequest\032-.alluxio.grpc" +
-      ".catalog.CreateDatabasePResponse\022m\n\016Atta" +
-      "chDatabase\022,.alluxio.grpc.catalog.Attach" +
-      "DatabasePRequest\032-.alluxio.grpc.catalog." +
-      "AttachDatabasePResponse\022j\n\rGetStatistics" +
-      "\022+.alluxio.grpc.catalog.GetStatisticsPRe" +
-      "quest\032,.alluxio.grpc.catalog.GetStatisti" +
-      "csPResponse\022^\n\tReadTable\022\'.alluxio.grpc." +
-      "catalog.ReadTablePRequest\032(.alluxio.grpc" +
-      ".catalog.ReadTablePResponseB,\n\024alluxio.g" +
-      "rpc.catalogB\022CatalogMasterProtoP\001"
+      "lastAccessTime\030\005 \001(\005\022.\n\007storage\030\006 \001(\0132\035." +
+      "alluxio.grpc.catalog.Storage\022G\n\nparamete" +
+      "rs\030\007 \003(\01323.alluxio.grpc.catalog.Partitio" +
+      "nInfo.ParametersEntry\022\017\n\007catName\030\t \001(\t\022\017" +
+      "\n\007writeId\030\n \001(\003\022\030\n\020isStatsCompliant\030\013 \001(" +
+      "\010\022=\n\tcol_stats\030\014 \001(\0132*.alluxio.grpc.cata" +
+      "log.ColumnStatisticsInfo\022L\n\rfile_metadat" +
+      "a\030\r \003(\01325.alluxio.grpc.catalog.Partition" +
+      "Info.FileMetadataEntry\022/\n\004cols\030\016 \003(\0132!.a" +
+      "lluxio.grpc.catalog.FieldSchema\0321\n\017Param" +
+      "etersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002" +
+      "8\001\032Z\n\021FileMetadataEntry\022\013\n\003key\030\001 \001(\t\0224\n\005" +
+      "value\030\002 \001(\0132%.alluxio.grpc.catalog.Parqu" +
+      "etMetadata:\0028\001\"\227\001\n\024ColumnStatisticsInfo\022" +
+      "\020\n\010col_name\030\001 \001(\t\0223\n\010col_type\030\002 \001(\0162!.al" +
+      "luxio.grpc.catalog.FieldTypeId\0228\n\004data\030\003" +
+      " \001(\0132*.alluxio.grpc.catalog.ColumnStatis" +
+      "ticsData\"\026\n\024ColumnStatisticsData\"\031\n\027GetA" +
+      "llDatabasesPRequest\",\n\030GetAllDatabasesPR" +
+      "esponse\022\020\n\010database\030\001 \003(\t\"(\n\024GetAllTable" +
+      "sPRequest\022\020\n\010database\030\001 \001(\t\"&\n\025GetAllTab" +
+      "lesPResponse\022\r\n\005table\030\001 \003(\t\"&\n\023GetDataba" +
+      "sePRequest\022\017\n\007db_name\030\001 \001(\t\"B\n\024GetDataba" +
+      "sePResponse\022*\n\002db\030\001 \001(\0132\036.alluxio.grpc.c" +
+      "atalog.Database\"7\n\020GetTablePRequest\022\017\n\007d" +
+      "b_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\"H\n\021GetT" +
+      "ablePResponse\0223\n\ntable_info\030\001 \001(\0132\037.allu" +
+      "xio.grpc.catalog.TableInfo\"h\n\023CreateTabl" +
+      "ePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name" +
+      "\030\002 \001(\t\022,\n\006schema\030\003 \001(\0132\034.alluxio.grpc.ca" +
+      "talog.Schema\"\\\n\024CreateTablePResponse\022\017\n\007" +
+      "success\030\001 \001(\010\0223\n\ntable_info\030\002 \001(\0132\037.allu" +
+      "xio.grpc.catalog.TableInfo\"\245\001\n\026CreateDat" +
+      "abasePRequest\022\017\n\007db_name\030\001 \001(\t\022J\n\007option" +
+      "s\030\002 \003(\01329.alluxio.grpc.catalog.CreateDat" +
+      "abasePRequest.OptionsEntry\032.\n\014OptionsEnt" +
+      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"*\n\027Cr" +
+      "eateDatabasePResponse\022\017\n\007success\030\001 \001(\010\";" +
+      "\n\024GetDataFilesPRequest\022\017\n\007db_name\030\001 \001(\t\022" +
+      "\022\n\ntable_name\030\002 \001(\t\"*\n\025GetDataFilesPResp" +
+      "onse\022\021\n\tdata_file\030\001 \003(\t\"<\n\025GetStatistics" +
+      "PRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030" +
+      "\002 \001(\t\"\266\001\n\026AttachDatabasePRequest\022\017\n\007db_n" +
+      "ame\030\001 \001(\t\022\017\n\007db_type\030\002 \001(\t\022J\n\007options\030\003 " +
+      "\003(\01329.alluxio.grpc.catalog.AttachDatabas" +
+      "ePRequest.OptionsEntry\032.\n\014OptionsEntry\022\013" +
+      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"*\n\027Attach" +
+      "DatabasePResponse\022\017\n\007success\030\001 \001(\010\"(\n\020Co" +
+      "lumnStatistics\022\024\n\014record_count\030\001 \001(\004\"\251\001\n" +
+      "\016FileStatistics\022@\n\006column\030\001 \003(\01320.alluxi" +
+      "o.grpc.catalog.FileStatistics.ColumnEntr" +
+      "y\032U\n\013ColumnEntry\022\013\n\003key\030\001 \001(\t\0225\n\005value\030\002" +
+      " \001(\0132&.alluxio.grpc.catalog.ColumnStatis" +
+      "tics:\0028\001\"\303\001\n\026GetStatisticsPResponse\022P\n\ns" +
+      "tatistics\030\001 \003(\0132<.alluxio.grpc.catalog.G" +
+      "etStatisticsPResponse.StatisticsEntry\032W\n" +
+      "\017StatisticsEntry\022\013\n\003key\030\001 \001(\t\0223\n\005value\030\002" +
+      " \001(\0132$.alluxio.grpc.catalog.FileStatisti" +
+      "cs:\0028\001\"k\n\005Value\022\023\n\tlong_type\030\001 \001(\003H\000\022\025\n\013" +
+      "double_type\030\002 \001(\001H\000\022\025\n\013string_type\030\003 \001(\t" +
+      "H\000\022\026\n\014boolean_type\030\004 \001(\010H\000B\007\n\005value\"\\\n\005R" +
+      "ange\022(\n\003low\030\001 \001(\0132\033.alluxio.grpc.catalog" +
+      ".Value\022)\n\004high\030\002 \001(\0132\033.alluxio.grpc.cata" +
+      "log.Value\"7\n\010RangeSet\022+\n\006ranges\030\001 \003(\0132\033." +
+      "alluxio.grpc.catalog.Range\"X\n\021EquatableV" +
+      "alueSet\022/\n\ncandidates\030\001 \003(\0132\033.alluxio.gr" +
+      "pc.catalog.Value\022\022\n\nwhite_list\030\002 \001(\010\"\033\n\014" +
+      "AllOrNoneSet\022\013\n\003all\030\001 \001(\010\"\277\001\n\006Domain\022/\n\005" +
+      "range\030\001 \001(\0132\036.alluxio.grpc.catalog.Range" +
+      "SetH\000\022<\n\tequatable\030\002 \001(\0132\'.alluxio.grpc." +
+      "catalog.EquatableValueSetH\000\0229\n\013all_or_no" +
+      "ne\030\003 \001(\0132\".alluxio.grpc.catalog.AllOrNon" +
+      "eSetH\000B\013\n\tvalue_set\"\271\001\n\nConstraint\022S\n\022co" +
+      "lumn_constraints\030\001 \003(\01327.alluxio.grpc.ca" +
+      "talog.Constraint.ColumnConstraintsEntry\032" +
+      "V\n\026ColumnConstraintsEntry\022\013\n\003key\030\001 \001(\t\022+" +
+      "\n\005value\030\002 \001(\0132\034.alluxio.grpc.catalog.Dom" +
+      "ain:\0028\001\"n\n\021ReadTablePRequest\022\017\n\007db_name\030" +
+      "\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\0224\n\nconstraint\030" +
+      "\003 \001(\0132 .alluxio.grpc.catalog.Constraint\"" +
+      "M\n\022ReadTablePResponse\0227\n\npartitions\030\001 \003(" +
+      "\0132#.alluxio.grpc.catalog.PartitionInfo*\331" +
+      "\001\n\013FieldTypeId\022\013\n\007BOOLEAN\020\000\022\010\n\004BYTE\020\001\022\t\n" +
+      "\005SHORT\020\002\022\013\n\007INTEGER\020\003\022\010\n\004LONG\020\004\022\t\n\005FLOAT" +
+      "\020\005\022\n\n\006DOUBLE\020\006\022\010\n\004DATE\020\007\022\010\n\004TIME\020\010\022\r\n\tTI" +
+      "MESTAMP\020\t\022\n\n\006STRING\020\n\022\010\n\004UUID\020\013\022\t\n\005FIXED" +
+      "\020\014\022\n\n\006BINARY\020\r\022\013\n\007DECIMAL\020\016\022\n\n\006STRUCT\020\017\022" +
+      "\010\n\004LIST\020\020\022\007\n\003MAP\020\021*6\n\nRepetition\022\014\n\010REPE" +
+      "ATED\020\001\022\014\n\010OPTIONAL\020\002\022\014\n\010REQUIRED\020\003*\336\001\n\021P" +
+      "rimitiveTypeName\022\025\n\021PARQUETTYPE_INT64\020\000\022" +
+      "\025\n\021PARQUETTYPE_INT32\020\001\022\027\n\023PARQUETTYPE_BO" +
+      "OLEAN\020\002\022\026\n\022PARQUETTYPE_BINARY\020\003\022\025\n\021PARQU" +
+      "ETTYPE_FLOAT\020\004\022\026\n\022PARQUETTYPE_DOUBLE\020\005\022\025" +
+      "\n\021PARQUETTYPE_INT96\020\006\022$\n PARQUETTYPE_FIX" +
+      "ED_LEN_BYTE_ARRAY\020\0072\312\007\n\032CatalogMasterCli" +
+      "entService\022p\n\017GetAllDatabases\022-.alluxio." +
+      "grpc.catalog.GetAllDatabasesPRequest\032..a" +
+      "lluxio.grpc.catalog.GetAllDatabasesPResp" +
+      "onse\022g\n\014GetAllTables\022*.alluxio.grpc.cata" +
+      "log.GetAllTablesPRequest\032+.alluxio.grpc." +
+      "catalog.GetAllTablesPResponse\022d\n\013GetData" +
+      "base\022).alluxio.grpc.catalog.GetDatabaseP" +
+      "Request\032*.alluxio.grpc.catalog.GetDataba" +
+      "sePResponse\022[\n\010GetTable\022&.alluxio.grpc.c" +
+      "atalog.GetTablePRequest\032\'.alluxio.grpc.c" +
+      "atalog.GetTablePResponse\022d\n\013CreateTable\022" +
+      ").alluxio.grpc.catalog.CreateTablePReque" +
+      "st\032*.alluxio.grpc.catalog.CreateTablePRe" +
+      "sponse\022m\n\016CreateDatabase\022,.alluxio.grpc." +
+      "catalog.CreateDatabasePRequest\032-.alluxio" +
+      ".grpc.catalog.CreateDatabasePResponse\022m\n" +
+      "\016AttachDatabase\022,.alluxio.grpc.catalog.A" +
+      "ttachDatabasePRequest\032-.alluxio.grpc.cat" +
+      "alog.AttachDatabasePResponse\022j\n\rGetStati" +
+      "stics\022+.alluxio.grpc.catalog.GetStatisti" +
+      "csPRequest\032,.alluxio.grpc.catalog.GetSta" +
+      "tisticsPResponse\022^\n\tReadTable\022\'.alluxio." +
+      "grpc.catalog.ReadTablePRequest\032(.alluxio" +
+      ".grpc.catalog.ReadTablePResponseB,\n\024allu" +
+      "xio.grpc.catalogB\022CatalogMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -716,7 +718,7 @@ public final class CatalogMasterProto {
     internal_static_alluxio_grpc_catalog_PartitionInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_catalog_PartitionInfo_descriptor,
-        new java.lang.String[] { "Values", "DbName", "TableName", "CreateTime", "LastAccessTime", "Sd", "Parameters", "CatName", "WriteId", "IsStatsCompliant", "ColStats", "FileMetadata", });
+        new java.lang.String[] { "Values", "DbName", "TableName", "CreateTime", "LastAccessTime", "Storage", "Parameters", "CatName", "WriteId", "IsStatsCompliant", "ColStats", "FileMetadata", "Cols", });
     internal_static_alluxio_grpc_catalog_PartitionInfo_ParametersEntry_descriptor =
       internal_static_alluxio_grpc_catalog_PartitionInfo_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_grpc_catalog_PartitionInfo_ParametersEntry_fieldAccessorTable = new

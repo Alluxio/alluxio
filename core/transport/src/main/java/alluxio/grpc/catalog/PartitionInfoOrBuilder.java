@@ -93,26 +93,25 @@ public interface PartitionInfoOrBuilder extends
    * storage descriptor
    * </pre>
    *
-   * <code>optional string sd = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
    */
-  boolean hasSd();
+  boolean hasStorage();
   /**
    * <pre>
    * storage descriptor
    * </pre>
    *
-   * <code>optional string sd = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
    */
-  java.lang.String getSd();
+  alluxio.grpc.catalog.Storage getStorage();
   /**
    * <pre>
    * storage descriptor
    * </pre>
    *
-   * <code>optional string sd = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
    */
-  com.google.protobuf.ByteString
-      getSdBytes();
+  alluxio.grpc.catalog.StorageOrBuilder getStorageOrBuilder();
 
   /**
    * <code>map&lt;string, string&gt; parameters = 7;</code>
@@ -258,4 +257,28 @@ public interface PartitionInfoOrBuilder extends
 
   alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrThrow(
       java.lang.String key);
+
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  java.util.List<alluxio.grpc.catalog.FieldSchema> 
+      getColsList();
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  alluxio.grpc.catalog.FieldSchema getCols(int index);
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  int getColsCount();
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  java.util.List<? extends alluxio.grpc.catalog.FieldSchemaOrBuilder> 
+      getColsOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   */
+  alluxio.grpc.catalog.FieldSchemaOrBuilder getColsOrBuilder(
+      int index);
 }
