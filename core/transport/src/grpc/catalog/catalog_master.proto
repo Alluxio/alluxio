@@ -225,6 +225,27 @@ message PartitionInfo {
   repeated FieldSchema cols = 8;
 }
 
+// TODO(gpang): update
+message LayoutSpec {
+  optional string spec = 1;
+}
+
+// TODO(gpang): update
+message PartitionSpec {
+  optional string spec = 1;
+}
+
+message Layout {
+  optional string layoutType = 1;
+  optional LayoutSpec layoutSpec = 2;
+  optional bytes layoutData = 3;
+}
+
+message Partition {
+  optional PartitionSpec partitionSpec = 1;
+  optional Layout layout = 2;
+}
+
 message ColumnStatisticsInfo {
     optional string col_name = 1;
     optional FieldTypeId col_type = 2;
@@ -368,7 +389,7 @@ message ReadTablePRequest {
 }
 
 message ReadTablePResponse {
-    repeated PartitionInfo partitions = 1;
+    repeated Partition partitions = 1;
 }
 
 /**

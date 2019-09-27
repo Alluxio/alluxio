@@ -18,7 +18,7 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.FileStatistics;
-import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.Schema;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
@@ -113,8 +113,8 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public List<PartitionInfo> readTable(String dbName, String tableName, Constraint constraint)
-      throws IOException {
+  public List<Partition> readTable(String dbName, String tableName,
+      Constraint constraint) throws IOException {
     return mCatalog.readTable(dbName, tableName, constraint);
   }
 

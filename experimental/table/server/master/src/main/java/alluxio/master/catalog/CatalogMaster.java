@@ -13,7 +13,7 @@ package alluxio.master.catalog;
 
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.FileStatistics;
-import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.Schema;
 import alluxio.master.Master;
 
@@ -108,8 +108,8 @@ public interface CatalogMaster extends Master {
    * @param dbName database name
    * @param tableName table name
    * @param constraint constraint
-   * @return a map of partitions and related partition info
+   * @return a list of partition information
    */
-  List<PartitionInfo> readTable(String dbName, String tableName, Constraint constraint)
+  List<Partition> readTable(String dbName, String tableName, Constraint constraint)
       throws IOException;
 }

@@ -8,26 +8,26 @@ public interface ReadTablePResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
-  java.util.List<alluxio.grpc.catalog.PartitionInfo> 
+  java.util.List<alluxio.grpc.catalog.Partition> 
       getPartitionsList();
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
-  alluxio.grpc.catalog.PartitionInfo getPartitions(int index);
+  alluxio.grpc.catalog.Partition getPartitions(int index);
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
   int getPartitionsCount();
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
-  java.util.List<? extends alluxio.grpc.catalog.PartitionInfoOrBuilder> 
+  java.util.List<? extends alluxio.grpc.catalog.PartitionOrBuilder> 
       getPartitionsOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
-  alluxio.grpc.catalog.PartitionInfoOrBuilder getPartitionsOrBuilder(
+  alluxio.grpc.catalog.PartitionOrBuilder getPartitionsOrBuilder(
       int index);
 }

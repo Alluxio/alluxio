@@ -29,6 +29,7 @@ import alluxio.grpc.catalog.GetAllTablesPRequest;
 import alluxio.grpc.catalog.GetDatabasePRequest;
 import alluxio.grpc.catalog.GetStatisticsPRequest;
 import alluxio.grpc.catalog.GetTablePRequest;
+import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.ReadTablePRequest;
 import alluxio.grpc.catalog.TableInfo;
@@ -129,7 +130,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<PartitionInfo> readTable(String databaseName, String tableName, Constraint constraint)
+  public List<Partition> readTable(String databaseName, String tableName, Constraint constraint)
       throws AlluxioStatusException {
     return retryRPC(() -> mClient.readTable(
         ReadTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName)
