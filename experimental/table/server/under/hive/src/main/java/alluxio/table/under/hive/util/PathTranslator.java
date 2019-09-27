@@ -11,6 +11,9 @@
 
 package alluxio.table.under.hive.util;
 
+import alluxio.conf.ServerConfiguration;
+import alluxio.util.ConfigurationUtils;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.slf4j.Logger;
@@ -65,7 +68,13 @@ public class PathTranslator {
   public String toAlluxioPath(String ufsPath) throws IOException {
     for (BiMap.Entry<String, String> entry : mPathMap.entrySet()) {
       if (ufsPath.startsWith(entry.getValue())) {
-        return entry.getKey() + ufsPath.substring(entry.getValue().length());
+        String alluxioPath = entry.getKey() + ufsPath.substring(entry.getValue().length());
+        if (alluxioPath.startsWith("/")) {
+          // scheme/authority are missing, so prefix with the scheme and authority
+          alluxioPath =
+              ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global()) + alluxioPath;
+        }
+        return alluxioPath;
       }
     }
     // TODO(yuzhu): instead of throwing an exception, mount the path?
