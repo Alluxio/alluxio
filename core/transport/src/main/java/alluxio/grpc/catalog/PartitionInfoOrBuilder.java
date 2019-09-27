@@ -71,29 +71,11 @@ public interface PartitionInfoOrBuilder extends
       getTableNameBytes();
 
   /**
-   * <code>optional int32 createTime = 4;</code>
-   */
-  boolean hasCreateTime();
-  /**
-   * <code>optional int32 createTime = 4;</code>
-   */
-  int getCreateTime();
-
-  /**
-   * <code>optional int32 lastAccessTime = 5;</code>
-   */
-  boolean hasLastAccessTime();
-  /**
-   * <code>optional int32 lastAccessTime = 5;</code>
-   */
-  int getLastAccessTime();
-
-  /**
    * <pre>
    * storage descriptor
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 4;</code>
    */
   boolean hasStorage();
   /**
@@ -101,7 +83,7 @@ public interface PartitionInfoOrBuilder extends
    * storage descriptor
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 4;</code>
    */
   alluxio.grpc.catalog.Storage getStorage();
   /**
@@ -109,16 +91,16 @@ public interface PartitionInfoOrBuilder extends
    * storage descriptor
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.Storage storage = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Storage storage = 4;</code>
    */
   alluxio.grpc.catalog.StorageOrBuilder getStorageOrBuilder();
 
   /**
-   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   * <code>map&lt;string, string&gt; parameters = 5;</code>
    */
   int getParametersCount();
   /**
-   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   * <code>map&lt;string, string&gt; parameters = 5;</code>
    */
   boolean containsParameters(
       java.lang.String key);
@@ -129,62 +111,30 @@ public interface PartitionInfoOrBuilder extends
   java.util.Map<java.lang.String, java.lang.String>
   getParameters();
   /**
-   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   * <code>map&lt;string, string&gt; parameters = 5;</code>
    */
   java.util.Map<java.lang.String, java.lang.String>
   getParametersMap();
   /**
-   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   * <code>map&lt;string, string&gt; parameters = 5;</code>
    */
 
   java.lang.String getParametersOrDefault(
       java.lang.String key,
       java.lang.String defaultValue);
   /**
-   * <code>map&lt;string, string&gt; parameters = 7;</code>
+   * <code>map&lt;string, string&gt; parameters = 5;</code>
    */
 
   java.lang.String getParametersOrThrow(
       java.lang.String key);
 
   /**
-   * <code>optional string catName = 9;</code>
-   */
-  boolean hasCatName();
-  /**
-   * <code>optional string catName = 9;</code>
-   */
-  java.lang.String getCatName();
-  /**
-   * <code>optional string catName = 9;</code>
-   */
-  com.google.protobuf.ByteString
-      getCatNameBytes();
-
-  /**
-   * <code>optional int64 writeId = 10;</code>
-   */
-  boolean hasWriteId();
-  /**
-   * <code>optional int64 writeId = 10;</code>
-   */
-  long getWriteId();
-
-  /**
-   * <code>optional bool isStatsCompliant = 11;</code>
-   */
-  boolean hasIsStatsCompliant();
-  /**
-   * <code>optional bool isStatsCompliant = 11;</code>
-   */
-  boolean getIsStatsCompliant();
-
-  /**
    * <pre>
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 12;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
    */
   boolean hasColStats();
   /**
@@ -192,7 +142,7 @@ public interface PartitionInfoOrBuilder extends
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 12;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
    */
   alluxio.grpc.catalog.ColumnStatisticsInfo getColStats();
   /**
@@ -200,7 +150,7 @@ public interface PartitionInfoOrBuilder extends
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 12;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
    */
   alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getColStatsOrBuilder();
 
@@ -209,7 +159,7 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 13;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
    */
   int getFileMetadataCount();
   /**
@@ -217,7 +167,7 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 13;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
    */
   boolean containsFileMetadata(
       java.lang.String key);
@@ -232,7 +182,7 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 13;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
    */
   java.util.Map<java.lang.String, alluxio.grpc.catalog.ParquetMetadata>
   getFileMetadataMap();
@@ -241,7 +191,7 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 13;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
    */
 
   alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrDefault(
@@ -252,32 +202,32 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 13;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
    */
 
   alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrThrow(
       java.lang.String key);
 
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
    */
   java.util.List<alluxio.grpc.catalog.FieldSchema> 
       getColsList();
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
    */
   alluxio.grpc.catalog.FieldSchema getCols(int index);
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
    */
   int getColsCount();
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
    */
   java.util.List<? extends alluxio.grpc.catalog.FieldSchemaOrBuilder> 
       getColsOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 14;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
    */
   alluxio.grpc.catalog.FieldSchemaOrBuilder getColsOrBuilder(
       int index);

@@ -29,6 +29,7 @@ import alluxio.grpc.catalog.Storage;
 import alluxio.grpc.catalog.StorageFormat;
 import alluxio.grpc.catalog.Type;
 
+import alluxio.table.under.hive.util.PathTranslator;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -40,6 +41,7 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.hadoop.metadata.FileMetaData;
 import org.apache.parquet.schema.PrimitiveType;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -307,7 +309,8 @@ public class HiveUtils {
    * @param sd storage descriptor
    * @return storage proto object
    */
-  public static Storage toProto(StorageDescriptor sd) {
+  public static Storage toProto(StorageDescriptor sd, PathTranslator translator)
+      throws IOException {
     String serDe = sd == null || sd.getSerdeInfo() == null ? ""
         : sd.getSerdeInfo().getSerializationLib();
     StorageFormat format = StorageFormat.newBuilder()
@@ -322,7 +325,7 @@ public class HiveUtils {
                 : SortingColumn.SortingOrder.DESCENDING).build())
         .collect(Collectors.toList());
     return storageBuilder.setStorageFormat(format)
-        .setLocation(sd.getLocation())
+        .setLocation(translator.toAlluxioPath(sd.getLocation()))
         .setBucketProperty(HiveBucketProperty.newBuilder().setBucketCount(sd.getNumBuckets())
             .addAllBucketedBy(sd.getBucketCols()).addAllSortedBy(sortingColumns).build())
         .setSkewed(sd.getSkewedInfo() != null && (sd.getSkewedInfo().getSkewedColNames()) != null

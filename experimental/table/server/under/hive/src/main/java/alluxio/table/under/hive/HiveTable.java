@@ -18,14 +18,10 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.catalog.FieldSchema;
 import alluxio.grpc.catalog.FileStatistics;
-import alluxio.grpc.catalog.HiveBucketProperty;
 import alluxio.grpc.catalog.HiveTableInfo;
 import alluxio.grpc.catalog.ParquetMetadata;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.Schema;
-import alluxio.grpc.catalog.SortingColumn;
-import alluxio.grpc.catalog.Storage;
-import alluxio.grpc.catalog.StorageFormat;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.TableView;
 import alluxio.table.common.udb.UdbTable;
@@ -46,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Hive table implementation.
@@ -92,7 +87,8 @@ public class HiveTable implements UdbTable {
     if (partitions != null) {
       for (Partition part : partitions) {
         PartitionInfo.Builder pib = PartitionInfo.newBuilder().setTableName(mName)
-            .setDbName(table.getDbName()).setSd(mPathTranslator.toAlluxioPath(part.getSd().getLocation()))
+            .addAllCols(HiveUtils.toProto(part.getSd().getCols()))
+            .setDbName(table.getDbName()).setStorage(HiveUtils.toProto(part.getSd(), mPathTranslator))
             .putAllFileMetadata(getPartitionMetadata(
                 mPathTranslator.toAlluxioPath(part.getSd().getLocation()),
                 mHiveDatabase.getUdbContext().getFileSystem()));
@@ -171,7 +167,7 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
-  public UdbTableInfo toProto() {
+  public UdbTableInfo toProto() throws IOException {
     HiveTableInfo.Builder builder = HiveTableInfo.newBuilder();
     builder.setDatabaseName(mTable.getDbName()).setTableName(mTable.getTableName())
         .setOwner(mTable.getOwner()).setTableType(mTable.getTableType());
@@ -179,7 +175,8 @@ public class HiveTable implements UdbTable {
     StorageDescriptor sd = mTable.getSd();
     builder.addAllDataColumns(HiveUtils.toProto(mTable.getSd().getCols()))
         .addAllPartitionColumns(HiveUtils.toProto(mTable.getPartitionKeys()))
-        .setStorage(HiveUtils.toProto(sd)).putAllParameters(mTable.getParameters());
+        .setStorage(HiveUtils.toProto(sd, mPathTranslator))
+        .putAllParameters(mTable.getParameters());
     if (mTable.getViewOriginalText() != null) {
       builder.setViewOriginalText(mTable.getViewOriginalText());
     }

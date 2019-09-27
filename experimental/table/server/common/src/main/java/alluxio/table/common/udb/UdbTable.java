@@ -17,6 +17,7 @@ import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.TableView;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -59,5 +60,5 @@ public interface UdbTable {
   /**
    * @return returns a proto representing the table
    */
-  UdbTableInfo toProto();
+  UdbTableInfo toProto() throws IOException;
 }

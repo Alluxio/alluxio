@@ -218,16 +218,11 @@ message PartitionInfo {
   repeated string values = 1; // string value is converted to appropriate partition key type
   optional string dbName = 2;
   optional string tableName = 3;
-  optional int32 createTime = 4;
-  optional int32 lastAccessTime = 5;
-  optional Storage storage = 6; // storage descriptor
-  map<string, string> parameters = 7;
-  optional string catName = 9;
-  optional int64 writeId = 10;
-  optional bool isStatsCompliant = 11;
-  optional ColumnStatisticsInfo col_stats = 12; // column statistics for partition
-  map<string, ParquetMetadata> file_metadata = 13; // a map between file names and its parquet metadata info
-  repeated FieldSchema cols = 14;
+  optional Storage storage = 4; // storage descriptor
+  map<string, string> parameters = 5;
+  optional ColumnStatisticsInfo col_stats = 6; // column statistics for partition
+  map<string, ParquetMetadata> file_metadata = 7; // a map between file names and its parquet metadata info
+  repeated FieldSchema cols = 8;
 }
 
 message ColumnStatisticsInfo {
