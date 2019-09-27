@@ -17,6 +17,7 @@ import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.TableViewInfo;
 import alluxio.table.common.TableView;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -35,14 +36,14 @@ public class HiveTableView implements TableView {
    * @param baseLocation the base location
    * @param statistics the table statistics
    * @param partitionCols partition columns
-   * @param partitions partitions
    */
   public HiveTableView(String baseLocation, Map<String, FileStatistics> statistics,
-      List<FieldSchema> partitionCols, List<PartitionInfo> partitions) {
+      List<FieldSchema> partitionCols) {
     mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionCols = partitionCols;
-    mPartitions = partitions;
+    // TODO(gpang): refactor out
+    mPartitions = Collections.emptyList();
   }
 
   @Override

@@ -16,6 +16,8 @@ import alluxio.table.common.udb.UdbTable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The table implementation which manages all the versions of the table.
@@ -25,12 +27,16 @@ public class Table {
   private final Database mDatabase;
   private final UdbTable mUdbTable;
   private final ArrayList<TableVersion> mVersions;
+  // TODO(gpang): this should be indexable by partition spec
+  private final ArrayList<Partition> mPartitions;
 
-  private Table(Database database, UdbTable udbTable) {
+  private Table(Database database, UdbTable udbTable, List<Partition> partitions) {
     mDatabase = database;
     mUdbTable = udbTable;
     mName = mUdbTable.getName();
     mVersions = new ArrayList<>(2);
+    mPartitions = new ArrayList<>(2);
+    mPartitions.addAll(partitions);
   }
 
   /**
@@ -38,8 +44,10 @@ public class Table {
    * @param udbTable the udb table
    * @return a new instance
    */
-  public static Table create(Database database, UdbTable udbTable) {
-    Table table = new Table(database, udbTable);
+  public static Table create(Database database, UdbTable udbTable) throws IOException {
+    List<Partition> partitions =
+        udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
+    Table table = new Table(database, udbTable, partitions);
 
     // add initial version of table
     TableVersion tableVersion = new TableVersion(table, udbTable.getSchema());
@@ -70,6 +78,13 @@ public class Table {
    */
   public String getName() {
     return mName;
+  }
+
+  /**
+   * @return the list of partitions
+   */
+  public List<Partition> getPartitions() {
+    return mPartitions;
   }
 
   /**

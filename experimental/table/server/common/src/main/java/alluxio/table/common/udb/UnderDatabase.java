@@ -28,6 +28,11 @@ public interface UnderDatabase {
   String getType();
 
   /**
+   * @return the database name
+   */
+  String getName();
+
+  /**
    * @return a list of table names
    */
   List<String> getTableNames() throws IOException;

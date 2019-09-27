@@ -17,6 +17,7 @@ import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Database;
 import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.TableInfo;
 import alluxio.master.MasterClientContext;
@@ -132,8 +133,8 @@ public interface CatalogMasterClient extends Client {
    * @return list of partitions
    * @throws AlluxioStatusException
    */
-  List<PartitionInfo> readTable(String databaseName, String tableName,
-      Constraint constraint) throws AlluxioStatusException;
+  List<Partition> readTable(String databaseName, String tableName, Constraint constraint)
+      throws AlluxioStatusException;
 
   /**
    * Get table column statistics with given database name,

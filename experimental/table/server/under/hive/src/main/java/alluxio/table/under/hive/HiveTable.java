@@ -24,16 +24,19 @@ import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.TableView;
+import alluxio.table.common.UdbPartition;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.under.hive.parquet.AlluxioInputFile;
 import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.ConfigurationUtils;
 
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.io.InputFile;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,19 +52,20 @@ import java.util.Map;
 public class HiveTable implements UdbTable {
   private static final Logger LOG = LoggerFactory.getLogger(HiveTable.class);
 
+  private final HiveMetaStoreClient mHive;
   private final HiveDatabase mHiveDatabase;
   private final PathTranslator mPathTranslator;
   private final String mName;
   private final Schema mSchema;
   private final String mBaseLocation;
   private final Map<String, FileStatistics> mStatistics;
-  private final List<PartitionInfo> mPartitionInfo;
   private final List<FieldSchema> mPartitionKeys;
   private final Table mTable;
 
   /**
    * Creates a new instance.
    *
+   * @param hive the hive client
    * @param hiveDatabase the hive db
    * @param pathTranslator the path translator
    * @param name the table name
@@ -72,10 +76,12 @@ public class HiveTable implements UdbTable {
    * @param partitions partition list
    * @param table hive table object
    */
-  public HiveTable(HiveDatabase hiveDatabase, PathTranslator pathTranslator, String name,
-      Schema schema, String baseLocation, Map<String, FileStatistics> statistics,
-      List<FieldSchema> cols, List<Partition> partitions, Table table) throws IOException {
+  public HiveTable(HiveMetaStoreClient hive, HiveDatabase hiveDatabase,
+      PathTranslator pathTranslator, String name, Schema schema, String baseLocation,
+      Map<String, FileStatistics> statistics, List<FieldSchema> cols, List<Partition> partitions,
+      Table table) throws IOException {
     // TODO(gpang): don't throw exception in constructor
+    mHive = hive;
     mHiveDatabase = hiveDatabase;
     mPathTranslator = pathTranslator;
     mName = name;
@@ -83,22 +89,6 @@ public class HiveTable implements UdbTable {
     mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionKeys = cols;
-    mPartitionInfo = new ArrayList<>();
-    if (partitions != null) {
-      for (Partition part : partitions) {
-        PartitionInfo.Builder pib = PartitionInfo.newBuilder().setTableName(mName)
-            .addAllCols(HiveUtils.toProto(part.getSd().getCols()))
-            .setDbName(table.getDbName()).setStorage(HiveUtils.toProto(part.getSd(),
-                mPathTranslator))
-            .putAllFileMetadata(getPartitionMetadata(
-                mPathTranslator.toAlluxioPath(part.getSd().getLocation()),
-                mHiveDatabase.getUdbContext().getFileSystem()));
-        if (part.getValues() != null) {
-          pib.addAllValues(part.getValues());
-        }
-        mPartitionInfo.add(pib.build());
-      }
-    }
     mTable = table;
   }
 
@@ -149,7 +139,7 @@ public class HiveTable implements UdbTable {
 
   @Override
   public TableView getView() {
-    return new HiveTableView(mBaseLocation, mStatistics, mPartitionKeys, getPartitions());
+    return new HiveTableView(mBaseLocation, mStatistics, mPartitionKeys);
   }
 
   @Override
@@ -163,8 +153,28 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
-  public List<PartitionInfo> getPartitions() {
-    return mPartitionInfo;
+  public List<UdbPartition> getPartitions() throws IOException {
+    List<UdbPartition> udbPartitions = new ArrayList<>();
+    try {
+      List<Partition> partitions = mHive.listPartitions(mHiveDatabase.getName(), mName, (short) -1);
+      for (Partition partition : partitions) {
+        PartitionInfo.Builder pib = PartitionInfo.newBuilder()
+            .setDbName(partition.getDbName()).setTableName(mName)
+            .addAllCols(HiveUtils.toProto(partition.getSd().getCols()))
+            .setStorage(HiveUtils.toProto(partition.getSd(), mPathTranslator))
+            .putAllFileMetadata(getPartitionMetadata(
+                mPathTranslator.toAlluxioPath(partition.getSd().getLocation()),
+                mHiveDatabase.getUdbContext().getFileSystem()));
+        if (partition.getValues() != null) {
+          pib.addAllValues(partition.getValues());
+        }
+        udbPartitions.add(new HivePartition(new HiveLayout(pib.build())));
+      }
+      return udbPartitions;
+    } catch (TException e) {
+      throw new IOException(
+          "failed to list hive partitions for table: " + mHiveDatabase.getName() + "." + mName, e);
+    }
   }
 
   @Override

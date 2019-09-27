@@ -126,6 +126,11 @@ public class HiveDatabase implements UnderDatabase {
   }
 
   @Override
+  public String getName() {
+    return mDbName;
+  }
+
+  @Override
   public List<String> getTableNames() throws IOException {
     try {
       return mHive.getAllTables(mDbName);
@@ -217,7 +222,7 @@ public class HiveDatabase implements UnderDatabase {
       // Potentially expensive call
       List<Partition> partitions = mHive.listPartitions(mDbName, table.getTableName(), (short) -1);
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
-      return new HiveTable(this, pathTranslator, tableName,
+      return new HiveTable(mHive, this, pathTranslator, tableName,
           HiveUtils.toProtoSchema(table.getSd().getCols()), tableUri.getPath(),
           Collections.singletonMap("unpartitioned", builder.build()),
           HiveUtils.toProto(table.getPartitionKeys()), partitions, table);

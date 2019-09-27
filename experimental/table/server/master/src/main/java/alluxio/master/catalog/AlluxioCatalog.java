@@ -15,7 +15,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.catalog.AllOrNoneSet;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Domain;
 import alluxio.grpc.catalog.FieldSchema;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -166,36 +164,14 @@ public class AlluxioCatalog {
    * @param constraint the column contraint
    * @return the partition info for the specified table
    */
-  public List<PartitionInfo> readTable(String dbName, String tableName,
+  public List<alluxio.grpc.catalog.Partition> readTable(String dbName, String tableName,
       Constraint constraint) throws IOException {
     Table table = getTable(dbName, tableName);
-    List<FieldSchema> cols = table.get().getPartitionKeys();
+    List<Partition> partitions = table.getPartitions();
 
-    List<PartitionInfo> parts = table.get().getPartitionInfo();
+    // TODO(david): implement partition pruning
 
-    Map<FieldSchema, Domain> partitionConstraints = new LinkedHashMap<>();
-    //maintain insertion order
-
-    for (FieldSchema col : cols) {
-      Domain domain = constraint.getColumnConstraintsMap().get(col.getName());
-      if (domain != null) {
-        partitionConstraints.put(col, domain);
-      } else {
-        partitionConstraints.put(col,
-            Domain.newBuilder().setAllOrNone(
-                AllOrNoneSet.newBuilder().setAll(true).build()).build());
-      }
-    }
-
-    List<PartitionInfo> returnList = new ArrayList<>();
-
-    for (PartitionInfo partInfo : parts) {
-      if (checkDomain(partInfo, partitionConstraints)) {
-        returnList.add(partInfo);
-      }
-    }
-
-    return returnList;
+    return partitions.stream().map(Partition::toProto).collect(Collectors.toList());
   }
 
   private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {

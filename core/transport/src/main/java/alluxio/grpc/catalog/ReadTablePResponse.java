@@ -52,11 +52,11 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              partitions_ = new java.util.ArrayList<alluxio.grpc.catalog.PartitionInfo>();
+              partitions_ = new java.util.ArrayList<alluxio.grpc.catalog.Partition>();
               mutable_bitField0_ |= 0x00000001;
             }
             partitions_.add(
-                input.readMessage(alluxio.grpc.catalog.PartitionInfo.PARSER, extensionRegistry));
+                input.readMessage(alluxio.grpc.catalog.Partition.PARSER, extensionRegistry));
             break;
           }
         }
@@ -87,36 +87,36 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int PARTITIONS_FIELD_NUMBER = 1;
-  private java.util.List<alluxio.grpc.catalog.PartitionInfo> partitions_;
+  private java.util.List<alluxio.grpc.catalog.Partition> partitions_;
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
-  public java.util.List<alluxio.grpc.catalog.PartitionInfo> getPartitionsList() {
+  public java.util.List<alluxio.grpc.catalog.Partition> getPartitionsList() {
     return partitions_;
   }
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
-  public java.util.List<? extends alluxio.grpc.catalog.PartitionInfoOrBuilder> 
+  public java.util.List<? extends alluxio.grpc.catalog.PartitionOrBuilder> 
       getPartitionsOrBuilderList() {
     return partitions_;
   }
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
   public int getPartitionsCount() {
     return partitions_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
-  public alluxio.grpc.catalog.PartitionInfo getPartitions(int index) {
+  public alluxio.grpc.catalog.Partition getPartitions(int index) {
     return partitions_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+   * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
    */
-  public alluxio.grpc.catalog.PartitionInfoOrBuilder getPartitionsOrBuilder(
+  public alluxio.grpc.catalog.PartitionOrBuilder getPartitionsOrBuilder(
       int index) {
     return partitions_.get(index);
   }
@@ -127,12 +127,6 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
-    for (int i = 0; i < getPartitionsCount(); i++) {
-      if (!getPartitions(i).isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -428,11 +422,6 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
-      for (int i = 0; i < getPartitionsCount(); i++) {
-        if (!getPartitions(i).isInitialized()) {
-          return false;
-        }
-      }
       return true;
     }
 
@@ -455,22 +444,22 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.util.List<alluxio.grpc.catalog.PartitionInfo> partitions_ =
+    private java.util.List<alluxio.grpc.catalog.Partition> partitions_ =
       java.util.Collections.emptyList();
     private void ensurePartitionsIsMutable() {
       if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        partitions_ = new java.util.ArrayList<alluxio.grpc.catalog.PartitionInfo>(partitions_);
+        partitions_ = new java.util.ArrayList<alluxio.grpc.catalog.Partition>(partitions_);
         bitField0_ |= 0x00000001;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.catalog.PartitionInfo, alluxio.grpc.catalog.PartitionInfo.Builder, alluxio.grpc.catalog.PartitionInfoOrBuilder> partitionsBuilder_;
+        alluxio.grpc.catalog.Partition, alluxio.grpc.catalog.Partition.Builder, alluxio.grpc.catalog.PartitionOrBuilder> partitionsBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public java.util.List<alluxio.grpc.catalog.PartitionInfo> getPartitionsList() {
+    public java.util.List<alluxio.grpc.catalog.Partition> getPartitionsList() {
       if (partitionsBuilder_ == null) {
         return java.util.Collections.unmodifiableList(partitions_);
       } else {
@@ -478,7 +467,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public int getPartitionsCount() {
       if (partitionsBuilder_ == null) {
@@ -488,9 +477,9 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public alluxio.grpc.catalog.PartitionInfo getPartitions(int index) {
+    public alluxio.grpc.catalog.Partition getPartitions(int index) {
       if (partitionsBuilder_ == null) {
         return partitions_.get(index);
       } else {
@@ -498,10 +487,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public Builder setPartitions(
-        int index, alluxio.grpc.catalog.PartitionInfo value) {
+        int index, alluxio.grpc.catalog.Partition value) {
       if (partitionsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -515,10 +504,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public Builder setPartitions(
-        int index, alluxio.grpc.catalog.PartitionInfo.Builder builderForValue) {
+        int index, alluxio.grpc.catalog.Partition.Builder builderForValue) {
       if (partitionsBuilder_ == null) {
         ensurePartitionsIsMutable();
         partitions_.set(index, builderForValue.build());
@@ -529,9 +518,9 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public Builder addPartitions(alluxio.grpc.catalog.PartitionInfo value) {
+    public Builder addPartitions(alluxio.grpc.catalog.Partition value) {
       if (partitionsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -545,10 +534,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public Builder addPartitions(
-        int index, alluxio.grpc.catalog.PartitionInfo value) {
+        int index, alluxio.grpc.catalog.Partition value) {
       if (partitionsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -562,10 +551,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public Builder addPartitions(
-        alluxio.grpc.catalog.PartitionInfo.Builder builderForValue) {
+        alluxio.grpc.catalog.Partition.Builder builderForValue) {
       if (partitionsBuilder_ == null) {
         ensurePartitionsIsMutable();
         partitions_.add(builderForValue.build());
@@ -576,10 +565,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public Builder addPartitions(
-        int index, alluxio.grpc.catalog.PartitionInfo.Builder builderForValue) {
+        int index, alluxio.grpc.catalog.Partition.Builder builderForValue) {
       if (partitionsBuilder_ == null) {
         ensurePartitionsIsMutable();
         partitions_.add(index, builderForValue.build());
@@ -590,10 +579,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public Builder addAllPartitions(
-        java.lang.Iterable<? extends alluxio.grpc.catalog.PartitionInfo> values) {
+        java.lang.Iterable<? extends alluxio.grpc.catalog.Partition> values) {
       if (partitionsBuilder_ == null) {
         ensurePartitionsIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -605,7 +594,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public Builder clearPartitions() {
       if (partitionsBuilder_ == null) {
@@ -618,7 +607,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
     public Builder removePartitions(int index) {
       if (partitionsBuilder_ == null) {
@@ -631,16 +620,16 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public alluxio.grpc.catalog.PartitionInfo.Builder getPartitionsBuilder(
+    public alluxio.grpc.catalog.Partition.Builder getPartitionsBuilder(
         int index) {
       return getPartitionsFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public alluxio.grpc.catalog.PartitionInfoOrBuilder getPartitionsOrBuilder(
+    public alluxio.grpc.catalog.PartitionOrBuilder getPartitionsOrBuilder(
         int index) {
       if (partitionsBuilder_ == null) {
         return partitions_.get(index);  } else {
@@ -648,9 +637,9 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public java.util.List<? extends alluxio.grpc.catalog.PartitionInfoOrBuilder> 
+    public java.util.List<? extends alluxio.grpc.catalog.PartitionOrBuilder> 
          getPartitionsOrBuilderList() {
       if (partitionsBuilder_ != null) {
         return partitionsBuilder_.getMessageOrBuilderList();
@@ -659,33 +648,33 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public alluxio.grpc.catalog.PartitionInfo.Builder addPartitionsBuilder() {
+    public alluxio.grpc.catalog.Partition.Builder addPartitionsBuilder() {
       return getPartitionsFieldBuilder().addBuilder(
-          alluxio.grpc.catalog.PartitionInfo.getDefaultInstance());
+          alluxio.grpc.catalog.Partition.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public alluxio.grpc.catalog.PartitionInfo.Builder addPartitionsBuilder(
+    public alluxio.grpc.catalog.Partition.Builder addPartitionsBuilder(
         int index) {
       return getPartitionsFieldBuilder().addBuilder(
-          index, alluxio.grpc.catalog.PartitionInfo.getDefaultInstance());
+          index, alluxio.grpc.catalog.Partition.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.PartitionInfo partitions = 1;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 1;</code>
      */
-    public java.util.List<alluxio.grpc.catalog.PartitionInfo.Builder> 
+    public java.util.List<alluxio.grpc.catalog.Partition.Builder> 
          getPartitionsBuilderList() {
       return getPartitionsFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.catalog.PartitionInfo, alluxio.grpc.catalog.PartitionInfo.Builder, alluxio.grpc.catalog.PartitionInfoOrBuilder> 
+        alluxio.grpc.catalog.Partition, alluxio.grpc.catalog.Partition.Builder, alluxio.grpc.catalog.PartitionOrBuilder> 
         getPartitionsFieldBuilder() {
       if (partitionsBuilder_ == null) {
         partitionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            alluxio.grpc.catalog.PartitionInfo, alluxio.grpc.catalog.PartitionInfo.Builder, alluxio.grpc.catalog.PartitionInfoOrBuilder>(
+            alluxio.grpc.catalog.Partition, alluxio.grpc.catalog.Partition.Builder, alluxio.grpc.catalog.PartitionOrBuilder>(
                 partitions_,
                 ((bitField0_ & 0x00000001) == 0x00000001),
                 getParentForChildren(),

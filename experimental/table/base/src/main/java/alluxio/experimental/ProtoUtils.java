@@ -13,15 +13,20 @@ package alluxio.experimental;
 
 import alluxio.grpc.catalog.FieldSchema;
 import alluxio.grpc.catalog.FieldTypeId;
+import alluxio.grpc.catalog.Layout;
+import alluxio.grpc.catalog.Partition;
+import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.Schema;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.iceberg.types.Type;
 import org.apache.iceberg.types.Types;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -142,5 +147,39 @@ public final class ProtoUtils {
   public static org.apache.iceberg.Schema fromProto(Schema schema) {
     return new org.apache.iceberg.Schema(schema.getColsList().stream()
         .map(ProtoUtils::fromProto).collect(Collectors.toList()));
+  }
+
+  /**
+   * @param partition the partition proto
+   * @return true if the partition has the hive layout, false otherwise
+   */
+  public static boolean isHiveLayout(Partition partition) {
+    if (!partition.hasLayout()) {
+      return false;
+    }
+    Layout layout = partition.getLayout();
+    // TODO(gpang): use a layout registry
+    return Objects.equals(layout.getLayoutType(), "hive");
+  }
+
+  /**
+   * @param partition the partition proto
+   * @return the hive-specific partition proto
+   */
+  public static PartitionInfo extractHiveLayout(Partition partition)
+      throws InvalidProtocolBufferException {
+    if (!isHiveLayout(partition)) {
+      if (partition.hasLayout()) {
+        throw new IllegalStateException(
+            "Cannot parse hive-layout. layoutType: " + partition.getLayout().getLayoutType());
+      } else {
+        throw new IllegalStateException("Cannot parse hive-layout from missing layout");
+      }
+    }
+    Layout layout = partition.getLayout();
+    if (!layout.hasLayoutData()) {
+      throw new IllegalStateException("Cannot parse hive-layout from empty layout data");
+    }
+    return PartitionInfo.parseFrom(layout.getLayoutData());
   }
 }
