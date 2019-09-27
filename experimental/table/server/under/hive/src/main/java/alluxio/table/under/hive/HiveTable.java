@@ -59,7 +59,6 @@ public class HiveTable implements UdbTable {
   private final Schema mSchema;
   private final String mBaseLocation;
   private final Map<String, FileStatistics> mStatistics;
-  private final List<PartitionInfo> mPartitionInfo;
   private final List<FieldSchema> mPartitionKeys;
   private final Table mTable;
 
@@ -90,22 +89,6 @@ public class HiveTable implements UdbTable {
     mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionKeys = cols;
-    mPartitionInfo = new ArrayList<>();
-//    if (partitions != null) {
-//      for (Partition part : partitions) {
-//        PartitionInfo.Builder pib = PartitionInfo.newBuilder().setTableName(mName)
-//            .addAllCols(HiveUtils.toProto(part.getSd().getCols()))
-//            .setDbName(table.getDbName()).setStorage(HiveUtils.toProto(part.getSd(),
-//                mPathTranslator))
-//            .putAllFileMetadata(getPartitionMetadata(
-//                mPathTranslator.toAlluxioPath(part.getSd().getLocation()),
-//                mHiveDatabase.getUdbContext().getFileSystem()));
-//        if (part.getValues() != null) {
-//          pib.addAllValues(part.getValues());
-//        }
-//        mPartitionInfo.add(pib.build());
-//      }
-//    }
     mTable = table;
   }
 
@@ -156,7 +139,7 @@ public class HiveTable implements UdbTable {
 
   @Override
   public TableView getView() {
-    return new HiveTableView(mBaseLocation, mStatistics, mPartitionKeys, getPartitions());
+    return new HiveTableView(mBaseLocation, mStatistics, mPartitionKeys);
   }
 
   @Override
@@ -170,12 +153,7 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
-  public List<PartitionInfo> getPartitions() {
-    return mPartitionInfo;
-  }
-
-  @Override
-  public List<UdbPartition> getPartitions2() throws IOException {
+  public List<UdbPartition> getPartitions() throws IOException {
     List<UdbPartition> udbPartitions = new ArrayList<>();
     try {
       List<Partition> partitions = mHive.listPartitions(mHiveDatabase.getName(), mName, (short) -1);

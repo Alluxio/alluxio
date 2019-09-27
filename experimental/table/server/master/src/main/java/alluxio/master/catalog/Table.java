@@ -46,7 +46,7 @@ public class Table {
    */
   public static Table create(Database database, UdbTable udbTable) throws IOException {
     List<Partition> partitions =
-        udbTable.getPartitions2().stream().map(Partition::new).collect(Collectors.toList());
+        udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
     Table table = new Table(database, udbTable, partitions);
 
     // add initial version of table
