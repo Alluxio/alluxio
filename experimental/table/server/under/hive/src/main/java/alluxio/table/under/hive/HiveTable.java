@@ -88,7 +88,8 @@ public class HiveTable implements UdbTable {
       for (Partition part : partitions) {
         PartitionInfo.Builder pib = PartitionInfo.newBuilder().setTableName(mName)
             .addAllCols(HiveUtils.toProto(part.getSd().getCols()))
-            .setDbName(table.getDbName()).setStorage(HiveUtils.toProto(part.getSd(), mPathTranslator))
+            .setDbName(table.getDbName()).setStorage(HiveUtils.toProto(part.getSd(),
+                mPathTranslator))
             .putAllFileMetadata(getPartitionMetadata(
                 mPathTranslator.toAlluxioPath(part.getSd().getLocation()),
                 mHiveDatabase.getUdbContext().getFileSystem()));

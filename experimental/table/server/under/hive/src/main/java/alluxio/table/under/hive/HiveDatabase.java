@@ -215,7 +215,7 @@ public class HiveDatabase implements UnderDatabase {
         }
       }
       // Potentially expensive call
-      List<Partition> partitions = mHive.listPartitions(mDbName, table.getTableName(), (short)-1);
+      List<Partition> partitions = mHive.listPartitions(mDbName, table.getTableName(), (short) -1);
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
       return new HiveTable(this, pathTranslator, tableName,
           HiveUtils.toProtoSchema(table.getSd().getCols()), tableUri.getPath(),
