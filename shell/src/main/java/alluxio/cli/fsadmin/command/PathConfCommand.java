@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.Command;
 import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.cli.fsadmin.pathconf.ListCommand;
@@ -27,6 +28,7 @@ import java.util.function.BiFunction;
 /**
  * Manages path level configuration.
  */
+@PublicApi
 public final class PathConfCommand extends AbstractFsAdminCommand {
   private static final Map<String, BiFunction<Context, AlluxioConfiguration, ? extends Command>>
       SUB_COMMANDS = new HashMap<>();

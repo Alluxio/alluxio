@@ -164,6 +164,7 @@ exports[`FileView React component Matches snapshot 1`] = `
                 className="col-3"
                 id="viewDataFileOffset"
                 onChange={[Function]}
+                onFocus={[Function]}
                 onKeyUp={[Function]}
                 placeholder="Enter an offset"
                 type="number"
@@ -172,6 +173,7 @@ exports[`FileView React component Matches snapshot 1`] = `
                   className="col-3 form-control"
                   id="viewDataFileOffset"
                   onChange={[Function]}
+                  onFocus={[Function]}
                   onKeyUp={[Function]}
                   placeholder="Enter an offset"
                   type="number"
@@ -360,19 +362,19 @@ exports[`FileView React component Matches snapshot 1`] = `
               <Button
                 color="secondary"
                 tag={[Function]}
-                to="?path=undefined"
+                to="?path="
               >
                 <Link
                   aria-label={null}
                   className="btn btn-secondary"
                   onClick={[Function]}
                   replace={false}
-                  to="?path=undefined"
+                  to="?path="
                 >
                   <a
                     aria-label={null}
                     className="btn btn-secondary"
-                    href="/someLocation?path=undefined"
+                    href="/someLocation?path="
                     onClick={[Function]}
                   >
                     Go
@@ -454,6 +456,7 @@ exports[`FileView Shallow component Matches snapshot 1`] = `
         className="col-3"
         id="viewDataFileOffset"
         onChange={[Function]}
+        onFocus={[Function]}
         onKeyUp={[Function]}
         placeholder="Enter an offset"
         type="number"
@@ -572,7 +575,7 @@ exports[`FileView Shallow component Matches snapshot 1`] = `
       <Button
         color="secondary"
         tag={[Function]}
-        to="?path=undefined"
+        to="?path="
       >
         Go
       </Button>

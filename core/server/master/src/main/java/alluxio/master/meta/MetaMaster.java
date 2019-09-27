@@ -45,6 +45,11 @@ public interface MetaMaster extends Master {
   BackupResponse backup(BackupPOptions options) throws IOException;
 
   /**
+   * @return the cluster ID
+   */
+  String getClusterID();
+
+  /**
    * @return the server-side configuration checker report
    */
   ConfigCheckReport getConfigCheckReport();
@@ -83,6 +88,11 @@ public interface MetaMaster extends Master {
    * @param path the path
    */
   void removePathConfiguration(String path) throws UnavailableException;
+
+  /**
+   * @return true if newer version is available, false otherwise
+   */
+  boolean getNewerVersionAvailable();
 
   /**
    * @return the addresses of live masters

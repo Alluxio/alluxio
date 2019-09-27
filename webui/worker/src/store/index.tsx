@@ -16,19 +16,19 @@ import {all, fork} from 'redux-saga/effects';
 
 import {initialRefreshState, refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
 import {IRefreshState} from '@alluxio/common-ui/src/store/refresh/types';
+import {initialLogsState, logsReducer} from '@alluxio/common-ui/src/store/logs/reducer';
+import {logsSaga} from '@alluxio/common-ui/src/store/logs/sagas';
+import {ILogsState} from '@alluxio/common-ui/src/store/logs/types';
 import {blockInfoReducer, initialBlockInfoState} from './blockInfo/reducer';
 import {blockInfoSaga} from './blockInfo/sagas';
 import {IBlockInfoState} from './blockInfo/types';
-import {initialLogsState, logsReducer} from './logs/reducer';
-import {logsSaga} from './logs/sagas';
-import {ILogsState} from './logs/types';
 import {initialMetricsState, metricsReducer} from './metrics/reducer';
 import {metricsSaga} from './metrics/sagas';
 import {IMetricsState} from './metrics/types';
 import {initialOverviewState, overviewReducer} from './overview/reducer';
 import {overviewSaga} from './overview/sagas';
 import {IOverviewState} from './overview/types';
-import {IInit, IInitState} from './init/types';
+import {IInitState} from './init/types';
 import {initialInitState, initReducer} from './init/reducer';
 import {initSaga} from './init/sagas';
 

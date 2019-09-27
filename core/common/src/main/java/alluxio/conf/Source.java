@@ -11,11 +11,14 @@
 
 package alluxio.conf;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 
 /**
  * The source of a configuration property.
  */
+@PublicApi
 public class Source implements Comparable<Source> {
   public static final Source UNKNOWN = new Source(Type.UNKNOWN);
   public static final Source DEFAULT = new Source(Type.DEFAULT);

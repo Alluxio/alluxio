@@ -11,11 +11,14 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPOptions.Builder;
+import alluxio.util.CommonUtils;
 import alluxio.wire.BackupResponse;
 
 import org.apache.commons.cli.CommandLine;
@@ -27,6 +30,7 @@ import java.io.IOException;
 /**
  * Command for backing up Alluxio master metadata.
  */
+@PublicApi
 public class BackupCommand extends AbstractFsAdminCommand {
 
   private static final Option LOCAL_OPTION =
@@ -63,12 +67,21 @@ public class BackupCommand extends AbstractFsAdminCommand {
       opts.setTargetDirectory(args[0]);
     }
     opts.setLocalFileSystem(cl.hasOption(LOCAL_OPTION.getLongOpt()));
-    BackupResponse resp = mMetaClient.backup(opts.build());
+    // Create progress thread for showing progress while backup is in progress.
+    Thread progressThread = CommonUtils.createProgressThread(5 * Constants.SECOND_MS, System.out);
+    progressThread.start();
+    BackupResponse resp;
+    try {
+      resp = mMetaClient.backup(opts.build());
+    } finally {
+      progressThread.interrupt();
+    }
     if (opts.getLocalFileSystem()) {
-      mPrintStream.printf("Successfully backed up journal to %s on master %s%n",
-          resp.getBackupUri(), resp.getHostname());
+      mPrintStream.printf("Successfully backed up journal to %s on master %s with %d entries%n",
+          resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());
     } else {
-      mPrintStream.printf("Successfully backed up journal to %s%n", resp.getBackupUri());
+      mPrintStream.printf("Successfully backed up journal to %s with %d entries%n",
+          resp.getBackupUri(), resp.getEntryCount());
     }
     return 0;
   }

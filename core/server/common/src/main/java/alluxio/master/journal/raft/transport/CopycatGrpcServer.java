@@ -14,18 +14,22 @@ package alluxio.master.journal.raft.transport;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.security.user.UserState;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Connection;
 import io.atomix.catalyst.transport.Server;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -50,8 +54,6 @@ public class CopycatGrpcServer implements Server {
 
   /** Underlying gRPC server. */
   private GrpcServer mGrpcServer;
-  /** Bind address for underlying server. */
-  private Address mActiveAddress;
   /** Listen future. */
   private CompletableFuture<Void> mListenFuture;
 
@@ -95,16 +97,19 @@ public class CopycatGrpcServer implements Server {
       };
 
       // Create gRPC server.
-      mGrpcServer =
-          GrpcServerBuilder.forAddress(address.host(), address.socketAddress(), mConf, mUserState)
-              .addService(new GrpcService(
-                  new CopycatMessageServiceClientHandler(forkListener, threadContext, mExecutor,
-                      mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))))
-              .build();
+      mGrpcServer = GrpcServerBuilder
+          .forAddress(GrpcServerAddress.create(address.host(),
+              new InetSocketAddress(address.host(), address.port())), mConf, mUserState)
+          .maxInboundMessageSize((int) mConf
+              .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
+          .addService(new GrpcService(ServerInterceptors.intercept(
+              new CopycatMessageServiceClientHandler(address, forkListener, threadContext,
+                  mExecutor, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)),
+              new ClientIpAddressInjector())))
+          .build();
 
       try {
         mGrpcServer.start();
-        mActiveAddress = address;
 
         LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
       } catch (IOException e) {
@@ -123,7 +128,7 @@ public class CopycatGrpcServer implements Server {
       return CompletableFuture.completedFuture(null);
     }
 
-    LOG.debug("Closing copycat transport server at: {}", mActiveAddress);
+    LOG.debug("Closing copycat transport server: {}", mGrpcServer);
     // Close created connections.
     List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
     for (Connection connection : mConnections) {
@@ -138,7 +143,7 @@ public class CopycatGrpcServer implements Server {
           try {
             mGrpcServer.shutdown();
           } catch (Exception e) {
-            LOG.warn("Failed to close gRPC server for copycat transport at:{}", mActiveAddress);
+            LOG.warn("Failed to close copycat transport server: {}", mGrpcServer);
           } finally {
             mGrpcServer = null;
           }

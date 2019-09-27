@@ -27,6 +27,7 @@ import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -281,11 +282,21 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, "1s",
+          PropertyKey.Name.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "1s",
+          PropertyKey.Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "1s"})
   public void persistShortTimeout() throws Exception {
     shortTimeoutTest("--timeout");
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, "1s",
+          PropertyKey.Name.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "1s",
+          PropertyKey.Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "1s"})
   public void persistShortTimeoutShortOption() throws Exception {
     shortTimeoutTest("-t");
   }
@@ -296,7 +307,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
    * @param option the short or long-form command line option
    */
   void shortTimeoutTest(String option) throws Exception {
-    createUnpersistedFiles("/testPersistTimeout", 100, 50);
+    createUnpersistedFiles("/testPersistTimeout", 100, 2);
     mFsShell.run("persist", option, String.valueOf(1), "/*"); // 1ms persist timeout
     assertTrue("Should log at least one timeout",
         mLogRule.wasLogged("Timed out waiting for file to be persisted:"));
@@ -305,7 +316,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void persistLongTimeout() throws Exception {
     int fileSize = 100;
-    List<AlluxioURI> files = createUnpersistedFiles("/testPersistTimeout", fileSize, 25);
+    List<AlluxioURI> files = createUnpersistedFiles("/testPersistTimeout", fileSize, 2);
     int ret = mFsShell.run("persist", "--timeout", String.valueOf(60 * 1000), "/*");
     assertEquals("shell should not report error", 0, ret);
     assertFalse("Should not have logged timeout",

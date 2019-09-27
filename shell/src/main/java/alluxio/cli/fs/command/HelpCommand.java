@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
@@ -34,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * messages for all supported commands.
  */
 @ThreadSafe
+@PublicApi
 public final class HelpCommand extends AbstractFileSystemCommand {
   private static final HelpFormatter HELP_FORMATTER = new HelpFormatter();
 

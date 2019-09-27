@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
@@ -32,6 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Update attributes for an existing mount point.
  */
 @ThreadSafe
+@PublicApi
 public final class UfsCommand extends AbstractFsAdminCommand {
   private static final Option MODE_OPTION =
       Option.builder()

@@ -16,7 +16,6 @@ import static java.util.stream.Collectors.toMap;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.PublicApi;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.options.InStreamOptions;
@@ -85,7 +84,6 @@ import javax.annotation.concurrent.ThreadSafe;
 * instead of implementing the interface. This implementation reads and writes data through
 * {@link FileInStream} and {@link FileOutStream}. This class is thread safe.
 */
-@PublicApi
 @ThreadSafe
 public class BaseFileSystem implements FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
@@ -542,15 +540,16 @@ public class BaseFileSystem implements FileSystem {
    */
   private void checkUri(AlluxioURI uri) {
     Preconditions.checkNotNull(uri, "uri");
+    if (!mFsContext.getUriValidationEnabled()) {
+      return;
+    }
+
     if (uri.hasScheme()) {
       String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
           + " the Alluxio Filesystem client.";
       switch (uri.getScheme()) {
         case Constants.SCHEME:
           LOG.warn(warnMsg, Constants.SCHEME);
-          break;
-        case Constants.SCHEME_FT:
-          LOG.warn(warnMsg, Constants.SCHEME_FT);
           break;
         default:
           throw new IllegalArgumentException(

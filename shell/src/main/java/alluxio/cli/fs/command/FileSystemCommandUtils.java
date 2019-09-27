@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -28,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Common util methods for executing commands.
  */
 @ThreadSafe
+@PublicApi
 public final class FileSystemCommandUtils {
 
   private FileSystemCommandUtils() {} // prevent instantiation

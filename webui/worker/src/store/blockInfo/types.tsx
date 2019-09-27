@@ -11,7 +11,7 @@
 
 import {AxiosResponse} from 'axios';
 
-import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
+import {IFileBlockInfo, IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
 
 export interface IFileBlocksOnTier {
   [tierAlias: string]: IFileBlockInfo[];

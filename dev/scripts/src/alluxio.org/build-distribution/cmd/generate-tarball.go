@@ -40,14 +40,17 @@ var (
 	hadoopDistributionFlag string
 	targetFlag             string
 	mvnArgsFlag            string
+	skipUIFlag             bool
 )
 
 func init() {
-	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", "hadoop-2.2", "the hadoop distribution to build this Alluxio distribution tarball")
+	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
 	cmdSingle.Flags.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
 			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
 	cmdSingle.Flags.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
+	cmdSingle.Flags.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
+		"but the generated tarball will have no Alluxio WebUI although REST services will still be available."))
 }
 
 func single(_ *cmdline.Env, _ []string) error {
@@ -57,7 +60,7 @@ func single(_ *cmdline.Env, _ []string) error {
 	if err := checkRootFlags(); err != nil {
 		return err
 	}
-	if err := generateTarball([]string{hadoopDistributionFlag}); err != nil {
+	if err := generateTarball([]string{}); err != nil {
 		return err
 	}
 	return nil
@@ -144,7 +147,7 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
 			moduleMvnArgs = append(moduleMvnArgs, arg)
 		}
-		var versionMvnArg = "2.2.0"
+		var versionMvnArg = "2.7.3"
 		for _, arg := range moduleMvnArgs {
 			if strings.Contains(arg, "ufs.hadoop.version") {
 				versionMvnArg = strings.Split(arg, "=")[1]
@@ -165,8 +168,6 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string) {
 	chdir(srcPath)
 	pathsToCopy := []string{
-		"integration/docker/bin/alluxio-job-worker.sh",
-		"integration/docker/bin/alluxio-job-master.sh",
 		"bin/alluxio",
 		"bin/alluxio-masters.sh",
 		"bin/alluxio-monitor.sh",
@@ -190,26 +191,31 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile",
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
-		"integration/docker/bin/alluxio-master.sh",
-		"integration/docker/bin/alluxio-proxy.sh",
-		"integration/docker/bin/alluxio-worker.sh",
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
-		"integration/emr/alluxio-emr.sh",
-		"integration/emr/alluxio-emr.json",
 		"integration/fuse/bin/alluxio-fuse",
-		"integration/kubernetes/alluxio-fuse.yaml.template",
-		"integration/kubernetes/alluxio-fuse-client.yaml.template",
-		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-configMap.yaml.template",
+		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-master.yaml.template",
 		"integration/kubernetes/alluxio-worker.yaml.template",
+		"integration/kubernetes/alluxio-fuse.yaml.template",
+		"integration/kubernetes/alluxio-fuse-client.yaml.template",
 		"integration/kubernetes/helm/alluxio/Chart.yaml",
 		"integration/kubernetes/helm/alluxio/templates/_helpers.tpl",
 		"integration/kubernetes/helm/alluxio/templates/alluxio-configMap.yaml",
 		"integration/kubernetes/helm/alluxio/templates/alluxio-master.yaml",
 		"integration/kubernetes/helm/alluxio/templates/alluxio-worker.yaml",
 		"integration/kubernetes/helm/alluxio/templates/service-account.yaml",
+		"integration/kubernetes/singleMaster-localJournal/alluxio-configMap.yaml.template",
+		"integration/kubernetes/singleMaster-localJournal/alluxio-journal-volume.yaml.template",
+		"integration/kubernetes/singleMaster-localJournal/alluxio-master.yaml.template",
+		"integration/kubernetes/singleMaster-localJournal/alluxio-worker.yaml.template",
+		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-configMap.yaml.template",
+		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-master.yaml.template",
+		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-worker.yaml.template",
+		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-configMap.yaml.template",
+		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-master.yaml.template",
+		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-worker.yaml.template",
 		"integration/kubernetes/helm/alluxio/values.yaml",
 		"integration/mesos/bin/alluxio-env-mesos.sh",
 		"integration/mesos/bin/alluxio-mesos-start.sh",
@@ -251,9 +257,9 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 }
 
 func generateTarball(hadoopClients []string) error {
-	hadoopVersion, ok := hadoopDistributions[defaultHadoopClient]
+	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
-		return fmt.Errorf("hadoop distribution %s not recognized\n", defaultHadoopClient)
+		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistributionFlag)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -281,6 +287,8 @@ func generateTarball(hadoopClients []string) error {
 		return err
 	}
 
+	// Reset the shaded hadoop version if it's auto-resolved by the maven release plugin
+	replace("shaded/hadoop/pom.xml", "<version>2.2.0</version>", "<version>${ufs.hadoop.version}</version>")
 	// Update the assembly jar paths.
 	replace("libexec/alluxio-config.sh", "assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-client-${VERSION}.jar")
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
@@ -292,11 +300,22 @@ func generateTarball(hadoopClients []string) error {
 	}
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
-	run("compiling repo", "mvn", mvnArgs...)
+	if skipUIFlag {
+		mvnArgsNoUI := append(mvnArgs, "-pl", "!webui")
+		run("compiling repo without UI", "mvn", mvnArgsNoUI...)
+	} else {
+		run("compiling repo", "mvn", mvnArgs...)
+	}
+
 	// Compile ufs modules for the main build
 	buildModules(srcPath, "underfs", "hdfs", ufsModulesFlag, version, ufsModules, mvnArgs)
 
-	tarball := strings.Replace(targetFlag, versionMarker, version, 1)
+	versionString := version
+	if skipUIFlag {
+		versionString = versionString + "-noUI"
+	}
+	tarball := strings.Replace(targetFlag, versionMarker, versionString, 1)
+
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
 	dstDir = strings.TrimSuffix(dstDir, "-bin")
 	dstPath := filepath.Join(cwd, dstDir)
@@ -318,14 +337,15 @@ func generateTarball(hadoopClients []string) error {
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
 
-	masterWebappDir := "webui/master"
-	run("creating webui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
-	run("copying webui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
+	if !skipUIFlag {
+		masterWebappDir := "webui/master"
+		run("creating webui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
+		run("copying webui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
 
-	workerWebappDir := "webui/worker"
-	run ("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
-	run("copying webui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
-
+		workerWebappDir := "webui/worker"
+		run("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
+		run("copying webui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
+	}
 	if includeYarnIntegration(hadoopVersion) {
 		// Update the YARN jar path
 		replace("integration/yarn/bin/alluxio-yarn.sh", "target/alluxio-integration-yarn-${VERSION}-jar-with-dependencies.jar", "alluxio-yarn-${VERSION}.jar")

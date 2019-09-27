@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -20,14 +21,16 @@ import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays the number of folders and files matching the specified prefix in args.
  */
 @ThreadSafe
+@PublicApi
 public final class CountCommand extends AbstractFileSystemCommand {
 
   /**

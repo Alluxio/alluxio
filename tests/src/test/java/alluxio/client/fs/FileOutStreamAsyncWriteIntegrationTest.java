@@ -34,7 +34,6 @@ import org.junit.Test;
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream} of under storage type being async
  * persist.
- *
  */
 public final class FileOutStreamAsyncWriteIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {

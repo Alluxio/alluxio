@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -35,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Displays the size of a file or a directory specified by argv.
  */
 @ThreadSafe
+@PublicApi
 public final class DuCommand extends AbstractFileSystemCommand {
   private static final String LONG_INFO_FORMAT = "%-13s %-16s %-16s %s";
   private static final String SHORT_INFO_FORMAT = "%-13s %-16s %s";

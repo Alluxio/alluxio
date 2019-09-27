@@ -11,6 +11,7 @@
 
 package alluxio.cli.job.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.file.FileSystemContext;
@@ -37,6 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Displays the status of the job.
  */
 @ThreadSafe
+@PublicApi
 public final class StatCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(StatCommand.class);
   private static final Option VERBOSE_OPTION =

@@ -14,6 +14,7 @@ package alluxio.master.metastore.rocks;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -42,6 +43,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -239,6 +241,13 @@ public class RocksInodeStore implements InodeStore {
     return inodes;
   }
 
+  /**
+   * @return an iterator over stored inodes
+   */
+  public Iterator<InodeView> iterator() {
+    return new RocksInodeViewIterator(db().newIterator(mInodesColumn.get()));
+  }
+
   @Override
   public boolean supportsBatchWrite() {
     return true;
@@ -358,5 +367,46 @@ public class RocksInodeStore implements InodeStore {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Used to iterate over inodes stored in this store.
+   */
+  protected class RocksInodeViewIterator implements Iterator<InodeView> {
+    /** The underlying RockIterator. */
+    private RocksIterator mRocksIterator;
+    /** Whether the underlying iterator is closed. */
+    private boolean mClosed = false;
+
+    /**
+     * @param rocksIterator rocks iterator
+     */
+    public RocksInodeViewIterator(RocksIterator rocksIterator) {
+      mRocksIterator = rocksIterator;
+      mRocksIterator.seekToFirst();
+    }
+
+    @Override
+    public boolean hasNext() {
+      // Can't call isValid on closed RocksIterator.
+      return !mClosed && mRocksIterator.isValid();
+    }
+
+    @Override
+    public InodeView next() {
+      try {
+        return getMutable(Longs.fromByteArray(mRocksIterator.key()), ReadOption.defaults()).get();
+      } catch (Exception exc) {
+        mRocksIterator.close();
+        mClosed = true;
+        throw exc;
+      } finally {
+        mRocksIterator.next();
+        if (!mRocksIterator.isValid()) {
+          mRocksIterator.close();
+          mClosed = true;
+        }
+      }
+    }
   }
 }

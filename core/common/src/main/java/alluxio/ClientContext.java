@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
@@ -41,6 +42,7 @@ import javax.security.auth.Subject;
  * Ideally only a single {@link ClientContext} should be needed when initializing an application.
  * This will use as few network resources as possible.
  */
+@PublicApi
 public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
   private volatile String mClusterConfHash;
@@ -48,6 +50,7 @@ public class ClientContext {
   private volatile UserState mUserState;
   private volatile String mPathConfHash;
   private volatile boolean mIsPathConfLoaded = false;
+  private volatile boolean mUriValidationEnabled = true;
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -149,6 +152,22 @@ public class ClientContext {
       throws AlluxioStatusException {
     loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
     mUserState = UserState.Factory.create(mClusterConf, mUserState.getSubject());
+  }
+
+  /**
+   * @param uriValidationEnabled whether URI validation is enabled
+   * @return updated instance of ClientContext
+   */
+  public ClientContext setUriValidationEnabled(boolean uriValidationEnabled) {
+    mUriValidationEnabled = uriValidationEnabled;
+    return this;
+  }
+
+  /**
+   * @return {@code true} if URI validation is enabled
+   */
+  public boolean getUriValidationEnabled() {
+    return mUriValidationEnabled;
   }
 
   /**

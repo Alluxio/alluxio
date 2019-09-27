@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
@@ -47,6 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Sets or gets the log level for the specified server.
  */
 @NotThreadSafe
+@PublicApi
 public final class LogLevel {
   private static final String LOG_LEVEL = "logLevel";
   private static final String ROLE_WORKERS = "workers";

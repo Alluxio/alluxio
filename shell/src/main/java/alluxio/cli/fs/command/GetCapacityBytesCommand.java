@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
@@ -26,6 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Gets the capacity of the {@link FileSystem}.
  */
 @ThreadSafe
+@PublicApi
 public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to get the capacity of the {@link FileSystem}.

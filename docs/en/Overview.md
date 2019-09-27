@@ -20,7 +20,7 @@ magnitude faster than existing solutions.
 In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark, Presto,
 Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various persistent storage systems, such
 as Amazon S3, Google Cloud Storage, OpenStack Swift, HDFS, GlusterFS, IBM Cleversafe, EMC ECS, Ceph,
-NFS, Minio, and Alibaba OSS. Alluxio unifes the data stored in these different storage systems,
+NFS, Minio, and Alibaba OSS. Alluxio unifies the data stored in these different storage systems,
 presenting unified client APIs and a global namespace to its upper layer data driven applications.
 
 The Alluxio project originated from [the UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/software/) (see [papers](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html)) as

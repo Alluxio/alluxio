@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -41,6 +42,7 @@ import java.util.concurrent.Executors;
 /**
  * Command for checking the consistency of a file or folder between Alluxio and the under storage.
  */
+@PublicApi
 public class CheckConsistencyCommand extends AbstractFileSystemCommand {
 
   private static final Option REPAIR_OPTION =

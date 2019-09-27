@@ -262,14 +262,19 @@ public final class MountTable implements DelegatingJournaled {
 
   /**
    * @param uri the Alluxio uri to check
-   * @return true if the specified uri is mount point, or has a descendant which is a mount point
+   * @param containsSelf cause method to return true when given uri itself is a mount point
+   * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
    */
-  public boolean containsMountPoint(AlluxioURI uri) throws InvalidPathException {
+  public boolean containsMountPoint(AlluxioURI uri, boolean containsSelf)
+      throws InvalidPathException {
     String path = uri.getPath();
 
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mountPath = entry.getKey();
+        if (!containsSelf && mountPath.equals(path)) {
+          continue;
+        }
         if (PathUtils.hasPrefix(mountPath, path)) {
           return true;
         }
@@ -302,26 +307,24 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * REsolves the given Ufs path. If the given UFs path is mounted in Alluxio space, it returns
+   * Resolves the given Ufs path. If the given UFs path is mounted in Alluxio space, it returns
    * the associated Alluxio path.
    * @param ufsUri an Ufs path URI
    * @return an Alluxio path URI
    */
   @Nullable
-  public AlluxioURI reverseResolve(AlluxioURI ufsUri) {
-    AlluxioURI returnVal = null;
+  public ReverseResolution reverseResolve(AlluxioURI ufsUri) {
+    // TODO(ggezer): Consider alternative mount table representations for optimizing this method.
     for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
       try {
         if (mountInfoEntry.getValue().getUfsUri().isAncestorOf(ufsUri)) {
-          returnVal = reverseResolve(mountInfoEntry.getValue().getAlluxioUri(),
-              mountInfoEntry.getValue().getUfsUri(), ufsUri);
+          return new ReverseResolution(mountInfoEntry.getValue(),
+              reverseResolve(mountInfoEntry.getValue().getAlluxioUri(),
+                  mountInfoEntry.getValue().getUfsUri(), ufsUri));
         }
-      } catch (InvalidPathException | RuntimeException e) {
-        LOG.info(Throwables.getStackTraceAsString(e));
+      } catch (InvalidPathException e) {
         // expected when ufsUri does not belong to this particular mountPoint
-      }
-      if (returnVal != null) {
-        return returnVal;
+        LOG.debug(Throwables.getStackTraceAsString(e));
       }
     }
     return null;
@@ -465,6 +468,33 @@ public final class MountTable implements DelegatingJournaled {
      */
     public long getMountId() {
       return mMountId;
+    }
+  }
+
+  /**
+   * This class represents a Alluxio path after reverse resolution.
+   */
+  public final class ReverseResolution {
+    private final MountInfo mMountInfo;
+    private final AlluxioURI mUri;
+
+    private ReverseResolution(MountInfo mountInfo, AlluxioURI uri) {
+      mMountInfo = mountInfo;
+      mUri = uri;
+    }
+
+    /**
+     * @return the URI in the Alluxio
+     */
+    public AlluxioURI getUri() {
+      return mUri;
+    }
+
+    /**
+     * @return the {@link MountInfo} that resolved the URI
+     */
+    public MountInfo getMountInfo() {
+      return mMountInfo;
     }
   }
 

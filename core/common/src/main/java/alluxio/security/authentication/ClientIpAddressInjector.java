@@ -39,19 +39,28 @@ public class ClientIpAddressInjector implements ServerInterceptor {
   @Override
   public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call,
       Metadata headers, ServerCallHandler<ReqT, RespT> next) {
+    /**
+     * For streaming calls, below will make sure remote IP address is injected prior to creating the
+     * stream.
+     */
+    setRemoteIpAddress(call);
+
+    /**
+     * For non-streaming calls to server, below listener will be invoked in the same thread that is
+     * serving the call.
+     */
     return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(
         next.startCall(call, headers)) {
-      /**
-       * onHalfClose is called on the same thread that calls the service handler.
-       */
       @Override
       public void onHalfClose() {
-        String remoteIpAddress =
-            call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR).toString();
-        sIpAddressThreadLocal.set(remoteIpAddress);
+        setRemoteIpAddress(call);
         super.onHalfClose();
       }
     };
   }
-}
 
+  private <ReqT, RespT> void setRemoteIpAddress(ServerCall<ReqT, RespT> call) {
+    String remoteIpAddress = call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR).toString();
+    sIpAddressThreadLocal.set(remoteIpAddress);
+  }
+}

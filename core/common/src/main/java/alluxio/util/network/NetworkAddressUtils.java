@@ -656,9 +656,9 @@ public final class NetworkAddressUtils {
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel =
-        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).disableAuthentication()
-            .setSubject(userState.getSubject()).build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
+        .setClientType("PingService").disableAuthentication().setSubject(userState.getSubject())
+        .build();
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
           ServiceVersionClientServiceGrpc.newBlockingStub(channel);

@@ -48,7 +48,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
-import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -66,6 +65,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.master.FsMasterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsMode;
@@ -207,8 +207,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
-  private MasterRegistry createFileSystemMasterFromJournal() throws Exception {
-    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+  private FsMasterResource createFileSystemMasterFromJournal() throws Exception {
+    return MasterTestUtils.createLeaderFileSystemMasterFromJournalCopy();
   }
 
   // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
@@ -222,14 +222,14 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
 
-      MasterRegistry registry = createFileSystemMasterFromJournal();
-      FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-      for (FileInfo info : mFsMaster.listStatus(new AlluxioURI("/"),
-              ListStatusContext.defaults())) {
-        AlluxioURI path = new AlluxioURI(info.getPath());
-        Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
+      try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
+        FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
+        for (FileInfo info : mFsMaster
+            .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
+          AlluxioURI path = new AlluxioURI(info.getPath());
+          Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
+        }
       }
-      registry.stop();
       before();
     }
   }
@@ -792,7 +792,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       // Stop Alluxio.
       mLocalAlluxioClusterResource.get().stopFS();
       // Create the master using the existing journal.
-      createFileSystemMasterFromJournal();
+      createFileSystemMasterFromJournal().close();
     } finally {
       threadPool.shutdownNow();
       threadPool.awaitTermination(SHUTDOWN_TIME_MS, TimeUnit.MILLISECONDS);
@@ -853,18 +853,19 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Stop Alluxio.
     mLocalAlluxioClusterResource.get().stopFS();
     // Create the master using the existing journal.
-    MasterRegistry registry = createFileSystemMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
+    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
+      FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
-    // List what is in Alluxio, without syncing. Should match the last state.
-    files = fsMaster.listStatus(root,
-        ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
-            .setLoadMetadataType(LoadMetadataPType.NEVER)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))));
-    Assert.assertEquals(2, files.size());
-    filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
-    Assert.assertTrue(filenames.contains("ufs_dir"));
-    Assert.assertTrue(filenames.contains("ufs_file"));
+      // List what is in Alluxio, without syncing. Should match the last state.
+      files = fsMaster.listStatus(root, ListStatusContext.mergeFrom(
+          ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)
+              .setCommonOptions(
+                  FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))));
+      Assert.assertEquals(2, files.size());
+      filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
+      Assert.assertTrue(filenames.contains("ufs_dir"));
+      Assert.assertTrue(filenames.contains("ufs_file"));
+    }
   }
 
   @Test
@@ -908,17 +909,18 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Stop Alluxio.
     mLocalAlluxioClusterResource.get().stopFS();
     // Create the master using the existing journal.
-    MasterRegistry registry = createFileSystemMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
+    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
+      FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
-    // List what is in Alluxio, without syncing.
-    info = fsMaster.getFileInfo(dir,
-        GetStatusContext.mergeFrom(GetStatusPOptions.newBuilder()
-            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
-                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build())));
-    Assert.assertNotNull(info);
-    Assert.assertEquals("dir", info.getName());
-    Assert.assertEquals(mode, info.getMode());
+      // List what is in Alluxio, without syncing.
+      info = fsMaster.getFileInfo(dir, GetStatusContext.mergeFrom(
+          GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)
+              .setCommonOptions(
+                  FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build())));
+      Assert.assertNotNull(info);
+      Assert.assertEquals("dir", info.getName());
+      Assert.assertEquals(mode, info.getMode());
+    }
   }
 
   @Test
@@ -994,12 +996,14 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Stop Alluxio.
     mLocalAlluxioClusterResource.get().stopFS();
     // Create the master using the existing journal.
-    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-    FileSystemMaster newFsMaster = registry.get(FileSystemMaster.class);
+    try (FsMasterResource masterResource = MasterTestUtils
+        .createLeaderFileSystemMasterFromJournal()) {
+      FileSystemMaster newFsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
-    files = newFsMaster.listStatus(new AlluxioURI("/mnt/"),
-        ListStatusContext.defaults());
-    Assert.assertTrue(files.isEmpty());
+      files = newFsMaster.listStatus(new AlluxioURI("/mnt/"),
+          ListStatusContext.defaults());
+      Assert.assertTrue(files.isEmpty());
+    }
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
@@ -1171,13 +1175,14 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Stop Alluxio.
     mLocalAlluxioClusterResource.get().stopFS();
     // Create the master using the existing journal.
-    MasterRegistry registry = createFileSystemMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
+    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
+      FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
-    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
-    // Create file should throw an Exception even after restart
-    mThrown.expect(AccessControlException.class);
-    fsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
+      AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+      // Create file should throw an Exception even after restart
+      mThrown.expect(AccessControlException.class);
+      fsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
+    }
   }
 
   @Test
@@ -1419,19 +1424,21 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long newAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
     // time is changed in master
     Assert.assertNotEquals(newAccessTime, oldAccessTime);
-    MasterRegistry registry = createFileSystemMasterFromJournal();
-    FileSystemMaster fsm = registry.get(FileSystemMaster.class);
-    long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
-    // time is not flushed to journal
-    Assert.assertEquals(journaledAccessTime, oldAccessTime);
+    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
+      FileSystemMaster fsm = masterResource.getRegistry().get(FileSystemMaster.class);
+      long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+      // time is not flushed to journal
+      Assert.assertEquals(journaledAccessTime, oldAccessTime);
+    }
     // Stop Alluxio.
     mLocalAlluxioClusterResource.get().stopFS();
     // Create the master using the existing journal.
-    registry = createFileSystemMasterFromJournal();
-    fsm = registry.get(FileSystemMaster.class);
-    long journaledAccessTimeAfterStop = fsm.getFileInfo(parentId).getLastAccessTimeMs();
-    // time is now flushed to journal
-    Assert.assertEquals(journaledAccessTimeAfterStop, newAccessTime);
+    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
+      FileSystemMaster fsm = masterResource.getRegistry().get(FileSystemMaster.class);
+      long journaledAccessTimeAfterStop = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+      // time is now flushed to journal
+      Assert.assertEquals(journaledAccessTimeAfterStop, newAccessTime);
+    }
   }
 
   /**
@@ -1450,19 +1457,21 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long newAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
     // time is changed in master
     Assert.assertNotEquals(newAccessTime, oldAccessTime);
-    MasterRegistry registry = createFileSystemMasterFromJournal();
-    FileSystemMaster fsm = registry.get(FileSystemMaster.class);
-    long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
-    // time is not flushed to journal
-    Assert.assertEquals(journaledAccessTime, oldAccessTime);
-    // delete the directory
-    mFsMaster.delete(parentPath, DeleteContext.defaults());
+    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
+      FileSystemMaster fsm = masterResource.getRegistry().get(FileSystemMaster.class);
+      long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
+      // time is not flushed to journal
+      Assert.assertEquals(journaledAccessTime, oldAccessTime);
+      // delete the directory
+      mFsMaster.delete(parentPath, DeleteContext.defaults());
+    }
     // Stop Alluxio.
     mLocalAlluxioClusterResource.get().stopFS();
     // Create the master using the existing journal.
-    registry = createFileSystemMasterFromJournal();
-    fsm = registry.get(FileSystemMaster.class);
-    Assert.assertEquals(fsm.getFileId(parentPath), -1);
+    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
+      FileSystemMaster fsm = masterResource.getRegistry().get(FileSystemMaster.class);
+      Assert.assertEquals(fsm.getFileId(parentPath), -1);
+    }
   }
 
   /**

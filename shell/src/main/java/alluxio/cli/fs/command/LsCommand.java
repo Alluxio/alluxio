@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -47,6 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * can also display the information for all directly children under the path, or recursively.
  */
 @ThreadSafe
+@PublicApi
 public final class LsCommand extends AbstractFileSystemCommand {
   public static final String IN_ALLUXIO_STATE_DIR = "DIR";
   public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";

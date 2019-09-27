@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.annotation.PublicApi;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.util.ConfigurationUtils;
 
@@ -23,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Validate the Alluxio configuration.
  */
 @ThreadSafe
+@PublicApi
 public final class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(ValidateConf.class);
 

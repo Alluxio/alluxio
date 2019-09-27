@@ -188,7 +188,7 @@ public class JournalToolTest extends BaseIntegrationTest {
     checkpointUfsJournal();
     JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
-    assertNonemptyDirExists(
+    assertNonemptyFileExists(
         PathUtils.concatPath(checkpointDir, "INODE_TREE", "CACHING_INODE_STORE"));
   }
 

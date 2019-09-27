@@ -18,6 +18,7 @@ import alluxio.RuntimeConstants;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
@@ -29,12 +30,12 @@ import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
+import alluxio.resource.CloseableResource;
 import alluxio.security.user.ServerUserState;
+import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
-import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 
@@ -86,6 +87,9 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The manager for creating and restoring backups. */
   private final BackupManager mBackupManager;
 
+  /** The manager of all ufs. */
+  private final MasterUfsManager mUfsManager;
+
   private ExecutorService mRPCExecutor = null;
 
   /**
@@ -105,6 +109,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
       String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
+      mUfsManager = new MasterUfsManager();
       MasterContext context = CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)
           .setSafeModeManager(mSafeModeManager)
@@ -114,6 +119,7 @@ public class AlluxioMasterProcess extends MasterProcess {
           .setStartTimeMs(mStartTimeMs)
           .setPort(NetworkAddressUtils
               .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
+          .setUfsManager(mUfsManager)
           .build();
       mPauseStateLock = context.pauseStateLock();
       MasterUtils.createMasters(mRegistry, context);
@@ -167,15 +173,8 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
-    UnderFileSystem ufs;
-    if (URIUtils.isLocalFilesystem(backup.toString())) {
-      ufs = UnderFileSystem.Factory.create("/",
-          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
-    } else {
-      ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    }
-    try (UnderFileSystem closeUfs = ufs;
-        InputStream ufsIn = ufs.open(backup.getPath())) {
+    try (CloseableResource<UnderFileSystem> closeUfs = mUfsManager.getRoot().acquireUfsResource();
+         InputStream ufsIn = closeUfs.get().open(backup.getPath())) {
       LOG.info("Initializing metadata from backup {}", backup);
       mBackupManager.initFromBackup(ufsIn);
     }
@@ -271,6 +270,8 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
+        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
     startServingWebServer();
     startJvmMonitorProcess();
     LOG.info(
@@ -288,10 +289,10 @@ public class AlluxioMasterProcess extends MasterProcess {
   protected void startServingRPCServer() {
     try {
       stopRejectingRpcServer();
-      LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder
-          .forAddress(mRpcConnectAddress.getHostName(), mRpcBindAddress,
-              ServerConfiguration.global(), ServerUserState.global());
+      LOG.info("Starting Alluxio master gRPC server on address {}", mRpcBindAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
+          GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
+          ServerConfiguration.global(), ServerUserState.global());
 
       mRPCExecutor = new ForkJoinPool(
           ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM),
@@ -317,7 +318,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
-      LOG.info("Started gRPC server on address {}", mRpcConnectAddress);
+      LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
@@ -333,7 +334,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   protected void stopServing() throws Exception {
     if (isServing()) {
       if (!mGrpcServer.shutdown()) {
-        LOG.warn("RPC Server shutdown timed out.");
+        LOG.warn("Alluxio master RPC server shutdown timed out.");
       }
     }
     if (mRPCExecutor != null) {
@@ -379,7 +380,7 @@ public class AlluxioMasterProcess extends MasterProcess {
           .setLocation(journalLocation).build(ProcessType.MASTER);
       if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
-            "Raft journal cannot be used with Zookeeper enabled");
+            "Raft-based embedded journal and Zookeeper cannot be used at the same time.");
         PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
         return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector);
       } else if (journalSystem instanceof RaftJournalSystem) {

@@ -413,7 +413,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
-    mUfsManager = new MasterUfsManager();
+    mUfsManager = masterContext.getUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
@@ -573,6 +573,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
       // (mPersistRequests)
+      long persistInitialIntervalMs =
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS);
+      long persistMaxIntervalMs =
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS);
+      long persistMaxWaitMs =
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS);
+
       for (Long id : mInodeTree.getToBePersistedIds()) {
         Inode inode = mInodeStore.get(id).get();
         if (inode.isDirectory()
@@ -582,11 +589,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         }
         InodeFile inodeFile = inode.asFile();
         if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
-          mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
-              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-              getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
-              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+          mPersistRequests.put(inodeFile.getId(),
+              new alluxio.time.ExponentialTimer(
+                persistInitialIntervalMs,
+                persistMaxIntervalMs,
+                getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
+                persistMaxWaitMs));
         } else {
           AlluxioURI path;
           try {
@@ -738,7 +746,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     Metrics.GET_FILE_INFO_OPS.inc();
     long opTimeMs = System.currentTimeMillis();
     LockingScheme lockingScheme =
-        createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
+        createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ, true);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
@@ -822,9 +830,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException {
+  public void listStatus(AlluxioURI path, ListStatusContext context,
+      ResultStream<FileInfo> resultStream)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
@@ -887,25 +895,26 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
-      List<FileInfo> ret = new ArrayList<>();
-      DescendantType descendantTypeForListStatus = (context.getOptions().getRecursive())
-          ? DescendantType.ALL : DescendantType.ONE;
-      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus, ret);
-
-      // If we are listing the status of a directory, we remove the directory info that we inserted
-      if (inode.isDirectory() && ret.size() >= 1) {
-        ret.remove(ret.size() - 1);
-      }
-
+      DescendantType descendantTypeForListStatus =
+          (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
+      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
+          resultStream, 0);
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
-      return ret;
     }
   }
 
+  @Override
+  public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
+    final List<FileInfo> fileInfos = new ArrayList<>();
+    listStatus(path, context, (item) -> fileInfos.add(item));
+    return fileInfos;
+  }
+
   /**
-   * Lists the status of the path in {@link LockedInodePath}, possibly recursively depending on
-   * the descendantType. The result is returned via a list specified by statusList, in postorder
+   * Lists the status of the path in {@link LockedInodePath}, possibly recursively depending on the
+   * descendantType. The result is returned via a list specified by statusList, in postorder
    * traversal order.
    *
    * @param rpcContext the context for the RPC call
@@ -913,12 +922,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
    *                       should be returned
-   * @param statusList To be populated with the status of the files and directories requested
+   * @param resultStream the stream to receive individual results
+   * @param depth internal use field for tracking depth relative to root item
    */
   private void listStatusInternal(RpcContext rpcContext, LockedInodePath currInodePath,
-      AuditContext auditContext, DescendantType descendantType, List<FileInfo> statusList)
-      throws FileDoesNotExistException, UnavailableException,
-      AccessControlException, InvalidPathException {
+      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
+      int depth) throws FileDoesNotExistException, UnavailableException, AccessControlException,
+      InvalidPathException {
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -950,14 +960,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
           listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
-              statusList);
+              resultStream, depth + 1);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{0}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
         }
       }
     }
-    statusList.add(getFileInfoInternal(currInodePath));
+    // Listing a directory should not emit item for the directory itself.
+    if (depth != 0 || inode.isFile()) {
+      resultStream.submit(getFileInfoInternal(currInodePath));
+    }
   }
 
   /**
@@ -3488,7 +3501,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         }
       }
 
-      boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri());
+      boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri(), true);
 
       UfsSyncUtils.SyncPlan syncPlan =
           UfsSyncUtils.computeSyncPlan(inode, ufsFpParsed, containsMountPoint);
@@ -3756,6 +3769,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try {
         mSyncManager.startSyncPostJournal(uri);
       } catch (Throwable e) {
+        LOG.warn("Start sync failed on {}", uri, e);
         // revert state;
         RemoveSyncPointEntry removeSyncPoint =
             File.RemoveSyncPointEntry.newBuilder()
@@ -3807,6 +3821,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         long mountId = resolution.getMountId();
         mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
       } catch (Throwable e) {
+        LOG.warn("Stop sync failed on {}", uri, e);
         // revert state;
         AddSyncPointEntry addSyncPoint =
             File.AddSyncPointEntry.newBuilder()
@@ -4575,11 +4590,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
       LockPattern desiredLockMode) {
+    return createLockingScheme(path, options, desiredLockMode, false);
+  }
+
+  private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
+      LockPattern desiredLockMode, boolean isGetFileInfo) {
     // If client options didn't specify the interval, fallback to whatever the server has
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
         ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-    boolean shouldSync = mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval);
+    boolean shouldSync =
+        mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval, isGetFileInfo);
     return new LockingScheme(path, desiredLockMode, shouldSync);
   }
 

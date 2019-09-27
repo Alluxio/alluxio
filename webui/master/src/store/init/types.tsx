@@ -11,10 +11,11 @@
 
 import {AxiosResponse} from 'axios';
 
-import {IFileInfo} from '@alluxio/common-ui/src/constants';
+import {IFileInfo, ICommonState} from '@alluxio/common-ui/src/constants';
 
 export interface IInit {
   'debug': boolean;
+  'newerVersionAvailable': boolean;
   'proxyDownloadFileApiUrl': {
     'prefix': string;
     'suffix': string;

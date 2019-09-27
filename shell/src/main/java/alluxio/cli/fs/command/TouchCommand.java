@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -27,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Creates a 0 byte file specified by argv. The file will be written to UnderFileSystem.
  */
 @ThreadSafe
+@PublicApi
 public final class TouchCommand extends AbstractFileSystemCommand {
 
   /**

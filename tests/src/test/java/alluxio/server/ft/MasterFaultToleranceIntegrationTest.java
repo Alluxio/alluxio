@@ -36,6 +36,7 @@ import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -46,7 +47,9 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -66,6 +69,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
 
+  @Rule
+  private TestName mTestName = new TestName();
+
   @BeforeClass
   public static void beforeClass() {
     // Skip hadoop 1 because hadoop 1's RPC cannot be interrupted properly which makes it
@@ -84,7 +90,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     // TODO(gpang): Implement multi-master cluster as a resource.
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(MASTERS);
-    mMultiMasterLocalAlluxioCluster.initConfiguration();
+    mMultiMasterLocalAlluxioCluster.initConfiguration(
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
     ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
@@ -282,7 +289,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     try {
       // Create a new cluster, with no workers initially
       cluster = new MultiMasterLocalAlluxioCluster(2, 0);
-      cluster.initConfiguration();
+      cluster.initConfiguration(
+          IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
       cluster.start();
       // Get the first block master
       BlockMaster blockMaster1 =

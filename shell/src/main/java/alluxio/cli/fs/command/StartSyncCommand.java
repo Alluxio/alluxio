@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -29,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 
 @ThreadSafe
+@PublicApi
 public final class StartSyncCommand extends AbstractFileSystemCommand {
 
   /**

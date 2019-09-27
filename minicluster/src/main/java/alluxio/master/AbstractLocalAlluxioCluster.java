@@ -259,8 +259,10 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Creates a default {@link ServerConfiguration} for testing.
+   *
+   * @param name the name of the test/cluster
    */
-  public abstract void initConfiguration() throws IOException;
+  public abstract void initConfiguration(String name) throws IOException;
 
   /**
    * Returns a {@link FileSystem} client.
@@ -336,9 +338,11 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Sets Alluxio work directory.
+   *
+   * @param name the name of the test/cluster
    */
-  protected void setAlluxioWorkDirectory() {
+  protected void setAlluxioWorkDirectory(String name) {
     mWorkDirectory =
-        AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
+        AlluxioTestDirectory.createTemporaryDirectory(name).getAbsolutePath();
   }
 }

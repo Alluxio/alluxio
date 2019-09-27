@@ -11,6 +11,8 @@
 
 package alluxio.conf;
 
+import alluxio.annotation.PublicApi;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ import java.util.Set;
 /**
  * Alluxio configuration.
  */
+@PublicApi
 public interface AlluxioConfiguration {
 
   /**

@@ -13,8 +13,9 @@ import {AxiosResponse} from 'axios';
 import {action} from 'typesafe-actions';
 
 import {BrowseActionTypes} from './types';
+import {IRequest} from "@alluxio/common-ui/src/constants";
 
-export const fetchRequest = (path?: string, offset?: string, limit?: string, end?: string) => action(BrowseActionTypes.FETCH_REQUEST,
+export const fetchRequest = ({path, offset, limit, end}: IRequest) => action(BrowseActionTypes.FETCH_REQUEST,
   {queryString: {end, limit, offset, path}}
 );
 export const fetchSuccess = (response: AxiosResponse) => action(BrowseActionTypes.FETCH_SUCCESS, response);

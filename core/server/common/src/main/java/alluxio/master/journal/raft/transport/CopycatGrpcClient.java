@@ -70,7 +70,7 @@ public class CopycatGrpcClient implements Client {
 
   @Override
   public CompletableFuture<Connection> connect(Address address) {
-    LOG.debug("Copycat transport client connecting to: {}", address);
+    LOG.debug("Creating a copycat client connection to: {}", address);
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     // Future for this connection.
     final CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
@@ -79,19 +79,23 @@ public class CopycatGrpcClient implements Client {
       try {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
-            .newBuilder(new GrpcServerAddress(address.host(), address.socketAddress()), mConf)
-            .setSubject(mUserState.getSubject()).build();
+            .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
+            .setClientType("CopycatClient").setSubject(mUserState.getSubject())
+            .setMaxInboundMessageSize((int) mConf
+                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
+            .build();
 
         // Create stub for receiving stream from server.
         CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =
             CopycatMessageServerGrpc.newStub(channel);
 
         // Create client connection that is bound to remote server stream.
-        CopycatGrpcConnection clientConnection = new CopycatGrpcClientConnection(threadContext,
-            mExecutor, channel, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+        CopycatGrpcConnection clientConnection =
+            new CopycatGrpcClientConnection(threadContext, mExecutor, channel,
+                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
-        LOG.debug("Created copycat connection for target: {}", address);
+        LOG.debug("Created a copycat client connection: {}", clientConnection);
         mConnections.add(clientConnection);
         return clientConnection;
       } catch (Throwable e) {

@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
+import alluxio.annotation.PublicApi;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.Scope;
 import alluxio.grpc.WritePType;
@@ -48,6 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Configuration property keys. This class provides a set of pre-defined property keys.
  */
 @ThreadSafe
+@PublicApi
 public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.class);
 
@@ -668,6 +670,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
+      new Builder(Name.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Set this to false to prevent Alluxio from creating zero byte objects "
+              + "during read or list operations on object store UFS. Leaving this on enables more"
+              + " efficient listing of prefixes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
       new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
           .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
@@ -1175,7 +1186,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_DIRECTORY =
       new Builder(Name.MASTER_BACKUP_DIRECTORY)
-          .setDefaultValue(String.format("${%s}/alluxio_backups", Name.WORK_DIR))
+          .setDefaultValue("/alluxio_backups")
           .setDescription("Default directory for writing master metadata backups. This path is "
               + "an absolute path of the root UFS. For example, if the root ufs "
               + "directory is hdfs://host:port/alluxio/data, the default backup directory will be "
@@ -1246,16 +1257,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
           .setDescription(
               "The election timeout for the embedded journal. When this period elapses without a "
-                  + "master receiving any messages, the master will attempt to become the primary.")
-          .setDefaultValue("5s")
+                  + "master receiving any messages, the master will attempt to become the primary."
+                  + "Election timeout will be waited initially when the cluster is forming. "
+                  + "So larger values for election timeout will cause longer start-up time. "
+                  + "Smaller values might introduce instability to leadership.")
+          .setDefaultValue("10s")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL)
           .setDescription(
               "The period between sending heartbeats from the embedded journal primary to "
                   + "followers. This should be less than half of the election timeout "
-                  + "(alluxio.master.embedded.journal.election.timeout).")
-          .setDefaultValue("1s")
+                  + String.format("{%s}", Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
+                  + ", because the election is driven by heart beats.")
+          .setDefaultValue("3s")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE)
+          .setDescription("Amount of data that is appended from leader to followers "
+              + "in a single heartbeat. Setting higher values might require increasing "
+              + "election timeout due to increased network delay. Setting lower values "
+              + "might stall knowledge propagation between the leader and followers.")
+          .setDefaultValue("512KB")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
@@ -1269,6 +1298,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "losing state in case of power loss or host failure. Use MEMORY for "
               + "optimal performance, but no state persistence across cluster restarts.")
           .setDefaultValue("DISK")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT)
@@ -1277,10 +1307,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT)
+          .setDefaultValue("30sec")
+          .setDescription("Maximum time to wait for a write/flush on embedded journal.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)
           .setDefaultValue("2hour")
           .setDescription("Maximum time to wait for the triggered snapshot to finish.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS)
+          .setDefaultValue("5sec")
+          .setDescription("Timeout for requests between embedded journal masters.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The max inbound message size used by copycat client/server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1825,6 +1876,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "is set to 0, the cache will be disabled, and "
               + "`alluxio.user.file.metadata.load.type=ONCE` will behave like `ALWAYS`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
+      new Builder(Name.MASTER_UPDATE_CHECK_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to check for update availability.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WEB_BIND_HOST =
@@ -2766,7 +2824,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
-          .setDefaultValue("512MB")
+          .setDefaultValue("64MB")
           .setDescription("Default block size for Alluxio files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3441,11 +3499,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.NONE)
           .build();
-  // Assumes that HDFS is the UFS and version is 2.2
+  // Assumes that HDFS is the UFS and version is 2.7
   // TODO(ns) Fix default value to handle other UFS types
   public static final PropertyKey UNDERFS_VERSION =
       new Builder(Name.UNDERFS_VERSION)
-          .setDefaultValue("2.2")
+          .setDefaultValue("2.7")
           .setIsHidden(true)
           .build();
 
@@ -3457,6 +3515,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The number of threads the Alluxio master uses to make requests to the "
               + "job master.")
           .setDefaultValue(1024)
+          .build();
+  public static final PropertyKey JOB_MASTER_FINISHED_JOB_PURGE_COUNT =
+      new Builder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
+          .setDescription("The maximum amount of jobs to purge at any single time when the job "
+              + "master reaches its maximum capacity. It is recommended to set this value when "
+              + "setting the capacity of the job master to a large ( > 10M) value. Default is -1 "
+              + "denoting an unlimited value")
+          .setDefaultValue("-1")
           .build();
   public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
       new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME)
@@ -3738,6 +3804,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_WEB_PARENT_NAMES = "alluxio.underfs.web.parent.names";
     public static final String UNDERFS_WEB_TITLES = "alluxio.underfs.web.titles";
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
+    public static final String UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
+        "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
@@ -3883,6 +3951,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
         "alluxio.master.embedded.journal.election.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
+        "alluxio.master.embedded.journal.appender.batch.size";
     public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
         "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
@@ -3891,8 +3961,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
         "alluxio.master.embedded.journal.shutdown.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
+        "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
         "alluxio.master.embedded.journal.triggered.snapshot.wait.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
+        "alluxio.master.embedded.journal.transport.request.timeout.ms";
+    public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.master.embedded.journal.transport.max.inbound.message.size";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
@@ -3980,6 +4056,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
         "alluxio.master.ufs.path.cache.threads";
+    public static final String MASTER_UPDATE_CHECK_ENABLED =
+        "alluxio.master.update.check.enabled";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
@@ -4283,6 +4361,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String JOB_MASTER_CLIENT_THREADS =
         "alluxio.job.master.client.threads";
+    public static final String JOB_MASTER_FINISHED_JOB_PURGE_COUNT =
+        "alluxio.job.master.finished.job.purge.count";
     public static final String JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
         "alluxio.job.master.finished.job.retention.time";
     public static final String JOB_MASTER_JOB_CAPACITY = "alluxio.job.master.job.capacity";

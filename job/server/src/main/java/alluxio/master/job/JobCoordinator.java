@@ -11,11 +11,11 @@
 
 package alluxio.master.job;
 
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
 import alluxio.job.JobServerContext;
-import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.meta.JobInfo;
 import alluxio.job.wire.Status;
@@ -23,7 +23,7 @@ import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
 import alluxio.wire.WorkerInfo;
 
-import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -69,7 +70,7 @@ public final class JobCoordinator {
 
   private JobCoordinator(CommandManager commandManager, JobServerContext jobServerContext,
       List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
-      Function<JobInfo, Void> statusChangeCallback) {
+      Consumer<JobInfo> statusChangeCallback) {
     Preconditions.checkNotNull(jobConfig);
     mJobServerContext = jobServerContext;
     mJobInfo = new JobInfo(jobId, jobConfig, statusChangeCallback);
@@ -91,7 +92,7 @@ public final class JobCoordinator {
    */
   public static JobCoordinator create(CommandManager commandManager,
       JobServerContext jobServerContext, List<WorkerInfo> workerInfoList, Long jobId,
-      JobConfig jobConfig, Function<JobInfo, Void> statusChangeCallback)
+      JobConfig jobConfig, Consumer<JobInfo> statusChangeCallback)
       throws JobDoesNotExistException {
     Preconditions.checkNotNull(commandManager, "commandManager");
     JobCoordinator jobCoordinator = new JobCoordinator(commandManager, jobServerContext,
@@ -152,11 +153,13 @@ public final class JobCoordinator {
    *
    * @param taskInfoList List of @TaskInfo instances to update
    */
-  public synchronized void updateTasks(List<TaskInfo> taskInfoList) {
-    for (TaskInfo taskInfo : taskInfoList) {
-      mJobInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
+  public void updateTasks(List<TaskInfo> taskInfoList) {
+    synchronized (mJobInfo) {
+      for (TaskInfo taskInfo : taskInfoList) {
+        mJobInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
+      }
+      updateStatus();
     }
-    updateStatus();
   }
 
   /**
@@ -167,13 +170,24 @@ public final class JobCoordinator {
   }
 
   /**
+   * @return the id corresponding to the job
+   */
+  public long getJobId() {
+    return mJobInfo.getId();
+  }
+
+  /**
    * Sets the job as failed with given error message.
    *
    * @param errorMessage Error message to set for failure
    */
-  public synchronized void setJobAsFailed(String errorMessage) {
-    mJobInfo.setStatus(Status.FAILED);
-    mJobInfo.setErrorMessage(errorMessage);
+  public void setJobAsFailed(String errorMessage) {
+    synchronized (mJobInfo) {
+      if (!mJobInfo.getStatus().isFinished()) {
+        mJobInfo.setStatus(Status.FAILED);
+        mJobInfo.setErrorMessage(errorMessage);
+      }
+    }
   }
 
   /**
@@ -181,18 +195,22 @@ public final class JobCoordinator {
    *
    * @param workerId the id of the worker to fail tasks for
    */
-  public synchronized void failTasksForWorker(long workerId) {
-    Integer taskId = mWorkerIdToTaskId.get(workerId);
-    if (taskId == null) {
-      return;
+  public void failTasksForWorker(long workerId) {
+    synchronized (mJobInfo) {
+      Integer taskId = mWorkerIdToTaskId.get(workerId);
+      if (taskId == null) {
+        return;
+      }
+      TaskInfo taskInfo = mJobInfo.getTaskInfo(taskId);
+      if (taskInfo.getStatus().isFinished()) {
+        return;
+      }
+      if (!mJobInfo.getStatus().isFinished()) {
+        taskInfo.setStatus(Status.FAILED);
+        taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+        updateStatus();
+      }
     }
-    TaskInfo taskInfo = mJobInfo.getTaskInfo(taskId);
-    if (taskInfo.getStatus().isFinished()) {
-      return;
-    }
-    taskInfo.setStatus(Status.FAILED);
-    taskInfo.setErrorMessage("Job worker was lost before the task could complete");
-    updateStatus();
   }
 
   /**
@@ -206,7 +224,7 @@ public final class JobCoordinator {
    * Updates the status of the job. When all the tasks are completed, run the join method in the
    * definition.
    */
-  private void updateStatus() {
+  private synchronized void updateStatus() {
     int completed = 0;
     List<TaskInfo> taskInfoList = mJobInfo.getTaskInfoList();
     for (TaskInfo info : taskInfoList) {
@@ -244,8 +262,9 @@ public final class JobCoordinator {
 
       // all the tasks completed, run join
       try {
-        mJobInfo.setStatus(Status.COMPLETED);
+        // Try to join first, so that in case of failure we don't move to a completed state yet
         mJobInfo.setResult(join(taskInfoList));
+        mJobInfo.setStatus(Status.COMPLETED);
       } catch (Exception e) {
         mJobInfo.setStatus(Status.FAILED);
         mJobInfo.setErrorMessage(e.getMessage());
@@ -269,5 +288,24 @@ public final class JobCoordinator {
       taskResults.put(mTaskIdToWorkerInfo.get(taskInfo.getTaskId()), taskInfo.getResult());
     }
     return definition.join(mJobInfo.getJobConfig(), taskResults);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof JobCoordinator)) {
+      return false;
+    }
+
+    JobCoordinator other = (JobCoordinator) o;
+    return Objects.equal(mJobInfo, other.mJobInfo);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mJobInfo);
   }
 }

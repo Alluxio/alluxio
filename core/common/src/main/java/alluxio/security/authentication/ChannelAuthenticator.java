@@ -15,9 +15,9 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnknownException;
 import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcChannelKey;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
@@ -29,11 +29,13 @@ import io.grpc.ClientInterceptors;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,20 +67,22 @@ public class ChannelAuthenticator {
   /** gRPC Authentication timeout in milliseconds. */
   protected final long mGrpcAuthTimeoutMs;
 
-  /** Internal ID used to identify the channel that is being authenticated. */
-  protected UUID mChannelId;
+  /** Key for to-be-authenticated channel. */
+  protected final GrpcChannelKey mChannelKey;
 
   /**
    * Creates {@link ChannelAuthenticator} instance.
    *
+   * @param channelKey channel key
    * @param subject javax subject to use for authentication
    * @param conf Alluxio configuration
    */
-  public ChannelAuthenticator(Subject subject, AlluxioConfiguration conf) {
+  public ChannelAuthenticator(GrpcChannelKey channelKey, Subject subject,
+      AlluxioConfiguration conf) {
+    mChannelKey = channelKey;
     mUseSubject = true;
     mParentSubject = subject;
     mConfiguration = conf;
-    mChannelId = UUID.randomUUID();
     mAuthType = conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     mGrpcAuthTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT);
   }
@@ -86,16 +90,17 @@ public class ChannelAuthenticator {
   /**
    * Creates {@link ChannelAuthenticator} instance.
    *
+   * @param channelKey channel key
    * @param userName user name
    * @param password user password
    * @param impersonationUser impersonation user
    * @param authType authentication type
    * @param grpcAuthTimeoutMs authentication timeout in milliseconds
    */
-  public ChannelAuthenticator(String userName, String password, String impersonationUser,
-      AuthType authType, long grpcAuthTimeoutMs) {
+  public ChannelAuthenticator(GrpcChannelKey channelKey, String userName, String password,
+      String impersonationUser, AuthType authType, long grpcAuthTimeoutMs) {
+    mChannelKey = channelKey;
     mUseSubject = false;
-    mChannelId = UUID.randomUUID();
     mUserName = userName;
     mPassword = password;
     mImpersonationUser = impersonationUser;
@@ -107,22 +112,19 @@ public class ChannelAuthenticator {
    * Authenticates given {@link NettyChannelBuilder} instance. It attaches required interceptors to
    * the channel based on authentication type.
    *
-   * @param serverAddress the remote address to which the given channel has been opened
-   * @param managedChannel the managed channel for whch authentication is taking place
+   * @param managedChannel the managed channel for which authentication is taking place
    * @return channel that is augmented for authentication
    * @throws UnauthenticatedException
    */
-  public AuthenticatedChannel authenticate(GrpcServerAddress serverAddress,
-      ManagedChannel managedChannel) throws AlluxioStatusException {
-    LOG.debug("Channel authentication initiated. ChannelId:{}, AuthType:{}, Target:{}", mChannelId,
-            mAuthType, managedChannel.authority());
+  public AuthenticatedChannel authenticate(ManagedChannel managedChannel)
+      throws AlluxioStatusException {
+    LOG.debug("Channel authentication initiated. ChannelKey:{}, AuthType:{}, Target:{}",
+        mChannelKey, mAuthType, managedChannel.authority());
 
-    return new DefaultAuthenticatedChannel(serverAddress, managedChannel);
+    return new DefaultAuthenticatedChannel(managedChannel);
   }
 
   private class DefaultAuthenticatedChannel extends AuthenticatedChannel {
-    /** Target server for authentication.  */
-    private final GrpcServerAddress mServerAddress;
     /** Given managed channel reference. */
     private final ManagedChannel mManagedChannel;
     /** Augmented channel with authentication interceptors. */
@@ -132,9 +134,8 @@ public class ChannelAuthenticator {
     /** Sasl traffic driver for the client. */
     private SaslStreamClientDriver mClientDriver;
 
-    DefaultAuthenticatedChannel(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
+    DefaultAuthenticatedChannel(ManagedChannel managedChannel)
         throws AlluxioStatusException {
-      mServerAddress = serverAddress;
       mManagedChannel = managedChannel;
       mAuthenticated = new AtomicBoolean(false);
       authenticate();
@@ -143,16 +144,16 @@ public class ChannelAuthenticator {
     public void authenticate() throws AlluxioStatusException {
       // Determine channel authentication scheme to use.
       ChannelAuthenticationScheme authScheme =
-              getChannelAuthScheme(mParentSubject, mServerAddress.getSocketAddress());
+          getChannelAuthScheme(mParentSubject, mChannelKey.getServerAddress().getSocketAddress());
       try (
           // Create SaslHandler for talking with target host's authentication service.
           SaslClientHandler saslClientHandler =
-              createSaslClientHandler(mServerAddress, authScheme, mParentSubject)) {
+              createSaslClientHandler(mChannelKey.getServerAddress(), authScheme, mParentSubject)) {
         // Create authentication scheme specific handshake handler.
         SaslHandshakeClientHandler handshakeClient =
             new DefaultSaslHandshakeClientHandler(saslClientHandler);
         // Create driver for driving sasl traffic from client side.
-        mClientDriver = new SaslStreamClientDriver(handshakeClient, mAuthenticated, mChannelId,
+        mClientDriver = new SaslStreamClientDriver(handshakeClient, mAuthenticated, mChannelKey,
             mGrpcAuthTimeoutMs);
         // Start authentication call with the service and update the client driver.
         StreamObserver<SaslMessage> requestObserver =
@@ -165,18 +166,19 @@ public class ChannelAuthenticator {
           mAuthenticated.set(false);
         });
         // Intercept authenticated channel with channel-Id injector.
-        mChannel = ClientInterceptors.intercept(mManagedChannel, new ChannelIdInjector(mChannelId));
-      } catch (Exception exc) {
-        String message = String.format(
-            "Channel authentication failed. ChannelId: %s, AuthType: %s, Target: %s, Error: %s",
-            mChannelId, mAuthType, mManagedChannel.authority(), exc.toString());
-        LOG.warn(message);
-        if (exc instanceof AlluxioStatusException) {
-          throw AlluxioStatusException.from(
-              ((AlluxioStatusException) exc).getStatus().withDescription(message).withCause(exc));
-        } else {
-          throw new UnknownException(message, exc);
+        mChannel = ClientInterceptors.intercept(mManagedChannel,
+            new ChannelIdInjector(mChannelKey.getChannelId()));
+      } catch (IOException e) {
+        Status.Code code = Status.Code.UNKNOWN;
+        if (e instanceof AlluxioStatusException) {
+          code = ((AlluxioStatusException) e).getStatusCode();
         }
+        String message = String.format(
+            "Channel authentication failed with code:%s. ChannelKey: %s, AuthType: %s, Error: %s",
+            code.name(), mChannelKey.toStringShort(), mAuthType, e.toString());
+        LOG.warn(message);
+        throw AlluxioStatusException
+            .from(Status.fromCode(code).withDescription(message).withCause(e));
       }
     }
 
@@ -248,7 +250,7 @@ public class ChannelAuthenticator {
 
     @Override
     public UUID getChannelId() {
-      return mChannelId;
+      return mChannelKey.getChannelId();
     }
 
     @Override

@@ -15,7 +15,7 @@ priority: 3
 
 要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制服务端包。你可以[下载带有正确Hadoop版本的预编译二进制包](Running-Alluxio-Locally.html)，对于高级用户，也可[源码编译Alluxio](Building-Alluxio-From-Source.html)，
 
-注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `2.2.0`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
+注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `2.7.3`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
 
 ```console
 $ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
