@@ -303,7 +303,7 @@ public final class FileSystemMasterClientServiceHandler
       AlluxioURI ufsUri = getAlluxioURI(request.getUfsPath());
       AlluxioURI alluxioPath = mFileSystemMaster.reverseResolve(ufsUri);
       return ReverseResolvePResponse.newBuilder().setAlluxioPath(alluxioPath.getPath()).build();
-    }, "Rename", "request=%s", responseObserver, request);
+    }, "ReverseResolve", "request=%s", responseObserver, request);
   }
 
   @Override
