@@ -231,4 +231,30 @@ public interface PartitionInfoOrBuilder extends
    */
   alluxio.grpc.catalog.FieldSchemaOrBuilder getColsOrBuilder(
       int index);
+
+  /**
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 9;</code>
+   */
+  boolean hasPartitionName();
+  /**
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 9;</code>
+   */
+  java.lang.String getPartitionName();
+  /**
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 9;</code>
+   */
+  com.google.protobuf.ByteString
+      getPartitionNameBytes();
 }

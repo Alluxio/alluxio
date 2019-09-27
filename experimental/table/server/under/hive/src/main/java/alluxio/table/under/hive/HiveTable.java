@@ -31,6 +31,7 @@ import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.ConfigurationUtils;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -158,13 +159,15 @@ public class HiveTable implements UdbTable {
     try {
       List<Partition> partitions = mHive.listPartitions(mHiveDatabase.getName(), mName, (short) -1);
       for (Partition partition : partitions) {
+        String partName = Warehouse.makePartName(mTable.getPartitionKeys(), partition.getValues());
         PartitionInfo.Builder pib = PartitionInfo.newBuilder()
             .setDbName(partition.getDbName()).setTableName(mName)
             .addAllCols(HiveUtils.toProto(partition.getSd().getCols()))
             .setStorage(HiveUtils.toProto(partition.getSd(), mPathTranslator))
             .putAllFileMetadata(getPartitionMetadata(
                 mPathTranslator.toAlluxioPath(partition.getSd().getLocation()),
-                mHiveDatabase.getUdbContext().getFileSystem()));
+                mHiveDatabase.getUdbContext().getFileSystem()))
+            .setPartitionName(partName);
         if (partition.getValues() != null) {
           pib.addAllValues(partition.getValues());
         }
