@@ -48,6 +48,13 @@ public class UdbContext {
   }
 
   /**
+   * @return the db name
+   */
+  public String getDbName() {
+    return mDbName;
+  }
+
+  /**
    * @return the alluxio fs client
    */
   public FileSystem getFileSystem() {

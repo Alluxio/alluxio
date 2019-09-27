@@ -58,15 +58,16 @@ public class HiveDatabase implements UnderDatabase {
   private final UdbConfiguration mConfiguration;
   private final HiveDataCatalog mCatalog;
   private final HiveMetaStoreClient mHive;
-  private final String mDbName;
+  /** the name of the hive db. */
+  private final String mHiveDbName;
 
   private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
-      HiveDataCatalog catalog, HiveMetaStoreClient hive, String dbName) {
+      HiveDataCatalog catalog, HiveMetaStoreClient hive, String hiveDbName) {
     mUdbContext = udbContext;
     mConfiguration = configuration;
     mCatalog = catalog;
     mHive = hive;
-    mDbName = dbName;
+    mHiveDbName = hiveDbName;
     mConfiguration.toString(); // read the field
   }
 
@@ -127,13 +128,13 @@ public class HiveDatabase implements UnderDatabase {
 
   @Override
   public String getName() {
-    return mDbName;
+    return mHiveDbName;
   }
 
   @Override
   public List<String> getTableNames() throws IOException {
     try {
-      return mHive.getAllTables(mDbName);
+      return mHive.getAllTables(mHiveDbName);
     } catch (MetaException e) {
       throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
     }
@@ -187,14 +188,14 @@ public class HiveDatabase implements UnderDatabase {
   public UdbTable getTable(String tableName) throws IOException {
     org.apache.hadoop.hive.metastore.api.Table table = null;
     try {
-      table = mHive.getTable(mDbName, tableName);
+      table = mHive.getTable(mHiveDbName, tableName);
 
       PathTranslator pathTranslator = mountAlluxioPaths(table);
 
       List<String> colNames = table.getSd().getCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
       List<ColumnStatisticsObj> columnStats =
-          mHive.getTableColumnStatistics(mDbName, tableName, colNames);
+          mHive.getTableColumnStatistics(mHiveDbName, tableName, colNames);
       FileStatistics.Builder builder = FileStatistics.newBuilder();
       for (ColumnStatisticsObj columnStat : columnStats) {
         if (columnStat.isSetStatsData()) {
@@ -220,7 +221,8 @@ public class HiveDatabase implements UnderDatabase {
         }
       }
       // Potentially expensive call
-      List<Partition> partitions = mHive.listPartitions(mDbName, table.getTableName(), (short) -1);
+      List<Partition> partitions =
+          mHive.listPartitions(mHiveDbName, table.getTableName(), (short) -1);
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
       return new HiveTable(mHive, this, pathTranslator, tableName,
           HiveUtils.toProtoSchema(table.getSd().getCols()), tableUri.getPath(),
@@ -236,7 +238,7 @@ public class HiveDatabase implements UnderDatabase {
   @Override
   public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
       throws IOException {
-    mCatalog.getTable(TableIdentifier.of(mDbName, tableName));
+    mCatalog.getTable(TableIdentifier.of(mHiveDbName, tableName));
     return null;
   }
 }
