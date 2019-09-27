@@ -42,6 +42,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
+import alluxio.grpc.ReverseResolvePRequest;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePRequest;
 import alluxio.grpc.ServiceType;
@@ -255,6 +256,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       final RenamePOptions options) throws AlluxioStatusException {
     retryRPC(() -> mClient.rename(RenamePRequest.newBuilder().setPath(getTransportPath(src))
         .setDstPath(getTransportPath(dst)).setOptions(options).build()), "Rename");
+  }
+
+  @Override
+  public AlluxioURI reverseResolve(final AlluxioURI path) throws AlluxioStatusException {
+    return retryRPC(() -> new AlluxioURI(mClient.reverseResolve(ReverseResolvePRequest.newBuilder()
+        .setUfsPath(path.getPath()).build()).getAlluxioPath()), "ReverseResolve");
   }
 
   @Override
