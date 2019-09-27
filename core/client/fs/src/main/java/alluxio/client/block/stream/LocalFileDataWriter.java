@@ -135,11 +135,11 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void cancel() throws IOException {
-    if (mStream.isClosed() || mStream.isCanceled()) {
-      return;
-    }
+    boolean cancelStream = !(mStream.isClosed() || mStream.isCanceled());
     try {
-      mStream.cancel();
+      if (cancelStream) {
+        mStream.cancel();
+      }
     } catch (Exception e) {
       throw mCloser.rethrow(e);
     } finally {
@@ -152,16 +152,16 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void close() throws IOException {
-    if (mStream.isClosed() || mStream.isCanceled()) {
-      return;
+    boolean closeStream = !(mStream.isClosed() || mStream.isCanceled());
+    if (closeStream) {
+      mCloser.register(new Closeable() {
+        @Override
+        public void close() throws IOException {
+          mStream.close();
+          mStream.waitForComplete(mDataTimeoutMs);
+        }
+      });
     }
-    mCloser.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        mStream.close();
-        mStream.waitForComplete(mDataTimeoutMs);
-      }
-    });
     mCloser.close();
   }
 
