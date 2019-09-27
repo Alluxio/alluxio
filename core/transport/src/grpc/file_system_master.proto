@@ -343,6 +343,14 @@ message RenamePRequest {
   optional RenamePOptions options = 3;
 }
 
+message ReverseResolvePRequest {
+  optional string ufsPath = 1;
+}
+message ReverseResolvePResponse {
+  optional string alluxioPath = 1;
+}
+
+
 message SetAttributePResponse {}
 message SetAttributePOptions {
   optional bool pinned = 1;
@@ -530,6 +538,11 @@ service FileSystemMasterClientService {
    * Renames a file or a directory.
    */
   rpc Rename(RenamePRequest) returns (RenamePResponse);
+
+  /**
+   * Reverse resolve a ufs path.
+   */
+  rpc ReverseResolve(ReverseResolvePRequest) returns (ReverseResolvePResponse);
 
   /**
    * Schedules async persistence.

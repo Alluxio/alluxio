@@ -48,6 +48,8 @@ import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
+import alluxio.grpc.ReverseResolvePRequest;
+import alluxio.grpc.ReverseResolvePResponse;
 import alluxio.grpc.ScheduleAsyncPersistencePRequest;
 import alluxio.grpc.ScheduleAsyncPersistencePResponse;
 import alluxio.grpc.SetAclPRequest;
@@ -291,6 +293,16 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.rename(srcPathUri, dstPathUri,
           RenameContext.create(request.getOptions().toBuilder()));
       return RenamePResponse.newBuilder().build();
+    }, "Rename", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void reverseResolve(ReverseResolvePRequest request,
+      StreamObserver<ReverseResolvePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      AlluxioURI ufsUri = getAlluxioURI(request.getUfsPath());
+      AlluxioURI alluxioPath = mFileSystemMaster.reverseResolve(ufsUri);
+      return ReverseResolvePResponse.newBuilder().setAlluxioPath(alluxioPath.getPath()).build();
     }, "Rename", "request=%s", responseObserver, request);
   }
 
