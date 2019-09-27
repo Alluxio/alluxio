@@ -18,14 +18,10 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.catalog.FieldSchema;
 import alluxio.grpc.catalog.FileStatistics;
-import alluxio.grpc.catalog.HiveBucketProperty;
 import alluxio.grpc.catalog.HiveTableInfo;
 import alluxio.grpc.catalog.ParquetMetadata;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.Schema;
-import alluxio.grpc.catalog.SortingColumn;
-import alluxio.grpc.catalog.Storage;
-import alluxio.grpc.catalog.StorageFormat;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.TableView;
 import alluxio.table.common.udb.UdbTable;
@@ -33,9 +29,9 @@ import alluxio.table.under.hive.parquet.AlluxioInputFile;
 import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.ConfigurationUtils;
 
+import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
-import org.apache.hadoop.hive.ql.metadata.Partition;
-import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.io.InputFile;
 import org.slf4j.Logger;
@@ -46,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Hive table implementation.
@@ -89,16 +84,20 @@ public class HiveTable implements UdbTable {
     mStatistics = statistics;
     mPartitionKeys = cols;
     mPartitionInfo = new ArrayList<>();
-    for (Partition part : partitions) {
-      PartitionInfo.Builder pib = PartitionInfo.newBuilder().setTableName(mName)
-          .setSd(mPathTranslator.toAlluxioPath(part.getLocation().toString())).putAllFileMetadata(
-              getPartitionMetadata(
-                  mPathTranslator.toAlluxioPath(part.getPartitionPath().toString()),
-                  mHiveDatabase.getUdbContext().getFileSystem()));
-      if (part.getValues() != null) {
-        pib.addAllValues(part.getValues());
+    if (partitions != null) {
+      for (Partition part : partitions) {
+        PartitionInfo.Builder pib = PartitionInfo.newBuilder().setTableName(mName)
+            .addAllCols(HiveUtils.toProto(part.getSd().getCols()))
+            .setDbName(table.getDbName()).setStorage(HiveUtils.toProto(part.getSd(),
+                mPathTranslator))
+            .putAllFileMetadata(getPartitionMetadata(
+                mPathTranslator.toAlluxioPath(part.getSd().getLocation()),
+                mHiveDatabase.getUdbContext().getFileSystem()));
+        if (part.getValues() != null) {
+          pib.addAllValues(part.getValues());
+        }
+        mPartitionInfo.add(pib.build());
       }
-      mPartitionInfo.add(pib.build());
     }
     mTable = table;
   }
@@ -169,36 +168,16 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
-  public UdbTableInfo toProto() {
+  public UdbTableInfo toProto() throws IOException {
     HiveTableInfo.Builder builder = HiveTableInfo.newBuilder();
     builder.setDatabaseName(mTable.getDbName()).setTableName(mTable.getTableName())
-        .setOwner(mTable.getOwner()).setTableType(mTable.getTableType().toString());
+        .setOwner(mTable.getOwner()).setTableType(mTable.getTableType());
 
     StorageDescriptor sd = mTable.getSd();
-    String serDe = sd == null || sd.getSerdeInfo() == null ? ""
-        : sd.getSerdeInfo().getSerializationLib();
-
-    StorageFormat format = StorageFormat.newBuilder()
-        .setInputFormat(sd == null ? "" : sd.getInputFormat())
-        .setOutputFormat(sd == null ? "" : sd.getOutputFormat())
-        .setSerDe(serDe).build(); // Check SerDe info
-    Storage.Builder storageBuilder = Storage.newBuilder();
-
-    List<SortingColumn> sortingColumns = mTable.getSortCols().stream().map(
-        order -> SortingColumn.newBuilder().setColumnName(order.getCol())
-            .setOrder(order.getOrder() == 1 ? SortingColumn.SortingOrder.ASCENDING
-                : SortingColumn.SortingOrder.DESCENDING).build())
-        .collect(Collectors.toList());
-    Storage storage = storageBuilder.setStorageFormat(format)
-        .setLocation(mTable.getDataLocation().toString())
-        .setBucketProperty(HiveBucketProperty.newBuilder().setBucketCount(mTable.getNumBuckets())
-            .addAllBucketedBy(mTable.getBucketCols()).addAllSortedBy(sortingColumns).build())
-        .setSkewed(sd.getSkewedInfo() != null && (sd.getSkewedInfo().getSkewedColNames()) != null
-            && !sd.getSkewedInfo().getSkewedColNames().isEmpty())
-        .putAllSerdeParameters(sd.getParameters()).build();
-    builder.addAllDataColumns(HiveUtils.toProto(mTable.getCols()))
-        .addAllPartitionColumns(HiveUtils.toProto(mTable.getPartCols()))
-        .setStorage(storage).putAllParameters(mTable.getParameters());
+    builder.addAllDataColumns(HiveUtils.toProto(mTable.getSd().getCols()))
+        .addAllPartitionColumns(HiveUtils.toProto(mTable.getPartitionKeys()))
+        .setStorage(HiveUtils.toProto(sd, mPathTranslator))
+        .putAllParameters(mTable.getParameters());
     if (mTable.getViewOriginalText() != null) {
       builder.setViewOriginalText(mTable.getViewOriginalText());
     }

@@ -30,14 +30,15 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.hadoop.hive.ql.metadata.Hive;
-import org.apache.hadoop.hive.ql.metadata.HiveException;
-import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
-import org.apache.hadoop.hive.ql.metadata.Partition;
-import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.iceberg.catalog.TableIdentifier;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,11 +57,11 @@ public class HiveDatabase implements UnderDatabase {
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
   private final HiveDataCatalog mCatalog;
-  private final Hive mHive;
+  private final HiveMetaStoreClient mHive;
   private final String mDbName;
 
   private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
-      HiveDataCatalog catalog, Hive hive, String dbName) {
+      HiveDataCatalog catalog, HiveMetaStoreClient hive, String dbName) {
     mUdbContext = udbContext;
     mConfiguration = configuration;
     mCatalog = catalog;
@@ -101,12 +102,12 @@ public class HiveDatabase implements UnderDatabase {
     // TODO(gpang): get rid of creating db
     catalog.createDatabase(dbName);
 
-    Hive hive;
+    HiveMetaStoreClient hive;
     try {
       HiveConf conf = new HiveConf();
       conf.set("hive.metastore.uris", uris);
-      hive = Hive.get(conf);
-    } catch (HiveException e) {
+      hive = new HiveMetaStoreClient(conf);
+    } catch (MetaException e) {
       throw new IOException("Failed to create hive client: " + e.getMessage(), e);
     }
     return new HiveDatabase(udbContext, configuration, catalog, hive, dbName);
@@ -128,7 +129,7 @@ public class HiveDatabase implements UnderDatabase {
   public List<String> getTableNames() throws IOException {
     try {
       return mHive.getAllTables(mDbName);
-    } catch (HiveException e) {
+    } catch (MetaException e) {
       throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
     }
   }
@@ -161,17 +162,17 @@ public class HiveDatabase implements UnderDatabase {
     AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
 
     try {
-      AlluxioURI ufsLocation = new AlluxioURI(table.getDataLocation().toString());
+      AlluxioURI ufsLocation = new AlluxioURI(table.getSd().getLocation());
       mountAlluxioPath(tableName, ufsLocation, tableUri);
 
       PathTranslator pathTranslator =
           new PathTranslator();
-      pathTranslator.addMapping(tableUri.toString(), table.getDataLocation().toString());
+      pathTranslator.addMapping(tableUri.toString(), table.getSd().getLocation());
       return pathTranslator;
     } catch (AlluxioException e) {
       throw new IOException(
           "Failed to mount table location. tableName: " + tableName
-              + " tableLocation: " + (table != null ? table.getDataLocation() : "null")
+              + " tableLocation: " + (table != null ? table.getSd().getLocation() : "null")
               + " AlluxioLocation: " + mUdbContext.getTableLocation(tableName)
               + " error: " + e.getMessage(), e);
     }
@@ -179,13 +180,13 @@ public class HiveDatabase implements UnderDatabase {
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
-    Table table = null;
+    org.apache.hadoop.hive.metastore.api.Table table = null;
     try {
       table = mHive.getTable(mDbName, tableName);
 
       PathTranslator pathTranslator = mountAlluxioPaths(table);
 
-      List<String> colNames = table.getAllCols().stream().map(FieldSchema::getName)
+      List<String> colNames = table.getSd().getCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
       List<ColumnStatisticsObj> columnStats =
           mHive.getTableColumnStatistics(mDbName, tableName, colNames);
@@ -214,15 +215,15 @@ public class HiveDatabase implements UnderDatabase {
         }
       }
       // Potentially expensive call
-      List<Partition> partitions = mHive.getPartitions(table);
+      List<Partition> partitions = mHive.listPartitions(mDbName, table.getTableName(), (short) -1);
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
       return new HiveTable(this, pathTranslator, tableName,
-          HiveUtils.toProtoSchema(table.getAllCols()), tableUri.getPath(),
+          HiveUtils.toProtoSchema(table.getSd().getCols()), tableUri.getPath(),
           Collections.singletonMap("unpartitioned", builder.build()),
           HiveUtils.toProto(table.getPartitionKeys()), partitions, table);
-    } catch (InvalidTableException e) {
+    } catch (NoSuchObjectException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
-    } catch (HiveException e) {
+    } catch (TException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     }
   }

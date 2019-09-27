@@ -18,23 +18,32 @@ import alluxio.grpc.catalog.FieldType;
 import alluxio.grpc.catalog.FieldTypeId;
 import alluxio.grpc.catalog.FileMetadata;
 import alluxio.grpc.catalog.GroupType;
+import alluxio.grpc.catalog.HiveBucketProperty;
 import alluxio.grpc.catalog.MessageType;
 import alluxio.grpc.catalog.ParquetMetadata;
 import alluxio.grpc.catalog.PrimitiveTypeName;
 import alluxio.grpc.catalog.Repetition;
 import alluxio.grpc.catalog.Schema;
+import alluxio.grpc.catalog.SortingColumn;
+import alluxio.grpc.catalog.Storage;
+import alluxio.grpc.catalog.StorageFormat;
 import alluxio.grpc.catalog.Type;
+import alluxio.table.under.hive.util.PathTranslator;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.Order;
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.parquet.column.Encoding;
 import org.apache.parquet.hadoop.metadata.BlockMetaData;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.hadoop.metadata.FileMetaData;
 import org.apache.parquet.schema.PrimitiveType;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,6 +79,45 @@ public class HiveUtils {
       list.add(aFieldSchema);
     }
     return list;
+  }
+
+  /**
+   * Convert from a StorageDescriptor to a Storage object.
+   *
+   * @param sd storage descriptor
+   * @param translator path translator
+   * @return storage proto object
+   */
+  public static Storage toProto(StorageDescriptor sd, PathTranslator translator)
+      throws IOException {
+    if (sd == null) {
+      return Storage.getDefaultInstance();
+    }
+    String serDe = sd.getSerdeInfo() == null ? ""
+        : sd.getSerdeInfo().getSerializationLib();
+    StorageFormat format = StorageFormat.newBuilder()
+        .setInputFormat(sd.getInputFormat())
+        .setOutputFormat(sd.getOutputFormat())
+        .setSerDe(serDe).build(); // Check SerDe info
+    Storage.Builder storageBuilder = Storage.newBuilder();
+    List<Order> orderList = sd.getSortCols();
+    List<SortingColumn> sortingColumns;
+    if (orderList == null) {
+      sortingColumns = Collections.emptyList();
+    } else {
+      sortingColumns = orderList.stream().map(
+          order -> SortingColumn.newBuilder().setColumnName(order.getCol())
+              .setOrder(order.getOrder() == 1 ? SortingColumn.SortingOrder.ASCENDING
+                  : SortingColumn.SortingOrder.DESCENDING).build())
+          .collect(Collectors.toList());
+    }
+    return storageBuilder.setStorageFormat(format)
+        .setLocation(translator.toAlluxioPath(sd.getLocation()))
+        .setBucketProperty(HiveBucketProperty.newBuilder().setBucketCount(sd.getNumBuckets())
+            .addAllBucketedBy(sd.getBucketCols()).addAllSortedBy(sortingColumns).build())
+        .setSkewed(sd.getSkewedInfo() != null && (sd.getSkewedInfo().getSkewedColNames()) != null
+            && !sd.getSkewedInfo().getSkewedColNames().isEmpty())
+        .putAllSerdeParameters(sd.getParameters()).build();
   }
 
   private static FieldTypeId toProto(String hiveType) {

@@ -68,6 +68,7 @@ public class PathTranslator {
         return entry.getKey() + ufsPath.substring(entry.getValue().length());
       }
     }
+    // TODO(yuzhu): instead of throwing an exception, mount the path?
     throw new IOException(String
         .format("Ufs path (%s) can not be found", ufsPath));
   }

@@ -19,6 +19,7 @@ import alluxio.grpc.catalog.TableInfo;
 import alluxio.grpc.catalog.TableViewInfo;
 import alluxio.table.common.TableView;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +112,7 @@ public class TableVersion {
   /**
    * @return the proto representation
    */
-  public TableInfo toProto() {
+  public TableInfo toProto() throws IOException {
     TableInfo.Builder builder = TableInfo.newBuilder()
         .setDbName(mTable.getDatabase().getName())
         .setTableName(mTable.getName())

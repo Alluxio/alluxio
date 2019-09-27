@@ -14,6 +14,7 @@ package alluxio.master.catalog;
 import alluxio.grpc.catalog.TableInfo;
 import alluxio.table.common.udb.UdbTable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -94,7 +95,7 @@ public class Table {
   /**
    * @return the proto representation
    */
-  public TableInfo toProto() {
+  public TableInfo toProto() throws IOException {
     return get().toProto();
   }
 }
