@@ -159,7 +159,7 @@ public class HiveTable implements UdbTable {
       List<Partition> partitions = mHive.listPartitions(mHiveDatabase.getName(), mName, (short) -1);
       for (Partition partition : partitions) {
         PartitionInfo.Builder pib = PartitionInfo.newBuilder()
-            .setDbName(partition.getDbName()).setTableName(mName)
+            .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
             .addAllCols(HiveUtils.toProto(partition.getSd().getCols()))
             .setStorage(HiveUtils.toProto(partition.getSd(), mPathTranslator))
             .putAllFileMetadata(getPartitionMetadata(
@@ -180,8 +180,10 @@ public class HiveTable implements UdbTable {
   @Override
   public UdbTableInfo toProto() throws IOException {
     HiveTableInfo.Builder builder = HiveTableInfo.newBuilder();
-    builder.setDatabaseName(mTable.getDbName()).setTableName(mTable.getTableName())
-        .setOwner(mTable.getOwner()).setTableType(mTable.getTableType());
+    builder.setDatabaseName(mHiveDatabase.getUdbContext().getDbName())
+        .setTableName(mTable.getTableName())
+        .setOwner(mTable.getOwner())
+        .setTableType(mTable.getTableType());
 
     StorageDescriptor sd = mTable.getSd();
     builder.addAllDataColumns(HiveUtils.toProto(mTable.getSd().getCols()))
