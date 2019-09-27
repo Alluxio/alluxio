@@ -223,6 +223,7 @@ message PartitionInfo {
   optional ColumnStatisticsInfo col_stats = 6; // column statistics for partition
   map<string, ParquetMetadata> file_metadata = 7; // a map between file names and its parquet metadata info
   repeated FieldSchema cols = 8;
+  optional string partitionName = 9; // partition name in the form of "key=value"
 }
 
 // TODO(gpang): update

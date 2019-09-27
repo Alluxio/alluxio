@@ -20,6 +20,7 @@ private static final long serialVersionUID = 0L;
     dbName_ = "";
     tableName_ = "";
     cols_ = java.util.Collections.emptyList();
+    partitionName_ = "";
   }
 
   @java.lang.Override
@@ -133,6 +134,12 @@ private static final long serialVersionUID = 0L;
             }
             cols_.add(
                 input.readMessage(alluxio.grpc.catalog.FieldSchema.PARSER, extensionRegistry));
+            break;
+          }
+          case 74: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000010;
+            partitionName_ = bs;
             break;
           }
         }
@@ -577,6 +584,60 @@ private static final long serialVersionUID = 0L;
     return cols_.get(index);
   }
 
+  public static final int PARTITIONNAME_FIELD_NUMBER = 9;
+  private volatile java.lang.Object partitionName_;
+  /**
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 9;</code>
+   */
+  public boolean hasPartitionName() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 9;</code>
+   */
+  public java.lang.String getPartitionName() {
+    java.lang.Object ref = partitionName_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        partitionName_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 9;</code>
+   */
+  public com.google.protobuf.ByteString
+      getPartitionNameBytes() {
+    java.lang.Object ref = partitionName_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      partitionName_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -630,6 +691,9 @@ private static final long serialVersionUID = 0L;
         7);
     for (int i = 0; i < cols_.size(); i++) {
       output.writeMessage(8, cols_.get(i));
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 9, partitionName_);
     }
     unknownFields.writeTo(output);
   }
@@ -685,6 +749,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(8, cols_.get(i));
     }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(9, partitionName_);
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -729,6 +796,11 @@ private static final long serialVersionUID = 0L;
         other.internalGetFileMetadata());
     result = result && getColsList()
         .equals(other.getColsList());
+    result = result && (hasPartitionName() == other.hasPartitionName());
+    if (hasPartitionName()) {
+      result = result && getPartitionName()
+          .equals(other.getPartitionName());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -771,6 +843,10 @@ private static final long serialVersionUID = 0L;
     if (getColsCount() > 0) {
       hash = (37 * hash) + COLS_FIELD_NUMBER;
       hash = (53 * hash) + getColsList().hashCode();
+    }
+    if (hasPartitionName()) {
+      hash = (37 * hash) + PARTITIONNAME_FIELD_NUMBER;
+      hash = (53 * hash) + getPartitionName().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -956,6 +1032,8 @@ private static final long serialVersionUID = 0L;
       } else {
         colsBuilder_.clear();
       }
+      partitionName_ = "";
+      bitField0_ = (bitField0_ & ~0x00000100);
       return this;
     }
 
@@ -1022,6 +1100,10 @@ private static final long serialVersionUID = 0L;
       } else {
         result.cols_ = colsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.partitionName_ = partitionName_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -1119,6 +1201,11 @@ private static final long serialVersionUID = 0L;
             colsBuilder_.addAllMessages(other.cols_);
           }
         }
+      }
+      if (other.hasPartitionName()) {
+        bitField0_ |= 0x00000100;
+        partitionName_ = other.partitionName_;
+        onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -2259,6 +2346,106 @@ private static final long serialVersionUID = 0L;
         cols_ = null;
       }
       return colsBuilder_;
+    }
+
+    private java.lang.Object partitionName_ = "";
+    /**
+     * <pre>
+     * partition name in the form of "key=value"
+     * </pre>
+     *
+     * <code>optional string partitionName = 9;</code>
+     */
+    public boolean hasPartitionName() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    /**
+     * <pre>
+     * partition name in the form of "key=value"
+     * </pre>
+     *
+     * <code>optional string partitionName = 9;</code>
+     */
+    public java.lang.String getPartitionName() {
+      java.lang.Object ref = partitionName_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          partitionName_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <pre>
+     * partition name in the form of "key=value"
+     * </pre>
+     *
+     * <code>optional string partitionName = 9;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPartitionNameBytes() {
+      java.lang.Object ref = partitionName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        partitionName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * partition name in the form of "key=value"
+     * </pre>
+     *
+     * <code>optional string partitionName = 9;</code>
+     */
+    public Builder setPartitionName(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000100;
+      partitionName_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * partition name in the form of "key=value"
+     * </pre>
+     *
+     * <code>optional string partitionName = 9;</code>
+     */
+    public Builder clearPartitionName() {
+      bitField0_ = (bitField0_ & ~0x00000100);
+      partitionName_ = getDefaultInstance().getPartitionName();
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * partition name in the form of "key=value"
+     * </pre>
+     *
+     * <code>optional string partitionName = 9;</code>
+     */
+    public Builder setPartitionNameBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000100;
+      partitionName_ = value;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
