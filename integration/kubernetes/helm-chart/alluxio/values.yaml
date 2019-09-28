@@ -37,15 +37,22 @@ tieredstore:
 #    low: 0.7
 
 # How to use single layer
+#  - alias: MEM
+#    mediumtype: MEM,SSD
+#    level: 0
+#    path: /dev/shm,/alluxio-ssd
+#    type: hostPath
+#    quota: 10GB,50GB
+#    high: 0.95
+#    low: 0.7
+
   - alias: MEM
-    mediumtype: MEM,SSD
     level: 0
-    path: /dev/shm,/alluxio-ssd
-    type: hostPath
-    quota: 10GB,50GB
+    path: /dev/shm
+    type: emptyDir
+    quota: 1GB
     high: 0.95
     low: 0.7
-
 
 
 user: 0
@@ -88,7 +95,7 @@ master:
     - -no-format
 # properties for the master components
   properties:
-    # use ROCKS DB instead of Heap
+    # Example: use ROCKS DB instead of Heap
     # alluxio.master.metastore: ROCKS
     # alluxio.master.metastore.dir: /opt/alluxio/metastore
   resources:
@@ -97,6 +104,7 @@ master:
     ports:
       rpc: 19998
       web: 19999
+  jvmOptions: ""
   nodeSelector: {}
 
 jobMaster:
@@ -108,6 +116,7 @@ jobMaster:
     ports:
       rpc: 20001
       web: 20002
+  jvmOptions: ""
 
 worker:
   args:
@@ -119,6 +128,7 @@ worker:
     ports:
       rpc: 29999
       web: 30000
+  jvmOptions: ""
   nodeSelector: {}
 
 
@@ -134,6 +144,7 @@ jobWorker:
       rpc: 30001
       data: 30002
       web: 30003
+  jvmOptions: ""
 
 journal:
 #  pvcName: alluxio-pv-claim 
