@@ -69,23 +69,23 @@ spec:
           resources:
             limits:
               {{- if .Values.fuse.resources  }}
-              {{- if .Values.fuse.resources.limits }}
-              {{- if .Values.fuse.resources.limits.cpu  }}
+                {{- if .Values.fuse.resources.limits }}
+                  {{- if .Values.fuse.resources.limits.cpu  }}
               cpu: {{ .Values.fuse.resources.limits.cpu }}
-              {{- end }}
-              {{- if .Values.fuse.resources.limits.memory  }}
+                  {{- end }}
+                  {{- if .Values.fuse.resources.limits.memory  }}
               memory: {{ .Values.fuse.resources.limits.memory }}
-              {{- end }}
-              {{- end }}
+                  {{- end }}
+                {{- end }}
             requests:
-              {{- if .Values.fuse.resources.requests }}
-              {{- if .Values.fuse.resources.requests.cpu  }}
+                {{- if .Values.fuse.resources.requests }}
+                  {{- if .Values.fuse.resources.requests.cpu  }}
               cpu: {{ .Values.fuse.resources.requests.cpu }}
-              {{- end }}
-              {{- if .Values.fuse.resources.requests.memory  }}
+                  {{- end }}
+                  {{- if .Values.fuse.resources.requests.memory  }}
               memory: {{ .Values.fuse.resources.requests.memory }}
-              {{- end }}
-              {{- end }}
+                  {{- end }}
+                {{- end }}
               {{- end }}
           command: ["/entrypoint.sh"]
           # args: ["fuse", "--fuse-opts=allow_other"]
@@ -121,33 +121,33 @@ spec:
               mountPath: /opt/domain
             {{- end }}
             {{- if eq .Values.fuse.shortCircuitPolicy "local" }}
-            {{- if .Values.tieredstore }} 
-            {{- if .Values.tieredstore.levels }} 
-            {{- range .Values.tieredstore.levels }}
-            {{- if .mediumtype }}
-            {{- if contains "," .mediumtype }}
+              {{- if .Values.tieredstore }} 
+                {{- if .Values.tieredstore.levels }} 
+                  {{- range .Values.tieredstore.levels }}
+                    {{- if .mediumtype }}
+                      {{- if contains "," .mediumtype }}
             {{- $type := .type }}
             {{- $path := .path }}
             {{- $split := split "," .mediumtype }}
-            {{- range $key, $val := $split }} 
-            {{- if eq $type "hostPath"}}
+                        {{- range $key, $val := $split }} 
+                          {{- if eq $type "hostPath"}}
             - mountPath:  {{ index ($path | split ",") $key }}
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-            {{- end}}
-            {{- end}}
-            {{- end}}
-            {{- else}}
-            {{- if eq .type "hostPath"}}
+                          {{- end}}
+                        {{- end}}
+                      {{- end}}
+                      {{- else}}
+                      {{- if eq .type "hostPath"}}
             - name: {{ .alias | lower }}
               mountPath: {{ .path }}
-            {{- else }}
+                      {{- else }}
             # report error and exit
             {{ .name }} with {{ .type }} is not supported in shortCircuitPolicy local
-            {{- end }} 
-            {{- end }} 
-            {{- end }} 
-            {{- end }} 
-            {{- end }} 
+                      {{- end }} 
+                    {{- end }} 
+                  {{- end }} 
+                {{- end }} 
+              {{- end }} 
             {{- end }}
       restartPolicy: Always
       volumes:
@@ -166,28 +166,28 @@ spec:
             type: "Directory"
         {{- end }}
         {{- if eq .Values.fuse.shortCircuitPolicy "local" }}
-        {{- if .Values.tieredstore }} 
-        {{- if .Values.tieredstore.levels }} 
-        {{- range .Values.tieredstore.levels }}
-        {{- if .mediumtype }}
-        {{- if contains "," .mediumtype }}
+          {{- if .Values.tieredstore }} 
+            {{- if .Values.tieredstore.levels }} 
+              {{- range .Values.tieredstore.levels }}
+                {{- if .mediumtype }}
+                  {{- if contains "," .mediumtype }}
            {{- $split := split "," .mediumtype }}
            {{- $type := .type }}
            {{- $path := .path }}
-           {{- range $key, $val := $split }} 
-        {{- if eq $type "hostPath"}}
+                    {{- range $key, $val := $split }} 
+                      {{- if eq $type "hostPath"}}
         - hostPath:
             path: {{ index ($path | split ",") $key }}
             type: DirectoryOrCreate
           name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-        {{- else }}
+                      {{- else }}
         - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
           emptyDir:
             medium: "Memory"
-            {{- if .quota }} 
+                        {{- if .quota }} 
             sizeLimit: {{ .quota }}
-            {{- end}} 
-        {{- end}}
+                        {{- end}} 
+                      {{- end}}
         {{- end}}
         {{- end}}
         {{- else}}
