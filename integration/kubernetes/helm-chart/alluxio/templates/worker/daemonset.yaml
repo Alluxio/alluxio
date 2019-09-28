@@ -42,11 +42,11 @@ spec:
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
       nodeSelector:
-{{- if .Values.worker.nodeSelector }}
+      {{- if .Values.worker.nodeSelector }}
 {{ toYaml .Values.worker.nodeSelector | trim | indent 8  }}
-{{- else if .Values.nodeSelector }}
+      {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
-{{- end }}
+      {{- end }}
       containers:
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -54,23 +54,23 @@ spec:
           resources:
             limits:
               {{- if .Values.worker.resources  }}
-              {{- if .Values.worker.resources.limits }}
-              {{- if .Values.worker.resources.limits.cpu  }}
+                {{- if .Values.worker.resources.limits }}
+                  {{- if .Values.worker.resources.limits.cpu  }}
               cpu: {{ .Values.worker.resources.limits.cpu }}
-              {{- end }}
-              {{- if .Values.worker.resources.limits.memory  }}
+                  {{- end }}
+                  {{- if .Values.worker.resources.limits.memory  }}
               memory: {{ .Values.worker.resources.limits.memory }}
-              {{- end }}
-              {{- end }}
+                  {{- end }}
+                {{- end }}
             requests:
-              {{- if .Values.worker.resources.requests }}
-              {{- if .Values.worker.resources.requests.cpu  }}
+                {{- if .Values.worker.resources.requests }}
+                  {{- if .Values.worker.resources.requests.cpu  }}
               cpu: {{ .Values.worker.resources.requests.cpu }}
-              {{- end }}
-              {{- if .Values.worker.resources.requests.memory  }}
+                  {{- end }}
+                  {{- if .Values.worker.resources.requests.memory  }}
               memory: {{ .Values.worker.resources.requests.memory }}
-              {{- end }}
-              {{- end }}
+                  {{- end }}
+                {{- end }}
               {{- end }}
           command: ["/entrypoint.sh"]
           args: ["worker-only", "--no-format"]
@@ -91,41 +91,41 @@ spec:
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
-            {{- if .Values.secrets.worker }}
-            {{- range $key, $val := .Values.secrets.worker }}
+              {{- if .Values.secrets.worker }}
+                {{- range $key, $val := .Values.secrets.worker }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
               readOnly: true
-            {{- end }}
-            {{- end }}
+                {{- end }}
+              {{- end }}
             {{- end }}
             {{- if .Values.tieredstore }} 
-            {{- if .Values.tieredstore.levels }} 
-            {{- range .Values.tieredstore.levels }}
-            {{- if .mediumtype }}
-            {{- if contains "," .mediumtype }}
+              {{- if .Values.tieredstore.levels }} 
+                {{- range .Values.tieredstore.levels }}
+                  {{- if .mediumtype }}
+                    {{- if contains "," .mediumtype }}
             {{- $type := .type }}
             {{- $path := .path }}
             {{- $split := split "," .mediumtype }}
-            {{- range $key, $val := $split }} 
-            {{- if eq $type "hostPath"}}
+                      {{- range $key, $val := $split }} 
+                        {{- if eq $type "hostPath"}}
             - mountPath:  {{ index ($path | split ",") $key }}
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-            {{- end}}
-            {{- end}}
-            {{- end}}
-            {{- else}}
+                        {{- end}}
+                      {{- end}}
+                    {{- end}}
+                    {{- else}}
             - mountPath: {{ .path }}
               name: {{ .alias | lower }}
-            {{- end}}
-            {{- end}} 
-            {{- end}} 
-            {{- end}}
+                    {{- end}}
+                  {{- end}} 
+                {{- end}} 
+              {{- end}}
             {{- if .Values.mounts }}   
-            {{- range .Values.mounts }}
+              {{- range .Values.mounts }}
             - name: "{{ .name }}"
               mountPath: "{{ .path }}"
-            {{- end }}
+              {{- end }}
             {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -133,23 +133,23 @@ spec:
           resources:
             limits:
               {{- if .Values.jobWorker.resources  }}
-              {{- if .Values.jobWorker.resources.limits }}
-              {{- if .Values.jobWorker.resources.limits.cpu  }}
+                {{- if .Values.jobWorker.resources.limits }}
+                  {{- if .Values.jobWorker.resources.limits.cpu  }}
               cpu: {{ .Values.jobWorker.resources.limits.cpu }}
-              {{- end }}
-              {{- if .Values.jobWorker.resources.limits.memory  }}
+                  {{- end }}
+                  {{- if .Values.jobWorker.resources.limits.memory  }}
               memory: {{ .Values.jobWorker.resources.limits.memory }}
-              {{- end }}
-              {{- end }}
+                  {{- end }}
+                {{- end }}
             requests:
-              {{- if .Values.jobWorker.resources.requests }}
-              {{- if .Values.jobWorker.resources.requests.cpu  }}
+                {{- if .Values.jobWorker.resources.requests }}
+                  {{- if .Values.jobWorker.resources.requests.cpu  }}
               cpu: {{ .Values.jobWorker.resources.requests.cpu }}
-              {{- end }}
-              {{- if .Values.jobWorker.resources.requests.memory  }}
+                  {{- end }}
+                  {{- if .Values.jobWorker.resources.requests.memory  }}
               memory: {{ .Values.jobWorker.resources.requests.memory }}
-              {{- end }}
-              {{- end }}
+                  {{- end }}
+                {{- end }}
               {{- end }}
           command: ["/entrypoint.sh"]
           args: ["job-worker"]

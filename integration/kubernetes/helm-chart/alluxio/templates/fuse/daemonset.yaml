@@ -188,20 +188,17 @@ spec:
             sizeLimit: {{ .quota }}
                         {{- end}} 
                       {{- end}}
-        {{- end}}
-        {{- end}}
-        {{- else}}
-        {{- if eq .type "hostPath"}}
+                    {{- end}}
+                  {{- end}}
+                  {{- else}}
+                    {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
             type: DirectoryOrCreate
           name: {{ .alias | lower }}
-        {{- else }}
-        # report error and exit
-
-        {{- end }}
-        {{- end }} 
-        {{- end }} 
-        {{- end }} 
-        {{- end }} 
+                    {{- end }}
+                  {{- end }} 
+                {{- end }} 
+              {{- end }} 
+            {{- end }} 
         {{- end }}

@@ -42,11 +42,11 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
-{{- if .Values.master.nodeSelector }}
+      {{- if .Values.master.nodeSelector }}
 {{ toYaml .Values.master.nodeSelector | trim | indent 8  }}
-{{- else if .Values.nodeSelector }}
+      {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
-{{- end }}
+      {{- end }}
       selector:
         matchLabels:
           app: {{ template "alluxio.name" . }}
