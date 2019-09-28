@@ -149,12 +149,12 @@ jobWorker:
 journal:
 #  pvcName: alluxio-pv-claim 
 
-
-# mounts:
-#  - volumeName: 
-#    path:
-
-
+# Secrets Example: (<name>:<mount path under /secrets/>):
+# secrets:
+#   master:
+#     alluxio-hdfs-config: hdfsConfig
+#   worker:
+#     alluxio-hdfs-config: hdfsConfig
 
 
 
