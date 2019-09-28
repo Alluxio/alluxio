@@ -44,6 +44,6 @@ Please refer [https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-
 
 The [Alluxio](https://hub.docker.com/r/alluxio/alluxio) image stores the Journal data at the `/journal` path of the container.
 
-By default an emptyDir is created and mounted into that directory, it's good for development and testing. If you'd like to persistent your journal data. Please specify `journal.pvcName`.
+By default an [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) is created and mounted into `/journal`. If you want the journal to be persisted, you will need a Persistent Volume Claim and the corresponding Persistent Volume. The Persistent Volume Claim name is specified by `journal.pvcName`. And you can find the related Kubernetes documentation [here](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 
 > *"An emptyDir volume is first created when a Pod is assigned to a Node, and exists as long as that Pod is running on that node. When a Pod is removed from a node for any reason, the data in the emptyDir is deleted forever."*
