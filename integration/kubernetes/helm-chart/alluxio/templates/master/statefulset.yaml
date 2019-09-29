@@ -86,6 +86,8 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
           volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
             - name: alluxio-journal
               mountPath: /journal
             - name: {{ template "alluxio.fullname" . }}-format-script
@@ -128,6 +130,8 @@ spec:
           - containerPort: 19999
             name: web
           volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
             - name: alluxio-journal
               mountPath: /journal
             {{- if .Values.secrets }}
@@ -181,6 +185,8 @@ spec:
           - containerPort: 20002
             name: job-web
           volumeMounts:
+          - name: tz-config
+            mountPath: /etc/localtime
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
               {{- range $key, $val := .Values.secrets.master }}
@@ -198,6 +204,9 @@ spec:
           {{- end }}
       restartPolicy: Always
       volumes:
+        - hostPath:
+            path: /etc/localtime
+          name: tz-config
         {{- if .Values.journal }}
           {{- if .Values.journal.pvcName }}
         - name: alluxio-journal

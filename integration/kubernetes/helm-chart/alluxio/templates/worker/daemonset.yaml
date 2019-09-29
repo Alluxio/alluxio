@@ -88,6 +88,8 @@ spec:
           - containerPort: {{ .Values.worker.resources.ports.web }}
             name: web
           volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
@@ -171,6 +173,8 @@ spec:
           - containerPort: {{ .Values.jobWorker.resources.ports.web }}
             name: job-web
           volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
@@ -212,6 +216,9 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
+        - hostPath:
+            path: /etc/localtime
+          name: tz-config
         - name: alluxio-domain
           hostPath:
             path: {{ .Values.domainHostPath }}

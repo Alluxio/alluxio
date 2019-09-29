@@ -15,3 +15,7 @@
 0.3.0
 
 - Both support one layer contains multiple storages(https://docs.alluxio.io/os/user/stable/en/advanced/Alluxio-Storage-Management.html#single-tier-storage) and multiple layers
+
+0.4.0
+
+- Add local time zone
