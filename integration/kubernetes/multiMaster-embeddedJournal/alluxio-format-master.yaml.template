@@ -16,6 +16,7 @@ kind: Job
 metadata:
   name: alluxio-format-master
 spec:
+  activeDeadlineSeconds: 30
   ttlSecondsAfterFinished: 10
   template:
     spec:
