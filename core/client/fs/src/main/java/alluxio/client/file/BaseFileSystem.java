@@ -448,6 +448,16 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public AlluxioURI reverseResolve(AlluxioURI ufspath) throws IOException, AlluxioException {
+    checkUri(ufspath);
+    return rpc(client -> {
+      AlluxioURI path = client.reverseResolve(ufspath);
+      LOG.debug("Reverse resolved {} to {}", ufspath.getPath(), path.getPath());
+      return path;
+    });
+  }
+
+  @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
       throws FileDoesNotExistException, IOException, AlluxioException {
     setAcl(path, action, entries, SetAclPOptions.getDefaultInstance());

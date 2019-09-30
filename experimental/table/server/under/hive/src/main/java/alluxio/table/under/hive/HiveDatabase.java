@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
@@ -28,6 +29,7 @@ import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
+import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
@@ -140,8 +142,17 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
-  private void mountAlluxioPath(String tableName, AlluxioURI ufsPath, AlluxioURI tableUri)
-      throws IOException, AlluxioException {
+  private String mountAlluxioPath(String tableName, AlluxioURI ufsPath, AlluxioURI tableUri,
+      PathTranslator translator) throws IOException, AlluxioException {
+    try {
+      tableUri = mUdbContext.getFileSystem().reverseResolve(ufsPath);
+      translator.addMapping(tableUri.getPath(), ufsPath.getPath());
+      LOG.info("Trying to mount table {} location {}, but table {} already mounted at location {}",
+          tableName, ufsPath, tableUri);
+      return tableUri.getPath();
+    } catch (InvalidPathException e) {
+      // ufs path not mounted, continue
+    }
     // make sure the parent exists
     mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
@@ -158,39 +169,54 @@ public class HiveDatabase implements UnderDatabase {
       }
     }
     mUdbContext.getFileSystem().mount(tableUri, ufsPath, option.build());
+    translator.addMapping(tableUri.getPath(), ufsPath.getPath());
 
     LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
         tableName, ufsPath, tableUri, option.build());
+    return tableUri.getPath();
   }
 
-  private PathTranslator mountAlluxioPaths(Table table) throws IOException {
+  private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions)
+      throws IOException {
     String tableName = table.getTableName();
+    AlluxioURI ufsLocation = null;
     AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
 
     try {
-      AlluxioURI ufsLocation = new AlluxioURI(table.getSd().getLocation());
-      mountAlluxioPath(tableName, ufsLocation, tableUri);
-
       PathTranslator pathTranslator =
           new PathTranslator();
-      pathTranslator.addMapping(tableUri.toString(), table.getSd().getLocation());
+      ufsLocation = new AlluxioURI(table.getSd().getLocation());
+      mountAlluxioPath(tableName, ufsLocation, tableUri, pathTranslator);
+
+      for (Partition part : partitions) {
+        if (part.getSd() != null && part.getSd().getLocation() != null
+            && !PathUtils.hasPrefix(part.getSd().getLocation(), table.getSd().getLocation())) {
+          // partition path is not mounted as a result of mounting table
+          ufsLocation = new AlluxioURI(part.getSd().getLocation());
+          mountAlluxioPath(tableName, ufsLocation, tableUri, pathTranslator);
+        }
+      }
       return pathTranslator;
     } catch (AlluxioException e) {
       throw new IOException(
           "Failed to mount table location. tableName: " + tableName
-              + " tableLocation: " + (table != null ? table.getSd().getLocation() : "null")
-              + " AlluxioLocation: " + mUdbContext.getTableLocation(tableName)
+              + " ufsLocation: " + ((ufsLocation == null) ? "" : ufsLocation.getPath())
+              + " AlluxioLocation: " + tableUri
               + " error: " + e.getMessage(), e);
     }
   }
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
-    org.apache.hadoop.hive.metastore.api.Table table = null;
+    Table table = null;
     try {
       table = mHive.getTable(mHiveDbName, tableName);
 
-      PathTranslator pathTranslator = mountAlluxioPaths(table);
+      // Potentially expensive call
+      List<Partition> partitions =
+          mHive.listPartitions(mHiveDbName, table.getTableName(), (short) -1);
+
+      PathTranslator pathTranslator = mountAlluxioPaths(table, partitions);
 
       List<String> colNames = table.getSd().getCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
@@ -220,12 +246,10 @@ public class HiveDatabase implements UnderDatabase {
               ColumnStatistics.newBuilder().setRecordCount(distinctCount).build());
         }
       }
-      // Potentially expensive call
-      List<Partition> partitions =
-          mHive.listPartitions(mHiveDbName, table.getTableName(), (short) -1);
-      AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
+
       return new HiveTable(mHive, this, pathTranslator, tableName,
-          HiveUtils.toProtoSchema(table.getSd().getCols()), tableUri.getPath(),
+          HiveUtils.toProtoSchema(table.getSd().getCols()),
+          pathTranslator.toAlluxioPath(table.getSd().getLocation()),
           Collections.singletonMap("unpartitioned", builder.build()),
           HiveUtils.toProto(table.getPartitionKeys()), partitions, table);
     } catch (NoSuchObjectException e) {
