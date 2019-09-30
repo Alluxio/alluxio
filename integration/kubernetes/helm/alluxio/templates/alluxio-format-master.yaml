@@ -14,36 +14,36 @@ kind: Job
 metadata:
   name: alluxio-format-master
 spec:
-  activeDeadlineSeconds: 30
-  ttlSecondsAfterFinished: 10
+  activeDeadlineSeconds: {{ .Values.job.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
   template:
     spec:
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           resources:
             limits:
-              cpu: 1
-              memory: 1G
+              cpu: {{ .Values.resources.master.limits.cpu }}
+              memory: {{ .Values.resources.master.limits.memory }}
             requests:
-              cpu: 1
-              memory: 1G
+              cpu: {{ .Values.resources.master.requests.cpu }}
+              memory: {{ .Values.resources.master.requests.memory }}
           command: ["/opt/alluxio/bin/alluxio"]
           args: ["format"]
           envFrom:
             - configMapRef:
-                name: alluxio-config
+                name: {{ .Values.const.configName }}
           ports:
-            - containerPort: 19998
-              name: rpc
-            - containerPort: 19999
-              name: web
-            - containerPort: 19200
-              name: embedded
+          - containerPort: 19998
+            name: rpc
+          - containerPort: 19999
+            name: web
+          - containerPort: 19200
+            name: embedded
           volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
+          - name: alluxio-journal
+            mountPath: {{ .Values.journal.folder }}
       restartPolicy: OnFailure
       volumes:
         - name: alluxio-journal

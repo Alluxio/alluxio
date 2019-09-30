@@ -105,3 +105,8 @@ const:
 #       medium: ""
 #       size: 1Gi
 #       mountPath: /metastore
+
+# Configuration for Alluxio formatting Jobs
+job:
+  activeDeadlineSeconds: 30
+  ttlSecondsAfterFinished: 10
