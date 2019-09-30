@@ -152,8 +152,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void listDirSync() throws Exception {
-    ListStatusPOptions options = ListStatusPOptions.newBuilder()
-        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
+    ListStatusPOptions options =
+        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)
+            .setCommonOptions(PSYNC_ALWAYS).setIncludeUfsInfo(true).build();
     checkListStatus(ROOT_DIR, options, true);
 
     // Create new ufs paths.
