@@ -13,6 +13,8 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: alluxio-worker
+  labels:
+    app: alluxio
 spec:
   selector:
     matchLabels:
