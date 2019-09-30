@@ -138,6 +138,8 @@
                   <pattern>org/</pattern>
                   <shadedPattern>${shading.prefix}.org.</shadedPattern>
                   <excludes>
+                    <exclude>org/apache/hadoop/*</exclude>
+                    <exclude>org/apache/hadoop/**/*</exclude>
                     <exclude>**/pom.xml</exclude>
                     <exclude>org/slf4j/*</exclude>
                     <exclude>org/slf4j/**/*</exclude>
