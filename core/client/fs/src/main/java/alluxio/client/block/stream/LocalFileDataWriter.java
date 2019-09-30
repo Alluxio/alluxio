@@ -154,12 +154,9 @@ public final class LocalFileDataWriter implements DataWriter {
   public void close() throws IOException {
     boolean closeStream = !(mStream.isClosed() || mStream.isCanceled());
     if (closeStream) {
-      mCloser.register(new Closeable() {
-        @Override
-        public void close() throws IOException {
+      mCloser.register(() -> {
           mStream.close();
           mStream.waitForComplete(mDataTimeoutMs);
-        }
       });
     }
     mCloser.close();
