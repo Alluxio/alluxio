@@ -384,7 +384,11 @@ Then the clean journal will be ready for a new Alluxio master to start with.
 If you are running embedded journal and masters write journal each to its persistent storage,
 you should write your own Kubernetes Jobs that go to each of them and perform format.
 
-Once all the journals have been formatted, you are ready to restart the Alluxio master and worker Pods.
+If you are running Alluxio workers with [tiered storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }}),
+and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
+You should delete and recreate the Persistent Volumes. 
+
+Once all the journals and Alluxio storage have been formatted, you are ready to restart the Alluxio master and worker Pods.
 
 **Step 4: Restart Alluxio master and worker Pods**
 
