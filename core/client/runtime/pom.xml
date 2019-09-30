@@ -69,6 +69,14 @@
 
   <build>
     <plugins>
+      <!-- No source in the shaded jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <configuration>
+          <skipSource>true</skipSource>
+        </configuration>
+      </plugin>
       <!--In the runtime client jar, dependencies are shaded to avoid version conflicts due to external-->
       <!--dependencies introduced by applications. The protobuf dependency is already shaded in the internal protobuf-->
       <!--module rather than in the runtime module, because it is also depended by other libraries included in-->
@@ -84,7 +92,16 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <artifactSet>
+                <excludes>
+                  <!-- Leave slf4j unshaded so downstream users can configure logging -->
+                  <exclude>org.slf4j:slf4j-api</exclude>
+                  <!-- Leave commons-logging unshaded so downstream users can configure logging -->
+                  <exclude>commons-logging:commons-logging</exclude>
+                  <!-- Leave log4j unshaded so downstream users can configure logging -->
+                  <exclude>log4j:log4j</exclude>
+                </excludes>
+              </artifactSet>
               <relocations>
                 <!-- Relocate the native netty libraries to be prefixed with our shade prefix -->
                 <relocation>
@@ -93,70 +110,55 @@
                   <rawString>true</rawString>
                 </relocation>
                 <relocation>
-                  <pattern>com.codahale.metrics</pattern>
-                  <shadedPattern>${shading.prefix}.com.codahale.metrics</shadedPattern>
+                  <pattern>com/</pattern>
+                  <shadedPattern>${shading.prefix}.com.</shadedPattern>
+                  <excludes>
+                    <exclude>**/pom.xml</exclude>
+                  </excludes>
                 </relocation>
                 <relocation>
-                  <pattern>com.fasterxml.jackson</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.google.common</pattern>
-                  <shadedPattern>${shading.prefix}.com.google.common</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.google.protobuf</pattern>
-                  <shadedPattern>${shading.prefix}.com.google.protobuf</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>io.grpc</pattern>
-                  <shadedPattern>${shading.prefix}.io.grpc</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>io.opencensus</pattern>
-                  <shadedPattern>${shading.prefix}.io.opencensus</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>io.netty</pattern>
-                  <shadedPattern>${shading.prefix}.io.netty</shadedPattern>
+                  <pattern>io/</pattern>
+                  <shadedPattern>${shading.prefix}.io.</shadedPattern>
+                  <excludes>
+                    <exclude>**/pom.xml</exclude>
+                  </excludes>
                 </relocation>
                 <relocation>
                   <pattern>javassist</pattern>
                   <shadedPattern>${shading.prefix}.javassist</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.commons</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons</shadedPattern>
+                  <pattern>javax/annotation/</pattern>
+                  <shadedPattern>${shading.prefix}.javax.annotation.</shadedPattern>
+                  <excludes>
+                    <exclude>**/pom.xml</exclude>
+                  </excludes>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.curator</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.curator</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.http</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.jute</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.zookeeper</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.zookeeper</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.jboss.netty</pattern>
-                  <shadedPattern>${shading.prefix}.org.jboss.netty</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.reflections</pattern>
-                  <shadedPattern>${shading.prefix}.org.reflections</shadedPattern>
+                  <pattern>org/</pattern>
+                  <shadedPattern>${shading.prefix}.org.</shadedPattern>
+                  <excludes>
+                    <exclude>**/pom.xml</exclude>
+                    <exclude>org/slf4j/*</exclude>
+                    <exclude>org/slf4j/**/*</exclude>
+                    <exclude>org/apache/commons/logging/*</exclude>
+                    <exclude>org/apache/commons/logging/**/*</exclude>
+                    <exclude>org/apache/log4j/*</exclude>
+                    <exclude>org/apache/log4j/**/*</exclude>
+                  </excludes>
                 </relocation>
               </relocations>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
               <filters>
+                <!-- Make sure no source code included -->
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>**/*.java</exclude>
+                  </excludes>
+                </filter>
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>
@@ -183,7 +185,7 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
+              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
               <destinationFile>${project.parent.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</destinationFile>
             </configuration>
           </execution>
