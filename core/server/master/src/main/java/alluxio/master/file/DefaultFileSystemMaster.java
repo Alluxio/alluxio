@@ -970,8 +970,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     // Listing a directory should not emit item for the directory itself.
     if (depth != 0 || inode.isFile()) {
-      resultStream.submit(getFileInfoInternal(currInodePath,
-          context.getOptions().getIncludeUfsInfo()));
+      boolean includeUfsInfo =
+          !context.getOptions().hasIncludeUfsInfo() || context.getOptions().getIncludeUfsInfo();
+      resultStream.submit(getFileInfoInternal(currInodePath, includeUfsInfo));
     }
   }
 
