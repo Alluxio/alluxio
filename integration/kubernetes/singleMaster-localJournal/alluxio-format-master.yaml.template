@@ -36,19 +36,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: alluxio-config
-          ports:
-          - containerPort: 19998
-            name: rpc
-          - containerPort: 19999
-            name: web
-          - containerPort: 19200
-            name: embedded
           volumeMounts:
           - name: alluxio-journal
             mountPath: /journal
       restartPolicy: OnFailure
       volumes:
-        - name: alluxio-journal
-          persistentVolumeClaim:
-            claimName: alluxio-pv-claim
+      - name: alluxio-journal
+        persistentVolumeClaim:
+          claimName: alluxio-pv-claim
 
