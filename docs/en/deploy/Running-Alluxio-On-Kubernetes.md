@@ -347,24 +347,21 @@ containers:
 
 **Step 2: Stop running Alluxio master and worker Pods**
 
-Kill all running Alluxio worker Pods.
+Kill all running Alluxio worker Pods by deleting its DaemonSet.
 
 ```console
-$ kubectl delete -f alluxio-worker.yaml
+$ kubectl delete daemonset -l app=alluxio
 ```
 
-Then kill all running Alluxio master Pods by killing each StatefulSet and each Service.
+Then kill all running Alluxio master Pods by killing each StatefulSet and each Service with label `app=alluxio`.
 
 ```console
-$ let masterCount = {number of your masters minus 1}
-$ for i in {0..masterCount}; do
-> kubectl delete service alluxio-master-{i}
-> kubectl delete statefulset alluxio-master-{i}
-> done
+$ kubectl delete service -l app=alluxio
+$ kubectl delete statefulset -l app=alluxio
 ```
 
-The reason why you don't want to do `kubectl delete -f alluxio-master.yaml` is that will delete the Persistent Volume Claim in the `alluxio-master.yaml` if any.
-And that will result in your Persistent Volume getting released and the journal in it will be lost.
+The reason why you don't do `kubectl delete -f alluxio-master.yaml` is that will delete the Persistent Volume Claim in the `alluxio-master.yaml` if any.
+And that will result in your Persistent Volume getting released and the journal in it will be lost. The same logic applies to `alluxio-worker.yaml`.
 
 Make sure all the Pods have been terminated before you move on to the next step.
 
