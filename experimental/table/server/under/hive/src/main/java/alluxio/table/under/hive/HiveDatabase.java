@@ -33,6 +33,7 @@ import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -191,6 +192,15 @@ public class HiveDatabase implements UnderDatabase {
       for (Partition part : partitions) {
         if (part.getSd() != null && part.getSd().getLocation() != null
             && !PathUtils.hasPrefix(part.getSd().getLocation(), table.getSd().getLocation())) {
+          String partName = part.getValues().toString();
+          try {
+            partName = Warehouse.makePartName(table.getPartitionKeys(), part.getValues());
+          } catch (MetaException e) {
+            LOG.warn("Error making partition name for table {}, partition {}", tableName,
+                part.getValues().toString());
+          }
+          tableUri = new AlluxioURI(PathUtils.concatPath(mUdbContext.getTableLocation(tableName),
+              partName));
           // partition path is not mounted as a result of mounting table
           ufsLocation = new AlluxioURI(part.getSd().getLocation());
           mountAlluxioPath(tableName, ufsLocation, tableUri, pathTranslator);
