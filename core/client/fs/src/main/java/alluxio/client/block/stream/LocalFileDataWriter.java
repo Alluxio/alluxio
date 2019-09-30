@@ -134,11 +134,8 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void cancel() throws IOException {
-    boolean cancelStream = !(mStream.isClosed() || mStream.isCanceled());
     try {
-      if (cancelStream) {
-        mStream.cancel();
-      }
+      mStream.cancel();
     } catch (Exception e) {
       throw mCloser.rethrow(e);
     } finally {
@@ -151,13 +148,10 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void close() throws IOException {
-    boolean closeStream = !(mStream.isClosed() || mStream.isCanceled());
-    if (closeStream) {
-      mCloser.register(() -> {
-        mStream.close();
-        mStream.waitForComplete(mDataTimeoutMs);
-      });
-    }
+    mCloser.register(() -> {
+      mStream.close();
+      mStream.waitForComplete(mDataTimeoutMs);
+    });
     mCloser.close();
   }
 

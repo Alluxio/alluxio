@@ -169,7 +169,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
-   * Closes the outbound stream.
+   * Closes the outbound stream. If the stream is already closed then invoking this method has no
+   * effect.
    */
   public void close() {
     if (isOpen()) {
@@ -180,7 +181,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
-   * Cancels the stream.
+   * Cancels the stream. If the stream is already cancelled then invoking this method has no
+   * effect.
    */
   public void cancel() {
     if (isOpen()) {
