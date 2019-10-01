@@ -377,6 +377,7 @@ How the journal should be formatted depends on the Alluxio master [journal type]
 If you are running UFS journal, there is only one place for the journal.
 There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
 template that can be used for only formatting the master.
+The Job runs `alluxio formatMasters` and formats the journal for all masters.
 You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.  
 
 ```console
@@ -391,7 +392,7 @@ Then the clean journal will be ready for a new Alluxio master to start with.
 If you are running embedded journal, each Alluxio master will write to its own journal destination defined by `alluxio.master.journal.folder`.
 In order to format the journals you have two options.
 
-1. Format all masters by running `alluxio formatMasters` in a Alluxio master Pod. 
+1. Format all masters by running the Kubernetes Job in `alluxio-format-master.yaml`.
 
 1. Clean up the journal Persistent Volume for each master. You can do that by deleting and recreating the Persistent Volume for each master.
 
