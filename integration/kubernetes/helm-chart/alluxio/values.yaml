@@ -11,7 +11,7 @@
 
 image: alluxio/alluxio
 imageTag: 2.1.0-SNAPSHOT
-imagePullPolicy: Always
+imagePullPolicy: IfNotPresent
 
 # Set the tieredstore
 tieredstore:
@@ -46,7 +46,7 @@ jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -
 fuse:
   image: alluxio/alluxio-fuse
   imageTag: 2.1.0-SNAPSHOT
-  imagePullPolicy: Always
+  imagePullPolicy: IfNotPresent
   # Customize the MaxDirectMemorySize
   jvmOptions: " -XX:MaxDirectMemorySize=2g "
   # shortCircuitPolicy can be local or uuid,
