@@ -4192,8 +4192,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           }
         }
         mPersistRequests.put(fileId, job.getTimer());
-      } finally {
-        mPersistJobs.remove(fileId);
       }
 
       // Cleanup possible staging UFS blocks files due to fast durable write fallback.
@@ -4276,6 +4274,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               mPersistJobs.remove(fileId);
               break;
             case COMPLETED:
+              mPersistJobs.remove(fileId);
               mPersistCheckerPool.execute(() -> handleSuccess(job));
               break;
             default:
