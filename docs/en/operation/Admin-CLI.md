@@ -49,16 +49,41 @@ Back up to a specific directory on the leading master's local filesystem.
 Successfully backed up journal to /opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
 ```
 
-### checkpoint 
+### journal
+The `journal` command provides several sub-commands for journal management.
+It has two sub commands:
+* quorum
+* checkpoint
 
-The `checkpoint` command creates a checkpoint in the primary master journal system.
+#### quorum
+The `quorum` sub-command is used to query and manage embedded journal powered leader election.
+It has two subcommands:
+* info
+* remove
+
+##### info
+Used to get information on existing state of the `MASTER` or `JOB_MASTER` leader election quorum.
+```console
+$ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
+```
+
+##### remove
+Used to remove a member from leader election quorum.
+
+```console
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <Member_Address>
+```
+
+#### checkpoint
+
+The `checkpoint` sub-command creates a checkpoint in the primary master journal system.
 
 This command is mainly used for debugging and to avoid master journal logs from growing unbounded.
 Checkpointing requires a pause in master metadata changes, so use this command sparingly to avoid 
 interfering with other users of the system.
 
-```
-./bin/alluxio fsadmin checkpoint
+```console
+$ ./bin/alluxio fsadmin journal checkpoint
 ```
 
 ### doctor
