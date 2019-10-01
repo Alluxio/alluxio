@@ -68,7 +68,11 @@ master:
     # alluxio.master.metastore.dir: /opt/alluxio/metastore
   resources:
     limits:
+      cpu: "1"
+      memory: "4G"
     requests:
+      cpu: "1"
+      memory: "4G"
     ports:
       rpc: 19998
       web: 19999
@@ -80,7 +84,11 @@ jobMaster:
     - job-master
   resources:
     limits:
+      cpu: "1"
+      memory: "2G"
     requests:
+      cpu: "1"
+      memory: "2G"
     ports:
       rpc: 20001
       web: 20002
@@ -92,7 +100,11 @@ worker:
     - -no-format
   resources:
     limits:
+      cpu: "1"
+      memory: "4G"
     requests:
+      cpu: "1"
+      memory: "4G"
     ports:
       rpc: 29999
       web: 30000
@@ -107,7 +119,11 @@ jobWorker:
   properties:
   resources:
     limits:
+      cpu: "1"
+      memory: "2G"
     requests:
+      cpu: "1"
+      memory: "2G"
     ports:
       rpc: 30001
       data: 30002
