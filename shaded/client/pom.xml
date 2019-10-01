@@ -125,13 +125,6 @@
                   </excludes>
                 </filter>
                 <filter>
-                  <!-- Only one ObjectCodec class needed, doesn't matter which package to remove it from -->
-                  <artifact>com.fasterxml.jackson.core:jackson-annotations</artifact>
-                  <excludes>
-                    <exclude>com.fasterxml.jackson.core.ObjectCodec.class</exclude>
-                  </excludes>
-                </filter>
-                <filter>
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>LICENSE</exclude>
