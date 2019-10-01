@@ -38,7 +38,7 @@ spec:
               cpu: {{ .Values.resources.master.requests.cpu }}
               memory: {{ .Values.resources.master.requests.memory }}
           command: ["/opt/alluxio/bin/alluxio"]
-          args: ["format"]
+          args: ["formatMasters"]
           envFrom:
             - configMapRef:
                 name: {{ .Values.const.configName }}

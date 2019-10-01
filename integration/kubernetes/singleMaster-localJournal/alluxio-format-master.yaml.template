@@ -32,7 +32,7 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/opt/alluxio/bin/alluxio"]
-          args: ["format"]
+          args: ["formatMasters"]
           envFrom:
             - configMapRef:
                 name: alluxio-config
