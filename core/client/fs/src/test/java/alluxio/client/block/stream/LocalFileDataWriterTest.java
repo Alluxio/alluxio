@@ -41,7 +41,8 @@ import org.powermock.reflect.Whitebox;
  * Tests {@link LocalFileDataWriterTest}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, WorkerNetAddress.class, LocalFileDataWriter.class, GrpcBlockingStream.class})
+@PrepareForTest({FileSystemContext.class, WorkerNetAddress.class, LocalFileDataWriter.class,
+    GrpcBlockingStream.class})
 public class LocalFileDataWriterTest {
   private static final long BLOCK_ID = 1L;
 
