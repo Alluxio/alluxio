@@ -173,7 +173,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
