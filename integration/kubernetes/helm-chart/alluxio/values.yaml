@@ -32,8 +32,6 @@ fsGroup: 1000
 # The domain hostPath for uuid mode in short Circuit
 domainHostPath: "/tmp/alluxio-domain"
 
-nodeSelector: {}
-
 # properties for all the components
 properties:
   alluxio.master.journal.type: UFS
