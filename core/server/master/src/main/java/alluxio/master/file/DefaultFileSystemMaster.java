@@ -173,7 +173,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -4498,19 +4497,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
               .getMetricName(MasterMetrics.UFS_CAPACITY_FREE),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              long ret = 0L;
-              try (CloseableResource<UnderFileSystem> ufsResource =
-                       ufsManager.getRoot().acquireUfsResource()) {
-                UnderFileSystem ufs = ufsResource.get();
-                ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
-              } catch (IOException e) {
-                LOG.error(e.getMessage(), e);
-              }
-              return ret;
+          () -> {
+            long ret = 0L;
+            try (CloseableResource<UnderFileSystem> ufsResource =
+                     ufsManager.getRoot().acquireUfsResource()) {
+              UnderFileSystem ufs = ufsResource.get();
+              ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
+            } catch (IOException e) {
+              LOG.error(e.getMessage(), e);
             }
+            return ret;
           });
     }
 
