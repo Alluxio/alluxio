@@ -134,13 +134,8 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void cancel() throws IOException {
-    try {
-      mStream.cancel();
-    } catch (Exception e) {
-      throw mCloser.rethrow(e);
-    } finally {
-      mCloser.close();
-    }
+    mCloser.register(() -> mStream.cancel());
+    mCloser.close();
   }
 
   @Override
