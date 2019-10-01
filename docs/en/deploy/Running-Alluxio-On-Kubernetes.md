@@ -370,9 +370,14 @@ Make sure all the Pods have been terminated before you move on to the next step.
 Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
 If no format is needed, you are ready to skip the rest of this section and move on to restart all Alluxio master and worker Pods.
 
-If you are running UFS journal, there is one Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
+How the journal should be formatted depends on the Alluxio master [journal type]({{ '/en/operation/Journal.html#ufs-journal-vs-embedded-journal' | relativize_url }}).
+
+**Case A: UFS Journal**
+
+If you are running UFS journal, there is only one place for the journal.
+There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
 template that can be used for only formatting the master.
-You should make sure the Job runs with the same configuration with all your other Alluxio masters so it's able to find the journal persistent storage and format it.  
+You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.  
 
 ```console
 $ kubectl apply -f alluxio-format-master.yaml
@@ -381,8 +386,14 @@ $ kubectl apply -f alluxio-format-master.yaml
 After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
 Then the clean journal will be ready for a new Alluxio master to start with.
 
-If you are running embedded journal and masters write journal each to its persistent storage,
-you should write your own Kubernetes Jobs that go to each of them and perform format.
+**Case B: Emedded Journal**
+
+If you are running embedded journal, each Alluxio master will write to its own journal destination defined by `alluxio.master.journal.folder`.
+In order to format the journals you have two options.
+
+1. Format all masters by running `alluxio formatMasters` in a Alluxio master Pod. 
+
+1. Clean up the journal Persistent Volume for each master. You can do that by deleting and recreating the Persistent Volume for each master.
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
