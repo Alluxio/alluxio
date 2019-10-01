@@ -116,6 +116,32 @@
                   <exclude>log4j:log4j</exclude>
                 </excludes>
               </artifactSet>
+              <filters>
+                <!-- Make sure no source code included -->
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>**/*.java</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <!-- Only one ObjectCodec class needed, doesn't matter which package to remove it from -->
+                  <artifact>com.fasterxml.jackson.core:jackson-annotations</artifact>
+                  <excludes>
+                    <exclude>com.fasterxml.jackson.core.ObjectCodec.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
               <relocations>
                 <!-- Relocate the native netty libraries to be prefixed with our shade prefix -->
                 <relocation>
@@ -202,25 +228,6 @@
                   <file>${basedir}/../../NOTICE</file>
                 </transformer>
               </transformers>
-              <filters>
-                <!-- Make sure no source code included -->
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>**/*.java</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>LICENSE</exclude>
-                    <exclude>META-INF/LICENSE</exclude>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
             </configuration>
           </execution>
         </executions>
