@@ -656,12 +656,6 @@ private static final long serialVersionUID = 0L;
         return false;
       }
     }
-    for (int i = 0; i < getColsCount(); i++) {
-      if (!getCols(i).isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -1226,11 +1220,6 @@ private static final long serialVersionUID = 0L;
       }
       if (hasColStats()) {
         if (!getColStats().isInitialized()) {
-          return false;
-        }
-      }
-      for (int i = 0; i < getColsCount(); i++) {
-        if (!getCols(i).isInitialized()) {
           return false;
         }
       }

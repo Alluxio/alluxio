@@ -40,7 +40,7 @@ message Type {
 message FieldSchema {
     optional uint32 id = 1;
     optional string name = 2;
-    optional Type type = 3;
+    optional string type = 3;
     optional bool optional = 4;
     optional string comment = 5;
 }
@@ -249,7 +249,7 @@ message Partition {
 
 message ColumnStatisticsInfo {
     optional string col_name = 1;
-    optional FieldTypeId col_type = 2;
+    optional string col_type = 2;
     optional ColumnStatisticsData data = 3;
 }
 

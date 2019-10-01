@@ -22,13 +22,18 @@ public interface ColumnStatisticsInfoOrBuilder extends
       getColNameBytes();
 
   /**
-   * <code>optional .alluxio.grpc.catalog.FieldTypeId col_type = 2;</code>
+   * <code>optional string col_type = 2;</code>
    */
   boolean hasColType();
   /**
-   * <code>optional .alluxio.grpc.catalog.FieldTypeId col_type = 2;</code>
+   * <code>optional string col_type = 2;</code>
    */
-  alluxio.grpc.catalog.FieldTypeId getColType();
+  java.lang.String getColType();
+  /**
+   * <code>optional string col_type = 2;</code>
+   */
+  com.google.protobuf.ByteString
+      getColTypeBytes();
 
   /**
    * <code>optional .alluxio.grpc.catalog.ColumnStatisticsData data = 3;</code>

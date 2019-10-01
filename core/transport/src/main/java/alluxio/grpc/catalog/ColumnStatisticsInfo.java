@@ -17,7 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private ColumnStatisticsInfo() {
     colName_ = "";
-    colType_ = 0;
+    colType_ = "";
   }
 
   @java.lang.Override
@@ -57,15 +57,10 @@ private static final long serialVersionUID = 0L;
             colName_ = bs;
             break;
           }
-          case 16: {
-            int rawValue = input.readEnum();
-            alluxio.grpc.catalog.FieldTypeId value = alluxio.grpc.catalog.FieldTypeId.valueOf(rawValue);
-            if (value == null) {
-              unknownFields.mergeVarintField(2, rawValue);
-            } else {
-              bitField0_ |= 0x00000002;
-              colType_ = rawValue;
-            }
+          case 18: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000002;
+            colType_ = bs;
             break;
           }
           case 26: {
@@ -149,19 +144,45 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int COL_TYPE_FIELD_NUMBER = 2;
-  private int colType_;
+  private volatile java.lang.Object colType_;
   /**
-   * <code>optional .alluxio.grpc.catalog.FieldTypeId col_type = 2;</code>
+   * <code>optional string col_type = 2;</code>
    */
   public boolean hasColType() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.catalog.FieldTypeId col_type = 2;</code>
+   * <code>optional string col_type = 2;</code>
    */
-  public alluxio.grpc.catalog.FieldTypeId getColType() {
-    alluxio.grpc.catalog.FieldTypeId result = alluxio.grpc.catalog.FieldTypeId.valueOf(colType_);
-    return result == null ? alluxio.grpc.catalog.FieldTypeId.BOOLEAN : result;
+  public java.lang.String getColType() {
+    java.lang.Object ref = colType_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        colType_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string col_type = 2;</code>
+   */
+  public com.google.protobuf.ByteString
+      getColTypeBytes() {
+    java.lang.Object ref = colType_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      colType_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
   }
 
   public static final int DATA_FIELD_NUMBER = 3;
@@ -207,7 +228,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, colName_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeEnum(2, colType_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, colType_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       output.writeMessage(3, getData());
@@ -224,8 +245,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, colName_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeEnumSize(2, colType_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, colType_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
@@ -254,7 +274,8 @@ private static final long serialVersionUID = 0L;
     }
     result = result && (hasColType() == other.hasColType());
     if (hasColType()) {
-      result = result && colType_ == other.colType_;
+      result = result && getColType()
+          .equals(other.getColType());
     }
     result = result && (hasData() == other.hasData());
     if (hasData()) {
@@ -278,7 +299,7 @@ private static final long serialVersionUID = 0L;
     }
     if (hasColType()) {
       hash = (37 * hash) + COL_TYPE_FIELD_NUMBER;
-      hash = (53 * hash) + colType_;
+      hash = (53 * hash) + getColType().hashCode();
     }
     if (hasData()) {
       hash = (37 * hash) + DATA_FIELD_NUMBER;
@@ -416,7 +437,7 @@ private static final long serialVersionUID = 0L;
       super.clear();
       colName_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      colType_ = 0;
+      colType_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
       if (dataBuilder_ == null) {
         data_ = null;
@@ -512,7 +533,9 @@ private static final long serialVersionUID = 0L;
         onChanged();
       }
       if (other.hasColType()) {
-        setColType(other.getColType());
+        bitField0_ |= 0x00000002;
+        colType_ = other.colType_;
+        onChanged();
       }
       if (other.hasData()) {
         mergeData(other.getData());
@@ -626,38 +649,78 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private int colType_ = 0;
+    private java.lang.Object colType_ = "";
     /**
-     * <code>optional .alluxio.grpc.catalog.FieldTypeId col_type = 2;</code>
+     * <code>optional string col_type = 2;</code>
      */
     public boolean hasColType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.FieldTypeId col_type = 2;</code>
+     * <code>optional string col_type = 2;</code>
      */
-    public alluxio.grpc.catalog.FieldTypeId getColType() {
-      alluxio.grpc.catalog.FieldTypeId result = alluxio.grpc.catalog.FieldTypeId.valueOf(colType_);
-      return result == null ? alluxio.grpc.catalog.FieldTypeId.BOOLEAN : result;
+    public java.lang.String getColType() {
+      java.lang.Object ref = colType_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          colType_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.FieldTypeId col_type = 2;</code>
+     * <code>optional string col_type = 2;</code>
      */
-    public Builder setColType(alluxio.grpc.catalog.FieldTypeId value) {
-      if (value == null) {
-        throw new NullPointerException();
+    public com.google.protobuf.ByteString
+        getColTypeBytes() {
+      java.lang.Object ref = colType_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        colType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
       }
-      bitField0_ |= 0x00000002;
-      colType_ = value.getNumber();
+    }
+    /**
+     * <code>optional string col_type = 2;</code>
+     */
+    public Builder setColType(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      colType_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.FieldTypeId col_type = 2;</code>
+     * <code>optional string col_type = 2;</code>
      */
     public Builder clearColType() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      colType_ = 0;
+      colType_ = getDefaultInstance().getColType();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string col_type = 2;</code>
+     */
+    public Builder setColTypeBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      colType_ = value;
       onChanged();
       return this;
     }

@@ -15,7 +15,6 @@ import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.catalog.TableInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
@@ -79,7 +78,5 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
     Assert.assertEquals(test.get("/").getUfsUri() + "/catalog-metadata/test1.db/table1",
         table.getBaseLocation());
     Assert.assertEquals(1, table.getSchema().getColsCount());
-    Assert.assertEquals(Types.IntegerType.get(),
-        ProtoUtils.fromProto(table.getSchema()).findField(0).type());
   }
 }
