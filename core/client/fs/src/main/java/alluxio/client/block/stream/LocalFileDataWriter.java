@@ -29,7 +29,6 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -135,16 +134,8 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void cancel() throws IOException {
-    if (mStream.isClosed() || mStream.isCanceled()) {
-      return;
-    }
-    try {
-      mStream.cancel();
-    } catch (Exception e) {
-      throw mCloser.rethrow(e);
-    } finally {
-      mCloser.close();
-    }
+    mCloser.register(() -> mStream.cancel());
+    mCloser.close();
   }
 
   @Override
@@ -152,15 +143,9 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void close() throws IOException {
-    if (mStream.isClosed() || mStream.isCanceled()) {
-      return;
-    }
-    mCloser.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        mStream.close();
-        mStream.waitForComplete(mDataTimeoutMs);
-      }
+    mCloser.register(() -> {
+      mStream.close();
+      mStream.waitForComplete(mDataTimeoutMs);
     });
     mCloser.close();
   }
