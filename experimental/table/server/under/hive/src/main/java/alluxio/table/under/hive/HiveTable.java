@@ -18,7 +18,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.FieldSchema;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.HiveTableInfo;
 import alluxio.grpc.catalog.ParquetMetadata;
 import alluxio.grpc.catalog.PartitionInfo;

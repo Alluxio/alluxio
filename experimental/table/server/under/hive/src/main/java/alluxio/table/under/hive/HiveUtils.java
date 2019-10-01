@@ -133,6 +133,12 @@ public class HiveUtils {
         .putAllSerdeParameters(sd.getParameters()).build();
   }
 
+  /**
+   * Convert ColumnStatisticsObj to proto definition.
+   *
+   * @param colStats column statistics
+   * @return the proto form
+   */
   public static ColumnStatisticsInfo toProto(ColumnStatisticsObj colStats) {
     ColumnStatisticsInfo.Builder builder = ColumnStatisticsInfo.newBuilder();
     FieldTypeId type = toProto(colStats.getColType());
@@ -142,8 +148,8 @@ public class HiveUtils {
         org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData data =
             colStats.getStatsData().getBooleanStats();
         if (data != null) {
-          builder.setData(ColumnStatisticsData.newBuilder().
-              setBooleanStats(BooleanColumnStatsData.newBuilder()
+          builder.setData(ColumnStatisticsData.newBuilder()
+              .setBooleanStats(BooleanColumnStatsData.newBuilder()
                   .setNumTrues(data.getNumTrues()).setNumFalses(data.getNumFalses())
                   .setNumNulls(data.getNumNulls()).setBitVectors(data.getBitVectors())
                   .build()).build());
@@ -155,8 +161,8 @@ public class HiveUtils {
         org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData doubleStats =
             colStats.getStatsData().getDoubleStats();
         if (doubleStats != null) {
-          builder.setData(ColumnStatisticsData.newBuilder().
-              setDoubleStats(DoubleColumnStatsData.newBuilder()
+          builder.setData(ColumnStatisticsData.newBuilder()
+              .setDoubleStats(DoubleColumnStatsData.newBuilder()
                   .setNumDVs(doubleStats.getNumDVs()).setHighValue(doubleStats.getHighValue())
                   .setLowValue(doubleStats.getLowValue()).setNumNulls(doubleStats.getNumNulls())
                   .setBitVectors(doubleStats.getBitVectors()).build()).build());
@@ -169,8 +175,8 @@ public class HiveUtils {
         org.apache.hadoop.hive.metastore.api.LongColumnStatsData longData =
             colStats.getStatsData().getLongStats();
         if (longData != null) {
-          builder.setData(ColumnStatisticsData.newBuilder().
-              setLongStats(LongColumnStatsData.newBuilder()
+          builder.setData(ColumnStatisticsData.newBuilder()
+              .setLongStats(LongColumnStatsData.newBuilder()
                   .setNumDVs(longData.getNumDVs()).setHighValue(longData.getHighValue())
                   .setLowValue(longData.getLowValue())
                   .setNumNulls(longData.getNumNulls()).setBitVectors(longData.getBitVectors())
@@ -182,8 +188,8 @@ public class HiveUtils {
         org.apache.hadoop.hive.metastore.api.StringColumnStatsData stringData =
             colStats.getStatsData().getStringStats();
         if (stringData != null) {
-          builder.setData(ColumnStatisticsData.newBuilder().
-              setStringStats(StringColumnStatsData.newBuilder()
+          builder.setData(ColumnStatisticsData.newBuilder()
+              .setStringStats(StringColumnStatsData.newBuilder()
                   .setNumDVs(stringData.getNumDVs()).setAvgColLen(stringData.getAvgColLen())
                   .setMaxColLen(stringData.getMaxColLen())
                   .setNumNulls(stringData.getNumNulls()).setBitVectors(stringData.getBitVectors())
@@ -195,8 +201,8 @@ public class HiveUtils {
         org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData data =
             colStats.getStatsData().getBinaryStats();
         if (data != null) {
-          builder.setData(ColumnStatisticsData.newBuilder().
-              setBinaryStats(BinaryColumnStatsData.newBuilder()
+          builder.setData(ColumnStatisticsData.newBuilder()
+              .setBinaryStats(BinaryColumnStatsData.newBuilder()
                   .setMaxColLen(data.getMaxColLen()).setAvgColLen(data.getAvgColLen())
                   .setNumNulls(data.getNumNulls()).setBitVectors(data.getBitVectors())
                   .build()).build());
@@ -207,8 +213,8 @@ public class HiveUtils {
         org.apache.hadoop.hive.metastore.api.DateColumnStatsData data =
             colStats.getStatsData().getDateStats();
         if (data != null) {
-          builder.setData(ColumnStatisticsData.newBuilder().
-              setDateStats(DateColumnStatsData.newBuilder()
+          builder.setData(ColumnStatisticsData.newBuilder()
+              .setDateStats(DateColumnStatsData.newBuilder()
                   .setHighValue(toProto(data.getHighValue()))
                   .setLowValue(toProto(data.getLowValue()))
                   .setNumNulls(data.getNumNulls())
@@ -223,8 +229,8 @@ public class HiveUtils {
         org.apache.hadoop.hive.metastore.api.DecimalColumnStatsData data =
             colStats.getStatsData().getDecimalStats();
         if (data != null) {
-          builder.setData(ColumnStatisticsData.newBuilder().
-              setDecimalStats(DecimalColumnStatsData.newBuilder()
+          builder.setData(ColumnStatisticsData.newBuilder()
+              .setDecimalStats(DecimalColumnStatsData.newBuilder()
                   .setHighValue(toProto(data.getHighValue()))
                   .setLowValue(toProto(data.getLowValue()))
                   .setNumNulls(data.getNumNulls())
@@ -234,6 +240,8 @@ public class HiveUtils {
         }
         break;
       }
+
+      default:
     }
     return builder.build();
   }
