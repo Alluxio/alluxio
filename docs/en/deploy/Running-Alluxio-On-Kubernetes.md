@@ -372,7 +372,7 @@ If no format is needed, you are ready to skip the rest of this section and move 
 
 How the journal should be formatted depends on the Alluxio master [journal type]({{ '/en/operation/Journal.html#ufs-journal-vs-embedded-journal' | relativize_url }}).
 
-**Case A: UFS Journal**
+*UFS Journal*
 
 If you are running UFS journal, there is only one place for the journal.
 There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
@@ -386,7 +386,7 @@ $ kubectl apply -f alluxio-format-master.yaml
 After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
 Then the clean journal will be ready for a new Alluxio master to start with.
 
-**Case B: Emedded Journal**
+*Emedded Journal*
 
 If you are running embedded journal, each Alluxio master will write to its own journal destination defined by `alluxio.master.journal.folder`.
 In order to format the journals you have two options.
