@@ -57,7 +57,7 @@ fuse:
     - --fuse-opts=allow_other
 
 master:
-  replicaCount: 1
+  replicas: 1
   args:
     - master
     - -no-format

@@ -28,7 +28,7 @@ spec:
       role: alluxio-master
       name: {{ template "alluxio.fullname" . }}-master
   serviceName: "alluxio-master"
-  replicas: {{ .Values.master.replicaCount }}
+  replicas: {{ .Values.master.replicas }}
   template:
     metadata:
       labels:
