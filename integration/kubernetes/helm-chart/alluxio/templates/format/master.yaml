@@ -30,7 +30,7 @@ data:
     if [ ! "$(ls -A /journal)" ]
     then
       echo "/journal is empty! Need format."
-      /opt/alluxio/bin/alluxio formatMaster
+      /opt/alluxio/bin/alluxio formatMasters
       echo "Format successfull!"
     else
       echo "/journal is not empty! Skip format"
