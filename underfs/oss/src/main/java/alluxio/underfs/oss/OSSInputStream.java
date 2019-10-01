@@ -97,6 +97,8 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
     // OSS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
     OSSException lastException = null;
+    LOG.info("Create stream for key {} in bucket {} from {} to {}",
+            mKey, mBucketName, startPos, endPos);
     while (mRetryPolicy.attempt()) {
       try {
         OSSObject ossObject = mOssClient.getObject(req);
@@ -114,4 +116,6 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
     // Failed after retrying key does not exist
     throw new IOException(lastException);
   }
+
+
 }
