@@ -25,9 +25,9 @@ tieredstore:
     low: 0.7
 
 
-user: 0
-group: 0
-fsGroup: 0
+user: 1000
+group: 10000
+fsGroup: 1000
 
 domainHostPath: "/tmp/alluxio-domain"
 
