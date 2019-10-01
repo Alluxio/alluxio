@@ -12,7 +12,7 @@ public interface FileStatisticsOrBuilder extends
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
   int getColumnCount();
   /**
@@ -20,7 +20,7 @@ public interface FileStatisticsOrBuilder extends
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
   boolean containsColumn(
       java.lang.String key);
@@ -28,36 +28,36 @@ public interface FileStatisticsOrBuilder extends
    * Use {@link #getColumnMap()} instead.
    */
   @java.lang.Deprecated
-  java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>
+  java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
   getColumn();
   /**
    * <pre>
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
-  java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>
+  java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
   getColumnMap();
   /**
    * <pre>
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
 
-  alluxio.grpc.catalog.ColumnStatistics getColumnOrDefault(
+  alluxio.grpc.catalog.ColumnStatisticsInfo getColumnOrDefault(
       java.lang.String key,
-      alluxio.grpc.catalog.ColumnStatistics defaultValue);
+      alluxio.grpc.catalog.ColumnStatisticsInfo defaultValue);
   /**
    * <pre>
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
 
-  alluxio.grpc.catalog.ColumnStatistics getColumnOrThrow(
+  alluxio.grpc.catalog.ColumnStatisticsInfo getColumnOrThrow(
       java.lang.String key);
 }

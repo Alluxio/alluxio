@@ -243,8 +243,8 @@ message Layout {
 }
 
 message Partition {
-  optional PartitionSpec partitionSpec = 1;
-  optional Layout layout = 2;
+    optional PartitionSpec partitionSpec = 1;
+    optional Layout layout = 2;
 }
 
 message ColumnStatisticsInfo {
@@ -254,6 +254,76 @@ message ColumnStatisticsInfo {
 }
 
 message ColumnStatisticsData {
+    oneof data {
+        BooleanColumnStatsData booleanStats = 1;
+        LongColumnStatsData longStats = 2;
+        DoubleColumnStatsData doubleStats = 3;
+        StringColumnStatsData stringStats = 4;
+        BinaryColumnStatsData binaryStats = 5;
+        DecimalColumnStatsData decimalStats = 6;
+        DateColumnStatsData dateStats = 7;
+    }
+}
+
+message BooleanColumnStatsData {
+    optional int64 numTrues = 1;
+    optional int64 numFalses = 2;
+    optional int64 numNulls = 3;
+    optional string bitVectors = 4;
+}
+
+message LongColumnStatsData {
+    optional int64 lowValue = 1;
+    optional int64 highValue = 2;
+    optional int64 numNulls = 3;
+    optional int64 numDVs = 4;
+    optional string bitVectors = 5;
+}
+
+message DoubleColumnStatsData {
+    optional double lowValue = 1;
+    optional double highValue = 2;
+    optional int64 numNulls = 3;
+    optional int64 numDVs = 4;
+    optional string bitVectors = 5;
+}
+
+message Decimal {
+    required int32 scale = 1; // force using scale first in Decimal.compareTo
+    required bytes unscaled = 2;
+}
+message DecimalColumnStatsData {
+    optional Decimal lowValue = 1;
+    optional Decimal highValue = 2;
+    optional int64 numNulls = 3;
+    optional int64 numDVs = 4;
+    optional string bitVectors = 5;
+}
+
+message StringColumnStatsData {
+    optional int64 maxColLen = 1;
+    optional double avgColLen = 2;
+    optional int64 numNulls = 3;
+    optional int64 numDVs = 4;
+    optional string bitVectors = 5;
+}
+
+message BinaryColumnStatsData {
+    optional int64 maxColLen = 1;
+    optional double avgColLen = 2;
+    optional int64 numNulls = 3;
+    optional string bitVectors = 4;
+}
+
+message Date {
+    required int64 daysSinceEpoch = 1;
+}
+message DateColumnStatsData {
+    optional Date lowValue = 1;
+    optional Date highValue = 2;
+    optional int64 numNulls = 3;
+    optional int64 numDVs = 4;
+    optional string bitVectors = 5;
 }
 
 message GetAllDatabasesPRequest {
@@ -308,20 +378,6 @@ message CreateDatabasePResponse {
     optional bool success = 1;
 }
 
-message GetDataFilesPRequest {
-    optional string db_name = 1;
-    optional string table_name = 2;
-}
-
-message GetDataFilesPResponse {
-    repeated string data_file = 1;
-}
-
-message GetStatisticsPRequest {
-    optional string db_name = 1;
-    optional string table_name = 2;
-}
-
 message AttachDatabasePRequest {
     optional string db_name = 1;
     optional string db_type = 2;
@@ -332,16 +388,18 @@ message AttachDatabasePResponse {
     optional bool success = 1;
 }
 
-message ColumnStatistics {
-    optional uint64 record_count = 1;
-}
-
 message FileStatistics {
-    map<string, ColumnStatistics> column = 1; //map column names to column statistics
+    map<string, ColumnStatisticsInfo> column = 1; //map column names to column statistics
 }
 
-message GetStatisticsPResponse {
-    map<string, FileStatistics> statistics = 1;
+message GetTableColumnStatisticsPRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    repeated string col_names = 3;
+}
+
+message GetTableColumnStatisticsPResponse {
+    repeated ColumnStatisticsInfo statistics = 1;
 }
 
 message Value {
@@ -433,7 +491,7 @@ service CatalogMasterClientService {
      */
     rpc AttachDatabase(AttachDatabasePRequest) returns (AttachDatabasePResponse);
 
-    rpc GetStatistics(GetStatisticsPRequest) returns (GetStatisticsPResponse);
+    rpc GetTableColumnStatistics(GetTableColumnStatisticsPRequest) returns (GetTableColumnStatisticsPResponse);
 
     rpc ReadTable(ReadTablePRequest) returns (ReadTablePResponse);
 }

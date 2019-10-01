@@ -3,8 +3,8 @@
 
 package alluxio.grpc.catalog;
 
-public interface GetStatisticsPRequestOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:alluxio.grpc.catalog.GetStatisticsPRequest)
+public interface GetTableColumnStatisticsPRequestOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:alluxio.grpc.catalog.GetTableColumnStatisticsPRequest)
     com.google.protobuf.MessageOrBuilder {
 
   /**
@@ -34,4 +34,23 @@ public interface GetStatisticsPRequestOrBuilder extends
    */
   com.google.protobuf.ByteString
       getTableNameBytes();
+
+  /**
+   * <code>repeated string col_names = 3;</code>
+   */
+  java.util.List<java.lang.String>
+      getColNamesList();
+  /**
+   * <code>repeated string col_names = 3;</code>
+   */
+  int getColNamesCount();
+  /**
+   * <code>repeated string col_names = 3;</code>
+   */
+  java.lang.String getColNames(int index);
+  /**
+   * <code>repeated string col_names = 3;</code>
+   */
+  com.google.protobuf.ByteString
+      getColNamesBytes(int index);
 }
