@@ -34,16 +34,19 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: alluxio-master-0
+  labels:
+    app: alluxio
 spec:
   selector:
     matchLabels:
-      app: alluxio-master-0
+      name: alluxio-master-0
   serviceName: "alluxio-master-0"
   replicas: 1
   template:
     metadata:
       labels:
-        app: alluxio-master-0
+        name: alluxio-master-0
+        app: alluxio
     spec:
       securityContext:
         fsGroup: 1000
@@ -136,16 +139,19 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: alluxio-master-1
+  labels:
+    app: alluxio
 spec:
   selector:
     matchLabels:
-      app: alluxio-master-1
+      name: alluxio-master-1
   serviceName: "alluxio-master-1"
   replicas: 1
   template:
     metadata:
       labels:
-        app: alluxio-master-1
+        name: alluxio-master-1
+        app: alluxio
     spec:
       securityContext:
         fsGroup: 1000
@@ -238,16 +244,19 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: alluxio-master-2
+  labels:
+    app: alluxio
 spec:
   selector:
     matchLabels:
-      app: alluxio-master-2
+      name: alluxio-master-2
   serviceName: "alluxio-master-2"
   replicas: 1
   template:
     metadata:
       labels:
-        app: alluxio-master-2
+        name: alluxio-master-2
+        app: alluxio
     spec:
       securityContext:
         fsGroup: 1000

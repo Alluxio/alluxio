@@ -60,16 +60,19 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ $masterName }}
+  labels:
+    app: alluxio
 spec:
   selector:
     matchLabels:
-      app: {{ $masterName }}
+      name: {{ $masterName }}
   serviceName: {{ $masterName | quote }}
   replicas: {{ $root.Values.resources.master.replicaCount }}
   template:
     metadata:
       labels:
-        app: {{ $masterName }}
+        name: {{ $masterName }}
+        app: alluxio
     spec:
       securityContext:
         fsGroup: {{ $root.Values.fsGroup }}

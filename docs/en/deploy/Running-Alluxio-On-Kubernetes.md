@@ -172,14 +172,14 @@ volumes:
 EOF
 ```
 
-##### Install
+#### Install
 
 Once the configuration is finalized, install as follows:
 ```console
 helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
 ```
 
-##### Uninstall
+#### Uninstall
 
 Uninstall Alluxio as follows:
 ```console
@@ -319,6 +319,110 @@ will be lost.
 ```console
 $ kubectl delete -f alluxio-journal-volume.yaml
 ```
+
+#### Upgrade Alluxio
+
+This section will go over how to upgrade Alluxio in your Kubernetes cluster with `kubectl`.
+
+**Step 1: Upgrade the docker image version tag**
+ 
+Each released Alluxio version will have the corresponding docker image released on [dockerhub](https://hub.docker.com/r/alluxio/alluxio).
+
+You should update the `image` field of all the Alluxio containers to use the target version tag. Tag `latest` will point to the latest stable version.
+It is recommended that Alluxio masters and workers are running on the same version for the best compatibility.
+
+For example, if you want to upgrade Alluxio to the latest stable version, update the containers as below:
+
+```yaml
+containers:
+- name: alluxio-master
+  image: alluxio/alluxio:latest
+  imagePullPolicy: IfNotPresent
+  ...
+- name: alluxio-job-master
+  image: alluxio/alluxio:latest
+  imagePullPolicy: IfNotPresent
+  ...
+```
+
+**Step 2: Stop running Alluxio master and worker Pods**
+
+Kill all running Alluxio worker Pods by deleting its DaemonSet.
+
+```console
+$ kubectl delete daemonset -l app=alluxio
+```
+
+Then kill all running Alluxio master Pods by killing each StatefulSet and each Service with label `app=alluxio`.
+
+```console
+$ kubectl delete service -l app=alluxio
+$ kubectl delete statefulset -l app=alluxio
+```
+
+The reason why you don't do `kubectl delete -f alluxio-master.yaml` is that will delete the Persistent Volume Claim in the `alluxio-master.yaml` if any.
+And that will result in your Persistent Volume getting released and the journal in it will be lost. The same logic applies to `alluxio-worker.yaml`.
+
+Make sure all the Pods have been terminated before you move on to the next step.
+
+**Step 3: Format journal and Alluxio storage if necessary**
+
+Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
+If no format is needed, you are ready to skip the rest of this section and move on to restart all Alluxio master and worker Pods.
+
+How the journal should be formatted depends on the Alluxio master [journal type]({{ '/en/operation/Journal.html#ufs-journal-vs-embedded-journal' | relativize_url }}).
+
+*UFS Journal*
+
+If you are running UFS journal, there is only one place for the journal.
+There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
+template that can be used for only formatting the master.
+The Job runs `alluxio formatMasters` and formats the journal for all masters.
+You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.  
+
+```console
+$ kubectl apply -f alluxio-format-master.yaml
+```
+
+After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
+Then the clean journal will be ready for a new Alluxio master to start with.
+
+*Emedded Journal*
+
+If you are running embedded journal, each Alluxio master will write to its own journal destination defined by `alluxio.master.journal.folder`.
+In order to format the journals you have two options.
+
+1. Format all masters by running the Kubernetes Job in `alluxio-format-master.yaml`.
+
+1. Clean up the journal Persistent Volume for each master. You can do that by deleting and recreating the Persistent Volume for each master.
+
+If you are running Alluxio workers with [tiered storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }}),
+and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
+You should delete and recreate the Persistent Volumes. 
+
+Once all the journals and Alluxio storage have been formatted, you are ready to restart the Alluxio master and worker Pods.
+
+**Step 4: Restart Alluxio master and worker Pods**
+
+Now that Alluxio masters and worker containers all use your desired version. Restart them to let it take effect.
+
+Now restart the Alluxio master and worker Pods from the YAML files.
+
+```console
+$ kubectl create -f alluxio-master.yaml
+$ kubectl create -f alluxio-worker.yaml
+```
+
+**Step 5: Verify the Alluxio master and worker Pods are back up**
+
+You should verify the Alluxio Pods are back up in Running status.
+
+```console
+# You should see all Alluxio master and worker Pods
+$ kubectl get pods
+```
+
+You can do more comprehensive verification following [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }})
 
 ### Access the Web UI
 
