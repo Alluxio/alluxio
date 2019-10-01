@@ -449,7 +449,6 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public AlluxioURI reverseResolve(AlluxioURI ufspath) throws IOException, AlluxioException {
-    checkUri(ufspath);
     return rpc(client -> {
       AlluxioURI path = client.reverseResolve(ufspath);
       LOG.debug("Reverse resolved {} to {}", ufspath.getPath(), path.getPath());
