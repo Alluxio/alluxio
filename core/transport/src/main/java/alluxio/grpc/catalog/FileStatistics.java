@@ -55,7 +55,7 @@ private static final long serialVersionUID = 0L;
                   ColumnDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000001;
             }
-            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>
+            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
             column__ = input.readMessage(
                 ColumnDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
             column_.getMutableMap().put(
@@ -100,18 +100,18 @@ private static final long serialVersionUID = 0L;
   public static final int COLUMN_FIELD_NUMBER = 1;
   private static final class ColumnDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
-        java.lang.String, alluxio.grpc.catalog.ColumnStatistics> defaultEntry =
+        java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> defaultEntry =
             com.google.protobuf.MapEntry
-            .<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>newDefaultInstance(
+            .<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>newDefaultInstance(
                 alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_FileStatistics_ColumnEntry_descriptor, 
                 com.google.protobuf.WireFormat.FieldType.STRING,
                 "",
                 com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                alluxio.grpc.catalog.ColumnStatistics.getDefaultInstance());
+                alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance());
   }
   private com.google.protobuf.MapField<
-      java.lang.String, alluxio.grpc.catalog.ColumnStatistics> column_;
-  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>
+      java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> column_;
+  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
   internalGetColumn() {
     if (column_ == null) {
       return com.google.protobuf.MapField.emptyMapField(
@@ -128,7 +128,7 @@ private static final long serialVersionUID = 0L;
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
 
   public boolean containsColumn(
@@ -140,7 +140,7 @@ private static final long serialVersionUID = 0L;
    * Use {@link #getColumnMap()} instead.
    */
   @java.lang.Deprecated
-  public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> getColumn() {
+  public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> getColumn() {
     return getColumnMap();
   }
   /**
@@ -148,10 +148,10 @@ private static final long serialVersionUID = 0L;
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
 
-  public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> getColumnMap() {
+  public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> getColumnMap() {
     return internalGetColumn().getMap();
   }
   /**
@@ -159,14 +159,14 @@ private static final long serialVersionUID = 0L;
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
 
-  public alluxio.grpc.catalog.ColumnStatistics getColumnOrDefault(
+  public alluxio.grpc.catalog.ColumnStatisticsInfo getColumnOrDefault(
       java.lang.String key,
-      alluxio.grpc.catalog.ColumnStatistics defaultValue) {
+      alluxio.grpc.catalog.ColumnStatisticsInfo defaultValue) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> map =
+    java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> map =
         internalGetColumn().getMap();
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
@@ -175,13 +175,13 @@ private static final long serialVersionUID = 0L;
    *map column names to column statistics
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
    */
 
-  public alluxio.grpc.catalog.ColumnStatistics getColumnOrThrow(
+  public alluxio.grpc.catalog.ColumnStatisticsInfo getColumnOrThrow(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> map =
+    java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> map =
         internalGetColumn().getMap();
     if (!map.containsKey(key)) {
       throw new java.lang.IllegalArgumentException();
@@ -195,6 +195,12 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    for (alluxio.grpc.catalog.ColumnStatisticsInfo item : getColumnMap().values()) {
+      if (!item.isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -215,9 +221,9 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> entry
+    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> entry
          : internalGetColumn().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>
+      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
       column__ = ColumnDefaultEntryHolder.defaultEntry.newBuilderForType()
           .setKey(entry.getKey())
           .setValue(entry.getValue())
@@ -484,6 +490,11 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      for (alluxio.grpc.catalog.ColumnStatisticsInfo item : getColumnMap().values()) {
+        if (!item.isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -507,8 +518,8 @@ private static final long serialVersionUID = 0L;
     private int bitField0_;
 
     private com.google.protobuf.MapField<
-        java.lang.String, alluxio.grpc.catalog.ColumnStatistics> column_;
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>
+        java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> column_;
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
     internalGetColumn() {
       if (column_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -516,7 +527,7 @@ private static final long serialVersionUID = 0L;
       }
       return column_;
     }
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
     internalGetMutableColumn() {
       onChanged();;
       if (column_ == null) {
@@ -537,7 +548,7 @@ private static final long serialVersionUID = 0L;
      *map column names to column statistics
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
      */
 
     public boolean containsColumn(
@@ -549,7 +560,7 @@ private static final long serialVersionUID = 0L;
      * Use {@link #getColumnMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> getColumn() {
+    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> getColumn() {
       return getColumnMap();
     }
     /**
@@ -557,10 +568,10 @@ private static final long serialVersionUID = 0L;
      *map column names to column statistics
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
      */
 
-    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> getColumnMap() {
+    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> getColumnMap() {
       return internalGetColumn().getMap();
     }
     /**
@@ -568,14 +579,14 @@ private static final long serialVersionUID = 0L;
      *map column names to column statistics
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
      */
 
-    public alluxio.grpc.catalog.ColumnStatistics getColumnOrDefault(
+    public alluxio.grpc.catalog.ColumnStatisticsInfo getColumnOrDefault(
         java.lang.String key,
-        alluxio.grpc.catalog.ColumnStatistics defaultValue) {
+        alluxio.grpc.catalog.ColumnStatisticsInfo defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> map =
+      java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> map =
           internalGetColumn().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
@@ -584,13 +595,13 @@ private static final long serialVersionUID = 0L;
      *map column names to column statistics
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
      */
 
-    public alluxio.grpc.catalog.ColumnStatistics getColumnOrThrow(
+    public alluxio.grpc.catalog.ColumnStatisticsInfo getColumnOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> map =
+      java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> map =
           internalGetColumn().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -608,7 +619,7 @@ private static final long serialVersionUID = 0L;
      *map column names to column statistics
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
      */
 
     public Builder removeColumn(
@@ -622,7 +633,7 @@ private static final long serialVersionUID = 0L;
      * Use alternate mutation accessors instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics>
+    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
     getMutableColumn() {
       return internalGetMutableColumn().getMutableMap();
     }
@@ -631,11 +642,11 @@ private static final long serialVersionUID = 0L;
      *map column names to column statistics
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
      */
     public Builder putColumn(
         java.lang.String key,
-        alluxio.grpc.catalog.ColumnStatistics value) {
+        alluxio.grpc.catalog.ColumnStatisticsInfo value) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       if (value == null) { throw new java.lang.NullPointerException(); }
       internalGetMutableColumn().getMutableMap()
@@ -647,11 +658,11 @@ private static final long serialVersionUID = 0L;
      *map column names to column statistics
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatistics&gt; column = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; column = 1;</code>
      */
 
     public Builder putAllColumn(
-        java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatistics> values) {
+        java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> values) {
       internalGetMutableColumn().getMutableMap()
           .putAll(values);
       return this;

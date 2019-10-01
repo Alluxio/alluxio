@@ -11,7 +11,7 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.grpc.catalog.FileStatistics;
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.TableView;
@@ -19,7 +19,6 @@ import alluxio.table.common.UdbPartition;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The interface for the underdb table.
@@ -45,7 +44,7 @@ public interface UdbTable {
   /**
    * @return statistics of the table
    */
-  Map<String, FileStatistics> getStatistics();
+  List<ColumnStatisticsInfo> getStatistics();
 
   /**
    * @return returns a view for this udb table

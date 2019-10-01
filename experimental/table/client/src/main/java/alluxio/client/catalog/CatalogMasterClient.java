@@ -16,7 +16,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Database;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.TableInfo;
@@ -146,7 +145,7 @@ public interface CatalogMasterClient extends Client {
    * @return list of column statistics
    * @throws AlluxioStatusException
    */
-  Map<String, FileStatistics> getTableColumnStatistics(
+  List<ColumnStatisticsInfo> getTableColumnStatistics(
           String databaseName,
           String tableName,
           List<String> columnNames) throws AlluxioStatusException;

@@ -4,20 +4,21 @@
 package alluxio.grpc.catalog;
 
 /**
- * Protobuf type {@code alluxio.grpc.catalog.GetStatisticsPRequest}
+ * Protobuf type {@code alluxio.grpc.catalog.GetTableColumnStatisticsPRequest}
  */
-public  final class GetStatisticsPRequest extends
+public  final class GetTableColumnStatisticsPRequest extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.catalog.GetStatisticsPRequest)
-    GetStatisticsPRequestOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.catalog.GetTableColumnStatisticsPRequest)
+    GetTableColumnStatisticsPRequestOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use GetStatisticsPRequest.newBuilder() to construct.
-  private GetStatisticsPRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use GetTableColumnStatisticsPRequest.newBuilder() to construct.
+  private GetTableColumnStatisticsPRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private GetStatisticsPRequest() {
+  private GetTableColumnStatisticsPRequest() {
     dbName_ = "";
     tableName_ = "";
+    colNames_ = com.google.protobuf.LazyStringArrayList.EMPTY;
   }
 
   @java.lang.Override
@@ -25,7 +26,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private GetStatisticsPRequest(
+  private GetTableColumnStatisticsPRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -63,6 +64,15 @@ private static final long serialVersionUID = 0L;
             tableName_ = bs;
             break;
           }
+          case 26: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+              colNames_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000004;
+            }
+            colNames_.add(bs);
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -71,20 +81,23 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        colNames_ = colNames_.getUnmodifiableView();
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetStatisticsPRequest_descriptor;
+    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetTableColumnStatisticsPRequest_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetStatisticsPRequest_fieldAccessorTable
+    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetTableColumnStatisticsPRequest_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.catalog.GetStatisticsPRequest.class, alluxio.grpc.catalog.GetStatisticsPRequest.Builder.class);
+            alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.class, alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.Builder.class);
   }
 
   private int bitField0_;
@@ -172,6 +185,35 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int COL_NAMES_FIELD_NUMBER = 3;
+  private com.google.protobuf.LazyStringList colNames_;
+  /**
+   * <code>repeated string col_names = 3;</code>
+   */
+  public com.google.protobuf.ProtocolStringList
+      getColNamesList() {
+    return colNames_;
+  }
+  /**
+   * <code>repeated string col_names = 3;</code>
+   */
+  public int getColNamesCount() {
+    return colNames_.size();
+  }
+  /**
+   * <code>repeated string col_names = 3;</code>
+   */
+  public java.lang.String getColNames(int index) {
+    return colNames_.get(index);
+  }
+  /**
+   * <code>repeated string col_names = 3;</code>
+   */
+  public com.google.protobuf.ByteString
+      getColNamesBytes(int index) {
+    return colNames_.getByteString(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -190,6 +232,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
     }
+    for (int i = 0; i < colNames_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, colNames_.getRaw(i));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -204,6 +249,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
     }
+    {
+      int dataSize = 0;
+      for (int i = 0; i < colNames_.size(); i++) {
+        dataSize += computeStringSizeNoTag(colNames_.getRaw(i));
+      }
+      size += dataSize;
+      size += 1 * getColNamesList().size();
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -214,10 +267,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.catalog.GetStatisticsPRequest)) {
+    if (!(obj instanceof alluxio.grpc.catalog.GetTableColumnStatisticsPRequest)) {
       return super.equals(obj);
     }
-    alluxio.grpc.catalog.GetStatisticsPRequest other = (alluxio.grpc.catalog.GetStatisticsPRequest) obj;
+    alluxio.grpc.catalog.GetTableColumnStatisticsPRequest other = (alluxio.grpc.catalog.GetTableColumnStatisticsPRequest) obj;
 
     boolean result = true;
     result = result && (hasDbName() == other.hasDbName());
@@ -230,6 +283,8 @@ private static final long serialVersionUID = 0L;
       result = result && getTableName()
           .equals(other.getTableName());
     }
+    result = result && getColNamesList()
+        .equals(other.getColNamesList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -249,74 +304,78 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + TABLE_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getTableName().hashCode();
     }
+    if (getColNamesCount() > 0) {
+      hash = (37 * hash) + COL_NAMES_FIELD_NUMBER;
+      hash = (53 * hash) + getColNamesList().hashCode();
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(byte[] data)
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseDelimitedFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.GetStatisticsPRequest parseFrom(
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -328,7 +387,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.catalog.GetStatisticsPRequest prototype) {
+  public static Builder newBuilder(alluxio.grpc.catalog.GetTableColumnStatisticsPRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -343,25 +402,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.catalog.GetStatisticsPRequest}
+   * Protobuf type {@code alluxio.grpc.catalog.GetTableColumnStatisticsPRequest}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.catalog.GetStatisticsPRequest)
-      alluxio.grpc.catalog.GetStatisticsPRequestOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.catalog.GetTableColumnStatisticsPRequest)
+      alluxio.grpc.catalog.GetTableColumnStatisticsPRequestOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetStatisticsPRequest_descriptor;
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetTableColumnStatisticsPRequest_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetStatisticsPRequest_fieldAccessorTable
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetTableColumnStatisticsPRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.catalog.GetStatisticsPRequest.class, alluxio.grpc.catalog.GetStatisticsPRequest.Builder.class);
+              alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.class, alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.Builder.class);
     }
 
-    // Construct using alluxio.grpc.catalog.GetStatisticsPRequest.newBuilder()
+    // Construct using alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -382,28 +441,30 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       tableName_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
+      colNames_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetStatisticsPRequest_descriptor;
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetTableColumnStatisticsPRequest_descriptor;
     }
 
-    public alluxio.grpc.catalog.GetStatisticsPRequest getDefaultInstanceForType() {
-      return alluxio.grpc.catalog.GetStatisticsPRequest.getDefaultInstance();
+    public alluxio.grpc.catalog.GetTableColumnStatisticsPRequest getDefaultInstanceForType() {
+      return alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.getDefaultInstance();
     }
 
-    public alluxio.grpc.catalog.GetStatisticsPRequest build() {
-      alluxio.grpc.catalog.GetStatisticsPRequest result = buildPartial();
+    public alluxio.grpc.catalog.GetTableColumnStatisticsPRequest build() {
+      alluxio.grpc.catalog.GetTableColumnStatisticsPRequest result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.catalog.GetStatisticsPRequest buildPartial() {
-      alluxio.grpc.catalog.GetStatisticsPRequest result = new alluxio.grpc.catalog.GetStatisticsPRequest(this);
+    public alluxio.grpc.catalog.GetTableColumnStatisticsPRequest buildPartial() {
+      alluxio.grpc.catalog.GetTableColumnStatisticsPRequest result = new alluxio.grpc.catalog.GetTableColumnStatisticsPRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -414,6 +475,11 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000002;
       }
       result.tableName_ = tableName_;
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        colNames_ = colNames_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000004);
+      }
+      result.colNames_ = colNames_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -446,16 +512,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.catalog.GetStatisticsPRequest) {
-        return mergeFrom((alluxio.grpc.catalog.GetStatisticsPRequest)other);
+      if (other instanceof alluxio.grpc.catalog.GetTableColumnStatisticsPRequest) {
+        return mergeFrom((alluxio.grpc.catalog.GetTableColumnStatisticsPRequest)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.catalog.GetStatisticsPRequest other) {
-      if (other == alluxio.grpc.catalog.GetStatisticsPRequest.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.catalog.GetTableColumnStatisticsPRequest other) {
+      if (other == alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.getDefaultInstance()) return this;
       if (other.hasDbName()) {
         bitField0_ |= 0x00000001;
         dbName_ = other.dbName_;
@@ -464,6 +530,16 @@ private static final long serialVersionUID = 0L;
       if (other.hasTableName()) {
         bitField0_ |= 0x00000002;
         tableName_ = other.tableName_;
+        onChanged();
+      }
+      if (!other.colNames_.isEmpty()) {
+        if (colNames_.isEmpty()) {
+          colNames_ = other.colNames_;
+          bitField0_ = (bitField0_ & ~0x00000004);
+        } else {
+          ensureColNamesIsMutable();
+          colNames_.addAll(other.colNames_);
+        }
         onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -479,11 +555,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.catalog.GetStatisticsPRequest parsedMessage = null;
+      alluxio.grpc.catalog.GetTableColumnStatisticsPRequest parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.catalog.GetStatisticsPRequest) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.catalog.GetTableColumnStatisticsPRequest) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -645,6 +721,99 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
+    private com.google.protobuf.LazyStringList colNames_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensureColNamesIsMutable() {
+      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        colNames_ = new com.google.protobuf.LazyStringArrayList(colNames_);
+        bitField0_ |= 0x00000004;
+       }
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public com.google.protobuf.ProtocolStringList
+        getColNamesList() {
+      return colNames_.getUnmodifiableView();
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public int getColNamesCount() {
+      return colNames_.size();
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public java.lang.String getColNames(int index) {
+      return colNames_.get(index);
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getColNamesBytes(int index) {
+      return colNames_.getByteString(index);
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public Builder setColNames(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureColNamesIsMutable();
+      colNames_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public Builder addColNames(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureColNamesIsMutable();
+      colNames_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public Builder addAllColNames(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureColNamesIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, colNames_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public Builder clearColNames() {
+      colNames_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000004);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string col_names = 3;</code>
+     */
+    public Builder addColNamesBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureColNamesIsMutable();
+      colNames_.add(value);
+      onChanged();
+      return this;
+    }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
@@ -656,39 +825,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.catalog.GetStatisticsPRequest)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.catalog.GetTableColumnStatisticsPRequest)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.catalog.GetStatisticsPRequest)
-  private static final alluxio.grpc.catalog.GetStatisticsPRequest DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.catalog.GetTableColumnStatisticsPRequest)
+  private static final alluxio.grpc.catalog.GetTableColumnStatisticsPRequest DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.catalog.GetStatisticsPRequest();
+    DEFAULT_INSTANCE = new alluxio.grpc.catalog.GetTableColumnStatisticsPRequest();
   }
 
-  public static alluxio.grpc.catalog.GetStatisticsPRequest getDefaultInstance() {
+  public static alluxio.grpc.catalog.GetTableColumnStatisticsPRequest getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetStatisticsPRequest>
-      PARSER = new com.google.protobuf.AbstractParser<GetStatisticsPRequest>() {
-    public GetStatisticsPRequest parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetTableColumnStatisticsPRequest>
+      PARSER = new com.google.protobuf.AbstractParser<GetTableColumnStatisticsPRequest>() {
+    public GetTableColumnStatisticsPRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new GetStatisticsPRequest(input, extensionRegistry);
+      return new GetTableColumnStatisticsPRequest(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<GetStatisticsPRequest> parser() {
+  public static com.google.protobuf.Parser<GetTableColumnStatisticsPRequest> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<GetStatisticsPRequest> getParserForType() {
+  public com.google.protobuf.Parser<GetTableColumnStatisticsPRequest> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.catalog.GetStatisticsPRequest getDefaultInstanceForType() {
+  public alluxio.grpc.catalog.GetTableColumnStatisticsPRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

@@ -16,8 +16,8 @@ import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Constraint;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.Schema;
 import alluxio.master.CoreMaster;
@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -100,16 +99,9 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
-      throws IOException {
-    // TODO(gpang): revisit api
-    return mCatalog.getStatistics(dbName, tableName);
-  }
-
-  @Override
-  public List<String> getDataFiles(String dbName, String tableName) throws IOException {
-    // TODO(gpang): revisit api
-    return new ArrayList<>(mCatalog.getStatistics(dbName, tableName).keySet());
+  public List<ColumnStatisticsInfo> getTableColumnStatistics(String dbName, String tableName,
+      List<String> colNames) throws IOException {
+    return mCatalog.getTableColumnStatistics(dbName, tableName, colNames);
   }
 
   @Override

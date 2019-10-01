@@ -4,19 +4,20 @@
 package alluxio.grpc.catalog;
 
 /**
- * Protobuf type {@code alluxio.grpc.catalog.GetDataFilesPResponse}
+ * Protobuf type {@code alluxio.grpc.catalog.Decimal}
  */
-public  final class GetDataFilesPResponse extends
+public  final class Decimal extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.catalog.GetDataFilesPResponse)
-    GetDataFilesPResponseOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.catalog.Decimal)
+    DecimalOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use GetDataFilesPResponse.newBuilder() to construct.
-  private GetDataFilesPResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use Decimal.newBuilder() to construct.
+  private Decimal(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private GetDataFilesPResponse() {
-    dataFile_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+  private Decimal() {
+    scale_ = 0;
+    unscaled_ = com.google.protobuf.ByteString.EMPTY;
   }
 
   @java.lang.Override
@@ -24,7 +25,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private GetDataFilesPResponse(
+  private Decimal(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -50,13 +51,14 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 10: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              dataFile_ = new com.google.protobuf.LazyStringArrayList();
-              mutable_bitField0_ |= 0x00000001;
-            }
-            dataFile_.add(bs);
+          case 8: {
+            bitField0_ |= 0x00000001;
+            scale_ = input.readInt32();
+            break;
+          }
+          case 18: {
+            bitField0_ |= 0x00000002;
+            unscaled_ = input.readBytes();
             break;
           }
         }
@@ -67,52 +69,59 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-        dataFile_ = dataFile_.getUnmodifiableView();
-      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetDataFilesPResponse_descriptor;
+    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Decimal_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetDataFilesPResponse_fieldAccessorTable
+    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Decimal_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.catalog.GetDataFilesPResponse.class, alluxio.grpc.catalog.GetDataFilesPResponse.Builder.class);
+            alluxio.grpc.catalog.Decimal.class, alluxio.grpc.catalog.Decimal.Builder.class);
   }
 
-  public static final int DATA_FILE_FIELD_NUMBER = 1;
-  private com.google.protobuf.LazyStringList dataFile_;
+  private int bitField0_;
+  public static final int SCALE_FIELD_NUMBER = 1;
+  private int scale_;
   /**
-   * <code>repeated string data_file = 1;</code>
+   * <pre>
+   * force using scale first in Decimal.compareTo
+   * </pre>
+   *
+   * <code>required int32 scale = 1;</code>
    */
-  public com.google.protobuf.ProtocolStringList
-      getDataFileList() {
-    return dataFile_;
+  public boolean hasScale() {
+    return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>repeated string data_file = 1;</code>
+   * <pre>
+   * force using scale first in Decimal.compareTo
+   * </pre>
+   *
+   * <code>required int32 scale = 1;</code>
    */
-  public int getDataFileCount() {
-    return dataFile_.size();
+  public int getScale() {
+    return scale_;
+  }
+
+  public static final int UNSCALED_FIELD_NUMBER = 2;
+  private com.google.protobuf.ByteString unscaled_;
+  /**
+   * <code>required bytes unscaled = 2;</code>
+   */
+  public boolean hasUnscaled() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>repeated string data_file = 1;</code>
+   * <code>required bytes unscaled = 2;</code>
    */
-  public java.lang.String getDataFile(int index) {
-    return dataFile_.get(index);
-  }
-  /**
-   * <code>repeated string data_file = 1;</code>
-   */
-  public com.google.protobuf.ByteString
-      getDataFileBytes(int index) {
-    return dataFile_.getByteString(index);
+  public com.google.protobuf.ByteString getUnscaled() {
+    return unscaled_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -121,14 +130,25 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (!hasScale()) {
+      memoizedIsInitialized = 0;
+      return false;
+    }
+    if (!hasUnscaled()) {
+      memoizedIsInitialized = 0;
+      return false;
+    }
     memoizedIsInitialized = 1;
     return true;
   }
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    for (int i = 0; i < dataFile_.size(); i++) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dataFile_.getRaw(i));
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      output.writeInt32(1, scale_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      output.writeBytes(2, unscaled_);
     }
     unknownFields.writeTo(output);
   }
@@ -138,13 +158,13 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    {
-      int dataSize = 0;
-      for (int i = 0; i < dataFile_.size(); i++) {
-        dataSize += computeStringSizeNoTag(dataFile_.getRaw(i));
-      }
-      size += dataSize;
-      size += 1 * getDataFileList().size();
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(1, scale_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBytesSize(2, unscaled_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -156,14 +176,22 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.catalog.GetDataFilesPResponse)) {
+    if (!(obj instanceof alluxio.grpc.catalog.Decimal)) {
       return super.equals(obj);
     }
-    alluxio.grpc.catalog.GetDataFilesPResponse other = (alluxio.grpc.catalog.GetDataFilesPResponse) obj;
+    alluxio.grpc.catalog.Decimal other = (alluxio.grpc.catalog.Decimal) obj;
 
     boolean result = true;
-    result = result && getDataFileList()
-        .equals(other.getDataFileList());
+    result = result && (hasScale() == other.hasScale());
+    if (hasScale()) {
+      result = result && (getScale()
+          == other.getScale());
+    }
+    result = result && (hasUnscaled() == other.hasUnscaled());
+    if (hasUnscaled()) {
+      result = result && getUnscaled()
+          .equals(other.getUnscaled());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -175,78 +203,82 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (getDataFileCount() > 0) {
-      hash = (37 * hash) + DATA_FILE_FIELD_NUMBER;
-      hash = (53 * hash) + getDataFileList().hashCode();
+    if (hasScale()) {
+      hash = (37 * hash) + SCALE_FIELD_NUMBER;
+      hash = (53 * hash) + getScale();
+    }
+    if (hasUnscaled()) {
+      hash = (37 * hash) + UNSCALED_FIELD_NUMBER;
+      hash = (53 * hash) + getUnscaled().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(
+  public static alluxio.grpc.catalog.Decimal parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(
+  public static alluxio.grpc.catalog.Decimal parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(
+  public static alluxio.grpc.catalog.Decimal parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(
+  public static alluxio.grpc.catalog.Decimal parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(byte[] data)
+  public static alluxio.grpc.catalog.Decimal parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(
+  public static alluxio.grpc.catalog.Decimal parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.catalog.Decimal parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(
+  public static alluxio.grpc.catalog.Decimal parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.catalog.Decimal parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseDelimitedFrom(
+  public static alluxio.grpc.catalog.Decimal parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(
+  public static alluxio.grpc.catalog.Decimal parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.GetDataFilesPResponse parseFrom(
+  public static alluxio.grpc.catalog.Decimal parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -258,7 +290,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.catalog.GetDataFilesPResponse prototype) {
+  public static Builder newBuilder(alluxio.grpc.catalog.Decimal prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -273,25 +305,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.catalog.GetDataFilesPResponse}
+   * Protobuf type {@code alluxio.grpc.catalog.Decimal}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.catalog.GetDataFilesPResponse)
-      alluxio.grpc.catalog.GetDataFilesPResponseOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.catalog.Decimal)
+      alluxio.grpc.catalog.DecimalOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetDataFilesPResponse_descriptor;
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Decimal_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetDataFilesPResponse_fieldAccessorTable
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Decimal_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.catalog.GetDataFilesPResponse.class, alluxio.grpc.catalog.GetDataFilesPResponse.Builder.class);
+              alluxio.grpc.catalog.Decimal.class, alluxio.grpc.catalog.Decimal.Builder.class);
     }
 
-    // Construct using alluxio.grpc.catalog.GetDataFilesPResponse.newBuilder()
+    // Construct using alluxio.grpc.catalog.Decimal.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -308,36 +340,43 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      dataFile_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      scale_ = 0;
       bitField0_ = (bitField0_ & ~0x00000001);
+      unscaled_ = com.google.protobuf.ByteString.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_GetDataFilesPResponse_descriptor;
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Decimal_descriptor;
     }
 
-    public alluxio.grpc.catalog.GetDataFilesPResponse getDefaultInstanceForType() {
-      return alluxio.grpc.catalog.GetDataFilesPResponse.getDefaultInstance();
+    public alluxio.grpc.catalog.Decimal getDefaultInstanceForType() {
+      return alluxio.grpc.catalog.Decimal.getDefaultInstance();
     }
 
-    public alluxio.grpc.catalog.GetDataFilesPResponse build() {
-      alluxio.grpc.catalog.GetDataFilesPResponse result = buildPartial();
+    public alluxio.grpc.catalog.Decimal build() {
+      alluxio.grpc.catalog.Decimal result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.catalog.GetDataFilesPResponse buildPartial() {
-      alluxio.grpc.catalog.GetDataFilesPResponse result = new alluxio.grpc.catalog.GetDataFilesPResponse(this);
+    public alluxio.grpc.catalog.Decimal buildPartial() {
+      alluxio.grpc.catalog.Decimal result = new alluxio.grpc.catalog.Decimal(this);
       int from_bitField0_ = bitField0_;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        dataFile_ = dataFile_.getUnmodifiableView();
-        bitField0_ = (bitField0_ & ~0x00000001);
+      int to_bitField0_ = 0;
+      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        to_bitField0_ |= 0x00000001;
       }
-      result.dataFile_ = dataFile_;
+      result.scale_ = scale_;
+      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        to_bitField0_ |= 0x00000002;
+      }
+      result.unscaled_ = unscaled_;
+      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -369,25 +408,21 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.catalog.GetDataFilesPResponse) {
-        return mergeFrom((alluxio.grpc.catalog.GetDataFilesPResponse)other);
+      if (other instanceof alluxio.grpc.catalog.Decimal) {
+        return mergeFrom((alluxio.grpc.catalog.Decimal)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.catalog.GetDataFilesPResponse other) {
-      if (other == alluxio.grpc.catalog.GetDataFilesPResponse.getDefaultInstance()) return this;
-      if (!other.dataFile_.isEmpty()) {
-        if (dataFile_.isEmpty()) {
-          dataFile_ = other.dataFile_;
-          bitField0_ = (bitField0_ & ~0x00000001);
-        } else {
-          ensureDataFileIsMutable();
-          dataFile_.addAll(other.dataFile_);
-        }
-        onChanged();
+    public Builder mergeFrom(alluxio.grpc.catalog.Decimal other) {
+      if (other == alluxio.grpc.catalog.Decimal.getDefaultInstance()) return this;
+      if (other.hasScale()) {
+        setScale(other.getScale());
+      }
+      if (other.hasUnscaled()) {
+        setUnscaled(other.getUnscaled());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -395,6 +430,12 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      if (!hasScale()) {
+        return false;
+      }
+      if (!hasUnscaled()) {
+        return false;
+      }
       return true;
     }
 
@@ -402,11 +443,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.catalog.GetDataFilesPResponse parsedMessage = null;
+      alluxio.grpc.catalog.Decimal parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.catalog.GetDataFilesPResponse) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.catalog.Decimal) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -417,95 +458,85 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private com.google.protobuf.LazyStringList dataFile_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    private void ensureDataFileIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        dataFile_ = new com.google.protobuf.LazyStringArrayList(dataFile_);
-        bitField0_ |= 0x00000001;
-       }
+    private int scale_ ;
+    /**
+     * <pre>
+     * force using scale first in Decimal.compareTo
+     * </pre>
+     *
+     * <code>required int32 scale = 1;</code>
+     */
+    public boolean hasScale() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>repeated string data_file = 1;</code>
+     * <pre>
+     * force using scale first in Decimal.compareTo
+     * </pre>
+     *
+     * <code>required int32 scale = 1;</code>
      */
-    public com.google.protobuf.ProtocolStringList
-        getDataFileList() {
-      return dataFile_.getUnmodifiableView();
+    public int getScale() {
+      return scale_;
     }
     /**
-     * <code>repeated string data_file = 1;</code>
+     * <pre>
+     * force using scale first in Decimal.compareTo
+     * </pre>
+     *
+     * <code>required int32 scale = 1;</code>
      */
-    public int getDataFileCount() {
-      return dataFile_.size();
-    }
-    /**
-     * <code>repeated string data_file = 1;</code>
-     */
-    public java.lang.String getDataFile(int index) {
-      return dataFile_.get(index);
-    }
-    /**
-     * <code>repeated string data_file = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getDataFileBytes(int index) {
-      return dataFile_.getByteString(index);
-    }
-    /**
-     * <code>repeated string data_file = 1;</code>
-     */
-    public Builder setDataFile(
-        int index, java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureDataFileIsMutable();
-      dataFile_.set(index, value);
+    public Builder setScale(int value) {
+      bitField0_ |= 0x00000001;
+      scale_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>repeated string data_file = 1;</code>
+     * <pre>
+     * force using scale first in Decimal.compareTo
+     * </pre>
+     *
+     * <code>required int32 scale = 1;</code>
      */
-    public Builder addDataFile(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureDataFileIsMutable();
-      dataFile_.add(value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string data_file = 1;</code>
-     */
-    public Builder addAllDataFile(
-        java.lang.Iterable<java.lang.String> values) {
-      ensureDataFileIsMutable();
-      com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, dataFile_);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string data_file = 1;</code>
-     */
-    public Builder clearDataFile() {
-      dataFile_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    public Builder clearScale() {
       bitField0_ = (bitField0_ & ~0x00000001);
+      scale_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.ByteString unscaled_ = com.google.protobuf.ByteString.EMPTY;
+    /**
+     * <code>required bytes unscaled = 2;</code>
+     */
+    public boolean hasUnscaled() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>required bytes unscaled = 2;</code>
+     */
+    public com.google.protobuf.ByteString getUnscaled() {
+      return unscaled_;
+    }
+    /**
+     * <code>required bytes unscaled = 2;</code>
+     */
+    public Builder setUnscaled(com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      unscaled_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>repeated string data_file = 1;</code>
+     * <code>required bytes unscaled = 2;</code>
      */
-    public Builder addDataFileBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureDataFileIsMutable();
-      dataFile_.add(value);
+    public Builder clearUnscaled() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      unscaled_ = getDefaultInstance().getUnscaled();
       onChanged();
       return this;
     }
@@ -520,39 +551,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.catalog.GetDataFilesPResponse)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.catalog.Decimal)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.catalog.GetDataFilesPResponse)
-  private static final alluxio.grpc.catalog.GetDataFilesPResponse DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.catalog.Decimal)
+  private static final alluxio.grpc.catalog.Decimal DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.catalog.GetDataFilesPResponse();
+    DEFAULT_INSTANCE = new alluxio.grpc.catalog.Decimal();
   }
 
-  public static alluxio.grpc.catalog.GetDataFilesPResponse getDefaultInstance() {
+  public static alluxio.grpc.catalog.Decimal getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetDataFilesPResponse>
-      PARSER = new com.google.protobuf.AbstractParser<GetDataFilesPResponse>() {
-    public GetDataFilesPResponse parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<Decimal>
+      PARSER = new com.google.protobuf.AbstractParser<Decimal>() {
+    public Decimal parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new GetDataFilesPResponse(input, extensionRegistry);
+      return new Decimal(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<GetDataFilesPResponse> parser() {
+  public static com.google.protobuf.Parser<Decimal> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<GetDataFilesPResponse> getParserForType() {
+  public com.google.protobuf.Parser<Decimal> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.catalog.GetDataFilesPResponse getDefaultInstanceForType() {
+  public alluxio.grpc.catalog.Decimal getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

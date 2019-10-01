@@ -18,7 +18,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.catalog.ColumnStatistics;
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.FileStatistics;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -196,37 +195,16 @@ public class HiveDatabase implements UnderDatabase {
           .collect(Collectors.toList());
       List<ColumnStatisticsObj> columnStats =
           mHive.getTableColumnStatistics(mHiveDbName, tableName, colNames);
-      FileStatistics.Builder builder = FileStatistics.newBuilder();
-      for (ColumnStatisticsObj columnStat : columnStats) {
-        if (columnStat.isSetStatsData()) {
-          long distinctCount;
-          switch (columnStat.getColType()) {
-            case "string":
-              distinctCount = columnStat.getStatsData().getStringStats().getNumDVs();
-              break;
-            case "int":
-              distinctCount = columnStat.getStatsData().getDecimalStats().getNumDVs();
-              break;
-            case "float":
-              distinctCount = columnStat.getStatsData().getDoubleStats().getNumDVs();
-              break;
-            case "bigint":
-              distinctCount = columnStat.getStatsData().getLongStats().getNumDVs();
-              break;
-            default:
-              distinctCount = -1;
-          }
-          builder.putColumn(columnStat.getColName(),
-              ColumnStatistics.newBuilder().setRecordCount(distinctCount).build());
-        }
-      }
+
+      List<ColumnStatisticsInfo> colStats =
+          columnStats.stream().map(HiveUtils::toProto).collect(Collectors.toList());
       // Potentially expensive call
       List<Partition> partitions =
           mHive.listPartitions(mHiveDbName, table.getTableName(), (short) -1);
       AlluxioURI tableUri = mUdbContext.getTableLocation(tableName);
       return new HiveTable(mHive, this, pathTranslator, tableName,
           HiveUtils.toProtoSchema(table.getSd().getCols()), tableUri.getPath(),
-          Collections.singletonMap("unpartitioned", builder.build()),
+          colStats,
           HiveUtils.toProto(table.getPartitionKeys()), partitions, table);
     } catch (NoSuchObjectException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);

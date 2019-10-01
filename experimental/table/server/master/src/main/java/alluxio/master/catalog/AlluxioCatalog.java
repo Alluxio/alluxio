@@ -15,10 +15,10 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Domain;
 import alluxio.grpc.catalog.FieldSchema;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
@@ -148,12 +148,15 @@ public class AlluxioCatalog {
    *
    * @param dbName the database name
    * @param tableName the table name
+   * @param colNames column names
    * @return the statistics for the specified table
    */
-  public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
+  public List<ColumnStatisticsInfo> getTableColumnStatistics(String dbName, String tableName,
+      List<String> colNames)
       throws IOException {
     Table table = getTable(dbName, tableName);
-    return table.get().getStatistics();
+    return table.get().getStatistics().stream()
+        .filter(info -> colNames.contains(info.getColName())).collect(Collectors.toList());
   }
 
   /**

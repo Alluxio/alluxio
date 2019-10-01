@@ -6,4 +6,97 @@ package alluxio.grpc.catalog;
 public interface ColumnStatisticsDataOrBuilder extends
     // @@protoc_insertion_point(interface_extends:alluxio.grpc.catalog.ColumnStatisticsData)
     com.google.protobuf.MessageOrBuilder {
+
+  /**
+   * <code>optional .alluxio.grpc.catalog.BooleanColumnStatsData booleanStats = 1;</code>
+   */
+  boolean hasBooleanStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.BooleanColumnStatsData booleanStats = 1;</code>
+   */
+  alluxio.grpc.catalog.BooleanColumnStatsData getBooleanStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.BooleanColumnStatsData booleanStats = 1;</code>
+   */
+  alluxio.grpc.catalog.BooleanColumnStatsDataOrBuilder getBooleanStatsOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.catalog.LongColumnStatsData longStats = 2;</code>
+   */
+  boolean hasLongStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.LongColumnStatsData longStats = 2;</code>
+   */
+  alluxio.grpc.catalog.LongColumnStatsData getLongStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.LongColumnStatsData longStats = 2;</code>
+   */
+  alluxio.grpc.catalog.LongColumnStatsDataOrBuilder getLongStatsOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.catalog.DoubleColumnStatsData doubleStats = 3;</code>
+   */
+  boolean hasDoubleStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.DoubleColumnStatsData doubleStats = 3;</code>
+   */
+  alluxio.grpc.catalog.DoubleColumnStatsData getDoubleStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.DoubleColumnStatsData doubleStats = 3;</code>
+   */
+  alluxio.grpc.catalog.DoubleColumnStatsDataOrBuilder getDoubleStatsOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.catalog.StringColumnStatsData stringStats = 4;</code>
+   */
+  boolean hasStringStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.StringColumnStatsData stringStats = 4;</code>
+   */
+  alluxio.grpc.catalog.StringColumnStatsData getStringStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.StringColumnStatsData stringStats = 4;</code>
+   */
+  alluxio.grpc.catalog.StringColumnStatsDataOrBuilder getStringStatsOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.catalog.BinaryColumnStatsData binaryStats = 5;</code>
+   */
+  boolean hasBinaryStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.BinaryColumnStatsData binaryStats = 5;</code>
+   */
+  alluxio.grpc.catalog.BinaryColumnStatsData getBinaryStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.BinaryColumnStatsData binaryStats = 5;</code>
+   */
+  alluxio.grpc.catalog.BinaryColumnStatsDataOrBuilder getBinaryStatsOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.catalog.DecimalColumnStatsData decimalStats = 6;</code>
+   */
+  boolean hasDecimalStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.DecimalColumnStatsData decimalStats = 6;</code>
+   */
+  alluxio.grpc.catalog.DecimalColumnStatsData getDecimalStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.DecimalColumnStatsData decimalStats = 6;</code>
+   */
+  alluxio.grpc.catalog.DecimalColumnStatsDataOrBuilder getDecimalStatsOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.catalog.DateColumnStatsData dateStats = 7;</code>
+   */
+  boolean hasDateStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.DateColumnStatsData dateStats = 7;</code>
+   */
+  alluxio.grpc.catalog.DateColumnStatsData getDateStats();
+  /**
+   * <code>optional .alluxio.grpc.catalog.DateColumnStatsData dateStats = 7;</code>
+   */
+  alluxio.grpc.catalog.DateColumnStatsDataOrBuilder getDateStatsOrBuilder();
+
+  public alluxio.grpc.catalog.ColumnStatisticsData.DataCase getDataCase();
 }

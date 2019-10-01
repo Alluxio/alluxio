@@ -11,15 +11,14 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Constraint;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.Schema;
 import alluxio.master.Master;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Interface of the catalog master that manages the catalog metadata.
@@ -86,21 +85,11 @@ public interface CatalogMaster extends Master {
    *
    * @param databaseName database name
    * @param tableName table name
-   *
+   * @param colNames column names
    * @return a map containing data files paths mapped to file statistics
    */
-  Map<String, FileStatistics> getStatistics(String databaseName, String tableName)
-      throws IOException;
-
-  /**
-   * Get the list of datafiles on the table.
-   *
-   * @param databaseName database name
-   * @param tableName table name
-   *
-   * @return a list containing the data files paths
-   */
-  List<String> getDataFiles(String databaseName, String tableName) throws IOException;
+  List<ColumnStatisticsInfo> getTableColumnStatistics(String databaseName, String tableName,
+      List<String> colNames) throws IOException;
 
   /**
    * Returns metadata for reading a table given constraints.
