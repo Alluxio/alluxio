@@ -24,11 +24,12 @@ tieredstore:
     high: 0.95
     low: 0.7
 
-
+# set the uid, gid and fsGroup
 user: 1000
 group: 10000
 fsGroup: 1000
 
+# The domain hostPath for uuid mode in short Circuit
 domainHostPath: "/tmp/alluxio-domain"
 
 nodeSelector: {}
