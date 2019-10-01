@@ -23,11 +23,10 @@ import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.CreateDatabasePRequest;
 import alluxio.grpc.catalog.CreateTablePRequest;
 import alluxio.grpc.catalog.Database;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.GetAllDatabasesPRequest;
 import alluxio.grpc.catalog.GetAllTablesPRequest;
 import alluxio.grpc.catalog.GetDatabasePRequest;
-import alluxio.grpc.catalog.GetStatisticsPRequest;
+import alluxio.grpc.catalog.GetTableColumnStatisticsPRequest;
 import alluxio.grpc.catalog.GetTablePRequest;
 import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.PartitionInfo;
@@ -138,13 +137,13 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public Map<String, FileStatistics> getTableColumnStatistics(
+  public List<ColumnStatisticsInfo> getTableColumnStatistics(
           String databaseName,
           String tableName,
           List<String> columnNames) throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getStatistics(
-        GetStatisticsPRequest.newBuilder().setDbName(databaseName)
-            .setTableName(tableName).build()).getStatisticsMap());
+    return retryRPC(() -> mClient.getTableColumnStatistics(
+        GetTableColumnStatisticsPRequest.newBuilder().setDbName(databaseName)
+            .setTableName(tableName).addAllColNames(columnNames).build()).getStatisticsList());
   }
 
   @Override

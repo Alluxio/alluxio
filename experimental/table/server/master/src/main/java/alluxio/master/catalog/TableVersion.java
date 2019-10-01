@@ -11,8 +11,8 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.FieldSchema;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.TableInfo;
@@ -78,13 +78,13 @@ public class TableVersion {
   /**
    * @return the statistics
    */
-  public Map<String, FileStatistics> getStatistics() {
+  public List<ColumnStatisticsInfo> getStatistics() {
     // TODO(gpang): remove api, make part of views
     TableView view = mViews.get(DEFAULT_VIEW_NAME);
     if (view != null) {
       return view.getStatistics();
     }
-    return Collections.emptyMap();
+    return Collections.emptyList();
   }
 
   /**

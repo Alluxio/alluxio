@@ -4,19 +4,19 @@
 package alluxio.grpc.catalog;
 
 /**
- * Protobuf type {@code alluxio.grpc.catalog.ColumnStatistics}
+ * Protobuf type {@code alluxio.grpc.catalog.Date}
  */
-public  final class ColumnStatistics extends
+public  final class Date extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.catalog.ColumnStatistics)
-    ColumnStatisticsOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.catalog.Date)
+    DateOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use ColumnStatistics.newBuilder() to construct.
-  private ColumnStatistics(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use Date.newBuilder() to construct.
+  private Date(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private ColumnStatistics() {
-    recordCount_ = 0L;
+  private Date() {
+    daysSinceEpoch_ = 0L;
   }
 
   @java.lang.Override
@@ -24,7 +24,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private ColumnStatistics(
+  private Date(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -52,7 +52,7 @@ private static final long serialVersionUID = 0L;
           }
           case 8: {
             bitField0_ |= 0x00000001;
-            recordCount_ = input.readUInt64();
+            daysSinceEpoch_ = input.readInt64();
             break;
           }
         }
@@ -69,30 +69,30 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_ColumnStatistics_descriptor;
+    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Date_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_ColumnStatistics_fieldAccessorTable
+    return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Date_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.catalog.ColumnStatistics.class, alluxio.grpc.catalog.ColumnStatistics.Builder.class);
+            alluxio.grpc.catalog.Date.class, alluxio.grpc.catalog.Date.Builder.class);
   }
 
   private int bitField0_;
-  public static final int RECORD_COUNT_FIELD_NUMBER = 1;
-  private long recordCount_;
+  public static final int DAYSSINCEEPOCH_FIELD_NUMBER = 1;
+  private long daysSinceEpoch_;
   /**
-   * <code>optional uint64 record_count = 1;</code>
+   * <code>required int64 daysSinceEpoch = 1;</code>
    */
-  public boolean hasRecordCount() {
+  public boolean hasDaysSinceEpoch() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional uint64 record_count = 1;</code>
+   * <code>required int64 daysSinceEpoch = 1;</code>
    */
-  public long getRecordCount() {
-    return recordCount_;
+  public long getDaysSinceEpoch() {
+    return daysSinceEpoch_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -101,6 +101,10 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (!hasDaysSinceEpoch()) {
+      memoizedIsInitialized = 0;
+      return false;
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -108,7 +112,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeUInt64(1, recordCount_);
+      output.writeInt64(1, daysSinceEpoch_);
     }
     unknownFields.writeTo(output);
   }
@@ -120,7 +124,7 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeUInt64Size(1, recordCount_);
+        .computeInt64Size(1, daysSinceEpoch_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -132,16 +136,16 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.catalog.ColumnStatistics)) {
+    if (!(obj instanceof alluxio.grpc.catalog.Date)) {
       return super.equals(obj);
     }
-    alluxio.grpc.catalog.ColumnStatistics other = (alluxio.grpc.catalog.ColumnStatistics) obj;
+    alluxio.grpc.catalog.Date other = (alluxio.grpc.catalog.Date) obj;
 
     boolean result = true;
-    result = result && (hasRecordCount() == other.hasRecordCount());
-    if (hasRecordCount()) {
-      result = result && (getRecordCount()
-          == other.getRecordCount());
+    result = result && (hasDaysSinceEpoch() == other.hasDaysSinceEpoch());
+    if (hasDaysSinceEpoch()) {
+      result = result && (getDaysSinceEpoch()
+          == other.getDaysSinceEpoch());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -154,79 +158,79 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasRecordCount()) {
-      hash = (37 * hash) + RECORD_COUNT_FIELD_NUMBER;
+    if (hasDaysSinceEpoch()) {
+      hash = (37 * hash) + DAYSSINCEEPOCH_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getRecordCount());
+          getDaysSinceEpoch());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(
+  public static alluxio.grpc.catalog.Date parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(
+  public static alluxio.grpc.catalog.Date parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(
+  public static alluxio.grpc.catalog.Date parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(
+  public static alluxio.grpc.catalog.Date parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(byte[] data)
+  public static alluxio.grpc.catalog.Date parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(
+  public static alluxio.grpc.catalog.Date parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.catalog.Date parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(
+  public static alluxio.grpc.catalog.Date parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.catalog.Date parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseDelimitedFrom(
+  public static alluxio.grpc.catalog.Date parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(
+  public static alluxio.grpc.catalog.Date parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.catalog.ColumnStatistics parseFrom(
+  public static alluxio.grpc.catalog.Date parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -238,7 +242,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.catalog.ColumnStatistics prototype) {
+  public static Builder newBuilder(alluxio.grpc.catalog.Date prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -253,25 +257,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.catalog.ColumnStatistics}
+   * Protobuf type {@code alluxio.grpc.catalog.Date}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.catalog.ColumnStatistics)
-      alluxio.grpc.catalog.ColumnStatisticsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.catalog.Date)
+      alluxio.grpc.catalog.DateOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_ColumnStatistics_descriptor;
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Date_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_ColumnStatistics_fieldAccessorTable
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Date_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.catalog.ColumnStatistics.class, alluxio.grpc.catalog.ColumnStatistics.Builder.class);
+              alluxio.grpc.catalog.Date.class, alluxio.grpc.catalog.Date.Builder.class);
     }
 
-    // Construct using alluxio.grpc.catalog.ColumnStatistics.newBuilder()
+    // Construct using alluxio.grpc.catalog.Date.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -288,36 +292,36 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      recordCount_ = 0L;
+      daysSinceEpoch_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_ColumnStatistics_descriptor;
+      return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Date_descriptor;
     }
 
-    public alluxio.grpc.catalog.ColumnStatistics getDefaultInstanceForType() {
-      return alluxio.grpc.catalog.ColumnStatistics.getDefaultInstance();
+    public alluxio.grpc.catalog.Date getDefaultInstanceForType() {
+      return alluxio.grpc.catalog.Date.getDefaultInstance();
     }
 
-    public alluxio.grpc.catalog.ColumnStatistics build() {
-      alluxio.grpc.catalog.ColumnStatistics result = buildPartial();
+    public alluxio.grpc.catalog.Date build() {
+      alluxio.grpc.catalog.Date result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.catalog.ColumnStatistics buildPartial() {
-      alluxio.grpc.catalog.ColumnStatistics result = new alluxio.grpc.catalog.ColumnStatistics(this);
+    public alluxio.grpc.catalog.Date buildPartial() {
+      alluxio.grpc.catalog.Date result = new alluxio.grpc.catalog.Date(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.recordCount_ = recordCount_;
+      result.daysSinceEpoch_ = daysSinceEpoch_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -350,18 +354,18 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.catalog.ColumnStatistics) {
-        return mergeFrom((alluxio.grpc.catalog.ColumnStatistics)other);
+      if (other instanceof alluxio.grpc.catalog.Date) {
+        return mergeFrom((alluxio.grpc.catalog.Date)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.catalog.ColumnStatistics other) {
-      if (other == alluxio.grpc.catalog.ColumnStatistics.getDefaultInstance()) return this;
-      if (other.hasRecordCount()) {
-        setRecordCount(other.getRecordCount());
+    public Builder mergeFrom(alluxio.grpc.catalog.Date other) {
+      if (other == alluxio.grpc.catalog.Date.getDefaultInstance()) return this;
+      if (other.hasDaysSinceEpoch()) {
+        setDaysSinceEpoch(other.getDaysSinceEpoch());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -369,6 +373,9 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      if (!hasDaysSinceEpoch()) {
+        return false;
+      }
       return true;
     }
 
@@ -376,11 +383,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.catalog.ColumnStatistics parsedMessage = null;
+      alluxio.grpc.catalog.Date parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.catalog.ColumnStatistics) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.catalog.Date) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -391,34 +398,34 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private long recordCount_ ;
+    private long daysSinceEpoch_ ;
     /**
-     * <code>optional uint64 record_count = 1;</code>
+     * <code>required int64 daysSinceEpoch = 1;</code>
      */
-    public boolean hasRecordCount() {
+    public boolean hasDaysSinceEpoch() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional uint64 record_count = 1;</code>
+     * <code>required int64 daysSinceEpoch = 1;</code>
      */
-    public long getRecordCount() {
-      return recordCount_;
+    public long getDaysSinceEpoch() {
+      return daysSinceEpoch_;
     }
     /**
-     * <code>optional uint64 record_count = 1;</code>
+     * <code>required int64 daysSinceEpoch = 1;</code>
      */
-    public Builder setRecordCount(long value) {
+    public Builder setDaysSinceEpoch(long value) {
       bitField0_ |= 0x00000001;
-      recordCount_ = value;
+      daysSinceEpoch_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional uint64 record_count = 1;</code>
+     * <code>required int64 daysSinceEpoch = 1;</code>
      */
-    public Builder clearRecordCount() {
+    public Builder clearDaysSinceEpoch() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      recordCount_ = 0L;
+      daysSinceEpoch_ = 0L;
       onChanged();
       return this;
     }
@@ -433,39 +440,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.catalog.ColumnStatistics)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.catalog.Date)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.catalog.ColumnStatistics)
-  private static final alluxio.grpc.catalog.ColumnStatistics DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.catalog.Date)
+  private static final alluxio.grpc.catalog.Date DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.catalog.ColumnStatistics();
+    DEFAULT_INSTANCE = new alluxio.grpc.catalog.Date();
   }
 
-  public static alluxio.grpc.catalog.ColumnStatistics getDefaultInstance() {
+  public static alluxio.grpc.catalog.Date getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<ColumnStatistics>
-      PARSER = new com.google.protobuf.AbstractParser<ColumnStatistics>() {
-    public ColumnStatistics parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<Date>
+      PARSER = new com.google.protobuf.AbstractParser<Date>() {
+    public Date parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new ColumnStatistics(input, extensionRegistry);
+      return new Date(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<ColumnStatistics> parser() {
+  public static com.google.protobuf.Parser<Date> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<ColumnStatistics> getParserForType() {
+  public com.google.protobuf.Parser<Date> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.catalog.ColumnStatistics getDefaultInstanceForType() {
+  public alluxio.grpc.catalog.Date getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

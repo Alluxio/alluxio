@@ -16,8 +16,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.FieldSchema;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.HiveTableInfo;
 import alluxio.grpc.catalog.ParquetMetadata;
 import alluxio.grpc.catalog.PartitionInfo;
@@ -59,7 +59,7 @@ public class HiveTable implements UdbTable {
   private final String mName;
   private final Schema mSchema;
   private final String mBaseLocation;
-  private final Map<String, FileStatistics> mStatistics;
+  private final List<ColumnStatisticsInfo> mStatistics;
   private final List<FieldSchema> mPartitionKeys;
   private final Table mTable;
 
@@ -79,7 +79,7 @@ public class HiveTable implements UdbTable {
    */
   public HiveTable(HiveMetaStoreClient hive, HiveDatabase hiveDatabase,
       PathTranslator pathTranslator, String name, Schema schema, String baseLocation,
-      Map<String, FileStatistics> statistics, List<FieldSchema> cols, List<Partition> partitions,
+      List<ColumnStatisticsInfo> statistics, List<FieldSchema> cols, List<Partition> partitions,
       Table table) throws IOException {
     // TODO(gpang): don't throw exception in constructor
     mHive = hive;
@@ -149,7 +149,7 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
-  public Map<String, FileStatistics> getStatistics() {
+  public List<ColumnStatisticsInfo> getStatistics() {
     return mStatistics;
   }
 

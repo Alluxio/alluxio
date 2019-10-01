@@ -23,8 +23,8 @@ import alluxio.grpc.catalog.GetAllDatabasesPRequest;
 import alluxio.grpc.catalog.GetAllDatabasesPResponse;
 import alluxio.grpc.catalog.GetAllTablesPRequest;
 import alluxio.grpc.catalog.GetAllTablesPResponse;
-import alluxio.grpc.catalog.GetStatisticsPRequest;
-import alluxio.grpc.catalog.GetStatisticsPResponse;
+import alluxio.grpc.catalog.GetTableColumnStatisticsPRequest;
+import alluxio.grpc.catalog.GetTableColumnStatisticsPResponse;
 import alluxio.grpc.catalog.GetTablePRequest;
 import alluxio.grpc.catalog.GetTablePResponse;
 import alluxio.grpc.catalog.ReadTablePRequest;
@@ -125,11 +125,12 @@ public class CatalogMasterClientServiceHandler
   }
 
   @Override
-  public void getStatistics(GetStatisticsPRequest request,
-      StreamObserver<GetStatisticsPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetStatisticsPResponse.newBuilder()
-        .putAllStatistics(mCatalogMaster.getStatistics(request.getDbName(),
-            request.getTableName())).build(), "getStatistics", "", responseObserver);
+  public void getTableColumnStatistics(GetTableColumnStatisticsPRequest request,
+      StreamObserver<GetTableColumnStatisticsPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetTableColumnStatisticsPResponse.newBuilder().addAllStatistics(
+        mCatalogMaster.getTableColumnStatistics(request.getDbName(),
+            request.getTableName(), request.getColNamesList())).build(),
+        "getTableColumnStatistics", "", responseObserver);
   }
 
   @Override

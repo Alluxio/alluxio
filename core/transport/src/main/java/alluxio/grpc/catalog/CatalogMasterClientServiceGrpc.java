@@ -255,36 +255,36 @@ public final class CatalogMasterClientServiceGrpc {
      return getAttachDatabaseMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetStatisticsPRequest,
-      alluxio.grpc.catalog.GetStatisticsPResponse> getGetStatisticsMethod;
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetTableColumnStatisticsPRequest,
+      alluxio.grpc.catalog.GetTableColumnStatisticsPResponse> getGetTableColumnStatisticsMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetStatistics",
-      requestType = alluxio.grpc.catalog.GetStatisticsPRequest.class,
-      responseType = alluxio.grpc.catalog.GetStatisticsPResponse.class,
+      fullMethodName = SERVICE_NAME + '/' + "GetTableColumnStatistics",
+      requestType = alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.class,
+      responseType = alluxio.grpc.catalog.GetTableColumnStatisticsPResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetStatisticsPRequest,
-      alluxio.grpc.catalog.GetStatisticsPResponse> getGetStatisticsMethod() {
-    io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetStatisticsPRequest, alluxio.grpc.catalog.GetStatisticsPResponse> getGetStatisticsMethod;
-    if ((getGetStatisticsMethod = CatalogMasterClientServiceGrpc.getGetStatisticsMethod) == null) {
+  public static io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetTableColumnStatisticsPRequest,
+      alluxio.grpc.catalog.GetTableColumnStatisticsPResponse> getGetTableColumnStatisticsMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetTableColumnStatisticsPRequest, alluxio.grpc.catalog.GetTableColumnStatisticsPResponse> getGetTableColumnStatisticsMethod;
+    if ((getGetTableColumnStatisticsMethod = CatalogMasterClientServiceGrpc.getGetTableColumnStatisticsMethod) == null) {
       synchronized (CatalogMasterClientServiceGrpc.class) {
-        if ((getGetStatisticsMethod = CatalogMasterClientServiceGrpc.getGetStatisticsMethod) == null) {
-          CatalogMasterClientServiceGrpc.getGetStatisticsMethod = getGetStatisticsMethod = 
-              io.grpc.MethodDescriptor.<alluxio.grpc.catalog.GetStatisticsPRequest, alluxio.grpc.catalog.GetStatisticsPResponse>newBuilder()
+        if ((getGetTableColumnStatisticsMethod = CatalogMasterClientServiceGrpc.getGetTableColumnStatisticsMethod) == null) {
+          CatalogMasterClientServiceGrpc.getGetTableColumnStatisticsMethod = getGetTableColumnStatisticsMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.catalog.GetTableColumnStatisticsPRequest, alluxio.grpc.catalog.GetTableColumnStatisticsPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.catalog.CatalogMasterClientService", "GetStatistics"))
+                  "alluxio.grpc.catalog.CatalogMasterClientService", "GetTableColumnStatistics"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.catalog.GetStatisticsPRequest.getDefaultInstance()))
+                  alluxio.grpc.catalog.GetTableColumnStatisticsPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.catalog.GetStatisticsPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("GetStatistics"))
+                  alluxio.grpc.catalog.GetTableColumnStatisticsPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("GetTableColumnStatistics"))
                   .build();
           }
         }
      }
-     return getGetStatisticsMethod;
+     return getGetTableColumnStatisticsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.catalog.ReadTablePRequest,
@@ -429,9 +429,9 @@ public final class CatalogMasterClientServiceGrpc {
 
     /**
      */
-    public void getStatistics(alluxio.grpc.catalog.GetStatisticsPRequest request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetStatisticsPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetStatisticsMethod(), responseObserver);
+    public void getTableColumnStatistics(alluxio.grpc.catalog.GetTableColumnStatisticsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetTableColumnStatisticsPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetTableColumnStatisticsMethod(), responseObserver);
     }
 
     /**
@@ -493,12 +493,12 @@ public final class CatalogMasterClientServiceGrpc {
                 alluxio.grpc.catalog.AttachDatabasePResponse>(
                   this, METHODID_ATTACH_DATABASE)))
           .addMethod(
-            getGetStatisticsMethod(),
+            getGetTableColumnStatisticsMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                alluxio.grpc.catalog.GetStatisticsPRequest,
-                alluxio.grpc.catalog.GetStatisticsPResponse>(
-                  this, METHODID_GET_STATISTICS)))
+                alluxio.grpc.catalog.GetTableColumnStatisticsPRequest,
+                alluxio.grpc.catalog.GetTableColumnStatisticsPResponse>(
+                  this, METHODID_GET_TABLE_COLUMN_STATISTICS)))
           .addMethod(
             getReadTableMethod(),
             asyncUnaryCall(
@@ -618,10 +618,10 @@ public final class CatalogMasterClientServiceGrpc {
 
     /**
      */
-    public void getStatistics(alluxio.grpc.catalog.GetStatisticsPRequest request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetStatisticsPResponse> responseObserver) {
+    public void getTableColumnStatistics(alluxio.grpc.catalog.GetTableColumnStatisticsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetTableColumnStatisticsPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetStatisticsMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetTableColumnStatisticsMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -734,9 +734,9 @@ public final class CatalogMasterClientServiceGrpc {
 
     /**
      */
-    public alluxio.grpc.catalog.GetStatisticsPResponse getStatistics(alluxio.grpc.catalog.GetStatisticsPRequest request) {
+    public alluxio.grpc.catalog.GetTableColumnStatisticsPResponse getTableColumnStatistics(alluxio.grpc.catalog.GetTableColumnStatisticsPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetStatisticsMethod(), getCallOptions(), request);
+          getChannel(), getGetTableColumnStatisticsMethod(), getCallOptions(), request);
     }
 
     /**
@@ -855,10 +855,10 @@ public final class CatalogMasterClientServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.catalog.GetStatisticsPResponse> getStatistics(
-        alluxio.grpc.catalog.GetStatisticsPRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.catalog.GetTableColumnStatisticsPResponse> getTableColumnStatistics(
+        alluxio.grpc.catalog.GetTableColumnStatisticsPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetStatisticsMethod(), getCallOptions()), request);
+          getChannel().newCall(getGetTableColumnStatisticsMethod(), getCallOptions()), request);
     }
 
     /**
@@ -877,7 +877,7 @@ public final class CatalogMasterClientServiceGrpc {
   private static final int METHODID_CREATE_TABLE = 4;
   private static final int METHODID_CREATE_DATABASE = 5;
   private static final int METHODID_ATTACH_DATABASE = 6;
-  private static final int METHODID_GET_STATISTICS = 7;
+  private static final int METHODID_GET_TABLE_COLUMN_STATISTICS = 7;
   private static final int METHODID_READ_TABLE = 8;
 
   private static final class MethodHandlers<Req, Resp> implements
@@ -925,9 +925,9 @@ public final class CatalogMasterClientServiceGrpc {
           serviceImpl.attachDatabase((alluxio.grpc.catalog.AttachDatabasePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.catalog.AttachDatabasePResponse>) responseObserver);
           break;
-        case METHODID_GET_STATISTICS:
-          serviceImpl.getStatistics((alluxio.grpc.catalog.GetStatisticsPRequest) request,
-              (io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetStatisticsPResponse>) responseObserver);
+        case METHODID_GET_TABLE_COLUMN_STATISTICS:
+          serviceImpl.getTableColumnStatistics((alluxio.grpc.catalog.GetTableColumnStatisticsPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetTableColumnStatisticsPResponse>) responseObserver);
           break;
         case METHODID_READ_TABLE:
           serviceImpl.readTable((alluxio.grpc.catalog.ReadTablePRequest) request,
@@ -1001,7 +1001,7 @@ public final class CatalogMasterClientServiceGrpc {
               .addMethod(getCreateTableMethod())
               .addMethod(getCreateDatabaseMethod())
               .addMethod(getAttachDatabaseMethod())
-              .addMethod(getGetStatisticsMethod())
+              .addMethod(getGetTableColumnStatisticsMethod())
               .addMethod(getReadTableMethod())
               .build();
         }
