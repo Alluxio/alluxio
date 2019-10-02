@@ -604,18 +604,6 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
-    for (int i = 0; i < getDataColumnsCount(); i++) {
-      if (!getDataColumns(i).isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-    }
-    for (int i = 0; i < getPartitionColumnsCount(); i++) {
-      if (!getPartitionColumns(i).isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-    }
     if (hasStorage()) {
       if (!getStorage().isInitialized()) {
         memoizedIsInitialized = 0;
@@ -1213,16 +1201,6 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
-      for (int i = 0; i < getDataColumnsCount(); i++) {
-        if (!getDataColumns(i).isInitialized()) {
-          return false;
-        }
-      }
-      for (int i = 0; i < getPartitionColumnsCount(); i++) {
-        if (!getPartitionColumns(i).isInitialized()) {
-          return false;
-        }
-      }
       if (hasStorage()) {
         if (!getStorage().isInitialized()) {
           return false;

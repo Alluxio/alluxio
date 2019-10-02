@@ -245,12 +245,6 @@ private static final long serialVersionUID = 0L;
       memoizedIsInitialized = 0;
       return false;
     }
-    for (int i = 0; i < getNestedFieldsCount(); i++) {
-      if (!getNestedFields(i).isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -604,11 +598,6 @@ private static final long serialVersionUID = 0L;
     public final boolean isInitialized() {
       if (!hasType()) {
         return false;
-      }
-      for (int i = 0; i < getNestedFieldsCount(); i++) {
-        if (!getNestedFields(i).isInitialized()) {
-          return false;
-        }
       }
       return true;
     }

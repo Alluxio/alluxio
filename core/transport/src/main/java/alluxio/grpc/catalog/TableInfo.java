@@ -498,18 +498,6 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
-    if (hasSchema()) {
-      if (!getSchema().isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-    }
-    for (int i = 0; i < getViewsCount(); i++) {
-      if (!getViews(i).isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-    }
     if (hasUdbInfo()) {
       if (!getUdbInfo().isInitialized()) {
         memoizedIsInitialized = 0;
@@ -1008,16 +996,6 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
-      if (hasSchema()) {
-        if (!getSchema().isInitialized()) {
-          return false;
-        }
-      }
-      for (int i = 0; i < getViewsCount(); i++) {
-        if (!getViews(i).isInitialized()) {
-          return false;
-        }
-      }
       if (hasUdbInfo()) {
         if (!getUdbInfo().isInitialized()) {
           return false;

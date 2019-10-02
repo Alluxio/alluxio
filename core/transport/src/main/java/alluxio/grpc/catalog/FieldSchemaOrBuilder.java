@@ -31,17 +31,18 @@ public interface FieldSchemaOrBuilder extends
       getNameBytes();
 
   /**
-   * <code>optional .alluxio.grpc.catalog.Type type = 3;</code>
+   * <code>optional string type = 3;</code>
    */
   boolean hasType();
   /**
-   * <code>optional .alluxio.grpc.catalog.Type type = 3;</code>
+   * <code>optional string type = 3;</code>
    */
-  alluxio.grpc.catalog.Type getType();
+  java.lang.String getType();
   /**
-   * <code>optional .alluxio.grpc.catalog.Type type = 3;</code>
+   * <code>optional string type = 3;</code>
    */
-  alluxio.grpc.catalog.TypeOrBuilder getTypeOrBuilder();
+  com.google.protobuf.ByteString
+      getTypeBytes();
 
   /**
    * <code>optional bool optional = 4;</code>

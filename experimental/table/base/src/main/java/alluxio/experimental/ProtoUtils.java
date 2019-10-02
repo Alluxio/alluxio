@@ -18,14 +18,12 @@ import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.Schema;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.iceberg.types.Type;
 import org.apache.iceberg.types.Types;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -54,24 +52,10 @@ public final class ProtoUtils {
       .build();
 
   private static FieldSchema toProto(Types.NestedField col) {
-    if (col.type().isPrimitiveType()) {
-      return FieldSchema.newBuilder().setName(col.name())
-              .setType(alluxio.grpc.catalog.Type.newBuilder()
-                  .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
-                  .setPrimitiveField(col.type().toString()).build())
-              .setOptional(col.isOptional())
-              .build();
-    } else { // col is a nested type
-      return FieldSchema.newBuilder().setName(col.name())
-          .setType(alluxio.grpc.catalog.Type.newBuilder()
-              .setType(TYPE_ID_TYPE_MAP.get(col.type().typeId()))
-              .addAllNestedFields(
-                  col.type().asNestedType().fields()
-                      .stream().map(ProtoUtils::toProto)
-                      .collect(Collectors.toList())).build())
-          .setOptional(col.isOptional())
-          .build();
-    }
+    return FieldSchema.newBuilder().setName(col.name())
+            .setType(col.type().toString())
+            .setOptional(col.isOptional())
+            .build();
   }
 
   /**
@@ -82,71 +66,6 @@ public final class ProtoUtils {
     Schema.Builder builder = Schema.newBuilder();
     return builder.addAllCols(schema.columns().stream()
         .map(ProtoUtils::toProto).collect(Collectors.toList())).build();
-  }
-
-  private static Type fromProto(alluxio.grpc.catalog.Type type) {
-    // TODO(david): replace with a method to detect if a type is a complex type or a primitive type
-    if (type.getType().getNumber() < FieldTypeId.STRUCT_VALUE) {
-      // primitive type
-      return Types.fromPrimitiveString(type.getPrimitiveField());
-    } else {
-      // complex types
-      switch (type.getType()) {
-        case STRUCT:
-          return Types.StructType.of(type.getNestedFieldsList().stream()
-              .map(ProtoUtils::fromProto).collect(Collectors.toList()));
-        case LIST:
-          Preconditions.checkState(type.getNestedFieldsCount() == 1,
-              "List type should have an element field");
-          Type listType;
-          FieldSchema elem = type.getNestedFields(0);
-          if (elem.getOptional()) {
-            // if the element is optional
-            listType = Types.ListType.ofOptional(elem.getId(), fromProto(elem.getType()));
-          } else {
-            listType = Types.ListType.ofRequired(elem.getId(), fromProto(elem.getType()));
-          }
-          return listType;
-        case MAP:
-          Preconditions.checkState(type.getNestedFieldsCount() == 2,
-              "Map type should have a key and a value field");
-          Type mapType;
-          FieldSchema key = type.getNestedFields(0);
-          FieldSchema value = type.getNestedFields(1);
-          if (value.getOptional()) {
-            // if the value is optional
-            mapType = Types.MapType.ofOptional(key.getId(), value.getId(),
-                fromProto(key.getType()), fromProto(value.getType()));
-          } else {
-            mapType = Types.MapType.ofRequired(key.getId(), value.getId(),
-                fromProto(key.getType()), fromProto(value.getType()));
-          }
-          return mapType;
-        default:
-          return Types.StructType.of(Collections.emptyList());
-      }
-    }
-  }
-
-  private static Types.NestedField fromProto(FieldSchema field) {
-    Types.NestedField icebergField;
-    if (field.getOptional()) {
-      icebergField = Types.NestedField.optional(field.getId(), field.getName(),
-          fromProto(field.getType()));
-    } else {
-      icebergField = Types.NestedField.required(field.getId(), field.getName(),
-          fromProto(field.getType()));
-    }
-    return icebergField;
-  }
-
-  /**
-   * @param schema schema
-   * @return the protocol buffer version of schema
-   */
-  public static org.apache.iceberg.Schema fromProto(Schema schema) {
-    return new org.apache.iceberg.Schema(schema.getColsList().stream()
-        .map(ProtoUtils::fromProto).collect(Collectors.toList()));
   }
 
   /**

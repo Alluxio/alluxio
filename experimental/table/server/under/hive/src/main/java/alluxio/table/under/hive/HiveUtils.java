@@ -38,7 +38,6 @@ import alluxio.grpc.catalog.SortingColumn;
 import alluxio.grpc.catalog.Storage;
 import alluxio.grpc.catalog.StorageFormat;
 import alluxio.grpc.catalog.StringColumnStatsData;
-import alluxio.grpc.catalog.Type;
 import alluxio.table.under.hive.util.PathTranslator;
 
 import com.google.common.collect.BiMap;
@@ -85,8 +84,7 @@ public class HiveUtils {
     for (FieldSchema field : hiveSchema) {
       alluxio.grpc.catalog.FieldSchema aFieldSchema = alluxio.grpc.catalog.FieldSchema.newBuilder()
           .setName(field.getName())
-          .setType(Type.newBuilder()
-              .setType(toProto(field.getType()))) // does not support complex types now
+          .setType(field.getType()) // does not support complex types now
           .setComment(field.getComment() != null ? field.getComment() : "")
           .build();
       list.add(aFieldSchema);
@@ -141,107 +139,93 @@ public class HiveUtils {
    */
   public static ColumnStatisticsInfo toProto(ColumnStatisticsObj colStats) {
     ColumnStatisticsInfo.Builder builder = ColumnStatisticsInfo.newBuilder();
-    FieldTypeId type = toProto(colStats.getColType());
-    builder.setColName(colStats.getColName()).setColType(type);
-    switch (type) {
-      case BOOLEAN: {
-        org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData data =
-            colStats.getStatsData().getBooleanStats();
-        if (data != null) {
-          builder.setData(ColumnStatisticsData.newBuilder()
-              .setBooleanStats(BooleanColumnStatsData.newBuilder()
-                  .setNumTrues(data.getNumTrues()).setNumFalses(data.getNumFalses())
-                  .setNumNulls(data.getNumNulls()).setBitVectors(data.getBitVectors())
-                  .build()).build());
-        }
-        break;
+    builder.setColName(colStats.getColName()).setColType(colStats.getColType());
+    org.apache.hadoop.hive.metastore.api.ColumnStatisticsData statsData = colStats.getStatsData();
+    if (statsData.isSetBooleanStats()) {
+      org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData data =
+          statsData.getBooleanStats();
+      if (data != null) {
+        builder.setData(ColumnStatisticsData.newBuilder()
+            .setBooleanStats(BooleanColumnStatsData.newBuilder()
+                .setNumTrues(data.getNumTrues()).setNumFalses(data.getNumFalses())
+                .setNumNulls(data.getNumNulls()).setBitVectors(data.getBitVectors())
+                .build()).build());
       }
-      case DOUBLE:
-      case FLOAT: {
-        org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData doubleStats =
-            colStats.getStatsData().getDoubleStats();
-        if (doubleStats != null) {
-          builder.setData(ColumnStatisticsData.newBuilder()
-              .setDoubleStats(DoubleColumnStatsData.newBuilder()
-                  .setNumDVs(doubleStats.getNumDVs()).setHighValue(doubleStats.getHighValue())
-                  .setLowValue(doubleStats.getLowValue()).setNumNulls(doubleStats.getNumNulls())
-                  .setBitVectors(doubleStats.getBitVectors()).build()).build());
-        }
-        break;
+    }
+    if (statsData.isSetDoubleStats()) {
+      org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData doubleStats =
+          statsData.getDoubleStats();
+      if (doubleStats != null) {
+        builder.setData(ColumnStatisticsData.newBuilder()
+            .setDoubleStats(DoubleColumnStatsData.newBuilder()
+                .setNumDVs(doubleStats.getNumDVs()).setHighValue(doubleStats.getHighValue())
+                .setLowValue(doubleStats.getLowValue()).setNumNulls(doubleStats.getNumNulls())
+                .setBitVectors(doubleStats.getBitVectors()).build()).build());
       }
-      case INTEGER:
-      case LONG:
-      case BYTE: {
-        org.apache.hadoop.hive.metastore.api.LongColumnStatsData longData =
-            colStats.getStatsData().getLongStats();
-        if (longData != null) {
-          builder.setData(ColumnStatisticsData.newBuilder()
-              .setLongStats(LongColumnStatsData.newBuilder()
-                  .setNumDVs(longData.getNumDVs()).setHighValue(longData.getHighValue())
-                  .setLowValue(longData.getLowValue())
-                  .setNumNulls(longData.getNumNulls()).setBitVectors(longData.getBitVectors())
-                  .build()).build());
-        }
-        break;
+    }
+    if (statsData.isSetLongStats()) {
+      org.apache.hadoop.hive.metastore.api.LongColumnStatsData longData =
+          statsData.getLongStats();
+      if (longData != null) {
+        builder.setData(ColumnStatisticsData.newBuilder()
+            .setLongStats(LongColumnStatsData.newBuilder()
+                .setNumDVs(longData.getNumDVs()).setHighValue(longData.getHighValue())
+                .setLowValue(longData.getLowValue())
+                .setNumNulls(longData.getNumNulls()).setBitVectors(longData.getBitVectors())
+                .build()).build());
       }
-      case STRING: {
-        org.apache.hadoop.hive.metastore.api.StringColumnStatsData stringData =
-            colStats.getStatsData().getStringStats();
-        if (stringData != null) {
-          builder.setData(ColumnStatisticsData.newBuilder()
-              .setStringStats(StringColumnStatsData.newBuilder()
-                  .setNumDVs(stringData.getNumDVs()).setAvgColLen(stringData.getAvgColLen())
-                  .setMaxColLen(stringData.getMaxColLen())
-                  .setNumNulls(stringData.getNumNulls()).setBitVectors(stringData.getBitVectors())
-                  .build()).build());
-        }
-        break;
+    }
+    if (statsData.isSetStringStats()) {
+      org.apache.hadoop.hive.metastore.api.StringColumnStatsData stringData =
+          statsData.getStringStats();
+      if (stringData != null) {
+        builder.setData(ColumnStatisticsData.newBuilder()
+            .setStringStats(StringColumnStatsData.newBuilder()
+                .setNumDVs(stringData.getNumDVs()).setAvgColLen(stringData.getAvgColLen())
+                .setMaxColLen(stringData.getMaxColLen())
+                .setNumNulls(stringData.getNumNulls()).setBitVectors(stringData.getBitVectors())
+                .build()).build());
       }
-      case BINARY: {
-        org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData data =
-            colStats.getStatsData().getBinaryStats();
-        if (data != null) {
-          builder.setData(ColumnStatisticsData.newBuilder()
-              .setBinaryStats(BinaryColumnStatsData.newBuilder()
-                  .setMaxColLen(data.getMaxColLen()).setAvgColLen(data.getAvgColLen())
-                  .setNumNulls(data.getNumNulls()).setBitVectors(data.getBitVectors())
-                  .build()).build());
-        }
-        break;
+    }
+    if (statsData.isSetStringStats()) {
+      org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData data =
+          statsData.getBinaryStats();
+      if (data != null) {
+        builder.setData(ColumnStatisticsData.newBuilder()
+            .setBinaryStats(BinaryColumnStatsData.newBuilder()
+                .setMaxColLen(data.getMaxColLen()).setAvgColLen(data.getAvgColLen())
+                .setNumNulls(data.getNumNulls()).setBitVectors(data.getBitVectors())
+                .build()).build());
       }
-      case DATE: {
-        org.apache.hadoop.hive.metastore.api.DateColumnStatsData data =
-            colStats.getStatsData().getDateStats();
-        if (data != null) {
-          builder.setData(ColumnStatisticsData.newBuilder()
-              .setDateStats(DateColumnStatsData.newBuilder()
-                  .setHighValue(toProto(data.getHighValue()))
-                  .setLowValue(toProto(data.getLowValue()))
-                  .setNumNulls(data.getNumNulls())
-                  .setNumDVs(data.getNumDVs())
-                  .setBitVectors(data.getBitVectors())
-                  .build()).build());
-        }
-        break;
+    }
+    if (statsData.isSetDateStats()) {
+      org.apache.hadoop.hive.metastore.api.DateColumnStatsData data =
+          statsData.getDateStats();
+      if (data != null) {
+        builder.setData(ColumnStatisticsData.newBuilder()
+            .setDateStats(DateColumnStatsData.newBuilder()
+                .setHighValue(toProto(data.getHighValue()))
+                .setLowValue(toProto(data.getLowValue()))
+                .setNumNulls(data.getNumNulls())
+                .setNumDVs(data.getNumDVs())
+                .setBitVectors(data.getBitVectors())
+                .build()).build());
       }
+    }
 
-      case DECIMAL: {
-        org.apache.hadoop.hive.metastore.api.DecimalColumnStatsData data =
-            colStats.getStatsData().getDecimalStats();
-        if (data != null) {
-          builder.setData(ColumnStatisticsData.newBuilder()
-              .setDecimalStats(DecimalColumnStatsData.newBuilder()
-                  .setHighValue(toProto(data.getHighValue()))
-                  .setLowValue(toProto(data.getLowValue()))
-                  .setNumNulls(data.getNumNulls())
-                  .setNumDVs(data.getNumDVs())
-                  .setBitVectors(data.getBitVectors())
-                  .build()).build());
-        }
-        break;
+    if (statsData.isSetDecimalStats()) {
+      org.apache.hadoop.hive.metastore.api.DecimalColumnStatsData data =
+          statsData.getDecimalStats();
+      if (data != null) {
+        builder.setData(ColumnStatisticsData.newBuilder()
+            .setDecimalStats(DecimalColumnStatsData.newBuilder()
+                .setHighValue(toProto(data.getHighValue()))
+                .setLowValue(toProto(data.getLowValue()))
+                .setNumNulls(data.getNumNulls())
+                .setNumDVs(data.getNumDVs())
+                .setBitVectors(data.getBitVectors())
+                .build()).build());
       }
-
-      default:
     }
     return builder.build();
   }
