@@ -184,13 +184,7 @@ public class URIStatus {
    */
   public String getUfsPath() {
     if (mInfo.getUfsPath() == null) {
-      /**
-       * When this {@link URIStatus} is generated as part of listStatus,
-       * UFS level fields will be excluded by default. For accessing those, the request
-       * {@link alluxio.grpc.ListStatusPOptions} should be created with
-       * `excludeUfsInfo` field as {@code false}.
-       */
-      throw new IllegalStateException("Accessing a not populated field.");
+      throwForUninitializedField();
     }
     return mInfo.getUfsPath();
   }
@@ -272,13 +266,7 @@ public class URIStatus {
    */
   public long getMountId() {
     if (mInfo.getMountId() == 0) {
-      /**
-       * When this {@link URIStatus} is generated as part of listStatus,
-       * UFS level fields will be excluded by default. For accessing those, the request
-       * {@link alluxio.grpc.ListStatusPOptions} should be created with
-       * `excludeUfsInfo` field as {@code false}.
-       */
-      throw new IllegalStateException("Accessing a not populated field.");
+      throwForUninitializedField();
     }
     return mInfo.getMountId();
   }
@@ -317,5 +305,14 @@ public class URIStatus {
   @Override
   public String toString() {
     return mInfo.toString();
+  }
+  /**
+   * When this {@link URIStatus} is generated as part of listStatus,
+   * UFS level fields will be excluded by default. For accessing those, the request
+   * {@link alluxio.grpc.ListStatusPOptions} should be created with
+   * `excludeUfsInfo` field as {@code false}.
+   */
+  private void throwForUninitializedField() {
+    throw new IllegalStateException("Accessing a not populated field.");
   }
 }
