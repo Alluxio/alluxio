@@ -102,11 +102,11 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 50: {
-            alluxio.grpc.catalog.ColumnStatisticsInfo.Builder subBuilder = null;
+            alluxio.grpc.catalog.ColumnStatisticsList.Builder subBuilder = null;
             if (((bitField0_ & 0x00000008) == 0x00000008)) {
               subBuilder = colStats_.toBuilder();
             }
-            colStats_ = input.readMessage(alluxio.grpc.catalog.ColumnStatisticsInfo.PARSER, extensionRegistry);
+            colStats_ = input.readMessage(alluxio.grpc.catalog.ColumnStatisticsList.PARSER, extensionRegistry);
             if (subBuilder != null) {
               subBuilder.mergeFrom(colStats_);
               colStats_ = subBuilder.buildPartial();
@@ -425,13 +425,13 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int COL_STATS_FIELD_NUMBER = 6;
-  private alluxio.grpc.catalog.ColumnStatisticsInfo colStats_;
+  private alluxio.grpc.catalog.ColumnStatisticsList colStats_;
   /**
    * <pre>
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
    */
   public boolean hasColStats() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
@@ -441,20 +441,20 @@ private static final long serialVersionUID = 0L;
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
    */
-  public alluxio.grpc.catalog.ColumnStatisticsInfo getColStats() {
-    return colStats_ == null ? alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance() : colStats_;
+  public alluxio.grpc.catalog.ColumnStatisticsList getColStats() {
+    return colStats_ == null ? alluxio.grpc.catalog.ColumnStatisticsList.getDefaultInstance() : colStats_;
   }
   /**
    * <pre>
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
    */
-  public alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getColStatsOrBuilder() {
-    return colStats_ == null ? alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance() : colStats_;
+  public alluxio.grpc.catalog.ColumnStatisticsListOrBuilder getColStatsOrBuilder() {
+    return colStats_ == null ? alluxio.grpc.catalog.ColumnStatisticsList.getDefaultInstance() : colStats_;
   }
 
   public static final int FILE_METADATA_FIELD_NUMBER = 7;
@@ -1814,15 +1814,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.catalog.ColumnStatisticsInfo colStats_ = null;
+    private alluxio.grpc.catalog.ColumnStatisticsList colStats_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.catalog.ColumnStatisticsInfo, alluxio.grpc.catalog.ColumnStatisticsInfo.Builder, alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder> colStatsBuilder_;
+        alluxio.grpc.catalog.ColumnStatisticsList, alluxio.grpc.catalog.ColumnStatisticsList.Builder, alluxio.grpc.catalog.ColumnStatisticsListOrBuilder> colStatsBuilder_;
     /**
      * <pre>
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
     public boolean hasColStats() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
@@ -1832,11 +1832,11 @@ private static final long serialVersionUID = 0L;
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
-    public alluxio.grpc.catalog.ColumnStatisticsInfo getColStats() {
+    public alluxio.grpc.catalog.ColumnStatisticsList getColStats() {
       if (colStatsBuilder_ == null) {
-        return colStats_ == null ? alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance() : colStats_;
+        return colStats_ == null ? alluxio.grpc.catalog.ColumnStatisticsList.getDefaultInstance() : colStats_;
       } else {
         return colStatsBuilder_.getMessage();
       }
@@ -1846,9 +1846,9 @@ private static final long serialVersionUID = 0L;
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
-    public Builder setColStats(alluxio.grpc.catalog.ColumnStatisticsInfo value) {
+    public Builder setColStats(alluxio.grpc.catalog.ColumnStatisticsList value) {
       if (colStatsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -1866,10 +1866,10 @@ private static final long serialVersionUID = 0L;
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
     public Builder setColStats(
-        alluxio.grpc.catalog.ColumnStatisticsInfo.Builder builderForValue) {
+        alluxio.grpc.catalog.ColumnStatisticsList.Builder builderForValue) {
       if (colStatsBuilder_ == null) {
         colStats_ = builderForValue.build();
         onChanged();
@@ -1884,15 +1884,15 @@ private static final long serialVersionUID = 0L;
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
-    public Builder mergeColStats(alluxio.grpc.catalog.ColumnStatisticsInfo value) {
+    public Builder mergeColStats(alluxio.grpc.catalog.ColumnStatisticsList value) {
       if (colStatsBuilder_ == null) {
         if (((bitField0_ & 0x00000020) == 0x00000020) &&
             colStats_ != null &&
-            colStats_ != alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance()) {
+            colStats_ != alluxio.grpc.catalog.ColumnStatisticsList.getDefaultInstance()) {
           colStats_ =
-            alluxio.grpc.catalog.ColumnStatisticsInfo.newBuilder(colStats_).mergeFrom(value).buildPartial();
+            alluxio.grpc.catalog.ColumnStatisticsList.newBuilder(colStats_).mergeFrom(value).buildPartial();
         } else {
           colStats_ = value;
         }
@@ -1908,7 +1908,7 @@ private static final long serialVersionUID = 0L;
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
     public Builder clearColStats() {
       if (colStatsBuilder_ == null) {
@@ -1925,9 +1925,9 @@ private static final long serialVersionUID = 0L;
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
-    public alluxio.grpc.catalog.ColumnStatisticsInfo.Builder getColStatsBuilder() {
+    public alluxio.grpc.catalog.ColumnStatisticsList.Builder getColStatsBuilder() {
       bitField0_ |= 0x00000020;
       onChanged();
       return getColStatsFieldBuilder().getBuilder();
@@ -1937,14 +1937,14 @@ private static final long serialVersionUID = 0L;
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
-    public alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getColStatsOrBuilder() {
+    public alluxio.grpc.catalog.ColumnStatisticsListOrBuilder getColStatsOrBuilder() {
       if (colStatsBuilder_ != null) {
         return colStatsBuilder_.getMessageOrBuilder();
       } else {
         return colStats_ == null ?
-            alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance() : colStats_;
+            alluxio.grpc.catalog.ColumnStatisticsList.getDefaultInstance() : colStats_;
       }
     }
     /**
@@ -1952,14 +1952,14 @@ private static final long serialVersionUID = 0L;
      * column statistics for partition
      * </pre>
      *
-     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.catalog.ColumnStatisticsInfo, alluxio.grpc.catalog.ColumnStatisticsInfo.Builder, alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder> 
+        alluxio.grpc.catalog.ColumnStatisticsList, alluxio.grpc.catalog.ColumnStatisticsList.Builder, alluxio.grpc.catalog.ColumnStatisticsListOrBuilder> 
         getColStatsFieldBuilder() {
       if (colStatsBuilder_ == null) {
         colStatsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            alluxio.grpc.catalog.ColumnStatisticsInfo, alluxio.grpc.catalog.ColumnStatisticsInfo.Builder, alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder>(
+            alluxio.grpc.catalog.ColumnStatisticsList, alluxio.grpc.catalog.ColumnStatisticsList.Builder, alluxio.grpc.catalog.ColumnStatisticsListOrBuilder>(
                 getColStats(),
                 getParentForChildren(),
                 isClean());

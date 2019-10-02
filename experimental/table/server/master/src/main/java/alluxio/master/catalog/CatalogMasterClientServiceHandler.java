@@ -23,6 +23,8 @@ import alluxio.grpc.catalog.GetAllDatabasesPRequest;
 import alluxio.grpc.catalog.GetAllDatabasesPResponse;
 import alluxio.grpc.catalog.GetAllTablesPRequest;
 import alluxio.grpc.catalog.GetAllTablesPResponse;
+import alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest;
+import alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse;
 import alluxio.grpc.catalog.GetTableColumnStatisticsPRequest;
 import alluxio.grpc.catalog.GetTableColumnStatisticsPResponse;
 import alluxio.grpc.catalog.GetTablePRequest;
@@ -131,6 +133,16 @@ public class CatalogMasterClientServiceHandler
         mCatalogMaster.getTableColumnStatistics(request.getDbName(),
             request.getTableName(), request.getColNamesList())).build(),
         "getTableColumnStatistics", "", responseObserver);
+  }
+
+  @Override
+  public void getPartitionColumnStatistics(GetPartitionColumnStatisticsPRequest request,
+      StreamObserver<GetPartitionColumnStatisticsPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetPartitionColumnStatisticsPResponse.newBuilder()
+            .putAllPartitionStatistics(mCatalogMaster.getPartitionColumnStatistics(
+                request.getDbName(), request.getTableName(), request.getPartNamesList(),
+                request.getColNamesList())).build(),
+        "getPartitionColumnStatistics", "", responseObserver);
   }
 
   @Override

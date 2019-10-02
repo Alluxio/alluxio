@@ -287,6 +287,38 @@ public final class CatalogMasterClientServiceGrpc {
      return getGetTableColumnStatisticsMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest,
+      alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse> getGetPartitionColumnStatisticsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetPartitionColumnStatistics",
+      requestType = alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest.class,
+      responseType = alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest,
+      alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse> getGetPartitionColumnStatisticsMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest, alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse> getGetPartitionColumnStatisticsMethod;
+    if ((getGetPartitionColumnStatisticsMethod = CatalogMasterClientServiceGrpc.getGetPartitionColumnStatisticsMethod) == null) {
+      synchronized (CatalogMasterClientServiceGrpc.class) {
+        if ((getGetPartitionColumnStatisticsMethod = CatalogMasterClientServiceGrpc.getGetPartitionColumnStatisticsMethod) == null) {
+          CatalogMasterClientServiceGrpc.getGetPartitionColumnStatisticsMethod = getGetPartitionColumnStatisticsMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest, alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.catalog.CatalogMasterClientService", "GetPartitionColumnStatistics"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("GetPartitionColumnStatistics"))
+                  .build();
+          }
+        }
+     }
+     return getGetPartitionColumnStatisticsMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.catalog.ReadTablePRequest,
       alluxio.grpc.catalog.ReadTablePResponse> getReadTableMethod;
 
@@ -436,6 +468,13 @@ public final class CatalogMasterClientServiceGrpc {
 
     /**
      */
+    public void getPartitionColumnStatistics(alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetPartitionColumnStatisticsMethod(), responseObserver);
+    }
+
+    /**
+     */
     public void readTable(alluxio.grpc.catalog.ReadTablePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.catalog.ReadTablePResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getReadTableMethod(), responseObserver);
@@ -499,6 +538,13 @@ public final class CatalogMasterClientServiceGrpc {
                 alluxio.grpc.catalog.GetTableColumnStatisticsPRequest,
                 alluxio.grpc.catalog.GetTableColumnStatisticsPResponse>(
                   this, METHODID_GET_TABLE_COLUMN_STATISTICS)))
+          .addMethod(
+            getGetPartitionColumnStatisticsMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest,
+                alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse>(
+                  this, METHODID_GET_PARTITION_COLUMN_STATISTICS)))
           .addMethod(
             getReadTableMethod(),
             asyncUnaryCall(
@@ -626,6 +672,14 @@ public final class CatalogMasterClientServiceGrpc {
 
     /**
      */
+    public void getPartitionColumnStatistics(alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetPartitionColumnStatisticsMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
     public void readTable(alluxio.grpc.catalog.ReadTablePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.catalog.ReadTablePResponse> responseObserver) {
       asyncUnaryCall(
@@ -737,6 +791,13 @@ public final class CatalogMasterClientServiceGrpc {
     public alluxio.grpc.catalog.GetTableColumnStatisticsPResponse getTableColumnStatistics(alluxio.grpc.catalog.GetTableColumnStatisticsPRequest request) {
       return blockingUnaryCall(
           getChannel(), getGetTableColumnStatisticsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse getPartitionColumnStatistics(alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetPartitionColumnStatisticsMethod(), getCallOptions(), request);
     }
 
     /**
@@ -863,6 +924,14 @@ public final class CatalogMasterClientServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse> getPartitionColumnStatistics(
+        alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetPartitionColumnStatisticsMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.catalog.ReadTablePResponse> readTable(
         alluxio.grpc.catalog.ReadTablePRequest request) {
       return futureUnaryCall(
@@ -878,7 +947,8 @@ public final class CatalogMasterClientServiceGrpc {
   private static final int METHODID_CREATE_DATABASE = 5;
   private static final int METHODID_ATTACH_DATABASE = 6;
   private static final int METHODID_GET_TABLE_COLUMN_STATISTICS = 7;
-  private static final int METHODID_READ_TABLE = 8;
+  private static final int METHODID_GET_PARTITION_COLUMN_STATISTICS = 8;
+  private static final int METHODID_READ_TABLE = 9;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -928,6 +998,10 @@ public final class CatalogMasterClientServiceGrpc {
         case METHODID_GET_TABLE_COLUMN_STATISTICS:
           serviceImpl.getTableColumnStatistics((alluxio.grpc.catalog.GetTableColumnStatisticsPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetTableColumnStatisticsPResponse>) responseObserver);
+          break;
+        case METHODID_GET_PARTITION_COLUMN_STATISTICS:
+          serviceImpl.getPartitionColumnStatistics((alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.catalog.GetPartitionColumnStatisticsPResponse>) responseObserver);
           break;
         case METHODID_READ_TABLE:
           serviceImpl.readTable((alluxio.grpc.catalog.ReadTablePRequest) request,
@@ -1002,6 +1076,7 @@ public final class CatalogMasterClientServiceGrpc {
               .addMethod(getCreateDatabaseMethod())
               .addMethod(getAttachDatabaseMethod())
               .addMethod(getGetTableColumnStatisticsMethod())
+              .addMethod(getGetPartitionColumnStatisticsMethod())
               .addMethod(getReadTableMethod())
               .build();
         }

@@ -26,6 +26,7 @@ import alluxio.grpc.catalog.Database;
 import alluxio.grpc.catalog.GetAllDatabasesPRequest;
 import alluxio.grpc.catalog.GetAllTablesPRequest;
 import alluxio.grpc.catalog.GetDatabasePRequest;
+import alluxio.grpc.catalog.GetPartitionColumnStatisticsPRequest;
 import alluxio.grpc.catalog.GetTableColumnStatisticsPRequest;
 import alluxio.grpc.catalog.GetTablePRequest;
 import alluxio.grpc.catalog.Partition;
@@ -38,6 +39,7 @@ import org.apache.iceberg.Schema;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -175,6 +177,11 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
           String tableName,
           List<String> partitionNames,
           List<String> columnNames) throws AlluxioStatusException {
-    return null;
+    return retryRPC(() -> mClient.getPartitionColumnStatistics(
+        GetPartitionColumnStatisticsPRequest.newBuilder().setDbName(databaseName)
+            .setTableName(tableName).addAllColNames(columnNames)
+            .addAllPartNames(partitionNames).build()).getPartitionStatisticsMap())
+        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+            e->e.getValue().getStatisticsList(), (e1, e2) -> e1));
   }
 }

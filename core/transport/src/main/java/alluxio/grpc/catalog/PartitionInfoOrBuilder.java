@@ -134,7 +134,7 @@ public interface PartitionInfoOrBuilder extends
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
    */
   boolean hasColStats();
   /**
@@ -142,17 +142,17 @@ public interface PartitionInfoOrBuilder extends
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
    */
-  alluxio.grpc.catalog.ColumnStatisticsInfo getColStats();
+  alluxio.grpc.catalog.ColumnStatisticsList getColStats();
   /**
    * <pre>
    * column statistics for partition
    * </pre>
    *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
    */
-  alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getColStatsOrBuilder();
+  alluxio.grpc.catalog.ColumnStatisticsListOrBuilder getColStatsOrBuilder();
 
   /**
    * <pre>

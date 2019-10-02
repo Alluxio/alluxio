@@ -13,9 +13,12 @@ package alluxio.master.catalog;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
+import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
+import alluxio.grpc.catalog.ColumnStatisticsList;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Domain;
 import alluxio.grpc.catalog.FieldSchema;
@@ -24,6 +27,7 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
 import com.google.common.base.Preconditions;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,6 +161,39 @@ public class AlluxioCatalog {
     Table table = getTable(dbName, tableName);
     return table.get().getStatistics().stream()
         .filter(info -> colNames.contains(info.getColName())).collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the statistics for the specified table.
+   *
+   * @param dbName the database name
+   * @param tableName the table name
+   * @param partNames partition names
+   * @param colNames column names
+   * @return the statistics for the partitions for a specific table
+   */
+  public Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
+      String tableName, List<String> partNames, List<String> colNames) throws IOException {
+    Table table = getTable(dbName, tableName);
+    List<Partition> partitions = table.getPartitions();
+    return partitions.stream().filter(p -> {
+      try {
+        return partNames.contains(ProtoUtils.extractHiveLayout(p.toProto()).getPartitionName());
+      } catch (InvalidProtocolBufferException e) {
+        return false;
+      }
+    }).map(p -> {
+      try {
+        PartitionInfo info = ProtoUtils.extractHiveLayout(p.toProto());
+        return new Pair<>(info.getPartitionName(), info.getColStats()
+            .getStatisticsList().stream().filter(e -> colNames.contains(e.getColName()))
+            .collect(Collectors.toList()));
+      } catch (InvalidProtocolBufferException e) {
+        return new Pair<>("", new ArrayList<ColumnStatisticsInfo>());
+      }
+    }).collect(Collectors.toMap(Pair::getFirst,
+        p -> ColumnStatisticsList.newBuilder().addAllStatistics(p.getSecond()).build(),
+        (e1, e2) -> e2));
   }
 
   /**
