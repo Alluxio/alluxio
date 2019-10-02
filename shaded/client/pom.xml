@@ -39,19 +39,7 @@
       <artifactId>hadoop-client</artifactId>
       <scope>provided</scope>
     </dependency>
-
-    <!-- Internal dependencies -->
-    <!-- This should include all Alluxio client implementations -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-hdfs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-fs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+    <!-- Runtime logging dependencies -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -73,6 +61,19 @@
       <artifactId>log4j</artifactId>
       <scope>runtime</scope>
       <optional>true</optional>
+    </dependency>
+
+    <!-- Internal dependencies -->
+    <!-- This should include all Alluxio client implementations -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
