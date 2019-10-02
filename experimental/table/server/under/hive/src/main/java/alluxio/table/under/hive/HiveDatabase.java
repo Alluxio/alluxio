@@ -146,7 +146,7 @@ public class HiveDatabase implements UnderDatabase {
       PathTranslator translator) throws IOException, AlluxioException {
     try {
       tableUri = mUdbContext.getFileSystem().reverseResolve(ufsPath);
-      translator.addMapping(tableUri.getPath(), ufsPath.getPath());
+      translator.addMapping(tableUri.getPath(), ufsPath.toString());
       LOG.info("Trying to mount table {} location {}, but table {} already mounted at location {}",
           tableName, ufsPath, tableUri);
       return tableUri.getPath();
@@ -169,7 +169,7 @@ public class HiveDatabase implements UnderDatabase {
       }
     }
     mUdbContext.getFileSystem().mount(tableUri, ufsPath, option.build());
-    translator.addMapping(tableUri.getPath(), ufsPath.getPath());
+    translator.addMapping(tableUri.getPath(), ufsPath.toString());
 
     LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
         tableName, ufsPath, tableUri, option.build());
