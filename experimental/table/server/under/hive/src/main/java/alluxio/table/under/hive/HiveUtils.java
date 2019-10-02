@@ -140,9 +140,10 @@ public class HiveUtils {
   public static ColumnStatisticsInfo toProto(ColumnStatisticsObj colStats) {
     ColumnStatisticsInfo.Builder builder = ColumnStatisticsInfo.newBuilder();
     builder.setColName(colStats.getColName()).setColType(colStats.getColType());
-    if (colStats.getStatsData().isSetBooleanStats()) {
+    org.apache.hadoop.hive.metastore.api.ColumnStatisticsData statsData = colStats.getStatsData();
+    if (statsData.isSetBooleanStats()) {
       org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData data =
-          colStats.getStatsData().getBooleanStats();
+          statsData.getBooleanStats();
       if (data != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setBooleanStats(BooleanColumnStatsData.newBuilder()
@@ -151,9 +152,9 @@ public class HiveUtils {
                 .build()).build());
       }
     }
-    if (colStats.getStatsData().isSetDoubleStats()) {
+    if (statsData.isSetDoubleStats()) {
       org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData doubleStats =
-          colStats.getStatsData().getDoubleStats();
+          statsData.getDoubleStats();
       if (doubleStats != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setDoubleStats(DoubleColumnStatsData.newBuilder()
@@ -162,9 +163,9 @@ public class HiveUtils {
                 .setBitVectors(doubleStats.getBitVectors()).build()).build());
       }
     }
-    if (colStats.getStatsData().isSetLongStats()) {
+    if (statsData.isSetLongStats()) {
       org.apache.hadoop.hive.metastore.api.LongColumnStatsData longData =
-          colStats.getStatsData().getLongStats();
+          statsData.getLongStats();
       if (longData != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setLongStats(LongColumnStatsData.newBuilder()
@@ -174,9 +175,9 @@ public class HiveUtils {
                 .build()).build());
       }
     }
-    if (colStats.getStatsData().isSetStringStats()) {
+    if (statsData.isSetStringStats()) {
       org.apache.hadoop.hive.metastore.api.StringColumnStatsData stringData =
-          colStats.getStatsData().getStringStats();
+          statsData.getStringStats();
       if (stringData != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setStringStats(StringColumnStatsData.newBuilder()
@@ -186,9 +187,9 @@ public class HiveUtils {
                 .build()).build());
       }
     }
-    if (colStats.getStatsData().isSetStringStats()) {
+    if (statsData.isSetStringStats()) {
       org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData data =
-          colStats.getStatsData().getBinaryStats();
+          statsData.getBinaryStats();
       if (data != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setBinaryStats(BinaryColumnStatsData.newBuilder()
@@ -197,9 +198,9 @@ public class HiveUtils {
                 .build()).build());
       }
     }
-    if (colStats.getStatsData().isSetDateStats()) {
+    if (statsData.isSetDateStats()) {
       org.apache.hadoop.hive.metastore.api.DateColumnStatsData data =
-          colStats.getStatsData().getDateStats();
+          statsData.getDateStats();
       if (data != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setDateStats(DateColumnStatsData.newBuilder()
@@ -212,9 +213,9 @@ public class HiveUtils {
       }
     }
 
-    if (colStats.getStatsData().isSetDecimalStats()) {
+    if (statsData.isSetDecimalStats()) {
       org.apache.hadoop.hive.metastore.api.DecimalColumnStatsData data =
-          colStats.getStatsData().getDecimalStats();
+          statsData.getDecimalStats();
       if (data != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setDecimalStats(DecimalColumnStatsData.newBuilder()
