@@ -183,6 +183,15 @@ public class URIStatus {
    * @return the uri of the under storage location of the entity referenced by this uri, mutable
    */
   public String getUfsPath() {
+    if (mInfo.getUfsPath() == null) {
+      /**
+       * When this {@link URIStatus} is generated as part of listStatus,
+       * UFS level fields will be excluded by default. For accessing those, the request
+       * {@link alluxio.grpc.ListStatusPOptions} should be created with
+       * `excludeUfsInfo` field as {@code false}.
+       */
+      throw new IllegalStateException("Accessing a not populated field.");
+    }
     return mInfo.getUfsPath();
   }
 
@@ -262,6 +271,15 @@ public class URIStatus {
    * @return the id of the mount of this file is mapped to
    */
   public long getMountId() {
+    if (mInfo.getMountId() == 0) {
+      /**
+       * When this {@link URIStatus} is generated as part of listStatus,
+       * UFS level fields will be excluded by default. For accessing those, the request
+       * {@link alluxio.grpc.ListStatusPOptions} should be created with
+       * `excludeUfsInfo` field as {@code false}.
+       */
+      throw new IllegalStateException("Accessing a not populated field.");
+    }
     return mInfo.getMountId();
   }
 
