@@ -217,20 +217,21 @@ public class AlluxioCatalog {
   private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
     Comparable object;
     // TODO(yuzhu): handle more complex data types
-    switch (schema.getType().getType()) {
-      case BOOLEAN:
+    switch (schema.getType()) {
+      case "boolean":
         object = Boolean.valueOf(value);
         break;
-      case INTEGER:
+      case "int":
+      case "integer":
         object = Integer.valueOf(value);
         break;
-      case LONG:
+      case "long":
         object = Long.valueOf(value);
         break;
-      case STRING:
+      case "string":
         object = value;
         break;
-      case DOUBLE:
+      case "double":
         object = Double.valueOf(value);
         break;
       default:

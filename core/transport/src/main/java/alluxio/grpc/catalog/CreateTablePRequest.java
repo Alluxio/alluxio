@@ -212,12 +212,6 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
-    if (hasSchema()) {
-      if (!getSchema().isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -546,11 +540,6 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
-      if (hasSchema()) {
-        if (!getSchema().isInitialized()) {
-          return false;
-        }
-      }
       return true;
     }
 

@@ -79,6 +79,6 @@ public class PathTranslator {
     }
     // TODO(yuzhu): instead of throwing an exception, mount the path?
     throw new IOException(String
-        .format("Ufs path (%s) can not be found", ufsPath));
+        .format("Failed to translate ufs path (%s). Mapping missing from translator", ufsPath));
   }
 }

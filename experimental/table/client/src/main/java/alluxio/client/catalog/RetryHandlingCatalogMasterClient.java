@@ -14,14 +14,12 @@ package alluxio.client.catalog;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.experimental.ProtoUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.catalog.AttachDatabasePRequest;
 import alluxio.grpc.catalog.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.CreateDatabasePRequest;
-import alluxio.grpc.catalog.CreateTablePRequest;
 import alluxio.grpc.catalog.Database;
 import alluxio.grpc.catalog.GetAllDatabasesPRequest;
 import alluxio.grpc.catalog.GetAllTablesPRequest;
@@ -124,10 +122,7 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   @Override
   public TableInfo createTable(String dbName, String tableName, Schema schema)
       throws AlluxioStatusException {
-    return retryRPC(() -> mClient.createTable(
-        CreateTablePRequest.newBuilder().setDbName(dbName)
-            .setTableName(tableName)
-            .setSchema(ProtoUtils.toProto(schema)).build()).getTableInfo());
+    return null;
   }
 
   @Override
