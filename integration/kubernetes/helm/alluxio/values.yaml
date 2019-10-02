@@ -82,6 +82,11 @@ journal:
   type: "UFS"
   ufsType: "local" # Ignored if type is "EMBEDDED"
   folder: "/journal"
+  # Configuration for journal formatting job
+  format:
+    job:
+      activeDeadlineSeconds: 30
+      ttlSecondsAfterFinished: 10
 
 const:
   configName: "alluxio-config"

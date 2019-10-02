@@ -49,6 +49,11 @@ function generateVolumeTemplatesWithConfig {
   helm template helm/alluxio/ -x templates/alluxio-journal-volume.yaml -f ./$dir/config.yaml > "$dir/alluxio-journal-volume.yaml.template"
 }
 
+function generateJobTemplatesWithConfig {
+  echo "Generating job templates into $dir"
+  helm template helm/alluxio/ -x templates/alluxio-format-master.yaml -f ./$dir/config.yaml > "$dir/alluxio-format-master.yaml.template"
+}
+
 function generateSingleUfsTemplates {
   echo "Target FS $1"
   targetFs=$1
@@ -58,11 +63,13 @@ function generateSingleUfsTemplates {
       dir="singleMaster-localJournal"
       generateVolumeTemplatesWithConfig
       generatePodTemplatesWithConfig
+      generateJobTemplatesWithConfig
       ;;
     "hdfs")
       echo "Journal UFS $ufs"
       dir="singleMaster-hdfsJournal"
       generatePodTemplatesWithConfig
+      generateJobTemplatesWithConfig
       ;;
     *)
       echo "Unknown Journal UFS type $ufs"
@@ -74,6 +81,7 @@ function generateSingleUfsTemplates {
 function generateMultiEmbeddedTemplates {
   dir="multiMaster-embeddedJournal"
   generatePodTemplatesWithConfig
+  generateJobTemplatesWithConfig
 }
 
 function generateAllTemplates {
