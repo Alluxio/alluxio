@@ -333,7 +333,7 @@ In order to add a master, the Alluxio cluster must operate in HA mode. If you ar
 a single master cluster, you must configure it to be an HA cluster before having more than one master.
 
 #### Alluxio HA cluster with embedded journal
-When internal leader election is used, Alluxio masters are determined with a quorum. Adding an removing
+When internal leader election is used, Alluxio masters are determined with a quorum. Adding or removing
 masters requires to keep this quorum in a consistent state. 
 
 ##### Adding a new master
