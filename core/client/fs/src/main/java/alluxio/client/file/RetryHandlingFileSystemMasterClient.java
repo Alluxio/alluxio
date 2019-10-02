@@ -259,9 +259,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public AlluxioURI reverseResolve(final AlluxioURI path) throws AlluxioStatusException {
+  public AlluxioURI reverseResolve(final AlluxioURI ufsUri) throws AlluxioStatusException {
     return retryRPC(() -> new AlluxioURI(mClient.reverseResolve(ReverseResolvePRequest.newBuilder()
-        .setUfsPath(path.getPath()).build()).getAlluxioPath()), "ReverseResolve");
+        .setUfsPath(ufsUri.toString()).build()).getAlluxioPath()), "ReverseResolve");
   }
 
   @Override
