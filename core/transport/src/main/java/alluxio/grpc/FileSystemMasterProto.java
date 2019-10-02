@@ -574,7 +574,7 @@ public final class FileSystemMasterProto {
       ".file.LoadMetadataPType\022H\n\rcommonOptions" +
       "\030\003 \001(\01321.alluxio.grpc.file.FileSystemMas" +
       "terCommonPOptions\022\021\n\trecursive\030\004 \001(\010\022\026\n\016" +
-      "includeUfsInfo\030\005 \001(\010\"Z\n\022ListStatusPReque" +
+      "excludeUfsInfo\030\005 \001(\010\"Z\n\022ListStatusPReque" +
       "st\022\014\n\004path\030\001 \001(\t\0226\n\007options\030\002 \001(\0132%.allu" +
       "xio.grpc.file.ListStatusPOptions\"\324\001\n\024Loa" +
       "dMetadataPOptions\022\021\n\trecursive\030\001 \001(\010\022\027\n\017" +
@@ -1014,7 +1014,7 @@ public final class FileSystemMasterProto {
     internal_static_alluxio_grpc_file_ListStatusPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_ListStatusPOptions_descriptor,
-        new java.lang.String[] { "LoadDirectChildren", "LoadMetadataType", "CommonOptions", "Recursive", "IncludeUfsInfo", });
+        new java.lang.String[] { "LoadDirectChildren", "LoadMetadataType", "CommonOptions", "Recursive", "ExcludeUfsInfo", });
     internal_static_alluxio_grpc_file_ListStatusPRequest_descriptor =
       getDescriptor().getMessageTypes().get(32);
     internal_static_alluxio_grpc_file_ListStatusPRequest_fieldAccessorTable = new

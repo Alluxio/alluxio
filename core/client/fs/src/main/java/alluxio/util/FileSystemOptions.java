@@ -170,7 +170,7 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
-        .setIncludeUfsInfo(false)
+        .setExcludeUfsInfo(true)
         .build();
   }
 

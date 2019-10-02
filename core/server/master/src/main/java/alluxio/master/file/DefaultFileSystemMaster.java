@@ -781,15 +781,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
       throws FileDoesNotExistException, UnavailableException {
-    return getFileInfoInternal(inodePath, true);
+    return getFileInfoInternal(inodePath, false);
   }
 
   /**
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
-   * @param includeUfsInformation whether to include ufs level information
+   * @param excludeUfsInfo whether to exclude ufs level information
    * @return the {@link FileInfo} for the given inode
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath, boolean includeUfsInformation)
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath, boolean excludeUfsInfo)
       throws FileDoesNotExistException, UnavailableException {
     Inode inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
@@ -807,7 +807,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     }
     fileInfo.setXAttr(inode.getXAttr());
-    if (includeUfsInformation) {
+    if (!excludeUfsInfo) {
       MountTable.Resolution resolution;
       try {
         resolution = mMountTable.resolve(uri);
@@ -970,9 +970,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     // Listing a directory should not emit item for the directory itself.
     if (depth != 0 || inode.isFile()) {
-      boolean includeUfsInfo =
-          !context.getOptions().hasIncludeUfsInfo() || context.getOptions().getIncludeUfsInfo();
-      resultStream.submit(getFileInfoInternal(currInodePath, includeUfsInfo));
+      resultStream.submit(
+          getFileInfoInternal(currInodePath, context.getOptions().getExcludeUfsInfo()));
     }
   }
 
