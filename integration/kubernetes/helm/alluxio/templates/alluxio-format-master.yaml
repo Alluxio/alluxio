@@ -1,0 +1,79 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{- $masterCount := int .Values.resources.masterCount }}
+{{- $isSingleMaster := eq $masterCount 1 }}
+{{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
+{{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
+{{- $isUfsLocal := and (eq .Values.journal.type "UFS") (eq .Values.journal.ufsType "local") }}
+{{- $isSingleUfsLocal := and $isUfsLocal $isSingleMaster }}
+{{- $needJournalVolume := or $isEmbedded $isUfsLocal }}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: alluxio-format-master
+spec:
+  activeDeadlineSeconds: {{ .Values.journal.format.job.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.journal.format.job.ttlSecondsAfterFinished }}
+  template:
+    spec:
+      containers:
+        - name: alluxio-master
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.master.limits.cpu }}
+              memory: {{ .Values.resources.master.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.master.requests.cpu }}
+              memory: {{ .Values.resources.master.requests.memory }}
+          command: ["/opt/alluxio/bin/alluxio"]
+          args: ["formatMasters"]
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.const.configName }}
+          volumeMounts:
+          {{- if $needJournalVolume }}
+          - name: alluxio-journal
+            mountPath: {{ .Values.journal.folder }}
+          {{- end }}
+          {{- if .Values.secrets }}
+          {{- if .Values.secrets.master }}
+          {{- range $key, $val := .Values.secrets.master }}
+          - name: secret-{{ $key }}-volume
+            mountPath: /secrets/{{ $val }}
+            readOnly: true
+          {{- end }}
+          {{- end }}
+          {{- end }}
+      restartPolicy: OnFailure
+      volumes:
+      {{- if $isSingleUfsLocal }}
+      - name: alluxio-journal
+        persistentVolumeClaim:
+          claimName: alluxio-pv-claim
+      {{- end }}
+      {{- if $isHaEmbedded }}
+      - name: alluxio-journal
+        emptyDir: {}
+      {{- end}}
+      {{- if .Values.secrets }}
+      {{- if .Values.secrets.master }}
+      {{- range $key, $val := .Values.secrets.master }}
+      - name: secret-{{ $key }}-volume
+        secret:
+          secretName: {{ $key }}
+          defaultMode: 256
+      {{- end }}
+      {{- end }}
+      {{- end }}
