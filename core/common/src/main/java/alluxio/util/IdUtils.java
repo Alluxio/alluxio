@@ -74,10 +74,14 @@ public final class IdUtils {
   }
 
   /**
-   * @return a random long which is guaranteed to be non negative (zero is allowed)
+   * @return a random long which is guaranteed to be non negative (zero is not allowed)
    */
   public static synchronized long getRandomNonNegativeLong() {
-    return Math.abs(sRandom.nextLong());
+    long randLong = sRandom.nextLong();
+    if (randLong == 0 || randLong == Long.MIN_VALUE) {
+      randLong++;
+    }
+    return Math.abs(randLong);
   }
 
   /**
