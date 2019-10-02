@@ -1695,6 +1695,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("How often the master schedules persistence jobs "
               + "for files written using ASYNC_THROUGH")
           .build();
+  public static final PropertyKey MASTER_PERSISTENCE_BLACKLIST =
+      new Builder(Name.MASTER_PERSISTENCE_BLACKLIST)
+          .setDefaultValue("")
+          .setDescription("Patterns to blacklist persist, comma separated, string match, no regex.")
+          .build();
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =
       new Builder(Name.MASTER_REPLICATION_CHECK_INTERVAL_MS)
           .setDefaultValue("1min")
@@ -4015,6 +4020,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.persistence.max.interval";
     public static final String MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS =
         "alluxio.master.persistence.scheduler.interval";
+    public static final String MASTER_PERSISTENCE_BLACKLIST =
+        "alluxio.master.persistence.blacklist";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
