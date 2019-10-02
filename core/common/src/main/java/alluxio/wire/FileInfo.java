@@ -64,7 +64,7 @@ public final class FileInfo implements Serializable {
   private String mPersistenceState = "";
   private boolean mMountPoint;
   private ArrayList<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
-  private long mMountId;
+  private long mMountId = -1;
   private int mReplicationMax;
   private int mReplicationMin;
   private int mInAlluxioPercentage;
