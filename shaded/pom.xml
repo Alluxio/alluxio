@@ -23,6 +23,7 @@
   <description>Parent POM for different shaded Libraries</description>
 
   <modules>
+    <module>client</module>
     <module>hadoop</module>
   </modules>
 
