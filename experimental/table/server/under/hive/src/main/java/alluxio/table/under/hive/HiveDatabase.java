@@ -142,11 +142,10 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
-  private String mountAlluxioPath(String tableName, AlluxioURI ufsUri, AlluxioURI tableUri,
-      PathTranslator translator) throws IOException, AlluxioException {
+  private String mountAlluxioPath(String tableName, AlluxioURI ufsUri, AlluxioURI tableUri)
+      throws IOException, AlluxioException {
     try {
       tableUri = mUdbContext.getFileSystem().reverseResolve(ufsUri);
-      translator.addMapping(tableUri.getPath(), ufsUri.toString());
       LOG.info("Trying to mount table {} location {}, but table {} already mounted at location {}",
           tableName, ufsUri, tableUri);
       return tableUri.getPath();
@@ -169,7 +168,6 @@ public class HiveDatabase implements UnderDatabase {
       }
     }
     mUdbContext.getFileSystem().mount(tableUri, ufsUri, option.build());
-    translator.addMapping(tableUri.getPath(), ufsUri.toString());
 
     LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
         tableName, ufsUri, tableUri, option.build());
@@ -186,7 +184,8 @@ public class HiveDatabase implements UnderDatabase {
       PathTranslator pathTranslator =
           new PathTranslator();
       ufsUri = new AlluxioURI(table.getSd().getLocation());
-      mountAlluxioPath(tableName, ufsUri, alluxioUri, pathTranslator);
+      pathTranslator.addMapping(mountAlluxioPath(tableName, ufsUri, alluxioUri),
+          table.getSd().getLocation());
 
       for (Partition part : partitions) {
         AlluxioURI partitionUri;
@@ -203,7 +202,8 @@ public class HiveDatabase implements UnderDatabase {
               mUdbContext.getTableLocation(tableName).getPath(), partName));
 
           // mount partition path if it is not already mounted as part of the table path mount
-          mountAlluxioPath(tableName, partitionUri, alluxioUri, pathTranslator);
+          pathTranslator.addMapping(mountAlluxioPath(tableName, partitionUri, alluxioUri),
+              part.getSd().getLocation());
         }
       }
       return pathTranslator;
