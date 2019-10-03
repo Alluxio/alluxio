@@ -109,7 +109,7 @@ spec:
                 command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "/alluxio-fuse"]
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.fullname" . }}-fuse-config
+              name: {{ template "alluxio.name" . }}-config
           volumeMounts:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse
