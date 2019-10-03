@@ -81,6 +81,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected final Supplier<String> mRootKeySupplier =
       UnderFileSystemUtils.memoize(this::getRootKey);
 
+  protected final Supplier<Boolean> mIsRootListable =
+      UnderFileSystemUtils.memoize(this::isRootListable);
+
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
    *
@@ -568,7 +571,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   public boolean isDirectory(String path) throws IOException {
     // Root is always a folder
     if (isRoot(path)) {
-      return true;
+      return mIsRootListable.get();
     }
     String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
     if (getObjectStatus(keyAsFolder) != null) {
@@ -592,6 +595,20 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isObjectStorage() {
     return true;
+  }
+
+  /**
+   * Checks if the root of the ObjectUnderFileSystem is listable. This is done once and cached
+   * per UFS to reduce time spent checking if the root is accessible.
+   *
+   * @return whether the root of the UFS is listable and return false if any exception is thrown
+   */
+  public boolean isRootListable() {
+    try {
+      return getObjectListingChunkForPath("", true) != null;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   @Override
