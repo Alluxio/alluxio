@@ -81,7 +81,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected final Supplier<String> mRootKeySupplier =
       UnderFileSystemUtils.memoize(this::getRootKey);
 
-  /** Whether the bucket/root is listable */
+  /** Whether the bucket/root is listable. */
   protected final Supplier<Boolean> mIsRootListable =
       UnderFileSystemUtils.memoize(this::isRootListable);
 
