@@ -165,8 +165,8 @@ public class HiveTable implements UdbTable {
             .addAllCols(HiveUtils.toProto(partition.getSd().getCols()))
             .setStorage(HiveUtils.toProto(partition.getSd(), mPathTranslator))
             .putAllFileMetadata(getPartitionMetadata(
-                mPathTranslator.toAlluxioPath(new AlluxioURI(partition.getSd().getLocation()))
-                    .toString(), mHiveDatabase.getUdbContext().getFileSystem()))
+                mPathTranslator.toAlluxioPath(partition.getSd().getLocation()),
+                mHiveDatabase.getUdbContext().getFileSystem()))
             .setPartitionName(partName);
         if (partition.getValues() != null) {
           pib.addAllValues(partition.getValues());
