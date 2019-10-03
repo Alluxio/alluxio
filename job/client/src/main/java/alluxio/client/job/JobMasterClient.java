@@ -14,6 +14,7 @@ package alluxio.client.job;
 import alluxio.Client;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.JobServiceSummary;
 import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.IOException;
@@ -58,6 +59,13 @@ public interface JobMasterClient extends Client {
   JobInfo getStatus(long id) throws IOException;
 
   /**
+   * Gets the job service summary.
+   *
+   * @return the job service summary
+   */
+  JobServiceSummary getJobServiceSummary() throws IOException;
+
+  /**
    * @return the list of ids of all jobs
    */
   List<Long> list() throws IOException;
@@ -69,4 +77,5 @@ public interface JobMasterClient extends Client {
    * @return the job id
    */
   long run(JobConfig jobConfig) throws IOException;
+
 }
