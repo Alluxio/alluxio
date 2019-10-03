@@ -54,7 +54,7 @@ spec:
   {{- end}}
   clusterIP: None
   selector:
-    app: {{ $masterName }}
+    name: {{ $masterName }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
