@@ -608,7 +608,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     try {
       return getObjectListingChunkForPath("", true) != null;
     } catch (Exception e) {
-      LOG.debug("Unable to list root of bucket {}:",super.mUri.toString(), e.getMessage());
+      LOG.debug("Unable to list root of bucket {}:", super.mUri.toString(), e.getMessage());
       return false;
     }
   }
