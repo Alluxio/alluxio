@@ -177,20 +177,21 @@ public class HiveDatabase implements UnderDatabase {
   private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions)
       throws IOException {
     String tableName = table.getTableName();
-    AlluxioURI ufsUri = null;
+    AlluxioURI ufsUri;
     AlluxioURI alluxioUri = mUdbContext.getTableLocation(tableName);
+    String hiveUfsUri = table.getSd().getLocation();
 
     try {
       PathTranslator pathTranslator =
           new PathTranslator();
       ufsUri = new AlluxioURI(table.getSd().getLocation());
-      pathTranslator.addMapping(mountAlluxioPath(tableName, ufsUri, alluxioUri),
-          table.getSd().getLocation());
+      pathTranslator.addMapping(mountAlluxioPath(tableName, ufsUri, alluxioUri), hiveUfsUri);
 
       for (Partition part : partitions) {
         AlluxioURI partitionUri;
         if (part.getSd() != null && part.getSd().getLocation() != null
             && ufsUri.isAncestorOf(partitionUri = new AlluxioURI(part.getSd().getLocation()))) {
+          hiveUfsUri = part.getSd().getLocation();
           String partName = part.getValues().toString();
           try {
             partName = Warehouse.makePartName(table.getPartitionKeys(), part.getValues());
@@ -203,14 +204,14 @@ public class HiveDatabase implements UnderDatabase {
 
           // mount partition path if it is not already mounted as part of the table path mount
           pathTranslator.addMapping(mountAlluxioPath(tableName, partitionUri, alluxioUri),
-              part.getSd().getLocation());
+              hiveUfsUri);
         }
       }
       return pathTranslator;
     } catch (AlluxioException e) {
       throw new IOException(
           "Failed to mount table location. tableName: " + tableName
-              + " ufsUri: " + ((ufsUri == null) ? "" : ufsUri.getPath())
+              + " hiveUfsLocation: " + hiveUfsUri
               + " AlluxioLocation: " + alluxioUri
               + " error: " + e.getMessage(), e);
     }
