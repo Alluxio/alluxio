@@ -178,41 +178,41 @@ spec:
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
-            {{- if .Values.secrets.worker }}
-            {{- range $key, $val := .Values.secrets.worker }}
+              {{- if .Values.secrets.worker }}
+                {{- range $key, $val := .Values.secrets.worker }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
               readOnly: true
-            {{- end }}
-            {{- end }}
+                {{- end }}
+              {{- end }}
             {{- end }}
             {{- if .Values.tieredstore }} 
-            {{- if .Values.tieredstore.levels }} 
-            {{- range .Values.tieredstore.levels }}
-            {{- if .mediumtype }}
-            {{- if contains "," .mediumtype }}
+              {{- if .Values.tieredstore.levels }} 
+                {{- range .Values.tieredstore.levels }}
+                  {{- if .mediumtype }}
+                    {{- if contains "," .mediumtype }}
             {{- $type := .type }}
             {{- $path := .path }}
             {{- $split := split "," .mediumtype }}
-            {{- range $key, $val := $split }} 
-            {{- if eq $type "hostPath"}}
+                      {{- range $key, $val := $split }} 
+                        {{- if eq $type "hostPath"}}
             - mountPath:  {{ index ($path | split ",") $key }}
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-            {{- end}}
-            {{- end}}
-            {{- end}}
-            {{- else}}
+                        {{- end}}
+                      {{- end}}
+                    {{- end}}
+                  {{- else}}
             - mountPath: {{ .path }}
               name: {{ .alias | lower }}
-            {{- end}}
-            {{- end}} 
-            {{- end}} 
+                  {{- end}}
+                {{- end}} 
+              {{- end}} 
             {{- end}} 
             {{- if .Values.mounts }}   
-            {{- range .Values.mounts }}
+              {{- range .Values.mounts }}
             - name: "{{ .name }}"
               mountPath: "{{ .path }}"
-            {{- end }}
+              {{- end }}
             {{- end }}
       restartPolicy: Always
       volumes:
@@ -224,61 +224,61 @@ spec:
             path: {{ .Values.domainHostPath }}
             type: DirectoryOrCreate
         {{- if .Values.secrets }}
-        {{- if .Values.secrets.worker }}
-        {{- range $key, $val := .Values.secrets.worker }}
+          {{- if .Values.secrets.worker }}
+            {{- range $key, $val := .Values.secrets.worker }}
         - name: secret-{{ $key }}-volume
           secret:
             secretName: {{ $key }}
             defaultMode: 256
-        {{- end }}
-        {{- end }}
+            {{- end }}
+          {{- end }}
         {{- end }}
         {{- if .Values.tieredstore }} 
-        {{- if .Values.tieredstore.levels }} 
-        {{- range .Values.tieredstore.levels }}
-        {{- if .mediumtype }}
-        {{- if contains "," .mediumtype }}
+          {{- if .Values.tieredstore.levels }} 
+            {{- range .Values.tieredstore.levels }}
+              {{- if .mediumtype }}
+                {{- if contains "," .mediumtype }}
            {{- $split := split "," .mediumtype }}
            {{- $type := .type }}
            {{- $path := .path }}
-           {{- range $key, $val := $split }} 
-        {{- if eq $type "hostPath"}}
+                  {{- range $key, $val := $split }} 
+                    {{- if eq $type "hostPath"}}
         - hostPath:
             path: {{ index ($path | split ",") $key }}
             type: DirectoryOrCreate
           name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-        {{- else }}
+                    {{- else }}
         - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
           emptyDir:
             medium: "Memory"
-            {{- if .quota }} 
+                      {{- if .quota }} 
             sizeLimit: {{ .quota }}
-            {{- end}} 
-        {{- end}}
-        {{- end}}
-        {{- end}}
-        {{- else}}
-        {{- if eq .type "hostPath"}}
+                      {{- end}} 
+                    {{- end}}
+                  {{- end}}
+                {{- end}}
+              {{- else}}
+                {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
             type: DirectoryOrCreate
           name: {{ .alias | lower }}
-        {{- else }}
+                {{- else }}
         - name: {{ .alias | lower }}
           emptyDir:
             medium: "Memory"
-            {{- if .quota }} 
+                  {{- if .quota }} 
             sizeLimit: {{ .quota }}
+                  {{- end}} 
+                {{- end}}
+              {{- end}}
             {{- end}} 
-        {{- end}}
-        {{- end}}
-        {{- end}} 
-        {{- end}} 
+          {{- end}} 
         {{- end}}
         {{- if .Values.mounts }}   
-        {{- range .Values.mounts }}
+          {{- range .Values.mounts }}
         - name: "{{ .name }}"
           persistentVolumeClaim:
             claimName: "{{ .name }}"
-        {{- end }}
+          {{- end }}
         {{- end }}
