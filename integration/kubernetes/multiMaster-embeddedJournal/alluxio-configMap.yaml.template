@@ -19,3 +19,4 @@ metadata:
 data:
   ALLUXIO_JAVA_OPTS: |-
      -Dalluxio.master.journal.type=EMBEDDED -Dalluxio.master.journal.folder=/journal -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.memory.size=2G -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=29996 -Dalluxio.job.worker.rpc.port=30001 -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003 -Dalluxio.master.embedded.journal.addresses=alluxio-master-0:19200,alluxio-master-1:19200,alluxio-master-2:19200, 
+
