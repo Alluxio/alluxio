@@ -11,6 +11,7 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.AlluxioURI;
 import alluxio.grpc.catalog.BinaryColumnStatsData;
 import alluxio.grpc.catalog.BlockMetadata;
 import alluxio.grpc.catalog.BooleanColumnStatsData;
@@ -123,7 +124,7 @@ public class HiveUtils {
           .collect(Collectors.toList());
     }
     return storageBuilder.setStorageFormat(format)
-        .setLocation(translator.toAlluxioPath(sd.getLocation()))
+        .setLocation(translator.toAlluxioPath(new AlluxioURI(sd.getLocation())).toString())
         .setBucketProperty(HiveBucketProperty.newBuilder().setBucketCount(sd.getNumBuckets())
             .addAllBucketedBy(sd.getBucketCols()).addAllSortedBy(sortingColumns).build())
         .setSkewed(sd.getSkewedInfo() != null && (sd.getSkewedInfo().getSkewedColNames()) != null

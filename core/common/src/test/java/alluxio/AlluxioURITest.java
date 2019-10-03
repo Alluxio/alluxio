@@ -851,6 +851,9 @@ public class AlluxioURITest {
 
     assertEquals("foo://bar boo:8080/abc/c",
         new AlluxioURI("foo://bar boo:8080/abc///c").toString());
+
+    assertEquals("file:///test/test1/test",
+        new AlluxioURI("file:/test/test1/test").toString());
   }
 
   /**

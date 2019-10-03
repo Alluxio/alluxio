@@ -11,15 +11,17 @@
 
 package alluxio.table.under.hive.util;
 
+import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.InvalidPathException;
 import alluxio.util.ConfigurationUtils;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utilities to convert to and from ufs paths and alluxio paths.
@@ -27,13 +29,13 @@ import java.io.IOException;
 public class PathTranslator {
   private static final Logger LOG = LoggerFactory.getLogger(PathTranslator.class);
 
-  private BiMap<String, String> mPathMap;
+  private Map<AlluxioURI, AlluxioURI> mPathMap;
 
   /**
    * Construct a path translator.
    */
   public PathTranslator() {
-    mPathMap = HashBiMap.create();
+    mPathMap = new HashMap<>();
   }
 
   /**
@@ -44,16 +46,7 @@ public class PathTranslator {
    *
    * @return PathTranslator object
    */
-  public PathTranslator addMapping(String alluxioPath, String ufsPath) {
-    while (alluxioPath.endsWith("/")) {
-      // strip trailing slashes
-      alluxioPath = alluxioPath.substring(0, alluxioPath.length() - 1);
-    }
-
-    while (ufsPath.endsWith("/")) {
-      // strip trailing slashes
-      ufsPath = ufsPath.substring(0, ufsPath.length() - 1);
-    }
+  public PathTranslator addMapping(AlluxioURI alluxioPath, AlluxioURI ufsPath) {
     mPathMap.put(alluxioPath, ufsPath);
     return this;
   }
@@ -65,16 +58,21 @@ public class PathTranslator {
    * @return the corresponding alluxio path
    * @throws IOException if the ufs path is not mounted
    */
-  public String toAlluxioPath(String ufsPath) throws IOException {
-    for (BiMap.Entry<String, String> entry : mPathMap.entrySet()) {
-      if (ufsPath.startsWith(entry.getValue())) {
-        String alluxioPath = entry.getKey() + ufsPath.substring(entry.getValue().length());
-        if (alluxioPath.startsWith("/")) {
-          // scheme/authority are missing, so prefix with the scheme and authority
-          alluxioPath =
-              ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global()) + alluxioPath;
+  public AlluxioURI toAlluxioPath(AlluxioURI ufsPath) throws IOException {
+    for (Map.Entry<AlluxioURI, AlluxioURI> entry : mPathMap.entrySet()) {
+      try {
+        if (entry.getValue().isAncestorOf(ufsPath)) {
+          String alluxioPath = entry.getKey().getPath()
+              + ufsPath.getPath().substring(entry.getValue().getPath().length());
+          if (alluxioPath.startsWith("/")) {
+            // scheme/authority are missing, so prefix with the scheme and authority
+            alluxioPath =
+                ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global()) + alluxioPath;
+          }
+          return new AlluxioURI(alluxioPath);
         }
-        return alluxioPath;
+      } catch (InvalidPathException e) {
+        LOG.debug("Invalid path encountered in ");
       }
     }
     // TODO(yuzhu): instead of throwing an exception, mount the path?
