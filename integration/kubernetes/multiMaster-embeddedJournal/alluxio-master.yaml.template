@@ -28,7 +28,7 @@ spec:
     name: embedded
   clusterIP: None
   selector:
-    app: alluxio-master-0
+    name: alluxio-master-0
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -133,7 +133,7 @@ spec:
     name: embedded
   clusterIP: None
   selector:
-    app: alluxio-master-1
+    name: alluxio-master-1
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -238,7 +238,7 @@ spec:
     name: embedded
   clusterIP: None
   selector:
-    app: alluxio-master-2
+    name: alluxio-master-2
 ---
 apiVersion: apps/v1
 kind: StatefulSet
