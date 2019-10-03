@@ -17,6 +17,8 @@ import alluxio.table.common.Layout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 /**
  * Hive table implementation.
  */
@@ -49,5 +51,24 @@ public class HiveLayout implements Layout {
   @Override
   public PartitionInfo getData() {
     return mPartitionInfo;
+  }
+
+  @Override
+  public String getLocation() {
+    return mPartitionInfo.getStorage().getLocation();
+  }
+
+  @Override
+  public Layout transform(String type, String location) throws IOException {
+    if (type.equals("hive")) {
+      PartitionInfo info = mPartitionInfo.toBuilder()
+          .setStorage(mPartitionInfo.getStorage().toBuilder()
+              .setLocation(location)
+              .build())
+          .build();
+      return new HiveLayout(info);
+    } else {
+      throw new IOException("Unknown type: " + type);
+    }
   }
 }

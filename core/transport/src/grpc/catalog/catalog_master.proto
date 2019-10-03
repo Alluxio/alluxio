@@ -451,6 +451,17 @@ message ReadTablePResponse {
     repeated Partition partitions = 1;
 }
 
+message TransformTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional string type = 3;
+    map<string, string> partitions = 4;
+}
+
+message TransformTablePResponse {
+
+}
+
 /**
  * This interface contains catalog master service endpoints for Alluxio clients.
  */
@@ -494,4 +505,9 @@ service CatalogMasterClientService {
     rpc GetTableColumnStatistics(GetTableColumnStatisticsPRequest) returns (GetTableColumnStatisticsPResponse);
 
     rpc ReadTable(ReadTablePRequest) returns (ReadTablePResponse);
+
+    /**
+     * Transforms a table to a new type and new location.
+     */
+    rpc TransformTable(TransformTablePRequest) returns (TransformTablePResponse);
 }

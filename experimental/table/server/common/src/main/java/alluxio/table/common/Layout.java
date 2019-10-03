@@ -15,6 +15,8 @@ import alluxio.grpc.catalog.LayoutSpec;
 
 import com.google.protobuf.Message;
 
+import java.io.IOException;
+
 /**
  * An interface for a table/partition layout.
  */
@@ -33,6 +35,19 @@ public interface Layout {
    * @return a proto representing the data for this table/partition layout
    */
   Message getData();
+
+  /**
+   * @return the location of the layout
+   */
+  String getLocation();
+
+  /**
+   * @param type the type to transform to
+   * @param location the location of the transformed data
+   * @return the transformed layout
+   * @throws IOException if cannot transform to the specified type
+   */
+  Layout transform(String type, String location) throws IOException;
 
   /**
    * @return the proto representation

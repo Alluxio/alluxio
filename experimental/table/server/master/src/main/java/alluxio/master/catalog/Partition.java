@@ -15,12 +15,15 @@ import alluxio.grpc.catalog.PartitionSpec;
 import alluxio.table.common.Layout;
 import alluxio.table.common.UdbPartition;
 
+import java.io.IOException;
+
 /**
  * The table partition class.
  */
 public class Partition {
   private final String mPartitionSpec;
   private final Layout mBaseLayout;
+  private Layout mTransformedLayout;
 
   /**
    * Creates an instance.
@@ -43,12 +46,31 @@ public class Partition {
   }
 
   /**
+   * @return the base layout
+   */
+  public Layout getBaseLayout() {
+    return mBaseLayout;
+  }
+
+  /**
+   * Transforms the base layout to a new type of layout at a new location.
+   *
+   * @param type the new type of layout
+   * @param location the new location of the transformed partition
+   * @throws IOException when failed to transform to the specified type of layout
+   */
+  public synchronized void transformLayout(String type, String location) throws IOException {
+    mTransformedLayout = mBaseLayout.transform(type, location);
+  }
+
+  /**
    * @return the proto representation
    */
-  public alluxio.grpc.catalog.Partition toProto() {
+  public synchronized alluxio.grpc.catalog.Partition toProto() {
+    Layout layout = mTransformedLayout == null ? mBaseLayout : mTransformedLayout;
     return alluxio.grpc.catalog.Partition.newBuilder()
         .setPartitionSpec(PartitionSpec.newBuilder().setSpec(mPartitionSpec).build())
-        .setLayout(mBaseLayout.toProto())
+        .setLayout(layout.toProto())
         .build();
   }
 }

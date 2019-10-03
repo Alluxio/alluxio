@@ -111,6 +111,20 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
+  public void transformTable(String dbName, String tableName, String type,
+      Map<String, String> partitions) throws IOException {
+    Table table = mCatalog.getTable(dbName, tableName);
+    for (alluxio.master.catalog.Partition partition : table.getPartitions()) {
+      String baseLocation = partition.getBaseLayout().getLocation();
+      if (!partitions.containsKey(baseLocation)) {
+        throw new IOException("Unknown base location: " + baseLocation);
+      }
+      String transformedLocation = partitions.get(baseLocation);
+      partition.transformLayout(type, transformedLocation);
+    }
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }

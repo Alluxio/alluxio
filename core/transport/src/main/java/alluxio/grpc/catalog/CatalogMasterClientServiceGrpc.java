@@ -1,18 +1,10 @@
 package alluxio.grpc.catalog;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
@@ -319,6 +311,38 @@ public final class CatalogMasterClientServiceGrpc {
      return getReadTableMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.catalog.TransformTablePRequest,
+      alluxio.grpc.catalog.TransformTablePResponse> getTransformTableMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "TransformTable",
+      requestType = alluxio.grpc.catalog.TransformTablePRequest.class,
+      responseType = alluxio.grpc.catalog.TransformTablePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.catalog.TransformTablePRequest,
+      alluxio.grpc.catalog.TransformTablePResponse> getTransformTableMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.catalog.TransformTablePRequest, alluxio.grpc.catalog.TransformTablePResponse> getTransformTableMethod;
+    if ((getTransformTableMethod = CatalogMasterClientServiceGrpc.getTransformTableMethod) == null) {
+      synchronized (CatalogMasterClientServiceGrpc.class) {
+        if ((getTransformTableMethod = CatalogMasterClientServiceGrpc.getTransformTableMethod) == null) {
+          CatalogMasterClientServiceGrpc.getTransformTableMethod = getTransformTableMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.catalog.TransformTablePRequest, alluxio.grpc.catalog.TransformTablePResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.catalog.CatalogMasterClientService", "TransformTable"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.catalog.TransformTablePRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.catalog.TransformTablePResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new CatalogMasterClientServiceMethodDescriptorSupplier("TransformTable"))
+                  .build();
+          }
+        }
+     }
+     return getTransformTableMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -441,6 +465,17 @@ public final class CatalogMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getReadTableMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Transforms a table to a new type and new location.
+     * </pre>
+     */
+    public void transformTable(alluxio.grpc.catalog.TransformTablePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.catalog.TransformTablePResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getTransformTableMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -506,6 +541,13 @@ public final class CatalogMasterClientServiceGrpc {
                 alluxio.grpc.catalog.ReadTablePRequest,
                 alluxio.grpc.catalog.ReadTablePResponse>(
                   this, METHODID_READ_TABLE)))
+          .addMethod(
+            getTransformTableMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.catalog.TransformTablePRequest,
+                alluxio.grpc.catalog.TransformTablePResponse>(
+                  this, METHODID_TRANSFORM_TABLE)))
           .build();
     }
   }
@@ -631,6 +673,18 @@ public final class CatalogMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getReadTableMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Transforms a table to a new type and new location.
+     * </pre>
+     */
+    public void transformTable(alluxio.grpc.catalog.TransformTablePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.catalog.TransformTablePResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getTransformTableMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -744,6 +798,17 @@ public final class CatalogMasterClientServiceGrpc {
     public alluxio.grpc.catalog.ReadTablePResponse readTable(alluxio.grpc.catalog.ReadTablePRequest request) {
       return blockingUnaryCall(
           getChannel(), getReadTableMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Transforms a table to a new type and new location.
+     * </pre>
+     */
+    public alluxio.grpc.catalog.TransformTablePResponse transformTable(alluxio.grpc.catalog.TransformTablePRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getTransformTableMethod(), getCallOptions(), request);
     }
   }
 
@@ -868,6 +933,18 @@ public final class CatalogMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getReadTableMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Transforms a table to a new type and new location.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.catalog.TransformTablePResponse> transformTable(
+        alluxio.grpc.catalog.TransformTablePRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getTransformTableMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_ALL_DATABASES = 0;
@@ -879,6 +956,7 @@ public final class CatalogMasterClientServiceGrpc {
   private static final int METHODID_ATTACH_DATABASE = 6;
   private static final int METHODID_GET_TABLE_COLUMN_STATISTICS = 7;
   private static final int METHODID_READ_TABLE = 8;
+  private static final int METHODID_TRANSFORM_TABLE = 9;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -932,6 +1010,10 @@ public final class CatalogMasterClientServiceGrpc {
         case METHODID_READ_TABLE:
           serviceImpl.readTable((alluxio.grpc.catalog.ReadTablePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.catalog.ReadTablePResponse>) responseObserver);
+          break;
+        case METHODID_TRANSFORM_TABLE:
+          serviceImpl.transformTable((alluxio.grpc.catalog.TransformTablePRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.catalog.TransformTablePResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -1003,6 +1085,7 @@ public final class CatalogMasterClientServiceGrpc {
               .addMethod(getAttachDatabaseMethod())
               .addMethod(getGetTableColumnStatisticsMethod())
               .addMethod(getReadTableMethod())
+              .addMethod(getTransformTableMethod())
               .build();
         }
       }

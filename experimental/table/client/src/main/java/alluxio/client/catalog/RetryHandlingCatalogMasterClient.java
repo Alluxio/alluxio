@@ -30,6 +30,7 @@ import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.ReadTablePRequest;
 import alluxio.grpc.catalog.TableInfo;
+import alluxio.grpc.catalog.TransformTablePRequest;
 import alluxio.master.MasterClientContext;
 
 import org.apache.iceberg.Schema;
@@ -129,6 +130,18 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient.readTable(
         ReadTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName)
             .setConstraint(constraint).build()).getPartitionsList());
+  }
+
+  @Override
+  public void transformTable(String dbName, String tableName, String type,
+      Map<String, String> partitions) throws AlluxioStatusException {
+    retryRPC(() -> mClient.transformTable(
+        TransformTablePRequest.newBuilder()
+            .setDbName(dbName)
+            .setTableName(tableName)
+            .setType(type)
+            .putAllPartitions(partitions)
+            .build()));
   }
 
   @Override

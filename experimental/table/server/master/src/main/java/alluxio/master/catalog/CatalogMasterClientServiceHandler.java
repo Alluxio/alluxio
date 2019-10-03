@@ -30,6 +30,8 @@ import alluxio.grpc.catalog.GetTablePResponse;
 import alluxio.grpc.catalog.ReadTablePRequest;
 import alluxio.grpc.catalog.ReadTablePResponse;
 import alluxio.grpc.catalog.TableInfo;
+import alluxio.grpc.catalog.TransformTablePRequest;
+import alluxio.grpc.catalog.TransformTablePResponse;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -139,5 +141,15 @@ public class CatalogMasterClientServiceHandler
     RpcUtils.call(LOG, () -> ReadTablePResponse.newBuilder().addAllPartitions(mCatalogMaster
         .readTable(request.getDbName(), request.getTableName(), request.getConstraint()))
         .build(), "readTable", "", responseObserver);
+  }
+
+  @Override
+  public void transformTable(TransformTablePRequest request,
+      StreamObserver<TransformTablePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mCatalogMaster.transformTable(request.getDbName(), request.getTableName(), request.getType(),
+          request.getPartitionsMap());
+      return TransformTablePResponse.getDefaultInstance();
+    }, "transformTable", "", responseObserver);
   }
 }

@@ -19,6 +19,7 @@ import alluxio.master.Master;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface of the catalog master that manages the catalog metadata.
@@ -101,4 +102,15 @@ public interface CatalogMaster extends Master {
    */
   List<Partition> readTable(String dbName, String tableName, Constraint constraint)
       throws IOException;
+
+  /**
+   * Transforms a table to a new set of partitions.
+   *
+   * @param dbName the database name
+   * @param tableName the table name
+   * @param type the type of table to transform to
+   * @param partitions a mapping from original partition locations to the transformed locations
+   */
+  void transformTable(String dbName, String tableName, String type,
+      Map<String, String> partitions) throws IOException;
 }
