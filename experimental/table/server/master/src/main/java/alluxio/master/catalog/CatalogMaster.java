@@ -111,7 +111,7 @@ public interface CatalogMaster extends Master {
    * @param tableName table name
    * @param partNamesList partition names
    * @param colNamesList column names
-   * @return a map mapping partitions to a list of column statistics info
+   * @return a map mapping partition names to a list of column statistics info
    */
   Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
       String tableName, List<String> partNamesList, List<String> colNamesList)
