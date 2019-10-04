@@ -131,35 +131,10 @@ public interface PartitionInfoOrBuilder extends
 
   /**
    * <pre>
-   * column statistics for partition
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
-   */
-  boolean hasColStats();
-  /**
-   * <pre>
-   * column statistics for partition
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
-   */
-  alluxio.grpc.catalog.ColumnStatisticsInfo getColStats();
-  /**
-   * <pre>
-   * column statistics for partition
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsInfo col_stats = 6;</code>
-   */
-  alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getColStatsOrBuilder();
-
-  /**
-   * <pre>
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
   int getFileMetadataCount();
   /**
@@ -167,7 +142,7 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
   boolean containsFileMetadata(
       java.lang.String key);
@@ -182,7 +157,7 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
   java.util.Map<java.lang.String, alluxio.grpc.catalog.ParquetMetadata>
   getFileMetadataMap();
@@ -191,7 +166,7 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
 
   alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrDefault(
@@ -202,32 +177,32 @@ public interface PartitionInfoOrBuilder extends
    * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
 
   alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrThrow(
       java.lang.String key);
 
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   java.util.List<alluxio.grpc.catalog.FieldSchema> 
       getColsList();
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   alluxio.grpc.catalog.FieldSchema getCols(int index);
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   int getColsCount();
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   java.util.List<? extends alluxio.grpc.catalog.FieldSchemaOrBuilder> 
       getColsOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   alluxio.grpc.catalog.FieldSchemaOrBuilder getColsOrBuilder(
       int index);
@@ -237,7 +212,7 @@ public interface PartitionInfoOrBuilder extends
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 9;</code>
+   * <code>optional string partitionName = 8;</code>
    */
   boolean hasPartitionName();
   /**
@@ -245,7 +220,7 @@ public interface PartitionInfoOrBuilder extends
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 9;</code>
+   * <code>optional string partitionName = 8;</code>
    */
   java.lang.String getPartitionName();
   /**
@@ -253,7 +228,7 @@ public interface PartitionInfoOrBuilder extends
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 9;</code>
+   * <code>optional string partitionName = 8;</code>
    */
   com.google.protobuf.ByteString
       getPartitionNameBytes();

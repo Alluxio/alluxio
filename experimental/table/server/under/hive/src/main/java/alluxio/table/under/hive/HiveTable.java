@@ -30,8 +30,8 @@ import alluxio.table.under.hive.parquet.AlluxioInputFile;
 import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.ConfigurationUtils;
 
+import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
-import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Hive table implementation.
@@ -158,8 +159,23 @@ public class HiveTable implements UdbTable {
     List<UdbPartition> udbPartitions = new ArrayList<>();
     try {
       List<Partition> partitions = mHive.listPartitions(mHiveDatabase.getName(), mName, (short) -1);
+      List<String> dataColumns = mTable.getSd().getCols().stream()
+          .map(org.apache.hadoop.hive.metastore.api.FieldSchema::getName)
+          .collect(Collectors.toList());
+      List<String> partitionColumns = mTable.getPartitionKeys().stream()
+          .map(org.apache.hadoop.hive.metastore.api.FieldSchema::getName)
+          .collect(Collectors.toList());
+
+      List<String> partitionNames = partitions.stream().map(
+          partition -> FileUtils.makePartName(partitionColumns,
+              partition.getValues())).collect(Collectors.toList());
+      Map<String, List<ColumnStatisticsInfo>> statsMap =
+          mHive.getPartitionColumnStatistics(mHiveDatabase.getName(), mName, partitionNames,
+          dataColumns).entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
+              e -> e.getValue().stream().map(HiveUtils::toProto)
+                  .collect(Collectors.toList()), (e1, e2) -> e2));
       for (Partition partition : partitions) {
-        String partName = Warehouse.makePartName(mTable.getPartitionKeys(), partition.getValues());
+        String partName = FileUtils.makePartName(partitionColumns, partition.getValues());
         PartitionInfo.Builder pib = PartitionInfo.newBuilder()
             .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
             .addAllCols(HiveUtils.toProto(partition.getSd().getCols()))
@@ -171,7 +187,7 @@ public class HiveTable implements UdbTable {
         if (partition.getValues() != null) {
           pib.addAllValues(partition.getValues());
         }
-        udbPartitions.add(new HivePartition(new HiveLayout(pib.build())));
+        udbPartitions.add(new HivePartition(new HiveLayout(pib.build(), statsMap.get(partName))));
       }
       return udbPartitions;
     } catch (TException e) {

@@ -43,6 +43,15 @@ public class Partition {
   }
 
   /**
+   * Returns the base layout.
+   *
+   * @return base layout
+   */
+  public Layout getLayout() {
+    return mBaseLayout;
+  }
+
+  /**
    * @return the proto representation
    */
   public alluxio.grpc.catalog.Partition toProto() {

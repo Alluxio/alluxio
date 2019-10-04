@@ -11,9 +11,12 @@
 
 package alluxio.table.common;
 
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.LayoutSpec;
 
 import com.google.protobuf.Message;
+
+import java.util.Map;
 
 /**
  * An interface for a table/partition layout.
@@ -33,6 +36,11 @@ public interface Layout {
    * @return a proto representing the data for this table/partition layout
    */
   Message getData();
+
+  /**
+   * @return a map of proto representing the statistics data for this partition
+   */
+  Map<String, ColumnStatisticsInfo> getColumnStatsData();
 
   /**
    * @return the proto representation
