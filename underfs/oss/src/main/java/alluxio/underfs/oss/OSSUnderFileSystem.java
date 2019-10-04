@@ -23,9 +23,7 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
-import com.aliyun.oss.ClientConfiguration;
-import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.ServiceException;
+import com.aliyun.oss.*;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
@@ -53,10 +51,13 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private static final String FOLDER_SUFFIX = "_$folder$";
 
   /** Aliyun OSS client. */
-  private final OSSClient mClient;
+  private final OSS mClient;
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
+
+  /** Whether the streaming download is enabled. */
+  private final boolean mStreamingDownloadEnabled;
 
   /**
    * Constructs a new instance of {@link OSSUnderFileSystem}.
@@ -78,10 +79,15 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     String accessKey = conf.get(PropertyKey.OSS_SECRET_KEY);
     String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
 
-    ClientConfiguration ossClientConf = initializeOSSClientConfig(conf);
-    OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
+    boolean streamingDownloadEnabled =
+            conf.getBoolean(PropertyKey.OSS_STREAMING_DOWNLOAD_ENABLED);
 
-    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf);
+
+    ClientConfiguration ossClientConf = initializeOSSClientConfig(conf);
+//    OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
+      OSS ossClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);
+
+    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf, streamingDownloadEnabled);
   }
 
   /**
@@ -91,12 +97,15 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param ossClient Aliyun OSS client
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param conf configuration for this UFS
+   * @param streamingDownloadEnabled whether streaming download is enabled
    */
-  protected OSSUnderFileSystem(AlluxioURI uri, OSSClient ossClient, String bucketName,
-      UnderFileSystemConfiguration conf) {
+  protected OSSUnderFileSystem(AlluxioURI uri, OSS ossClient, String bucketName,
+      UnderFileSystemConfiguration conf,
+      boolean streamingDownloadEnabled) {
     super(uri, conf);
     mClient = ossClient;
     mBucketName = bucketName;
+    mStreamingDownloadEnabled = streamingDownloadEnabled;
   }
 
   @Override
