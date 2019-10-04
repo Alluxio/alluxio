@@ -17,7 +17,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
-import alluxio.grpc.catalog.ColumnStatisticsList;
 import alluxio.grpc.catalog.FieldSchema;
 import alluxio.grpc.catalog.HiveTableInfo;
 import alluxio.grpc.catalog.ParquetMetadata;
@@ -181,8 +180,6 @@ public class HiveTable implements UdbTable {
             .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
             .addAllCols(HiveUtils.toProto(partition.getSd().getCols()))
             .setStorage(HiveUtils.toProto(partition.getSd(), mPathTranslator))
-            .setColStats(ColumnStatisticsList.newBuilder()
-                .addAllStatistics(statsMap.get(partName)).build())
             .putAllFileMetadata(getPartitionMetadata(
                 mPathTranslator.toAlluxioPath(partition.getSd().getLocation()),
                 mHiveDatabase.getUdbContext().getFileSystem()))
@@ -190,7 +187,7 @@ public class HiveTable implements UdbTable {
         if (partition.getValues() != null) {
           pib.addAllValues(partition.getValues());
         }
-        udbPartitions.add(new HivePartition(new HiveLayout(pib.build())));
+        udbPartitions.add(new HivePartition(new HiveLayout(pib.build(), statsMap.get(partName))));
       }
       return udbPartitions;
     } catch (TException e) {

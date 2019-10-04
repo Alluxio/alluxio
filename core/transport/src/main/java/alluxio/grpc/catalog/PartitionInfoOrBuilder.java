@@ -131,32 +131,7 @@ public interface PartitionInfoOrBuilder extends
 
   /**
    * <pre>
-   * column statistics for partition
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
-   */
-  boolean hasColStats();
-  /**
-   * <pre>
-   * column statistics for partition
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
-   */
-  alluxio.grpc.catalog.ColumnStatisticsList getColStats();
-  /**
-   * <pre>
-   * column statistics for partition
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.catalog.ColumnStatisticsList col_stats = 6;</code>
-   */
-  alluxio.grpc.catalog.ColumnStatisticsListOrBuilder getColStatsOrBuilder();
-
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
+   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
@@ -164,7 +139,7 @@ public interface PartitionInfoOrBuilder extends
   int getFileMetadataCount();
   /**
    * <pre>
-   * a map between file names and its parquet metadata info
+   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
@@ -179,7 +154,7 @@ public interface PartitionInfoOrBuilder extends
   getFileMetadata();
   /**
    * <pre>
-   * a map between file names and its parquet metadata info
+   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
@@ -188,7 +163,7 @@ public interface PartitionInfoOrBuilder extends
   getFileMetadataMap();
   /**
    * <pre>
-   * a map between file names and its parquet metadata info
+   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
@@ -199,7 +174,7 @@ public interface PartitionInfoOrBuilder extends
       alluxio.grpc.catalog.ParquetMetadata defaultValue);
   /**
    * <pre>
-   * a map between file names and its parquet metadata info
+   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
