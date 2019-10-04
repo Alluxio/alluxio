@@ -82,6 +82,15 @@ when using multiple masters without Zookeeper. This property is not used when Zo
 If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses` 
 and the master rpc port (Default:`19998`).
 
+### Advanced configuration
+* `alluxio.master.embedded.journal.transport.request.timeout.ms`: The duration after which embedded journal masters will timeout messages sent between each other.
+ Lower values might cause leadership instability when network is slow. Default: `5s`.
+* `alluxio.master.embedded.journal.appender.batch.size`: Size of a single internal knowledge batch sent from leader to secondary masters.
+ Lower values could potentially slow down secondary masters' catching up with the leader. Higher values might be reasonable in the network environment so that packets
+ don't get timed out. Default: `512KB`.
+* `alluxio.master.embedded.journal.transport.max.inbound.message.size`: Maximum allowed size for a network message between embedded journal masters. The configured value
+ should allow for appending batches to all secondary masters. Default: `4MB`.  
+
 ### Job service configuration
 
 It is usually best not to set any of these - by default the job master will use the same hostnames as the Alluxio master, 
@@ -232,7 +241,7 @@ can help avoiding primary master journal logs from growing unbounded when Alluxi
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
 ```console
-$ ./bin/alluxio fsadmin checkpoint
+$ ./bin/alluxio fsadmin journal checkpoint
 ```
 
 Similar to the `backup` command, `checkpoint` command should 
