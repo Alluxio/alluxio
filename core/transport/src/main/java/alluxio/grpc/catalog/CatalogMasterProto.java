@@ -502,10 +502,10 @@ public final class CatalogMasterProto {
       "\004 \001(\0132\035.alluxio.grpc.catalog.Storage\022G\n\n" +
       "parameters\030\005 \003(\01323.alluxio.grpc.catalog." +
       "PartitionInfo.ParametersEntry\022L\n\rfile_me" +
-      "tadata\030\007 \003(\01325.alluxio.grpc.catalog.Part" +
-      "itionInfo.FileMetadataEntry\022/\n\004cols\030\010 \003(" +
+      "tadata\030\006 \003(\01325.alluxio.grpc.catalog.Part" +
+      "itionInfo.FileMetadataEntry\022/\n\004cols\030\007 \003(" +
       "\0132!.alluxio.grpc.catalog.FieldSchema\022\025\n\r" +
-      "partitionName\030\t \001(\t\0321\n\017ParametersEntry\022\013" +
+      "partitionName\030\010 \001(\t\0321\n\017ParametersEntry\022\013" +
       "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032Z\n\021FileMe" +
       "tadataEntry\022\013\n\003key\030\001 \001(\t\0224\n\005value\030\002 \001(\0132" +
       "%.alluxio.grpc.catalog.ParquetMetadata:\002" +

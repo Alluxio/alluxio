@@ -101,7 +101,7 @@ private static final long serialVersionUID = 0L;
                 parameters__.getKey(), parameters__.getValue());
             break;
           }
-          case 58: {
+          case 50: {
             if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
               fileMetadata_ = com.google.protobuf.MapField.newMapField(
                   FileMetadataDefaultEntryHolder.defaultEntry);
@@ -114,7 +114,7 @@ private static final long serialVersionUID = 0L;
                 fileMetadata__.getKey(), fileMetadata__.getValue());
             break;
           }
-          case 66: {
+          case 58: {
             if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
               cols_ = new java.util.ArrayList<alluxio.grpc.catalog.FieldSchema>();
               mutable_bitField0_ |= 0x00000040;
@@ -123,7 +123,7 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(alluxio.grpc.catalog.FieldSchema.PARSER, extensionRegistry));
             break;
           }
-          case 74: {
+          case 66: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000008;
             partitionName_ = bs;
@@ -158,7 +158,7 @@ private static final long serialVersionUID = 0L;
     switch (number) {
       case 5:
         return internalGetParameters();
-      case 7:
+      case 6:
         return internalGetFileMetadata();
       default:
         throw new RuntimeException(
@@ -411,7 +411,7 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
-  public static final int FILE_METADATA_FIELD_NUMBER = 7;
+  public static final int FILE_METADATA_FIELD_NUMBER = 6;
   private static final class FileMetadataDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, alluxio.grpc.catalog.ParquetMetadata> defaultEntry =
@@ -439,10 +439,10 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+   * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
 
   public boolean containsFileMetadata(
@@ -459,10 +459,10 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+   * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
 
   public java.util.Map<java.lang.String, alluxio.grpc.catalog.ParquetMetadata> getFileMetadataMap() {
@@ -470,10 +470,10 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+   * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
 
   public alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrDefault(
@@ -486,10 +486,10 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+   * a map between file names and its parquet metadata info
    * </pre>
    *
-   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+   * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
    */
 
   public alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrThrow(
@@ -503,49 +503,49 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
-  public static final int COLS_FIELD_NUMBER = 8;
+  public static final int COLS_FIELD_NUMBER = 7;
   private java.util.List<alluxio.grpc.catalog.FieldSchema> cols_;
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   public java.util.List<alluxio.grpc.catalog.FieldSchema> getColsList() {
     return cols_;
   }
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   public java.util.List<? extends alluxio.grpc.catalog.FieldSchemaOrBuilder> 
       getColsOrBuilderList() {
     return cols_;
   }
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   public int getColsCount() {
     return cols_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   public alluxio.grpc.catalog.FieldSchema getCols(int index) {
     return cols_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+   * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
    */
   public alluxio.grpc.catalog.FieldSchemaOrBuilder getColsOrBuilder(
       int index) {
     return cols_.get(index);
   }
 
-  public static final int PARTITIONNAME_FIELD_NUMBER = 9;
+  public static final int PARTITIONNAME_FIELD_NUMBER = 8;
   private volatile java.lang.Object partitionName_;
   /**
    * <pre>
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 9;</code>
+   * <code>optional string partitionName = 8;</code>
    */
   public boolean hasPartitionName() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
@@ -555,7 +555,7 @@ private static final long serialVersionUID = 0L;
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 9;</code>
+   * <code>optional string partitionName = 8;</code>
    */
   public java.lang.String getPartitionName() {
     java.lang.Object ref = partitionName_;
@@ -576,7 +576,7 @@ private static final long serialVersionUID = 0L;
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 9;</code>
+   * <code>optional string partitionName = 8;</code>
    */
   public com.google.protobuf.ByteString
       getPartitionNameBytes() {
@@ -633,12 +633,12 @@ private static final long serialVersionUID = 0L;
         output,
         internalGetFileMetadata(),
         FileMetadataDefaultEntryHolder.defaultEntry,
-        7);
+        6);
     for (int i = 0; i < cols_.size(); i++) {
-      output.writeMessage(8, cols_.get(i));
+      output.writeMessage(7, cols_.get(i));
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 9, partitionName_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 8, partitionName_);
     }
     unknownFields.writeTo(output);
   }
@@ -684,14 +684,14 @@ private static final long serialVersionUID = 0L;
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(7, fileMetadata__);
+          .computeMessageSize(6, fileMetadata__);
     }
     for (int i = 0; i < cols_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(8, cols_.get(i));
+        .computeMessageSize(7, cols_.get(i));
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(9, partitionName_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(8, partitionName_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -891,7 +891,7 @@ private static final long serialVersionUID = 0L;
       switch (number) {
         case 5:
           return internalGetParameters();
-        case 7:
+        case 6:
           return internalGetFileMetadata();
         default:
           throw new RuntimeException(
@@ -904,7 +904,7 @@ private static final long serialVersionUID = 0L;
       switch (number) {
         case 5:
           return internalGetMutableParameters();
-        case 7:
+        case 6:
           return internalGetMutableFileMetadata();
         default:
           throw new RuntimeException(
@@ -1740,10 +1740,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+     * a map between file names and its parquet metadata info
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
      */
 
     public boolean containsFileMetadata(
@@ -1760,10 +1760,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+     * a map between file names and its parquet metadata info
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
      */
 
     public java.util.Map<java.lang.String, alluxio.grpc.catalog.ParquetMetadata> getFileMetadataMap() {
@@ -1771,10 +1771,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+     * a map between file names and its parquet metadata info
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
      */
 
     public alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrDefault(
@@ -1787,10 +1787,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+     * a map between file names and its parquet metadata info
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
      */
 
     public alluxio.grpc.catalog.ParquetMetadata getFileMetadataOrThrow(
@@ -1811,10 +1811,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+     * a map between file names and its parquet metadata info
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
      */
 
     public Builder removeFileMetadata(
@@ -1834,10 +1834,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+     * a map between file names and its parquet metadata info
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
      */
     public Builder putFileMetadata(
         java.lang.String key,
@@ -1850,10 +1850,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * optional ColumnStatisticsList col_stats = 6; // column statistics for partition
+     * a map between file names and its parquet metadata info
      * </pre>
      *
-     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 7;</code>
+     * <code>map&lt;string, .alluxio.grpc.catalog.ParquetMetadata&gt; file_metadata = 6;</code>
      */
 
     public Builder putAllFileMetadata(
@@ -1876,7 +1876,7 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.catalog.FieldSchema, alluxio.grpc.catalog.FieldSchema.Builder, alluxio.grpc.catalog.FieldSchemaOrBuilder> colsBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public java.util.List<alluxio.grpc.catalog.FieldSchema> getColsList() {
       if (colsBuilder_ == null) {
@@ -1886,7 +1886,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public int getColsCount() {
       if (colsBuilder_ == null) {
@@ -1896,7 +1896,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public alluxio.grpc.catalog.FieldSchema getCols(int index) {
       if (colsBuilder_ == null) {
@@ -1906,7 +1906,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder setCols(
         int index, alluxio.grpc.catalog.FieldSchema value) {
@@ -1923,7 +1923,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder setCols(
         int index, alluxio.grpc.catalog.FieldSchema.Builder builderForValue) {
@@ -1937,7 +1937,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder addCols(alluxio.grpc.catalog.FieldSchema value) {
       if (colsBuilder_ == null) {
@@ -1953,7 +1953,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder addCols(
         int index, alluxio.grpc.catalog.FieldSchema value) {
@@ -1970,7 +1970,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder addCols(
         alluxio.grpc.catalog.FieldSchema.Builder builderForValue) {
@@ -1984,7 +1984,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder addCols(
         int index, alluxio.grpc.catalog.FieldSchema.Builder builderForValue) {
@@ -1998,7 +1998,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder addAllCols(
         java.lang.Iterable<? extends alluxio.grpc.catalog.FieldSchema> values) {
@@ -2013,7 +2013,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder clearCols() {
       if (colsBuilder_ == null) {
@@ -2026,7 +2026,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public Builder removeCols(int index) {
       if (colsBuilder_ == null) {
@@ -2039,14 +2039,14 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public alluxio.grpc.catalog.FieldSchema.Builder getColsBuilder(
         int index) {
       return getColsFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public alluxio.grpc.catalog.FieldSchemaOrBuilder getColsOrBuilder(
         int index) {
@@ -2056,7 +2056,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public java.util.List<? extends alluxio.grpc.catalog.FieldSchemaOrBuilder> 
          getColsOrBuilderList() {
@@ -2067,14 +2067,14 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public alluxio.grpc.catalog.FieldSchema.Builder addColsBuilder() {
       return getColsFieldBuilder().addBuilder(
           alluxio.grpc.catalog.FieldSchema.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public alluxio.grpc.catalog.FieldSchema.Builder addColsBuilder(
         int index) {
@@ -2082,7 +2082,7 @@ private static final long serialVersionUID = 0L;
           index, alluxio.grpc.catalog.FieldSchema.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 8;</code>
+     * <code>repeated .alluxio.grpc.catalog.FieldSchema cols = 7;</code>
      */
     public java.util.List<alluxio.grpc.catalog.FieldSchema.Builder> 
          getColsBuilderList() {
@@ -2109,7 +2109,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 9;</code>
+     * <code>optional string partitionName = 8;</code>
      */
     public boolean hasPartitionName() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
@@ -2119,7 +2119,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 9;</code>
+     * <code>optional string partitionName = 8;</code>
      */
     public java.lang.String getPartitionName() {
       java.lang.Object ref = partitionName_;
@@ -2140,7 +2140,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 9;</code>
+     * <code>optional string partitionName = 8;</code>
      */
     public com.google.protobuf.ByteString
         getPartitionNameBytes() {
@@ -2160,7 +2160,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 9;</code>
+     * <code>optional string partitionName = 8;</code>
      */
     public Builder setPartitionName(
         java.lang.String value) {
@@ -2177,7 +2177,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 9;</code>
+     * <code>optional string partitionName = 8;</code>
      */
     public Builder clearPartitionName() {
       bitField0_ = (bitField0_ & ~0x00000080);
@@ -2190,7 +2190,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 9;</code>
+     * <code>optional string partitionName = 8;</code>
      */
     public Builder setPartitionNameBytes(
         com.google.protobuf.ByteString value) {

@@ -220,10 +220,9 @@ message PartitionInfo {
   optional string tableName = 3;
   optional Storage storage = 4; // storage descriptor
   map<string, string> parameters = 5;
-  // optional ColumnStatisticsList col_stats = 6; // column statistics for partition
-  map<string, ParquetMetadata> file_metadata = 7; // a map between file names and its parquet metadata info
-  repeated FieldSchema cols = 8;
-  optional string partitionName = 9; // partition name in the form of "key=value"
+  map<string, ParquetMetadata> file_metadata = 6; // a map between file names and its parquet metadata info
+  repeated FieldSchema cols = 7;
+  optional string partitionName = 8; // partition name in the form of "key=value"
 }
 
 // TODO(gpang): update
