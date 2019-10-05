@@ -23,6 +23,7 @@ import com.aliyun.oss.model.DownloadFileRequest;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,6 +133,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
             } catch (OSSException e) {
                 LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
                         mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+                LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
                 if (!e.getErrorCode().equals("NoSuchKey")) {
                     throw new IOException(e);
                 }
