@@ -16,7 +16,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
-import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.OSS;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.ListObjectsRequest;
 import org.junit.Assert;
@@ -33,7 +33,8 @@ import java.io.IOException;
 public class OSSUnderFileSystemTest {
 
   private OSSUnderFileSystem mOSSUnderFileSystem;
-  private OSSClient mClient;
+  private OSS mClient;
+  private boolean mStreamingDownloadEnabled;
 
   private static final String PATH = "path";
   private static final String SRC = "src";
@@ -45,11 +46,11 @@ public class OSSUnderFileSystemTest {
    * Set up.
    */
   @Before
-  public void before() throws InterruptedException, ServiceException {
-    mClient = Mockito.mock(OSSClient.class);
+  public void before() throws ServiceException {
+    mClient = Mockito.mock(OSS.class);
 
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()), mStreamingDownloadEnabled);
   }
 
   /**
