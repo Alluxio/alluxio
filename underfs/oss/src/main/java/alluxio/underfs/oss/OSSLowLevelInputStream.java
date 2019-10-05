@@ -13,21 +13,19 @@ package alluxio.underfs.oss;
 
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
-
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSException;
-import com.aliyun.oss.model.ObjectMetadata;
-import com.aliyun.oss.model.DownloadFileRequest;
 import com.aliyun.oss.internal.OSSConstants;
-
+import com.aliyun.oss.model.DownloadFileRequest;
+import com.aliyun.oss.model.ObjectMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A stream for reading a file from OSS. This input stream in multiple stream returns 0 when calling read with an empty
@@ -80,6 +78,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                    RetryPolicy retryPolicy, long multiRangeChunkSize,
                    long streamingDownloadPartitionSize, int taskNum, List<String> tmpDirs) throws IOException {
         super(multiRangeChunkSize);
+        LOG.debug("Use OSSLowLevelInputStream.");
         mBucketName = bucketName;
         mKey = key;
         mOssClient = client;
@@ -99,7 +98,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
         // Sets the concurrent task thread count 5. By default it's 1.
         req.setTaskNum(mTaskNum);
         // Sets the part size, by default it's 1K.
-        req.setPartSize(1024 * mStreamingDownloadPartitionSize);
+        req.setPartSize(mStreamingDownloadPartitionSize);
         // Enable checkpoint.
         req.setEnableCheckpoint(true);
 

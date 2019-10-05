@@ -28,6 +28,7 @@ import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.ClientBuilderConfiguration;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,12 +81,11 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     boolean streamingDownloadEnabled =
-            conf.getBoolean(PropertyKey.OSS_STREAMING_DOWNLOAD_ENABLED);
+            conf.getBoolean(PropertyKey.UNDERFS_OSS_STREAMING_DOWNLOAD_ENABLED);
 
-
-    ClientConfiguration ossClientConf = initializeOSSClientConfig(conf);
-//    OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
-      OSS ossClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);
+    ClientBuilderConfiguration ossClientConf = initializeOSSClientConfig(conf);
+//  OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
+    OSS ossClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);
 
     return new OSSUnderFileSystem(uri, ossClient, bucketName, conf, streamingDownloadEnabled);
   }
@@ -272,12 +272,12 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Creates an OSS {@code ClientConfiguration} using an Alluxio Configuration.
+   * Creates an OSS {@code ClientBuilderConfiguration} using an Alluxio Configuration.
    *
-   * @return the OSS {@link ClientConfiguration}
+   * @return the OSS {@link ClientBuilderConfiguration}
    */
-  private static ClientConfiguration initializeOSSClientConfig(AlluxioConfiguration alluxioConf) {
-    ClientConfiguration ossClientConf = new ClientConfiguration();
+  private static ClientBuilderConfiguration initializeOSSClientConfig(AlluxioConfiguration alluxioConf) {
+      ClientBuilderConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf
         .setConnectionTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf
@@ -291,6 +291,13 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy)
       throws IOException {
     try {
+      if (mStreamingDownloadEnabled) {
+          return new OSSLowLevelInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy,
+                  mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE),
+                  mUfsConf.getBytes(PropertyKey.UNDERFS_OSS_STREAMING_DOWNLOADING_PARTITION_SIZE),
+                  mUfsConf.getInt(PropertyKey.UNDERFS_OSS_STREAMING_DOWNLOADING_TASK_NUM),
+                  mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+      }
       return new OSSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (ServiceException e) {

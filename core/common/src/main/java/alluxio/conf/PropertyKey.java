@@ -762,9 +762,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_OSS_STREAMING_DOWNLOAD_ENABLED =
           new Builder(Name.UNDERFS_OSS_STREAMING_DOWNLOAD_ENABLED)
-                  .setAlias("alluxio.underfs.s3a.streaming.upload.enabled")
+                  .setAlias("alluxio.underfs.oss.streaming.download.enabled")
                   .setDefaultValue(false)
                   .setDescription("(Experimental) If true, using streaming download from OSS.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.SERVER)
+                  .build();
+  public static final PropertyKey UNDERFS_OSS_STREAMING_DOWNLOADING_TASK_NUM =
+          new Builder(Name.UNDERFS_OSS_STREAMING_DOWNLOADING_TASK_NUM)
+                  .setDefaultValue(5)
+                  .setDescription("The maximum number of threads to use for downloading operations when "
+                          + "communicating with OSS. These operations may be fairly concurrent and "
+                          + "frequent but should not take much time to process.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.SERVER)
+                  .build();
+  public static final PropertyKey UNDERFS_OSS_STREAMING_DOWNLOADING_PARTITION_SIZE =
+          new Builder(Name.UNDERFS_OSS_STREAMING_DOWNLOADING_PARTITION_SIZE)
+                  .setDefaultValue("2MB")
+                  .setDescription("Default block size for OSS streaming download.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.SERVER)
                   .build();
@@ -3818,6 +3834,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_OSS_STREAMING_DOWNLOAD_ENABLED = "alluxio.underfs.oss.streaming.download.enabled";
+    public static final String UNDERFS_OSS_STREAMING_DOWNLOADING_TASK_NUM = "alluxio.underfs.oss.streaming.download.task.num";
+    public static final String UNDERFS_OSS_STREAMING_DOWNLOADING_PARTITION_SIZE = "alluxio.underfs.oss.streaming.download.partition.size";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
