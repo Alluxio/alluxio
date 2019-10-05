@@ -173,11 +173,17 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
         req.setDownloadFile(tmpFile.getAbsolutePath());
 
         OSSException lastException = null;
+        long start = 0;
         LOG.debug("Create stream with partition for key {} in bucket {} from {} to {}",
                 mKey, mBucketName, startPos, endPos);
         while (mRetryPolicy.attempt()) {
             try {
+                // measure the performance of oss
+                if (LOG.isDebugEnabled()) {
+                    start = System.currentTimeMillis();
+                }
                 mOssClient.downloadFile(req);
+                LOG.debug("Calling OSS download file method took: {} ms", (System.currentTimeMillis()-start));
                 FileInputStream fis = new FileInputStream(tmpFile);
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
@@ -185,7 +191,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                     fis.skip(startPos);
                 }
 
-                long length = endPos < mContentLength ? endPos - 1 : mContentLength - 1;
+                long length = endPos - startPos < mContentLength ? endPos - startPos : mContentLength ;
                 byte[] buffer = new byte[OSSConstants.DEFAULT_BUFFER_SIZE];
                 int bytesRead;
                 // all the bytes read from scratch
@@ -218,8 +224,13 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 throw new IOException(e);
             } finally {
                 // Delete the temporary downloaded file
-                if (!tmpFile.delete()) {
-                    LOG.error("Failed to delete temporary file @ {}", tmpFile.getPath());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Calling createStreamWithPartition took: {} ms", (System.currentTimeMillis()-start));
+                    LOG.debug("Keep tmp file:", tmpFile.getAbsolutePath());
+                }else {
+                    if (!tmpFile.delete()) {
+                        LOG.error("Failed to delete temporary file @ {}", tmpFile.getAbsolutePath());
+                    }
                 }
             }
         }
