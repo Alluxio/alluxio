@@ -127,9 +127,7 @@ $ ./bin/alluxio-stop.sh logserver
 
 ### Configuring Alluxio Processes to use the Log Server
 
-By default, remote logging is not enabled. 
-
-You need to set 2 environment variables in `${ALLUXIO_HOME}/conf/alluxio-env.sh`. 
+By default, remote logging is not enabled. You need to set 2 environment variables in `${ALLUXIO_HOME}/conf/alluxio-env.sh` to enable it.
 
 1. `ALLUXIO_LOGSERVER_HOSTNAME` specifies the hostname of the remote log server.
 The equivalent Java opt is `alluxio.logserver.hostname`.
