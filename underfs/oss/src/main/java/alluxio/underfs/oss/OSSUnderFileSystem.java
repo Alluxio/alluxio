@@ -277,7 +277,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @return the OSS {@link ClientBuilderConfiguration}
    */
   private static ClientBuilderConfiguration initializeOSSClientConfig(AlluxioConfiguration alluxioConf) {
-      ClientBuilderConfiguration ossClientConf = new ClientConfiguration();
+      ClientBuilderConfiguration ossClientConf = new ClientBuilderConfiguration();
     ossClientConf
         .setConnectionTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf

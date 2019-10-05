@@ -13,19 +13,22 @@ package alluxio.underfs.oss;
 
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
-import com.aliyun.oss.OSSClient;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
+
+import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.internal.OSSConstants;
 import com.aliyun.oss.model.DownloadFileRequest;
+import com.aliyun.oss.model.GetObjectRequest;
+import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.ObjectMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.List;
 
 /**
  * A stream for reading a file from OSS. This input stream in multiple stream returns 0 when calling read with an empty
@@ -42,7 +45,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
     private final String mKey;
 
     /** The OSS client for OSS operations. */
-    private final OSSClient mOssClient;
+    private final OSS mOssClient;
 
     /** The size of the object in bytes. */
     private final long mContentLength;
@@ -74,7 +77,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
      * @param taskNum task count for downloading parts
      * @param tmpDirs a list of temporary directories
      */
-    OSSLowLevelInputStream(String bucketName, String key, OSSClient client, long position,
+    OSSLowLevelInputStream(String bucketName, String key, OSS client, long position,
                    RetryPolicy retryPolicy, long multiRangeChunkSize,
                    long streamingDownloadPartitionSize, int taskNum, List<String> tmpDirs) throws IOException {
         super(multiRangeChunkSize);
@@ -94,25 +97,84 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
     @Override
     protected InputStream createStream(long startPos, long endPos)
             throws IOException {
+        if (endPos - startPos > mStreamingDownloadPartitionSize) {
+            int taskNum = (int)((endPos-startPos) / mStreamingDownloadPartitionSize);
+            if (taskNum > mTaskNum) {
+                taskNum = mTaskNum;
+            }
+            return createStreamWithPartition(startPos, endPos, taskNum);
+        }else{
+            return createStreamWithoutPartition(startPos, endPos);
+        }
+    }
+
+    /**
+     * Opens a new stream without multiple partitions reading a range. When endPos > content length, the returned stream should
+     * read till the last valid byte of the input. The behaviour is undefined when (startPos < 0),
+     * (startPos >= content length), or (endPos <= 0).
+     *
+     * @param startPos start position in bytes (inclusive)
+     * @param endPos end position in bytes (exclusive)
+     * @return a new {@link InputStream}
+     */
+    private InputStream createStreamWithoutPartition(long startPos, long endPos)
+            throws IOException {
+        GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
+        // OSS returns entire object if we read past the end
+        req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
+        OSSException lastException = null;
+        LOG.debug("Create stream without partition for key {} in bucket {} from {} to {}",
+                mKey, mBucketName, startPos, endPos);
+        while (mRetryPolicy.attempt()) {
+            try {
+                OSSObject ossObject = mOssClient.getObject(req);
+                return new BufferedInputStream(ossObject.getObjectContent());
+            } catch (OSSException e) {
+                LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+                        mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+                if (!e.getErrorCode().equals("NoSuchKey")) {
+                    throw new IOException(e);
+                }
+                // Key does not exist
+                lastException = e;
+            }
+        }
+        // Failed after retrying key does not exist
+        throw new IOException(lastException);
+    }
+
+    /**
+     * Opens a new stream with multiple partitions reading a range. When endPos > content length, the returned stream should
+     * read till the last valid byte of the input. The behaviour is undefined when (startPos < 0),
+     * (startPos >= content length), or (endPos <= 0).
+     *
+     * @param startPos start position in bytes (inclusive)
+     * @param endPos end position in bytes (exclusive)
+     * @param taskNum the task number to download the file
+     * @return a new {@link InputStream}
+     */
+    private InputStream createStreamWithPartition(long startPos, long endPos, int taskNum)
+            throws IOException {
         DownloadFileRequest req = new DownloadFileRequest(mBucketName, mKey);
         // Sets the concurrent task thread count 5. By default it's 1.
-        req.setTaskNum(mTaskNum);
+        req.setTaskNum(taskNum);
         // Sets the part size, by default it's 1K.
         req.setPartSize(mStreamingDownloadPartitionSize);
         // Enable checkpoint.
         req.setEnableCheckpoint(true);
 
-        // Make the temp file
+        // Create the temp file
         File tmpFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(mTmpDirs), mKey));
-        tmpFile.getParentFile().mkdirs();
+        boolean created = tmpFile.getParentFile().mkdirs();
+        LOG.debug("the tmp directory is created: "+ created);
 
         OSSException lastException = null;
-        LOG.debug("Create stream for key {} in bucket {} from {} to {}",
+        LOG.debug("Create stream with partition for key {} in bucket {} from {} to {}",
                 mKey, mBucketName, startPos, endPos);
         while (mRetryPolicy.attempt()) {
             try {
                 mOssClient.downloadFile(req);
-                fis = new FileInputSteam(tmpFile);
+                FileInputStream fis = new FileInputStream(tmpFile);
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
                 if (startPos > 0){
@@ -124,11 +186,11 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 int bytesRead;
                 // all the bytes read from scratch
                 long bytesReadInAll = 0;
-                while ((bytesRead = fis.read(buf)) != -1 ) {
+                while ((bytesRead = fis.read(buffer)) != -1 ) {
                     bytesReadInAll += (long)bytesRead;
                     if (bytesReadInAll > length) {
                         // If the bytes read is more than the length (endPos - startPos), only read the length
-                        bytesRead = (int)(bytesReadInAll - length);
+                        bytesRead = (int)(bytesRead-(bytesReadInAll - length));
                     }else if (bytesReadInAll == length){
                         break;
                     }
@@ -136,8 +198,8 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 }
 
                 bos.flush();
-                //    byte[] bytes = bos.toByteArray();
-                return new BufferedInputStream(bos);
+                byte[] bytes = bos.toByteArray();
+                return new BufferedInputStream(new ByteArrayInputStream(bytes));
             } catch (OSSException e) {
                 LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
                         mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
@@ -146,6 +208,10 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 }
                 // Key does not exist
                 lastException = e;
+            } catch (Throwable e) {
+                LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+                        mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+                throw new IOException(e);
             } finally {
                 // Delete the temporary downloaded file
                 if (!tmpFile.delete()) {
@@ -156,5 +222,4 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
         // Failed after retrying key does not exist
         throw new IOException(lastException);
     }
-
 }
