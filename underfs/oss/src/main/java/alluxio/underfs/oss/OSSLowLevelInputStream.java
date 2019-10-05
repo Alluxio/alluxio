@@ -169,6 +169,8 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
         File tmpFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(mTmpDirs), mKey));
         boolean created = tmpFile.getParentFile().mkdirs();
         LOG.debug("the tmp directory is created: "+ created);
+        // Set the download file
+        req.setDownloadFile(tmpFile.getAbsolutePath());
 
         OSSException lastException = null;
         LOG.debug("Create stream with partition for key {} in bucket {} from {} to {}",
