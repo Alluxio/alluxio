@@ -18,12 +18,12 @@ import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
-import com.aliyun.oss.internal.OSSConstants;
 import com.aliyun.oss.model.DownloadFileRequest;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Throwables;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,23 +192,9 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 }
 
                 long length = endPos - startPos < mContentLength ? endPos - startPos : mContentLength ;
-                byte[] buffer = new byte[OSSConstants.DEFAULT_BUFFER_SIZE];
-                int bytesRead;
-                // all the bytes read from scratch
-                long bytesReadInAll = 0;
-                while ((bytesRead = fis.read(buffer)) != -1 ) {
-                    bytesReadInAll += (long)bytesRead;
-                    if (bytesReadInAll > length) {
-                        // If the bytes read is more than the length (endPos - startPos), only read the length
-                        bytesRead = (int)(bytesRead-(bytesReadInAll - length));
-                    }else if (bytesReadInAll == length){
-                        break;
-                    }
-                    bos.write(buffer, 0, bytesRead);
-                }
-
-                bos.flush();
-                byte[] bytes = bos.toByteArray();
+                LOG.debug("The mContentLength is {}, endPos - startPos is {}, the length is {}",
+                        mContentLength, endPos - startPos, length);
+                byte[] bytes = IOUtils.toByteArray(fis, length);
                 return new BufferedInputStream(new ByteArrayInputStream(bytes));
             } catch (OSSException e) {
                 LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
