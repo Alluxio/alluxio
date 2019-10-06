@@ -98,11 +98,17 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
     // OSS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
     OSSException lastException = null;
+    long start = 0;
     LOG.debug("Create stream for key {} in bucket {} from {} to {}",
             mKey, mBucketName, startPos, endPos);
     while (mRetryPolicy.attempt()) {
       try {
+        // measure the performance of oss
+        if (LOG.isDebugEnabled()) {
+          start = System.currentTimeMillis();
+        }
         OSSObject ossObject = mOssClient.getObject(req);
+        LOG.debug("Calling OSS getObject method took: {} ms", (System.currentTimeMillis()-start));
         return new BufferedInputStream(ossObject.getObjectContent());
       } catch (OSSException e) {
         LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
@@ -112,6 +118,8 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
         }
         // Key does not exist
         lastException = e;
+      } finally {
+        LOG.debug("Calling createStreamWithPartition took: {} ms", (System.currentTimeMillis()-start));
       }
     }
     // Failed after retrying key does not exist

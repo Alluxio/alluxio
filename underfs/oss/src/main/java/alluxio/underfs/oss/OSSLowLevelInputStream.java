@@ -174,6 +174,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
 
         OSSException lastException = null;
         long start = 0;
+        long length;
         LOG.debug("Create stream with partition for key {} in bucket {} from {} to {}",
                 mKey, mBucketName, startPos, endPos);
         while (mRetryPolicy.attempt()) {
@@ -191,7 +192,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                     fis.skip(startPos);
                 }
 
-                long length = endPos - startPos < mContentLength ? endPos - startPos : mContentLength ;
+                length = endPos - startPos < mContentLength ? endPos - startPos : mContentLength ;
                 LOG.debug("The mContentLength is {}, endPos - startPos is {}, the length is {}",
                         mContentLength, endPos - startPos, length);
                 byte[] bytes = IOUtils.toByteArray(fis, length);
@@ -209,14 +210,10 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                         mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
                 throw new IOException(e);
             } finally {
+                LOG.debug("Calling createStreamWithPartition took: {} ms", (System.currentTimeMillis()-start));
                 // Delete the temporary downloaded file
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Calling createStreamWithPartition took: {} ms", (System.currentTimeMillis()-start));
-                    LOG.debug("Keep tmp file:", tmpFile.getAbsolutePath());
-                }else {
-                    if (!tmpFile.delete()) {
-                        LOG.error("Failed to delete temporary file @ {}", tmpFile.getAbsolutePath());
-                    }
+                if (!tmpFile.delete()) {
+                    LOG.error("Failed to delete temporary file @ {}", tmpFile.getAbsolutePath());
                 }
             }
         }
