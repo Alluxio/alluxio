@@ -766,7 +766,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDefaultValue(false)
                   .setDescription("(Experimental) If true, using streaming download from OSS.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.SERVER)
+                  .setScope(Scope.CLIENT)
                   .build();
   public static final PropertyKey UNDERFS_OSS_STREAMING_DOWNLOADING_TASK_NUM =
           new Builder(Name.UNDERFS_OSS_STREAMING_DOWNLOADING_TASK_NUM)
@@ -775,14 +775,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                           + "communicating with OSS. These operations may be fairly concurrent and "
                           + "frequent but should not take much time to process.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.SERVER)
+                  .setScope(Scope.CLIENT)
                   .build();
   public static final PropertyKey UNDERFS_OSS_STREAMING_DOWNLOADING_PARTITION_SIZE =
           new Builder(Name.UNDERFS_OSS_STREAMING_DOWNLOADING_PARTITION_SIZE)
                   .setDefaultValue("2MB")
                   .setDescription("Default block size for OSS streaming download.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.SERVER)
+                  .setScope(Scope.CLIENT)
                   .build();
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_ADMIN_THREADS_MAX)

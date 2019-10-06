@@ -157,6 +157,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
      */
     private InputStream createStreamWithPartition(long startPos, long endPos, int taskNum)
             throws IOException {
+        LOG.debug("the taskNum: {} and the partition size is {}", taskNum, mStreamingDownloadPartitionSize);
         DownloadFileRequest req = new DownloadFileRequest(mBucketName, mKey);
         // Sets the concurrent task thread count 5. By default it's 1.
         req.setTaskNum(taskNum);
