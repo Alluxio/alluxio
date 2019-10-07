@@ -133,7 +133,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-s3a</artifactId>
+      <artifactId>alluxio-underfs-web</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

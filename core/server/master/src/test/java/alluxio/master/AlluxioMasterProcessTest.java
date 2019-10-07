@@ -107,7 +107,7 @@ public final class AlluxioMasterProcessTest {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mFolder.getRoot().getAbsolutePath());
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-        "s3://alluxio-non-existing-bucket/");
+        "https://alluxio-public-http-ufs.s3.amazonaws.com/");
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         RaftJournalSystem.create(RaftJournalConfiguration.defaults(ServiceType.MASTER_RAFT)));
     Thread t = new Thread(() -> {
@@ -119,6 +119,7 @@ public final class AlluxioMasterProcessTest {
     });
     t.start();
     startStopTest(master);
+    t.join();
   }
 
   private void startStopTest(AlluxioMasterProcess master) throws Exception {
