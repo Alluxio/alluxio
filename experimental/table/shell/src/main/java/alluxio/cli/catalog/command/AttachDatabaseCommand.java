@@ -67,7 +67,6 @@ public class AttachDatabaseCommand extends AbstractCatalogCommand {
     String dbType = args[1];
     Properties p = cl.getOptionProperties(OPTION_OPTION.getOpt());
     mClient.attachDatabase(dbName, dbType, Maps.fromProperties(p));
-    System.out.println(String.format("Attached database %s (type: %s)", dbName, dbType));
     return 0;
   }
 

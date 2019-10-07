@@ -22,7 +22,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A udb implementation which does nothing, used for testing.
+ */
 public class NoopDatabase implements UnderDatabase {
+  private static final String DB_NAME = "noop_udb_name";
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
@@ -33,7 +37,7 @@ public class NoopDatabase implements UnderDatabase {
   }
 
   /**
-   * Creates an instance of the Hive database UDB.
+   * Creates an instance.
    *
    * @param udbContext the db context
    * @param configuration the configuration
@@ -51,7 +55,7 @@ public class NoopDatabase implements UnderDatabase {
 
   @Override
   public String getName() {
-    return "";
+    return DB_NAME;
   }
 
   @Override
