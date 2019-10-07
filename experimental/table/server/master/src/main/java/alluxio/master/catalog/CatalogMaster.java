@@ -115,7 +115,7 @@ public interface CatalogMaster extends Master {
   void transformTable(String dbName, String tableName, String type, String newTableLocation)
       throws IOException;
 
-  /*
+  /**
    * Get statistics on the partitions.
    *
    * @param dbName database name
