@@ -141,7 +141,6 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   @Override
   public void transformTable(String dbName, String tableName, String type, String newTableLocation)
       throws AlluxioStatusException {
-    LOG.info("Transforming table " + dbName + "." + tableName);
     retryRPC(() -> mClient.transformTable(
         TransformTablePRequest.newBuilder()
             .setDbName(dbName)
