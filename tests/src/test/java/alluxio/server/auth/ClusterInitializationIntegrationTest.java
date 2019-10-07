@@ -33,7 +33,6 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
   public ExpectedException mThrown = ExpectedException.none();
 
   private static final String SUPER_USER = "alluxio";
-  private static final String USER = "jack";
 
   private static final AlluxioURI ROOT = new AlluxioURI("/");
 
