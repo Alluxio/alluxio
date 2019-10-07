@@ -152,6 +152,7 @@ public class HiveTable implements UdbTable {
   @Override
   public void updateLocation(String location) {
     mTable.getSd().setLocation(location);
+    mPathTranslator.addMapping(location, location);
   }
 
   @Override

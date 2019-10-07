@@ -11,8 +11,6 @@
 
 package alluxio.table.under.hive.util;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.ConfigurationUtils;
 
@@ -68,10 +66,6 @@ public class PathTranslator {
    * @throws IOException if the ufs path is not mounted
    */
   public String toAlluxioPath(String ufsPath) throws IOException {
-    AlluxioURI uri = new AlluxioURI(ufsPath);
-    if (uri.getScheme() != null && uri.getScheme().equals(Constants.SCHEME)) {
-      return ufsPath;
-    }
     for (BiMap.Entry<String, String> entry : mPathMap.entrySet()) {
       if (ufsPath.startsWith(entry.getValue())) {
         String alluxioPath = entry.getKey() + ufsPath.substring(entry.getValue().length());
