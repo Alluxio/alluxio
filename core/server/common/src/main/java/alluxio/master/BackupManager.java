@@ -340,6 +340,11 @@ public class BackupManager {
     }
   }
 
+  /**
+   * Class that contains metrics for BackupManager.
+   * This class is public because the counter names are referenced in
+   * {@link alluxio.web.WebInterfaceAbstractMetricsServlet}.
+   */
   public static final class Metrics {
     private static final Timer BACKUP_ENTRIES_PROCESS_TIME
         = MetricsSystem.timer(MasterMetrics.BACKUP_ENTRIES_PROCESS_TIME);
