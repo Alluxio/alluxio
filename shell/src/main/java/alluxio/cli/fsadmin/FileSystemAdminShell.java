@@ -29,6 +29,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
+import alluxio.worker.job.RetryHandlingJobMasterClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +89,7 @@ public final class FileSystemAdminShell extends AbstractShell {
         new RetryHandlingMetaMasterConfigClient(masterConfig),
         new RetryHandlingJournalMasterClient(masterConfig),
         new RetryHandlingJournalMasterClient(jobMasterConfig),
+        new RetryHandlingJobMasterClient(jobMasterConfig),
         System.out
     );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
