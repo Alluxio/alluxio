@@ -12,6 +12,7 @@
 package alluxio.master.catalog;
 
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
+import alluxio.grpc.catalog.ColumnStatisticsList;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.Schema;
@@ -19,6 +20,7 @@ import alluxio.master.Master;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface of the catalog master that manages the catalog metadata.
@@ -86,7 +88,7 @@ public interface CatalogMaster extends Master {
    * @param databaseName database name
    * @param tableName table name
    * @param colNames column names
-   * @return a map containing data files paths mapped to file statistics
+   * @return a list of column statistics info
    */
   List<ColumnStatisticsInfo> getTableColumnStatistics(String databaseName, String tableName,
       List<String> colNames) throws IOException;
@@ -112,4 +114,17 @@ public interface CatalogMaster extends Master {
    */
   void transformTable(String dbName, String tableName, String type, String newTableLocation)
       throws IOException;
+
+  /*
+   * Get statistics on the partitions.
+   *
+   * @param dbName database name
+   * @param tableName table name
+   * @param partNamesList partition names
+   * @param colNamesList column names
+   * @return a map mapping partition names to a list of column statistics info
+   */
+  Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
+      String tableName, List<String> partNamesList, List<String> colNamesList)
+    throws IOException;
 }

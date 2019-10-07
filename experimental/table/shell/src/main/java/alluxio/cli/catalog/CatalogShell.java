@@ -35,7 +35,7 @@ public class CatalogShell extends AbstractShell {
    *
    * @param conf the Alluxio configuration to use when instantiating the shell
    */
-  CatalogShell(InstancedConfiguration conf) {
+  public CatalogShell(InstancedConfiguration conf) {
     super(null, null, conf);
   }
 

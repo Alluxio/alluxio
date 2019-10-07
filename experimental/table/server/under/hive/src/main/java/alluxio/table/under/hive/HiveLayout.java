@@ -11,6 +11,7 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.table.common.Layout;
 
@@ -18,6 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Hive table implementation.
@@ -26,14 +31,18 @@ public class HiveLayout implements Layout {
   private static final Logger LOG = LoggerFactory.getLogger(HiveLayout.class);
 
   private final PartitionInfo mPartitionInfo;
+  private final Map<String, ColumnStatisticsInfo> mPartitionStatsInfo;
 
   /**
    * Creates an instance.
    *
    * @param partitionInfo the partition info
+   * @param stats column statistics
    */
-  public HiveLayout(PartitionInfo partitionInfo) {
+  public HiveLayout(PartitionInfo partitionInfo, List<ColumnStatisticsInfo> stats) {
     mPartitionInfo = partitionInfo;
+    mPartitionStatsInfo = stats.stream().collect(Collectors.toMap(
+        ColumnStatisticsInfo::getColName, e -> e, (e1, e2) -> e2));
   }
 
   @Override
@@ -44,8 +53,7 @@ public class HiveLayout implements Layout {
 
   @Override
   public String getSpec() {
-    // TODO(gpang): implement
-    return "";
+    return mPartitionInfo.getPartitionName();
   }
 
   @Override
@@ -66,9 +74,15 @@ public class HiveLayout implements Layout {
               .setLocation(location)
               .build())
           .build();
-      return new HiveLayout(info);
+      List<ColumnStatisticsInfo> stats = new ArrayList<>(mPartitionStatsInfo.values());
+      return new HiveLayout(info, stats);
     } else {
       throw new IOException("Unknown type: " + type);
     }
+  }
+
+  @Override
+  public Map<String, ColumnStatisticsInfo> getColumnStatsData() {
+    return mPartitionStatsInfo;
   }
 }

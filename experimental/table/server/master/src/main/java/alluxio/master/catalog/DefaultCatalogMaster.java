@@ -18,6 +18,7 @@ import alluxio.clock.SystemClock;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
+import alluxio.grpc.catalog.ColumnStatisticsList;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Partition;
 import alluxio.grpc.catalog.Schema;
@@ -125,6 +126,12 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
           partitionLocation.getPath().substring(tableLocation.getPath().length()));
       partition.transformLayout(type, transformedPartitionLocation.toString());
     }
+  }
+
+  @Override
+  public Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
+      String tableName, List<String> partNamesList, List<String> colNamesList) throws IOException {
+    return mCatalog.getPartitionColumnStatistics(dbName, tableName, partNamesList, colNamesList);
   }
 
   @Override

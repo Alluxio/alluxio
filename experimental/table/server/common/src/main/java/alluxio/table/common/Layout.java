@@ -11,11 +11,13 @@
 
 package alluxio.table.common;
 
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.LayoutSpec;
 
 import com.google.protobuf.Message;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * An interface for a table/partition layout.
@@ -48,6 +50,11 @@ public interface Layout {
    * @throws IOException if cannot transform to the specified type
    */
   Layout transform(String type, String location) throws IOException;
+
+  /*
+   * @return a map of proto representing the statistics data for this partition
+   */
+  Map<String, ColumnStatisticsInfo> getColumnStatsData();
 
   /**
    * @return the proto representation

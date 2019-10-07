@@ -14,6 +14,12 @@ package alluxio.cli.catalog.command;
 import alluxio.cli.Command;
 import alluxio.client.catalog.CatalogMasterClient;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
+
+import org.apache.commons.cli.CommandLine;
+
+import java.io.IOException;
 
 /**
  * A class which should be extended when implementing commands for the
@@ -37,4 +43,10 @@ public abstract class AbstractCatalogCommand implements Command {
 
   @Override
   public abstract String getCommandName();
+
+  @Override
+  public abstract void validateArgs(CommandLine cl) throws InvalidArgumentException;
+
+  @Override
+  public abstract int run(CommandLine cl) throws AlluxioException, IOException;
 }
