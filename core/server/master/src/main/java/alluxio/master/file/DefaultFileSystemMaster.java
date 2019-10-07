@@ -38,7 +38,6 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
-import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
