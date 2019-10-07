@@ -176,6 +176,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
         OSSException lastException = null;
         long start = 0;
         long length;
+        FileInputStream fis = null;
         LOG.debug("Create stream with partition for key {} in bucket {} from {} to {}",
                 mKey, mBucketName, startPos, endPos);
         while (mRetryPolicy.attempt()) {
@@ -186,8 +187,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 }
                 mOssClient.downloadFile(req);
                 LOG.debug("Calling OSS download file method took: {} ms", (System.currentTimeMillis()-start));
-                FileInputStream fis = new FileInputStream(tmpFile);
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                fis = new FileInputStream(tmpFile);
 
                 if (startPos > 0){
                     fis.skip(startPos);
@@ -212,6 +212,9 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 throw new IOException(e);
             } finally {
                 LOG.debug("Calling createStreamWithPartition took: {} ms", (System.currentTimeMillis()-start));
+                if (fis != null) {
+                    fis.close();
+                }
                 // Delete the temporary downloaded file
                 if (!tmpFile.delete()) {
                     LOG.error("Failed to delete temporary file @ {}", tmpFile.getAbsolutePath());
