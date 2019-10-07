@@ -61,17 +61,13 @@ public class AttachDatabaseCommand extends AbstractCatalogCommand {
   }
 
   @Override
-  public int run(CommandLine cl) {
+  public int run(CommandLine cl) throws AlluxioStatusException {
     String[] args = cl.getArgs();
     String dbName = args[0];
     String dbType = args[1];
     Properties p = cl.getOptionProperties(OPTION_OPTION.getOpt());
-    try {
-      mClient.attachDatabase(dbName, dbType, Maps.fromProperties(p));
-    } catch (AlluxioStatusException e) {
-      e.printStackTrace();
-      return 1;
-    }
+    mClient.attachDatabase(dbName, dbType, Maps.fromProperties(p));
+    System.out.println(String.format("Attached database %s (type: %s)", dbName, dbType));
     return 0;
   }
 

@@ -69,7 +69,9 @@ public class AlluxioCatalog {
     UdbContext context = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
     Database db = Database.create(context, type, dbName, configuration);
     if (mDBs.putIfAbsent(dbName, db) != null) {
-      return false;
+      throw new IOException(String
+          .format("Unable to attach database. Database name %s (type: %s) already exists.", dbName,
+              type));
     }
     db.sync();
     return true;
