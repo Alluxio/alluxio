@@ -16,7 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private ReverseResolvePRequest() {
-    ufsPath_ = "";
+    ufsUri_ = "";
   }
 
   @java.lang.Override
@@ -53,7 +53,7 @@ private static final long serialVersionUID = 0L;
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
-            ufsPath_ = bs;
+            ufsUri_ = bs;
             break;
           }
         }
@@ -81,19 +81,19 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int UFSPATH_FIELD_NUMBER = 1;
-  private volatile java.lang.Object ufsPath_;
+  public static final int UFSURI_FIELD_NUMBER = 1;
+  private volatile java.lang.Object ufsUri_;
   /**
-   * <code>optional string ufsPath = 1;</code>
+   * <code>optional string ufsUri = 1;</code>
    */
-  public boolean hasUfsPath() {
+  public boolean hasUfsUri() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string ufsPath = 1;</code>
+   * <code>optional string ufsUri = 1;</code>
    */
-  public java.lang.String getUfsPath() {
-    java.lang.Object ref = ufsPath_;
+  public java.lang.String getUfsUri() {
+    java.lang.Object ref = ufsUri_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -101,22 +101,22 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        ufsPath_ = s;
+        ufsUri_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string ufsPath = 1;</code>
+   * <code>optional string ufsUri = 1;</code>
    */
   public com.google.protobuf.ByteString
-      getUfsPathBytes() {
-    java.lang.Object ref = ufsPath_;
+      getUfsUriBytes() {
+    java.lang.Object ref = ufsUri_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      ufsPath_ = b;
+      ufsUri_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -136,7 +136,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, ufsPath_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, ufsUri_);
     }
     unknownFields.writeTo(output);
   }
@@ -147,7 +147,7 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, ufsPath_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, ufsUri_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -165,10 +165,10 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.ReverseResolvePRequest other = (alluxio.grpc.ReverseResolvePRequest) obj;
 
     boolean result = true;
-    result = result && (hasUfsPath() == other.hasUfsPath());
-    if (hasUfsPath()) {
-      result = result && getUfsPath()
-          .equals(other.getUfsPath());
+    result = result && (hasUfsUri() == other.hasUfsUri());
+    if (hasUfsUri()) {
+      result = result && getUfsUri()
+          .equals(other.getUfsUri());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -181,9 +181,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasUfsPath()) {
-      hash = (37 * hash) + UFSPATH_FIELD_NUMBER;
-      hash = (53 * hash) + getUfsPath().hashCode();
+    if (hasUfsUri()) {
+      hash = (37 * hash) + UFSURI_FIELD_NUMBER;
+      hash = (53 * hash) + getUfsUri().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -314,7 +314,7 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      ufsPath_ = "";
+      ufsUri_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
@@ -343,7 +343,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.ufsPath_ = ufsPath_;
+      result.ufsUri_ = ufsUri_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -386,9 +386,9 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.ReverseResolvePRequest other) {
       if (other == alluxio.grpc.ReverseResolvePRequest.getDefaultInstance()) return this;
-      if (other.hasUfsPath()) {
+      if (other.hasUfsUri()) {
         bitField0_ |= 0x00000001;
-        ufsPath_ = other.ufsPath_;
+        ufsUri_ = other.ufsUri_;
         onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -419,24 +419,24 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object ufsPath_ = "";
+    private java.lang.Object ufsUri_ = "";
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufsUri = 1;</code>
      */
-    public boolean hasUfsPath() {
+    public boolean hasUfsUri() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufsUri = 1;</code>
      */
-    public java.lang.String getUfsPath() {
-      java.lang.Object ref = ufsPath_;
+    public java.lang.String getUfsUri() {
+      java.lang.Object ref = ufsUri_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          ufsPath_ = s;
+          ufsUri_ = s;
         }
         return s;
       } else {
@@ -444,53 +444,53 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufsUri = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getUfsPathBytes() {
-      java.lang.Object ref = ufsPath_;
+        getUfsUriBytes() {
+      java.lang.Object ref = ufsUri_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        ufsPath_ = b;
+        ufsUri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufsUri = 1;</code>
      */
-    public Builder setUfsPath(
+    public Builder setUfsUri(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      ufsPath_ = value;
+      ufsUri_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufsUri = 1;</code>
      */
-    public Builder clearUfsPath() {
+    public Builder clearUfsUri() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      ufsPath_ = getDefaultInstance().getUfsPath();
+      ufsUri_ = getDefaultInstance().getUfsUri();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufsUri = 1;</code>
      */
-    public Builder setUfsPathBytes(
+    public Builder setUfsUriBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      ufsPath_ = value;
+      ufsUri_ = value;
       onChanged();
       return this;
     }
