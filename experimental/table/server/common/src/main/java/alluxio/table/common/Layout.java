@@ -51,7 +51,7 @@ public interface Layout {
    */
   Layout transform(String type, String location) throws IOException;
 
-  /*
+  /**
    * @return a map of proto representing the statistics data for this partition
    */
   Map<String, ColumnStatisticsInfo> getColumnStatsData();

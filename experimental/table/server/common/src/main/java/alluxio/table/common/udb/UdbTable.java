@@ -42,6 +42,8 @@ public interface UdbTable {
 
   /**
    * Updates the table location.
+   *
+   * @param location the new location
    */
   void updateLocation(String location);
 
