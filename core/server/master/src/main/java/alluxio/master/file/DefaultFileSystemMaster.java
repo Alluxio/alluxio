@@ -531,8 +531,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (isPrimary) {
       LOG.info("Starting fs master as primary");
 
-      InodeDirectory root = mInodeTree.getRoot();
-      if (root == null) {
+      if (mInodeTree.getRoot() == null) {
         try (JournalContext context = createJournalContext()) {
           mInodeTree.initializeRoot(
               SecurityUtils.getOwner(mMasterContext.getUserState()),
@@ -540,18 +539,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               ModeUtils.applyDirectoryUMask(Mode.createFullAccess(),
                   ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
               context);
-        }
-      } else {
-        // For backwards-compatibility:
-        // Empty root owner indicates that previously the master had no security. In this case, the
-        // master is allowed to be started with security turned on.
-        String serverOwner = SecurityUtils.getOwner(mMasterContext.getUserState());
-        if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
-            && !root.getOwner().isEmpty() && !root.getOwner().equals(serverOwner)) {
-          // user is not the previous owner
-          throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED.getMessage(String
-              .format("Unauthorized user on root. inode owner: %s current user: %s",
-                  root.getOwner(), serverOwner)));
         }
       }
 
