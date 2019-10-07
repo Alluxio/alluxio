@@ -149,6 +149,11 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
+  public void updateLocation(String location) {
+    mTable.getSd().setLocation(location);
+  }
+
+  @Override
   public List<ColumnStatisticsInfo> getStatistics() {
     return mStatistics;
   }

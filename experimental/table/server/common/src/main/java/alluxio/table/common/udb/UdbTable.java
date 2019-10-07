@@ -40,6 +40,11 @@ public interface UdbTable {
    */
   String getBaseLocation();
 
+  /**
+   * Updates the table location.
+   */
+  void updateLocation(String location);
+
   // TODO(gpang): generalize statistics
   /**
    * @return statistics of the table

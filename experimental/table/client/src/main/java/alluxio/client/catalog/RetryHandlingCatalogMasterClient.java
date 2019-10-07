@@ -34,6 +34,8 @@ import alluxio.grpc.catalog.TransformTablePRequest;
 import alluxio.master.MasterClientContext;
 
 import org.apache.iceberg.Schema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
     implements CatalogMasterClient {
+  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingCatalogMasterClient.class);
+
   private CatalogMasterClientServiceGrpc.CatalogMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -133,14 +137,15 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void transformTable(String dbName, String tableName, String type,
-      Map<String, String> partitions) throws AlluxioStatusException {
+  public void transformTable(String dbName, String tableName, String type, String newTableLocation)
+      throws AlluxioStatusException {
+    LOG.info("Transforming table " + dbName + "." + tableName);
     retryRPC(() -> mClient.transformTable(
         TransformTablePRequest.newBuilder()
             .setDbName(dbName)
             .setTableName(tableName)
             .setType(type)
-            .putAllPartitions(partitions)
+            .setNewTableLocation(newTableLocation)
             .build()));
   }
 

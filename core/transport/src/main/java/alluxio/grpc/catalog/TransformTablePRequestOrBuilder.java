@@ -50,36 +50,16 @@ public interface TransformTablePRequestOrBuilder extends
       getTypeBytes();
 
   /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
+   * <code>optional string new_table_location = 4;</code>
    */
-  int getPartitionsCount();
+  boolean hasNewTableLocation();
   /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
+   * <code>optional string new_table_location = 4;</code>
    */
-  boolean containsPartitions(
-      java.lang.String key);
+  java.lang.String getNewTableLocation();
   /**
-   * Use {@link #getPartitionsMap()} instead.
+   * <code>optional string new_table_location = 4;</code>
    */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, java.lang.String>
-  getPartitions();
-  /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
-   */
-  java.util.Map<java.lang.String, java.lang.String>
-  getPartitionsMap();
-  /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
-   */
-
-  java.lang.String getPartitionsOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue);
-  /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
-   */
-
-  java.lang.String getPartitionsOrThrow(
-      java.lang.String key);
+  com.google.protobuf.ByteString
+      getNewTableLocationBytes();
 }

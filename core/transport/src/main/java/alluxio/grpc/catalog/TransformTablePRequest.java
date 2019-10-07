@@ -19,6 +19,7 @@ private static final long serialVersionUID = 0L;
     dbName_ = "";
     tableName_ = "";
     type_ = "";
+    newTableLocation_ = "";
   }
 
   @java.lang.Override
@@ -71,16 +72,9 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 34: {
-            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
-              partitions_ = com.google.protobuf.MapField.newMapField(
-                  PartitionsDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000008;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-            partitions__ = input.readMessage(
-                PartitionsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            partitions_.getMutableMap().put(
-                partitions__.getKey(), partitions__.getValue());
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000008;
+            newTableLocation_ = bs;
             break;
           }
         }
@@ -100,17 +94,6 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_TransformTablePRequest_descriptor;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 4:
-        return internalGetPartitions();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
-    }
-  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_TransformTablePRequest_fieldAccessorTable
@@ -245,80 +228,46 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int PARTITIONS_FIELD_NUMBER = 4;
-  private static final class PartitionsDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, java.lang.String> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, java.lang.String>newDefaultInstance(
-                alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_TransformTablePRequest_PartitionsEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "");
+  public static final int NEW_TABLE_LOCATION_FIELD_NUMBER = 4;
+  private volatile java.lang.Object newTableLocation_;
+  /**
+   * <code>optional string new_table_location = 4;</code>
+   */
+  public boolean hasNewTableLocation() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
   }
-  private com.google.protobuf.MapField<
-      java.lang.String, java.lang.String> partitions_;
-  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-  internalGetPartitions() {
-    if (partitions_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          PartitionsDefaultEntryHolder.defaultEntry);
+  /**
+   * <code>optional string new_table_location = 4;</code>
+   */
+  public java.lang.String getNewTableLocation() {
+    java.lang.Object ref = newTableLocation_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        newTableLocation_ = s;
+      }
+      return s;
     }
-    return partitions_;
-  }
-
-  public int getPartitionsCount() {
-    return internalGetPartitions().getMap().size();
   }
   /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
+   * <code>optional string new_table_location = 4;</code>
    */
-
-  public boolean containsPartitions(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetPartitions().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getPartitionsMap()} instead.
-   */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, java.lang.String> getPartitions() {
-    return getPartitionsMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
-   */
-
-  public java.util.Map<java.lang.String, java.lang.String> getPartitionsMap() {
-    return internalGetPartitions().getMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
-   */
-
-  public java.lang.String getPartitionsOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetPartitions().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, string&gt; partitions = 4;</code>
-   */
-
-  public java.lang.String getPartitionsOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetPartitions().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
+  public com.google.protobuf.ByteString
+      getNewTableLocationBytes() {
+    java.lang.Object ref = newTableLocation_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      newTableLocation_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
     }
-    return map.get(key);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -342,12 +291,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, type_);
     }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetPartitions(),
-        PartitionsDefaultEntryHolder.defaultEntry,
-        4);
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, newTableLocation_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -365,15 +311,8 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, type_);
     }
-    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-         : internalGetPartitions().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-      partitions__ = PartitionsDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, partitions__);
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, newTableLocation_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -406,8 +345,11 @@ private static final long serialVersionUID = 0L;
       result = result && getType()
           .equals(other.getType());
     }
-    result = result && internalGetPartitions().equals(
-        other.internalGetPartitions());
+    result = result && (hasNewTableLocation() == other.hasNewTableLocation());
+    if (hasNewTableLocation()) {
+      result = result && getNewTableLocation()
+          .equals(other.getNewTableLocation());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -431,9 +373,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
       hash = (53 * hash) + getType().hashCode();
     }
-    if (!internalGetPartitions().getMap().isEmpty()) {
-      hash = (37 * hash) + PARTITIONS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetPartitions().hashCode();
+    if (hasNewTableLocation()) {
+      hash = (37 * hash) + NEW_TABLE_LOCATION_FIELD_NUMBER;
+      hash = (53 * hash) + getNewTableLocation().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -540,28 +482,6 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_TransformTablePRequest_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 4:
-          return internalGetPartitions();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 4:
-          return internalGetMutablePartitions();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_TransformTablePRequest_fieldAccessorTable
@@ -592,7 +512,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       type_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
-      internalGetMutablePartitions().clear();
+      newTableLocation_ = "";
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -629,8 +550,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000004;
       }
       result.type_ = type_;
-      result.partitions_ = internalGetPartitions();
-      result.partitions_.makeImmutable();
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.newTableLocation_ = newTableLocation_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -688,8 +611,11 @@ private static final long serialVersionUID = 0L;
         type_ = other.type_;
         onChanged();
       }
-      internalGetMutablePartitions().mergeFrom(
-          other.internalGetPartitions());
+      if (other.hasNewTableLocation()) {
+        bitField0_ |= 0x00000008;
+        newTableLocation_ = other.newTableLocation_;
+        onChanged();
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -946,126 +872,79 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> partitions_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetPartitions() {
-      if (partitions_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            PartitionsDefaultEntryHolder.defaultEntry);
+    private java.lang.Object newTableLocation_ = "";
+    /**
+     * <code>optional string new_table_location = 4;</code>
+     */
+    public boolean hasNewTableLocation() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional string new_table_location = 4;</code>
+     */
+    public java.lang.String getNewTableLocation() {
+      java.lang.Object ref = newTableLocation_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          newTableLocation_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
       }
-      return partitions_;
     }
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetMutablePartitions() {
-      onChanged();;
-      if (partitions_ == null) {
-        partitions_ = com.google.protobuf.MapField.newMapField(
-            PartitionsDefaultEntryHolder.defaultEntry);
+    /**
+     * <code>optional string new_table_location = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getNewTableLocationBytes() {
+      java.lang.Object ref = newTableLocation_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        newTableLocation_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
       }
-      if (!partitions_.isMutable()) {
-        partitions_ = partitions_.copy();
-      }
-      return partitions_;
-    }
-
-    public int getPartitionsCount() {
-      return internalGetPartitions().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; partitions = 4;</code>
+     * <code>optional string new_table_location = 4;</code>
      */
-
-    public boolean containsPartitions(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetPartitions().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getPartitionsMap()} instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getPartitions() {
-      return getPartitionsMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; partitions = 4;</code>
-     */
-
-    public java.util.Map<java.lang.String, java.lang.String> getPartitionsMap() {
-      return internalGetPartitions().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; partitions = 4;</code>
-     */
-
-    public java.lang.String getPartitionsOrDefault(
-        java.lang.String key,
-        java.lang.String defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetPartitions().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; partitions = 4;</code>
-     */
-
-    public java.lang.String getPartitionsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetPartitions().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public Builder clearPartitions() {
-      internalGetMutablePartitions().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <code>map&lt;string, string&gt; partitions = 4;</code>
-     */
-
-    public Builder removePartitions(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutablePartitions().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String>
-    getMutablePartitions() {
-      return internalGetMutablePartitions().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; partitions = 4;</code>
-     */
-    public Builder putPartitions(
-        java.lang.String key,
+    public Builder setNewTableLocation(
         java.lang.String value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutablePartitions().getMutableMap()
-          .put(key, value);
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+      newTableLocation_ = value;
+      onChanged();
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; partitions = 4;</code>
+     * <code>optional string new_table_location = 4;</code>
      */
-
-    public Builder putAllPartitions(
-        java.util.Map<java.lang.String, java.lang.String> values) {
-      internalGetMutablePartitions().getMutableMap()
-          .putAll(values);
+    public Builder clearNewTableLocation() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      newTableLocation_ = getDefaultInstance().getNewTableLocation();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string new_table_location = 4;</code>
+     */
+    public Builder setNewTableLocationBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+      newTableLocation_ = value;
+      onChanged();
       return this;
     }
     public final Builder setUnknownFields(

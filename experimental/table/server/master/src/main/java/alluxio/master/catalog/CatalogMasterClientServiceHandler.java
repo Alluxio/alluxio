@@ -146,9 +146,10 @@ public class CatalogMasterClientServiceHandler
   @Override
   public void transformTable(TransformTablePRequest request,
       StreamObserver<TransformTablePResponse> responseObserver) {
+    LOG.info("transform " + request.getDbName() + "." + request.getTableName());
     RpcUtils.call(LOG, () -> {
       mCatalogMaster.transformTable(request.getDbName(), request.getTableName(), request.getType(),
-          request.getPartitionsMap());
+          request.getNewTableLocation());
       return TransformTablePResponse.getDefaultInstance();
     }, "transformTable", "", responseObserver);
   }

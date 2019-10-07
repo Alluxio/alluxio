@@ -11,6 +11,7 @@
 
 package alluxio.master.catalog;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
@@ -111,16 +112,18 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public void transformTable(String dbName, String tableName, String type,
-      Map<String, String> partitions) throws IOException {
+  public void transformTable(String dbName, String tableName, String type, String newTableLocation)
+      throws IOException {
     Table table = mCatalog.getTable(dbName, tableName);
+    AlluxioURI tableLocation = new AlluxioURI(table.getUdbTable().getBaseLocation());
+    AlluxioURI transformedTableLocation = new AlluxioURI(tableLocation.getScheme(),
+        tableLocation.getAuthority(), newTableLocation);
+    table.getUdbTable().updateLocation(transformedTableLocation.toString());
     for (alluxio.master.catalog.Partition partition : table.getPartitions()) {
-      String baseLocation = partition.getBaseLayout().getLocation();
-      if (!partitions.containsKey(baseLocation)) {
-        throw new IOException("Unknown base location: " + baseLocation);
-      }
-      String transformedLocation = partitions.get(baseLocation);
-      partition.transformLayout(type, transformedLocation);
+      AlluxioURI partitionLocation = new AlluxioURI(partition.getBaseLayout().getLocation());
+      AlluxioURI transformedPartitionLocation = transformedTableLocation.join(
+          partitionLocation.getPath().substring(tableLocation.getPath().length()));
+      partition.transformLayout(type, transformedPartitionLocation.toString());
     }
   }
 

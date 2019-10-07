@@ -141,10 +141,10 @@ public interface CatalogMasterClient extends Client {
    * @param dbName the database name
    * @param tableName the table name
    * @param type the type of the transformed table
-   * @param partitions the mapping from original partition locations to the transformed locations
+   * @param newTableLocation the new table location
    * @throws AlluxioStatusException
    */
-  void transformTable(String dbName, String tableName, String type, Map<String, String> partitions)
+  void transformTable(String dbName, String tableName, String type, String newTableLocation)
       throws AlluxioStatusException;
 
   /**
