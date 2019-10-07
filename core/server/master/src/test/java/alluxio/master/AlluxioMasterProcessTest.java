@@ -102,6 +102,8 @@ public final class AlluxioMasterProcessTest {
     URL backupResource = this.getClass().getResource("/alluxio-local-backup.gz");
     Preconditions.checkNotNull(backupResource);
     String backupPath = backupResource.toURI().toString();
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "550");
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms");
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mFolder.getRoot().getAbsolutePath());
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
