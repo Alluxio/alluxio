@@ -13,7 +13,13 @@ package alluxio.client.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.grpc.*;
+import alluxio.grpc.CancelPRequest;
+import alluxio.grpc.GetJobServiceSummaryPRequest;
+import alluxio.grpc.GetJobStatusPRequest;
+import alluxio.grpc.JobMasterClientServiceGrpc;
+import alluxio.grpc.ListAllPRequest;
+import alluxio.grpc.RunPRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobInfo;
@@ -62,6 +68,13 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
+  protected void beforeConnect()
+      throws IOException {
+    // Job master client does not load cluster-default configuration because only the master
+    // will use this client
+  }
+
+  @Override
   protected void afterConnect() throws IOException {
     mClient = JobMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
@@ -87,7 +100,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   @Override
   public JobServiceSummary getJobServiceSummary() throws IOException {
     return new JobServiceSummary(retryRPC((RpcCallable<alluxio.grpc.JobServiceSummary>) () -> {
-      return mClient.getJobServiceSummary(GetJobServiceSummaryPRequest.newBuilder().build()).getSummary();
+      return mClient.getJobServiceSummary(
+              GetJobServiceSummaryPRequest.newBuilder().build()).getSummary();
     }));
   }
 

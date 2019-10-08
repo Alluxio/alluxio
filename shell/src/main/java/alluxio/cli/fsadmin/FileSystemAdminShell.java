@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin;
 
 import alluxio.ClientContext;
+import alluxio.client.job.RetryHandlingJobMasterClient;
 import alluxio.client.journal.RetryHandlingJournalMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
@@ -29,7 +30,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
-import alluxio.worker.job.RetryHandlingJobMasterClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

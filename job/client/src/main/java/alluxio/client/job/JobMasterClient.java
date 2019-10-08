@@ -77,5 +77,4 @@ public interface JobMasterClient extends Client {
    * @return the job id
    */
   long run(JobConfig jobConfig) throws IOException;
-
 }

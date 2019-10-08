@@ -46,12 +46,14 @@ public final class Context implements Closeable {
    * @param metaConfigClient meta configuration master client
    * @param masterJournalMasterClient journal master client for master
    * @param jobMasterJournalMasterClient journal master client for job_master
+   * @param jobMasterClient job master client
    * @param printStream print stream to write to
    */
   public Context(FileSystemMasterClient fsClient, BlockMasterClient blockClient,
-       MetaMasterClient metaClient, MetaMasterConfigClient metaConfigClient,
-       JournalMasterClient masterJournalMasterClient, JournalMasterClient jobMasterJournalMasterClient,
-       JobMasterClient jobMasterClient, PrintStream printStream) {
+      MetaMasterClient metaClient, MetaMasterConfigClient metaConfigClient,
+      JournalMasterClient masterJournalMasterClient,
+      JournalMasterClient jobMasterJournalMasterClient, JobMasterClient jobMasterClient,
+      PrintStream printStream) {
     mCloser = Closer.create();
     mCloser.register(
         mFsClient = Preconditions.checkNotNull(fsClient, "fsClient"));
@@ -116,7 +118,9 @@ public final class Context implements Closeable {
   /**
    * @return the job master client
    */
-  public JobMasterClient getJobMasterClient() { return mJobMasterClient; }
+  public JobMasterClient getJobMasterClient() {
+    return mJobMasterClient;
+  }
 
   /**
    * @return the print stream to write to
@@ -129,6 +133,4 @@ public final class Context implements Closeable {
   public void close() throws IOException {
     mCloser.close();
   }
-
-
 }
