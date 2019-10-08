@@ -3973,7 +3973,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // Generate a temporary path to be used by the persist job.
         // If the persist destination is on object store, let persist job copy files to destination
         // directly
-        if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_DIRECT_PERSIST_ENABLED)
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED)
             && ufsResource.get().isObjectStorage()) {
           tempUfsPath = resolution.getUri().toString();
         } else {
