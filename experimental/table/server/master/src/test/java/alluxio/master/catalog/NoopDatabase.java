@@ -11,7 +11,6 @@
 
 package alluxio.master.catalog;
 
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -20,7 +19,6 @@ import alluxio.table.common.udb.UnderDatabase;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A udb implementation which does nothing, used for testing.
@@ -66,11 +64,5 @@ public class NoopDatabase implements UnderDatabase {
   @Override
   public UdbTable getTable(String tableName) throws IOException {
     throw new IOException(String.format("NoopDb Table %s does not exist.", tableName));
-  }
-
-  @Override
-  public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
-      throws IOException {
-    return Collections.emptyMap();
   }
 }

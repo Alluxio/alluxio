@@ -24,7 +24,6 @@ import alluxio.grpc.catalog.Decimal;
 import alluxio.grpc.catalog.DecimalColumnStatsData;
 import alluxio.grpc.catalog.DoubleColumnStatsData;
 import alluxio.grpc.catalog.FieldType;
-import alluxio.grpc.catalog.FieldTypeId;
 import alluxio.grpc.catalog.FileMetadata;
 import alluxio.grpc.catalog.GroupType;
 import alluxio.grpc.catalog.HiveBucketProperty;
@@ -239,36 +238,6 @@ public class HiveUtils {
         .setUnscaled(ByteString.copyFrom(decimal.getUnscaled())).build();
   }
 
-  private static FieldTypeId toProto(String hiveType) {
-    switch (hiveType) {
-      case "boolean": return FieldTypeId.BOOLEAN;
-      case "tinyint": return FieldTypeId.BYTE;
-      case "smallint": return FieldTypeId.SHORT;
-      case "int": return FieldTypeId.INTEGER;
-      case "integer": return FieldTypeId.INTEGER;
-      case "bigint": return FieldTypeId.LONG;
-      case "float": return FieldTypeId.FLOAT;
-      case "double": return FieldTypeId.DOUBLE;
-      case "decimal": return FieldTypeId.DECIMAL;
-      case "numeric": return FieldTypeId.DECIMAL;
-      case "date": return FieldTypeId.DATE;
-      case "timestamp": return FieldTypeId.TIMESTAMP;
-      case "string": return FieldTypeId.STRING;
-      case "char": return FieldTypeId.STRING;
-      case "varchar": return FieldTypeId.STRING;
-      case "binary": return FieldTypeId.BINARY;
-      default: // fall through
-    }
-    if (hiveType.startsWith("map<")) {
-      return FieldTypeId.MAP;
-    } else if (hiveType.startsWith("struct<")) {
-      return FieldTypeId.STRUCT;
-    } else if (hiveType.startsWith("decimal(")) {
-      return FieldTypeId.DECIMAL;
-    }
-    throw new IllegalArgumentException("Unsupported hive type: " + hiveType);
-  }
-
   private static final BiMap<PrimitiveType.PrimitiveTypeName, PrimitiveTypeName> TYPEMAP
       = new ImmutableBiMap.Builder<PrimitiveType.PrimitiveTypeName, PrimitiveTypeName>()
       .put(PrimitiveType.PrimitiveTypeName.BINARY, PrimitiveTypeName.PARQUETTYPE_BINARY)
@@ -424,7 +393,6 @@ public class HiveUtils {
             chunkMetaData.getPath().getPathSegmentList().toArray(new String[0])),
         TYPEMAP.inverse().get(chunkMetaData.getType()),
         CODECMAP.inverse().get(chunkMetaData.getCodec()),
-        null,
         chunkMetaData.getEncodingsList().stream().map(
             (x) -> ENCODINGMAP.inverse().get(x)).collect(Collectors.toSet()),
         null,

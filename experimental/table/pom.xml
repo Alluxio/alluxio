@@ -34,7 +34,6 @@
          properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
     <hive-metastore.verison>2.3.6</hive-metastore.verison>
-    <iceberg.version>8c0f53bb</iceberg.version>
   </properties>
 
   <dependencyManagement>
@@ -48,21 +47,6 @@
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-metastore</artifactId>
         <version>${hive-metastore.verison}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.github.apache.incubator-iceberg</groupId>
-        <artifactId>iceberg-api</artifactId>
-        <version>${iceberg.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.github.apache.incubator-iceberg</groupId>
-        <artifactId>iceberg-core</artifactId>
-        <version>${iceberg.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.github.apache.incubator-iceberg</groupId>
-        <artifactId>iceberg-parquet</artifactId>
-        <version>${iceberg.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

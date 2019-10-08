@@ -15,23 +15,14 @@ import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.catalog.TableInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.wire.MountPointInfo;
 import alluxio.worker.file.FileSystemMasterClient;
 
-import org.apache.iceberg.Schema;
-import org.apache.iceberg.types.Types;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Integration tests for the Catalog Master Client.
@@ -60,23 +51,5 @@ public final class CatalogMasterClientTest extends BaseIntegrationTest {
     mCatalogMasterClient.close();
   }
 
-  // TODO(gpang): re-enable later
-  /**
-   * Tests catalog service table metadata operation.
-   */
-  public void tableOps() throws Exception {
-    Map<String, MountPointInfo> test = mFileSystem.getMountTable();
-    List<String> dbs = mCatalogMasterClient.getAllDatabases();
-    Assert.assertEquals(0, dbs.size());
-    mCatalogMasterClient.createDatabase("test1", Collections.emptyMap());
-    dbs = mCatalogMasterClient.getAllDatabases();
-    Assert.assertEquals(1, dbs.size());
-    Assert.assertEquals(dbs.get(0), "test1");
-    Schema schema = new Schema(Types.NestedField.optional(0, "id", Types.IntegerType.get()));
-
-    TableInfo table = mCatalogMasterClient.createTable("test1", "table1", schema);
-    Assert.assertEquals(test.get("/").getUfsUri() + "/catalog-metadata/test1.db/table1",
-        table.getBaseLocation());
-    Assert.assertEquals(1, table.getSchema().getColsCount());
-  }
+  // TODO(david): write tests
 }

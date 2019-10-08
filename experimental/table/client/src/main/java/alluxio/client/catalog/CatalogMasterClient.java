@@ -21,8 +21,6 @@ import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.TableInfo;
 import alluxio.master.MasterClientContext;
 
-import org.apache.iceberg.Schema;
-
 import java.util.List;
 import java.util.Map;
 
@@ -98,29 +96,6 @@ public interface CatalogMasterClient extends Client {
    * @throws AlluxioStatusException
    */
   boolean attachDatabase(String dbName, String dbType, Map<String, String> configuration)
-      throws AlluxioStatusException;
-
-  /**
-   * Create database with given schema.
-   *
-   * @param databaseName database name
-   * @param configuration the configuration
-   * @return true if database created successfully
-   * @throws AlluxioStatusException
-   */
-  boolean createDatabase(String databaseName, Map<String, String> configuration)
-      throws AlluxioStatusException;
-
-  /**
-   * Create table with given schema.
-   *
-   * @param dbName database name
-   * @param tableName table name
-   * @param schema database schema
-   * @return table info object
-   * @throws AlluxioStatusException
-   */
-  TableInfo createTable(String dbName, String tableName, Schema schema)
       throws AlluxioStatusException;
 
   /**

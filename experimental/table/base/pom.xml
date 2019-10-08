@@ -22,10 +22,6 @@
         <artifactId>alluxio-core-transport</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.github.apache.incubator-iceberg</groupId>
-        <artifactId>iceberg-api</artifactId>
-      </dependency>
     </dependencies>
   <parent>
     <groupId>org.alluxio</groupId>
