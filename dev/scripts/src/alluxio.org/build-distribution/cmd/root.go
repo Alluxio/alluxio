@@ -38,6 +38,8 @@ func checkRootFlags() error {
 	return nil
 }
 
+// common flags that are used regardless of subcommand type
+// these flags provide additional settings unrelated to tarball generation
 func additionalFlags(cmd *flag.FlagSet) {
 	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
 	cmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
