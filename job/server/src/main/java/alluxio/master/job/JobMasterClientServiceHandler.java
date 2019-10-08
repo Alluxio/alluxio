@@ -69,9 +69,9 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void getJobServiceSummary(GetJobServiceSummaryPRequest request,
-     StreamObserver<GetJobServiceSummaryPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobServiceSummaryPResponse>) () -> {
-      return GetJobServiceSummaryPResponse.newBuilder()
+      StreamObserver<GetJobServiceSummaryPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobServiceSummaryPResponse>)
+      () -> { return GetJobServiceSummaryPResponse.newBuilder()
               .setSummary(mJobMaster.getSummary().toProto()).build();
     }, "getJobServiceSummary", "request=%s", responseObserver, request);
   }
