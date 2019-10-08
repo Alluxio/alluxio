@@ -38,7 +38,7 @@ func Release(args []string) error {
 	releaseCmd := flag.NewFlagSet("release", flag.ExitOnError)
 	// flags
 	releaseCmd.StringVar(&hadoopDistributionsFlag, "hadoop-distributions", strings.Join(validHadoopDistributions(), ","), "a comma-separated list of hadoop distributions to generate Alluxio clients for")
-	generateCommands(releaseCmd)
+	generateFlags(releaseCmd)
 	additionalFlags(releaseCmd)
 	releaseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
