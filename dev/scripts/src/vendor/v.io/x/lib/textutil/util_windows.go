@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+// +build windows
 
-import (
-	"os"
-)
+package textutil
 
-func main() {
-	os.Exit(1)
+import "fmt"
+
+func TerminalSize() (row, col int, _ error) {
+	return 0, 0, fmt.Errorf("not implemented")
 }

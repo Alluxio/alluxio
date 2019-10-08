@@ -1,0 +1,18 @@
+pkg metadata, func FromBase64([]byte) (*T, error)
+pkg metadata, func FromMap(map[string]string) *T
+pkg metadata, func FromXML([]byte) (*T, error)
+pkg metadata, func Insert(string, string) string
+pkg metadata, func LDFlag(*T) string
+pkg metadata, func LDFlagExternal(string, string, *T) string
+pkg metadata, func Lookup(string) string
+pkg metadata, func ToBase64() string
+pkg metadata, func ToMap() map[string]string
+pkg metadata, func ToXML() string
+pkg metadata, method (*T) Insert(string, string) string
+pkg metadata, method (*T) Lookup(string) string
+pkg metadata, method (*T) String() string
+pkg metadata, method (*T) ToBase64() string
+pkg metadata, method (*T) ToMap() map[string]string
+pkg metadata, method (*T) ToXML() string
+pkg metadata, type T struct
+pkg metadata, var BuiltIn T

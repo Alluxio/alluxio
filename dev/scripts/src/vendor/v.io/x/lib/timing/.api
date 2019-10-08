@@ -1,0 +1,21 @@
+pkg timing, const InvalidDuration time.Duration
+pkg timing, func NewTimer(string) *Timer
+pkg timing, method (*Timer) Finish()
+pkg timing, method (*Timer) Now() time.Duration
+pkg timing, method (*Timer) Pop()
+pkg timing, method (*Timer) Push(string)
+pkg timing, method (*Timer) String() string
+pkg timing, method (IntervalPrinter) Print(io.Writer, []Interval, time.Duration) error
+pkg timing, type Interval struct
+pkg timing, type Interval struct, Depth int
+pkg timing, type Interval struct, End time.Duration
+pkg timing, type Interval struct, Name string
+pkg timing, type Interval struct, Start time.Duration
+pkg timing, type IntervalPrinter struct
+pkg timing, type IntervalPrinter struct, Indent int
+pkg timing, type IntervalPrinter struct, MinGap time.Duration
+pkg timing, type IntervalPrinter struct, TimeFormat string
+pkg timing, type IntervalPrinter struct, Zero time.Time
+pkg timing, type Timer struct
+pkg timing, type Timer struct, Intervals []Interval
+pkg timing, type Timer struct, Zero time.Time
