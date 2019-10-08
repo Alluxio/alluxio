@@ -15,7 +15,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -88,7 +87,8 @@ public final class JobServiceSummary {
    * @return proto representation of the job service summary
    */
   public alluxio.grpc.JobServiceSummary toProto() {
-    alluxio.grpc.JobServiceSummary.Builder jobServiceBuilder = alluxio.grpc.JobServiceSummary.newBuilder();
+    alluxio.grpc.JobServiceSummary.Builder jobServiceBuilder =
+          alluxio.grpc.JobServiceSummary.newBuilder();
     for (StatusSummary statusSummary : mSummaryPerStatus) {
       jobServiceBuilder.addSummaryPerStatus(statusSummary.toProto());
     }

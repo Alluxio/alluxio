@@ -66,11 +66,10 @@ public class StatusSummary {
    */
   public alluxio.grpc.StatusSummary toProto() {
     alluxio.grpc.StatusSummary.Builder jobServiceBuilder = alluxio.grpc.StatusSummary.newBuilder()
-      .setStatus(mStatus.toProto()).setCount(mCount);
+          .setStatus(mStatus.toProto()).setCount(mCount);
 
     return jobServiceBuilder.build();
   }
-
 
   @Override
   public boolean equals(Object o) {
