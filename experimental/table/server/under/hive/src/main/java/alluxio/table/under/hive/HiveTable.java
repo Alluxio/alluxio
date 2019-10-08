@@ -19,7 +19,6 @@ import alluxio.grpc.catalog.ParquetMetadata;
 import alluxio.grpc.catalog.PartitionInfo;
 import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.UdbTableInfo;
-import alluxio.table.common.TableView;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.under.hive.util.PathTranslator;
@@ -101,16 +100,6 @@ public class HiveTable implements UdbTable {
   @Override
   public Schema getSchema() {
     return mSchema;
-  }
-
-  @Override
-  public TableView getView() {
-    return new HiveTableView(mBaseLocation, mStatistics, mPartitionKeys);
-  }
-
-  @Override
-  public String getBaseLocation() {
-    return mBaseLocation;
   }
 
   @Override

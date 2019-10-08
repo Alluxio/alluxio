@@ -131,7 +131,7 @@ public class AlluxioCatalog {
       List<String> colNames)
       throws IOException {
     Table table = getTable(dbName, tableName);
-    return table.get().getStatistics().stream()
+    return table.getStatistics().stream()
         .filter(info -> colNames.contains(info.getColName())).collect(Collectors.toList());
   }
 
