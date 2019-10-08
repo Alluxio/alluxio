@@ -254,7 +254,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 
 func generateTarball(hadoopClients []string) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
-	fmt.Println(hadoopDistributionFlag)
 	if !ok {
 		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistributionFlag)
 	}
