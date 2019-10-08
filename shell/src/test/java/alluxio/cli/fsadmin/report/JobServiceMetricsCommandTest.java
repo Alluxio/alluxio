@@ -64,10 +64,10 @@ public class JobServiceMetricsCommandTest {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
 
     Assert.assertEquals("Status: CREATED   Count: 0\n"
-      + "Status: CANCELED  Count: 1\n"
-      + "Status: FAILED    Count: 0\n"
-      + "Status: RUNNING   Count: 1\n"
-      + "Status: COMPLETED Count: 0\n", output);
+        + "Status: CANCELED  Count: 1\n"
+        + "Status: FAILED    Count: 0\n"
+        + "Status: RUNNING   Count: 1\n"
+        + "Status: COMPLETED Count: 0\n", output);
   }
 
   private JobInfo createJobInfoWithStatus(Status status) {
