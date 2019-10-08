@@ -181,7 +181,7 @@ You can see that the log files are put into different folders according to their
 in the folder `master`, worker logs are put in folder `worker`, etc. Within each folder, log files from
 different workers are distinguished by the IP/hostname of the machine on which the server has been running.
 
-#### Control Remote Logging Behavior with `log4j.properties`
+### Control Remote Logging Behavior with `log4j.properties`
 
 The remote log server uses the default threshold of `WARN`, which means log4j levels below `WARN` will not be sent to the remote log server.
 This can be finer tuned by modifying `${ALLUXIO_HOME}/conf/log4j.properties`.
