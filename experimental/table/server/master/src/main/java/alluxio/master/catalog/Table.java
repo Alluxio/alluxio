@@ -11,6 +11,8 @@
 
 package alluxio.master.catalog;
 
+import alluxio.grpc.catalog.ColumnStatisticsInfo;
+import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.TableInfo;
 import alluxio.table.common.udb.UdbTable;
 
@@ -25,8 +27,8 @@ import java.util.stream.Collectors;
 public class Table {
   private final String mName;
   private final Database mDatabase;
+  private final Schema mSchema;
   private final UdbTable mUdbTable;
-  private final ArrayList<TableVersion> mVersions;
   // TODO(gpang): this should be indexable by partition spec
   private final ArrayList<Partition> mPartitions;
 
@@ -34,7 +36,7 @@ public class Table {
     mDatabase = database;
     mUdbTable = udbTable;
     mName = mUdbTable.getName();
-    mVersions = new ArrayList<>(2);
+    mSchema = mUdbTable.getSchema();
     mPartitions = new ArrayList<>(2);
     mPartitions.addAll(partitions);
   }
@@ -47,30 +49,7 @@ public class Table {
   public static Table create(Database database, UdbTable udbTable) throws IOException {
     List<Partition> partitions =
         udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
-    Table table = new Table(database, udbTable, partitions);
-
-    // add initial version of table
-    TableVersion tableVersion = new TableVersion(table, udbTable.getSchema());
-    tableVersion.addView(TableVersion.DEFAULT_VIEW_NAME, udbTable.getView());
-    table.addVersion(tableVersion);
-    return table;
-  }
-
-  /**
-   * @return the latest version of the table
-   */
-  public TableVersion get() {
-    // TODO(gpang): better version number management
-    synchronized (mVersions) {
-      return mVersions.get(mVersions.size() - 1);
-    }
-  }
-
-  /**
-   * @return the database
-   */
-  public Database getDatabase() {
-    return mDatabase;
+    return new Table(database, udbTable, partitions);
   }
 
   /**
@@ -88,14 +67,17 @@ public class Table {
   }
 
   /**
-   * Adds a new version to the table.
-   *
-   * @param tableVersion the new table version
+   * @return the table schema
    */
-  private void addVersion(TableVersion tableVersion) {
-    synchronized (mVersions) {
-      mVersions.add(tableVersion);
-    }
+  public Schema getSchema() {
+    return mSchema;
+  }
+
+  /**
+   * @return the statistics
+   */
+  public List<ColumnStatisticsInfo> getStatistics() {
+    return mUdbTable.getStatistics();
   }
 
   /**
@@ -111,6 +93,12 @@ public class Table {
    * @return the proto representation
    */
   public TableInfo toProto() throws IOException {
-    return get().toProto();
+    TableInfo.Builder builder = TableInfo.newBuilder()
+        .setDbName(mDatabase.getName())
+        .setTableName(mName)
+        .setSchema(mSchema);
+
+    builder.setUdbInfo(mUdbTable.toProto());
+    return builder.build();
   }
 }

@@ -19,9 +19,7 @@ private static final long serialVersionUID = 0L;
     tableName_ = "";
     dbName_ = "";
     type_ = 0;
-    baseLocation_ = "";
     version_ = 0;
-    views_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -78,20 +76,14 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 34: {
-            com.google.protobuf.ByteString bs = input.readBytes();
+          case 32: {
             bitField0_ |= 0x00000008;
-            baseLocation_ = bs;
-            break;
-          }
-          case 40: {
-            bitField0_ |= 0x00000010;
             version_ = input.readUInt32();
             break;
           }
-          case 50: {
+          case 42: {
             alluxio.grpc.catalog.Schema.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000020) == 0x00000020)) {
+            if (((bitField0_ & 0x00000010) == 0x00000010)) {
               subBuilder = schema_.toBuilder();
             }
             schema_ = input.readMessage(alluxio.grpc.catalog.Schema.PARSER, extensionRegistry);
@@ -99,21 +91,12 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(schema_);
               schema_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x00000020;
+            bitField0_ |= 0x00000010;
             break;
           }
-          case 58: {
-            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
-              views_ = new java.util.ArrayList<alluxio.grpc.catalog.TableViewInfo>();
-              mutable_bitField0_ |= 0x00000040;
-            }
-            views_.add(
-                input.readMessage(alluxio.grpc.catalog.TableViewInfo.PARSER, extensionRegistry));
-            break;
-          }
-          case 66: {
+          case 50: {
             alluxio.grpc.catalog.UdbTableInfo.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000040) == 0x00000040)) {
+            if (((bitField0_ & 0x00000020) == 0x00000020)) {
               subBuilder = udbInfo_.toBuilder();
             }
             udbInfo_ = input.readMessage(alluxio.grpc.catalog.UdbTableInfo.PARSER, extensionRegistry);
@@ -121,7 +104,7 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(udbInfo_);
               udbInfo_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x00000040;
+            bitField0_ |= 0x00000020;
             break;
           }
         }
@@ -132,9 +115,6 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
-        views_ = java.util.Collections.unmodifiableList(views_);
-      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -358,135 +338,58 @@ private static final long serialVersionUID = 0L;
     return result == null ? alluxio.grpc.catalog.TableInfo.TableType.NATIVE : result;
   }
 
-  public static final int BASE_LOCATION_FIELD_NUMBER = 4;
-  private volatile java.lang.Object baseLocation_;
+  public static final int VERSION_FIELD_NUMBER = 4;
+  private int version_;
   /**
-   * <code>optional string base_location = 4;</code>
+   * <code>optional uint32 version = 4;</code>
    */
-  public boolean hasBaseLocation() {
+  public boolean hasVersion() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <code>optional string base_location = 4;</code>
-   */
-  public java.lang.String getBaseLocation() {
-    java.lang.Object ref = baseLocation_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        baseLocation_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string base_location = 4;</code>
-   */
-  public com.google.protobuf.ByteString
-      getBaseLocationBytes() {
-    java.lang.Object ref = baseLocation_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      baseLocation_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int VERSION_FIELD_NUMBER = 5;
-  private int version_;
-  /**
-   * <code>optional uint32 version = 5;</code>
-   */
-  public boolean hasVersion() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
-  }
-  /**
-   * <code>optional uint32 version = 5;</code>
+   * <code>optional uint32 version = 4;</code>
    */
   public int getVersion() {
     return version_;
   }
 
-  public static final int SCHEMA_FIELD_NUMBER = 6;
+  public static final int SCHEMA_FIELD_NUMBER = 5;
   private alluxio.grpc.catalog.Schema schema_;
   /**
-   * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
    */
   public boolean hasSchema() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
+    return ((bitField0_ & 0x00000010) == 0x00000010);
   }
   /**
-   * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
    */
   public alluxio.grpc.catalog.Schema getSchema() {
     return schema_ == null ? alluxio.grpc.catalog.Schema.getDefaultInstance() : schema_;
   }
   /**
-   * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
    */
   public alluxio.grpc.catalog.SchemaOrBuilder getSchemaOrBuilder() {
     return schema_ == null ? alluxio.grpc.catalog.Schema.getDefaultInstance() : schema_;
   }
 
-  public static final int VIEWS_FIELD_NUMBER = 7;
-  private java.util.List<alluxio.grpc.catalog.TableViewInfo> views_;
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  public java.util.List<alluxio.grpc.catalog.TableViewInfo> getViewsList() {
-    return views_;
-  }
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  public java.util.List<? extends alluxio.grpc.catalog.TableViewInfoOrBuilder> 
-      getViewsOrBuilderList() {
-    return views_;
-  }
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  public int getViewsCount() {
-    return views_.size();
-  }
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  public alluxio.grpc.catalog.TableViewInfo getViews(int index) {
-    return views_.get(index);
-  }
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  public alluxio.grpc.catalog.TableViewInfoOrBuilder getViewsOrBuilder(
-      int index) {
-    return views_.get(index);
-  }
-
-  public static final int UDB_INFO_FIELD_NUMBER = 8;
+  public static final int UDB_INFO_FIELD_NUMBER = 6;
   private alluxio.grpc.catalog.UdbTableInfo udbInfo_;
   /**
-   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
    */
   public boolean hasUdbInfo() {
-    return ((bitField0_ & 0x00000040) == 0x00000040);
+    return ((bitField0_ & 0x00000020) == 0x00000020);
   }
   /**
-   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
    */
   public alluxio.grpc.catalog.UdbTableInfo getUdbInfo() {
     return udbInfo_ == null ? alluxio.grpc.catalog.UdbTableInfo.getDefaultInstance() : udbInfo_;
   }
   /**
-   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
    */
   public alluxio.grpc.catalog.UdbTableInfoOrBuilder getUdbInfoOrBuilder() {
     return udbInfo_ == null ? alluxio.grpc.catalog.UdbTableInfo.getDefaultInstance() : udbInfo_;
@@ -520,19 +423,13 @@ private static final long serialVersionUID = 0L;
       output.writeEnum(3, type_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, baseLocation_);
+      output.writeUInt32(4, version_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      output.writeUInt32(5, version_);
+      output.writeMessage(5, getSchema());
     }
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
-      output.writeMessage(6, getSchema());
-    }
-    for (int i = 0; i < views_.size(); i++) {
-      output.writeMessage(7, views_.get(i));
-    }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
-      output.writeMessage(8, getUdbInfo());
+      output.writeMessage(6, getUdbInfo());
     }
     unknownFields.writeTo(output);
   }
@@ -553,23 +450,16 @@ private static final long serialVersionUID = 0L;
         .computeEnumSize(3, type_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, baseLocation_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeUInt32Size(4, version_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeUInt32Size(5, version_);
+        .computeMessageSize(5, getSchema());
     }
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(6, getSchema());
-    }
-    for (int i = 0; i < views_.size(); i++) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(7, views_.get(i));
-    }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(8, getUdbInfo());
+        .computeMessageSize(6, getUdbInfo());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -601,11 +491,6 @@ private static final long serialVersionUID = 0L;
     if (hasType()) {
       result = result && type_ == other.type_;
     }
-    result = result && (hasBaseLocation() == other.hasBaseLocation());
-    if (hasBaseLocation()) {
-      result = result && getBaseLocation()
-          .equals(other.getBaseLocation());
-    }
     result = result && (hasVersion() == other.hasVersion());
     if (hasVersion()) {
       result = result && (getVersion()
@@ -616,8 +501,6 @@ private static final long serialVersionUID = 0L;
       result = result && getSchema()
           .equals(other.getSchema());
     }
-    result = result && getViewsList()
-        .equals(other.getViewsList());
     result = result && (hasUdbInfo() == other.hasUdbInfo());
     if (hasUdbInfo()) {
       result = result && getUdbInfo()
@@ -646,10 +529,6 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
       hash = (53 * hash) + type_;
     }
-    if (hasBaseLocation()) {
-      hash = (37 * hash) + BASE_LOCATION_FIELD_NUMBER;
-      hash = (53 * hash) + getBaseLocation().hashCode();
-    }
     if (hasVersion()) {
       hash = (37 * hash) + VERSION_FIELD_NUMBER;
       hash = (53 * hash) + getVersion();
@@ -657,10 +536,6 @@ private static final long serialVersionUID = 0L;
     if (hasSchema()) {
       hash = (37 * hash) + SCHEMA_FIELD_NUMBER;
       hash = (53 * hash) + getSchema().hashCode();
-    }
-    if (getViewsCount() > 0) {
-      hash = (37 * hash) + VIEWS_FIELD_NUMBER;
-      hash = (53 * hash) + getViewsList().hashCode();
     }
     if (hasUdbInfo()) {
       hash = (37 * hash) + UDB_INFO_FIELD_NUMBER;
@@ -792,7 +667,6 @@ private static final long serialVersionUID = 0L;
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
         getSchemaFieldBuilder();
-        getViewsFieldBuilder();
         getUdbInfoFieldBuilder();
       }
     }
@@ -804,28 +678,20 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       type_ = 0;
       bitField0_ = (bitField0_ & ~0x00000004);
-      baseLocation_ = "";
-      bitField0_ = (bitField0_ & ~0x00000008);
       version_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000008);
       if (schemaBuilder_ == null) {
         schema_ = null;
       } else {
         schemaBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000020);
-      if (viewsBuilder_ == null) {
-        views_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000040);
-      } else {
-        viewsBuilder_.clear();
-      }
+      bitField0_ = (bitField0_ & ~0x00000010);
       if (udbInfoBuilder_ == null) {
         udbInfo_ = null;
       } else {
         udbInfoBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000080);
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
 
@@ -865,30 +731,17 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
       }
-      result.baseLocation_ = baseLocation_;
+      result.version_ = version_;
       if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
         to_bitField0_ |= 0x00000010;
-      }
-      result.version_ = version_;
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
-        to_bitField0_ |= 0x00000020;
       }
       if (schemaBuilder_ == null) {
         result.schema_ = schema_;
       } else {
         result.schema_ = schemaBuilder_.build();
       }
-      if (viewsBuilder_ == null) {
-        if (((bitField0_ & 0x00000040) == 0x00000040)) {
-          views_ = java.util.Collections.unmodifiableList(views_);
-          bitField0_ = (bitField0_ & ~0x00000040);
-        }
-        result.views_ = views_;
-      } else {
-        result.views_ = viewsBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
-        to_bitField0_ |= 0x00000040;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000020;
       }
       if (udbInfoBuilder_ == null) {
         result.udbInfo_ = udbInfo_;
@@ -950,42 +803,11 @@ private static final long serialVersionUID = 0L;
       if (other.hasType()) {
         setType(other.getType());
       }
-      if (other.hasBaseLocation()) {
-        bitField0_ |= 0x00000008;
-        baseLocation_ = other.baseLocation_;
-        onChanged();
-      }
       if (other.hasVersion()) {
         setVersion(other.getVersion());
       }
       if (other.hasSchema()) {
         mergeSchema(other.getSchema());
-      }
-      if (viewsBuilder_ == null) {
-        if (!other.views_.isEmpty()) {
-          if (views_.isEmpty()) {
-            views_ = other.views_;
-            bitField0_ = (bitField0_ & ~0x00000040);
-          } else {
-            ensureViewsIsMutable();
-            views_.addAll(other.views_);
-          }
-          onChanged();
-        }
-      } else {
-        if (!other.views_.isEmpty()) {
-          if (viewsBuilder_.isEmpty()) {
-            viewsBuilder_.dispose();
-            viewsBuilder_ = null;
-            views_ = other.views_;
-            bitField0_ = (bitField0_ & ~0x00000040);
-            viewsBuilder_ = 
-              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getViewsFieldBuilder() : null;
-          } else {
-            viewsBuilder_.addAllMessages(other.views_);
-          }
-        }
       }
       if (other.hasUdbInfo()) {
         mergeUdbInfo(other.getUdbInfo());
@@ -1211,109 +1033,33 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object baseLocation_ = "";
+    private int version_ ;
     /**
-     * <code>optional string base_location = 4;</code>
+     * <code>optional uint32 version = 4;</code>
      */
-    public boolean hasBaseLocation() {
+    public boolean hasVersion() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional string base_location = 4;</code>
-     */
-    public java.lang.String getBaseLocation() {
-      java.lang.Object ref = baseLocation_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          baseLocation_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>optional string base_location = 4;</code>
-     */
-    public com.google.protobuf.ByteString
-        getBaseLocationBytes() {
-      java.lang.Object ref = baseLocation_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        baseLocation_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string base_location = 4;</code>
-     */
-    public Builder setBaseLocation(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000008;
-      baseLocation_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string base_location = 4;</code>
-     */
-    public Builder clearBaseLocation() {
-      bitField0_ = (bitField0_ & ~0x00000008);
-      baseLocation_ = getDefaultInstance().getBaseLocation();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string base_location = 4;</code>
-     */
-    public Builder setBaseLocationBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000008;
-      baseLocation_ = value;
-      onChanged();
-      return this;
-    }
-
-    private int version_ ;
-    /**
-     * <code>optional uint32 version = 5;</code>
-     */
-    public boolean hasVersion() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    /**
-     * <code>optional uint32 version = 5;</code>
+     * <code>optional uint32 version = 4;</code>
      */
     public int getVersion() {
       return version_;
     }
     /**
-     * <code>optional uint32 version = 5;</code>
+     * <code>optional uint32 version = 4;</code>
      */
     public Builder setVersion(int value) {
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000008;
       version_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional uint32 version = 5;</code>
+     * <code>optional uint32 version = 4;</code>
      */
     public Builder clearVersion() {
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000008);
       version_ = 0;
       onChanged();
       return this;
@@ -1323,13 +1069,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.catalog.Schema, alluxio.grpc.catalog.Schema.Builder, alluxio.grpc.catalog.SchemaOrBuilder> schemaBuilder_;
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     public boolean hasSchema() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     public alluxio.grpc.catalog.Schema getSchema() {
       if (schemaBuilder_ == null) {
@@ -1339,7 +1085,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     public Builder setSchema(alluxio.grpc.catalog.Schema value) {
       if (schemaBuilder_ == null) {
@@ -1351,11 +1097,11 @@ private static final long serialVersionUID = 0L;
       } else {
         schemaBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x00000020;
+      bitField0_ |= 0x00000010;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     public Builder setSchema(
         alluxio.grpc.catalog.Schema.Builder builderForValue) {
@@ -1365,15 +1111,15 @@ private static final long serialVersionUID = 0L;
       } else {
         schemaBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x00000020;
+      bitField0_ |= 0x00000010;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     public Builder mergeSchema(alluxio.grpc.catalog.Schema value) {
       if (schemaBuilder_ == null) {
-        if (((bitField0_ & 0x00000020) == 0x00000020) &&
+        if (((bitField0_ & 0x00000010) == 0x00000010) &&
             schema_ != null &&
             schema_ != alluxio.grpc.catalog.Schema.getDefaultInstance()) {
           schema_ =
@@ -1385,11 +1131,11 @@ private static final long serialVersionUID = 0L;
       } else {
         schemaBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x00000020;
+      bitField0_ |= 0x00000010;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     public Builder clearSchema() {
       if (schemaBuilder_ == null) {
@@ -1398,19 +1144,19 @@ private static final long serialVersionUID = 0L;
       } else {
         schemaBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000020);
+      bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     public alluxio.grpc.catalog.Schema.Builder getSchemaBuilder() {
-      bitField0_ |= 0x00000020;
+      bitField0_ |= 0x00000010;
       onChanged();
       return getSchemaFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     public alluxio.grpc.catalog.SchemaOrBuilder getSchemaOrBuilder() {
       if (schemaBuilder_ != null) {
@@ -1421,7 +1167,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.catalog.Schema, alluxio.grpc.catalog.Schema.Builder, alluxio.grpc.catalog.SchemaOrBuilder> 
@@ -1437,257 +1183,17 @@ private static final long serialVersionUID = 0L;
       return schemaBuilder_;
     }
 
-    private java.util.List<alluxio.grpc.catalog.TableViewInfo> views_ =
-      java.util.Collections.emptyList();
-    private void ensureViewsIsMutable() {
-      if (!((bitField0_ & 0x00000040) == 0x00000040)) {
-        views_ = new java.util.ArrayList<alluxio.grpc.catalog.TableViewInfo>(views_);
-        bitField0_ |= 0x00000040;
-       }
-    }
-
-    private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.catalog.TableViewInfo, alluxio.grpc.catalog.TableViewInfo.Builder, alluxio.grpc.catalog.TableViewInfoOrBuilder> viewsBuilder_;
-
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public java.util.List<alluxio.grpc.catalog.TableViewInfo> getViewsList() {
-      if (viewsBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(views_);
-      } else {
-        return viewsBuilder_.getMessageList();
-      }
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public int getViewsCount() {
-      if (viewsBuilder_ == null) {
-        return views_.size();
-      } else {
-        return viewsBuilder_.getCount();
-      }
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public alluxio.grpc.catalog.TableViewInfo getViews(int index) {
-      if (viewsBuilder_ == null) {
-        return views_.get(index);
-      } else {
-        return viewsBuilder_.getMessage(index);
-      }
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder setViews(
-        int index, alluxio.grpc.catalog.TableViewInfo value) {
-      if (viewsBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureViewsIsMutable();
-        views_.set(index, value);
-        onChanged();
-      } else {
-        viewsBuilder_.setMessage(index, value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder setViews(
-        int index, alluxio.grpc.catalog.TableViewInfo.Builder builderForValue) {
-      if (viewsBuilder_ == null) {
-        ensureViewsIsMutable();
-        views_.set(index, builderForValue.build());
-        onChanged();
-      } else {
-        viewsBuilder_.setMessage(index, builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder addViews(alluxio.grpc.catalog.TableViewInfo value) {
-      if (viewsBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureViewsIsMutable();
-        views_.add(value);
-        onChanged();
-      } else {
-        viewsBuilder_.addMessage(value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder addViews(
-        int index, alluxio.grpc.catalog.TableViewInfo value) {
-      if (viewsBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureViewsIsMutable();
-        views_.add(index, value);
-        onChanged();
-      } else {
-        viewsBuilder_.addMessage(index, value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder addViews(
-        alluxio.grpc.catalog.TableViewInfo.Builder builderForValue) {
-      if (viewsBuilder_ == null) {
-        ensureViewsIsMutable();
-        views_.add(builderForValue.build());
-        onChanged();
-      } else {
-        viewsBuilder_.addMessage(builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder addViews(
-        int index, alluxio.grpc.catalog.TableViewInfo.Builder builderForValue) {
-      if (viewsBuilder_ == null) {
-        ensureViewsIsMutable();
-        views_.add(index, builderForValue.build());
-        onChanged();
-      } else {
-        viewsBuilder_.addMessage(index, builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder addAllViews(
-        java.lang.Iterable<? extends alluxio.grpc.catalog.TableViewInfo> values) {
-      if (viewsBuilder_ == null) {
-        ensureViewsIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, views_);
-        onChanged();
-      } else {
-        viewsBuilder_.addAllMessages(values);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder clearViews() {
-      if (viewsBuilder_ == null) {
-        views_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000040);
-        onChanged();
-      } else {
-        viewsBuilder_.clear();
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public Builder removeViews(int index) {
-      if (viewsBuilder_ == null) {
-        ensureViewsIsMutable();
-        views_.remove(index);
-        onChanged();
-      } else {
-        viewsBuilder_.remove(index);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public alluxio.grpc.catalog.TableViewInfo.Builder getViewsBuilder(
-        int index) {
-      return getViewsFieldBuilder().getBuilder(index);
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public alluxio.grpc.catalog.TableViewInfoOrBuilder getViewsOrBuilder(
-        int index) {
-      if (viewsBuilder_ == null) {
-        return views_.get(index);  } else {
-        return viewsBuilder_.getMessageOrBuilder(index);
-      }
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public java.util.List<? extends alluxio.grpc.catalog.TableViewInfoOrBuilder> 
-         getViewsOrBuilderList() {
-      if (viewsBuilder_ != null) {
-        return viewsBuilder_.getMessageOrBuilderList();
-      } else {
-        return java.util.Collections.unmodifiableList(views_);
-      }
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public alluxio.grpc.catalog.TableViewInfo.Builder addViewsBuilder() {
-      return getViewsFieldBuilder().addBuilder(
-          alluxio.grpc.catalog.TableViewInfo.getDefaultInstance());
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public alluxio.grpc.catalog.TableViewInfo.Builder addViewsBuilder(
-        int index) {
-      return getViewsFieldBuilder().addBuilder(
-          index, alluxio.grpc.catalog.TableViewInfo.getDefaultInstance());
-    }
-    /**
-     * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-     */
-    public java.util.List<alluxio.grpc.catalog.TableViewInfo.Builder> 
-         getViewsBuilderList() {
-      return getViewsFieldBuilder().getBuilderList();
-    }
-    private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.catalog.TableViewInfo, alluxio.grpc.catalog.TableViewInfo.Builder, alluxio.grpc.catalog.TableViewInfoOrBuilder> 
-        getViewsFieldBuilder() {
-      if (viewsBuilder_ == null) {
-        viewsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            alluxio.grpc.catalog.TableViewInfo, alluxio.grpc.catalog.TableViewInfo.Builder, alluxio.grpc.catalog.TableViewInfoOrBuilder>(
-                views_,
-                ((bitField0_ & 0x00000040) == 0x00000040),
-                getParentForChildren(),
-                isClean());
-        views_ = null;
-      }
-      return viewsBuilder_;
-    }
-
     private alluxio.grpc.catalog.UdbTableInfo udbInfo_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.catalog.UdbTableInfo, alluxio.grpc.catalog.UdbTableInfo.Builder, alluxio.grpc.catalog.UdbTableInfoOrBuilder> udbInfoBuilder_;
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     public boolean hasUdbInfo() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     public alluxio.grpc.catalog.UdbTableInfo getUdbInfo() {
       if (udbInfoBuilder_ == null) {
@@ -1697,7 +1203,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     public Builder setUdbInfo(alluxio.grpc.catalog.UdbTableInfo value) {
       if (udbInfoBuilder_ == null) {
@@ -1709,11 +1215,11 @@ private static final long serialVersionUID = 0L;
       } else {
         udbInfoBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x00000080;
+      bitField0_ |= 0x00000020;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     public Builder setUdbInfo(
         alluxio.grpc.catalog.UdbTableInfo.Builder builderForValue) {
@@ -1723,15 +1229,15 @@ private static final long serialVersionUID = 0L;
       } else {
         udbInfoBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x00000080;
+      bitField0_ |= 0x00000020;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     public Builder mergeUdbInfo(alluxio.grpc.catalog.UdbTableInfo value) {
       if (udbInfoBuilder_ == null) {
-        if (((bitField0_ & 0x00000080) == 0x00000080) &&
+        if (((bitField0_ & 0x00000020) == 0x00000020) &&
             udbInfo_ != null &&
             udbInfo_ != alluxio.grpc.catalog.UdbTableInfo.getDefaultInstance()) {
           udbInfo_ =
@@ -1743,11 +1249,11 @@ private static final long serialVersionUID = 0L;
       } else {
         udbInfoBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x00000080;
+      bitField0_ |= 0x00000020;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     public Builder clearUdbInfo() {
       if (udbInfoBuilder_ == null) {
@@ -1756,19 +1262,19 @@ private static final long serialVersionUID = 0L;
       } else {
         udbInfoBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000080);
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     public alluxio.grpc.catalog.UdbTableInfo.Builder getUdbInfoBuilder() {
-      bitField0_ |= 0x00000080;
+      bitField0_ |= 0x00000020;
       onChanged();
       return getUdbInfoFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     public alluxio.grpc.catalog.UdbTableInfoOrBuilder getUdbInfoOrBuilder() {
       if (udbInfoBuilder_ != null) {
@@ -1779,7 +1285,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+     * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.catalog.UdbTableInfo, alluxio.grpc.catalog.UdbTableInfo.Builder, alluxio.grpc.catalog.UdbTableInfoOrBuilder> 

@@ -45,75 +45,37 @@ public interface TableInfoOrBuilder extends
   alluxio.grpc.catalog.TableInfo.TableType getType();
 
   /**
-   * <code>optional string base_location = 4;</code>
-   */
-  boolean hasBaseLocation();
-  /**
-   * <code>optional string base_location = 4;</code>
-   */
-  java.lang.String getBaseLocation();
-  /**
-   * <code>optional string base_location = 4;</code>
-   */
-  com.google.protobuf.ByteString
-      getBaseLocationBytes();
-
-  /**
-   * <code>optional uint32 version = 5;</code>
+   * <code>optional uint32 version = 4;</code>
    */
   boolean hasVersion();
   /**
-   * <code>optional uint32 version = 5;</code>
+   * <code>optional uint32 version = 4;</code>
    */
   int getVersion();
 
   /**
-   * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
    */
   boolean hasSchema();
   /**
-   * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
    */
   alluxio.grpc.catalog.Schema getSchema();
   /**
-   * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+   * <code>optional .alluxio.grpc.catalog.Schema schema = 5;</code>
    */
   alluxio.grpc.catalog.SchemaOrBuilder getSchemaOrBuilder();
 
   /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  java.util.List<alluxio.grpc.catalog.TableViewInfo> 
-      getViewsList();
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  alluxio.grpc.catalog.TableViewInfo getViews(int index);
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  int getViewsCount();
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  java.util.List<? extends alluxio.grpc.catalog.TableViewInfoOrBuilder> 
-      getViewsOrBuilderList();
-  /**
-   * <code>repeated .alluxio.grpc.catalog.TableViewInfo views = 7;</code>
-   */
-  alluxio.grpc.catalog.TableViewInfoOrBuilder getViewsOrBuilder(
-      int index);
-
-  /**
-   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
    */
   boolean hasUdbInfo();
   /**
-   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
    */
   alluxio.grpc.catalog.UdbTableInfo getUdbInfo();
   /**
-   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 8;</code>
+   * <code>optional .alluxio.grpc.catalog.UdbTableInfo udb_info = 6;</code>
    */
   alluxio.grpc.catalog.UdbTableInfoOrBuilder getUdbInfoOrBuilder();
 }
