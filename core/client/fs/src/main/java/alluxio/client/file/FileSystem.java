@@ -535,13 +535,13 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Reverse resolve a ufs path.
+   * Reverse resolve a ufs uri.
    *
-   * @param ufspath the ufs path
-   * @return the alluxio path for the ufsPath
+   * @param ufsUri the ufs uri
+   * @return the alluxio path for the ufsUri
    * @throws AlluxioStatusException
    */
-  AlluxioURI reverseResolve(AlluxioURI ufspath) throws IOException, AlluxioException;
+  AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclPOptions)} with
