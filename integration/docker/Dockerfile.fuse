@@ -9,9 +9,23 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-FROM ubuntu:16.04
-
+# Use a multi-stage build to include artifacts without using a chown
+# chown in bash nearly doubles the image size of the docker image.
+# See:
+# - https://stackoverflow.com/questions/30085621/why-does-chown-increase-size-of-docker-image
+# - https://github.com/moby/moby/issues/5505
+# - https://github.com/moby/moby/issues/6119
+FROM alpine:3.10.2 AS extractor
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.0.0/alluxio-2.0.0-bin.tar.gz
+
+ADD ${ALLUXIO_TARBALL} /opt/
+# if the tarball was remote, it needs to be untarred
+# use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
+RUN cd /opt && \
+    (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
+    ln -s alluxio-* alluxio
+
+FROM ubuntu:16.04
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
@@ -26,17 +40,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
 	rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
-
-ADD ${ALLUXIO_TARBALL} /opt/
-
-# if the tarball was remote, it needs to be untarred
-# use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
-RUN cd /opt && \
-    (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
-    ln -s alluxio-* alluxio
-
-COPY conf /opt/alluxio/conf/
-COPY entrypoint.sh /
+# disable JVM DNS cache
+RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
 
 # if Alluxio user, group, gid, and uid aren't root|0
 # then create the alluxio user and set file permissions accordingly
@@ -44,18 +49,21 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
     && [ ${ALLUXIO_GROUP} != "root" ] \
     && [ ${ALLUXIO_UID} -ne 0 ] \
     && [ ${ALLUXIO_GID} -ne 0 ]; then \
-      groupadd -g ${ALLUXIO_GID} -r ${ALLUXIO_GROUP} && \
-      useradd -u ${ALLUXIO_UID} -r ${ALLUXIO_USERNAME} -g ${ALLUXIO_GROUP} && \
+      addgroup --gid ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
+      adduser --system --uid ${ALLUXIO_UID} --gid ${ALLUXIO_GID} ${ALLUXIO_USERNAME} && \
       usermod -a -G root ${ALLUXIO_USERNAME} && \
       mkdir -p /journal && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /opt/* /journal && \
-      chmod -R g=u /opt/* /journal; \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /journal && \
+      chmod -R g=u /journal && \
       mkdir /alluxio-fuse && \
-      chown ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /alluxio-fuse; \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /alluxio-fuse; \
     fi
 
-# disable JVM DNS cache
-RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
+# Docker 19.03+ required to expand variables in --chown argument
+# https://github.com/moby/buildkit/pull/926#issuecomment-503943557
+COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} --from=extractor /opt/ /opt/
+COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
+COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 
 USER ${ALLUXIO_UID}
 
