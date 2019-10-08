@@ -34,10 +34,10 @@ func runSubcmd(args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("expected a subcommand in arguments. use one of %v", subcmdNames)
 	}
-
-	if args[1] == generateTarball {
+	subcmd := args[1]
+	if subcmd == generateTarball {
 		return cmd.Single(args)
-	} else if args[1] == generateReleaseTarball {
+	} else if subcmd == generateReleaseTarball {
 		return cmd.Release(args)
 	} else {
 		return fmt.Errorf("unknown subcommand %q. use one of %v", args[1], subcmdNames)
