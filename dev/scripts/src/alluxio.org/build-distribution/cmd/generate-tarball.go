@@ -14,6 +14,7 @@ package cmd
 import (
 	"bytes"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,8 +22,6 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-
-	"v.io/x/lib/cmdline"
 )
 
 const (
@@ -30,30 +29,27 @@ const (
 	defaultHadoopClient = "hadoop-2.7"
 )
 var (
-	cmdSingle = &cmdline.Command{
-		Name:   "single",
-		Short:  "Generates an alluxio tarball",
-		Long:   "Generates an alluxio tarball",
-		Runner: cmdline.RunnerFunc(single),
-	}
-
-	hadoopDistributionFlag string
+	hadoopDistributionFlag = defaultHadoopClient
 	targetFlag             string
 	mvnArgsFlag            string
 	skipUIFlag             bool
 )
 
-func init() {
-	cmdSingle.Flags.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
-	cmdSingle.Flags.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
-		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
-			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
-	cmdSingle.Flags.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
-	cmdSingle.Flags.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
+func Single(args []string) error {
+	singleCmd := flag.NewFlagSet("single", flag.ExitOnError)
+	// flags
+	singleCmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
+	singleCmd.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
+	singleCmd.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
+	singleCmd.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
 		"but the generated tarball will have no Alluxio WebUI although REST services will still be available."))
-}
+	singleCmd.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
+		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
+		`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
+	singleCmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
+		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
+	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
-func single(_ *cmdline.Env, _ []string) error {
 	if err := updateRootFlags(); err != nil {
 		return err
 	}
@@ -258,6 +254,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 
 func generateTarball(hadoopClients []string) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
+	fmt.Println(hadoopDistributionFlag)
 	if !ok {
 		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistributionFlag)
 	}
