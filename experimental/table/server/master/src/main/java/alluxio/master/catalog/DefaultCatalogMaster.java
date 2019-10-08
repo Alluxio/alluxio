@@ -102,9 +102,8 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
         tableLocation.getAuthority(), newTableLocation);
     table.getUdbTable().updateLocation(transformedTableLocation.toString());
     for (alluxio.master.catalog.Partition partition : table.getPartitions()) {
-      AlluxioURI partitionLocation = new AlluxioURI(partition.getBaseLayout().getLocation());
       AlluxioURI transformedPartitionLocation = transformedTableLocation.join(
-          partitionLocation.getPath().substring(tableLocation.getPath().length()));
+          partition.getLayout().getSpec());
       partition.transformLayout(type, transformedPartitionLocation.toString());
     }
   }
