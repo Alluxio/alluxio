@@ -15,6 +15,11 @@ package alluxio.metrics;
  * Metrics of Alluxio master.
  */
 public final class MasterMetrics {
+  // metrics for BackupManager
+  public static final String LAST_BACKUP_ENTRIES_COUNT = "LastBackupEntriesCount";
+  public static final String LAST_BACKUP_RESTORE_COUNT = "LastBackupRestoreCount";
+  public static final String BACKUP_ENTRIES_PROCESS_TIME = "BackupEntriesProcessTime";
+  public static final String BACKUP_RESTORE_PROCESS_TIME = "BackupRestoreProcessTime";
   // metrics names for FileSystemMaster
   public static final String DIRECTORIES_CREATED = "DirectoriesCreated";
   public static final String FILE_BLOCK_INFOS_GOT = "FileBlockInfosGot";
