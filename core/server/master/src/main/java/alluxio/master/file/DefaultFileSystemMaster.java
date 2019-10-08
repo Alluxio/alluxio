@@ -38,6 +38,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
@@ -530,7 +531,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (isPrimary) {
       LOG.info("Starting fs master as primary");
 
-      if (mInodeTree.getRoot() == null) {
+      InodeDirectory root = mInodeTree.getRoot();
+      if (root == null) {
         try (JournalContext context = createJournalContext()) {
           mInodeTree.initializeRoot(
               SecurityUtils.getOwner(mMasterContext.getUserState()),
@@ -539,6 +541,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
                   ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
               context);
         }
+      } else if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SKIP_ROOT_ACL_CHECK)) {
+          // For backwards-compatibility:
+          // Empty root owner indicates that previously the master had no security. In this case, the
+          // master is allowed to be started with security turned on.
+          String serverOwner = SecurityUtils.getOwner(mMasterContext.getUserState());
+          if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+              && !root.getOwner().isEmpty() && !root.getOwner().equals(serverOwner)) {
+            // user is not the previous owner
+            throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED.getMessage(String
+                .format("Unauthorized user on root. inode owner: %s current user: %s",
+                    root.getOwner(), serverOwner)));
+          }
       }
 
       // Initialize the ufs manager from the mount table.

@@ -1723,6 +1723,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_SKIP_ROOT_ACL_CHECK =
+      new Builder(Name.MASTER_SKIP_ROOT_ACL_CHECK)
+          .setDefaultValue(false)
+          .setDescription("Skip root directory ACL check when restoring from backup. This is to "
+              + "allow users to restore a backup from a different cluster onto their current one "
+              + "without having to recreate the different clusters owner user.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
+          .setIgnoredSiteProperty(true)
+          .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
           .setDefaultValue(true)
@@ -4012,6 +4023,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.executor.keepalive";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
+    public static final String MASTER_SKIP_ROOT_ACL_CHECK =
+        "alluxio.master.skip.root.acl.check";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
