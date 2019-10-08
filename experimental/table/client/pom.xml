@@ -51,10 +51,6 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-core</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.github.apache.incubator-iceberg</groupId>
-      <artifactId>iceberg-api</artifactId>
-    </dependency>
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>

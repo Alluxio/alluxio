@@ -78,34 +78,6 @@ public class AlluxioCatalog {
   }
 
   /**
-   * Create a new database.
-   *
-   * @param type the database type
-   * @param dbName the database name
-   * @param configuration the configuration
-   * @return true if database successfully created
-   */
-  public boolean createDatabase(String type, String dbName, CatalogConfiguration configuration)
-      throws IOException {
-    // unsupported
-    return false;
-  }
-
-  /**
-   * Creates a table.
-   *
-   * @param dbName the database name
-   * @param tableName the table name
-   * @param schema the table schema
-   * @return the {@link Table} of the newly created table
-   */
-  public Table createTable(String dbName, String tableName, alluxio.grpc.catalog.Schema schema)
-      throws IOException {
-    Database db = getDatabaseByName(dbName);
-    return db.createTable(tableName, schema);
-  }
-
-  /**
    * Get a table object by name.
    *
    * @param dbName the database name

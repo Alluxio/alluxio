@@ -11,11 +11,8 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.grpc.catalog.FileStatistics;
-
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The database interface.
@@ -42,12 +39,4 @@ public interface UnderDatabase {
    * @return the {@link UdbTable} for the specified table name
    */
   UdbTable getTable(String tableName) throws IOException;
-
-  // TODO(gpang): change API
-  /**
-   * @param dbName the database name
-   * @param tableName the table name
-   * @return the statistics for the corresponding table
-   */
-  Map<String, FileStatistics> getStatistics(String dbName, String tableName) throws IOException;
 }

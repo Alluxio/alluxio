@@ -15,10 +15,6 @@ import alluxio.RpcUtils;
 import alluxio.grpc.catalog.AttachDatabasePRequest;
 import alluxio.grpc.catalog.AttachDatabasePResponse;
 import alluxio.grpc.catalog.CatalogMasterClientServiceGrpc;
-import alluxio.grpc.catalog.CreateDatabasePRequest;
-import alluxio.grpc.catalog.CreateDatabasePResponse;
-import alluxio.grpc.catalog.CreateTablePRequest;
-import alluxio.grpc.catalog.CreateTablePResponse;
 import alluxio.grpc.catalog.GetAllDatabasesPRequest;
 import alluxio.grpc.catalog.GetAllDatabasesPResponse;
 import alluxio.grpc.catalog.GetAllTablesPRequest;
@@ -31,7 +27,6 @@ import alluxio.grpc.catalog.GetTablePRequest;
 import alluxio.grpc.catalog.GetTablePResponse;
 import alluxio.grpc.catalog.ReadTablePRequest;
 import alluxio.grpc.catalog.ReadTablePResponse;
-import alluxio.grpc.catalog.TableInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -93,37 +88,6 @@ public class CatalogMasterClientServiceHandler
       }
       return GetTablePResponse.getDefaultInstance();
     }, "getTable", "", responseObserver);
-  }
-
-  @Override
-  public void createTable(CreateTablePRequest request,
-      StreamObserver<CreateTablePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      Table table = mCatalogMaster.createTable(request.getDbName(), request.getTableName(),
-          request.getSchema());
-      TableInfo info;
-      if (table != null) {
-        TableVersion tv = table.get();
-        info = TableInfo.newBuilder().setDbName(request.getDbName())
-            .setTableName(request.getTableName())
-            .setBaseLocation(tv.getBaseLocation()).setSchema(tv.getSchema())
-            .build();
-        return CreateTablePResponse.newBuilder()
-            .setTableInfo(info)
-            .setSuccess(true).build();
-      } else {
-        return CreateTablePResponse.newBuilder()
-            .setSuccess(false).build();
-      }
-    }, "createTable", "", responseObserver);
-  }
-
-  @Override
-  public void createDatabase(CreateDatabasePRequest request,
-      StreamObserver<CreateDatabasePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> CreateDatabasePResponse.newBuilder().setSuccess(mCatalogMaster
-        .createDatabase(request.getDbName(), new CatalogConfiguration(request.getOptionsMap())))
-        .build(), "createDatabase", "", responseObserver);
   }
 
   @Override
