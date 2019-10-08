@@ -44,6 +44,7 @@ func Single(args []string) error {
 	generateFlags(singleCmd)
 	additionalFlags(singleCmd)
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
+
 	if err := updateRootFlags(); err != nil {
 		return err
 	}
