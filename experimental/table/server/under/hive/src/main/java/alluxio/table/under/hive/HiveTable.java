@@ -11,11 +11,7 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.AlluxioException;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.FieldSchema;
 import alluxio.grpc.catalog.HiveTableInfo;
@@ -26,17 +22,13 @@ import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.TableView;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.udb.UdbTable;
-import alluxio.table.under.hive.parquet.AlluxioInputFile;
 import alluxio.table.under.hive.util.PathTranslator;
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.parquet.hadoop.ParquetFileReader;
-import org.apache.parquet.io.InputFile;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,38 +86,10 @@ public class HiveTable implements UdbTable {
     mTable = table;
   }
 
-  // TODO(yuzhu): clean this up to use proper method to get a list of datafiles
   private static Map<String, ParquetMetadata> getPartitionMetadata(String path,
       FileSystem alluxioFs) {
     Map<String, ParquetMetadata> metadataMap = new HashMap<>();
-    try {
-      for (URIStatus status : alluxioFs.listStatus(new AlluxioURI(path))) {
-        if (!status.isFolder() && !status.getName().endsWith(".crc")
-            && !status.getName().equals("_SUCCESS")) {
-          // it is a data file
-          org.apache.parquet.hadoop.metadata.ParquetMetadata footer = null;
-          try {
-            InputFile in = AlluxioInputFile.create(alluxioFs, status);
-            try (ParquetFileReader reader = ParquetFileReader.open(in)) {
-              footer = reader.getFooter();
-            }
-          } catch (IOException | RuntimeException e) {
-            LOG.warn("Unable to read parquet footer {}", status.getPath(), e);
-          }
-          if (footer != null) {
-            String alluxioFilePath = status.getPath();
-            if (alluxioFilePath.startsWith("/")) {
-              // prefix with the scheme and authority
-              alluxioFilePath = ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global())
-                  + alluxioFilePath;
-            }
-            metadataMap.put(alluxioFilePath, HiveUtils.toProto(footer));
-          }
-        }
-      }
-    } catch (IOException | AlluxioException e) {
-      LOG.warn("Unable to read parquet footer from partition location {}", path, e);
-    }
+    // TODO(yuzhu): clean this up to use proper method to get a list of datafiles
     return metadataMap;
   }
 

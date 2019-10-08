@@ -20,7 +20,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
-import alluxio.grpc.catalog.FileStatistics;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -40,7 +39,6 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.iceberg.catalog.TableIdentifier;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,16 +56,14 @@ public class HiveDatabase implements UnderDatabase {
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
-  private final HiveDataCatalog mCatalog;
   private final HiveMetaStoreClient mHive;
   /** the name of the hive db. */
   private final String mHiveDbName;
 
   private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
-      HiveDataCatalog catalog, HiveMetaStoreClient hive, String hiveDbName) {
+      HiveMetaStoreClient hive, String hiveDbName) {
     mUdbContext = udbContext;
     mConfiguration = configuration;
-    mCatalog = catalog;
     mHive = hive;
     mHiveDbName = hiveDbName;
     mConfiguration.toString(); // read the field
@@ -101,9 +97,6 @@ public class HiveDatabase implements UnderDatabase {
     } else {
       ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
-    HiveDataCatalog catalog = new HiveDataCatalog(ufs);
-    // TODO(gpang): get rid of creating db
-    catalog.createDatabase(dbName);
 
     HiveMetaStoreClient hive;
     try {
@@ -113,7 +106,7 @@ public class HiveDatabase implements UnderDatabase {
     } catch (MetaException e) {
       throw new IOException("Failed to create hive client: " + e.getMessage(), e);
     }
-    return new HiveDatabase(udbContext, configuration, catalog, hive, dbName);
+    return new HiveDatabase(udbContext, configuration, hive, dbName);
   }
 
   /**
@@ -246,12 +239,5 @@ public class HiveDatabase implements UnderDatabase {
     } catch (TException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     }
-  }
-
-  @Override
-  public Map<String, FileStatistics> getStatistics(String dbName, String tableName)
-      throws IOException {
-    mCatalog.getTable(TableIdentifier.of(mHiveDbName, tableName));
-    return null;
   }
 }

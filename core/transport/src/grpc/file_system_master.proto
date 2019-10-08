@@ -344,7 +344,7 @@ message RenamePRequest {
 }
 
 message ReverseResolvePRequest {
-  optional string ufsPath = 1;
+  optional string ufsUri = 1;
 }
 message ReverseResolvePResponse {
   optional string alluxioPath = 1;

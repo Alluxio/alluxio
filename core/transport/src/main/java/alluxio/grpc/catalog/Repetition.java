@@ -83,7 +83,7 @@ public enum Repetition
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.catalog.CatalogMasterProto.getDescriptor().getEnumTypes().get(1);
+    return alluxio.grpc.catalog.CatalogMasterProto.getDescriptor().getEnumTypes().get(0);
   }
 
   private static final Repetition[] VALUES = values();

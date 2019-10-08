@@ -15,7 +15,6 @@ import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.ColumnStatisticsList;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Partition;
-import alluxio.grpc.catalog.Schema;
 import alluxio.master.Master;
 
 import java.io.IOException;
@@ -53,24 +52,6 @@ public interface CatalogMaster extends Master {
    * @return a list of tables
    */
   List<String> getAllTables(String databaseName) throws IOException;
-
-  /**
-   * Create a database.
-   *
-   * @param dbName a database name
-   * @param configuration the configuration
-   * @return true if creation is successful
-   */
-  boolean createDatabase(String dbName, CatalogConfiguration configuration) throws IOException;
-
-  /**
-   * Create a table.
-   *  @param dbName database name
-   * @param tableName table name
-   * @param schema schema
-   * @return a Table object
-   */
-  Table createTable(String dbName, String tableName, Schema schema) throws IOException;
 
   /**
    * Get a table.

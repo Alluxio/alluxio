@@ -27,6 +27,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.parent.parent.basedir}/build</build.path>
     <hive-hadoop.version>2.7.2</hive-hadoop.version>
+    <parquet.verison>1.10.1</parquet.verison>
   </properties>
 
   <dependencies>
@@ -34,18 +35,6 @@
     <dependency>
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.github.apache.incubator-iceberg</groupId>
-      <artifactId>iceberg-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.github.apache.incubator-iceberg</groupId>
-      <artifactId>iceberg-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.github.apache.incubator-iceberg</groupId>
-      <artifactId>iceberg-parquet</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -74,6 +63,12 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <!-- parquet should come before hive-exec, to use the newer parquet libraries -->
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-common</artifactId>
+      <version>${parquet.verison}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -108,7 +103,7 @@
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-slf4j-impl</artifactId>
         </exclusion>
-    </exclusions>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>

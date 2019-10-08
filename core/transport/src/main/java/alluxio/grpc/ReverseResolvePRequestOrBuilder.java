@@ -8,16 +8,16 @@ public interface ReverseResolvePRequestOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string ufsPath = 1;</code>
+   * <code>optional string ufsUri = 1;</code>
    */
-  boolean hasUfsPath();
+  boolean hasUfsUri();
   /**
-   * <code>optional string ufsPath = 1;</code>
+   * <code>optional string ufsUri = 1;</code>
    */
-  java.lang.String getUfsPath();
+  java.lang.String getUfsUri();
   /**
-   * <code>optional string ufsPath = 1;</code>
+   * <code>optional string ufsUri = 1;</code>
    */
   com.google.protobuf.ByteString
-      getUfsPathBytes();
+      getUfsUriBytes();
 }

@@ -21,7 +21,6 @@ import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.ColumnStatisticsList;
 import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Partition;
-import alluxio.grpc.catalog.Schema;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
@@ -75,24 +74,6 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   @Override
   public List<String> getAllTables(String databaseName) throws IOException {
     return mCatalog.getAllTables(databaseName);
-  }
-
-  @Override
-  public boolean createDatabase(String database, CatalogConfiguration configuration)
-      throws IOException {
-    // TODO(gpang): should type just be an argument?
-    if (configuration.get(CatalogProperty.DB_TYPE).isEmpty()) {
-      throw new IOException(
-          "The database type is not configured. Please set property: " + CatalogProperty.DB_TYPE
-              .getName());
-    }
-    return mCatalog
-        .createDatabase(configuration.get(CatalogProperty.DB_TYPE), database, configuration);
-  }
-
-  @Override
-  public Table createTable(String dbName, String tableName, Schema schema) throws IOException {
-    return mCatalog.createTable(dbName, tableName, schema);
   }
 
   @Override

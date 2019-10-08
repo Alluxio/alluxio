@@ -19,7 +19,6 @@ import alluxio.grpc.catalog.AttachDatabasePRequest;
 import alluxio.grpc.catalog.CatalogMasterClientServiceGrpc;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Constraint;
-import alluxio.grpc.catalog.CreateDatabasePRequest;
 import alluxio.grpc.catalog.Database;
 import alluxio.grpc.catalog.GetAllDatabasesPRequest;
 import alluxio.grpc.catalog.GetAllTablesPRequest;
@@ -34,7 +33,6 @@ import alluxio.grpc.catalog.TableInfo;
 import alluxio.grpc.catalog.TransformTablePRequest;
 import alluxio.master.MasterClientContext;
 
-import org.apache.iceberg.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,20 +112,6 @@ public final class RetryHandlingCatalogMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient.attachDatabase(
         AttachDatabasePRequest.newBuilder().setDbName(dbName).setDbType(dbType)
             .putAllOptions(configuration).build()).getSuccess());
-  }
-
-  @Override
-  public boolean createDatabase(String dbName, Map<String, String> configuration)
-      throws AlluxioStatusException {
-    return retryRPC(() -> mClient.createDatabase(
-        CreateDatabasePRequest.newBuilder().setDbName(dbName).putAllOptions(configuration).build())
-        .getSuccess());
-  }
-
-  @Override
-  public TableInfo createTable(String dbName, String tableName, Schema schema)
-      throws AlluxioStatusException {
-    return null;
   }
 
   @Override
