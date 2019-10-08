@@ -37,11 +37,9 @@ func checkReleaseFlags() error {
 func Release(args []string) error {
 	releaseCmd := flag.NewFlagSet("release", flag.ExitOnError)
 	// flags
-	releaseCmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
 	releaseCmd.StringVar(&hadoopDistributionsFlag, "hadoop-distributions", strings.Join(validHadoopDistributions(), ","), "a comma-separated list of hadoop distributions to generate Alluxio clients for")
-	releaseCmd.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
-	releaseCmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
-		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
+	generateFlags(releaseCmd)
+	additionalFlags(releaseCmd)
 	releaseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if err := updateRootFlags(); err != nil {
