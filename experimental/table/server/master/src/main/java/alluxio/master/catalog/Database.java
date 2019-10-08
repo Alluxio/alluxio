@@ -18,6 +18,9 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * The database implementation that manages a collection of tables.
  */
 public class Database {
+  private static final Logger LOG = LoggerFactory.getLogger(Database.class);
+
   private final String mType;
   private final String mName;
   private final Map<String, Table> mTables;
@@ -58,9 +63,14 @@ public class Database {
    * @return the database instance
    */
   public static Database create(UdbContext udbContext, String type, String name,
-      CatalogConfiguration configuration) throws IOException {
-    UnderDatabase udb = udbContext.getUdbRegistry()
-        .create(udbContext, type, configuration.getUdbConfiguration(type));
+      CatalogConfiguration configuration) {
+    UnderDatabase udb = null;
+    try {
+      udb = udbContext.getUdbRegistry()
+          .create(udbContext, type, configuration.getUdbConfiguration(type));
+    } catch (IOException e) {
+      LOG.info("Creating udb type {} failed, database {} is in disconnected mode", type, name);
+    }
     return new Database(type, name, udb);
   }
 
@@ -119,9 +129,21 @@ public class Database {
   }
 
   /**
+   * Returns true if an UDB is connected and can be synced.
+   *
+   * @return true if there is an UDB backing this database
+   */
+  public boolean isConnected() {
+    return (mUdb != null);
+  }
+
+  /**
    * Syncs the metadata from the under db.
    */
   public void sync() throws IOException {
+    if (!isConnected()) {
+      return;
+    }
     for (String tableName : mUdb.getTableNames()) {
       // TODO(gpang): concurrency control
       Table table = mTables.get(tableName);

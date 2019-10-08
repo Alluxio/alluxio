@@ -13,6 +13,8 @@ package alluxio.master.catalog;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.master.journal.NoopJournalContext;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,8 +33,9 @@ public class AlluxioCatalogTest {
   @Test
   public void attachDb() throws Exception {
     String dbName = "testdb";
-    mCatalog.attachDatabase(NoopUdbFactory.TYPE, dbName,
-        new CatalogConfiguration(Collections.emptyMap()));
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        NoopUdbFactory.TYPE, dbName,
+        Collections.emptyMap());
     List<String> dbs = mCatalog.getAllDatabases();
     assertEquals(1, dbs.size());
     assertEquals(dbName, dbs.get(0));

@@ -11,6 +11,7 @@
 
 package alluxio.master.catalog;
 
+import alluxio.ProcessUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
@@ -22,6 +23,11 @@ import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Domain;
 import alluxio.grpc.catalog.FieldSchema;
 import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.proto.journal.Catalog;
+import alluxio.proto.journal.Journal;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
@@ -31,16 +37,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // TODO(yuzhu): journal the state of the catalog
 /**
  * Class representing an Alluxio catalog service.
  */
-public class AlluxioCatalog {
+public class AlluxioCatalog implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioCatalog.class);
 
   private final Map<String, Database> mDBs = new ConcurrentHashMap<>();
@@ -59,21 +67,25 @@ public class AlluxioCatalog {
   /**
    * Attaches an existing database.
    *
+   *
+   * @param journalContext journal context
    * @param type the database type
    * @param dbName the database name
-   * @param configuration the configuration
+   * @param map the configuration
    * @return true if database successfully created
    */
-  public boolean attachDatabase(String type, String dbName, CatalogConfiguration configuration)
+  public boolean attachDatabase(JournalContext journalContext, String type,
+      String dbName, Map<String, String> map)
       throws IOException {
-    UdbContext context = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
-    Database db = Database.create(context, type, dbName, configuration);
-    if (mDBs.putIfAbsent(dbName, db) != null) {
+    if (mDBs.containsKey(dbName)) {
       throw new IOException(String
           .format("Unable to attach database. Database name %s (type: %s) already exists.", dbName,
               type));
     }
-    db.sync();
+    applyAndJournal(journalContext,
+        Catalog.AttachDbEntry.newBuilder().setType(type).setDbName(dbName)
+            .putAllConfig(map).build());
+    mDBs.get(dbName).sync();
     return true;
   }
 
@@ -213,5 +225,64 @@ public class AlluxioCatalog {
       }
     }
     return true;
+  }
+
+  /**
+   * Apply AttachDB journal entry.
+   *
+   * @param context journal context
+   * @param entry attachDb entry
+   */
+  public void applyAndJournal(Supplier<JournalContext> context,
+      Catalog.AttachDbEntry entry) {
+    LOG.info("Apply attachDb {} with type {} and configuration {}",
+        entry.getDbName(), entry.getType(), entry.getConfigMap());
+    try {
+      apply(entry);
+      context.get().append(Journal.JournalEntry.newBuilder().setAttachDb(entry).build());
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
+    }
+  }
+
+  private void apply(Catalog.AttachDbEntry entry) {
+    String type = entry.getType();
+    String dbName = entry.getDbName();
+
+    UdbContext context = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
+
+    CatalogConfiguration configuration = new CatalogConfiguration(entry.getConfigMap());
+    Database db = Database.create(context, type, dbName, configuration);
+    mDBs.put(dbName, db);
+  }
+
+  private void apply(Catalog.AddTableEntry entry) {
+  }
+
+  @Override
+  public boolean processJournalEntry(Journal.JournalEntry entry) {
+    if (entry.hasAttachDb()) {
+      apply(entry.getAttachDb());
+      return true;
+    } else if (entry.hasAddTable()) {
+      apply(entry.getAddTable());
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public void resetState() {
+  }
+
+  @Override
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    return null;
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.CATALOG_SERVICE_MASTER;
   }
 }
