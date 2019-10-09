@@ -34,13 +34,12 @@ domainHostPath: "/tmp/alluxio-domain"
 
 # properties for all the components
 properties:
-  alluxio.master.journal.type: UFS
-  alluxio.master.journal.folder: /journal
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
 
 # set for the heap for the docker
-jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 "
+# TODO(jiacheng): Examples?
+# jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 "
 
 fuse:
   image: alluxio/alluxio-fuse
@@ -57,6 +56,7 @@ fuse:
     - --fuse-opts=allow_other
 
 master:
+  count: 1 # For multiMaster mode increase this to >1
   replicas: 1
   args:
     - master
@@ -69,15 +69,21 @@ master:
   resources:
     limits:
       cpu: "1"
-      memory: "4G"
+      memory: "1G"
     requests:
       cpu: "1"
-      memory: "4G"
+      memory: "1G"
     ports:
+      embedded: 19200
       rpc: 19998
       web: 19999
   jvmOptions: ""
   nodeSelector: {}
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  metastore:
+    medium: ""
+    size: 1Gi
 
 jobMaster:
   args:
@@ -85,10 +91,10 @@ jobMaster:
   resources:
     limits:
       cpu: "1"
-      memory: "2G"
+      memory: "1G"
     requests:
       cpu: "1"
-      memory: "2G"
+      memory: "1G"
     ports:
       rpc: 20001
       web: 20002
@@ -101,15 +107,20 @@ worker:
   resources:
     limits:
       cpu: "1"
-      memory: "4G"
+      memory: "2G"
     requests:
       cpu: "1"
-      memory: "4G"
+      memory: "2G"
     ports:
       rpc: 29999
       web: 30000
   jvmOptions: ""
   nodeSelector: {}
+  domainHostPath: "/tmp/alluxio-domain"
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  ramdisk:
+    size: 1Gi
 
 
 jobWorker:
@@ -120,18 +131,38 @@ jobWorker:
   resources:
     limits:
       cpu: "1"
-      memory: "2G"
+      memory: "1G"
     requests:
       cpu: "1"
-      memory: "2G"
+      memory: "1G"
     ports:
       rpc: 30001
       data: 30002
       web: 30003
   jvmOptions: ""
 
+
+# Alluxio supports journal type of UFS and EMBEDDED
+# UFS journal with HDFS example
+# journal:
+#   type: "UFS"
+#   folder: "hdfs://{$hostname}:{$hostport}/journal"
+# EMBEDDED journal to /journal example
+# journal:
+#   type: "EMBEDDED"
+#   folder: "/journal"
 journal:
-#  pvcName: alluxio-pv-claim 
+  pvcName: alluxio-pv-claim
+  storageClass: "standard"
+  size: 1Gi
+  type: "UFS"
+  ufsType: "local" # Ignored if type is "EMBEDDED"
+  folder: "/journal"
+  # Configuration for journal formatting job
+  format:
+    job:
+      activeDeadlineSeconds: 30
+      ttlSecondsAfterFinished: 10
 
 # Secrets Example: (<name>:<mount path under /secrets/>):
 # secrets:
