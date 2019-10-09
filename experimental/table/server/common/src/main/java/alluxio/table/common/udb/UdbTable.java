@@ -12,7 +12,6 @@
 package alluxio.table.common.udb;
 
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
-import alluxio.grpc.catalog.HiveTableInfo;
 import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.UdbPartition;
@@ -51,5 +50,9 @@ public interface UdbTable {
    */
   UdbTableInfo toProto() throws IOException;
 
+  /**
+   *
+   * @return true if the udbtable is connected
+   */
   boolean isConnected();
 }

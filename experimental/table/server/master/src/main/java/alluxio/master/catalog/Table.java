@@ -17,6 +17,7 @@ import alluxio.grpc.catalog.TableInfo;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.proto.journal.Catalog;
 import alluxio.table.common.udb.UdbTable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,11 @@ public class Table {
     mStatistics = columnStats;
   }
 
+  /**
+   * sync the table with a udbtable.
+   *
+   * @param udbTable udb table to be synced
+   */
   public void sync(UdbTable udbTable) {
     try {
       mName = udbTable.getName();
@@ -75,8 +81,14 @@ public class Table {
     return new Table(database, udbTable);
   }
 
+  /**
+   * @param database the database
+   * @param entry the add table entry
+   * @return a new instance
+   */
   public static Table create(Database database, Catalog.AddTableEntry entry) {
-    return new Table(database, entry.getPartitionsList(), entry.getSchema(), entry.getTableName(), entry.getTableStatsList());
+    return new Table(database, entry.getPartitionsList(), entry.getSchema(),
+        entry.getTableName(), entry.getTableStatsList());
   }
   /**
    * @return the table name

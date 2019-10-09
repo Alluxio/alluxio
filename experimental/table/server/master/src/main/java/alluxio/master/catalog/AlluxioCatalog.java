@@ -162,7 +162,8 @@ public class AlluxioCatalog implements Journaled {
       String tableName, List<String> partNames, List<String> colNames) throws IOException {
     Table table = getTable(dbName, tableName);
     List<alluxio.grpc.catalog.Partition> partitions = table.getPartitions();
-    return partitions.stream().filter(p -> partNames.contains(p.getLayout().getLayoutSpec().getSpec()))
+    return partitions.stream().filter(p -> partNames.contains(p.getLayout()
+        .getLayoutSpec().getSpec()))
         .map(p -> new Pair<>(p.getLayout().getLayoutSpec().getSpec(),
             ColumnStatisticsList.newBuilder().addAllStatistics(
                 p.getLayout().getStatsMap().entrySet().stream()
@@ -278,9 +279,8 @@ public class AlluxioCatalog implements Journaled {
     mDBs.clear();
   }
 
-
   private Iterator<Journal.JournalEntry> getDbIterator() {
-    final Iterator<Map.Entry<String, Database>>it = mDBs.entrySet().iterator();
+    final Iterator<Map.Entry<String, Database>> it = mDBs.entrySet().iterator();
     return new Iterator<Journal.JournalEntry>() {
       private Map.Entry<String, Database> mEntry = null;
 
