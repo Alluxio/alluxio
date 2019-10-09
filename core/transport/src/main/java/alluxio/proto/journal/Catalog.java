@@ -1159,7 +1159,7 @@ public final class Catalog {
   }
   /**
    * <pre>
-   * next available id: 5
+   * next available id: 7
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.AddTableEntry}
@@ -1742,7 +1742,7 @@ public final class Catalog {
     }
     /**
      * <pre>
-     * next available id: 5
+     * next available id: 7
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.AddTableEntry}
