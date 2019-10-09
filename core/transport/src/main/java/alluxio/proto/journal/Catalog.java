@@ -1143,6 +1143,19 @@ public final class Catalog {
      */
     alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getTableStatsOrBuilder(
         int index);
+
+    /**
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     */
+    boolean hasSchema();
+    /**
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     */
+    alluxio.grpc.catalog.Schema getSchema();
+    /**
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     */
+    alluxio.grpc.catalog.SchemaOrBuilder getSchemaOrBuilder();
   }
   /**
    * <pre>
@@ -1239,6 +1252,19 @@ public final class Catalog {
               }
               tableStats_.add(
                   input.readMessage(alluxio.grpc.catalog.ColumnStatisticsInfo.PARSER, extensionRegistry));
+              break;
+            }
+            case 50: {
+              alluxio.grpc.catalog.Schema.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000008) == 0x00000008)) {
+                subBuilder = schema_.toBuilder();
+              }
+              schema_ = input.readMessage(alluxio.grpc.catalog.Schema.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(schema_);
+                schema_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000008;
               break;
             }
           }
@@ -1447,6 +1473,27 @@ public final class Catalog {
       return tableStats_.get(index);
     }
 
+    public static final int SCHEMA_FIELD_NUMBER = 6;
+    private alluxio.grpc.catalog.Schema schema_;
+    /**
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     */
+    public boolean hasSchema() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     */
+    public alluxio.grpc.catalog.Schema getSchema() {
+      return schema_ == null ? alluxio.grpc.catalog.Schema.getDefaultInstance() : schema_;
+    }
+    /**
+     * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+     */
+    public alluxio.grpc.catalog.SchemaOrBuilder getSchemaOrBuilder() {
+      return schema_ == null ? alluxio.grpc.catalog.Schema.getDefaultInstance() : schema_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -1455,6 +1502,12 @@ public final class Catalog {
 
       if (hasUdbTable()) {
         if (!getUdbTable().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      for (int i = 0; i < getPartitionsCount(); i++) {
+        if (!getPartitions(i).isInitialized()) {
           memoizedIsInitialized = 0;
           return false;
         }
@@ -1486,6 +1539,9 @@ public final class Catalog {
       for (int i = 0; i < tableStats_.size(); i++) {
         output.writeMessage(5, tableStats_.get(i));
       }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeMessage(6, getSchema());
+      }
       unknownFields.writeTo(output);
     }
 
@@ -1511,6 +1567,10 @@ public final class Catalog {
       for (int i = 0; i < tableStats_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, tableStats_.get(i));
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, getSchema());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1547,6 +1607,11 @@ public final class Catalog {
           .equals(other.getPartitionsList());
       result = result && getTableStatsList()
           .equals(other.getTableStatsList());
+      result = result && (hasSchema() == other.hasSchema());
+      if (hasSchema()) {
+        result = result && getSchema()
+            .equals(other.getSchema());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -1577,6 +1642,10 @@ public final class Catalog {
       if (getTableStatsCount() > 0) {
         hash = (37 * hash) + TABLE_STATS_FIELD_NUMBER;
         hash = (53 * hash) + getTableStatsList().hashCode();
+      }
+      if (hasSchema()) {
+        hash = (37 * hash) + SCHEMA_FIELD_NUMBER;
+        hash = (53 * hash) + getSchema().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -1710,6 +1779,7 @@ public final class Catalog {
           getUdbTableFieldBuilder();
           getPartitionsFieldBuilder();
           getTableStatsFieldBuilder();
+          getSchemaFieldBuilder();
         }
       }
       public Builder clear() {
@@ -1736,6 +1806,12 @@ public final class Catalog {
         } else {
           tableStatsBuilder_.clear();
         }
+        if (schemaBuilder_ == null) {
+          schema_ = null;
+        } else {
+          schemaBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
         return this;
       }
 
@@ -1793,6 +1869,14 @@ public final class Catalog {
           result.tableStats_ = tableStats_;
         } else {
           result.tableStats_ = tableStatsBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        if (schemaBuilder_ == null) {
+          result.schema_ = schema_;
+        } else {
+          result.schema_ = schemaBuilder_.build();
         }
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -1901,6 +1985,9 @@ public final class Catalog {
             }
           }
         }
+        if (other.hasSchema()) {
+          mergeSchema(other.getSchema());
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -1909,6 +1996,11 @@ public final class Catalog {
       public final boolean isInitialized() {
         if (hasUdbTable()) {
           if (!getUdbTable().isInitialized()) {
+            return false;
+          }
+        }
+        for (int i = 0; i < getPartitionsCount(); i++) {
+          if (!getPartitions(i).isInitialized()) {
             return false;
           }
         }
@@ -2688,6 +2780,124 @@ public final class Catalog {
         }
         return tableStatsBuilder_;
       }
+
+      private alluxio.grpc.catalog.Schema schema_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          alluxio.grpc.catalog.Schema, alluxio.grpc.catalog.Schema.Builder, alluxio.grpc.catalog.SchemaOrBuilder> schemaBuilder_;
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      public boolean hasSchema() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      public alluxio.grpc.catalog.Schema getSchema() {
+        if (schemaBuilder_ == null) {
+          return schema_ == null ? alluxio.grpc.catalog.Schema.getDefaultInstance() : schema_;
+        } else {
+          return schemaBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      public Builder setSchema(alluxio.grpc.catalog.Schema value) {
+        if (schemaBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          schema_ = value;
+          onChanged();
+        } else {
+          schemaBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      public Builder setSchema(
+          alluxio.grpc.catalog.Schema.Builder builderForValue) {
+        if (schemaBuilder_ == null) {
+          schema_ = builderForValue.build();
+          onChanged();
+        } else {
+          schemaBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      public Builder mergeSchema(alluxio.grpc.catalog.Schema value) {
+        if (schemaBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+              schema_ != null &&
+              schema_ != alluxio.grpc.catalog.Schema.getDefaultInstance()) {
+            schema_ =
+              alluxio.grpc.catalog.Schema.newBuilder(schema_).mergeFrom(value).buildPartial();
+          } else {
+            schema_ = value;
+          }
+          onChanged();
+        } else {
+          schemaBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      public Builder clearSchema() {
+        if (schemaBuilder_ == null) {
+          schema_ = null;
+          onChanged();
+        } else {
+          schemaBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      public alluxio.grpc.catalog.Schema.Builder getSchemaBuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return getSchemaFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      public alluxio.grpc.catalog.SchemaOrBuilder getSchemaOrBuilder() {
+        if (schemaBuilder_ != null) {
+          return schemaBuilder_.getMessageOrBuilder();
+        } else {
+          return schema_ == null ?
+              alluxio.grpc.catalog.Schema.getDefaultInstance() : schema_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.grpc.catalog.Schema schema = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          alluxio.grpc.catalog.Schema, alluxio.grpc.catalog.Schema.Builder, alluxio.grpc.catalog.SchemaOrBuilder> 
+          getSchemaFieldBuilder() {
+        if (schemaBuilder_ == null) {
+          schemaBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              alluxio.grpc.catalog.Schema, alluxio.grpc.catalog.Schema.Builder, alluxio.grpc.catalog.SchemaOrBuilder>(
+                  getSchema(),
+                  getParentForChildren(),
+                  isClean());
+          schema_ = null;
+        }
+        return schemaBuilder_;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -2767,12 +2977,14 @@ public final class Catalog {
       "\017\n\007db_name\030\002 \001(\t\022@\n\006config\030\003 \003(\01320.allux" +
       "io.proto.journal.AttachDbEntry.ConfigEnt" +
       "ry\032-\n\013ConfigEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
-      "\002 \001(\t:\0028\001\"\341\001\n\rAddTableEntry\022\017\n\007db_name\030\001" +
+      "\002 \001(\t:\0028\001\"\217\002\n\rAddTableEntry\022\017\n\007db_name\030\001" +
       " \001(\t\022\022\n\ntable_name\030\002 \001(\t\0225\n\tudb_table\030\003 " +
       "\001(\0132\".alluxio.grpc.catalog.UdbTableInfo\022" +
       "3\n\npartitions\030\004 \003(\0132\037.alluxio.grpc.catal" +
       "og.Partition\022?\n\013table_stats\030\005 \003(\0132*.allu" +
-      "xio.grpc.catalog.ColumnStatisticsInfo"
+      "xio.grpc.catalog.ColumnStatisticsInfo\022,\n" +
+      "\006schema\030\006 \001(\0132\034.alluxio.grpc.catalog.Sch" +
+      "ema"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2804,7 +3016,7 @@ public final class Catalog {
     internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddTableEntry_descriptor,
-        new java.lang.String[] { "DbName", "TableName", "UdbTable", "Partitions", "TableStats", });
+        new java.lang.String[] { "DbName", "TableName", "UdbTable", "Partitions", "TableStats", "Schema", });
     alluxio.grpc.catalog.CatalogMasterProto.getDescriptor();
   }
 

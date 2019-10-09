@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * The database implementation that manages a collection of tables.
@@ -42,6 +41,7 @@ public class Database {
   private final String mName;
   private final Map<String, Table> mTables;
   private final UnderDatabase mUdb;
+  private final Map<String, String> mConfig;
 
   /**
    * Creates an instance of a database.
@@ -50,11 +50,12 @@ public class Database {
    * @param name the database name
    * @param udb the udb
    */
-  private Database(String type, String name, UnderDatabase udb) {
+  private Database(String type, String name, UnderDatabase udb, Map<String, String> configMap) {
     mType = type;
     mName = name;
     mTables = new ConcurrentHashMap<>();
     mUdb = udb;
+    mConfig = configMap;
   }
 
   /**
@@ -63,19 +64,20 @@ public class Database {
    * @param udbContext the db context
    * @param type the database type
    * @param name the database name
-   * @param configuration the configuration
+   * @param configMap the configuration
    * @return the database instance
    */
   public static Database create(UdbContext udbContext, String type, String name,
-      CatalogConfiguration configuration) {
+      Map<String, String> configMap) {
     UnderDatabase udb = null;
+    CatalogConfiguration configuration = new CatalogConfiguration(configMap);
     try {
       udb = udbContext.getUdbRegistry()
           .create(udbContext, type, configuration.getUdbConfiguration(type));
     } catch (IOException e) {
       LOG.info("Creating udb type {} failed, database {} is in disconnected mode", type, name);
     }
-    return new Database(type, name, udb);
+    return new Database(type, name, udb, configMap);
   }
 
   /**
@@ -153,6 +155,14 @@ public class Database {
   }
 
   /**
+   *
+   * @return the configuration for the database
+   */
+  public Map<String, String> getConfig() {
+    return mConfig;
+  }
+
+  /**
    * Syncs the metadata from the under db.
    * @param context journal context
    */
@@ -172,9 +182,9 @@ public class Database {
         context.get().append(Journal.JournalEntry.newBuilder()
             .setAddTable(Catalog.AddTableEntry.newBuilder().setUdbTable(udbTable.toProto())
                 .setDbName(mName).setTableName(tableName)
-                .addAllPartitions(table.getPartitions().stream().map(Partition::toProto)
-                    .collect(Collectors.toList()))
+                .addAllPartitions(table.getPartitions())
                 .addAllTableStats(table.getStatistics())
+                .setSchema(udbTable.getSchema())
                 .build()).build());
       } else {
         // sync metadata from udb

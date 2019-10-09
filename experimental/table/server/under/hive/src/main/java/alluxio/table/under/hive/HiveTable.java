@@ -56,7 +56,6 @@ public class HiveTable implements UdbTable {
   private final List<FieldSchema> mPartitionKeys;
   private final Table mTable;
   private final List<Partition> mPartitions;
-  private UdbTableInfo mTableInfo = null;
 
   /**
    * Creates a new instance.
@@ -75,10 +74,8 @@ public class HiveTable implements UdbTable {
   public HiveTable(HiveMetaStoreClient hive, HiveDatabase hiveDatabase,
       PathTranslator pathTranslator, String name, Schema schema, String baseLocation,
       List<ColumnStatisticsInfo> statistics, List<FieldSchema> cols, List<Partition> partitions,
-      Table table) throws IOException {
-    // TODO(gpang): don't throw exception in constructor
+      Table table) {
     mHive = hive;
-
     mHiveDatabase = hiveDatabase;
     mTable = table;
     mPathTranslator = pathTranslator;
@@ -160,9 +157,6 @@ public class HiveTable implements UdbTable {
 
   @Override
   public UdbTableInfo toProto() throws IOException {
-    if (mTableInfo != null) {
-      return mTableInfo;
-    }
     HiveTableInfo.Builder builder = HiveTableInfo.newBuilder();
     builder.setDatabaseName(mHiveDatabase.getUdbContext().getDbName())
         .setTableName(mTable.getTableName())
@@ -180,7 +174,7 @@ public class HiveTable implements UdbTable {
     if (mTable.getViewExpandedText() != null) {
       builder.setViewExpandedText(mTable.getViewExpandedText());
     }
-    return (mTableInfo = UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build());
+    return (UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build());
   }
 
   @Override

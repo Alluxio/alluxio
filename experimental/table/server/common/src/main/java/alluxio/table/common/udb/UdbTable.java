@@ -51,16 +51,5 @@ public interface UdbTable {
    */
   UdbTableInfo toProto() throws IOException;
 
-  /**
-   * @param proto UdbTableInfo in proto form
-   * @return UdbTable object
-   */
-  static UdbTable fromProto(UdbTableInfo proto) {
-    if (proto.hasHiveTableInfo()) {
-      HiveTableInfo tableInfo = proto.getHiveTableInfo();
-
-    }
-  }
-
   boolean isConnected();
 }

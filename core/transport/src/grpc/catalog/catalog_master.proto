@@ -202,6 +202,7 @@ message Layout {
   optional string layoutType = 1;
   optional LayoutSpec layoutSpec = 2;
   optional bytes layoutData = 3;
+  map<string, ColumnStatisticsInfo> stats = 4;
 }
 
 message Partition {

@@ -17,9 +17,10 @@ import alluxio.grpc.catalog.TableInfo;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.proto.journal.Catalog;
 import alluxio.table.common.udb.UdbTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,35 +28,42 @@ import java.util.stream.Collectors;
  * The table implementation which manages all the versions of the table.
  */
 public class Table {
-  private final String mName;
+  private static final Logger LOG = LoggerFactory.getLogger(Table.class);
+
+  private String mName;
   private final Database mDatabase;
-  private final Schema mSchema;
+  private Schema mSchema;
   private UdbTableInfo mTableInfo;
   // TODO(gpang): this should be indexable by partition spec
-  private List<Partition> mPartitions;
+  private List<alluxio.grpc.catalog.Partition> mPartitions;
+  private List<ColumnStatisticsInfo> mStatistics;
 
-  private Table(Database database, UdbTable udbTable, List<Partition> partitions) {
+  private Table(Database database, UdbTable udbTable) {
     mDatabase = database;
-    mUdbTable = udbTable;
-    mName = mUdbTable.getName();
-    mSchema = mUdbTable.getSchema();
-    mPartitions = new ArrayList<>(partitions);
+    sync(udbTable);
   }
 
-  private Table(Database database, List<Partition> partitions, Schema schema,
+  private Table(Database database, List<alluxio.grpc.catalog.Partition> partitions, Schema schema,
       String tableName, List<ColumnStatisticsInfo> columnStats) {
     mDatabase = database;
-    mName = tableName
-    mSchema = schema
-    mPartitions = new ArrayList<>(partitions);
-    mUdbTable = null;
+    mName = tableName;
+    mSchema = schema;
+    mPartitions = partitions;
+    mStatistics = columnStats;
   }
 
-  public void sync(UdbTable udbTable) throws IOException {
-    mName = mUdbTable.getName();
-    mSchema = mUdbTable.getSchema();
-    mPartitions =
-        udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
+  public void sync(UdbTable udbTable) {
+    try {
+      mName = udbTable.getName();
+      mSchema = udbTable.getSchema();
+      mPartitions =
+          udbTable.getPartitions().stream().map(Partition::new)
+              .map(Partition::toProto).collect(Collectors.toList());
+      mTableInfo = udbTable.toProto();
+      mStatistics = udbTable.getStatistics();
+    } catch (IOException e) {
+      LOG.info("Sync table {} failed {}", mName, e);
+    }
   }
 
   /**
@@ -64,13 +72,11 @@ public class Table {
    * @return a new instance
    */
   public static Table create(Database database, UdbTable udbTable) throws IOException {
-    List<Partition> partitions =
-        udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
-    return new Table(database, udbTable, partitions);
+    return new Table(database, udbTable);
   }
 
   public static Table create(Database database, Catalog.AddTableEntry entry) {
-    return new Table(database, entry.getPartitionsList(), entry.getUdbTable().getHiveTableInfo().get)
+    return new Table(database, entry.getPartitionsList(), entry.getSchema(), entry.getTableName(), entry.getTableStatsList());
   }
   /**
    * @return the table name
@@ -82,7 +88,7 @@ public class Table {
   /**
    * @return the list of partitions
    */
-  public List<Partition> getPartitions() {
+  public List<alluxio.grpc.catalog.Partition> getPartitions() {
     return mPartitions;
   }
 
@@ -97,28 +103,19 @@ public class Table {
    * @return the statistics
    */
   public List<ColumnStatisticsInfo> getStatistics() {
-    return mUdbTable.getStatistics();
-  }
-
-  /**
-   * Returns the udb table.
-   *
-   * @return udb table
-   */
-  public UdbTable getUdbTable() {
-    return mUdbTable;
+    return mStatistics;
   }
 
   /**
    * @return the proto representation
    */
-  public TableInfo toProto() throws IOException {
+  public TableInfo toProto() {
     TableInfo.Builder builder = TableInfo.newBuilder()
         .setDbName(mDatabase.getName())
         .setTableName(mName)
         .setSchema(mSchema);
 
-    builder.setUdbInfo(mUdbTable.toProto());
+    builder.setUdbInfo(mTableInfo);
     return builder.build();
   }
 }

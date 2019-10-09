@@ -20,4 +20,5 @@ message AddTableEntry {
     optional alluxio.grpc.catalog.UdbTableInfo udb_table = 3;
     repeated alluxio.grpc.catalog.Partition partitions = 4;
     repeated alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;
+    optional alluxio.grpc.catalog.Schema schema = 6;
 }
