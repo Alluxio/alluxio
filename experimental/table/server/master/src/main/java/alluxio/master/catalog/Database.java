@@ -14,7 +14,10 @@ package alluxio.master.catalog;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.Schema;
+import alluxio.grpc.catalog.TableInfo;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Catalog;
 import alluxio.proto.journal.Journal;
 import alluxio.table.common.udb.UdbContext;
@@ -27,14 +30,16 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The database implementation that manages a collection of tables.
  */
-public class Database {
+public class Database implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(Database.class);
 
   private final String mType;
@@ -177,19 +182,92 @@ public class Database {
         // add table from udb
         UdbTable udbTable = mUdb.getTable(tableName);
         table = Table.create(this, udbTable);
-        mTables.putIfAbsent(tableName, table);
-        // journal the change
-        context.get().append(Journal.JournalEntry.newBuilder()
+        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
             .setAddTable(Catalog.AddTableEntry.newBuilder().setUdbTable(udbTable.toProto())
                 .setDbName(mName).setTableName(tableName)
                 .addAllPartitions(table.getPartitions())
                 .addAllTableStats(table.getStatistics())
                 .setSchema(udbTable.getSchema())
-                .build()).build());
+                .build()).build();
+        applyAndJournal(context, entry);
       } else {
         // sync metadata from udb
         // TODO(gpang): implement
       }
     }
+  }
+
+  @Override
+  public boolean processJournalEntry(Journal.JournalEntry entry) {
+    if (entry.hasAddTable()) {
+      Catalog.AddTableEntry addTable = entry.getAddTable();
+      if (addTable.getDbName().equals(mName)) {
+        apply(addTable);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void apply(Catalog.AddTableEntry entry) {
+    Table table = Table.create(this, entry);
+    addTable(entry.getTableName(), table);
+  }
+
+  @Override
+  public void resetState() {
+    mTables.clear();
+  }
+
+  private Iterator<Journal.JournalEntry> getTableIterator() {
+    final Iterator<Table> it = getTables().iterator();
+    return new Iterator<Journal.JournalEntry>() {
+      private Table mEntry = null;
+
+      @Override
+      public boolean hasNext() {
+        if (mEntry != null) {
+          return true;
+        }
+        if (it.hasNext()) {
+          mEntry = it.next();
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        Table table = mEntry;
+        mEntry = null;
+        TableInfo tableInfo = table.toProto();
+
+        return Journal.JournalEntry.newBuilder().setAddTable(
+            Catalog.AddTableEntry.newBuilder().setSchema(table.getSchema())
+                .setUdbTable(tableInfo.getUdbInfo())
+                .setDbName(tableInfo.getDbName()).setTableName(table.getName())
+                .addAllPartitions(table.getPartitions()).addAllTableStats(table.getStatistics())
+                .build()).build();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException(
+            "GetTableIteratorr#Iterator#remove is not supported.");
+      }
+    };
+  }
+
+  @Override
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    return getTableIterator();
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.CATALOG_SERVICE_DATABASE;
   }
 }

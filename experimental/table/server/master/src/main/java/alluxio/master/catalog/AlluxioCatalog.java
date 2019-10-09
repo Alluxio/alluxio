@@ -11,7 +11,6 @@
 
 package alluxio.master.catalog;
 
-import alluxio.ProcessUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
@@ -23,14 +22,15 @@ import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Domain;
 import alluxio.grpc.catalog.FieldSchema;
 import alluxio.grpc.catalog.PartitionInfo;
-import alluxio.grpc.catalog.TableInfo;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Catalog;
 import alluxio.proto.journal.Journal;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
+import alluxio.util.StreamUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // TODO(yuzhu): journal the state of the catalog
@@ -85,9 +84,9 @@ public class AlluxioCatalog implements Journaled {
           .format("Unable to attach database. Database name %s (type: %s) already exists.", dbName,
               type));
     }
-    applyAndJournal(journalContext,
+    applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setAttachDb(
         Catalog.AttachDbEntry.newBuilder().setType(type).setDbName(dbName)
-            .putAllConfig(map).build());
+            .putAllConfig(map).build()).build());
     mDBs.get(dbName).sync(journalContext);
     return true;
   }
@@ -227,25 +226,6 @@ public class AlluxioCatalog implements Journaled {
     return true;
   }
 
-  /**
-   * Apply AttachDB journal entry.
-   *
-   * @param context journal context
-   * @param entry attachDb entry
-   */
-  public void applyAndJournal(Supplier<JournalContext> context,
-      Catalog.AttachDbEntry entry) {
-    LOG.info("Apply attachDb {} with type {} and configuration {}",
-        entry.getDbName(), entry.getType(), entry.getConfigMap());
-    try {
-      apply(entry);
-      context.get().append(Journal.JournalEntry.newBuilder().setAttachDb(entry).build());
-    } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
-      throw t; // fatalError will usually system.exit
-    }
-  }
-
   private void apply(Catalog.AttachDbEntry entry) {
     String type = entry.getType();
     String dbName = entry.getDbName();
@@ -256,20 +236,14 @@ public class AlluxioCatalog implements Journaled {
     mDBs.put(dbName, db);
   }
 
-  private void apply(Catalog.AddTableEntry entry) {
-    Database db = mDBs.get(entry.getDbName());
-    Table table = Table.create(db, entry);
-    db.addTable(entry.getTableName(), table);
-  }
-
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
     if (entry.hasAttachDb()) {
       apply(entry.getAttachDb());
       return true;
     } else if (entry.hasAddTable()) {
-      apply(entry.getAddTable());
-      return true;
+      Database db = mDBs.get(entry.getAddTable().getDbName());
+      return db.processJournalEntry(entry);
     }
     return false;
   }
@@ -319,53 +293,11 @@ public class AlluxioCatalog implements Journaled {
     };
   }
 
-  private Iterator<Journal.JournalEntry> getTableIterator() {
-    final Iterator<Table> it =
-        mDBs.values().stream().flatMap(db -> db.getTables().stream())
-            .collect(Collectors.toList()).iterator();
-    return new Iterator<Journal.JournalEntry>() {
-      private Table mEntry = null;
-
-      @Override
-      public boolean hasNext() {
-        if (mEntry != null) {
-          return true;
-        }
-        if (it.hasNext()) {
-          mEntry = it.next();
-          return true;
-        }
-        return false;
-      }
-
-      @Override
-      public Journal.JournalEntry next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-        Table table = mEntry;
-        mEntry = null;
-        TableInfo tableInfo = table.toProto();
-
-        return Journal.JournalEntry.newBuilder().setAddTable(
-            Catalog.AddTableEntry.newBuilder().setSchema(table.getSchema())
-                .setUdbTable(tableInfo.getUdbInfo())
-                .setDbName(tableInfo.getDbName()).setTableName(table.getName())
-                .addAllPartitions(table.getPartitions()).addAllTableStats(table.getStatistics())
-                .build()).build();
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException(
-            "GetTableIteratorr#Iterator#remove is not supported.");
-      }
-    };
-  }
-
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return Iterators.concat(getDbIterator(), getTableIterator());
+    List<Iterator<Journal.JournalEntry>> componentIters = StreamUtils
+        .map(JournalEntryIterable::getJournalEntryIterator, mDBs.values());
+    return Iterators.concat(getDbIterator(), Iterators.concat(componentIters.iterator()));
   }
 
   @Override
