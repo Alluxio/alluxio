@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +79,6 @@ public class HiveTable implements UdbTable {
     mTable = table;
     mPathTranslator = pathTranslator;
     mPartitions = partitions;
-    // The following field are always populated
     mName = name;
     mSchema = schema;
     mBaseLocation = baseLocation;
@@ -112,9 +110,6 @@ public class HiveTable implements UdbTable {
 
   @Override
   public List<UdbPartition> getPartitions() throws IOException {
-    if (!isConnected()) {
-      return Collections.emptyList();
-    }
     List<UdbPartition> udbPartitions = new ArrayList<>();
     try {
       List<Partition> partitions = mPartitions;
@@ -175,10 +170,5 @@ public class HiveTable implements UdbTable {
       builder.setViewExpandedText(mTable.getViewExpandedText());
     }
     return (UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build());
-  }
-
-  @Override
-  public boolean isConnected() {
-    return mHive != null;
   }
 }

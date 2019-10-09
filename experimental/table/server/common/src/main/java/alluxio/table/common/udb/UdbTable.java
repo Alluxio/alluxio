@@ -49,10 +49,4 @@ public interface UdbTable {
    * @return returns a proto representing the table
    */
   UdbTableInfo toProto() throws IOException;
-
-  /**
-   *
-   * @return true if the udbtable is connected
-   */
-  boolean isConnected();
 }
