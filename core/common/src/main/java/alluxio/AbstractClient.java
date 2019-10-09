@@ -56,7 +56,7 @@ public abstract class AbstractClient implements Client {
 
   protected InetSocketAddress mAddress;
 
-  /** Address to load the cluster defaults */
+  /** Address to load configuration */
   protected InetSocketAddress mConfAddress;
 
   /** Underlying channel to the target service. */
