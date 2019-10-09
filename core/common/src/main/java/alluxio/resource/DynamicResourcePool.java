@@ -20,16 +20,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -212,7 +212,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   // the most recently used resource).
   // These are the resources that acquire() will take.
   // This is always a subset of the other data structure mResources.
-  @GuardedBy("mLock")
   private final Deque<ResourceInternal<T>> mAvailableResources;
 
   // Tracks all the resources that are not closed.
@@ -226,6 +225,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   private ScheduledExecutorService mExecutor;
   private ScheduledFuture<?> mGcFuture;
 
+  // It represents the total number of resources that have been created by this pool.
+  private AtomicInteger mCurrentCapacity;
+  // Number of threads waiting for resources
+  private AtomicInteger mWaitingThreadsNumber;
+
   protected Clock mClock = new SystemClock();
 
   /**
@@ -238,32 +242,37 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
-    mAvailableResources = new ArrayDeque<>(Math.min(mMaxCapacity, 32));
+    mAvailableResources = new ConcurrentLinkedDeque<>();
+    mCurrentCapacity = new AtomicInteger();
+    mWaitingThreadsNumber = new AtomicInteger();
 
     mGcFuture = mExecutor.scheduleAtFixedRate(() -> {
       List<T> resourcesToGc = new ArrayList<>();
 
-      try {
-        mLock.lock();
-        if (mResources.size() <= mMinCapacity) {
-          return;
-        }
-        int currentSize = mResources.size();
-        Iterator<ResourceInternal<T>> iterator = mAvailableResources.iterator();
-        while (iterator.hasNext()) {
-          ResourceInternal<T> next = iterator.next();
-          if (shouldGc(next)) {
-            resourcesToGc.add(next.mResource);
-            iterator.remove();
-            mResources.remove(next.mResource);
-            currentSize--;
-            if (currentSize <= mMinCapacity) {
-              break;
+      if (mResources.size() <= mMinCapacity) {
+        return;
+      }
+      ResourceInternal<T> queueTailResource;
+      while ((queueTailResource = mAvailableResources.pollLast()) != null) {
+        if (shouldGc(queueTailResource)) {
+          resourcesToGc.add(queueTailResource.mResource);
+          remove(queueTailResource.mResource);
+          if (mCurrentCapacity.get() <= mMinCapacity) {
+            break;
+          }
+        } else {
+          // add the resource back the deque
+          mAvailableResources.offerLast(queueTailResource);
+          if (mWaitingThreadsNumber.get() > 0) {
+            try {
+              mLock.lock();
+              mNotEmpty.signal();
+            } finally {
+              mLock.unlock();
             }
           }
+          break;
         }
-      } finally {
-        mLock.unlock();
       }
 
       for (T resource : resourcesToGc) {
@@ -309,27 +318,27 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     long endTimeMs = mClock.millis() + unit.toMillis(time);
 
     // Try to take a resource without blocking
-    ResourceInternal<T> resource = poll();
+    ResourceInternal<T> resource = mAvailableResources.pollFirst();
     if (resource != null) {
       return checkHealthyAndRetry(resource.mResource, endTimeMs);
     }
 
-    if (!isFull()) {
+    if (mCurrentCapacity.getAndIncrement() < mMaxCapacity) {
       // If the resource pool is empty but capacity is not yet full, create a new resource.
       T newResource = createNewResource();
       ResourceInternal<T> resourceInternal = new ResourceInternal<>(newResource);
-      if (add(resourceInternal)) {
-        return newResource;
-      } else {
-        closeResource(newResource);
-      }
+      mResources.put(newResource, resourceInternal);
+      return newResource;
+    } else {
+      mCurrentCapacity.getAndDecrement();
     }
 
     // Otherwise, try to take a resource from the pool, blocking if none are available.
     try {
+      mWaitingThreadsNumber.getAndIncrement();
       mLock.lock();
       while (true) {
-        resource = poll();
+        resource = mAvailableResources.pollFirst();
         if (resource != null) {
           break;
         }
@@ -349,6 +358,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       }
     } finally {
       mLock.unlock();
+      mWaitingThreadsNumber.getAndDecrement();
     }
 
     return checkHealthyAndRetry(resource.mResource, endTimeMs);
@@ -367,18 +377,20 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   public void release(T resource) {
     // We don't need to acquire mLock here because the resource is guaranteed not to be removed
     // if it is not available (i.e. not in mAvailableResources list).
-    if (!mResources.containsKey(resource)) {
+    ResourceInternal<T> resourceInternal = mResources.get(resource);
+    if (resourceInternal == null) {
       throw new IllegalArgumentException(
           "Resource " + resource.toString() + " was not acquired from this resource pool.");
     }
-    ResourceInternal<T> resourceInternal = mResources.get(resource);
     resourceInternal.setLastAccessTimeMs(mClock.millis());
-    try {
-      mLock.lock();
-      mAvailableResources.addFirst(resourceInternal);
-      mNotEmpty.signal();
-    } finally {
-      mLock.unlock();
+    mAvailableResources.addFirst(resourceInternal);
+    if (mWaitingThreadsNumber.get() > 0) {
+      try {
+        mLock.lock();
+        mNotEmpty.signal();
+      } finally {
+        mLock.unlock();
+      }
     }
   }
 
@@ -387,52 +399,21 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    */
   @Override
   public void close() throws IOException {
-    try {
-      mLock.lock();
-      if (mAvailableResources.size() != mResources.size()) {
-        LOG.warn("{} resources are not released when closing the resource pool.",
-            mResources.size() - mAvailableResources.size());
-      }
-      for (ResourceInternal<T> resourceInternal : mAvailableResources) {
-        closeResource(resourceInternal.mResource);
-      }
-      mAvailableResources.clear();
-    } finally {
-      mLock.unlock();
-    }
     mGcFuture.cancel(true);
+    if (mAvailableResources.size() != mCurrentCapacity.get()) {
+      LOG.warn("{} resources are not released when closing the resource pool.",
+              mCurrentCapacity.get() - mAvailableResources.size());
+    }
+    ResourceInternal<T> resourceInternal;
+    while ((resourceInternal = mAvailableResources.pollFirst()) != null) {
+      closeResource(resourceInternal.mResource);
+    }
+    mAvailableResources.clear();
   }
 
   @Override
   public int size() {
-    return mResources.size();
-  }
-
-  /**
-   * @return true if the pool is full
-   */
-  private boolean isFull() {
-    return mResources.size() >= mMaxCapacity;
-  }
-
-  /**
-   * Adds a newly created resource to the pool. The resource is not available when it is added.
-   *
-   * @param resource
-   * @return true if the resource is successfully added
-   */
-  private boolean add(ResourceInternal<T> resource) {
-    try {
-      mLock.lock();
-      if (mResources.size() >= mMaxCapacity) {
-        return false;
-      } else {
-        mResources.put(resource.mResource, resource);
-        return true;
-      }
-    } finally {
-      mLock.unlock();
-    }
+    return mCurrentCapacity.get();
   }
 
   /**
@@ -441,24 +422,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param resource
    */
   private void remove(T resource) {
-    try {
-      mLock.lock();
-      mResources.remove(resource);
-    } finally {
-      mLock.unlock();
-    }
-  }
-
-  /**
-   * @return the most recently used resource and null if there are no free resources
-   */
-  private ResourceInternal<T> poll() {
-    try {
-      mLock.lock();
-      return mAvailableResources.pollFirst();
-    } finally {
-      mLock.unlock();
-    }
+    mResources.remove(resource);
+    mCurrentCapacity.getAndDecrement();
   }
 
   /**
