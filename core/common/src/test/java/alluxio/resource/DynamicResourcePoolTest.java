@@ -197,7 +197,7 @@ public final class DynamicResourcePoolTest {
    * Tests the logic that the recently used resource is preferred.
    */
   @Test
-  public void acquireRentlyUsed() throws Exception {
+  public void acquireRecentlyUsed() throws Exception {
     ManualClock manualClock = new ManualClock();
     TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions(), manualClock);
     List<Resource> resourceList = new ArrayList<>();
