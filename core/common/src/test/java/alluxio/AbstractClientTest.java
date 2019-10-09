@@ -12,7 +12,6 @@
 package alluxio;
 
 import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
-import static org.mockito.Matchers.any;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.UnavailableException;
@@ -26,7 +25,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -124,7 +122,6 @@ public final class AbstractClientTest {
         return confAddress;
       }
     };
-
 
     ArgumentCaptor<InetSocketAddress> argument = ArgumentCaptor.forClass(InetSocketAddress.class);
 

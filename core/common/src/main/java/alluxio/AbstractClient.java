@@ -56,7 +56,7 @@ public abstract class AbstractClient implements Client {
 
   protected InetSocketAddress mAddress;
 
-  /** Address to load configuration */
+  /** Address to load configuration. */
   protected InetSocketAddress mConfAddress;
 
   /** Underlying channel to the target service. */
@@ -297,6 +297,7 @@ public abstract class AbstractClient implements Client {
     return mAddress;
   }
 
+  @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
     if (mConfAddress != null) {
       return mConfAddress;
