@@ -1097,38 +1097,52 @@ public final class Catalog {
     alluxio.grpc.catalog.UdbTableInfoOrBuilder getUdbTableOrBuilder();
 
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
-    int getPathTranslatorCount();
+    java.util.List<alluxio.grpc.catalog.Partition> 
+        getPartitionsList();
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
-    boolean containsPathTranslator(
-        java.lang.String key);
+    alluxio.grpc.catalog.Partition getPartitions(int index);
     /**
-     * Use {@link #getPathTranslatorMap()} instead.
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
-    @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
-    getPathTranslator();
+    int getPartitionsCount();
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
-    java.util.Map<java.lang.String, java.lang.String>
-    getPathTranslatorMap();
+    java.util.List<? extends alluxio.grpc.catalog.PartitionOrBuilder> 
+        getPartitionsOrBuilderList();
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
+    alluxio.grpc.catalog.PartitionOrBuilder getPartitionsOrBuilder(
+        int index);
 
-    java.lang.String getPathTranslatorOrDefault(
-        java.lang.String key,
-        java.lang.String defaultValue);
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
      */
-
-    java.lang.String getPathTranslatorOrThrow(
-        java.lang.String key);
+    java.util.List<alluxio.grpc.catalog.ColumnStatisticsInfo> 
+        getTableStatsList();
+    /**
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+     */
+    alluxio.grpc.catalog.ColumnStatisticsInfo getTableStats(int index);
+    /**
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+     */
+    int getTableStatsCount();
+    /**
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+     */
+    java.util.List<? extends alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder> 
+        getTableStatsOrBuilderList();
+    /**
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+     */
+    alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getTableStatsOrBuilder(
+        int index);
   }
   /**
    * <pre>
@@ -1149,6 +1163,8 @@ public final class Catalog {
     private AddTableEntry() {
       dbName_ = "";
       tableName_ = "";
+      partitions_ = java.util.Collections.emptyList();
+      tableStats_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
@@ -1209,15 +1225,20 @@ public final class Catalog {
             }
             case 34: {
               if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
-                pathTranslator_ = com.google.protobuf.MapField.newMapField(
-                    PathTranslatorDefaultEntryHolder.defaultEntry);
+                partitions_ = new java.util.ArrayList<alluxio.grpc.catalog.Partition>();
                 mutable_bitField0_ |= 0x00000008;
               }
-              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-              pathTranslator__ = input.readMessage(
-                  PathTranslatorDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-              pathTranslator_.getMutableMap().put(
-                  pathTranslator__.getKey(), pathTranslator__.getValue());
+              partitions_.add(
+                  input.readMessage(alluxio.grpc.catalog.Partition.PARSER, extensionRegistry));
+              break;
+            }
+            case 42: {
+              if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+                tableStats_ = new java.util.ArrayList<alluxio.grpc.catalog.ColumnStatisticsInfo>();
+                mutable_bitField0_ |= 0x00000010;
+              }
+              tableStats_.add(
+                  input.readMessage(alluxio.grpc.catalog.ColumnStatisticsInfo.PARSER, extensionRegistry));
               break;
             }
           }
@@ -1228,6 +1249,12 @@ public final class Catalog {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          partitions_ = java.util.Collections.unmodifiableList(partitions_);
+        }
+        if (((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+          tableStats_ = java.util.Collections.unmodifiableList(tableStats_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -1237,17 +1264,6 @@ public final class Catalog {
       return alluxio.proto.journal.Catalog.internal_static_alluxio_proto_journal_AddTableEntry_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 4:
-          return internalGetPathTranslator();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Catalog.internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable
@@ -1361,80 +1377,74 @@ public final class Catalog {
       return udbTable_ == null ? alluxio.grpc.catalog.UdbTableInfo.getDefaultInstance() : udbTable_;
     }
 
-    public static final int PATH_TRANSLATOR_FIELD_NUMBER = 4;
-    private static final class PathTranslatorDefaultEntryHolder {
-      static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
-              com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
-                  alluxio.proto.journal.Catalog.internal_static_alluxio_proto_journal_AddTableEntry_PathTranslatorEntry_descriptor, 
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
-    }
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> pathTranslator_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetPathTranslator() {
-      if (pathTranslator_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            PathTranslatorDefaultEntryHolder.defaultEntry);
-      }
-      return pathTranslator_;
-    }
-
-    public int getPathTranslatorCount() {
-      return internalGetPathTranslator().getMap().size();
+    public static final int PARTITIONS_FIELD_NUMBER = 4;
+    private java.util.List<alluxio.grpc.catalog.Partition> partitions_;
+    /**
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+     */
+    public java.util.List<alluxio.grpc.catalog.Partition> getPartitionsList() {
+      return partitions_;
     }
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
-
-    public boolean containsPathTranslator(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetPathTranslator().getMap().containsKey(key);
+    public java.util.List<? extends alluxio.grpc.catalog.PartitionOrBuilder> 
+        getPartitionsOrBuilderList() {
+      return partitions_;
     }
     /**
-     * Use {@link #getPathTranslatorMap()} instead.
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getPathTranslator() {
-      return getPathTranslatorMap();
+    public int getPartitionsCount() {
+      return partitions_.size();
     }
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
-
-    public java.util.Map<java.lang.String, java.lang.String> getPathTranslatorMap() {
-      return internalGetPathTranslator().getMap();
+    public alluxio.grpc.catalog.Partition getPartitions(int index) {
+      return partitions_.get(index);
     }
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
      */
+    public alluxio.grpc.catalog.PartitionOrBuilder getPartitionsOrBuilder(
+        int index) {
+      return partitions_.get(index);
+    }
 
-    public java.lang.String getPathTranslatorOrDefault(
-        java.lang.String key,
-        java.lang.String defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetPathTranslator().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
+    public static final int TABLE_STATS_FIELD_NUMBER = 5;
+    private java.util.List<alluxio.grpc.catalog.ColumnStatisticsInfo> tableStats_;
+    /**
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+     */
+    public java.util.List<alluxio.grpc.catalog.ColumnStatisticsInfo> getTableStatsList() {
+      return tableStats_;
     }
     /**
-     * <code>map&lt;string, string&gt; path_translator = 4;</code>
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
      */
-
-    public java.lang.String getPathTranslatorOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetPathTranslator().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
+    public java.util.List<? extends alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder> 
+        getTableStatsOrBuilderList() {
+      return tableStats_;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+     */
+    public int getTableStatsCount() {
+      return tableStats_.size();
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+     */
+    public alluxio.grpc.catalog.ColumnStatisticsInfo getTableStats(int index) {
+      return tableStats_.get(index);
+    }
+    /**
+     * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+     */
+    public alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getTableStatsOrBuilder(
+        int index) {
+      return tableStats_.get(index);
     }
 
     private byte memoizedIsInitialized = -1;
@@ -1445,6 +1455,12 @@ public final class Catalog {
 
       if (hasUdbTable()) {
         if (!getUdbTable().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      for (int i = 0; i < getTableStatsCount(); i++) {
+        if (!getTableStats(i).isInitialized()) {
           memoizedIsInitialized = 0;
           return false;
         }
@@ -1464,12 +1480,12 @@ public final class Catalog {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeMessage(3, getUdbTable());
       }
-      com.google.protobuf.GeneratedMessageV3
-        .serializeStringMapTo(
-          output,
-          internalGetPathTranslator(),
-          PathTranslatorDefaultEntryHolder.defaultEntry,
-          4);
+      for (int i = 0; i < partitions_.size(); i++) {
+        output.writeMessage(4, partitions_.get(i));
+      }
+      for (int i = 0; i < tableStats_.size(); i++) {
+        output.writeMessage(5, tableStats_.get(i));
+      }
       unknownFields.writeTo(output);
     }
 
@@ -1488,15 +1504,13 @@ public final class Catalog {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, getUdbTable());
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-           : internalGetPathTranslator().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-        pathTranslator__ = PathTranslatorDefaultEntryHolder.defaultEntry.newBuilderForType()
-            .setKey(entry.getKey())
-            .setValue(entry.getValue())
-            .build();
+      for (int i = 0; i < partitions_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(4, pathTranslator__);
+          .computeMessageSize(4, partitions_.get(i));
+      }
+      for (int i = 0; i < tableStats_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, tableStats_.get(i));
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1529,8 +1543,10 @@ public final class Catalog {
         result = result && getUdbTable()
             .equals(other.getUdbTable());
       }
-      result = result && internalGetPathTranslator().equals(
-          other.internalGetPathTranslator());
+      result = result && getPartitionsList()
+          .equals(other.getPartitionsList());
+      result = result && getTableStatsList()
+          .equals(other.getTableStatsList());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -1554,9 +1570,13 @@ public final class Catalog {
         hash = (37 * hash) + UDB_TABLE_FIELD_NUMBER;
         hash = (53 * hash) + getUdbTable().hashCode();
       }
-      if (!internalGetPathTranslator().getMap().isEmpty()) {
-        hash = (37 * hash) + PATH_TRANSLATOR_FIELD_NUMBER;
-        hash = (53 * hash) + internalGetPathTranslator().hashCode();
+      if (getPartitionsCount() > 0) {
+        hash = (37 * hash) + PARTITIONS_FIELD_NUMBER;
+        hash = (53 * hash) + getPartitionsList().hashCode();
+      }
+      if (getTableStatsCount() > 0) {
+        hash = (37 * hash) + TABLE_STATS_FIELD_NUMBER;
+        hash = (53 * hash) + getTableStatsList().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -1667,28 +1687,6 @@ public final class Catalog {
         return alluxio.proto.journal.Catalog.internal_static_alluxio_proto_journal_AddTableEntry_descriptor;
       }
 
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapField internalGetMapField(
-          int number) {
-        switch (number) {
-          case 4:
-            return internalGetPathTranslator();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapField internalGetMutableMapField(
-          int number) {
-        switch (number) {
-          case 4:
-            return internalGetMutablePathTranslator();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Catalog.internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable
@@ -1710,6 +1708,8 @@ public final class Catalog {
         if (com.google.protobuf.GeneratedMessageV3
                 .alwaysUseFieldBuilders) {
           getUdbTableFieldBuilder();
+          getPartitionsFieldBuilder();
+          getTableStatsFieldBuilder();
         }
       }
       public Builder clear() {
@@ -1724,7 +1724,18 @@ public final class Catalog {
           udbTableBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000004);
-        internalGetMutablePathTranslator().clear();
+        if (partitionsBuilder_ == null) {
+          partitions_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000008);
+        } else {
+          partitionsBuilder_.clear();
+        }
+        if (tableStatsBuilder_ == null) {
+          tableStats_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000010);
+        } else {
+          tableStatsBuilder_.clear();
+        }
         return this;
       }
 
@@ -1765,8 +1776,24 @@ public final class Catalog {
         } else {
           result.udbTable_ = udbTableBuilder_.build();
         }
-        result.pathTranslator_ = internalGetPathTranslator();
-        result.pathTranslator_.makeImmutable();
+        if (partitionsBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) == 0x00000008)) {
+            partitions_ = java.util.Collections.unmodifiableList(partitions_);
+            bitField0_ = (bitField0_ & ~0x00000008);
+          }
+          result.partitions_ = partitions_;
+        } else {
+          result.partitions_ = partitionsBuilder_.build();
+        }
+        if (tableStatsBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) == 0x00000010)) {
+            tableStats_ = java.util.Collections.unmodifiableList(tableStats_);
+            bitField0_ = (bitField0_ & ~0x00000010);
+          }
+          result.tableStats_ = tableStats_;
+        } else {
+          result.tableStats_ = tableStatsBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1822,8 +1849,58 @@ public final class Catalog {
         if (other.hasUdbTable()) {
           mergeUdbTable(other.getUdbTable());
         }
-        internalGetMutablePathTranslator().mergeFrom(
-            other.internalGetPathTranslator());
+        if (partitionsBuilder_ == null) {
+          if (!other.partitions_.isEmpty()) {
+            if (partitions_.isEmpty()) {
+              partitions_ = other.partitions_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+            } else {
+              ensurePartitionsIsMutable();
+              partitions_.addAll(other.partitions_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.partitions_.isEmpty()) {
+            if (partitionsBuilder_.isEmpty()) {
+              partitionsBuilder_.dispose();
+              partitionsBuilder_ = null;
+              partitions_ = other.partitions_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+              partitionsBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getPartitionsFieldBuilder() : null;
+            } else {
+              partitionsBuilder_.addAllMessages(other.partitions_);
+            }
+          }
+        }
+        if (tableStatsBuilder_ == null) {
+          if (!other.tableStats_.isEmpty()) {
+            if (tableStats_.isEmpty()) {
+              tableStats_ = other.tableStats_;
+              bitField0_ = (bitField0_ & ~0x00000010);
+            } else {
+              ensureTableStatsIsMutable();
+              tableStats_.addAll(other.tableStats_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.tableStats_.isEmpty()) {
+            if (tableStatsBuilder_.isEmpty()) {
+              tableStatsBuilder_.dispose();
+              tableStatsBuilder_ = null;
+              tableStats_ = other.tableStats_;
+              bitField0_ = (bitField0_ & ~0x00000010);
+              tableStatsBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getTableStatsFieldBuilder() : null;
+            } else {
+              tableStatsBuilder_.addAllMessages(other.tableStats_);
+            }
+          }
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -1832,6 +1909,11 @@ public final class Catalog {
       public final boolean isInitialized() {
         if (hasUdbTable()) {
           if (!getUdbTable().isInitialized()) {
+            return false;
+          }
+        }
+        for (int i = 0; i < getTableStatsCount(); i++) {
+          if (!getTableStats(i).isInitialized()) {
             return false;
           }
         }
@@ -2127,127 +2209,484 @@ public final class Catalog {
         return udbTableBuilder_;
       }
 
-      private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> pathTranslator_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-      internalGetPathTranslator() {
-        if (pathTranslator_ == null) {
-          return com.google.protobuf.MapField.emptyMapField(
-              PathTranslatorDefaultEntryHolder.defaultEntry);
+      private java.util.List<alluxio.grpc.catalog.Partition> partitions_ =
+        java.util.Collections.emptyList();
+      private void ensurePartitionsIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          partitions_ = new java.util.ArrayList<alluxio.grpc.catalog.Partition>(partitions_);
+          bitField0_ |= 0x00000008;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          alluxio.grpc.catalog.Partition, alluxio.grpc.catalog.Partition.Builder, alluxio.grpc.catalog.PartitionOrBuilder> partitionsBuilder_;
+
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public java.util.List<alluxio.grpc.catalog.Partition> getPartitionsList() {
+        if (partitionsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(partitions_);
+        } else {
+          return partitionsBuilder_.getMessageList();
         }
-        return pathTranslator_;
       }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-      internalGetMutablePathTranslator() {
-        onChanged();;
-        if (pathTranslator_ == null) {
-          pathTranslator_ = com.google.protobuf.MapField.newMapField(
-              PathTranslatorDefaultEntryHolder.defaultEntry);
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public int getPartitionsCount() {
+        if (partitionsBuilder_ == null) {
+          return partitions_.size();
+        } else {
+          return partitionsBuilder_.getCount();
         }
-        if (!pathTranslator_.isMutable()) {
-          pathTranslator_ = pathTranslator_.copy();
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public alluxio.grpc.catalog.Partition getPartitions(int index) {
+        if (partitionsBuilder_ == null) {
+          return partitions_.get(index);
+        } else {
+          return partitionsBuilder_.getMessage(index);
         }
-        return pathTranslator_;
-      }
-
-      public int getPathTranslatorCount() {
-        return internalGetPathTranslator().getMap().size();
       }
       /**
-       * <code>map&lt;string, string&gt; path_translator = 4;</code>
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
        */
-
-      public boolean containsPathTranslator(
-          java.lang.String key) {
-        if (key == null) { throw new java.lang.NullPointerException(); }
-        return internalGetPathTranslator().getMap().containsKey(key);
-      }
-      /**
-       * Use {@link #getPathTranslatorMap()} instead.
-       */
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getPathTranslator() {
-        return getPathTranslatorMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; path_translator = 4;</code>
-       */
-
-      public java.util.Map<java.lang.String, java.lang.String> getPathTranslatorMap() {
-        return internalGetPathTranslator().getMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; path_translator = 4;</code>
-       */
-
-      public java.lang.String getPathTranslatorOrDefault(
-          java.lang.String key,
-          java.lang.String defaultValue) {
-        if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetPathTranslator().getMap();
-        return map.containsKey(key) ? map.get(key) : defaultValue;
-      }
-      /**
-       * <code>map&lt;string, string&gt; path_translator = 4;</code>
-       */
-
-      public java.lang.String getPathTranslatorOrThrow(
-          java.lang.String key) {
-        if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetPathTranslator().getMap();
-        if (!map.containsKey(key)) {
-          throw new java.lang.IllegalArgumentException();
+      public Builder setPartitions(
+          int index, alluxio.grpc.catalog.Partition value) {
+        if (partitionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePartitionsIsMutable();
+          partitions_.set(index, value);
+          onChanged();
+        } else {
+          partitionsBuilder_.setMessage(index, value);
         }
-        return map.get(key);
-      }
-
-      public Builder clearPathTranslator() {
-        internalGetMutablePathTranslator().getMutableMap()
-            .clear();
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; path_translator = 4;</code>
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
        */
+      public Builder setPartitions(
+          int index, alluxio.grpc.catalog.Partition.Builder builderForValue) {
+        if (partitionsBuilder_ == null) {
+          ensurePartitionsIsMutable();
+          partitions_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          partitionsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public Builder addPartitions(alluxio.grpc.catalog.Partition value) {
+        if (partitionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePartitionsIsMutable();
+          partitions_.add(value);
+          onChanged();
+        } else {
+          partitionsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public Builder addPartitions(
+          int index, alluxio.grpc.catalog.Partition value) {
+        if (partitionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePartitionsIsMutable();
+          partitions_.add(index, value);
+          onChanged();
+        } else {
+          partitionsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public Builder addPartitions(
+          alluxio.grpc.catalog.Partition.Builder builderForValue) {
+        if (partitionsBuilder_ == null) {
+          ensurePartitionsIsMutable();
+          partitions_.add(builderForValue.build());
+          onChanged();
+        } else {
+          partitionsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public Builder addPartitions(
+          int index, alluxio.grpc.catalog.Partition.Builder builderForValue) {
+        if (partitionsBuilder_ == null) {
+          ensurePartitionsIsMutable();
+          partitions_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          partitionsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public Builder addAllPartitions(
+          java.lang.Iterable<? extends alluxio.grpc.catalog.Partition> values) {
+        if (partitionsBuilder_ == null) {
+          ensurePartitionsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, partitions_);
+          onChanged();
+        } else {
+          partitionsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public Builder clearPartitions() {
+        if (partitionsBuilder_ == null) {
+          partitions_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000008);
+          onChanged();
+        } else {
+          partitionsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public Builder removePartitions(int index) {
+        if (partitionsBuilder_ == null) {
+          ensurePartitionsIsMutable();
+          partitions_.remove(index);
+          onChanged();
+        } else {
+          partitionsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public alluxio.grpc.catalog.Partition.Builder getPartitionsBuilder(
+          int index) {
+        return getPartitionsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public alluxio.grpc.catalog.PartitionOrBuilder getPartitionsOrBuilder(
+          int index) {
+        if (partitionsBuilder_ == null) {
+          return partitions_.get(index);  } else {
+          return partitionsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public java.util.List<? extends alluxio.grpc.catalog.PartitionOrBuilder> 
+           getPartitionsOrBuilderList() {
+        if (partitionsBuilder_ != null) {
+          return partitionsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(partitions_);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public alluxio.grpc.catalog.Partition.Builder addPartitionsBuilder() {
+        return getPartitionsFieldBuilder().addBuilder(
+            alluxio.grpc.catalog.Partition.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public alluxio.grpc.catalog.Partition.Builder addPartitionsBuilder(
+          int index) {
+        return getPartitionsFieldBuilder().addBuilder(
+            index, alluxio.grpc.catalog.Partition.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.Partition partitions = 4;</code>
+       */
+      public java.util.List<alluxio.grpc.catalog.Partition.Builder> 
+           getPartitionsBuilderList() {
+        return getPartitionsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          alluxio.grpc.catalog.Partition, alluxio.grpc.catalog.Partition.Builder, alluxio.grpc.catalog.PartitionOrBuilder> 
+          getPartitionsFieldBuilder() {
+        if (partitionsBuilder_ == null) {
+          partitionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              alluxio.grpc.catalog.Partition, alluxio.grpc.catalog.Partition.Builder, alluxio.grpc.catalog.PartitionOrBuilder>(
+                  partitions_,
+                  ((bitField0_ & 0x00000008) == 0x00000008),
+                  getParentForChildren(),
+                  isClean());
+          partitions_ = null;
+        }
+        return partitionsBuilder_;
+      }
 
-      public Builder removePathTranslator(
-          java.lang.String key) {
-        if (key == null) { throw new java.lang.NullPointerException(); }
-        internalGetMutablePathTranslator().getMutableMap()
-            .remove(key);
-        return this;
+      private java.util.List<alluxio.grpc.catalog.ColumnStatisticsInfo> tableStats_ =
+        java.util.Collections.emptyList();
+      private void ensureTableStatsIsMutable() {
+        if (!((bitField0_ & 0x00000010) == 0x00000010)) {
+          tableStats_ = new java.util.ArrayList<alluxio.grpc.catalog.ColumnStatisticsInfo>(tableStats_);
+          bitField0_ |= 0x00000010;
+         }
       }
-      /**
-       * Use alternate mutation accessors instead.
-       */
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
-      getMutablePathTranslator() {
-        return internalGetMutablePathTranslator().getMutableMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; path_translator = 4;</code>
-       */
-      public Builder putPathTranslator(
-          java.lang.String key,
-          java.lang.String value) {
-        if (key == null) { throw new java.lang.NullPointerException(); }
-        if (value == null) { throw new java.lang.NullPointerException(); }
-        internalGetMutablePathTranslator().getMutableMap()
-            .put(key, value);
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; path_translator = 4;</code>
-       */
 
-      public Builder putAllPathTranslator(
-          java.util.Map<java.lang.String, java.lang.String> values) {
-        internalGetMutablePathTranslator().getMutableMap()
-            .putAll(values);
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          alluxio.grpc.catalog.ColumnStatisticsInfo, alluxio.grpc.catalog.ColumnStatisticsInfo.Builder, alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder> tableStatsBuilder_;
+
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public java.util.List<alluxio.grpc.catalog.ColumnStatisticsInfo> getTableStatsList() {
+        if (tableStatsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(tableStats_);
+        } else {
+          return tableStatsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public int getTableStatsCount() {
+        if (tableStatsBuilder_ == null) {
+          return tableStats_.size();
+        } else {
+          return tableStatsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public alluxio.grpc.catalog.ColumnStatisticsInfo getTableStats(int index) {
+        if (tableStatsBuilder_ == null) {
+          return tableStats_.get(index);
+        } else {
+          return tableStatsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder setTableStats(
+          int index, alluxio.grpc.catalog.ColumnStatisticsInfo value) {
+        if (tableStatsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureTableStatsIsMutable();
+          tableStats_.set(index, value);
+          onChanged();
+        } else {
+          tableStatsBuilder_.setMessage(index, value);
+        }
         return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder setTableStats(
+          int index, alluxio.grpc.catalog.ColumnStatisticsInfo.Builder builderForValue) {
+        if (tableStatsBuilder_ == null) {
+          ensureTableStatsIsMutable();
+          tableStats_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          tableStatsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder addTableStats(alluxio.grpc.catalog.ColumnStatisticsInfo value) {
+        if (tableStatsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureTableStatsIsMutable();
+          tableStats_.add(value);
+          onChanged();
+        } else {
+          tableStatsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder addTableStats(
+          int index, alluxio.grpc.catalog.ColumnStatisticsInfo value) {
+        if (tableStatsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureTableStatsIsMutable();
+          tableStats_.add(index, value);
+          onChanged();
+        } else {
+          tableStatsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder addTableStats(
+          alluxio.grpc.catalog.ColumnStatisticsInfo.Builder builderForValue) {
+        if (tableStatsBuilder_ == null) {
+          ensureTableStatsIsMutable();
+          tableStats_.add(builderForValue.build());
+          onChanged();
+        } else {
+          tableStatsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder addTableStats(
+          int index, alluxio.grpc.catalog.ColumnStatisticsInfo.Builder builderForValue) {
+        if (tableStatsBuilder_ == null) {
+          ensureTableStatsIsMutable();
+          tableStats_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          tableStatsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder addAllTableStats(
+          java.lang.Iterable<? extends alluxio.grpc.catalog.ColumnStatisticsInfo> values) {
+        if (tableStatsBuilder_ == null) {
+          ensureTableStatsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, tableStats_);
+          onChanged();
+        } else {
+          tableStatsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder clearTableStats() {
+        if (tableStatsBuilder_ == null) {
+          tableStats_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000010);
+          onChanged();
+        } else {
+          tableStatsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public Builder removeTableStats(int index) {
+        if (tableStatsBuilder_ == null) {
+          ensureTableStatsIsMutable();
+          tableStats_.remove(index);
+          onChanged();
+        } else {
+          tableStatsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public alluxio.grpc.catalog.ColumnStatisticsInfo.Builder getTableStatsBuilder(
+          int index) {
+        return getTableStatsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder getTableStatsOrBuilder(
+          int index) {
+        if (tableStatsBuilder_ == null) {
+          return tableStats_.get(index);  } else {
+          return tableStatsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public java.util.List<? extends alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder> 
+           getTableStatsOrBuilderList() {
+        if (tableStatsBuilder_ != null) {
+          return tableStatsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(tableStats_);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public alluxio.grpc.catalog.ColumnStatisticsInfo.Builder addTableStatsBuilder() {
+        return getTableStatsFieldBuilder().addBuilder(
+            alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public alluxio.grpc.catalog.ColumnStatisticsInfo.Builder addTableStatsBuilder(
+          int index) {
+        return getTableStatsFieldBuilder().addBuilder(
+            index, alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;</code>
+       */
+      public java.util.List<alluxio.grpc.catalog.ColumnStatisticsInfo.Builder> 
+           getTableStatsBuilderList() {
+        return getTableStatsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          alluxio.grpc.catalog.ColumnStatisticsInfo, alluxio.grpc.catalog.ColumnStatisticsInfo.Builder, alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder> 
+          getTableStatsFieldBuilder() {
+        if (tableStatsBuilder_ == null) {
+          tableStatsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              alluxio.grpc.catalog.ColumnStatisticsInfo, alluxio.grpc.catalog.ColumnStatisticsInfo.Builder, alluxio.grpc.catalog.ColumnStatisticsInfoOrBuilder>(
+                  tableStats_,
+                  ((bitField0_ & 0x00000010) == 0x00000010),
+                  getParentForChildren(),
+                  isClean());
+          tableStats_ = null;
+        }
+        return tableStatsBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -2313,11 +2752,6 @@ public final class Catalog {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_proto_journal_AddTableEntry_PathTranslatorEntry_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_proto_journal_AddTableEntry_PathTranslatorEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -2333,13 +2767,12 @@ public final class Catalog {
       "\017\n\007db_name\030\002 \001(\t\022@\n\006config\030\003 \003(\01320.allux" +
       "io.proto.journal.AttachDbEntry.ConfigEnt" +
       "ry\032-\n\013ConfigEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
-      "\002 \001(\t:\0028\001\"\365\001\n\rAddTableEntry\022\017\n\007db_name\030\001" +
+      "\002 \001(\t:\0028\001\"\341\001\n\rAddTableEntry\022\017\n\007db_name\030\001" +
       " \001(\t\022\022\n\ntable_name\030\002 \001(\t\0225\n\tudb_table\030\003 " +
       "\001(\0132\".alluxio.grpc.catalog.UdbTableInfo\022" +
-      "Q\n\017path_translator\030\004 \003(\01328.alluxio.proto" +
-      ".journal.AddTableEntry.PathTranslatorEnt" +
-      "ry\0325\n\023PathTranslatorEntry\022\013\n\003key\030\001 \001(\t\022\r" +
-      "\n\005value\030\002 \001(\t:\0028\001"
+      "3\n\npartitions\030\004 \003(\0132\037.alluxio.grpc.catal" +
+      "og.Partition\022?\n\013table_stats\030\005 \003(\0132*.allu" +
+      "xio.grpc.catalog.ColumnStatisticsInfo"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2371,13 +2804,7 @@ public final class Catalog {
     internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddTableEntry_descriptor,
-        new java.lang.String[] { "DbName", "TableName", "UdbTable", "PathTranslator", });
-    internal_static_alluxio_proto_journal_AddTableEntry_PathTranslatorEntry_descriptor =
-      internal_static_alluxio_proto_journal_AddTableEntry_descriptor.getNestedTypes().get(0);
-    internal_static_alluxio_proto_journal_AddTableEntry_PathTranslatorEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_AddTableEntry_PathTranslatorEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
+        new java.lang.String[] { "DbName", "TableName", "UdbTable", "Partitions", "TableStats", });
     alluxio.grpc.catalog.CatalogMasterProto.getDescriptor();
   }
 

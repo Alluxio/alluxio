@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,8 @@ public class HiveTable implements UdbTable {
   private final List<ColumnStatisticsInfo> mStatistics;
   private final List<FieldSchema> mPartitionKeys;
   private final Table mTable;
+  private final List<Partition> mPartitions;
+  private UdbTableInfo mTableInfo = null;
 
   /**
    * Creates a new instance.
@@ -75,14 +78,17 @@ public class HiveTable implements UdbTable {
       Table table) throws IOException {
     // TODO(gpang): don't throw exception in constructor
     mHive = hive;
+
     mHiveDatabase = hiveDatabase;
+    mTable = table;
     mPathTranslator = pathTranslator;
+    mPartitions = partitions;
+    // The following field are always populated
     mName = name;
     mSchema = schema;
     mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionKeys = cols;
-    mTable = table;
   }
 
   private static Map<String, ParquetMetadata> getPartitionMetadata(String path,
@@ -109,9 +115,12 @@ public class HiveTable implements UdbTable {
 
   @Override
   public List<UdbPartition> getPartitions() throws IOException {
+    if (!isConnected()) {
+      return Collections.emptyList();
+    }
     List<UdbPartition> udbPartitions = new ArrayList<>();
     try {
-      List<Partition> partitions = mHive.listPartitions(mHiveDatabase.getName(), mName, (short) -1);
+      List<Partition> partitions = mPartitions;
       List<String> dataColumns = mTable.getSd().getCols().stream()
           .map(org.apache.hadoop.hive.metastore.api.FieldSchema::getName)
           .collect(Collectors.toList());
@@ -151,6 +160,9 @@ public class HiveTable implements UdbTable {
 
   @Override
   public UdbTableInfo toProto() throws IOException {
+    if (mTableInfo != null) {
+      return mTableInfo;
+    }
     HiveTableInfo.Builder builder = HiveTableInfo.newBuilder();
     builder.setDatabaseName(mHiveDatabase.getUdbContext().getDbName())
         .setTableName(mTable.getTableName())
@@ -168,6 +180,11 @@ public class HiveTable implements UdbTable {
     if (mTable.getViewExpandedText() != null) {
       builder.setViewExpandedText(mTable.getViewExpandedText());
     }
-    return UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build();
+    return (mTableInfo = UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build());
+  }
+
+  @Override
+  public boolean isConnected() {
+    return mHive != null;
   }
 }

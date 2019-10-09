@@ -18,5 +18,6 @@ message AddTableEntry {
     optional string db_name = 1;
     optional string table_name = 2;
     optional alluxio.grpc.catalog.UdbTableInfo udb_table = 3;
-    map<string, string> path_translator = 4;
+    repeated alluxio.grpc.catalog.Partition partitions = 4;
+    repeated alluxio.grpc.catalog.ColumnStatisticsInfo table_stats = 5;
 }

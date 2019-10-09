@@ -12,6 +12,7 @@
 package alluxio.table.common.udb;
 
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
+import alluxio.grpc.catalog.HiveTableInfo;
 import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.UdbTableInfo;
 import alluxio.table.common.UdbPartition;
@@ -49,4 +50,17 @@ public interface UdbTable {
    * @return returns a proto representing the table
    */
   UdbTableInfo toProto() throws IOException;
+
+  /**
+   * @param proto UdbTableInfo in proto form
+   * @return UdbTable object
+   */
+  static UdbTable fromProto(UdbTableInfo proto) {
+    if (proto.hasHiveTableInfo()) {
+      HiveTableInfo tableInfo = proto.getHiveTableInfo();
+
+    }
+  }
+
+  boolean isConnected();
 }

@@ -14,6 +14,9 @@ package alluxio.master.catalog;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.Schema;
+import alluxio.master.journal.JournalContext;
+import alluxio.proto.journal.Catalog;
+import alluxio.proto.journal.Journal;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
@@ -27,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * The database implementation that manages a collection of tables.
@@ -138,9 +142,21 @@ public class Database {
   }
 
   /**
-   * Syncs the metadata from the under db.
+   * add a table to the database.
+   *
+   * @param tableName table name
+   * @param table table object
    */
-  public void sync() throws IOException {
+  public void addTable(String tableName, Table table) {
+    // TODO(gpang): concurrency control
+    mTables.put(tableName, table);
+  }
+
+  /**
+   * Syncs the metadata from the under db.
+   * @param context journal context
+   */
+  public void sync(JournalContext context) throws IOException {
     if (!isConnected()) {
       return;
     }
@@ -150,7 +166,16 @@ public class Database {
       if (table == null) {
         // add table from udb
         UdbTable udbTable = mUdb.getTable(tableName);
-        mTables.putIfAbsent(tableName, Table.create(this, udbTable));
+        table = Table.create(this, udbTable);
+        mTables.putIfAbsent(tableName, table);
+        // journal the change
+        context.get().append(Journal.JournalEntry.newBuilder()
+            .setAddTable(Catalog.AddTableEntry.newBuilder().setUdbTable(udbTable.toProto())
+                .setDbName(mName).setTableName(tableName)
+                .addAllPartitions(table.getPartitions().stream().map(Partition::toProto)
+                    .collect(Collectors.toList()))
+                .addAllTableStats(table.getStatistics())
+                .build()).build());
       } else {
         // sync metadata from udb
         // TODO(gpang): implement

@@ -85,7 +85,7 @@ public class AlluxioCatalog implements Journaled {
     applyAndJournal(journalContext,
         Catalog.AttachDbEntry.newBuilder().setType(type).setDbName(dbName)
             .putAllConfig(map).build());
-    mDBs.get(dbName).sync();
+    mDBs.get(dbName).sync(journalContext);
     return true;
   }
 
@@ -98,8 +98,7 @@ public class AlluxioCatalog implements Journaled {
    */
   public Table getTable(String dbName, String tableName) throws IOException {
     Database db = getDatabaseByName(dbName);
-    Table table = db.getTable(tableName);
-    return table;
+    return db.getTable(tableName);
   }
 
   /**
@@ -258,6 +257,9 @@ public class AlluxioCatalog implements Journaled {
   }
 
   private void apply(Catalog.AddTableEntry entry) {
+    Database db = mDBs.get(entry.getDbName());
+    Table table = Table.create(db, entry);
+    db.addTable(entry.getTableName(), table);
   }
 
   @Override

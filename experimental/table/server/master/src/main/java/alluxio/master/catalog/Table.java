@@ -14,6 +14,8 @@ package alluxio.master.catalog;
 import alluxio.grpc.catalog.ColumnStatisticsInfo;
 import alluxio.grpc.catalog.Schema;
 import alluxio.grpc.catalog.TableInfo;
+import alluxio.grpc.catalog.UdbTableInfo;
+import alluxio.proto.journal.Catalog;
 import alluxio.table.common.udb.UdbTable;
 
 import java.io.IOException;
@@ -28,17 +30,32 @@ public class Table {
   private final String mName;
   private final Database mDatabase;
   private final Schema mSchema;
-  private final UdbTable mUdbTable;
+  private UdbTableInfo mTableInfo;
   // TODO(gpang): this should be indexable by partition spec
-  private final ArrayList<Partition> mPartitions;
+  private List<Partition> mPartitions;
 
   private Table(Database database, UdbTable udbTable, List<Partition> partitions) {
     mDatabase = database;
     mUdbTable = udbTable;
     mName = mUdbTable.getName();
     mSchema = mUdbTable.getSchema();
-    mPartitions = new ArrayList<>(2);
-    mPartitions.addAll(partitions);
+    mPartitions = new ArrayList<>(partitions);
+  }
+
+  private Table(Database database, List<Partition> partitions, Schema schema,
+      String tableName, List<ColumnStatisticsInfo> columnStats) {
+    mDatabase = database;
+    mName = tableName
+    mSchema = schema
+    mPartitions = new ArrayList<>(partitions);
+    mUdbTable = null;
+  }
+
+  public void sync(UdbTable udbTable) throws IOException {
+    mName = mUdbTable.getName();
+    mSchema = mUdbTable.getSchema();
+    mPartitions =
+        udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
   }
 
   /**
@@ -52,6 +69,9 @@ public class Table {
     return new Table(database, udbTable, partitions);
   }
 
+  public static Table create(Database database, Catalog.AddTableEntry entry) {
+    return new Table(database, entry.getPartitionsList(), entry.getUdbTable().getHiveTableInfo().get)
+  }
   /**
    * @return the table name
    */
