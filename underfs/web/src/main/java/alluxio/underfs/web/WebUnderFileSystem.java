@@ -176,7 +176,8 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
       // Return file status.
       String contentHash = UnderFileSystemUtils.approximateContentHash(contentLength, lastModified);
       return new UfsFileStatus(fileName == null ? path : fileName, contentHash, contentLength,
-          lastModified, "", "", (short) 288);
+          lastModified, "", "", (short) 288,
+          mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
     // Return directory status.
     return new UfsDirectoryStatus(path == null ? path : fileName, "", "", (short) 800,

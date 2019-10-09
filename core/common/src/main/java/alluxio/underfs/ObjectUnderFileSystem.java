@@ -535,7 +535,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode());
+          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } else {
       LOG.warn("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException(path);
@@ -557,7 +557,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode());
+          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
     return getDirectoryStatus(path);
   }
@@ -1031,7 +1031,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           children.put(child,
               new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
                   status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-                  permissions.getMode()));
+                  permissions.getMode(),
+                  mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT)));
         }
       }
       // Handle case (2)
