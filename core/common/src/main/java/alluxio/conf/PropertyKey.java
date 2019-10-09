@@ -344,13 +344,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  public static final PropertyKey METADATA_PATH =
-      new Builder(Name.METADATA_PATH)
-          .setDefaultValue("/catalog")
-          .setDescription("The file path of the catalog metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
           .setDefaultValue(String.format("${%s}/metrics.properties", Name.CONF_DIR))
@@ -3683,6 +3676,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  //
+  // Catalog properties
+  //
+  public static final PropertyKey CATALOG_ENABLED =
+      new Builder(Name.CATALOG_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("(Experimental) Enables the catalog service.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey CATALOG_METADATA_PATH =
+      new Builder(Name.CATALOG_METADATA_PATH)
+          .setDefaultValue("/catalog")
+          .setDescription("The Alluxio file path for the catalog metadata.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -3739,7 +3750,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.integration.yarn.workers.per.host.max";
     public static final String LOGGER_TYPE = "alluxio.logger.type";
     public static final String LOGS_DIR = "alluxio.logs.dir";
-    public static final String METADATA_PATH = "alluxio.catalog.metadata.path";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
         "alluxio.metrics.context.shutdown.timeout";
@@ -4407,6 +4417,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.jvm.monitor.sleep.interval";
     public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
+
+    //
+    // Catalog properties
+    //
+    public static final String CATALOG_ENABLED = "alluxio.catalog.enabled";
+    public static final String CATALOG_METADATA_PATH = "alluxio.catalog.metadata.path";
 
     private Name() {} // prevent instantiation
   }

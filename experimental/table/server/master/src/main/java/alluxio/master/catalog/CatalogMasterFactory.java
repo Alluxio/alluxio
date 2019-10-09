@@ -12,6 +12,8 @@
 package alluxio.master.catalog;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
@@ -35,7 +37,7 @@ public final class CatalogMasterFactory implements MasterFactory<CoreMasterConte
 
   @Override
   public boolean isEnabled() {
-    return true;
+    return ServerConfiguration.getBoolean(PropertyKey.CATALOG_ENABLED);
   }
 
   @Override
