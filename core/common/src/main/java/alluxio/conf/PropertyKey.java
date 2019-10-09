@@ -1903,10 +1903,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "committed to the final UFS path. When set to true, files will be "
               + "put to the destination path directly in the object store without staging "
               + "with a temp suffix. Enabling this optimization by directly persisting files "
-              + "can significantly improve write performance by making less data copy on object "
-              + "store as rename in object store can be slow, "
-              + "but also run the risk when multiple clients are racing to write to the "
-              + "same path in Alluxio but before the files are fully persisted to UFS.")
+              + "can significantly improve the efficiency writing to object store by making less "
+              + "data copy as rename in object store can be slow, "
+              + "but leaving a short vulnerability window for undefined behavior if a file "
+              + "is written using ASYNC_THROUGH but renamed or removed before the async "
+              + "persist operation completes, while this same file path was reused for other new "
+              + "files in Alluxio.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
