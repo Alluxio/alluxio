@@ -128,7 +128,7 @@ public class DailyMetadataBackupTest {
       statuses[i] = new UfsFileStatus(generateBackupFileName(),
           CommonUtils.randomAlphaNumString(10), mRandom.nextLong(), mRandom.nextLong(),
           CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
-          (short) mRandom.nextInt());
+          (short) mRandom.nextInt(), mRandom.nextLong());
     }
     return statuses;
   }

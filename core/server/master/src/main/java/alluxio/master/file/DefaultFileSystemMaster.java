@@ -2467,11 +2467,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
 
-      ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
       if (context.getUfsStatus() == null) {
         context.setUfsStatus(ufs.getExistingFileStatus(ufsUri.toString()));
       }
       ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
+      long blockSize = ((UfsFileStatus) context.getUfsStatus()).getBlockSize();
+      ufsBlockSizeByte = blockSize != UfsFileStatus.UNKNOWN_BLOCK_SIZE
+          ? blockSize : ufs.getBlockSizeByte(ufsUri.toString());
 
       if (isAclEnabled()) {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
