@@ -39,7 +39,6 @@ public interface Client extends Closeable {
    */
   InetSocketAddress getAddress() throws UnavailableException;
 
-
   /**
    * @return the {@link InetSocketAddress} of the configuration remote
    * @throws UnavailableException if the primary address cannot be determined

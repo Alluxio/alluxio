@@ -137,6 +137,5 @@ public final class AbstractClientTest {
     }
 
     Assert.assertEquals(confAddress, argument.getValue());
-
   }
 }
