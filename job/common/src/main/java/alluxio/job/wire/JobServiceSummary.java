@@ -57,8 +57,7 @@ public final class JobServiceSummary {
 
     for (JobInfo jobInfo : jobInfos) {
       Status status = Status.valueOf(jobInfo.getStatus().name());
-      countPerStatus.putIfAbsent(status, 0L);
-      countPerStatus.put(status, countPerStatus.get(status) + 1L);
+      countPerStatus.compute(status, (key, val) -> (val == null) ? 1 : val + 1);
     }
 
     List<StatusSummary> result = new ArrayList<>();
