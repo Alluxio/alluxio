@@ -24,7 +24,6 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.table.under.hive.util.PathTranslator;
 
 import org.apache.hadoop.hive.common.FileUtils;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -45,7 +44,6 @@ import java.util.stream.Collectors;
 public class HiveTable implements UdbTable {
   private static final Logger LOG = LoggerFactory.getLogger(HiveTable.class);
 
-  private final HiveMetaStoreClient mHive;
   private final HiveDatabase mHiveDatabase;
   private final PathTranslator mPathTranslator;
   private final String mName;
@@ -59,7 +57,6 @@ public class HiveTable implements UdbTable {
   /**
    * Creates a new instance.
    *
-   * @param hive the hive client
    * @param hiveDatabase the hive db
    * @param pathTranslator the path translator
    * @param name the table name
@@ -70,11 +67,10 @@ public class HiveTable implements UdbTable {
    * @param partitions partition list
    * @param table hive table object
    */
-  public HiveTable(HiveMetaStoreClient hive, HiveDatabase hiveDatabase,
+  public HiveTable(HiveDatabase hiveDatabase,
       PathTranslator pathTranslator, String name, Schema schema, String baseLocation,
       List<ColumnStatisticsInfo> statistics, List<FieldSchema> cols, List<Partition> partitions,
       Table table) {
-    mHive = hive;
     mHiveDatabase = hiveDatabase;
     mTable = table;
     mPathTranslator = pathTranslator;
@@ -123,11 +119,11 @@ public class HiveTable implements UdbTable {
       List<String> partitionNames = partitions.stream().map(
           partition -> FileUtils.makePartName(partitionColumns,
               partition.getValues())).collect(Collectors.toList());
-      Map<String, List<ColumnStatisticsInfo>> statsMap =
-          mHive.getPartitionColumnStatistics(mHiveDatabase.getName(), mName, partitionNames,
-          dataColumns).entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
-              e -> e.getValue().stream().map(HiveUtils::toProto)
-                  .collect(Collectors.toList()), (e1, e2) -> e2));
+      Map<String, List<ColumnStatisticsInfo>> statsMap = mHiveDatabase.getHive()
+          .getPartitionColumnStatistics(mHiveDatabase.getName(), mName, partitionNames, dataColumns)
+          .entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
+              e -> e.getValue().stream().map(HiveUtils::toProto).collect(Collectors.toList()),
+              (e1, e2) -> e2));
       for (Partition partition : partitions) {
         String partName = FileUtils.makePartName(partitionColumns, partition.getValues());
         PartitionInfo.Builder pib = PartitionInfo.newBuilder()

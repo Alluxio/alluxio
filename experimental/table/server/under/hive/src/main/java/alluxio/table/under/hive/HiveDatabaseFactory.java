@@ -16,8 +16,6 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.common.udb.UnderDatabaseFactory;
 
-import java.io.IOException;
-
 /**
  * Factory to create database implementation.
  */
@@ -30,8 +28,7 @@ public class HiveDatabaseFactory implements UnderDatabaseFactory {
   }
 
   @Override
-  public UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration)
-      throws IOException {
+  public UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
     return HiveDatabase.create(udbContext, configuration);
   }
 }
