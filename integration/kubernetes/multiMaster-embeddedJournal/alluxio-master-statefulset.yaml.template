@@ -12,6 +12,7 @@
 #
 
 
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -44,52 +45,18 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
-      selector:
-        matchLabels:
-          app: alluxio
-          role: alluxio-master
-          name: alluxio-full-alluxio-master-0
       securityContext:
         fsGroup: 1000
       initContainers:
-        - name: journal-chown
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 0
-          command: ["/bin/chown","-R", "1000:10000", "/journal"]
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-        # TODO(jiacheng): Do we keep this. Do a test and tell
-        - name: format-master-if-need
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 10000
-          resources:
-            limits:
-              cpu: 1
-              memory: 1G
-            requests:
-              cpu: 1
-              memory: 1G
-          envFrom:
-            - configMapRef:
-                name: alluxio-config
-          env:
-          - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
-            - name: ALLUXIO_USER_JAVA_OPTS
-              value: " -Dalluxio.master.hostname=alluxio-master-0 "
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-            # TODO(jiacheng): Will this mount successfully?
-            - name: alluxio-full-format-script
-              mountPath: /opt/alluxio/format-script
-          command: ["/opt/alluxio/format-script/format-master.sh"]
+      - name: journal-chown
+        image: alluxio/alluxio:2.1.0-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 0
+        command: ["/bin/chown","-R", "1000:10000", "/journal"]
+        volumeMounts:
+        - name: alluxio-journal
+          mountPath: /journal
       containers:
         - name: alluxio-master
           image: alluxio/alluxio:2.1.0-SNAPSHOT
@@ -108,12 +75,12 @@ spec:
           args: ["master-only", "--no-format"]
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-0 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-0 "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 19998
             name: rpc
@@ -141,12 +108,12 @@ spec:
           args: ["job-master"]
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-0 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-0 "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 20001
             name: job-rpc
@@ -157,13 +124,7 @@ spec:
       volumes:
         - name: alluxio-journal
           emptyDir: {}
-        - name: alluxio-full-format-script
-          configMap:
-            name: alluxio-full-format-script
-            items:
-              - key: format-master.sh
-                path: format-master.sh
-                mode: 365
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -196,52 +157,18 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
-      selector:
-        matchLabels:
-          app: alluxio
-          role: alluxio-master
-          name: alluxio-full-alluxio-master-1
       securityContext:
         fsGroup: 1000
       initContainers:
-        - name: journal-chown
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 0
-          command: ["/bin/chown","-R", "1000:10000", "/journal"]
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-        # TODO(jiacheng): Do we keep this. Do a test and tell
-        - name: format-master-if-need
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 10000
-          resources:
-            limits:
-              cpu: 1
-              memory: 1G
-            requests:
-              cpu: 1
-              memory: 1G
-          envFrom:
-            - configMapRef:
-                name: alluxio-config
-          env:
-          - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
-            - name: ALLUXIO_USER_JAVA_OPTS
-              value: " -Dalluxio.master.hostname=alluxio-master-1 "
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-            # TODO(jiacheng): Will this mount successfully?
-            - name: alluxio-full-format-script
-              mountPath: /opt/alluxio/format-script
-          command: ["/opt/alluxio/format-script/format-master.sh"]
+      - name: journal-chown
+        image: alluxio/alluxio:2.1.0-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 0
+        command: ["/bin/chown","-R", "1000:10000", "/journal"]
+        volumeMounts:
+        - name: alluxio-journal
+          mountPath: /journal
       containers:
         - name: alluxio-master
           image: alluxio/alluxio:2.1.0-SNAPSHOT
@@ -260,12 +187,12 @@ spec:
           args: ["master-only", "--no-format"]
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-1 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-1 "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 19998
             name: rpc
@@ -293,12 +220,12 @@ spec:
           args: ["job-master"]
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-1 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-1 "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 20001
             name: job-rpc
@@ -309,13 +236,7 @@ spec:
       volumes:
         - name: alluxio-journal
           emptyDir: {}
-        - name: alluxio-full-format-script
-          configMap:
-            name: alluxio-full-format-script
-            items:
-              - key: format-master.sh
-                path: format-master.sh
-                mode: 365
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -348,52 +269,18 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
-      selector:
-        matchLabels:
-          app: alluxio
-          role: alluxio-master
-          name: alluxio-full-alluxio-master-2
       securityContext:
         fsGroup: 1000
       initContainers:
-        - name: journal-chown
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 0
-          command: ["/bin/chown","-R", "1000:10000", "/journal"]
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-        # TODO(jiacheng): Do we keep this. Do a test and tell
-        - name: format-master-if-need
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 10000
-          resources:
-            limits:
-              cpu: 1
-              memory: 1G
-            requests:
-              cpu: 1
-              memory: 1G
-          envFrom:
-            - configMapRef:
-                name: alluxio-config
-          env:
-          - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
-            - name: ALLUXIO_USER_JAVA_OPTS
-              value: " -Dalluxio.master.hostname=alluxio-master-2 "
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-            # TODO(jiacheng): Will this mount successfully?
-            - name: alluxio-full-format-script
-              mountPath: /opt/alluxio/format-script
-          command: ["/opt/alluxio/format-script/format-master.sh"]
+      - name: journal-chown
+        image: alluxio/alluxio:2.1.0-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 0
+        command: ["/bin/chown","-R", "1000:10000", "/journal"]
+        volumeMounts:
+        - name: alluxio-journal
+          mountPath: /journal
       containers:
         - name: alluxio-master
           image: alluxio/alluxio:2.1.0-SNAPSHOT
@@ -412,12 +299,12 @@ spec:
           args: ["master-only", "--no-format"]
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-2 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-2 "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 19998
             name: rpc
@@ -445,12 +332,12 @@ spec:
           args: ["job-master"]
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-2 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
+            value: " -Dalluxio.master.hostname=alluxio-full-alluxio-master-2 "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 20001
             name: job-rpc
@@ -461,11 +348,4 @@ spec:
       volumes:
         - name: alluxio-journal
           emptyDir: {}
-        - name: alluxio-full-format-script
-          configMap:
-            name: alluxio-full-format-script
-            items:
-              - key: format-master.sh
-                path: format-master.sh
-                mode: 365
 

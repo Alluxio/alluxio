@@ -12,6 +12,7 @@
 #
 
 
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -44,36 +45,8 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
-      selector:
-        matchLabels:
-          app: alluxio
-          role: alluxio-master
-          name: alluxio-full-alluxio-master-0
       securityContext:
         fsGroup: 1000
-      initContainers:
-        # TODO(jiacheng): Do we keep this. Do a test and tell
-        - name: format-master-if-need
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 10000
-          resources:
-            limits:
-              cpu: 1
-              memory: 1G
-            requests:
-              cpu: 1
-              memory: 1G
-          envFrom:
-            - configMapRef:
-                name: alluxio-config
-          volumeMounts:
-            # TODO(jiacheng): Will this mount successfully?
-            - name: alluxio-full-format-script
-              mountPath: /opt/alluxio/format-script
-          command: ["/opt/alluxio/format-script/format-master.sh"]
       containers:
         - name: alluxio-master
           image: alluxio/alluxio:2.1.0-SNAPSHOT
@@ -92,7 +65,7 @@ spec:
           args: ["master-only", "--no-format"]
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 19998
             name: rpc
@@ -119,7 +92,7 @@ spec:
           args: ["job-master"]
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 20001
             name: job-rpc
@@ -128,13 +101,6 @@ spec:
           volumeMounts:
       restartPolicy: Always
       volumes:
-        - name: alluxio-full-format-script
-          configMap:
-            name: alluxio-full-format-script
-            items:
-              - key: format-master.sh
-                path: format-master.sh
-                mode: 365
         - name: secret-alluxio-hdfs-config-volume
           secret:
             secretName: alluxio-hdfs-config

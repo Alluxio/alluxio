@@ -85,15 +85,13 @@ spec:
             value: {{ print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) " | quote }}
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.name" . }}-config
+              name: {{ template "alluxio.fullname" . }}-config
           ports:
           - containerPort: {{ .Values.worker.resources.ports.rpc }}
             name: rpc
           - containerPort: {{ .Values.worker.resources.ports.web }}
             name: web
           volumeMounts:
-            - name: tz-config
-              mountPath: /etc/localtime
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
@@ -169,7 +167,7 @@ spec:
             value: {{ print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) " | quote }}
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.name" . }}-config
+              name: {{ template "alluxio.fullname" . }}-config
           ports:
           - containerPort: {{ .Values.jobWorker.resources.ports.rpc }}
             name: job-rpc
@@ -178,8 +176,6 @@ spec:
           - containerPort: {{ .Values.jobWorker.resources.ports.web }}
             name: job-web
           volumeMounts:
-            - name: tz-config
-              mountPath: /etc/localtime
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
@@ -221,9 +217,6 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
-        - hostPath:
-            path: /etc/localtime
-          name: tz-config
         - name: alluxio-domain
           hostPath:
             path: {{ .Values.domainHostPath }}

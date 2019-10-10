@@ -72,15 +72,13 @@ spec:
             value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 29999
             name: rpc
           - containerPort: 30000
             name: web
           volumeMounts:
-            - name: tz-config
-              mountPath: /etc/localtime
             - name: alluxio-domain
               mountPath: /opt/domain
             # TODO(jiacheng): Verify the ramdisk at this step
@@ -107,7 +105,7 @@ spec:
             value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
-              name: alluxio-config
+              name: alluxio-full-config
           ports:
           - containerPort: 30001
             name: job-rpc
@@ -116,17 +114,12 @@ spec:
           - containerPort: 30003
             name: job-web
           volumeMounts:
-            - name: tz-config
-              mountPath: /etc/localtime
             - name: alluxio-domain
               mountPath: /opt/domain
             - mountPath: /dev/shm
               name: mem
       restartPolicy: Always
       volumes:
-        - hostPath:
-            path: /etc/localtime
-          name: tz-config
         - name: alluxio-domain
           hostPath:
             path: /tmp/alluxio-domain
@@ -134,5 +127,5 @@ spec:
         - name: mem
           emptyDir:
             medium: "Memory" 
-            sizeLimit: 1GB
+            sizeLimit: 1G
 

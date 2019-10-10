@@ -20,7 +20,7 @@ tieredstore:
     level: 0
     path: /dev/shm
     type: emptyDir
-    quota: 1GB
+    quota: 1G
     high: 0.95
     low: 0.7
 
