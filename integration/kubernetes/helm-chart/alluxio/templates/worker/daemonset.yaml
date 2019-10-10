@@ -103,7 +103,6 @@ spec:
                 {{- end }}
               {{- end }}
             {{- end }}
-            # TODO(jiacheng): Verify the ramdisk at this step
             {{- if .Values.tieredstore }} 
               {{- if .Values.tieredstore.levels }} 
                 {{- range .Values.tieredstore.levels }}

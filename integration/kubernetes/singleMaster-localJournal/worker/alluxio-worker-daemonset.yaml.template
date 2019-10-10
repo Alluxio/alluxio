@@ -81,7 +81,6 @@ spec:
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain
-            # TODO(jiacheng): Verify the ramdisk at this step
             - mountPath: /dev/shm
               name: mem
         - name: alluxio-job-worker
