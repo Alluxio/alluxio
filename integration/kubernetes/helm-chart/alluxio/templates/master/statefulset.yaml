@@ -28,7 +28,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ template "alluxio.fullname" . }}-{{ $masterName }} # TODO(jiacheng): check the fullname and decide whether to keep it
+  name: {{ template "alluxio.fullname" . }}-{{ $masterName }}
   labels:
     name: {{ template "alluxio.fullname" . }}-{{ $masterName }}
     app: {{ template "alluxio.name" . }}

@@ -15,7 +15,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: alluxio-full-alluxio-master-0 # TODO(jiacheng): check the fullname and decide whether to keep it
+  name: alluxio-full-alluxio-master-0
   labels:
     name: alluxio-full-alluxio-master-0
     app: alluxio
