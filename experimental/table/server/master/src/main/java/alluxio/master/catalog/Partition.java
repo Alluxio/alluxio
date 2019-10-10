@@ -13,6 +13,7 @@ package alluxio.master.catalog;
 
 import alluxio.grpc.catalog.PartitionSpec;
 import alluxio.table.common.Layout;
+import alluxio.table.common.LayoutRegistry;
 import alluxio.table.common.UdbPartition;
 
 /**
@@ -59,5 +60,16 @@ public class Partition {
         .setPartitionSpec(PartitionSpec.newBuilder().setSpec(mPartitionSpec).build())
         .setLayout(mBaseLayout.toProto())
         .build();
+  }
+
+  /**
+   * @param layoutRegistry the layout registry
+   * @param proto the proto representation
+   * @return the java representation
+   */
+  public static Partition fromProto(LayoutRegistry layoutRegistry,
+      alluxio.grpc.catalog.Partition proto) {
+    return new Partition(proto.getPartitionSpec().getSpec(),
+        layoutRegistry.create(proto.getLayout()));
   }
 }
