@@ -1878,6 +1878,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
+      new Builder(Name.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("When set to false, writing files using ASYNC_THROUGH or persist CLI "
+              + "with object stores as the UFS will first create temporary objects "
+              + "suffixed by \".alluxio.TIMESTAMP.tmp\" in the object store before "
+              + "committed to the final UFS path. When set to true, files will be "
+              + "put to the destination path directly in the object store without staging "
+              + "with a temp suffix. Enabling this optimization by directly persisting files "
+              + "can significantly improve the efficiency writing to object store by making less "
+              + "data copy as rename in object store can be slow, "
+              + "but leaving a short vulnerability window for undefined behavior if a file "
+              + "is written using ASYNC_THROUGH but renamed or removed before the async "
+              + "persist operation completes, while this same file path was reused for other new "
+              + "files in Alluxio.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       new Builder(Name.MASTER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -4048,6 +4066,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
         "alluxio.master.ufs.path.cache.threads";
+    public static final String MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
+        "alluxio.master.unsafe.direct.persist.object.enabled";
     public static final String MASTER_UPDATE_CHECK_ENABLED =
         "alluxio.master.update.check.enabled";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";

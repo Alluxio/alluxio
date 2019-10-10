@@ -3984,11 +3984,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         // If previous persist job failed, clean up the temporary file.
         cleanup(ufsResource.get(), tempUfsPath);
+        // Generate a temporary path to be used by the persist job.
+        // If the persist destination is on object store, let persist job copy files to destination
+        // directly
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED)
+            && ufsResource.get().isObjectStorage()) {
+          tempUfsPath = resolution.getUri().toString();
+        } else {
+          tempUfsPath = PathUtils.temporaryFileName(
+              System.currentTimeMillis(), resolution.getUri().toString());
+        }
       }
 
-      // Generate a temporary path to be used by the persist job.
-      tempUfsPath =
-          PathUtils.temporaryFileName(System.currentTimeMillis(), resolution.getUri().toString());
       alluxio.job.persist.PersistConfig config =
           new alluxio.job.persist.PersistConfig(uri.getPath(), resolution.getMountId(), false,
               tempUfsPath);
@@ -4144,9 +4151,14 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
               UnderFileSystem ufs = ufsResource.get();
               String ufsPath = resolution.getUri().toString();
-              if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
-                throw new IOException(
-                    String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
+              if (!ufsPath.equals(tempUfsPath)) {
+                // Make rename only when tempUfsPath is different from final ufsPath. Note that,
+                // on object store, we take the optimization to skip the rename by having
+                // tempUfsPath the same as final ufsPath.
+                if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
+                  throw new IOException(
+                      String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
+                }
               }
               ufs.setOwner(ufsPath, inode.getOwner(), inode.getGroup());
               ufs.setMode(ufsPath, inode.getMode());
