@@ -19,7 +19,7 @@ metadata:
   labels:
     name: release-name-alluxio-alluxio-master-0
     app: alluxio
-    chart: alluxio-0.4.0
+    chart: alluxio-0.5.0
     release: release-name
     heritage: Tiller
     role: alluxio-master
@@ -36,7 +36,7 @@ spec:
       labels:
         name: release-name-alluxio-alluxio-master-0
         app: alluxio
-        chart: alluxio-0.4.0
+        chart: alluxio-0.5.0
         release: release-name
         heritage: Tiller
         role: alluxio-master
@@ -131,7 +131,7 @@ metadata:
   labels:
     name: release-name-alluxio-alluxio-master-1
     app: alluxio
-    chart: alluxio-0.4.0
+    chart: alluxio-0.5.0
     release: release-name
     heritage: Tiller
     role: alluxio-master
@@ -148,7 +148,7 @@ spec:
       labels:
         name: release-name-alluxio-alluxio-master-1
         app: alluxio
-        chart: alluxio-0.4.0
+        chart: alluxio-0.5.0
         release: release-name
         heritage: Tiller
         role: alluxio-master
@@ -243,7 +243,7 @@ metadata:
   labels:
     name: release-name-alluxio-alluxio-master-2
     app: alluxio
-    chart: alluxio-0.4.0
+    chart: alluxio-0.5.0
     release: release-name
     heritage: Tiller
     role: alluxio-master
@@ -260,7 +260,7 @@ spec:
       labels:
         name: release-name-alluxio-alluxio-master-2
         app: alluxio
-        chart: alluxio-0.4.0
+        chart: alluxio-0.5.0
         release: release-name
         heritage: Tiller
         role: alluxio-master
