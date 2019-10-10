@@ -1,1 +1,1 @@
-singleMaster-localJournal/alluxio-master-statefulset.yaml.template
+singleMaster-localJournal/master/alluxio-master-statefulset.yaml.template

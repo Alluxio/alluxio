@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-{{- $masterCount := int .Values.master.count }}
+{{ $masterCount := int .Values.master.count }}
 {{- $release := .Release }}
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
