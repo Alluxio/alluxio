@@ -37,9 +37,9 @@ properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
 
-# set for the heap for the docker
-# TODO(jiacheng): Examples?
-# jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 "
+# Recommended JVM Heap options for running in Docker
+# Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
+jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 "
 
 fuse:
   image: alluxio/alluxio-fuse
