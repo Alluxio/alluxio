@@ -209,6 +209,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
             } catch (Throwable e) {
                 LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
                         mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+                LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
                 throw new IOException(e);
             } finally {
                 LOG.debug("Calling createStreamWithPartition took: {} ms", (System.currentTimeMillis()-start));
@@ -217,7 +218,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 }
                 // Delete the temporary downloaded file
                 if (!tmpFile.delete()) {
-                    LOG.error("Failed to delete temporary file @ {}", tmpFile.getAbsolutePath());
+                    LOG.warn("Failed to delete temporary file @ {}", tmpFile.getAbsolutePath());
                 }
             }
         }
