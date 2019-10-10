@@ -217,8 +217,10 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                     fis.close();
                 }
                 // Delete the temporary downloaded file
-                if (!tmpFile.delete()) {
-                    LOG.warn("Failed to delete temporary file @ {}", tmpFile.getAbsolutePath());
+                if (tmpFile.exists()) {
+                    if (!tmpFile.delete()) {
+                        LOG.warn("Failed to delete temporary file @ {}", tmpFile.getAbsolutePath());
+                    }
                 }
             }
         }
