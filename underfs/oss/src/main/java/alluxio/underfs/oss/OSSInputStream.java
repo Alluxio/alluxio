@@ -14,12 +14,12 @@ package alluxio.underfs.oss;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
 
-import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,6 +113,7 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
       } catch (OSSException e) {
         LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
             mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+        LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
         if (!e.getErrorCode().equals("NoSuchKey")) {
           throw new IOException(e);
         }
