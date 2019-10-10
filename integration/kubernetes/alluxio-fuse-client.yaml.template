@@ -14,7 +14,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: release-name-alluxio-fuse-client
+  name: alluxio-fuse-client
   labels:
     app: alluxio
     chart: alluxio-0.5.0

@@ -15,9 +15,9 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: release-name-alluxio-alluxio-master-0
+  name: alluxio-master-0
   labels:
-    name: release-name-alluxio-alluxio-master-0
+    name: alluxio-master-0
     app: alluxio
     chart: alluxio-0.5.0
     release: release-name
@@ -28,13 +28,13 @@ spec:
     matchLabels:
       app: alluxio
       role: alluxio-master
-      name: release-name-alluxio-alluxio-master-0
-  serviceName: "alluxio-master-0"
+      name: alluxio-master-0
+  serviceName: "master-0"
   replicas: 1
   template:
     metadata:
       labels:
-        name: release-name-alluxio-alluxio-master-0
+        name: alluxio-master-0
         app: alluxio
         chart: alluxio-0.5.0
         release: release-name
@@ -74,12 +74,12 @@ spec:
           args: ["master-only", "--no-format"]
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=alluxio-master-0 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=alluxio-master-0 "
           envFrom:
           - configMapRef:
-              name: release-name-alluxio-config
+              name: alluxio-config
           ports:
           - containerPort: 19998
             name: rpc
@@ -107,12 +107,12 @@ spec:
           args: ["job-master"]
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=alluxio-master-0 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=alluxio-master-0 "
           envFrom:
           - configMapRef:
-              name: release-name-alluxio-config
+              name: alluxio-config
           ports:
           - containerPort: 20001
             name: job-rpc
@@ -127,9 +127,9 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: release-name-alluxio-alluxio-master-1
+  name: alluxio-master-1
   labels:
-    name: release-name-alluxio-alluxio-master-1
+    name: alluxio-master-1
     app: alluxio
     chart: alluxio-0.5.0
     release: release-name
@@ -140,13 +140,13 @@ spec:
     matchLabels:
       app: alluxio
       role: alluxio-master
-      name: release-name-alluxio-alluxio-master-1
-  serviceName: "alluxio-master-1"
+      name: alluxio-master-1
+  serviceName: "master-1"
   replicas: 1
   template:
     metadata:
       labels:
-        name: release-name-alluxio-alluxio-master-1
+        name: alluxio-master-1
         app: alluxio
         chart: alluxio-0.5.0
         release: release-name
@@ -186,12 +186,12 @@ spec:
           args: ["master-only", "--no-format"]
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-1 "
+            value: " -Dalluxio.master.hostname=alluxio-master-1 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-1 "
+            value: " -Dalluxio.master.hostname=alluxio-master-1 "
           envFrom:
           - configMapRef:
-              name: release-name-alluxio-config
+              name: alluxio-config
           ports:
           - containerPort: 19998
             name: rpc
@@ -219,12 +219,12 @@ spec:
           args: ["job-master"]
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-1 "
+            value: " -Dalluxio.master.hostname=alluxio-master-1 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-1 "
+            value: " -Dalluxio.master.hostname=alluxio-master-1 "
           envFrom:
           - configMapRef:
-              name: release-name-alluxio-config
+              name: alluxio-config
           ports:
           - containerPort: 20001
             name: job-rpc
@@ -239,9 +239,9 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: release-name-alluxio-alluxio-master-2
+  name: alluxio-master-2
   labels:
-    name: release-name-alluxio-alluxio-master-2
+    name: alluxio-master-2
     app: alluxio
     chart: alluxio-0.5.0
     release: release-name
@@ -252,13 +252,13 @@ spec:
     matchLabels:
       app: alluxio
       role: alluxio-master
-      name: release-name-alluxio-alluxio-master-2
-  serviceName: "alluxio-master-2"
+      name: alluxio-master-2
+  serviceName: "master-2"
   replicas: 1
   template:
     metadata:
       labels:
-        name: release-name-alluxio-alluxio-master-2
+        name: alluxio-master-2
         app: alluxio
         chart: alluxio-0.5.0
         release: release-name
@@ -298,12 +298,12 @@ spec:
           args: ["master-only", "--no-format"]
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-2 "
+            value: " -Dalluxio.master.hostname=alluxio-master-2 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-2 "
+            value: " -Dalluxio.master.hostname=alluxio-master-2 "
           envFrom:
           - configMapRef:
-              name: release-name-alluxio-config
+              name: alluxio-config
           ports:
           - containerPort: 19998
             name: rpc
@@ -331,12 +331,12 @@ spec:
           args: ["job-master"]
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-2 "
+            value: " -Dalluxio.master.hostname=alluxio-master-2 "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-2 "
+            value: " -Dalluxio.master.hostname=alluxio-master-2 "
           envFrom:
           - configMapRef:
-              name: release-name-alluxio-config
+              name: alluxio-config
           ports:
           - containerPort: 20001
             name: job-rpc

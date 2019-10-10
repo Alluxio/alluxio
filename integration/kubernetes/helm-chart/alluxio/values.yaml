@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+fullnameOverride: alluxio
+
 image: alluxio/alluxio
 imageTag: 2.1.0-SNAPSHOT
 imagePullPolicy: IfNotPresent

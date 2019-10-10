@@ -13,9 +13,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: release-name-alluxio-format-master
+  name: alluxio-format-master
   labels:
-    name: release-name-alluxio-format-master
+    name: alluxio-format-master
     app: alluxio
     chart: alluxio-0.5.0
     release: release-name
@@ -41,7 +41,7 @@ spec:
           args: ["formatMasters"]
           envFrom:
             - configMapRef:
-                name: release-name-alluxio-config
+                name: alluxio-config
           volumeMounts:
           - name: secret-alluxio-hdfs-config-volume
             mountPath: /secrets/hdfsConfig

@@ -25,7 +25,7 @@
 {{- $fullName := include "alluxio.fullname" . }}
 {{- $chart := include "alluxio.chart" . }}
 {{- range $i := until $masterCount }}
-  {{- $masterName := printf "alluxio-master-%v" $i }}
+  {{- $masterName := printf "master-%v" $i }}
   {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=%v-%v " $fullName $masterName }}
 apiVersion: apps/v1
 kind: StatefulSet

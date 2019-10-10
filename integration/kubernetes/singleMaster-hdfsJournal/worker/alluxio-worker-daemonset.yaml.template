@@ -14,7 +14,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: release-name-alluxio-worker
+  name: alluxio-worker
   labels:
     app: alluxio
     chart: alluxio-0.5.0
@@ -72,7 +72,7 @@ spec:
             value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
-              name: release-name-alluxio-config
+              name: alluxio-config
           ports:
           - containerPort: 29999
             name: rpc
@@ -107,7 +107,7 @@ spec:
             value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
-              name: release-name-alluxio-config
+              name: alluxio-config
           ports:
           - containerPort: 30001
             name: job-rpc

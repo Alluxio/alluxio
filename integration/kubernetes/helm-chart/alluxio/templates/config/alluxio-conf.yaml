@@ -10,7 +10,7 @@
 #
 
 {{ $masterCount := int .Values.master.count }}
-{{ $defaultMasterName := "alluxio-master-0" }}
+{{ $defaultMasterName := "master-0" }}
 {{- $isSingleMaster := eq $masterCount 1 }}
 {{- $isHaEmbedded := and (eq .Values.journal.type "EMBEDDED") (gt $masterCount 1) }}
 {{- $release := .Release }}
