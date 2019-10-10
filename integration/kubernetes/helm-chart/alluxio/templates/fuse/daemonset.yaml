@@ -80,7 +80,6 @@ spec:
             {{- end }}
           {{- end }}
           command: ["/entrypoint.sh"]
-          # args: ["fuse", "--fuse-opts=allow_other"]
           {{- if .Values.fuse.args }}
           args: 
 {{ toYaml .Values.fuse.args | indent 12 }}

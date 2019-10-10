@@ -64,7 +64,6 @@ spec:
           image: alluxio/alluxio-fuse:2.1.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           command: ["/entrypoint.sh"]
-          # args: ["fuse", "--fuse-opts=allow_other"]
           args: 
             - fuse
             - --fuse-opts=allow_other
