@@ -23,7 +23,7 @@ function printUsage {
   echo -e " hdfs              \t Use HDFS for UFS journal"
 }
 
-function generateTemplatesWithConfig {
+function generateTemplates {
   echo "Generating templates into $dir"
   config=./$dir/config.yaml
   if [[ ! -f "$config" ]]; then
@@ -33,54 +33,43 @@ function generateTemplatesWithConfig {
     exit 1
   fi
 
-  generateConfigTemplatesWithConfig
-  generateMasterTemplatesWithConfig
-  generateWorkerTemplatesWithConfig
-  generateFuseTemplatesWithConfig
-
-#  helm template helm/alluxio/ -x templates/alluxio-master.yaml -f ./$dir/config.yaml > "$dir/alluxio-master.yaml.template"
-#  helm template helm/alluxio/ -x templates/alluxio-worker.yaml -f ./$dir/config.yaml > "$dir/alluxio-worker.yaml.template"
-#  helm template helm/alluxio/ -x templates/alluxio-configMap.yaml -f ./$dir/config.yaml > "$dir/alluxio-configMap.yaml.template"
+  generateConfigTemplates
+  generateMasterTemplates
+  generateWorkerTemplates
+  generateFuseTemplates
 }
 
-function generateConfigTemplatesWithConfig {
+function generateConfigTemplates {
   echo "Generating configmap templates into $dir"
   helm template helm-chart/alluxio/ -x templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
 }
 
-function generateMasterTemplatesWithConfig {
+function generateMasterTemplates {
   echo "Generating master templates into $dir"
   helm template helm-chart/alluxio/ -x templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/alluxio-master-statefulset.yaml.template"
   helm template helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
-  helm template helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/alluxio-master-journal-pv.yaml.template"
-  helm template helm-chart/alluxio/ -x templates/master/journal-pvc.yaml -f $dir/config.yaml > "$dir/alluxio-master-journal-pvc.yaml.template"
   # TODO(jiacheng): format job
 }
 
-function generateWorkerTemplatesWithConfig {
+function generateJournalTemplates {
+  helm template helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/alluxio-master-journal-pv.yaml.template"
+  helm template helm-chart/alluxio/ -x templates/master/journal-pvc.yaml -f $dir/config.yaml > "$dir/alluxio-master-journal-pvc.yaml.template"
+}
+
+function generateWorkerTemplates {
   echo "Generating worker templates into $dir"
   helm template helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/alluxio-worker-daemonset.yaml.template"
 }
 
-function generateFuseTemplatesWithConfig {
+function generateFuseTemplates {
   echo "Generating fuse templates"
   helm template helm-chart/alluxio/ -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-daemonset.yaml.template"
   # TODO(jiacheng): fuse client
 }
 
-function generateMasterServiceTemplatesWithConfig {
+function generateMasterServiceTemplates {
   helm template helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
 }
-
-#function generateVolumeTemplatesWithConfig {
-#  echo "Generating persistent volume templates into $dir"
-#  helm template helm/alluxio/ -x templates/alluxio-journal-volume.yaml -f ./$dir/config.yaml > "$dir/alluxio-journal-volume.yaml.template"
-#}
-
-#function generateJobTemplatesWithConfig {
-#  echo "Generating job templates into $dir"
-#  helm template helm/alluxio/ -x templates/alluxio-format-master.yaml -f ./$dir/config.yaml > "$dir/alluxio-format-master.yaml.template"
-#}
 
 function generateSingleUfsTemplates {
   echo "Target FS $1"
@@ -89,12 +78,13 @@ function generateSingleUfsTemplates {
     "local")
       echo "Using local journal"
       dir="singleMaster-localJournal"
-      generateTemplatesWithConfig
+      generateJournalTemplates
+      generateTemplates
       ;;
     "hdfs")
       echo "Journal UFS $ufs"
       dir="singleMaster-hdfsJournal"
-      generateTemplatesWithConfig
+      generateTemplates
       ;;
     *)
       echo "Unknown Journal UFS type $ufs"
@@ -105,7 +95,7 @@ function generateSingleUfsTemplates {
 
 function generateMultiEmbeddedTemplates {
   dir="multiMaster-embeddedJournal"
-  generateTemplatesWithConfig
+  generateTemplates
 }
 
 function generateAllTemplates {

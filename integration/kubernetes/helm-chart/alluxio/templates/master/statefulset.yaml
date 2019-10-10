@@ -25,7 +25,6 @@
   {{- $masterName := printf "alluxio-master-%v" $i }}
   {{- $fullName := include "alluxio.fullname" . }}
   {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=%v-%v " $fullName $masterName }}
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -218,4 +217,5 @@ spec:
             claimName: "{{ .name }}"
           {{- end }}
         {{- end }}
+---
 {{- end }}

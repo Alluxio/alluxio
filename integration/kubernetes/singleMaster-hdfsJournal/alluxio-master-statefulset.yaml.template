@@ -12,7 +12,6 @@
 #
 
 
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -105,4 +104,5 @@ spec:
           secret:
             secretName: alluxio-hdfs-config
             defaultMode: 256
+---
 
