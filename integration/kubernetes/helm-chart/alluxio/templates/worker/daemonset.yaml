@@ -9,7 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
+{{ $isRoot := eq (int .Values.user) 0 }}
+{{- $ugi := printf "%v:%v" .Values.user .Values.group -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -35,11 +36,9 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-worker
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: {{ .Values.worker.hostNetwork }}
+      dnsPolicy: {{ .Values.worker.dnsPolicy }}
       securityContext:
-        runAsUser: {{ .Values.user }}
-        runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
       nodeSelector:
       {{- if .Values.worker.nodeSelector }}
@@ -47,31 +46,34 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      {{- if not $isRoot }}
+      initContainers:
+      - name: socket-chown
+        securityContext:
+          runAsUser: 0
+        image: {{ .Values.image }}:{{ .Values.imageTag }}
+        command: ["/bin/chown","-R", {{ $ugi | quote }}, "/opt/domain"]
+        volumeMounts:
+        - name: alluxio-domain
+          mountPath: /opt/domain
+      {{- end }}
       containers:
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- if .Values.worker.resources  }}
           resources:
+            {{- if .Values.worker.resources.limits }}
             limits:
-              {{- if .Values.worker.resources  }}
-                {{- if .Values.worker.resources.limits }}
-                  {{- if .Values.worker.resources.limits.cpu  }}
               cpu: {{ .Values.worker.resources.limits.cpu }}
-                  {{- end }}
-                  {{- if .Values.worker.resources.limits.memory  }}
               memory: {{ .Values.worker.resources.limits.memory }}
-                  {{- end }}
-                {{- end }}
+            {{- end }}
+            {{- if .Values.worker.resources.requests }}
             requests:
-                {{- if .Values.worker.resources.requests }}
-                  {{- if .Values.worker.resources.requests.cpu  }}
               cpu: {{ .Values.worker.resources.requests.cpu }}
-                  {{- end }}
-                  {{- if .Values.worker.resources.requests.memory  }}
               memory: {{ .Values.worker.resources.requests.memory }}
-                  {{- end }}
-                {{- end }}
-              {{- end }}
+            {{- end }}
+          {{- end }}
           command: ["/entrypoint.sh"]
           args: ["worker-only", "--no-format"]
           env:
@@ -79,17 +81,17 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          - name: ALLUXIO_WORKER_JAVA_OPTS
+            value: {{ print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) " | quote }}
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.name" . }}-config
+              name: {{ template "alluxio.fullname" . }}-config
           ports:
           - containerPort: {{ .Values.worker.resources.ports.rpc }}
             name: rpc
           - containerPort: {{ .Values.worker.resources.ports.web }}
             name: web
           volumeMounts:
-            - name: tz-config
-              mountPath: /etc/localtime
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
@@ -160,11 +162,11 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          #- name: ALLUXIO_JOB_WORKER_JAVA_OPTS
-          #  value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
+          - name: ALLUXIO_JOB_WORKER_JAVA_OPTS
+            value: {{ print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) " | quote }}
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.name" . }}-config
+              name: {{ template "alluxio.fullname" . }}-config
           ports:
           - containerPort: {{ .Values.jobWorker.resources.ports.rpc }}
             name: job-rpc
@@ -173,8 +175,6 @@ spec:
           - containerPort: {{ .Values.jobWorker.resources.ports.web }}
             name: job-web
           volumeMounts:
-            - name: tz-config
-              mountPath: /etc/localtime
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
@@ -216,9 +216,6 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
-        - hostPath:
-            path: /etc/localtime
-          name: tz-config
         - name: alluxio-domain
           hostPath:
             path: {{ .Values.domainHostPath }}

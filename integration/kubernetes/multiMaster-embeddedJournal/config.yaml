@@ -9,8 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-resources:
-  masterCount: 3
+master:
+  count: 3
 
 journal:
   type: "EMBEDDED"
