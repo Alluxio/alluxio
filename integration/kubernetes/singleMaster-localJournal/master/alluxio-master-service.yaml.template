@@ -13,7 +13,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: alluxio-full-alluxio-master-0
+  name: release-name-alluxio-alluxio-master-0
   labels:
     app: alluxio
     chart: alluxio-0.4.0
@@ -35,5 +35,6 @@ spec:
     role: alluxio-master
     app: alluxio
     release: release-name
-    name: alluxio-full-alluxio-master-0
+    name: release-name-alluxio-alluxio-master-0
+---
 

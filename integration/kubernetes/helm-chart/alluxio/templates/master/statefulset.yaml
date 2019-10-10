@@ -21,35 +21,37 @@
 {{- $needJournalVolume := or $isEmbedded $isUfsLocal }}
 
 {{- $release := .Release }}
+{{- $name := include "alluxio.name" . }}
+{{- $fullName := include "alluxio.fullname" . }}
+{{- $chart := include "alluxio.chart" . }}
 {{- range $i := until $masterCount }}
   {{- $masterName := printf "alluxio-master-%v" $i }}
-  {{- $fullName := include "alluxio.fullname" . }}
   {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=%v-%v " $fullName $masterName }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ template "alluxio.fullname" . }}-{{ $masterName }}
+  name: {{ $fullName }}-{{ $masterName }}
   labels:
-    name: {{ template "alluxio.fullname" . }}-{{ $masterName }}
-    app: {{ template "alluxio.name" . }}
-    chart: {{ template "alluxio.chart" . }}
+    name: {{ $fullName }}-{{ $masterName }}
+    app: {{ $name }}
+    chart: {{ $chart }}
     release: {{ $release.Name }}
     heritage: {{ $release.Service }}
     role: alluxio-master
 spec:
   selector:
     matchLabels:
-      app: {{ template "alluxio.name" . }}
+      app: {{ $name }}
       role: alluxio-master
-      name: {{ template "alluxio.fullname" . }}-{{ $masterName }}
+      name: {{ $fullName }}-{{ $masterName }}
   serviceName: {{ $masterName | quote }}
   replicas: {{ $root.Values.master.replicas }}
   template:
     metadata:
       labels:
-        name: {{ template "alluxio.fullname" . }}-{{ $masterName }}
-        app: {{ template "alluxio.name" . }}
-        chart: {{ template "alluxio.chart" . }}
+        name: {{ $fullName }}-{{ $masterName }}
+        app: {{ $name }}
+        chart: {{ $chart }}
         release: {{ $release.Name }}
         heritage: {{ $release.Service }}
         role: alluxio-master
@@ -107,7 +109,7 @@ spec:
           {{- end }}
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.fullname" . }}-config
+              name: {{ $fullName }}-config
           ports:
           - containerPort: 19998
             name: rpc
@@ -167,7 +169,7 @@ spec:
           {{- end }}
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.fullname" . }}-config
+              name: {{ $fullName }}-config
           ports:
           - containerPort: 20001
             name: job-rpc

@@ -14,7 +14,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: alluxio-full-worker
+  name: release-name-alluxio-worker
   labels:
     app: alluxio
     chart: alluxio-0.4.0
@@ -72,7 +72,7 @@ spec:
             value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
-              name: alluxio-full-config
+              name: release-name-alluxio-config
           ports:
           - containerPort: 29999
             name: rpc
@@ -81,9 +81,6 @@ spec:
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain
-            - name: secret-alluxio-hdfs-config-volume
-              mountPath: /secrets/hdfsConfig
-              readOnly: true
             # TODO(jiacheng): Verify the ramdisk at this step
             - mountPath: /dev/shm
               name: mem
@@ -108,7 +105,7 @@ spec:
             value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
-              name: alluxio-full-config
+              name: release-name-alluxio-config
           ports:
           - containerPort: 30001
             name: job-rpc
@@ -119,9 +116,6 @@ spec:
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain
-            - name: secret-alluxio-hdfs-config-volume
-              mountPath: /secrets/hdfsConfig
-              readOnly: true
             - mountPath: /dev/shm
               name: mem
       restartPolicy: Always
@@ -130,10 +124,6 @@ spec:
           hostPath:
             path: /tmp/alluxio-domain
             type: DirectoryOrCreate
-        - name: secret-alluxio-hdfs-config-volume
-          secret:
-            secretName: alluxio-hdfs-config
-            defaultMode: 256
         - name: mem
           emptyDir:
             medium: "Memory" 

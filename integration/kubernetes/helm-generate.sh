@@ -47,24 +47,24 @@ function generateConfigTemplates {
 
 function generateMasterTemplates {
   echo "Generating master templates into $dir"
-  helm template helm-chart/alluxio/ -x templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/alluxio-master-statefulset.yaml.template"
-  helm template helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
+  helm template helm-chart/alluxio/ -x templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
+  helm template helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
 }
 
 function generateFormatJournalJobTemplates {
   echo "Generating format journal job templates into $dir"
-  helm template helm-chart/alluxio/ -x templates/master/format-journal-job.yaml -f $dir/config.yaml > "$dir/alluxio-format-journal-job.yaml.template"
+  helm template helm-chart/alluxio/ -x templates/job/format-journal-job.yaml -f $dir/config.yaml > "$dir/job/alluxio-format-journal-job.yaml.template"
 
 }
 
 function generateJournalTemplates {
-  helm template helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/alluxio-master-journal-pv.yaml.template"
-  helm template helm-chart/alluxio/ -x templates/master/journal-pvc.yaml -f $dir/config.yaml > "$dir/alluxio-master-journal-pvc.yaml.template"
+  helm template helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pv.yaml.template"
+  helm template helm-chart/alluxio/ -x templates/master/journal-pvc.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pvc.yaml.template"
 }
 
 function generateWorkerTemplates {
   echo "Generating worker templates into $dir"
-  helm template helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/alluxio-worker-daemonset.yaml.template"
+  helm template helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
 }
 
 function generateFuseTemplates {

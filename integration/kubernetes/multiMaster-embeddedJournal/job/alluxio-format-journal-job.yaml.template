@@ -1,5 +1,5 @@
 ---
-# Source: alluxio/templates/master/format-journal-job.yaml
+# Source: alluxio/templates/job/format-journal-job.yaml
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
 # (the "License"). You may not use this work except in compliance with the License, which is
@@ -13,9 +13,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: alluxio-full-format-master
+  name: release-name-alluxio-format-master
   labels:
-    name: alluxio-full-format-master
+    name: release-name-alluxio-format-master
     app: alluxio
     chart: alluxio-0.4.0
     release: release-name
@@ -43,13 +43,12 @@ spec:
           # args: ["formatMasters"]
           envFrom:
             - configMapRef:
-                name: alluxio-full-config
+                name: release-name-alluxio-config
           volumeMounts:
           - name: alluxio-journal
             mountPath: /journal
       restartPolicy: OnFailure
       volumes:
       - name: alluxio-journal
-        persistentVolumeClaim:
-          claimName: alluxio-pv-claim
+        emptyDir: {}
 

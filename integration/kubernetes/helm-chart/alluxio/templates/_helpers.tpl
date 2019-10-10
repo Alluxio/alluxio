@@ -2,12 +2,9 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{/*
-Bring the items back
-*/}}
 
 {{- define "alluxio.name" -}}
-{{- printf "%v" "alluxio" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -16,12 +13,21 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "alluxio.fullname" -}}
-{{- printf "%v" "alluxio-full"}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "alluxio.chart" -}}
-{{- printf "%s-%s" "alluxio" "0.4.0" | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

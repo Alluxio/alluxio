@@ -19,16 +19,16 @@ metadata:
   annotations:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-delete-policy": before-hook-creation
-  name: alluxio-full-config
+  name: release-name-alluxio-config
   labels:
-    name: alluxio-full-config
+    name: release-name-alluxio-config
     app: alluxio
     chart: alluxio-0.4.0
     release: release-name
     heritage: Tiller
 data:
   ALLUXIO_JAVA_OPTS: |-
-    -Dalluxio.master.hostname=alluxio-full-alluxio-master-0 -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://{$hostname}:{$hostport}/journal -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=30000 -Dalluxio.job.worker.rpc.port=30001 -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003  -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2  -Dalluxio.worker.tieredstore.levels=1 -Dalluxio.worker.tieredstore.level0.alias=MEM -Dalluxio.worker.tieredstore.level0.dirs.mediumtype=MEM -Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm -Dalluxio.worker.tieredstore.level0.dirs.quota=1G -Dalluxio.worker.tieredstore.level0.watermark.high.ratio=0.95 -Dalluxio.worker.tieredstore.level0.watermark.low.ratio=0.7 -Dalluxio.master.mount.table.root.ufs=hdfs://{$hostname}:{$hostport}/{$underFSStorage} -Dalluxio.security.stale.channel.purge.interval=365d -Dalluxio.underfs.hdfs.configuration=/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml
+    -Dalluxio.master.hostname=release-name-alluxio-alluxio-master-0 -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://{$hostname}:{$hostport}/journal -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=30000 -Dalluxio.job.worker.rpc.port=30001 -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003  -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2  -Dalluxio.worker.tieredstore.levels=1 -Dalluxio.worker.tieredstore.level0.alias=MEM -Dalluxio.worker.tieredstore.level0.dirs.mediumtype=MEM -Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm -Dalluxio.worker.tieredstore.level0.dirs.quota=1G -Dalluxio.worker.tieredstore.level0.watermark.high.ratio=0.95 -Dalluxio.worker.tieredstore.level0.watermark.low.ratio=0.7 -Dalluxio.master.mount.table.root.ufs=hdfs://{$hostname}:{$hostport}/{$underFSStorage} -Dalluxio.security.stale.channel.purge.interval=365d -Dalluxio.underfs.hdfs.configuration=/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml
   ALLUXIO_MASTER_JAVA_OPTS: |-
     -Dalluxio.master.web.bind.host=0.0.0.0  
   ALLUXIO_JOB_MASTER_JAVA_OPTS: |-

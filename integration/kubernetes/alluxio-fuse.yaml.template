@@ -15,7 +15,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: alluxio-full-fuse
+  name: release-name-alluxio-fuse
   labels:
     app: alluxio
     chart: alluxio-0.4.0
@@ -87,7 +87,7 @@ spec:
                 command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "/alluxio-fuse"]
           envFrom:
           - configMapRef:
-              name: alluxio-full-config
+              name: release-name-alluxio-config
           volumeMounts:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse
