@@ -26,20 +26,7 @@ presenting unified client APIs and a global namespace to its upper layer data dr
 The Alluxio project originated from [the UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/software/) (see [papers](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html)) as
 the data access layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
 It is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE).
-Alluxio is one of the fastest growing open source projects that has attracted more than [1000 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
-from over 300 institutions including
-[Alibaba](http://www.alibaba.com),
-[Alluxio](https://www.alluxio.io/),
-[Baidu](https://www.baidu.com),
-[CMU](https://www.cmu.edu/),
-[Google](https://www.google.com),
-[IBM](https://www.ibm.com),
-[Intel](http://www.intel.com/),
-[NJU](http://www.nju.edu.cn/english/),
-[Red Hat](https://www.redhat.com/),
-[Tencent](https://www.tencent.com),
-[UC Berkeley](https://amplab.cs.berkeley.edu/),
-and [Yahoo](https://www.yahoo.com/).
+Alluxio is one of the fastest growing open source projects that has attracted more than [1000 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 300 institutions including Alibaba, Alluxio, Baidu, CMU, Google, IBM, Intel, NJU, Red Hat, Tencent, UC Berkeley, and Yahoo.
 
 Today, Alluxio is deployed in production by [hundreds of organizations](https://www.alluxio.io/powered-by-alluxio)
 with the largest deployment exceeding 1,500 nodes.
