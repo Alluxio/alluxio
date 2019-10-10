@@ -51,9 +51,7 @@ spec:
             {{- end }}
           {{- end }}
           command: ["/opt/alluxio/bin/alluxio"]
-          args: ["fsadmin", "report"]
-          # To format journal, uncomment the below args and comment the above!
-          # args: ["formatMasters"]
+          args: ["formatMasters"]
           envFrom:
             - configMapRef:
                 name: {{ template "alluxio.fullname" . }}-config
