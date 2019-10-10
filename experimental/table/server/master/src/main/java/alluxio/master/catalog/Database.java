@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * The database implementation that manages a collection of tables.
@@ -42,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Database implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(Database.class);
 
+  private final CatalogContext mContext;
   private final String mType;
   private final String mName;
   private final Map<String, Table> mTables;
@@ -51,11 +53,14 @@ public class Database implements Journaled {
   /**
    * Creates an instance of a database.
    *
+   * @param context the catalog context
    * @param type the database type
    * @param name the database name
    * @param udb the udb
    */
-  private Database(String type, String name, UnderDatabase udb, Map<String, String> configMap) {
+  private Database(CatalogContext context, String type, String name, UnderDatabase udb,
+      Map<String, String> configMap) {
+    mContext = context;
     mType = type;
     mName = name;
     mTables = new ConcurrentHashMap<>();
@@ -66,14 +71,15 @@ public class Database implements Journaled {
   /**
    * Creates an instance of a database.
    *
+   * @param catalogContext the catalog context
    * @param udbContext the db context
    * @param type the database type
    * @param name the database name
    * @param configMap the configuration
    * @return the database instance
    */
-  public static Database create(UdbContext udbContext, String type, String name,
-      Map<String, String> configMap) {
+  public static Database create(CatalogContext catalogContext, UdbContext udbContext, String type,
+      String name, Map<String, String> configMap) {
     UnderDatabase udb = null;
     CatalogConfiguration configuration = new CatalogConfiguration(configMap);
     try {
@@ -82,7 +88,14 @@ public class Database implements Journaled {
     } catch (IOException e) {
       LOG.info("Creating udb type {} failed, database {} is in disconnected mode", type, name);
     }
-    return new Database(type, name, udb, configMap);
+    return new Database(catalogContext, type, name, udb, configMap);
+  }
+
+  /**
+   * @return the catalog context
+   */
+  public CatalogContext getContext() {
+    return mContext;
   }
 
   /**
@@ -182,13 +195,17 @@ public class Database implements Journaled {
         // add table from udb
         UdbTable udbTable = mUdb.getTable(tableName);
         table = Table.create(this, udbTable);
-        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
-            .setAddTable(Catalog.AddTableEntry.newBuilder().setUdbTable(udbTable.toProto())
-                .setDbName(mName).setTableName(tableName)
-                .addAllPartitions(table.getPartitions())
-                .addAllTableStats(table.getStatistics())
-                .setSchema(udbTable.getSchema())
-                .build()).build();
+        Catalog.AddTableEntry addTableEntry = Catalog.AddTableEntry.newBuilder()
+            .setUdbTable(udbTable.toProto())
+            .setDbName(mName)
+            .setTableName(tableName)
+            .addAllPartitions(table.getPartitions().stream().map(Partition::toProto).collect(
+                Collectors.toList()))
+            .addAllTableStats(table.getStatistics())
+            .setSchema(table.getSchema())
+            .build();
+        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
+            .build();
         applyAndJournal(context, entry);
       } else {
         // sync metadata from udb
@@ -245,12 +262,17 @@ public class Database implements Journaled {
         mEntry = null;
         TableInfo tableInfo = table.toProto();
 
-        return Journal.JournalEntry.newBuilder().setAddTable(
-            Catalog.AddTableEntry.newBuilder().setSchema(table.getSchema())
-                .setUdbTable(tableInfo.getUdbInfo())
-                .setDbName(tableInfo.getDbName()).setTableName(table.getName())
-                .addAllPartitions(table.getPartitions()).addAllTableStats(table.getStatistics())
-                .build()).build();
+        Catalog.AddTableEntry addTableEntry = Catalog.AddTableEntry.newBuilder()
+            .setUdbTable(tableInfo.getUdbInfo())
+            .setDbName(tableInfo.getDbName())
+            .setTableName(table.getName())
+            .addAllPartitions(table.getPartitions().stream().map(Partition::toProto).collect(
+                Collectors.toList()))
+            .addAllTableStats(table.getStatistics())
+            .setSchema(table.getSchema())
+            .build();
+
+        return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
       }
 
       @Override

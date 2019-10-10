@@ -28,13 +28,13 @@ import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Catalog;
 import alluxio.proto.journal.Journal;
+import alluxio.table.common.LayoutRegistry;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 import alluxio.util.StreamUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +56,7 @@ public class AlluxioCatalog implements Journaled {
 
   private final Map<String, Database> mDBs = new ConcurrentHashMap<>();
   private final UnderDatabaseRegistry mUdbRegistry;
+  private final LayoutRegistry mLayoutRegistry;
   private final FileSystem mFileSystem;
 
   /**
@@ -65,6 +66,8 @@ public class AlluxioCatalog implements Journaled {
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(ServerConfiguration.global()));
     mUdbRegistry = new UnderDatabaseRegistry();
     mUdbRegistry.refresh();
+    mLayoutRegistry = new LayoutRegistry();
+    mLayoutRegistry.refresh();
   }
 
   /**
@@ -161,12 +164,11 @@ public class AlluxioCatalog implements Journaled {
   public Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
       String tableName, List<String> partNames, List<String> colNames) throws IOException {
     Table table = getTable(dbName, tableName);
-    List<alluxio.grpc.catalog.Partition> partitions = table.getPartitions();
-    return partitions.stream().filter(p -> partNames.contains(p.getLayout()
-        .getLayoutSpec().getSpec()))
-        .map(p -> new Pair<>(p.getLayout().getLayoutSpec().getSpec(),
+    List<Partition> partitions = table.getPartitions();
+    return partitions.stream().filter(p -> partNames.contains(p.getLayout().getSpec()))
+        .map(p -> new Pair<>(p.getLayout().getSpec(),
             ColumnStatisticsList.newBuilder().addAllStatistics(
-                p.getLayout().getStatsMap().entrySet().stream()
+                p.getLayout().getColumnStatsData().entrySet().stream()
                     .filter(entry -> colNames.contains(entry.getKey()))
                     .map(Map.Entry::getValue).collect(Collectors.toList())).build()))
         .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (e1, e2) -> e2));
@@ -184,7 +186,7 @@ public class AlluxioCatalog implements Journaled {
       Constraint constraint) throws IOException {
     Table table = getTable(dbName, tableName);
     // TODO(david): implement partition pruning
-    return table.getPartitions();
+    return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
   }
 
   private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
@@ -231,9 +233,10 @@ public class AlluxioCatalog implements Journaled {
     String type = entry.getType();
     String dbName = entry.getDbName();
 
-    UdbContext context = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
+    CatalogContext catalogContext = new CatalogContext(mUdbRegistry, mLayoutRegistry);
+    UdbContext udbContext = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
 
-    Database db = Database.create(context, type, dbName, entry.getConfigMap());
+    Database db = Database.create(catalogContext, udbContext, type, dbName, entry.getConfigMap());
     mDBs.put(dbName, db);
   }
 

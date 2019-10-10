@@ -36,7 +36,7 @@ public class Table {
   private Schema mSchema;
   private UdbTableInfo mTableInfo;
   // TODO(gpang): this should be indexable by partition spec
-  private List<alluxio.grpc.catalog.Partition> mPartitions;
+  private List<Partition> mPartitions;
   private List<ColumnStatisticsInfo> mStatistics;
 
   private Table(Database database, UdbTable udbTable) {
@@ -44,7 +44,7 @@ public class Table {
     sync(udbTable);
   }
 
-  private Table(Database database, List<alluxio.grpc.catalog.Partition> partitions, Schema schema,
+  private Table(Database database, List<Partition> partitions, Schema schema,
       String tableName, List<ColumnStatisticsInfo> columnStats) {
     mDatabase = database;
     mName = tableName;
@@ -63,8 +63,7 @@ public class Table {
       mName = udbTable.getName();
       mSchema = udbTable.getSchema();
       mPartitions =
-          udbTable.getPartitions().stream().map(Partition::new)
-              .map(Partition::toProto).collect(Collectors.toList());
+          udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
       mTableInfo = udbTable.toProto();
       mStatistics = udbTable.getStatistics();
     } catch (IOException e) {
@@ -87,8 +86,11 @@ public class Table {
    * @return a new instance
    */
   public static Table create(Database database, Catalog.AddTableEntry entry) {
-    return new Table(database, entry.getPartitionsList(), entry.getSchema(),
-        entry.getTableName(), entry.getTableStatsList());
+    List<Partition> partitions = entry.getPartitionsList().stream()
+        .map(p -> Partition.fromProto(database.getContext().getLayoutRegistry(), p))
+        .collect(Collectors.toList());
+    return new Table(database, partitions, entry.getSchema(), entry.getTableName(),
+        entry.getTableStatsList());
   }
   /**
    * @return the table name
@@ -100,7 +102,7 @@ public class Table {
   /**
    * @return the list of partitions
    */
-  public List<alluxio.grpc.catalog.Partition> getPartitions() {
+  public List<Partition> getPartitions() {
     return mPartitions;
   }
 
