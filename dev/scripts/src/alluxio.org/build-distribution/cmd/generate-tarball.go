@@ -190,29 +190,49 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
-		"integration/kubernetes/alluxio-configMap.yaml.template",
-		"integration/kubernetes/alluxio-journal-volume.yaml.template",
-		"integration/kubernetes/alluxio-master.yaml.template",
-		"integration/kubernetes/alluxio-worker.yaml.template",
-		"integration/kubernetes/alluxio-fuse.yaml.template",
-		"integration/kubernetes/alluxio-fuse-client.yaml.template",
-		"integration/kubernetes/helm/alluxio/Chart.yaml",
-		"integration/kubernetes/helm/alluxio/templates/_helpers.tpl",
-		"integration/kubernetes/helm/alluxio/templates/alluxio-configMap.yaml",
-		"integration/kubernetes/helm/alluxio/templates/alluxio-master.yaml",
-		"integration/kubernetes/helm/alluxio/templates/alluxio-worker.yaml",
-		"integration/kubernetes/helm/alluxio/templates/service-account.yaml",
-		"integration/kubernetes/singleMaster-localJournal/alluxio-configMap.yaml.template",
-		"integration/kubernetes/singleMaster-localJournal/alluxio-journal-volume.yaml.template",
-		"integration/kubernetes/singleMaster-localJournal/alluxio-master.yaml.template",
-		"integration/kubernetes/singleMaster-localJournal/alluxio-worker.yaml.template",
-		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-configMap.yaml.template",
-		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-master.yaml.template",
-		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-worker.yaml.template",
-		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-configMap.yaml.template",
-		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-master.yaml.template",
-		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-worker.yaml.template",
-		"integration/kubernetes/helm/alluxio/values.yaml",
+		"integration/kubernetes/alluxio-configMap.yaml.template"
+		"integration/kubernetes/alluxio-fuse.yaml.template"
+		"integration/kubernetes/alluxio-fuse-client.yaml.template"
+		"integration/kubernetes/alluxio-master-journal-pv.yaml.template"
+		"integration/kubernetes/alluxio-master-journal-pvc.yaml.template"
+		"integration/kubernetes/alluxio-master-service.yaml.template"
+		"integration/kubernetes/alluxio-master-statefulset.yaml.template "
+		"integration/kubernetes/helm-generate.sh"
+		"integration/kubernetes/helm-chart/alluxio/.helmignore"
+		"integration/kubernetes/helm-chart/alluxio/Chart.yaml"
+		"integration/kubernetes/helm-chart/alluxio/values.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/_helpers.tpl"
+		"integration/kubernetes/helm-chart/alluxio/templates/service-account.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/config/alluxio-conf.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/format/master.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/fuse/client-daemonset.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/fuse/daemonset.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/job/format-journal-job.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/master/journal-pv.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/master/journal-pvc.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/master/service.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/master/statefulset.yaml"
+		"integration/kubernetes/helm-chart/alluxio/templates/worker/daemonset.yaml"
+		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-configmap.yaml.template"
+		"integration/kubernetes/multiMaster-embeddedJournal/config.yaml"
+		"integration/kubernetes/multiMaster-embeddedJournal/job/alluxio-format-journal-job.yaml.template"
+		"integration/kubernetes/multiMaster-embeddedJournal/master/alluxio-master-service.yaml.template"
+		"integration/kubernetes/multiMaster-embeddedJournal/master/alluxio-master-statefulset.yaml.template"
+		"integration/kubernetes/multiMaster-embeddedJournal/worker/alluxio-worker-daemonset.yaml.template"
+		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-configmap.yaml.template"
+		"integration/kubernetes/singleMaster-hdfsJournal/config.yaml"
+		"integration/kubernetes/singleMaster-hdfsJournal/job/alluxio-format-journal-job.yaml.template"
+		"integration/kubernetes/singleMaster-hdfsJournal/master/alluxio-master-service.yaml.template"
+		"integration/kubernetes/singleMaster-hdfsJournal/master/alluxio-master-statefulset.yaml.template"
+		"integration/kubernetes/singleMaster-hdfsJournal/worker/alluxio-worker-daemonset.yaml.template"
+		"integration/kubernetes/singleMaster-localJournal/alluxio-configmap.yaml.template"
+		"integration/kubernetes/singleMaster-localJournal/config.yaml"
+		"integration/kubernetes/singleMaster-localJournal/job/alluxio-format-journal-job.yaml.template"
+		"integration/kubernetes/singleMaster-localJournal/master/alluxio-master-journal-pv.yaml.template"
+		"integration/kubernetes/singleMaster-localJournal/master/alluxio-master-journal-pvc.yaml.template"
+		"integration/kubernetes/singleMaster-localJournal/master/alluxio-master-service.yaml.template"
+		"integration/kubernetes/singleMaster-localJournal/master/alluxio-master-statefulset.yaml.template"
+		"integration/kubernetes/singleMaster-localJournal/worker/alluxio-worker-daemonset.yaml.template"
 		"integration/mesos/bin/alluxio-env-mesos.sh",
 		"integration/mesos/bin/alluxio-mesos-start.sh",
 		"integration/mesos/bin/alluxio-master-mesos.sh",
