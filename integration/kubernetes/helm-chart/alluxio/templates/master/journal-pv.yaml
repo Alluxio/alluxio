@@ -9,9 +9,17 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-name: alluxio
+kind: PersistentVolume
 apiVersion: v1
-description: Open source data orchestration for analytics and machine learning in any cloud.
-version: 2.1.0-SNAPSHOT
-maintainers:
-- name: Alluxio
+metadata:
+  name: alluxio-journal-volume
+  labels:
+    type: local
+spec:
+  storageClassName: standard
+  capacity:
+    storage: {{ .Values.journal.size }}
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/tmp/data"

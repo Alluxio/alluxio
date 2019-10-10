@@ -1,3 +1,5 @@
+---
+# Source: alluxio/templates/master/service.yaml
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
 # (the "License"). You may not use this work except in compliance with the License, which is
@@ -9,23 +11,16 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-{{ $masterCount := int .Values.master.count }}
-{{- $release := .Release }}
-{{- $name := include "alluxio.name" . }}
-{{- $fullName := include "alluxio.fullname" . }}
-{{- $chart := include "alluxio.chart" . }}
-{{- range $i := until $masterCount }}
-  {{- $masterName := printf "master-%v" $i }}
-  {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=%v-%v " $fullName $masterName }}
+
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $fullName }}-{{ $masterName }}
+  name: alluxio-master-0
   labels:
-    app: {{ $name }}
-    chart: {{ $chart }}
-    release: {{ $release.Name }}
-    heritage: {{ $release.Service }}
+    app: alluxio
+    chart: alluxio-0.5.0
+    release: release-name
+    heritage: Tiller
     role: alluxio-master
 spec:
   ports:
@@ -40,8 +35,8 @@ spec:
   clusterIP: None
   selector:
     role: alluxio-master
-    app: {{ $name }}
-    release: {{ $release.Name }}
-    name: {{ $fullName }}-{{ $masterName }}
+    app: alluxio
+    release: release-name
+    name: alluxio-master-0
 ---
-{{- end }}
+
