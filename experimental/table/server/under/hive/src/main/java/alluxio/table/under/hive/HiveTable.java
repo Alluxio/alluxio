@@ -54,6 +54,7 @@ public class HiveTable implements UdbTable {
   private final List<ColumnStatisticsInfo> mStatistics;
   private final List<FieldSchema> mPartitionKeys;
   private final Table mTable;
+  private final List<Partition> mPartitions;
 
   /**
    * Creates a new instance.
@@ -72,17 +73,17 @@ public class HiveTable implements UdbTable {
   public HiveTable(HiveMetaStoreClient hive, HiveDatabase hiveDatabase,
       PathTranslator pathTranslator, String name, Schema schema, String baseLocation,
       List<ColumnStatisticsInfo> statistics, List<FieldSchema> cols, List<Partition> partitions,
-      Table table) throws IOException {
-    // TODO(gpang): don't throw exception in constructor
+      Table table) {
     mHive = hive;
     mHiveDatabase = hiveDatabase;
+    mTable = table;
     mPathTranslator = pathTranslator;
+    mPartitions = partitions;
     mName = name;
     mSchema = schema;
     mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionKeys = cols;
-    mTable = table;
   }
 
   private static Map<String, ParquetMetadata> getPartitionMetadata(String path,
@@ -111,7 +112,7 @@ public class HiveTable implements UdbTable {
   public List<UdbPartition> getPartitions() throws IOException {
     List<UdbPartition> udbPartitions = new ArrayList<>();
     try {
-      List<Partition> partitions = mHive.listPartitions(mHiveDatabase.getName(), mName, (short) -1);
+      List<Partition> partitions = mPartitions;
       List<String> dataColumns = mTable.getSd().getCols().stream()
           .map(org.apache.hadoop.hive.metastore.api.FieldSchema::getName)
           .collect(Collectors.toList());
@@ -168,6 +169,6 @@ public class HiveTable implements UdbTable {
     if (mTable.getViewExpandedText() != null) {
       builder.setViewExpandedText(mTable.getViewExpandedText());
     }
-    return UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build();
+    return (UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build());
   }
 }

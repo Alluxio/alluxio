@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNotNull;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
+import alluxio.proto.journal.Catalog;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AddSyncPointEntry;
@@ -64,8 +65,10 @@ public class JournalEntryAssociationTest {
   private static List<JournalEntry> ENTRIES = Arrays.asList(
       JournalEntry.newBuilder().setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAddSyncPoint(AddSyncPointEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setAddTable(Catalog.AddTableEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setActiveSyncTxId(File.ActiveSyncTxIdEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAsyncPersistRequest(AsyncPersistRequestEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setAttachDb(Catalog.AttachDbEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockContainerIdGenerator(BlockContainerIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockInfo(BlockInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setClusterInfo(ClusterInfoEntry.getDefaultInstance()).build(),

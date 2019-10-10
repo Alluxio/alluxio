@@ -42,4 +42,38 @@ public interface LayoutOrBuilder extends
    * <code>optional bytes layoutData = 3;</code>
    */
   com.google.protobuf.ByteString getLayoutData();
+
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+  int getStatsCount();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+  boolean containsStats(
+      java.lang.String key);
+  /**
+   * Use {@link #getStatsMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
+  getStats();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+  java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
+  getStatsMap();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+
+  alluxio.grpc.catalog.ColumnStatisticsInfo getStatsOrDefault(
+      java.lang.String key,
+      alluxio.grpc.catalog.ColumnStatisticsInfo defaultValue);
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+
+  alluxio.grpc.catalog.ColumnStatisticsInfo getStatsOrThrow(
+      java.lang.String key);
 }

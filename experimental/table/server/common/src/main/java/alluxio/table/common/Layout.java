@@ -52,6 +52,7 @@ public interface Layout {
             .setSpec(getSpec())
             .build())
         .setLayoutData(getData().toByteString())
+        .putAllStats(getColumnStatsData())
         .build();
   }
 }

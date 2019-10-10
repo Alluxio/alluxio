@@ -75,6 +75,19 @@ private static final long serialVersionUID = 0L;
             layoutData_ = input.readBytes();
             break;
           }
+          case 34: {
+            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+              stats_ = com.google.protobuf.MapField.newMapField(
+                  StatsDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x00000008;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
+            stats__ = input.readMessage(
+                StatsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            stats_.getMutableMap().put(
+                stats__.getKey(), stats__.getValue());
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -92,6 +105,17 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Layout_descriptor;
   }
 
+  @SuppressWarnings({"rawtypes"})
+  protected com.google.protobuf.MapField internalGetMapField(
+      int number) {
+    switch (number) {
+      case 4:
+        return internalGetStats();
+      default:
+        throw new RuntimeException(
+            "Invalid map field number: " + number);
+    }
+  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Layout_fieldAccessorTable
@@ -178,12 +202,94 @@ private static final long serialVersionUID = 0L;
     return layoutData_;
   }
 
+  public static final int STATS_FIELD_NUMBER = 4;
+  private static final class StatsDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>newDefaultInstance(
+                alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Layout_StatsEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                alluxio.grpc.catalog.ColumnStatisticsInfo.getDefaultInstance());
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> stats_;
+  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
+  internalGetStats() {
+    if (stats_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          StatsDefaultEntryHolder.defaultEntry);
+    }
+    return stats_;
+  }
+
+  public int getStatsCount() {
+    return internalGetStats().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+
+  public boolean containsStats(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetStats().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getStatsMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> getStats() {
+    return getStatsMap();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+
+  public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> getStatsMap() {
+    return internalGetStats().getMap();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+
+  public alluxio.grpc.catalog.ColumnStatisticsInfo getStatsOrDefault(
+      java.lang.String key,
+      alluxio.grpc.catalog.ColumnStatisticsInfo defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> map =
+        internalGetStats().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+   */
+
+  public alluxio.grpc.catalog.ColumnStatisticsInfo getStatsOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> map =
+        internalGetStats().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    for (alluxio.grpc.catalog.ColumnStatisticsInfo item : getStatsMap().values()) {
+      if (!item.isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -199,6 +305,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       output.writeBytes(3, layoutData_);
     }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetStats(),
+        StatsDefaultEntryHolder.defaultEntry,
+        4);
     unknownFields.writeTo(output);
   }
 
@@ -217,6 +329,16 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBytesSize(3, layoutData_);
+    }
+    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> entry
+         : internalGetStats().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
+      stats__ = StatsDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, stats__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -249,6 +371,8 @@ private static final long serialVersionUID = 0L;
       result = result && getLayoutData()
           .equals(other.getLayoutData());
     }
+    result = result && internalGetStats().equals(
+        other.internalGetStats());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -271,6 +395,10 @@ private static final long serialVersionUID = 0L;
     if (hasLayoutData()) {
       hash = (37 * hash) + LAYOUTDATA_FIELD_NUMBER;
       hash = (53 * hash) + getLayoutData().hashCode();
+    }
+    if (!internalGetStats().getMap().isEmpty()) {
+      hash = (37 * hash) + STATS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetStats().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -377,6 +505,28 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Layout_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 4:
+          return internalGetStats();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMutableMapField(
+        int number) {
+      switch (number) {
+        case 4:
+          return internalGetMutableStats();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.catalog.CatalogMasterProto.internal_static_alluxio_grpc_catalog_Layout_fieldAccessorTable
@@ -412,6 +562,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       layoutData_ = com.google.protobuf.ByteString.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000004);
+      internalGetMutableStats().clear();
       return this;
     }
 
@@ -452,6 +603,8 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000004;
       }
       result.layoutData_ = layoutData_;
+      result.stats_ = internalGetStats();
+      result.stats_.makeImmutable();
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -505,12 +658,19 @@ private static final long serialVersionUID = 0L;
       if (other.hasLayoutData()) {
         setLayoutData(other.getLayoutData());
       }
+      internalGetMutableStats().mergeFrom(
+          other.internalGetStats());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
     }
 
     public final boolean isInitialized() {
+      for (alluxio.grpc.catalog.ColumnStatisticsInfo item : getStatsMap().values()) {
+        if (!item.isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -759,6 +919,129 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000004);
       layoutData_ = getDefaultInstance().getLayoutData();
       onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> stats_;
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
+    internalGetStats() {
+      if (stats_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            StatsDefaultEntryHolder.defaultEntry);
+      }
+      return stats_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
+    internalGetMutableStats() {
+      onChanged();;
+      if (stats_ == null) {
+        stats_ = com.google.protobuf.MapField.newMapField(
+            StatsDefaultEntryHolder.defaultEntry);
+      }
+      if (!stats_.isMutable()) {
+        stats_ = stats_.copy();
+      }
+      return stats_;
+    }
+
+    public int getStatsCount() {
+      return internalGetStats().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+     */
+
+    public boolean containsStats(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetStats().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getStatsMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> getStats() {
+      return getStatsMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+     */
+
+    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> getStatsMap() {
+      return internalGetStats().getMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+     */
+
+    public alluxio.grpc.catalog.ColumnStatisticsInfo getStatsOrDefault(
+        java.lang.String key,
+        alluxio.grpc.catalog.ColumnStatisticsInfo defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> map =
+          internalGetStats().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+     */
+
+    public alluxio.grpc.catalog.ColumnStatisticsInfo getStatsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> map =
+          internalGetStats().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearStats() {
+      internalGetMutableStats().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+     */
+
+    public Builder removeStats(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableStats().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo>
+    getMutableStats() {
+      return internalGetMutableStats().getMutableMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+     */
+    public Builder putStats(
+        java.lang.String key,
+        alluxio.grpc.catalog.ColumnStatisticsInfo value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      if (value == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableStats().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.catalog.ColumnStatisticsInfo&gt; stats = 4;</code>
+     */
+
+    public Builder putAllStats(
+        java.util.Map<java.lang.String, alluxio.grpc.catalog.ColumnStatisticsInfo> values) {
+      internalGetMutableStats().getMutableMap()
+          .putAll(values);
       return this;
     }
     public final Builder setUnknownFields(

@@ -23,8 +23,8 @@ import alluxio.grpc.catalog.Partition;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.proto.journal.Journal;
+import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.Journaled;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableSet;
@@ -32,9 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +40,7 @@ import java.util.Set;
 /**
  * This catalog master manages catalogs metadata information.
  */
-public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
+public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultCatalogMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(FileSystemMaster.class);
 
@@ -60,9 +58,9 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public boolean attachDatabase(String dbName, String dbType, CatalogConfiguration configuration)
+  public boolean attachDatabase(String dbName, String dbType, Map<String, String> configuration)
       throws IOException {
-    return mCatalog.attachDatabase(dbType, dbName, configuration);
+    return mCatalog.attachDatabase(createJournalContext(), dbType, dbName, configuration);
   }
 
   @Override
@@ -132,21 +130,7 @@ public class DefaultCatalogMaster extends CoreMaster implements CatalogMaster {
   }
 
   @Override
-  public boolean processJournalEntry(Journal.JournalEntry entry) {
-    return false;
-  }
-
-  @Override
-  public void resetState() {
-  }
-
-  @Override
-  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return Collections.emptyIterator();
-  }
-
-  @Override
-  public CheckpointName getCheckpointName() {
-    return CheckpointName.CATALOG_SERVICE_MASTER;
+  public Journaled getDelegate() {
+    return mCatalog;
   }
 }

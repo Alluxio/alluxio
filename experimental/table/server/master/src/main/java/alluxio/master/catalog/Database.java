@@ -14,25 +14,39 @@ package alluxio.master.catalog;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.catalog.FileStatistics;
 import alluxio.grpc.catalog.Schema;
+import alluxio.grpc.catalog.TableInfo;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.proto.journal.Catalog;
+import alluxio.proto.journal.Journal;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The database implementation that manages a collection of tables.
  */
-public class Database {
+public class Database implements Journaled {
+  private static final Logger LOG = LoggerFactory.getLogger(Database.class);
+
   private final String mType;
   private final String mName;
   private final Map<String, Table> mTables;
   private final UnderDatabase mUdb;
+  private final Map<String, String> mConfig;
 
   /**
    * Creates an instance of a database.
@@ -41,11 +55,12 @@ public class Database {
    * @param name the database name
    * @param udb the udb
    */
-  private Database(String type, String name, UnderDatabase udb) {
+  private Database(String type, String name, UnderDatabase udb, Map<String, String> configMap) {
     mType = type;
     mName = name;
     mTables = new ConcurrentHashMap<>();
     mUdb = udb;
+    mConfig = configMap;
   }
 
   /**
@@ -54,14 +69,20 @@ public class Database {
    * @param udbContext the db context
    * @param type the database type
    * @param name the database name
-   * @param configuration the configuration
+   * @param configMap the configuration
    * @return the database instance
    */
   public static Database create(UdbContext udbContext, String type, String name,
-      CatalogConfiguration configuration) throws IOException {
-    UnderDatabase udb = udbContext.getUdbRegistry()
-        .create(udbContext, type, configuration.getUdbConfiguration(type));
-    return new Database(type, name, udb);
+      Map<String, String> configMap) {
+    UnderDatabase udb = null;
+    CatalogConfiguration configuration = new CatalogConfiguration(configMap);
+    try {
+      udb = udbContext.getUdbRegistry()
+          .create(udbContext, type, configuration.getUdbConfiguration(type));
+    } catch (IOException e) {
+      LOG.info("Creating udb type {} failed, database {} is in disconnected mode", type, name);
+    }
+    return new Database(type, name, udb, configMap);
   }
 
   /**
@@ -119,20 +140,134 @@ public class Database {
   }
 
   /**
-   * Syncs the metadata from the under db.
+   * Returns true if an UDB is connected and can be synced.
+   *
+   * @return true if there is an UDB backing this database
    */
-  public void sync() throws IOException {
+  public boolean isConnected() {
+    return (mUdb != null);
+  }
+
+  /**
+   * add a table to the database.
+   *
+   * @param tableName table name
+   * @param table table object
+   */
+  public void addTable(String tableName, Table table) {
+    // TODO(gpang): concurrency control
+    mTables.put(tableName, table);
+  }
+
+  /**
+   *
+   * @return the configuration for the database
+   */
+  public Map<String, String> getConfig() {
+    return mConfig;
+  }
+
+  /**
+   * Syncs the metadata from the under db.
+   * @param context journal context
+   */
+  public void sync(JournalContext context) throws IOException {
+    if (!isConnected()) {
+      return;
+    }
     for (String tableName : mUdb.getTableNames()) {
       // TODO(gpang): concurrency control
       Table table = mTables.get(tableName);
       if (table == null) {
         // add table from udb
         UdbTable udbTable = mUdb.getTable(tableName);
-        mTables.putIfAbsent(tableName, Table.create(this, udbTable));
+        table = Table.create(this, udbTable);
+        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
+            .setAddTable(Catalog.AddTableEntry.newBuilder().setUdbTable(udbTable.toProto())
+                .setDbName(mName).setTableName(tableName)
+                .addAllPartitions(table.getPartitions())
+                .addAllTableStats(table.getStatistics())
+                .setSchema(udbTable.getSchema())
+                .build()).build();
+        applyAndJournal(context, entry);
       } else {
         // sync metadata from udb
         // TODO(gpang): implement
       }
     }
+  }
+
+  @Override
+  public boolean processJournalEntry(Journal.JournalEntry entry) {
+    if (entry.hasAddTable()) {
+      Catalog.AddTableEntry addTable = entry.getAddTable();
+      if (addTable.getDbName().equals(mName)) {
+        apply(addTable);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void apply(Catalog.AddTableEntry entry) {
+    Table table = Table.create(this, entry);
+    addTable(entry.getTableName(), table);
+  }
+
+  @Override
+  public void resetState() {
+    mTables.clear();
+  }
+
+  private Iterator<Journal.JournalEntry> getTableIterator() {
+    final Iterator<Table> it = getTables().iterator();
+    return new Iterator<Journal.JournalEntry>() {
+      private Table mEntry = null;
+
+      @Override
+      public boolean hasNext() {
+        if (mEntry != null) {
+          return true;
+        }
+        if (it.hasNext()) {
+          mEntry = it.next();
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        Table table = mEntry;
+        mEntry = null;
+        TableInfo tableInfo = table.toProto();
+
+        return Journal.JournalEntry.newBuilder().setAddTable(
+            Catalog.AddTableEntry.newBuilder().setSchema(table.getSchema())
+                .setUdbTable(tableInfo.getUdbInfo())
+                .setDbName(tableInfo.getDbName()).setTableName(table.getName())
+                .addAllPartitions(table.getPartitions()).addAllTableStats(table.getStatistics())
+                .build()).build();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException(
+            "GetTableIteratorr#Iterator#remove is not supported.");
+      }
+    };
+  }
+
+  @Override
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    return getTableIterator();
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.CATALOG_SERVICE_DATABASE;
   }
 }

@@ -22,17 +22,28 @@ import alluxio.grpc.catalog.Constraint;
 import alluxio.grpc.catalog.Domain;
 import alluxio.grpc.catalog.FieldSchema;
 import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalEntryIterable;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.proto.journal.Catalog;
+import alluxio.proto.journal.Journal;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
+import alluxio.util.StreamUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -40,7 +51,7 @@ import java.util.stream.Collectors;
 /**
  * Class representing an Alluxio catalog service.
  */
-public class AlluxioCatalog {
+public class AlluxioCatalog implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioCatalog.class);
 
   private final Map<String, Database> mDBs = new ConcurrentHashMap<>();
@@ -59,21 +70,25 @@ public class AlluxioCatalog {
   /**
    * Attaches an existing database.
    *
+   *
+   * @param journalContext journal context
    * @param type the database type
    * @param dbName the database name
-   * @param configuration the configuration
+   * @param map the configuration
    * @return true if database successfully created
    */
-  public boolean attachDatabase(String type, String dbName, CatalogConfiguration configuration)
+  public boolean attachDatabase(JournalContext journalContext, String type,
+      String dbName, Map<String, String> map)
       throws IOException {
-    UdbContext context = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
-    Database db = Database.create(context, type, dbName, configuration);
-    if (mDBs.putIfAbsent(dbName, db) != null) {
+    if (mDBs.containsKey(dbName)) {
       throw new IOException(String
           .format("Unable to attach database. Database name %s (type: %s) already exists.", dbName,
               type));
     }
-    db.sync();
+    applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setAttachDb(
+        Catalog.AttachDbEntry.newBuilder().setType(type).setDbName(dbName)
+            .putAllConfig(map).build()).build());
+    mDBs.get(dbName).sync(journalContext);
     return true;
   }
 
@@ -86,8 +101,7 @@ public class AlluxioCatalog {
    */
   public Table getTable(String dbName, String tableName) throws IOException {
     Database db = getDatabaseByName(dbName);
-    Table table = db.getTable(tableName);
-    return table;
+    return db.getTable(tableName);
   }
 
   /**
@@ -147,11 +161,12 @@ public class AlluxioCatalog {
   public Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
       String tableName, List<String> partNames, List<String> colNames) throws IOException {
     Table table = getTable(dbName, tableName);
-    List<Partition> partitions = table.getPartitions();
-    return partitions.stream().filter(p -> partNames.contains(p.getLayout().getSpec()))
-        .map(p -> new Pair<>(p.getLayout().getSpec(),
+    List<alluxio.grpc.catalog.Partition> partitions = table.getPartitions();
+    return partitions.stream().filter(p -> partNames.contains(p.getLayout()
+        .getLayoutSpec().getSpec()))
+        .map(p -> new Pair<>(p.getLayout().getLayoutSpec().getSpec(),
             ColumnStatisticsList.newBuilder().addAllStatistics(
-                p.getLayout().getColumnStatsData().entrySet().stream()
+                p.getLayout().getStatsMap().entrySet().stream()
                     .filter(entry -> colNames.contains(entry.getKey()))
                     .map(Map.Entry::getValue).collect(Collectors.toList())).build()))
         .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (e1, e2) -> e2));
@@ -168,11 +183,8 @@ public class AlluxioCatalog {
   public List<alluxio.grpc.catalog.Partition> readTable(String dbName, String tableName,
       Constraint constraint) throws IOException {
     Table table = getTable(dbName, tableName);
-    List<Partition> partitions = table.getPartitions();
-
     // TODO(david): implement partition pruning
-
-    return partitions.stream().map(Partition::toProto).collect(Collectors.toList());
+    return table.getPartitions();
   }
 
   private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
@@ -213,5 +225,84 @@ public class AlluxioCatalog {
       }
     }
     return true;
+  }
+
+  private void apply(Catalog.AttachDbEntry entry) {
+    String type = entry.getType();
+    String dbName = entry.getDbName();
+
+    UdbContext context = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
+
+    Database db = Database.create(context, type, dbName, entry.getConfigMap());
+    mDBs.put(dbName, db);
+  }
+
+  @Override
+  public boolean processJournalEntry(Journal.JournalEntry entry) {
+    if (entry.hasAttachDb()) {
+      apply(entry.getAttachDb());
+      return true;
+    } else if (entry.hasAddTable()) {
+      Database db = mDBs.get(entry.getAddTable().getDbName());
+      return db.processJournalEntry(entry);
+    }
+    return false;
+  }
+
+  @Override
+  public void resetState() {
+    mDBs.clear();
+  }
+
+  private Iterator<Journal.JournalEntry> getDbIterator() {
+    final Iterator<Map.Entry<String, Database>> it = mDBs.entrySet().iterator();
+    return new Iterator<Journal.JournalEntry>() {
+      private Map.Entry<String, Database> mEntry = null;
+
+      @Override
+      public boolean hasNext() {
+        if (mEntry != null) {
+          return true;
+        }
+        if (it.hasNext()) {
+          mEntry = it.next();
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        String dbName = mEntry.getKey();
+        Database database = mEntry.getValue();
+        mEntry = null;
+
+        return Journal.JournalEntry.newBuilder().setAttachDb(
+            Catalog.AttachDbEntry.newBuilder().setDbName(dbName).setType(database.getType())
+                .putAllConfig(database.getConfig()).build())
+            .build();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException(
+            "GetDbIteratorr#Iterator#remove is not supported.");
+      }
+    };
+  }
+
+  @Override
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    List<Iterator<Journal.JournalEntry>> componentIters = StreamUtils
+        .map(JournalEntryIterable::getJournalEntryIterator, mDBs.values());
+    return Iterators.concat(getDbIterator(), Iterators.concat(componentIters.iterator()));
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.CATALOG_SERVICE_MASTER;
   }
 }

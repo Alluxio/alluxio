@@ -34,7 +34,7 @@ public interface CatalogMaster extends Master {
    * @param configuration the configuration
    * @return true if creation is successful
    */
-  boolean attachDatabase(String dbName, String dbType, CatalogConfiguration configuration)
+  boolean attachDatabase(String dbName, String dbType, Map<String, String> configuration)
       throws IOException;
 
   /**
