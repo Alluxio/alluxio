@@ -37,8 +37,8 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-fuse
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: {{ .Values.fuse.hostNetwork }}
+      dnsPolicy: {{ .Values.fuse.dnsPolicy }}
       nodeSelector:
       {{- if .Values.fuse.nodeSelector }}
 {{ toYaml .Values.fuse.nodeSelector | trim | indent 8  }}
@@ -66,27 +66,19 @@ spec:
         - name: alluxio-fuse
           image: {{ .Values.fuse.image }}:{{ .Values.fuse.imageTag }}
           imagePullPolicy: {{ .Values.fuse.imagePullPolicy }}
+          {{- if .Values.fuse.resources  }}
           resources:
+            {{- if .Values.fuse.resources.limits }}
             limits:
-              {{- if .Values.fuse.resources  }}
-                {{- if .Values.fuse.resources.limits }}
-                  {{- if .Values.fuse.resources.limits.cpu  }}
               cpu: {{ .Values.fuse.resources.limits.cpu }}
-                  {{- end }}
-                  {{- if .Values.fuse.resources.limits.memory  }}
               memory: {{ .Values.fuse.resources.limits.memory }}
-                  {{- end }}
-                {{- end }}
+            {{- end }}
+            {{- if .Values.fuse.resources.requests }}
             requests:
-                {{- if .Values.fuse.resources.requests }}
-                  {{- if .Values.fuse.resources.requests.cpu  }}
               cpu: {{ .Values.fuse.resources.requests.cpu }}
-                  {{- end }}
-                  {{- if .Values.fuse.resources.requests.memory  }}
               memory: {{ .Values.fuse.resources.requests.memory }}
-                  {{- end }}
-                {{- end }}
-              {{- end }}
+            {{- end }}
+          {{- end }}
           command: ["/entrypoint.sh"]
           # args: ["fuse", "--fuse-opts=allow_other"]
           {{- if .Values.fuse.args }}
@@ -98,6 +90,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          - name: ALLUXIO_CLIENT_JAVA_OPTS
+            value: " -Dalluxio.user.hostname=$(ALLUXIO_CLIENT_HOSTNAME) "
           securityContext:
             privileged: true
             capabilities:
@@ -109,7 +103,7 @@ spec:
                 command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "/alluxio-fuse"]
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.name" . }}-config
+              name: {{ template "alluxio.fullname" . }}-config
           volumeMounts:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse

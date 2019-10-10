@@ -69,8 +69,8 @@ function generateWorkerTemplates {
 
 function generateFuseTemplates {
   echo "Generating fuse templates"
-  helm template helm-chart/alluxio/ -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-daemonset.yaml.template"
-  # TODO(jiacheng): fuse client
+  helm template helm-chart/alluxio/ -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
+  helm template helm-chart/alluxio/ -x templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
 }
 
 function generateMasterServiceTemplates {
