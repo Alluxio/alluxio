@@ -164,7 +164,7 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
         // Sets the part size, by default it's 1K.
         req.setPartSize(mStreamingDownloadPartitionSize);
         // Enable checkpoint.
-        req.setEnableCheckpoint(true);
+        req.setEnableCheckpoint(false);
 
         // Create the temp file
         File tmpFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(mTmpDirs), mKey));
@@ -199,17 +199,22 @@ public class OSSLowLevelInputStream extends MultiRangeObjectInputStream {
                 byte[] bytes = IOUtils.toByteArray(fis, length);
                 return new BufferedInputStream(new ByteArrayInputStream(bytes));
             } catch (OSSException e) {
-                LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+                LOG.warn("Attempt {} to open key {} in bucket {} failed with OSS exception : {}",
                         mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+                // Key does not exist
                 if (!e.getErrorCode().equals("NoSuchKey")) {
                     throw new IOException(e);
                 }
-                // Key does not exist
                 lastException = e;
-            } catch (Throwable e) {
-                LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+            } catch (IOException e) {
+                LOG.warn("Attempt {} to open key {} in bucket {} failed with IO exception : {}",
                         mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
-                LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
+                LOG.warn("IOException: " + Throwables.getStackTraceAsString(e));
+                lastException = new OSSException(e.getMessage(), e);
+            } catch (Throwable e) {
+                LOG.warn("Failed {} to open key {} in bucket {} failed with exception : {}",
+                        mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+                LOG.warn("Throwable: " + Throwables.getStackTraceAsString(e));
                 throw new IOException(e);
             } finally {
                 LOG.debug("Calling createStreamWithPartition took: {} ms", (System.currentTimeMillis()-start));
