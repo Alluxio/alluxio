@@ -16,7 +16,9 @@ import static org.junit.Assert.assertEquals;
 import alluxio.table.common.ConfigurationUtils;
 import alluxio.util.CommonUtils;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,10 +26,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Tests for {@link UdbConfiguration}.
- */
 public class UdbConfigurationTest {
+
+  @Test
+  public void multipleUfsMountOptions() {
+    Map<String, String> opts = new ImmutableMap.Builder<String, String>()
+        .put("my.special.key", "myspecialvalue")
+        .put("mount.option.{ufs://a.a}.key1", "v1")
+        .put("mount.option.{ufs://a.a}.key2", "v2")
+        .put("mount.option.{ufs://b.b}.key2", "v3")
+        .put("mount.option.{file}.key2", "v4")
+        .build();
+
+    UdbConfiguration conf = new UdbConfiguration(opts);
+    assertEquals(3, Whitebox.<Map<String, String>>getInternalState(conf, "mMountOptions").size());
+    assertEquals(0, conf.getMountOption("").size());
+    assertEquals(1, conf.getMountOption("ufs://b.b").size());
+    assertEquals(2, conf.getMountOption("ufs://a.a").size());
+    assertEquals(1, conf.getMountOption("file").size());
+  }
 
   @Test
   public void mountOptions() {
