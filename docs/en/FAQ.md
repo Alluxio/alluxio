@@ -17,7 +17,7 @@ at memory speed. Read more about Alluxio [Overview]({{ '/en/Overview.html' | rel
 
 ## What platforms and Java versions can Alluxio run on?
 
-Alluxio requires JVM 1.8 or above to run on various distributions of Linux / MacOS.
+Alluxio requires JVM 1.8 to run on various distributions of Linux / MacOS.
 
 ## What license is Alluxio under?
 
