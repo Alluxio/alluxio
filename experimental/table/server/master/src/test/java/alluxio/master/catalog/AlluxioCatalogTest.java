@@ -12,7 +12,6 @@
 package alluxio.master.catalog;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -161,7 +160,8 @@ public class AlluxioCatalogTest {
       Table t = Mockito.mock(Table.class);
       when(t.getName()).thenReturn(Integer.toString(i));
       return t;
-    }).collect(Collectors.toList());
+    })
+        .collect(Collectors.toList());
     Database db2 = createMockDatabase("noop", "db2", tables);
     Map<String, Database> dbs = new HashMap<>();
     dbs.put("db1", db1);
@@ -192,7 +192,7 @@ public class AlluxioCatalogTest {
   }
 
   private void addDbToCatalog(Database db) {
-    ((Map<String, Database>)Whitebox.getInternalState(mCatalog, "mDBs")).put(db.getName(), db);
+    ((Map<String, Database>) Whitebox.getInternalState(mCatalog, "mDBs")).put(db.getName(), db);
   }
 
   UdbTable createMockUdbTable(String name, Schema schema) throws IOException {

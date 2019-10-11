@@ -13,7 +13,6 @@ package alluxio.table.under.hive.util;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

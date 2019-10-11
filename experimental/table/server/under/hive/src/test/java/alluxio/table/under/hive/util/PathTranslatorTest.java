@@ -101,6 +101,5 @@ public class PathTranslatorTest {
     mTranslator.addMapping(alluxioPath, ufsPath);
     assertEquals(alluxioPath, mTranslator.toAlluxioPath(ufsPath));
     assertEquals(alluxioPath + "/", mTranslator.toAlluxioPath(ufsPath + "/"));
-
   }
 }

@@ -78,7 +78,7 @@ public class HiveDatabaseTest {
         Property.HIVE_METASTORE_URIS.getName(), "thrift:///",
         Property.DATABASE_NAME.getName(), DB_NAME
     );
-    assertEquals(DB_NAME, HiveDatabase.create(mUdbContext,new UdbConfiguration(props)).getName());
+    assertEquals(DB_NAME, HiveDatabase.create(mUdbContext, new UdbConfiguration(props)).getName());
   }
 
 }
