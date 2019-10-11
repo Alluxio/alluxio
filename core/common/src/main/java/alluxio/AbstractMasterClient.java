@@ -30,7 +30,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
   private final MasterInquireClient mMasterInquireClient;
 
   /** Client for determining configuration RPC address,
-   * which may be different from target address */
+   * which may be different from target address. */
   private final MasterInquireClient mConfMasterInquireClient;
 
   /**
