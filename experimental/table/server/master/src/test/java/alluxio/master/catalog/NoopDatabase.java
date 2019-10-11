@@ -41,8 +41,7 @@ public class NoopDatabase implements UnderDatabase {
    * @param configuration the configuration
    * @return the new instance
    */
-  public static NoopDatabase create(UdbContext udbContext, UdbConfiguration configuration)
-      throws IOException {
+  public static NoopDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
     return new NoopDatabase(udbContext, configuration);
   }
 

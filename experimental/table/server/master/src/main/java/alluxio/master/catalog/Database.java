@@ -80,15 +80,14 @@ public class Database implements Journaled {
    */
   public static Database create(CatalogContext catalogContext, UdbContext udbContext, String type,
       String name, Map<String, String> configMap) {
-    UnderDatabase udb = null;
     CatalogConfiguration configuration = new CatalogConfiguration(configMap);
     try {
-      udb = udbContext.getUdbRegistry()
+      UnderDatabase udb = udbContext.getUdbRegistry()
           .create(udbContext, type, configuration.getUdbConfiguration(type));
-    } catch (IOException e) {
-      LOG.info("Creating udb type {} failed, database {} is in disconnected mode", type, name);
+      return new Database(catalogContext, type, name, udb, configMap);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Creating udb failed for database name: " + name, e);
     }
-    return new Database(catalogContext, type, name, udb, configMap);
   }
 
   /**
@@ -153,15 +152,6 @@ public class Database implements Journaled {
   }
 
   /**
-   * Returns true if an UDB is connected and can be synced.
-   *
-   * @return true if there is an UDB backing this database
-   */
-  public boolean isConnected() {
-    return (mUdb != null);
-  }
-
-  /**
    * add a table to the database.
    *
    * @param tableName table name
@@ -185,9 +175,6 @@ public class Database implements Journaled {
    * @param context journal context
    */
   public void sync(JournalContext context) throws IOException {
-    if (!isConnected()) {
-      return;
-    }
     for (String tableName : mUdb.getTableNames()) {
       // TODO(gpang): concurrency control
       Table table = mTables.get(tableName);

@@ -14,7 +14,6 @@ package alluxio.table.common.udb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -60,12 +59,12 @@ public class UnderDatabaseRegistry {
    * @param configuration the udb configuration
    * @return a new udb instance
    */
-  public UnderDatabase create(UdbContext udbContext, String type,
-      UdbConfiguration configuration) throws IOException {
+  public UnderDatabase create(UdbContext udbContext, String type, UdbConfiguration configuration) {
     Map<String, UnderDatabaseFactory> map = mFactories;
     UnderDatabaseFactory factory = map.get(type);
     if (factory == null) {
-      throw new IOException(String.format("UdbFactory for type '%s' does not exist.", type));
+      throw new IllegalArgumentException(
+          String.format("UdbFactory for type '%s' does not exist.", type));
     }
     return factory.create(udbContext, configuration);
   }

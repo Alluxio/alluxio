@@ -12,8 +12,6 @@
 package alluxio.table.under.hive;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.NotFoundException;
@@ -25,9 +23,6 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.PathTranslator;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -56,17 +51,17 @@ public class HiveDatabase implements UnderDatabase {
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
-  private final HiveMetaStoreClient mHive;
   /** the name of the hive db. */
   private final String mHiveDbName;
 
+  /** The cached hive client. This should not be used directly, but via {@link #getHive()}. */
+  private HiveMetaStoreClient mHive = null;
+
   private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
-      HiveMetaStoreClient hive, String hiveDbName) {
+      String hiveDbName) {
     mUdbContext = udbContext;
     mConfiguration = configuration;
-    mHive = hive;
     mHiveDbName = hiveDbName;
-    mConfiguration.toString(); // read the field
   }
 
   /**
@@ -76,37 +71,21 @@ public class HiveDatabase implements UnderDatabase {
    * @param configuration the configuration
    * @return the new instance
    */
-  public static HiveDatabase create(UdbContext udbContext, UdbConfiguration configuration)
-      throws IOException {
+  public static HiveDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
     String uris = configuration.get(Property.HIVE_METASTORE_URIS);
     if (uris.isEmpty()) {
-      throw new IOException("Hive metastore uris is not configured. Please set parameter: "
-          + Property.HIVE_METASTORE_URIS.getFullName(HiveDatabaseFactory.TYPE));
+      throw new IllegalArgumentException(
+          "Hive metastore uris is not configured. Please set parameter: "
+              + Property.HIVE_METASTORE_URIS.getFullName(HiveDatabaseFactory.TYPE));
     }
     String dbName = configuration.get(Property.DATABASE_NAME);
     if (dbName.isEmpty()) {
-      throw new IOException("Hive database name is not configured. Please set parameter: "
-          + Property.DATABASE_NAME.getFullName(HiveDatabaseFactory.TYPE));
+      throw new IllegalArgumentException(
+          "Hive database name is not configured. Please set parameter: " + Property.DATABASE_NAME
+              .getFullName(HiveDatabaseFactory.TYPE));
     }
 
-    UnderFileSystem ufs;
-    if (URIUtils.isLocalFilesystem(ServerConfiguration
-        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
-      ufs = UnderFileSystem.Factory
-          .create("/", UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
-    } else {
-      ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    }
-
-    HiveMetaStoreClient hive;
-    try {
-      HiveConf conf = new HiveConf();
-      conf.set("hive.metastore.uris", uris);
-      hive = new HiveMetaStoreClient(conf);
-    } catch (MetaException e) {
-      throw new IOException("Failed to create hive client: " + e.getMessage(), e);
-    }
-    return new HiveDatabase(udbContext, configuration, hive, dbName);
+    return new HiveDatabase(udbContext, configuration, dbName);
   }
 
   /**
@@ -129,7 +108,7 @@ public class HiveDatabase implements UnderDatabase {
   @Override
   public List<String> getTableNames() throws IOException {
     try {
-      return mHive.getAllTables(mHiveDbName);
+      return getHive().getAllTables(mHiveDbName);
     } catch (MetaException e) {
       throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
     }
@@ -214,30 +193,43 @@ public class HiveDatabase implements UnderDatabase {
   public UdbTable getTable(String tableName) throws IOException {
     Table table;
     try {
-      table = mHive.getTable(mHiveDbName, tableName);
+      table = getHive().getTable(mHiveDbName, tableName);
 
       // Potentially expensive call
       List<Partition> partitions =
-          mHive.listPartitions(mHiveDbName, table.getTableName(), (short) -1);
+          getHive().listPartitions(mHiveDbName, table.getTableName(), (short) -1);
 
       PathTranslator pathTranslator = mountAlluxioPaths(table, partitions);
       List<String> colNames = table.getSd().getCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
       List<ColumnStatisticsObj> columnStats =
-          mHive.getTableColumnStatistics(mHiveDbName, tableName, colNames);
+          getHive().getTableColumnStatistics(mHiveDbName, tableName, colNames);
 
       List<ColumnStatisticsInfo> colStats =
           columnStats.stream().map(HiveUtils::toProto).collect(Collectors.toList());
 
-      return new HiveTable(mHive, this, pathTranslator, tableName,
+      return new HiveTable(this, pathTranslator, tableName,
           HiveUtils.toProtoSchema(table.getSd().getCols()),
-          pathTranslator.toAlluxioPath(table.getSd().getLocation()),
-          colStats,
+          pathTranslator.toAlluxioPath(table.getSd().getLocation()), colStats,
           HiveUtils.toProto(table.getPartitionKeys()), partitions, table);
     } catch (NoSuchObjectException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (TException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
+    }
+  }
+
+  HiveMetaStoreClient getHive() throws IOException {
+    if (mHive != null) {
+      return mHive;
+    }
+    try {
+      HiveConf conf = new HiveConf();
+      conf.set("hive.metastore.uris", mConfiguration.get(Property.HIVE_METASTORE_URIS));
+      mHive = new HiveMetaStoreClient(conf);
+      return mHive;
+    } catch (MetaException e) {
+      throw new IOException("Failed to create hive client: " + e.getMessage(), e);
     }
   }
 }

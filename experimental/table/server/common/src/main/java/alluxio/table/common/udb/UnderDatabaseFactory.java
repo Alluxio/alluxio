@@ -11,8 +11,6 @@
 
 package alluxio.table.common.udb;
 
-import java.io.IOException;
-
 /**
  * The under database factory interface.
  */
@@ -24,10 +22,11 @@ public interface UnderDatabaseFactory {
   String getType();
 
   /**
+   * Creates a new instance of the udb. Creation must not interact with external services.
+   *
    * @param udbContext the db context
    * @param configuration configuration values
    * @return a new instance of the under database
    */
-  UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration)
-      throws IOException;
+  UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration);
 }
