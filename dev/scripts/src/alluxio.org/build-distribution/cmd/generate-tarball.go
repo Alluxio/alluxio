@@ -193,7 +193,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
-		"integration/kubernetes/alluxio-configMap.yaml.template",
+		"integration/kubernetes/alluxio-configmap.yaml.template",
 		"integration/kubernetes/alluxio-fuse.yaml.template",
 		"integration/kubernetes/alluxio-fuse-client.yaml.template",
 		"integration/kubernetes/alluxio-master-journal-pv.yaml.template",
