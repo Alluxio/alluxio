@@ -29,16 +29,12 @@ import java.util.regex.Pattern;
 public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
   private static final Logger LOG = LoggerFactory.getLogger(UdbConfiguration.class);
 
-  private static final Pattern CONFIG_PATTERN = Pattern.compile("(\\(.*\\))\\.(.+?)");
+  // {...} group the scheme/authority, and are not special to various shells
+  private static final Pattern CONFIG_PATTERN = Pattern.compile("(\\{.*\\})\\.(.+?)");
   public static final String READ_ONLY_OPTION = "readonly";
   public static final String SHARED_OPTION = "shared";
 
   protected final Map<String, Map<String, String>> mMountOptions;
-
-  protected UdbConfiguration() {
-    super();
-    mMountOptions = new HashMap<>();
-  }
 
   /**
    * Creates an instance.
@@ -53,15 +49,21 @@ public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
         String key = entry.getKey().substring(ConfigurationUtils.MOUNT_PREFIX.length());
         Matcher m = CONFIG_PATTERN.matcher(key);
         if (m.matches()) {
-          String resource = m.group(1);
-          // remove the bracket around the scheme://authority
-          resource = resource.substring(1, resource.length() - 1);
+          String schemeAuthority = m.group(1);
           String option = m.group(2);
-          Map<String, String> optionMap = mMountOptions.get(resource);
+
+          // remove the bracket around the scheme://authority
+          schemeAuthority = schemeAuthority.substring(1, schemeAuthority.length() - 1);
+          if (!schemeAuthority.endsWith("/")) {
+            // include the trailing '/'
+            schemeAuthority += "/";
+          }
+
+          Map<String, String> optionMap = mMountOptions.get(schemeAuthority);
           if (optionMap == null) {
             optionMap = new HashMap<>();
             optionMap.put(option, entry.getValue());
-            mMountOptions.put(resource, optionMap);
+            mMountOptions.put(schemeAuthority, optionMap);
           } else {
             optionMap.put(option, entry.getValue());
           }
@@ -73,10 +75,14 @@ public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
   /**
    * Returns the mount option for a particular scheme and authority URL.
    *
-   * @param schemeAuthority scheme://authority
+   * @param schemeAuthority scheme://authority/ (expected to have a trailing '/')
    * @return mount options in a map
    */
   public Map<String, String> getMountOption(String schemeAuthority) {
+    if (!schemeAuthority.endsWith("/")) {
+      // include the trailing '/'
+      schemeAuthority += "/";
+    }
     return mMountOptions.getOrDefault(schemeAuthority, Collections.emptyMap());
   }
 }
