@@ -33,9 +33,10 @@ public final class UfsFileStatusTest {
     long contentLength = random.nextLong();
     long lastModifiedTimeMs = random.nextLong();
     short mode = 077;
+    long blockSize = random.nextLong();
     UfsFileStatus status =
         new UfsFileStatus("name", contentHash, contentLength, lastModifiedTimeMs, "owner", "group",
-            mode);
+            mode, blockSize);
 
     assertEquals("name", status.getName());
     assertEquals(contentHash, status.getContentHash());
@@ -46,6 +47,7 @@ public final class UfsFileStatusTest {
     assertEquals("owner", status.getOwner());
     assertEquals("group", status.getGroup());
     assertEquals(mode, status.getMode());
+    assertEquals(blockSize, status.getBlockSize());
   }
 
   /**
@@ -58,9 +60,11 @@ public final class UfsFileStatusTest {
     long contentLength = random.nextLong();
     long lastModifiedTimeMs = random.nextLong();
     short mode = 077;
+    long blockSize = random.nextLong();
+
     UfsFileStatus statusToCopy =
         new UfsFileStatus("name", contentHash, contentLength, lastModifiedTimeMs, "owner", "group",
-            mode);
+            mode, blockSize);
     UfsFileStatus status = new UfsFileStatus(statusToCopy);
     assertEquals(statusToCopy, status);
   }

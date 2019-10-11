@@ -36,7 +36,7 @@ public final class FingerprintTest {
     UfsStatus status = new UfsFileStatus(CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10), mRandom.nextLong(), mRandom.nextLong(),
         CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
-        (short) mRandom.nextInt());
+        (short) mRandom.nextInt(), mRandom.nextLong());
     Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status);
     String expected = fp.serialize();
     assertNotNull(expected);
@@ -47,7 +47,7 @@ public final class FingerprintTest {
   public void parseDirectoryFingerprint() {
     UfsStatus status = new UfsDirectoryStatus(CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
-        (short) mRandom.nextInt());
+        (short) mRandom.nextInt(), mRandom.nextLong());
     Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status);
     String expected = fp.serialize();
     assertNotNull(expected);
@@ -73,14 +73,15 @@ public final class FingerprintTest {
     String group = CommonUtils.randomAlphaNumString(10);
     short mode = (short) mRandom.nextInt();
     String ufsName = CommonUtils.randomAlphaNumString(10);
+    Long blockSize = mRandom.nextLong();
 
     UfsFileStatus status = new UfsFileStatus(name, contentHash, contentLength, lastModifiedTimeMs,
-        owner, group, mode);
+        owner, group, mode, blockSize);
     UfsFileStatus metadataChangedStatus = new UfsFileStatus(name, contentHash, contentLength,
         lastModifiedTimeMs, CommonUtils.randomAlphaNumString(10),
-        CommonUtils.randomAlphaNumString(10), mode);
+        CommonUtils.randomAlphaNumString(10), mode, blockSize);
     UfsFileStatus dataChangedStatus = new UfsFileStatus(name, contentHash2, contentLength,
-        lastModifiedTimeMs, owner, group, mode);
+        lastModifiedTimeMs, owner, group, mode, blockSize);
     Fingerprint fp = Fingerprint.create(ufsName, status);
     Fingerprint fpMetadataChanged = Fingerprint.create(ufsName, metadataChangedStatus);
     Fingerprint fpDataChanged = Fingerprint.create(ufsName, dataChangedStatus);
@@ -109,9 +110,10 @@ public final class FingerprintTest {
     String contentHash = CommonUtils.randomAlphaNumString(10);
     Long contentLength = mRandom.nextLong();
     Long lastModifiedTimeMs = mRandom.nextLong();
+    Long blockSize = mRandom.nextLong();
 
     UfsFileStatus fileStatus = new UfsFileStatus(name, contentHash, contentLength,
-        lastModifiedTimeMs, owner, group, mode);
+        lastModifiedTimeMs, owner, group, mode, blockSize);
     fp = Fingerprint.create(ufsName, fileStatus);
 
     assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
@@ -124,7 +126,7 @@ public final class FingerprintTest {
     UfsStatus status = new UfsFileStatus(CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10), mRandom.nextLong(), mRandom.nextLong(),
         CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
-        (short) mRandom.nextInt());
+        (short) mRandom.nextInt(), mRandom.nextLong());
     AccessControlList acl = AccessControlList.fromStringEntries(
         CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10),

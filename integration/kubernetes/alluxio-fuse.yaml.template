@@ -1,3 +1,5 @@
+---
+# Source: alluxio/templates/fuse/daemonset.yaml
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
 # (the "License"). You may not use this work except in compliance with the License, which is
@@ -9,38 +11,69 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: alluxio-fuse
+  labels:
+    app: alluxio
+    chart: alluxio-0.5.0
+    release: release-name
+    heritage: Tiller
+    role: alluxio-fuse
 spec:
   selector:
     matchLabels:
-      name: alluxio-fuse
+      app: alluxio
+      chart: alluxio-0.5.0
+      release: release-name
+      heritage: Tiller
+      role: alluxio-fuse
   template:
     metadata:
       labels:
-        name: alluxio-fuse
         app: alluxio
+        chart: alluxio-0.5.0
+        release: release-name
+        heritage: Tiller
+        role: alluxio-fuse
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 10000
+        fsGroup: 1000
+      affinity:
+        podAffinity:
+          RequiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - alluxio
+              - key: role
+                operator: In
+                values:
+                - alluxio-worker
       containers:
         - name: alluxio-fuse
           image: alluxio/alluxio-fuse:2.1.0-SNAPSHOT
-          resources:
-            requests:
-              cpu: "0.5"
-              memory: "1G"
-            limits:
-              cpu: "1"
-              memory: "1G"
+          imagePullPolicy: IfNotPresent
           command: ["/entrypoint.sh"]
-          args: ["fuse", "--fuse-opts=allow_other"]
+          args: 
+            - fuse
+            - --fuse-opts=allow_other
+            
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          - name: ALLUXIO_JAVA_OPTS
+          - name: ALLUXIO_CLIENT_JAVA_OPTS
             value: " -Dalluxio.user.hostname=$(ALLUXIO_CLIENT_HOSTNAME) "
           securityContext:
             privileged: true
@@ -74,5 +107,6 @@ spec:
             type: DirectoryOrCreate
         - name: alluxio-domain
           hostPath:
-            path: /tmp/domain
-            type: ""
+            path: /tmp/alluxio-domain
+            type: "Directory"
+

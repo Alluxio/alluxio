@@ -81,6 +81,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected final Supplier<String> mRootKeySupplier =
       UnderFileSystemUtils.memoize(this::getRootKey);
 
+  /** Whether the bucket/root is listable. */
+  protected final Supplier<Boolean> mIsRootListable =
+      UnderFileSystemUtils.memoize(this::isRootListable);
+
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
    *
@@ -531,7 +535,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode());
+          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } else {
       LOG.warn("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException(path);
@@ -553,7 +557,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode());
+          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
     return getDirectoryStatus(path);
   }
@@ -568,7 +572,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   public boolean isDirectory(String path) throws IOException {
     // Root is always a folder
     if (isRoot(path)) {
-      return true;
+      return mIsRootListable.get();
     }
     String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
     if (getObjectStatus(keyAsFolder) != null) {
@@ -592,6 +596,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isObjectStorage() {
     return true;
+  }
+
+  /**
+   * Checks if the root of the ObjectUnderFileSystem is listable. This is done once and cached
+   * per UFS to reduce time spent checking if the root is accessible.
+   *
+   * @return whether the root of the UFS is listable and return false if any exception is thrown
+   */
+  public boolean isRootListable() {
+    try {
+      return getObjectListingChunkForPath("", true) != null;
+    } catch (Exception e) {
+      LOG.debug("Unable to list root of bucket {}:", super.mUri.toString(), e);
+      return false;
+    }
   }
 
   @Override
@@ -1012,7 +1031,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           children.put(child,
               new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
                   status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-                  permissions.getMode()));
+                  permissions.getMode(),
+                  mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT)));
         }
       }
       // Handle case (2)

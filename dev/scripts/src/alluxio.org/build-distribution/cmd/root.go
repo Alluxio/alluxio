@@ -12,25 +12,12 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
-	"v.io/x/lib/cmdline"
 	"strings"
 )
 
 var (
-	Root = &cmdline.Command{
-		Name:  "generate-tarballs",
-		Short: "tool for creating alluxio tarballs",
-		Long: `
-	The publish tool contains functionality for generating either a single alluxio tarball,
-or generating a suite of release tarballs.
-	`,
-		Children: []*cmdline.Command{
-			cmdSingle,
-			cmdRelease,
-		},
-	}
-
 	debugFlag bool
 	ufsModulesFlag string
 )
@@ -51,8 +38,10 @@ func checkRootFlags() error {
 	return nil
 }
 
-func init() {
-	Root.Flags.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
-	Root.Flags.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
+// common flags that are used regardless of subcommand type
+// these flags provide additional settings unrelated to tarball generation
+func additionalFlags(cmd *flag.FlagSet) {
+	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
+	cmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
 		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
 }

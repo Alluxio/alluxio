@@ -173,7 +173,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -2468,11 +2467,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
 
-      ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
       if (context.getUfsStatus() == null) {
         context.setUfsStatus(ufs.getExistingFileStatus(ufsUri.toString()));
       }
       ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
+      long blockSize = ((UfsFileStatus) context.getUfsStatus()).getBlockSize();
+      ufsBlockSizeByte = blockSize != UfsFileStatus.UNKNOWN_BLOCK_SIZE
+          ? blockSize : ufs.getBlockSizeByte(ufsUri.toString());
 
       if (isAclEnabled()) {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
@@ -3983,11 +3984,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         // If previous persist job failed, clean up the temporary file.
         cleanup(ufsResource.get(), tempUfsPath);
+        // Generate a temporary path to be used by the persist job.
+        // If the persist destination is on object store, let persist job copy files to destination
+        // directly
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED)
+            && ufsResource.get().isObjectStorage()) {
+          tempUfsPath = resolution.getUri().toString();
+        } else {
+          tempUfsPath = PathUtils.temporaryFileName(
+              System.currentTimeMillis(), resolution.getUri().toString());
+        }
       }
 
-      // Generate a temporary path to be used by the persist job.
-      tempUfsPath =
-          PathUtils.temporaryFileName(System.currentTimeMillis(), resolution.getUri().toString());
       alluxio.job.persist.PersistConfig config =
           new alluxio.job.persist.PersistConfig(uri.getPath(), resolution.getMountId(), false,
               tempUfsPath);
@@ -4143,9 +4151,14 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
               UnderFileSystem ufs = ufsResource.get();
               String ufsPath = resolution.getUri().toString();
-              if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
-                throw new IOException(
-                    String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
+              if (!ufsPath.equals(tempUfsPath)) {
+                // Make rename only when tempUfsPath is different from final ufsPath. Note that,
+                // on object store, we take the optimization to skip the rename by having
+                // tempUfsPath the same as final ufsPath.
+                if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
+                  throw new IOException(
+                      String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
+                }
               }
               ufs.setOwner(ufsPath, inode.getOwner(), inode.getGroup());
               ufs.setMode(ufsPath, inode.getMode());
@@ -4192,8 +4205,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           }
         }
         mPersistRequests.put(fileId, job.getTimer());
-      } finally {
-        mPersistJobs.remove(fileId);
       }
 
       // Cleanup possible staging UFS blocks files due to fast durable write fallback.
@@ -4276,6 +4287,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               mPersistJobs.remove(fileId);
               break;
             case COMPLETED:
+              mPersistJobs.remove(fileId);
               mPersistCheckerPool.execute(() -> handleSuccess(job));
               break;
             default:
@@ -4498,19 +4510,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
               .getMetricName(MasterMetrics.UFS_CAPACITY_FREE),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              long ret = 0L;
-              try (CloseableResource<UnderFileSystem> ufsResource =
-                       ufsManager.getRoot().acquireUfsResource()) {
-                UnderFileSystem ufs = ufsResource.get();
-                ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
-              } catch (IOException e) {
-                LOG.error(e.getMessage(), e);
-              }
-              return ret;
+          () -> {
+            long ret = 0L;
+            try (CloseableResource<UnderFileSystem> ufsResource =
+                     ufsManager.getRoot().acquireUfsResource()) {
+              UnderFileSystem ufs = ufsResource.get();
+              ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
+            } catch (IOException e) {
+              LOG.error(e.getMessage(), e);
             }
+            return ret;
           });
     }
 

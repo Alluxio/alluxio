@@ -740,6 +740,10 @@ public class AlluxioURITest {
     final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
     assertEquals(new AlluxioURI("/" + pathWithSpecialCharAndColon),
         new AlluxioURI("/").join(pathWithSpecialCharAndColon));
+
+    // join empty string
+    assertEquals(new AlluxioURI("/a"), new AlluxioURI("/a").join(""));
+    assertEquals(new AlluxioURI("/a"), new AlluxioURI("/a").join(new AlluxioURI("")));
   }
 
   @Test
@@ -766,6 +770,9 @@ public class AlluxioURITest {
     assertNotEquals(new AlluxioURI("a/b.txt"), new AlluxioURI("a").joinUnsafe("/c/../b.txt"));
     assertNotEquals(new AlluxioURI("alluxio:/a/b.txt"),
         new AlluxioURI("alluxio:/a/c.txt").joinUnsafe("/../b.txt"));
+
+    // join empty string
+    assertEquals(new AlluxioURI("/a"), new AlluxioURI("/a").joinUnsafe(""));
   }
 
   /**
