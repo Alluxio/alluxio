@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * Manages the task executors.
@@ -42,25 +43,26 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TaskExecutorManager {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorManager.class);
 
-  private static final int DEFAULT_TASK_EXECUTOR_POOL_SIZE = 10;
-  private final ExecutorService mTaskExecutionService = Executors.newFixedThreadPool(
-      DEFAULT_TASK_EXECUTOR_POOL_SIZE, ThreadFactoryUtils.build("task-execution-service-%d", true));
+  private final ExecutorService mTaskExecutionService;
 
   // These maps are all indexed by <Job ID, Task ID> pairs.
   /** Stores the futures for all running tasks. */
-  private Map<Pair<Long, Integer>, Future<?>> mTaskFutures;
+  private final Map<Pair<Long, Integer>, Future<?>> mTaskFutures;
   /** Stores the task info for all running tasks. */
-  private Map<Pair<Long, Integer>, TaskInfo.Builder> mUnfinishedTasks;
+  private final Map<Pair<Long, Integer>, TaskInfo.Builder> mUnfinishedTasks;
   /** Stores the updated tasks since the last call to {@link #getAndClearTaskUpdates()}. */
-  private Map<Pair<Long, Integer>, TaskInfo> mTaskUpdates;
+  private final Map<Pair<Long, Integer>, TaskInfo> mTaskUpdates;
 
   /**
-   *  Constructs a new instance of {@link TaskExecutorManager}.
+   * Constructs a new instance of {@link TaskExecutorManager}.
+   * @param taskExecutorPoolSize number of task executors in the pool
    */
-  public TaskExecutorManager() {
+  public TaskExecutorManager(int taskExecutorPoolSize) {
     mTaskFutures = Maps.newHashMap();
     mUnfinishedTasks = Maps.newHashMap();
     mTaskUpdates = Maps.newHashMap();
+    mTaskExecutionService = Executors.newFixedThreadPool(taskExecutorPoolSize,
+      ThreadFactoryUtils.build("task-execution-service-%d", true));
   }
 
   /**

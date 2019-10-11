@@ -3616,6 +3616,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port for Alluxio job worker's RPC service.")
           .setDefaultValue(30001)
           .build();
+  public static final PropertyKey JOB_WORKER_THREADPOOL_SIZE =
+          new Builder(Name.JOB_WORKER_THREADPOOL_SIZE)
+                  .setDescription("Number of threads in the thread pool for job worker.")
+                  .setDefaultValue(10)
+                  .build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
       new Builder(Name.JOB_WORKER_WEB_BIND_HOST)
           .setDescription("The host the job worker web server binds to.")
@@ -4402,6 +4407,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";
     public static final String JOB_WORKER_HOSTNAME = "alluxio.job.worker.hostname";
     public static final String JOB_WORKER_RPC_PORT = "alluxio.job.worker.rpc.port";
+    public static final String JOB_WORKER_THREADPOOL_SIZE = "alluxio.job.worker.threadpool.size";
     public static final String JOB_WORKER_WEB_BIND_HOST = "alluxio.job.worker.web.bind.host";
     public static final String JOB_WORKER_WEB_PORT = "alluxio.job.worker.web.port";
 
