@@ -542,17 +542,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               context);
         }
       } else if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SKIP_ROOT_ACL_CHECK)) {
-          // For backwards-compatibility:
-          // Empty root owner indicates that previously the master had no security. In this case, the
-          // master is allowed to be started with security turned on.
-          String serverOwner = SecurityUtils.getOwner(mMasterContext.getUserState());
-          if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
-              && !root.getOwner().isEmpty() && !root.getOwner().equals(serverOwner)) {
-            // user is not the previous owner
-            throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED.getMessage(String
-                .format("Unauthorized user on root. inode owner: %s current user: %s",
-                    root.getOwner(), serverOwner)));
-          }
+        // For backwards-compatibility:
+        // Empty root owner indicates that previously the master had no security. In this case, the
+        // master is allowed to be started with security turned on.
+        String serverOwner = SecurityUtils.getOwner(mMasterContext.getUserState());
+        if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+            && !root.getOwner().isEmpty() && !root.getOwner().equals(serverOwner)) {
+          // user is not the previous owner
+          throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED.getMessage(String
+              .format("Unauthorized user on root. inode owner: %s current user: %s",
+                  root.getOwner(), serverOwner)));
+        }
       }
 
       // Initialize the ufs manager from the mount table.
