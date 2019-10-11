@@ -25,3 +25,4 @@
 - Merged with Alluxio Helm chart structure
 - Added multiple template directories for sample use cases
 - Merged helm-generate.sh which generates the templates 
+
