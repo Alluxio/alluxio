@@ -32,10 +32,10 @@ public class UdbConfigurationTest {
   public void multipleUfsMountOptions() {
     Map<String, String> opts = new ImmutableMap.Builder<String, String>()
         .put("my.special.key", "myspecialvalue")
-        .put("mount.option.{ufs://a.a}.key1", "v1")
-        .put("mount.option.{ufs://a.a}.key2", "v2")
-        .put("mount.option.{ufs://b.b}.key2", "v3")
-        .put("mount.option.{file}.key2", "v4")
+        .put(ConfigurationUtils.MOUNT_PREFIX + "{ufs://a.a}.key1", "v1")
+        .put(ConfigurationUtils.MOUNT_PREFIX + "{ufs://a.a}.key2", "v2")
+        .put(ConfigurationUtils.MOUNT_PREFIX + "{ufs://b.b}.key2", "v3")
+        .put(ConfigurationUtils.MOUNT_PREFIX + "{file}.key2", "v4")
         .build();
 
     UdbConfiguration conf = new UdbConfiguration(opts);
