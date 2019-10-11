@@ -105,6 +105,9 @@ the same server as the leading master to write journal checkpoints. Note that, t
 is not designed to provide high availability but offload the work from the leading master for fast
 recovery. Different from standby masters, a secondary master can never upgrade to a leading master.
 
+Note: Secondary Master is designed to work with UFS journals only. 
+`Do not launch when running with Embedded Journal.`
+
 ### Job Masters
 
 The Alluxio Job Master is a standalone process which is responsible for scheduling a number of
