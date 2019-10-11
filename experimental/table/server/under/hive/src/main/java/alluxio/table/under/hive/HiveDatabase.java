@@ -128,7 +128,7 @@ public class HiveDatabase implements UnderDatabase {
     mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
     Map<String, String> mountOptionMap = mConfiguration.getMountOption(
-        ufsUri.getScheme() + "://" + ufsUri.getAuthority().toString());
+        String.format("%s://%s/", ufsUri.getScheme(), ufsUri.getAuthority().toString()));
     MountPOptions.Builder option = MountPOptions.newBuilder();
     for (Map.Entry<String, String> entry : mountOptionMap.entrySet()) {
       if (entry.getKey().equals(UdbConfiguration.READ_ONLY_OPTION)) {

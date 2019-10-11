@@ -80,5 +80,4 @@ public class HiveDatabaseTest {
     );
     assertEquals(DB_NAME, HiveDatabase.create(mUdbContext, new UdbConfiguration(props)).getName());
   }
-
 }
