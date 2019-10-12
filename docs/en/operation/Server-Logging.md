@@ -104,9 +104,12 @@ a designated and configurable directory on the log server.
 
 #### Configuring the Log Server
 
-You can choose the directory that the log server will write logs to by setting the
+You need to specify the directory that the log server will write logs to by setting the
 `ALLUXIO_LOGSERVER_LOGS_DIR` environment variable or adding it to
-`${ALLUXIO_HOME}/conf/alluxio-env.sh`
+`${ALLUXIO_HOME}/conf/alluxio-env.sh`.
+
+You can specify `ALLUXIO_LOGSERVER_PORT` to change the port the log server will be listening to.
+You can find the default port in [table of configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.logserver.port)
 
 #### Start the Log Server
 
@@ -124,9 +127,13 @@ $ ./bin/alluxio-stop.sh logserver
 
 ### Configuring Alluxio Processes to use the Log Server
 
-By default, remote logging is not enabled. There are two options which can enable remote logging.
-One option is to set environment variables within `${ALLUXIO_HOME}/conf/alluxio-env.sh`. The other
-is to modify Alluxio's `log4j.properties` file under `${ALLUXIO_HOME}/conf/log4j.properties`.
+By default, remote logging is not enabled. You need to set 2 environment variables in `${ALLUXIO_HOME}/conf/alluxio-env.sh` to enable it.
+
+1. `ALLUXIO_LOGSERVER_HOSTNAME` specifies the hostname of the remote log server.
+The equivalent Java opt is `alluxio.logserver.hostname`.
+
+1. `ALLUXIO_LOGSERVER_PORT` specifies the port the remote log server is listening to.
+The equivalent Java opt is `alluxio.logserver.port`.
 
 There is no requirement on where the log server can be run, as long as the other Alluxio servers
 have network access to it. In our example, we run the log server on the same machine as a master.
@@ -136,39 +143,16 @@ have network access to it. In our example, we run the log server on the same mac
 The two environment variables `ALLUXIO_LOGSERVER_HOSTNAME` and `ALLUXIO_LOGSERVER_PORT` control
 the logging behavior of masters and workers in an Alluxio cluster.
 
-Suppose the hostname of the log server is `AlluxioLogServer`, and the port is `45010`.
+Suppose the hostname of the log server is `AlluxioLogServer`, and the port is `45600`.
 The following lines would need to be added to `conf/alluxio-env.sh` to enable remote logging :
 
 ```bash
 ALLUXIO_LOGSERVER_HOSTNAME=AlluxioLogServer
-ALLUXIO_LOGSERVER_PORT=45010
+ALLUXIO_LOGSERVER_PORT=45600
 ```
 
 These variables propagate their values to the `alluxio.logserver.hostname` and
 `alluxio.logserver.port` [system properties] when set via `alluxio-env.sh` which are then referenced within `log4j.properties`
-
-#### Enable Remote Logging with `log4j.properties`
-
-You can also choose to modify the `${ALLUXIO_HOME}/conf/log4j.properties` file on the machines where
-your masters or workers reside to add an appender which will send log entries to the log server. A
-sample configuration is provided below:
-
-```properties
-log4j.rootLogger=INFO, MASTER_LOGGER_SOCKET
-log4j.appender.MASTER_LOGGER_SOCKET=org.apache.log4j.net.SocketAppender
-log4j.appender.MASTER_LOGGER_SOCKET.Port=<PORT_OF_LOG_SERVER>
-log4j.appender.MASTER_LOGGER_SOCKET.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
-log4j.appender.MASTER_LOGGER_SOCKET.ReconnectionDelay=10000
-log4j.appender.MASTER_LOGGER_SOCKET.layout=org.apache.log4j.PatternLayout
-log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
-```
-
-Note that on the line containing `log4j.rootLogger` you may add multiple appenders in order to
-log locally to a file on the system and remotely over a network. For example:
-
-```properties
-log4j.rootLogger=INFO, ${REMOTE_APPENDER_NAME}, ${LOCAL_APPENDER_NAME}
-```
 
 ### Restart Alluxio and the Log Server
 
@@ -196,6 +180,29 @@ $ ls -l master/
 You can see that the log files are put into different folders according to their type. Master logs are put
 in the folder `master`, worker logs are put in folder `worker`, etc. Within each folder, log files from
 different workers are distinguished by the IP/hostname of the machine on which the server has been running.
+
+### Control Remote Logging Behavior with `log4j.properties`
+
+The remote log server uses the default threshold of `WARN`, which means log4j levels below `WARN` will not be sent to the remote log server.
+This can be finer tuned by modifying `${ALLUXIO_HOME}/conf/log4j.properties`.
+
+For example, if you want to change log level for the remote logger for Alluxio master logs,
+you can modify the corresponding appender's threshold.
+
+```properties
+# Remote appender for Master
+log4j.appender.REMOTE_MASTER_LOGGER=org.apache.log4j.net.SocketAppender
+log4j.appender.REMOTE_MASTER_LOGGER.Port=${alluxio.logserver.port}
+log4j.appender.REMOTE_MASTER_LOGGER.RemoteHost=${alluxio.logserver.hostname}
+log4j.appender.REMOTE_MASTER_LOGGER.ReconnectionDelay=10000
+log4j.appender.REMOTE_MASTER_LOGGER.filter.ID=alluxio.AlluxioRemoteLogFilter
+log4j.appender.REMOTE_MASTER_LOGGER.filter.ID.ProcessType=MASTER
+# Set the threshold to your desired log level
+log4j.appender.REMOTE_MASTER_LOGGER.Threshold=WARN
+```
+
+This enables you to further customize the appender in `log4j.properties` to, for example, specify the log format.
+How to do that is beyond the scope of this documentation.
 
 ## Configuration Properties
 
