@@ -77,7 +77,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-experimental-table-client</artifactId>
+      <artifactId>alluxio-table-client</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

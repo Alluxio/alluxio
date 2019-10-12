@@ -13,27 +13,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
+    <artifactId>alluxio-table</artifactId>
     <groupId>org.alluxio</groupId>
-    <artifactId>alluxio-parent</artifactId>
     <version>2.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-experimental</artifactId>
+  <artifactId>alluxio-table-server</artifactId>
   <packaging>pom</packaging>
-  <name>Alluxio Experimental Module</name>
-  <description>Parent POM for Alluxio Experimental Module</description>
+  <name>Alluxio Table - Server</name>
+  <description>Alluxio Table server components</description>
 
   <modules>
-    <module>table</module>
+    <module>common</module>
+    <module>master</module>
+    <module>under</module>
   </modules>
-  <repositories>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
+
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
-    <build.path>${project.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.basedir}/build</build.path>
   </properties>
 </project>
