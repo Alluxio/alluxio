@@ -87,8 +87,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         try {
           reader.close();
         } catch (Exception e) {
-          LOG.warn("Failed to close block reader for block {} with error {}.",
-              context.getRequest().getId(), e.getMessage());
+          LOG.warn("Failed to close block reader for block {} with error.",
+              context.getRequest().getId(), e);
         }
       }
       if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {

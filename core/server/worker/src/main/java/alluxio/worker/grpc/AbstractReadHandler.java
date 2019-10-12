@@ -362,9 +362,11 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
             });
           }
         } catch (Exception e) {
-          LogUtils.warnWithException(LOG,
-              "Exception occurred while reading data for read request {}.", mContext.getRequest(),
-              e);
+//          LogUtils.warnWithException(LOG,
+//              "Exception occurred while reading data for read request {}.", mContext.getRequest(),
+//              e);
+          LOG.warn("Exception occurred while reading data for read request {}.", mContext.getRequest(),
+          e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
           continue;
         }
