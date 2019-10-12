@@ -284,6 +284,13 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
         .setSocketTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
     ossClientConf.setConnectionTTL(alluxioConf.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
+    ossClientConf.setRequestTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_REQUEST_TIMEOUT));
+    LOG.info("ossClientConf: connectionTimeout={}ms, socketTimeout={}ms, connectionTTL={}ms, maxConnections={}, requestTimeout={}ms",
+            ossClientConf.getConnectionTimeout(),
+            ossClientConf.getSocketTimeout(),
+            ossClientConf.getConnectionTTL(),
+            ossClientConf.getMaxConnections(),
+            ossClientConf.getRequestTimeout());
     return ossClientConf;
   }
 

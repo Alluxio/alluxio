@@ -127,5 +127,4 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
     throw new IOException(lastException);
   }
 
-
 }

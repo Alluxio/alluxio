@@ -752,6 +752,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OSS_REQUEST_TIMEOUT =
+          new Builder(Name.UNDERFS_OSS_REQUEST_TIMEOUT)
+                  .setDefaultValue("600sec")
+                  .setDescription("The timeout of getting object from OSS.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.SERVER)
+                  .build();
   public static final PropertyKey UNDERFS_OSS_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_SOCKET_TIMEOUT)
           .setAlias("alluxio.underfs.oss.socket.timeout.ms")
@@ -3833,6 +3840,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.connection.timeout";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
+    public static final String UNDERFS_OSS_REQUEST_TIMEOUT = "alluxio.underfs.oss.request.timeout";
     public static final String UNDERFS_OSS_STREAMING_DOWNLOAD_ENABLED = "alluxio.underfs.oss.streaming.download.enabled";
     public static final String UNDERFS_OSS_STREAMING_DOWNLOADING_TASK_NUM = "alluxio.underfs.oss.streaming.download.task.num";
     public static final String UNDERFS_OSS_STREAMING_DOWNLOADING_PARTITION_SIZE = "alluxio.underfs.oss.streaming.download.partition.size";
