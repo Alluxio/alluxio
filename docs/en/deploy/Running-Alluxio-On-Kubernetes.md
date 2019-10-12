@@ -63,7 +63,7 @@ multiple Alluxio master nodes to access the shared volume. When deploying a sing
 can be changed to `ReadWriteOnce`.
 
 ```console
-$ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
+$ cp alluxio-master-journal-pv.yaml.template alluxio-master-journal-pv.yaml
 ```
 
 Note: the spec provided uses a `hostPath` volume for demonstration on a single-node deployment. For a
@@ -72,7 +72,7 @@ persistent volume plugins.
 
 Create the persistent volume.
 ```console
-$ kubectl create -f alluxio-journal-volume.yaml
+$ kubectl create -f alluxio-master-journal-pv.yaml
 ```
 
 ### Deploy Using `helm`
@@ -207,36 +207,50 @@ to the specifications found in *singleMaster-localJournal*.
 
 #### Configuration
 
-Once the deployment option is chosen, copy the template:
+Once the deployment option is chosen, copy the template from the desired sub-directory:
 ```console
-$ cp alluxio-configMap.yaml.template alluxio-configMap.yaml
+$ cp alluxio-configmap.yaml.template alluxio-configmap.yaml
 ```
 
 Modify or add any configuration properties as required.
 The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
-
-```
-# Replace <under_storage_address> with the appropriate URI, for example s3://my-bucket
-# If using an under storage which requires credentials be sure to specify those as well
-ALLUXIO_JAVA_OPTS=-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
+Add to `ALLUXIO_JAVA_OPTS`:
+```properties
+-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
 ```
 
-Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
+Note:
+- Replace `<under_storage_address>` with the appropriate URI, for example s3://my-bucket.
+If using an under storage which requires credentials be sure to specify those as well
+- When running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 
 Create a ConfigMap.
 ```console
-$ kubectl create -f alluxio-configMap.yaml
+$ kubectl create -f alluxio-configmap.yaml
 ```
 
 #### Install
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the **Docker image**, and CPU and memory requirements for pods.
+
+If using a persistent volume for the journal, create the claim:
 ```console
-$ cp alluxio-master.yaml.template alluxio-master.yaml
-$ cp alluxio-worker.yaml.template alluxio-worker.yaml
+$ cp master/alluxio-master-journal-pvc.yaml.template master/alluxio-master-journal-pvc.yaml
 ```
+
+For the master(s), create the `Service` and `StatefulSet`:
+```console
+$ cp master/alluxio-master-service.yaml.template master/alluxio-master-service.yaml
+$ cp master/alluxio-master-statefulset.yaml.template master/alluxio-master-statefulset.yaml
+```
+
+For the workers, create the `DaemonSet`:
+```console
+$ cp worker/alluxio-worker-daemonset.yaml.template worker/alluxio-worker-daemonset.yaml
+```
+
 Note: Please make sure that the version of the Kubernetes specification matches the version of the
 Alluxio Docker image being used.
 
@@ -262,8 +276,8 @@ spec:
     - "<namenode>"
 ```
 
-For the case of a StatefulSet or DaemonSet as used in `alluxio-master.yaml.template` and
-`alluxio-worker.yaml.template`, `hostAliases` section should be added to each section of
+For the case of a StatefulSet or DaemonSet as used in `alluxio-master-statefulset.yaml.template` and
+`alluxio-worker-daemonset.yaml.template`, `hostAliases` section should be added to each section of
 `spec.template.spec` like below.
 
 ```yaml
@@ -295,29 +309,29 @@ These two configuration files are referred in `alluxio-master.yaml` and `alluxio
 Alluxio processes need the HDFS configuration files to connect, and the location of these files in
 the container is controlled by property `alluxio.underfs.hdfs.configuration`.
 
-**Step 3: Modify `alluxio-configMap.yaml.template`.** Now that your pods know how to talk to your
+**Step 3: Modify `alluxio-configmap.yaml.template`.** Now that your pods know how to talk to your
 HDFS service, update `alluxio.master.journal.folder` and `alluxio.master.mount.table.root.ufs` to
 point to the desired HDFS destination.
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```console
-$ kubectl create -f alluxio-master.yaml
-$ kubectl create -f alluxio-worker.yaml
+$ kubectl create -f ./master/
+$ kubectl create -f ./worker/
 ```
 
 #### Uninstall
 
 Uninstall Alluxio as follows:
 ```console
-$ kubectl delete -f alluxio-worker.yaml
-$ kubectl delete -f alluxio-master.yaml
+$ kubectl delete -f ./worker/
+$ kubectl delete -f ./master/
 $ kubectl delete configmaps alluxio-config
 ```
 
 Execute the following to remove the persistent volume storing the Alluxio journal. Note: Alluxio metadata
 will be lost.
 ```console
-$ kubectl delete -f alluxio-journal-volume.yaml
+$ kubectl delete -f alluxio-master-journal-pv.yaml
 ```
 
 #### Upgrade Alluxio
@@ -360,9 +374,6 @@ $ kubectl delete service -l app=alluxio
 $ kubectl delete statefulset -l app=alluxio
 ```
 
-The reason why you don't do `kubectl delete -f alluxio-master.yaml` is that will delete the Persistent Volume Claim in the `alluxio-master.yaml` if any.
-And that will result in your Persistent Volume getting released and the journal in it will be lost. The same logic applies to `alluxio-worker.yaml`.
-
 Make sure all the Pods have been terminated before you move on to the next step.
 
 **Step 3: Format journal and Alluxio storage if necessary**
@@ -381,7 +392,8 @@ The Job runs `alluxio formatMasters` and formats the journal for all masters.
 You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.  
 
 ```console
-$ kubectl apply -f alluxio-format-master.yaml
+$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
+$ kubectl apply -f ./job/alluxio-format-journal-job.yaml
 ```
 
 After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
@@ -392,9 +404,11 @@ Then the clean journal will be ready for a new Alluxio master to start with.
 If you are running embedded journal, each Alluxio master will write to its own journal destination defined by `alluxio.master.journal.folder`.
 In order to format the journals you have two options.
 
-1. Format all masters by running the Kubernetes Job in `alluxio-format-master.yaml`.
-
-1. Clean up the journal Persistent Volume for each master. You can do that by deleting and recreating the Persistent Volume for each master.
+1. Format all masters by running the Kubernetes Job:
+```console
+$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml 
+$ kubectl apply -f ./job/alluxio-format-journal-job.yaml
+```
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
@@ -409,8 +423,8 @@ Now that Alluxio masters and worker containers all use your desired version. Res
 Now restart the Alluxio master and worker Pods from the YAML files.
 
 ```console
-$ kubectl create -f alluxio-master.yaml
-$ kubectl create -f alluxio-worker.yaml
+$ kubectl create -f ./master/
+$ kubectl create -f ./worker/
 ```
 
 **Step 5: Verify the Alluxio master and worker Pods are back up**
@@ -428,14 +442,16 @@ You can do more comprehensive verification following [Verify Alluxio]({{ '/en/de
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
 ```console
-$ kubectl port-forward alluxio-master-0 19999:19999
+$ kubectl port-forward alluxio-master-$i-0 19999:19999
 ```
+Note: `i=0` for the the first master pod. When running multiple masters, forward port for each
+master. Only the primary master serves the Web UI.
 
 ### Verify
 
 Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
 ```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+$ kubectl exec -ti alluxio-master--0 /bin/bash
 ```
 
 From the master pod, execute the following:
