@@ -13,41 +13,30 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.alluxio</groupId>
-    <artifactId>alluxio-experimental</artifactId>
-    <version>2.1.0-SNAPSHOT</version>
+      <artifactId>alluxio-table</artifactId>
+      <groupId>org.alluxio</groupId>
+      <version>2.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-experimental-table</artifactId>
-  <packaging>pom</packaging>
-  <name>Alluxio Experimental - Table</name>
-  <description>Table utility in Alluxio Experimental Module</description>
-
-  <modules>
-    <module>base</module>
-    <module>client</module>
-    <module>server</module>
-    <module>shell</module>
-  </modules>
+  <name>Alluxio Table - Shell</name>
+  <artifactId>alluxio-table-shell</artifactId>
+  <packaging>jar</packaging>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <hive-metastore.verison>2.3.6</hive-metastore.verison>
   </properties>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.apache.hive</groupId>
-        <artifactId>hive-exec</artifactId>
-        <version>${hive-metastore.verison}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hive</groupId>
-        <artifactId>hive-metastore</artifactId>
-        <version>${hive-metastore.verison}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-table-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
 </project>

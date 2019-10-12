@@ -13,13 +13,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>alluxio-experimental-table-server</artifactId>
+    <artifactId>alluxio-table-server</artifactId>
     <groupId>org.alluxio</groupId>
     <version>2.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-experimental-table-server-under</artifactId>
+  <artifactId>alluxio-table-server-under</artifactId>
   <packaging>pom</packaging>
-  <name>Alluxio Experimental - Table - Server - Under</name>
+  <name>Alluxio Table - Server - Under</name>
   <description>Alluxio table under implementations</description>
 
   <modules>
@@ -29,7 +29,7 @@
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
-    <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <lib.jar.name>${project.artifactId}-${project.version}.jar</lib.jar.name>
   </properties>
 
@@ -37,12 +37,12 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-experimental-table-base</artifactId>
+      <artifactId>alluxio-table-base</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-experimental-table-server-common</artifactId>
+      <artifactId>alluxio-table-server-common</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -92,7 +92,7 @@
             </goals>
             <configuration>
               <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
-              <destinationFile>${project.parent.parent.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
+              <destinationFile>${project.parent.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
             </configuration>
           </execution>
         </executions>
@@ -102,7 +102,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>${basedir}/../../../../../lib</directory>
+              <directory>${basedir}/../../../../lib</directory>
               <includes>
                 <include>**/${project.artifactId}-*.jar</include>
               </includes>

@@ -12,38 +12,39 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-    <dependencies>
-      <dependency>
-        <groupId>org.alluxio</groupId>
-        <artifactId>alluxio-core-client-fs</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.alluxio</groupId>
-        <artifactId>alluxio-core-server-common</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.alluxio</groupId>
-        <artifactId>alluxio-core-transport</artifactId>
-        <version>${project.version}</version>
-        <scope>compile</scope>
-      </dependency>
-    </dependencies>
   <parent>
     <groupId>org.alluxio</groupId>
-    <artifactId>alluxio-experimental-table-server</artifactId>
+    <artifactId>alluxio-table-server</artifactId>
     <version>2.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-experimental-table-server-common</artifactId>
+  <artifactId>alluxio-table-server-common</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Experimental - Table - Server - Com</name>
-  <description>Base module in Alluxio experimental modules</description>
+  <name>Alluxio Table - Server - Common</name>
+  <description>Common components for Alluxio Table servers</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
   </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-transport</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
 </project>
