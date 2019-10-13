@@ -17,7 +17,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.catalog.ColumnStatisticsInfo;
+import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;

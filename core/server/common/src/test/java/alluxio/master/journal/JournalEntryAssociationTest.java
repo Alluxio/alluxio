@@ -17,7 +17,6 @@ import static org.junit.Assert.assertNotNull;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
-import alluxio.proto.journal.Catalog;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AddSyncPointEntry;
@@ -43,6 +42,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Meta.ClusterInfoEntry;
 import alluxio.proto.journal.Meta.PathPropertiesEntry;
 import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
+import alluxio.proto.journal.Table;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,10 +65,10 @@ public class JournalEntryAssociationTest {
   private static List<JournalEntry> ENTRIES = Arrays.asList(
       JournalEntry.newBuilder().setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAddSyncPoint(AddSyncPointEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setAddTable(Catalog.AddTableEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setAddTable(Table.AddTableEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setActiveSyncTxId(File.ActiveSyncTxIdEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAsyncPersistRequest(AsyncPersistRequestEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setAttachDb(Catalog.AttachDbEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setAttachDb(Table.AttachDbEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockContainerIdGenerator(BlockContainerIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockInfo(BlockInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setClusterInfo(ClusterInfoEntry.getDefaultInstance()).build(),

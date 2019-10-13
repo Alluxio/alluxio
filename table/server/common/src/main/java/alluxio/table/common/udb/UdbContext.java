@@ -74,7 +74,7 @@ public class UdbContext {
   public AlluxioURI getDbLocation() {
     // TODO(gpang): make configurable via option
     return new AlluxioURI(PathUtils
-        .concatPath(ServerConfiguration.get(PropertyKey.CATALOG_METADATA_PATH), mDbName, mType));
+        .concatPath(ServerConfiguration.get(PropertyKey.TABLE_CATALOG_PATH), mDbName, mType));
   }
 
   /**
@@ -83,7 +83,7 @@ public class UdbContext {
    */
   public AlluxioURI getTableLocation(String tableName) {
     return new AlluxioURI(PathUtils
-        .concatPath(ServerConfiguration.get(PropertyKey.CATALOG_METADATA_PATH), mDbName, "tables",
+        .concatPath(ServerConfiguration.get(PropertyKey.TABLE_CATALOG_PATH), mDbName, "tables",
             tableName, mType));
   }
 }

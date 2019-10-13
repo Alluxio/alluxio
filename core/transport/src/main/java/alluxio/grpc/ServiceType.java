@@ -65,9 +65,9 @@ public enum ServiceType
    */
   JOURNAL_MASTER_CLIENT_SERVICE(13),
   /**
-   * <code>CATALOG_MASTER_CLIENT_SERVICE = 14;</code>
+   * <code>TABLE_MASTER_CLIENT_SERVICE = 14;</code>
    */
-  CATALOG_MASTER_CLIENT_SERVICE(14),
+  TABLE_MASTER_CLIENT_SERVICE(14),
   ;
 
   /**
@@ -127,9 +127,9 @@ public enum ServiceType
    */
   public static final int JOURNAL_MASTER_CLIENT_SERVICE_VALUE = 13;
   /**
-   * <code>CATALOG_MASTER_CLIENT_SERVICE = 14;</code>
+   * <code>TABLE_MASTER_CLIENT_SERVICE = 14;</code>
    */
-  public static final int CATALOG_MASTER_CLIENT_SERVICE_VALUE = 14;
+  public static final int TABLE_MASTER_CLIENT_SERVICE_VALUE = 14;
 
 
   public final int getNumber() {
@@ -160,7 +160,7 @@ public enum ServiceType
       case 11: return JOB_MASTER_WORKER_SERVICE;
       case 12: return FILE_SYSTEM_WORKER_WORKER_SERVICE;
       case 13: return JOURNAL_MASTER_CLIENT_SERVICE;
-      case 14: return CATALOG_MASTER_CLIENT_SERVICE;
+      case 14: return TABLE_MASTER_CLIENT_SERVICE;
       default: return null;
     }
   }

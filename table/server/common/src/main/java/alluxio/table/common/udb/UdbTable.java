@@ -11,9 +11,9 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.grpc.catalog.ColumnStatisticsInfo;
-import alluxio.grpc.catalog.Schema;
-import alluxio.grpc.catalog.UdbTableInfo;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.UdbTableInfo;
 import alluxio.table.common.UdbPartition;
 
 import java.io.IOException;

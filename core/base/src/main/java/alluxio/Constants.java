@@ -113,11 +113,6 @@ public final class Constants {
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMaster";
 
-  // experimental
-  public static final String CATALOG_MASTER_NAME = "CatalogMaster";
-  public static final String CATALOG_MASTER_CLIENT_SERVICE_NAME = "CatalogMasterClient";
-  public static final long CATALOG_MSTER_CLIENT_SERVICE_VERSION = 1;
-
   public static final String UFS_INPUT_STREAM_CACHE_EXPIRATION = "UfsInputStreamCacheExpiration";
 
   public static final int DEFAULT_REGISTRY_GET_TIMEOUT_MS = 60 * SECOND_MS;
@@ -205,6 +200,11 @@ public final class Constants {
   public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
+
+  // Table service
+  public static final String TABLE_MASTER_NAME = "TableMaster";
+  public static final String TABLE_MASTER_CLIENT_SERVICE_NAME = "TableMasterClient";
+  public static final long TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
 
   private Constants() {} // prevent instantiation
 }
