@@ -12,13 +12,13 @@
 package alluxio.table.under.hive;
 
 import alluxio.client.file.FileSystem;
-import alluxio.grpc.catalog.ColumnStatisticsInfo;
-import alluxio.grpc.catalog.FieldSchema;
-import alluxio.grpc.catalog.HiveTableInfo;
-import alluxio.grpc.catalog.ParquetMetadata;
-import alluxio.grpc.catalog.PartitionInfo;
-import alluxio.grpc.catalog.Schema;
-import alluxio.grpc.catalog.UdbTableInfo;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.HiveTableInfo;
+import alluxio.grpc.table.ParquetMetadata;
+import alluxio.grpc.table.PartitionInfo;
+import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.UdbTableInfo;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.under.hive.util.PathTranslator;

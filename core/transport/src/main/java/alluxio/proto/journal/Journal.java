@@ -47,11 +47,11 @@ public final class Journal {
     /**
      * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
      */
-    alluxio.proto.journal.Catalog.AddTableEntry getAddTable();
+    alluxio.proto.journal.Table.AddTableEntry getAddTable();
     /**
      * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
      */
-    alluxio.proto.journal.Catalog.AddTableEntryOrBuilder getAddTableOrBuilder();
+    alluxio.proto.journal.Table.AddTableEntryOrBuilder getAddTableOrBuilder();
 
     /**
      * <code>optional .alluxio.proto.journal.AddSyncPointEntry add_sync_point = 32;</code>
@@ -99,11 +99,11 @@ public final class Journal {
     /**
      * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
      */
-    alluxio.proto.journal.Catalog.AttachDbEntry getAttachDb();
+    alluxio.proto.journal.Table.AttachDbEntry getAttachDb();
     /**
      * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
      */
-    alluxio.proto.journal.Catalog.AttachDbEntryOrBuilder getAttachDbOrBuilder();
+    alluxio.proto.journal.Table.AttachDbEntryOrBuilder getAttachDbOrBuilder();
 
     /**
      * <code>optional .alluxio.proto.journal.BlockContainerIdGeneratorEntry block_container_id_generator = 3;</code>
@@ -871,11 +871,11 @@ public final class Journal {
               break;
             }
             case 346: {
-              alluxio.proto.journal.Catalog.AddTableEntry.Builder subBuilder = null;
+              alluxio.proto.journal.Table.AddTableEntry.Builder subBuilder = null;
               if (((bitField0_ & 0x00000004) == 0x00000004)) {
                 subBuilder = addTable_.toBuilder();
               }
-              addTable_ = input.readMessage(alluxio.proto.journal.Catalog.AddTableEntry.PARSER, extensionRegistry);
+              addTable_ = input.readMessage(alluxio.proto.journal.Table.AddTableEntry.PARSER, extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(addTable_);
                 addTable_ = subBuilder.buildPartial();
@@ -884,11 +884,11 @@ public final class Journal {
               break;
             }
             case 354: {
-              alluxio.proto.journal.Catalog.AttachDbEntry.Builder subBuilder = null;
+              alluxio.proto.journal.Table.AttachDbEntry.Builder subBuilder = null;
               if (((bitField0_ & 0x00000040) == 0x00000040)) {
                 subBuilder = attachDb_.toBuilder();
               }
-              attachDb_ = input.readMessage(alluxio.proto.journal.Catalog.AttachDbEntry.PARSER, extensionRegistry);
+              attachDb_ = input.readMessage(alluxio.proto.journal.Table.AttachDbEntry.PARSER, extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(attachDb_);
                 attachDb_ = subBuilder.buildPartial();
@@ -961,7 +961,7 @@ public final class Journal {
     }
 
     public static final int ADD_TABLE_FIELD_NUMBER = 43;
-    private alluxio.proto.journal.Catalog.AddTableEntry addTable_;
+    private alluxio.proto.journal.Table.AddTableEntry addTable_;
     /**
      * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
      */
@@ -971,14 +971,14 @@ public final class Journal {
     /**
      * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
      */
-    public alluxio.proto.journal.Catalog.AddTableEntry getAddTable() {
-      return addTable_ == null ? alluxio.proto.journal.Catalog.AddTableEntry.getDefaultInstance() : addTable_;
+    public alluxio.proto.journal.Table.AddTableEntry getAddTable() {
+      return addTable_ == null ? alluxio.proto.journal.Table.AddTableEntry.getDefaultInstance() : addTable_;
     }
     /**
      * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
      */
-    public alluxio.proto.journal.Catalog.AddTableEntryOrBuilder getAddTableOrBuilder() {
-      return addTable_ == null ? alluxio.proto.journal.Catalog.AddTableEntry.getDefaultInstance() : addTable_;
+    public alluxio.proto.journal.Table.AddTableEntryOrBuilder getAddTableOrBuilder() {
+      return addTable_ == null ? alluxio.proto.journal.Table.AddTableEntry.getDefaultInstance() : addTable_;
     }
 
     public static final int ADD_SYNC_POINT_FIELD_NUMBER = 32;
@@ -1045,7 +1045,7 @@ public final class Journal {
     }
 
     public static final int ATTACH_DB_FIELD_NUMBER = 44;
-    private alluxio.proto.journal.Catalog.AttachDbEntry attachDb_;
+    private alluxio.proto.journal.Table.AttachDbEntry attachDb_;
     /**
      * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
      */
@@ -1055,14 +1055,14 @@ public final class Journal {
     /**
      * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
      */
-    public alluxio.proto.journal.Catalog.AttachDbEntry getAttachDb() {
-      return attachDb_ == null ? alluxio.proto.journal.Catalog.AttachDbEntry.getDefaultInstance() : attachDb_;
+    public alluxio.proto.journal.Table.AttachDbEntry getAttachDb() {
+      return attachDb_ == null ? alluxio.proto.journal.Table.AttachDbEntry.getDefaultInstance() : attachDb_;
     }
     /**
      * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
      */
-    public alluxio.proto.journal.Catalog.AttachDbEntryOrBuilder getAttachDbOrBuilder() {
-      return attachDb_ == null ? alluxio.proto.journal.Catalog.AttachDbEntry.getDefaultInstance() : attachDb_;
+    public alluxio.proto.journal.Table.AttachDbEntryOrBuilder getAttachDbOrBuilder() {
+      return attachDb_ == null ? alluxio.proto.journal.Table.AttachDbEntry.getDefaultInstance() : attachDb_;
     }
 
     public static final int BLOCK_CONTAINER_ID_GENERATOR_FIELD_NUMBER = 3;
@@ -3121,9 +3121,9 @@ public final class Journal {
         return activeSyncTxIdBuilder_;
       }
 
-      private alluxio.proto.journal.Catalog.AddTableEntry addTable_ = null;
+      private alluxio.proto.journal.Table.AddTableEntry addTable_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          alluxio.proto.journal.Catalog.AddTableEntry, alluxio.proto.journal.Catalog.AddTableEntry.Builder, alluxio.proto.journal.Catalog.AddTableEntryOrBuilder> addTableBuilder_;
+          alluxio.proto.journal.Table.AddTableEntry, alluxio.proto.journal.Table.AddTableEntry.Builder, alluxio.proto.journal.Table.AddTableEntryOrBuilder> addTableBuilder_;
       /**
        * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
        */
@@ -3133,9 +3133,9 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
        */
-      public alluxio.proto.journal.Catalog.AddTableEntry getAddTable() {
+      public alluxio.proto.journal.Table.AddTableEntry getAddTable() {
         if (addTableBuilder_ == null) {
-          return addTable_ == null ? alluxio.proto.journal.Catalog.AddTableEntry.getDefaultInstance() : addTable_;
+          return addTable_ == null ? alluxio.proto.journal.Table.AddTableEntry.getDefaultInstance() : addTable_;
         } else {
           return addTableBuilder_.getMessage();
         }
@@ -3143,7 +3143,7 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
        */
-      public Builder setAddTable(alluxio.proto.journal.Catalog.AddTableEntry value) {
+      public Builder setAddTable(alluxio.proto.journal.Table.AddTableEntry value) {
         if (addTableBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -3160,7 +3160,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
        */
       public Builder setAddTable(
-          alluxio.proto.journal.Catalog.AddTableEntry.Builder builderForValue) {
+          alluxio.proto.journal.Table.AddTableEntry.Builder builderForValue) {
         if (addTableBuilder_ == null) {
           addTable_ = builderForValue.build();
           onChanged();
@@ -3173,13 +3173,13 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
        */
-      public Builder mergeAddTable(alluxio.proto.journal.Catalog.AddTableEntry value) {
+      public Builder mergeAddTable(alluxio.proto.journal.Table.AddTableEntry value) {
         if (addTableBuilder_ == null) {
           if (((bitField0_ & 0x00000004) == 0x00000004) &&
               addTable_ != null &&
-              addTable_ != alluxio.proto.journal.Catalog.AddTableEntry.getDefaultInstance()) {
+              addTable_ != alluxio.proto.journal.Table.AddTableEntry.getDefaultInstance()) {
             addTable_ =
-              alluxio.proto.journal.Catalog.AddTableEntry.newBuilder(addTable_).mergeFrom(value).buildPartial();
+              alluxio.proto.journal.Table.AddTableEntry.newBuilder(addTable_).mergeFrom(value).buildPartial();
           } else {
             addTable_ = value;
           }
@@ -3206,7 +3206,7 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
        */
-      public alluxio.proto.journal.Catalog.AddTableEntry.Builder getAddTableBuilder() {
+      public alluxio.proto.journal.Table.AddTableEntry.Builder getAddTableBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
         return getAddTableFieldBuilder().getBuilder();
@@ -3214,23 +3214,23 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
        */
-      public alluxio.proto.journal.Catalog.AddTableEntryOrBuilder getAddTableOrBuilder() {
+      public alluxio.proto.journal.Table.AddTableEntryOrBuilder getAddTableOrBuilder() {
         if (addTableBuilder_ != null) {
           return addTableBuilder_.getMessageOrBuilder();
         } else {
           return addTable_ == null ?
-              alluxio.proto.journal.Catalog.AddTableEntry.getDefaultInstance() : addTable_;
+              alluxio.proto.journal.Table.AddTableEntry.getDefaultInstance() : addTable_;
         }
       }
       /**
        * <code>optional .alluxio.proto.journal.AddTableEntry add_table = 43;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          alluxio.proto.journal.Catalog.AddTableEntry, alluxio.proto.journal.Catalog.AddTableEntry.Builder, alluxio.proto.journal.Catalog.AddTableEntryOrBuilder> 
+          alluxio.proto.journal.Table.AddTableEntry, alluxio.proto.journal.Table.AddTableEntry.Builder, alluxio.proto.journal.Table.AddTableEntryOrBuilder> 
           getAddTableFieldBuilder() {
         if (addTableBuilder_ == null) {
           addTableBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              alluxio.proto.journal.Catalog.AddTableEntry, alluxio.proto.journal.Catalog.AddTableEntry.Builder, alluxio.proto.journal.Catalog.AddTableEntryOrBuilder>(
+              alluxio.proto.journal.Table.AddTableEntry, alluxio.proto.journal.Table.AddTableEntry.Builder, alluxio.proto.journal.Table.AddTableEntryOrBuilder>(
                   getAddTable(),
                   getParentForChildren(),
                   isClean());
@@ -3593,9 +3593,9 @@ public final class Journal {
         return asyncPersistRequestBuilder_;
       }
 
-      private alluxio.proto.journal.Catalog.AttachDbEntry attachDb_ = null;
+      private alluxio.proto.journal.Table.AttachDbEntry attachDb_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          alluxio.proto.journal.Catalog.AttachDbEntry, alluxio.proto.journal.Catalog.AttachDbEntry.Builder, alluxio.proto.journal.Catalog.AttachDbEntryOrBuilder> attachDbBuilder_;
+          alluxio.proto.journal.Table.AttachDbEntry, alluxio.proto.journal.Table.AttachDbEntry.Builder, alluxio.proto.journal.Table.AttachDbEntryOrBuilder> attachDbBuilder_;
       /**
        * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
        */
@@ -3605,9 +3605,9 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
        */
-      public alluxio.proto.journal.Catalog.AttachDbEntry getAttachDb() {
+      public alluxio.proto.journal.Table.AttachDbEntry getAttachDb() {
         if (attachDbBuilder_ == null) {
-          return attachDb_ == null ? alluxio.proto.journal.Catalog.AttachDbEntry.getDefaultInstance() : attachDb_;
+          return attachDb_ == null ? alluxio.proto.journal.Table.AttachDbEntry.getDefaultInstance() : attachDb_;
         } else {
           return attachDbBuilder_.getMessage();
         }
@@ -3615,7 +3615,7 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
        */
-      public Builder setAttachDb(alluxio.proto.journal.Catalog.AttachDbEntry value) {
+      public Builder setAttachDb(alluxio.proto.journal.Table.AttachDbEntry value) {
         if (attachDbBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -3632,7 +3632,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
        */
       public Builder setAttachDb(
-          alluxio.proto.journal.Catalog.AttachDbEntry.Builder builderForValue) {
+          alluxio.proto.journal.Table.AttachDbEntry.Builder builderForValue) {
         if (attachDbBuilder_ == null) {
           attachDb_ = builderForValue.build();
           onChanged();
@@ -3645,13 +3645,13 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
        */
-      public Builder mergeAttachDb(alluxio.proto.journal.Catalog.AttachDbEntry value) {
+      public Builder mergeAttachDb(alluxio.proto.journal.Table.AttachDbEntry value) {
         if (attachDbBuilder_ == null) {
           if (((bitField0_ & 0x00000040) == 0x00000040) &&
               attachDb_ != null &&
-              attachDb_ != alluxio.proto.journal.Catalog.AttachDbEntry.getDefaultInstance()) {
+              attachDb_ != alluxio.proto.journal.Table.AttachDbEntry.getDefaultInstance()) {
             attachDb_ =
-              alluxio.proto.journal.Catalog.AttachDbEntry.newBuilder(attachDb_).mergeFrom(value).buildPartial();
+              alluxio.proto.journal.Table.AttachDbEntry.newBuilder(attachDb_).mergeFrom(value).buildPartial();
           } else {
             attachDb_ = value;
           }
@@ -3678,7 +3678,7 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
        */
-      public alluxio.proto.journal.Catalog.AttachDbEntry.Builder getAttachDbBuilder() {
+      public alluxio.proto.journal.Table.AttachDbEntry.Builder getAttachDbBuilder() {
         bitField0_ |= 0x00000040;
         onChanged();
         return getAttachDbFieldBuilder().getBuilder();
@@ -3686,23 +3686,23 @@ public final class Journal {
       /**
        * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
        */
-      public alluxio.proto.journal.Catalog.AttachDbEntryOrBuilder getAttachDbOrBuilder() {
+      public alluxio.proto.journal.Table.AttachDbEntryOrBuilder getAttachDbOrBuilder() {
         if (attachDbBuilder_ != null) {
           return attachDbBuilder_.getMessageOrBuilder();
         } else {
           return attachDb_ == null ?
-              alluxio.proto.journal.Catalog.AttachDbEntry.getDefaultInstance() : attachDb_;
+              alluxio.proto.journal.Table.AttachDbEntry.getDefaultInstance() : attachDb_;
         }
       }
       /**
        * <code>optional .alluxio.proto.journal.AttachDbEntry attach_db = 44;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          alluxio.proto.journal.Catalog.AttachDbEntry, alluxio.proto.journal.Catalog.AttachDbEntry.Builder, alluxio.proto.journal.Catalog.AttachDbEntryOrBuilder> 
+          alluxio.proto.journal.Table.AttachDbEntry, alluxio.proto.journal.Table.AttachDbEntry.Builder, alluxio.proto.journal.Table.AttachDbEntryOrBuilder> 
           getAttachDbFieldBuilder() {
         if (attachDbBuilder_ == null) {
           attachDbBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              alluxio.proto.journal.Catalog.AttachDbEntry, alluxio.proto.journal.Catalog.AttachDbEntry.Builder, alluxio.proto.journal.Catalog.AttachDbEntryOrBuilder>(
+              alluxio.proto.journal.Table.AttachDbEntry, alluxio.proto.journal.Table.AttachDbEntry.Builder, alluxio.proto.journal.Table.AttachDbEntryOrBuilder>(
                   getAttachDb(),
                   getParentForChildren(),
                   isClean());
@@ -6820,61 +6820,61 @@ public final class Journal {
       "\n\033proto/journal/journal.proto\022\025alluxio.p" +
       "roto.journal\032\031proto/journal/block.proto\032" +
       "\030proto/journal/file.proto\032\030proto/journal" +
-      "/meta.proto\032\033proto/journal/catalog.proto" +
-      "\"\264\020\n\014JournalEntry\022\027\n\017sequence_number\030\001 \001" +
-      "(\003\022E\n\021active_sync_tx_id\030\" \001(\0132*.alluxio." +
-      "proto.journal.ActiveSyncTxIdEntry\0227\n\tadd" +
-      "_table\030+ \001(\0132$.alluxio.proto.journal.Add" +
-      "TableEntry\022@\n\016add_sync_point\030  \001(\0132(.all" +
-      "uxio.proto.journal.AddSyncPointEntry\022B\n\017" +
-      "add_mount_point\030\002 \001(\0132).alluxio.proto.jo" +
-      "urnal.AddMountPointEntry\022N\n\025async_persis" +
-      "t_request\030\020 \001(\0132/.alluxio.proto.journal." +
-      "AsyncPersistRequestEntry\0227\n\tattach_db\030, " +
-      "\001(\0132$.alluxio.proto.journal.AttachDbEntr" +
-      "y\022[\n\034block_container_id_generator\030\003 \001(\0132" +
-      "5.alluxio.proto.journal.BlockContainerId" +
-      "GeneratorEntry\0229\n\nblock_info\030\004 \001(\0132%.all" +
-      "uxio.proto.journal.BlockInfoEntry\022=\n\014clu" +
-      "ster_info\030* \001(\0132\'.alluxio.proto.journal." +
-      "ClusterInfoEntry\022?\n\rcomplete_file\030\005 \001(\0132" +
-      "(.alluxio.proto.journal.CompleteFileEntr" +
-      "y\022=\n\014delete_block\030\035 \001(\0132\'.alluxio.proto." +
-      "journal.DeleteBlockEntry\022;\n\013delete_file\030" +
-      "\006 \001(\0132&.alluxio.proto.journal.DeleteFile" +
-      "Entry\022H\n\022delete_mount_point\030\010 \001(\0132,.allu" +
-      "xio.proto.journal.DeleteMountPointEntry\022" +
-      "C\n\017inode_directory\030\t \001(\0132*.alluxio.proto" +
-      ".journal.InodeDirectoryEntry\022[\n\034inode_di" +
-      "rectory_id_generator\030\n \001(\01325.alluxio.pro" +
-      "to.journal.InodeDirectoryIdGeneratorEntr" +
-      "y\0229\n\ninode_file\030\013 \001(\0132%.alluxio.proto.jo" +
-      "urnal.InodeFileEntry\022[\n\034inode_last_modif" +
-      "ication_time\030\014 \001(\01325.alluxio.proto.journ" +
-      "al.InodeLastModificationTimeEntry\0227\n\tnew" +
-      "_block\030& \001(\0132$.alluxio.proto.journal.New" +
-      "BlockEntry\022C\n\017path_properties\030( \001(\0132*.al" +
-      "luxio.proto.journal.PathPropertiesEntry\022" +
-      "G\n\021persist_directory\030\017 \001(\0132,.alluxio.pro" +
-      "to.journal.PersistDirectoryEntry\022P\n\026remo" +
-      "ve_path_properties\030) \001(\01320.alluxio.proto" +
-      ".journal.RemovePathPropertiesEntry\022F\n\021re" +
-      "move_sync_point\030! \001(\0132+.alluxio.proto.jo" +
-      "urnal.RemoveSyncPointEntry\0222\n\006rename\030\023 \001" +
-      "(\0132\".alluxio.proto.journal.RenameEntry\0223" +
-      "\n\007set_acl\030\037 \001(\0132\".alluxio.proto.journal." +
-      "SetAclEntry\022?\n\rset_attribute\030\033 \001(\0132(.all" +
-      "uxio.proto.journal.SetAttributeEntry\022B\n\017" +
-      "update_ufs_mode\030\036 \001(\0132).alluxio.proto.jo" +
-      "urnal.UpdateUfsModeEntry\022=\n\014update_inode" +
-      "\030# \001(\0132\'.alluxio.proto.journal.UpdateIno" +
-      "deEntry\022P\n\026update_inode_directory\030$ \001(\0132" +
-      "0.alluxio.proto.journal.UpdateInodeDirec" +
-      "toryEntry\022F\n\021update_inode_file\030% \001(\0132+.a" +
-      "lluxio.proto.journal.UpdateInodeFileEntr" +
-      "y\022<\n\017journal_entries\030\' \003(\0132#.alluxio.pro" +
-      "to.journal.JournalEntryB\027\n\025alluxio.proto" +
-      ".journal"
+      "/meta.proto\032\031proto/journal/table.proto\"\264" +
+      "\020\n\014JournalEntry\022\027\n\017sequence_number\030\001 \001(\003" +
+      "\022E\n\021active_sync_tx_id\030\" \001(\0132*.alluxio.pr" +
+      "oto.journal.ActiveSyncTxIdEntry\0227\n\tadd_t" +
+      "able\030+ \001(\0132$.alluxio.proto.journal.AddTa" +
+      "bleEntry\022@\n\016add_sync_point\030  \001(\0132(.allux" +
+      "io.proto.journal.AddSyncPointEntry\022B\n\017ad" +
+      "d_mount_point\030\002 \001(\0132).alluxio.proto.jour" +
+      "nal.AddMountPointEntry\022N\n\025async_persist_" +
+      "request\030\020 \001(\0132/.alluxio.proto.journal.As" +
+      "yncPersistRequestEntry\0227\n\tattach_db\030, \001(" +
+      "\0132$.alluxio.proto.journal.AttachDbEntry\022" +
+      "[\n\034block_container_id_generator\030\003 \001(\01325." +
+      "alluxio.proto.journal.BlockContainerIdGe" +
+      "neratorEntry\0229\n\nblock_info\030\004 \001(\0132%.allux" +
+      "io.proto.journal.BlockInfoEntry\022=\n\014clust" +
+      "er_info\030* \001(\0132\'.alluxio.proto.journal.Cl" +
+      "usterInfoEntry\022?\n\rcomplete_file\030\005 \001(\0132(." +
+      "alluxio.proto.journal.CompleteFileEntry\022" +
+      "=\n\014delete_block\030\035 \001(\0132\'.alluxio.proto.jo" +
+      "urnal.DeleteBlockEntry\022;\n\013delete_file\030\006 " +
+      "\001(\0132&.alluxio.proto.journal.DeleteFileEn" +
+      "try\022H\n\022delete_mount_point\030\010 \001(\0132,.alluxi" +
+      "o.proto.journal.DeleteMountPointEntry\022C\n" +
+      "\017inode_directory\030\t \001(\0132*.alluxio.proto.j" +
+      "ournal.InodeDirectoryEntry\022[\n\034inode_dire" +
+      "ctory_id_generator\030\n \001(\01325.alluxio.proto" +
+      ".journal.InodeDirectoryIdGeneratorEntry\022" +
+      "9\n\ninode_file\030\013 \001(\0132%.alluxio.proto.jour" +
+      "nal.InodeFileEntry\022[\n\034inode_last_modific" +
+      "ation_time\030\014 \001(\01325.alluxio.proto.journal" +
+      ".InodeLastModificationTimeEntry\0227\n\tnew_b" +
+      "lock\030& \001(\0132$.alluxio.proto.journal.NewBl" +
+      "ockEntry\022C\n\017path_properties\030( \001(\0132*.allu" +
+      "xio.proto.journal.PathPropertiesEntry\022G\n" +
+      "\021persist_directory\030\017 \001(\0132,.alluxio.proto" +
+      ".journal.PersistDirectoryEntry\022P\n\026remove" +
+      "_path_properties\030) \001(\01320.alluxio.proto.j" +
+      "ournal.RemovePathPropertiesEntry\022F\n\021remo" +
+      "ve_sync_point\030! \001(\0132+.alluxio.proto.jour" +
+      "nal.RemoveSyncPointEntry\0222\n\006rename\030\023 \001(\013" +
+      "2\".alluxio.proto.journal.RenameEntry\0223\n\007" +
+      "set_acl\030\037 \001(\0132\".alluxio.proto.journal.Se" +
+      "tAclEntry\022?\n\rset_attribute\030\033 \001(\0132(.allux" +
+      "io.proto.journal.SetAttributeEntry\022B\n\017up" +
+      "date_ufs_mode\030\036 \001(\0132).alluxio.proto.jour" +
+      "nal.UpdateUfsModeEntry\022=\n\014update_inode\030#" +
+      " \001(\0132\'.alluxio.proto.journal.UpdateInode" +
+      "Entry\022P\n\026update_inode_directory\030$ \001(\01320." +
+      "alluxio.proto.journal.UpdateInodeDirecto" +
+      "ryEntry\022F\n\021update_inode_file\030% \001(\0132+.all" +
+      "uxio.proto.journal.UpdateInodeFileEntry\022" +
+      "<\n\017journal_entries\030\' \003(\0132#.alluxio.proto" +
+      ".journal.JournalEntryB\027\n\025alluxio.proto.j" +
+      "ournal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -6890,7 +6890,7 @@ public final class Journal {
           alluxio.proto.journal.Block.getDescriptor(),
           alluxio.proto.journal.File.getDescriptor(),
           alluxio.proto.journal.Meta.getDescriptor(),
-          alluxio.proto.journal.Catalog.getDescriptor(),
+          alluxio.proto.journal.Table.getDescriptor(),
         }, assigner);
     internal_static_alluxio_proto_journal_JournalEntry_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -6901,7 +6901,7 @@ public final class Journal {
     alluxio.proto.journal.Block.getDescriptor();
     alluxio.proto.journal.File.getDescriptor();
     alluxio.proto.journal.Meta.getDescriptor();
-    alluxio.proto.journal.Catalog.getDescriptor();
+    alluxio.proto.journal.Table.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

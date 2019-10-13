@@ -11,8 +11,8 @@
 
 package alluxio.table.common;
 
-import alluxio.grpc.catalog.ColumnStatisticsInfo;
-import alluxio.grpc.catalog.LayoutSpec;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.LayoutSpec;
 
 import com.google.protobuf.Message;
 
@@ -45,8 +45,8 @@ public interface Layout {
   /**
    * @return the proto representation
    */
-  default alluxio.grpc.catalog.Layout toProto() {
-    return alluxio.grpc.catalog.Layout.newBuilder()
+  default alluxio.grpc.table.Layout toProto() {
+    return alluxio.grpc.table.Layout.newBuilder()
         .setLayoutType(getType())
         .setLayoutSpec(LayoutSpec.newBuilder()
             .setSpec(getSpec())

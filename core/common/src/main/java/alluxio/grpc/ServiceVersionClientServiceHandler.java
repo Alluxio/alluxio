@@ -89,8 +89,8 @@ public final class ServiceVersionClientServiceHandler
       case JOURNAL_MASTER_CLIENT_SERVICE:
         serviceVersion = Constants.JOURNAL_MASTER_CLIENT_SERVICE_VERSION;
         break;
-      case CATALOG_MASTER_CLIENT_SERVICE:
-        serviceVersion = Constants.CATALOG_MSTER_CLIENT_SERVICE_VERSION;
+      case TABLE_MASTER_CLIENT_SERVICE:
+        serviceVersion = Constants.TABLE_MASTER_CLIENT_SERVICE_VERSION;
         break;
       default:
         serviceVersion = Constants.UNKNOWN_SERVICE_VERSION;

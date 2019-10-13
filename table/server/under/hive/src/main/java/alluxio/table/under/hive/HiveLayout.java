@@ -11,8 +11,8 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.grpc.catalog.ColumnStatisticsInfo;
-import alluxio.grpc.catalog.PartitionInfo;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.PartitionInfo;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutFactory;
 
@@ -42,7 +42,7 @@ public class HiveLayout implements Layout {
     }
 
     @Override
-    public Layout create(alluxio.grpc.catalog.Layout layoutProto) {
+    public Layout create(alluxio.grpc.table.Layout layoutProto) {
       if (!TYPE.equals(layoutProto.getLayoutType())) {
         throw new IllegalStateException(
             "Cannot parse HiveLayout from layout type: " + layoutProto.getLayoutType());

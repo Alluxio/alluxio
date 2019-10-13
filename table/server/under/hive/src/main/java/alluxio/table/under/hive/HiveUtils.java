@@ -11,32 +11,32 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.grpc.catalog.BinaryColumnStatsData;
-import alluxio.grpc.catalog.BlockMetadata;
-import alluxio.grpc.catalog.BooleanColumnStatsData;
-import alluxio.grpc.catalog.ColumnChunkMetaData;
-import alluxio.grpc.catalog.ColumnPath;
-import alluxio.grpc.catalog.ColumnStatisticsData;
-import alluxio.grpc.catalog.ColumnStatisticsInfo;
-import alluxio.grpc.catalog.Date;
-import alluxio.grpc.catalog.DateColumnStatsData;
-import alluxio.grpc.catalog.Decimal;
-import alluxio.grpc.catalog.DecimalColumnStatsData;
-import alluxio.grpc.catalog.DoubleColumnStatsData;
-import alluxio.grpc.catalog.FieldType;
-import alluxio.grpc.catalog.FileMetadata;
-import alluxio.grpc.catalog.GroupType;
-import alluxio.grpc.catalog.HiveBucketProperty;
-import alluxio.grpc.catalog.LongColumnStatsData;
-import alluxio.grpc.catalog.MessageType;
-import alluxio.grpc.catalog.ParquetMetadata;
-import alluxio.grpc.catalog.PrimitiveTypeName;
-import alluxio.grpc.catalog.Repetition;
-import alluxio.grpc.catalog.Schema;
-import alluxio.grpc.catalog.SortingColumn;
-import alluxio.grpc.catalog.Storage;
-import alluxio.grpc.catalog.StorageFormat;
-import alluxio.grpc.catalog.StringColumnStatsData;
+import alluxio.grpc.table.BinaryColumnStatsData;
+import alluxio.grpc.table.BlockMetadata;
+import alluxio.grpc.table.BooleanColumnStatsData;
+import alluxio.grpc.table.ColumnChunkMetaData;
+import alluxio.grpc.table.ColumnPath;
+import alluxio.grpc.table.ColumnStatisticsData;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.Date;
+import alluxio.grpc.table.DateColumnStatsData;
+import alluxio.grpc.table.Decimal;
+import alluxio.grpc.table.DecimalColumnStatsData;
+import alluxio.grpc.table.DoubleColumnStatsData;
+import alluxio.grpc.table.FieldType;
+import alluxio.grpc.table.FileMetadata;
+import alluxio.grpc.table.GroupType;
+import alluxio.grpc.table.HiveBucketProperty;
+import alluxio.grpc.table.LongColumnStatsData;
+import alluxio.grpc.table.MessageType;
+import alluxio.grpc.table.ParquetMetadata;
+import alluxio.grpc.table.PrimitiveTypeName;
+import alluxio.grpc.table.Repetition;
+import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.SortingColumn;
+import alluxio.grpc.table.Storage;
+import alluxio.grpc.table.StorageFormat;
+import alluxio.grpc.table.StringColumnStatsData;
 import alluxio.table.under.hive.util.PathTranslator;
 
 import com.google.common.collect.BiMap;
@@ -78,10 +78,10 @@ public class HiveUtils {
    * @param hiveSchema the hive schema
    * @return the proto representation
    */
-  public static List<alluxio.grpc.catalog.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
-    List<alluxio.grpc.catalog.FieldSchema> list = new ArrayList<>();
+  public static List<alluxio.grpc.table.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
+    List<alluxio.grpc.table.FieldSchema> list = new ArrayList<>();
     for (FieldSchema field : hiveSchema) {
-      alluxio.grpc.catalog.FieldSchema aFieldSchema = alluxio.grpc.catalog.FieldSchema.newBuilder()
+      alluxio.grpc.table.FieldSchema aFieldSchema = alluxio.grpc.table.FieldSchema.newBuilder()
           .setName(field.getName())
           .setType(field.getType()) // does not support complex types now
           .setComment(field.getComment() != null ? field.getComment() : "")
@@ -345,8 +345,8 @@ public class HiveUtils {
 
   private static ColumnChunkMetaData toProto(
       org.apache.parquet.hadoop.metadata.ColumnChunkMetaData columnChunkMetaData) {
-    alluxio.grpc.catalog.ColumnChunkMetaData.Builder builder =
-        alluxio.grpc.catalog.ColumnChunkMetaData.newBuilder();
+    alluxio.grpc.table.ColumnChunkMetaData.Builder builder =
+        alluxio.grpc.table.ColumnChunkMetaData.newBuilder();
     builder.setPath(toProto(columnChunkMetaData.getPath()))
         .setFirstDataPage(columnChunkMetaData.getFirstDataPageOffset())
         .setPageOffset(columnChunkMetaData.getDictionaryPageOffset())

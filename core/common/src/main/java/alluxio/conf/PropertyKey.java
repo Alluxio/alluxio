@@ -3695,19 +3695,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Catalog properties
+  // Table service properties
   //
-  public static final PropertyKey CATALOG_ENABLED =
-      new Builder(Name.CATALOG_ENABLED)
+  public static final PropertyKey TABLE_ENABLED =
+      new Builder(Name.TABLE_ENABLED)
           .setDefaultValue(true)
-          .setDescription("(Experimental) Enables the catalog service.")
+          .setDescription("(Experimental) Enables the table service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey CATALOG_METADATA_PATH =
-      new Builder(Name.CATALOG_METADATA_PATH)
+  public static final PropertyKey TABLE_CATALOG_PATH =
+      new Builder(Name.TABLE_CATALOG_PATH)
           .setDefaultValue("/catalog")
-          .setDescription("The Alluxio file path for the catalog metadata.")
+          .setDescription("The Alluxio file path for the table catalog metadata.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -4439,10 +4439,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
 
     //
-    // Catalog properties
+    // Table service properties
     //
-    public static final String CATALOG_ENABLED = "alluxio.catalog.enabled";
-    public static final String CATALOG_METADATA_PATH = "alluxio.catalog.metadata.path";
+    public static final String TABLE_ENABLED = "alluxio.table.enabled";
+    public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
 
     private Name() {} // prevent instantiation
   }
