@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.Command;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.job.JobMasterClient;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.MetaMasterConfigClient;
@@ -32,6 +33,7 @@ public abstract class AbstractFsAdminCommand implements Command {
   protected final PrintStream mPrintStream;
   protected final JournalMasterClient mMasterJournalMasterClient;
   protected final JournalMasterClient mJobMasterJournalMasterClient;
+  protected final JobMasterClient mJobMasterClient;
 
   protected AbstractFsAdminCommand(Context context) {
     mFsClient = context.getFsClient();
@@ -40,6 +42,7 @@ public abstract class AbstractFsAdminCommand implements Command {
     mMetaConfigClient = context.getMetaConfigClient();
     mMasterJournalMasterClient = context.getJournalMasterClientForMaster();
     mJobMasterJournalMasterClient = context.getJournalMasterClientForJobMaster();
+    mJobMasterClient = context.getJobMasterClient();
     mPrintStream = context.getPrintStream();
   }
 }
