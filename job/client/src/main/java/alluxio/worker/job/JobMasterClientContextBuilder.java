@@ -21,6 +21,8 @@ import alluxio.master.MasterInquireClient;
  */
 public class JobMasterClientContextBuilder extends MasterClientContextBuilder {
 
+  private MasterInquireClient mConfMasterInquireClient;
+
   /**
    * Creates a builder with the given {@link AlluxioConfiguration}.
    *
@@ -42,6 +44,10 @@ public class JobMasterClientContextBuilder extends MasterClientContextBuilder {
       mMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(
           mContext.getClusterConf());
     }
-    return new JobMasterClientContext(mContext, mMasterInquireClient);
+    if (mConfMasterInquireClient == null) {
+      mConfMasterInquireClient = MasterInquireClient.Factory.create(
+              mContext.getClusterConf());
+    }
+    return new JobMasterClientContext(mContext, mMasterInquireClient, mConfMasterInquireClient);
   }
 }
