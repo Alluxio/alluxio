@@ -11,22 +11,27 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.AlluxioURI;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutFactory;
+import alluxio.table.common.transform.TransformContext;
+import alluxio.table.common.transform.TransformDefinition;
+import alluxio.table.common.transform.TransformPlan;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Hive table implementation.
+ * Hive layout implementation.
  */
 public class HiveLayout implements Layout {
   private static final Logger LOG = LoggerFactory.getLogger(HiveLayout.class);
@@ -93,5 +98,16 @@ public class HiveLayout implements Layout {
   @Override
   public Map<String, ColumnStatisticsInfo> getColumnStatsData() {
     return mPartitionStatsInfo;
+  }
+
+  @Override
+  public TransformPlan getTransformPlan(TransformContext transformContext,
+      TransformDefinition definition)
+      throws IOException {
+    // TODO(cc): check to see if output is also hive
+    // TODO(cc): construct job definition to a new output location
+    AlluxioURI outputPath = transformContext.getTransformPath();
+    // TODO(cc): construct resulting layout
+    return new TransformPlan(definition);
   }
 }

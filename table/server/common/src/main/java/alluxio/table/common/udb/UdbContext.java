@@ -13,9 +13,7 @@ package alluxio.table.common.udb;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.util.io.PathUtils;
+import alluxio.table.common.CatalogPathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,21 +67,10 @@ public class UdbContext {
   }
 
   /**
-   * @return the AlluxioURI for the fs location for the specified db name
-   */
-  public AlluxioURI getDbLocation() {
-    // TODO(gpang): make configurable via option
-    return new AlluxioURI(PathUtils
-        .concatPath(ServerConfiguration.get(PropertyKey.TABLE_CATALOG_PATH), mDbName, mType));
-  }
-
-  /**
    * @param tableName the table name
    * @return the AlluxioURI for the table location for the specified table name
    */
   public AlluxioURI getTableLocation(String tableName) {
-    return new AlluxioURI(PathUtils
-        .concatPath(ServerConfiguration.get(PropertyKey.TABLE_CATALOG_PATH), mDbName, "tables",
-            tableName, mType));
+    return CatalogPathUtils.getTablePathUdb(mDbName, tableName, mType);
   }
 }

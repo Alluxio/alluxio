@@ -15,6 +15,11 @@ import alluxio.grpc.table.PartitionSpec;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutRegistry;
 import alluxio.table.common.UdbPartition;
+import alluxio.table.common.transform.TransformContext;
+import alluxio.table.common.transform.TransformDefinition;
+import alluxio.table.common.transform.TransformPlan;
+
+import java.io.IOException;
 
 /**
  * The table partition class.
@@ -44,12 +49,29 @@ public class Partition {
   }
 
   /**
-   * Returns the base layout.
-   *
-   * @return base layout
+   * @return the base layout
    */
   public Layout getLayout() {
     return mBaseLayout;
+  }
+
+  /**
+   * @return the partition speck
+   */
+  public String getSpec() {
+    return mPartitionSpec;
+  }
+
+  /**
+   * Returns a plan to transform this partition.
+   *
+   * @param transformContext the {@link TransformContext}
+   * @param definition the transformation definition
+   * @return the transformation plan
+   */
+  public TransformPlan getTransformPlan(TransformContext transformContext,
+      TransformDefinition definition) throws IOException {
+    return mBaseLayout.getTransformPlan(transformContext, definition);
   }
 
   /**

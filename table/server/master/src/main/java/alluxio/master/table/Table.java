@@ -15,12 +15,16 @@ import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.UdbTableInfo;
+import alluxio.table.common.transform.TransformContext;
+import alluxio.table.common.transform.TransformDefinition;
+import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbTable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -117,6 +121,22 @@ public class Table {
    */
   public List<ColumnStatisticsInfo> getStatistics() {
     return mStatistics;
+  }
+
+  /**
+   * Returns a list of plans to transform the table, according to the transformation definition.
+   *
+   * @param definition the transformation definition
+   * @return a list of {@link TransformPlan} to transform this table
+   */
+  public List<TransformPlan> getTransformPlans(TransformDefinition definition) throws IOException {
+    List<TransformPlan> plans = new ArrayList<>(mPartitions.size());
+    for (Partition partition : mPartitions) {
+      TransformContext transformContext =
+          new TransformContext(mDatabase.getName(), mName, partition.getSpec().toString());
+      plans.add(partition.getTransformPlan(transformContext, definition));
+    }
+    return plans;
   }
 
   /**

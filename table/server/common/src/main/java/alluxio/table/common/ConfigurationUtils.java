@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This represents a property name and default value for the UDB.
+ * A set of utility methods for configuration.
  */
 public class ConfigurationUtils {
   public static final String MOUNT_PREFIX = "mount.option.";
