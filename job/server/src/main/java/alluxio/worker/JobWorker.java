@@ -74,7 +74,8 @@ public final class JobWorker extends AbstractWorker {
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    mTaskExecutorManager = new TaskExecutorManager();
+    mTaskExecutorManager = new TaskExecutorManager(
+        ServerConfiguration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE));
   }
 
   @Override
