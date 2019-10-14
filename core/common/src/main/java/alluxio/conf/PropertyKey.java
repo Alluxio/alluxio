@@ -1726,9 +1726,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_SKIP_ROOT_ACL_CHECK =
       new Builder(Name.MASTER_SKIP_ROOT_ACL_CHECK)
           .setDefaultValue(false)
-          .setDescription("Skip root directory ACL check when restoring from backup. This is to "
-              + "allow users to restore a backup from a different cluster onto their current one "
-              + "without having to recreate the different clusters owner user.")
+          .setDescription("Skip root directory ACL check when restarting either from journal or "
+              + "backup. This is to allow users to restore a backup from a different cluster onto "
+              + "their current one without having to recreate the different clusters owner user.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .setIsHidden(true)
