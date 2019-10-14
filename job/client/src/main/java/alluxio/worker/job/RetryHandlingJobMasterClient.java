@@ -61,12 +61,6 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void beforeConnect()
-      throws IOException {
-    // Job master client does not load cluster-default because job worker has loaded it on start
-  }
-
-  @Override
   protected void afterConnect() {
     mClient = JobMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }

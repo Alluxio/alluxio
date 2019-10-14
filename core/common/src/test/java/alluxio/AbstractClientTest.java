@@ -19,9 +19,12 @@ import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
 import alluxio.util.ConfigurationUtils;
 
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -41,6 +44,10 @@ public final class AbstractClientTest {
     protected BaseTestClient() {
       super(ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())), null,
           () -> new CountingRetry(1));
+    }
+
+    protected BaseTestClient(ClientContext context) {
+      super(context, null, () -> new CountingRetry(1));
     }
 
     public BaseTestClient(long remoteServiceVersion) {
@@ -96,5 +103,39 @@ public final class AbstractClientTest {
     final AbstractClient client = new BaseTestClient(1);
     client.checkVersion(1);
     client.close();
+  }
+
+  @Test
+  public void confAddress() throws Exception {
+    ClientContext context = Mockito.mock(ClientContext.class);
+
+    InetSocketAddress baseAddress = new InetSocketAddress("0.0.0.0", 2000);
+    InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2001);
+    final alluxio.Client client = new BaseTestClient(context) {
+      @Override
+      public synchronized InetSocketAddress getAddress() {
+        return baseAddress;
+      }
+
+      @Override
+      public synchronized InetSocketAddress getConfAddress() {
+        return confAddress;
+      }
+    };
+
+    ArgumentCaptor<InetSocketAddress> argument = ArgumentCaptor.forClass(InetSocketAddress.class);
+
+    Mockito.doThrow(new RuntimeException("test"))
+            .when(context)
+            .loadConfIfNotLoaded(argument.capture());
+
+    try {
+      client.connect();
+      Assert.fail();
+    } catch (Exception e) {
+      // ignore any exceptions. It's expected.
+    }
+
+    Assert.assertEquals(confAddress, argument.getValue());
   }
 }

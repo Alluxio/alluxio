@@ -21,6 +21,8 @@ import alluxio.master.MasterInquireClient;
  */
 public class JobMasterClientContext extends MasterClientContext {
 
+  private MasterInquireClient mConfMasterInquireClient;
+
   /**
    * Create a builder for {@link JobMasterClientContext}.
    *
@@ -31,7 +33,14 @@ public class JobMasterClientContext extends MasterClientContext {
     return new JobMasterClientContextBuilder(context);
   }
 
-  protected JobMasterClientContext(ClientContext context, MasterInquireClient masterInquireClient) {
+  protected JobMasterClientContext(ClientContext context, MasterInquireClient masterInquireClient,
+                                   MasterInquireClient confMasterInquireClient) {
     super(context, masterInquireClient);
+    mConfMasterInquireClient = confMasterInquireClient;
+  }
+
+  @Override
+  public MasterInquireClient getConfMasterInquireClient() {
+    return mConfMasterInquireClient;
   }
 }
