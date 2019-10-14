@@ -54,6 +54,8 @@ alluxio.job.worker.hostname:
   'The hostname of the Alluxio job worker.'
 alluxio.job.worker.rpc.port:
   'The port for Alluxio job worker''s RPC service.'
+alluxio.job.worker.threadpool.size:
+  'The number of threads the Job Worker uses to handle jobs.'
 alluxio.job.worker.web.bind.host:
   'The host the job worker web server binds to.'
 alluxio.job.worker.web.port:
