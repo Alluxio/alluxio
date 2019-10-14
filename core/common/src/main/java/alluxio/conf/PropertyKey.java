@@ -3618,9 +3618,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_WORKER_THREADPOOL_SIZE =
           new Builder(Name.JOB_WORKER_THREADPOOL_SIZE)
-                  .setDescription("Number of threads in the thread pool for job worker. " +
-                          "This may be adjusted to a lower value to alleviate resource " +
-                          "saturation on the job worker nodes (CPU + IO).")
+                  .setDescription("Number of threads in the thread pool for job worker. "
+                          + "This may be adjusted to a lower value to alleviate resource "
+                          + "saturation on the job worker nodes (CPU + IO).")
                   .setDefaultValue(10)
                   .build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
