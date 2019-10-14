@@ -13,9 +13,13 @@ package alluxio.table.common;
 
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.LayoutSpec;
+import alluxio.table.common.transform.TransformContext;
+import alluxio.table.common.transform.TransformDefinition;
+import alluxio.table.common.transform.TransformPlan;
 
 import com.google.protobuf.Message;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -41,6 +45,14 @@ public interface Layout {
    * @return a map of proto representing the statistics data for this partition
    */
   Map<String, ColumnStatisticsInfo> getColumnStatsData();
+
+  /**
+   * @param transformContext the {@link TransformContext}
+   * @param definition the transform definition
+   * @return a new {@code TransformPlan} representing the layout transformation
+   */
+  TransformPlan getTransformPlan(TransformContext transformContext, TransformDefinition definition)
+      throws IOException;
 
   /**
    * @return the proto representation

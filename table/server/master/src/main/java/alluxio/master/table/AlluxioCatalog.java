@@ -26,8 +26,11 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.table.transform.TransformManager;
 import alluxio.proto.journal.Journal;
 import alluxio.table.common.LayoutRegistry;
+import alluxio.table.common.transform.TransformDefinition;
+import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 import alluxio.util.StreamUtils;
@@ -56,6 +59,7 @@ public class AlluxioCatalog implements Journaled {
   private final UnderDatabaseRegistry mUdbRegistry;
   private final LayoutRegistry mLayoutRegistry;
   private final FileSystem mFileSystem;
+  private final TransformManager mTransformManager;
 
   /**
    * Creates an instance.
@@ -66,6 +70,7 @@ public class AlluxioCatalog implements Journaled {
     mUdbRegistry.refresh();
     mLayoutRegistry = new LayoutRegistry();
     mLayoutRegistry.refresh();
+    mTransformManager = new TransformManager(this);
   }
 
   /**
@@ -185,6 +190,21 @@ public class AlluxioCatalog implements Journaled {
     Table table = getTable(dbName, tableName);
     // TODO(david): implement partition pruning
     return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
+  }
+
+  /**
+   * Triggers a transformation for a table.
+   *
+   * @param dbName the database name
+   * @param tableName the table name
+   * @param definition the transformation definition
+   */
+  public void transformTable(String dbName, String tableName, String definition)
+      throws IOException {
+    TransformDefinition transformDefinition = TransformDefinition.parse(definition);
+    Table table = getTable(dbName, tableName);
+    List<TransformPlan> plans = table.getTransformPlans(transformDefinition);
+    mTransformManager.execute(dbName, tableName, plans);
   }
 
   private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
