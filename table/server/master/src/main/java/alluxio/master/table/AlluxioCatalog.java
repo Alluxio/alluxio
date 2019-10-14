@@ -271,6 +271,7 @@ public class AlluxioCatalog implements Journaled {
       return db.processJournalEntry(entry);
     } else if (entry.hasDetachDb()) {
       apply(entry.getDetachDb());
+      return true;
     }
     return false;
   }
