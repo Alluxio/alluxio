@@ -13,6 +13,11 @@ message AttachDbEntry {
     map<string, string> config = 3;
 }
 
+// next available id: 2
+message DetachDbEntry {
+    optional string db_name = 1;
+}
+
 // next available id: 7
 message AddTableEntry {
     optional string db_name = 1;

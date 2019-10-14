@@ -16,7 +16,7 @@ import "proto/journal/table.proto";
 // and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
 //
 
-// next available id: 45
+// next available id: 46
 message JournalEntry {
   optional int64 sequence_number = 1;
   optional ActiveSyncTxIdEntry active_sync_tx_id = 34;
@@ -32,6 +32,7 @@ message JournalEntry {
   optional DeleteBlockEntry delete_block = 29;
   optional DeleteFileEntry delete_file = 6;
   optional DeleteMountPointEntry delete_mount_point = 8;
+  optional DetachDbEntry detach_db = 45;
   optional InodeDirectoryEntry inode_directory = 9;
   optional InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;
   optional InodeFileEntry inode_file = 11;

@@ -30,6 +30,7 @@ import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.ReadTablePRequest;
 import alluxio.grpc.table.TableInfo;
+import alluxio.grpc.table.DetachDatabasePRequest;
 import alluxio.master.MasterClientContext;
 
 import java.util.List;
@@ -106,6 +107,13 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient.attachDatabase(
         AttachDatabasePRequest.newBuilder().setDbName(dbName).setDbType(dbType)
             .putAllOptions(configuration).build()).getSuccess());
+  }
+
+  @Override
+  public boolean detachDatabase(String dbName)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.detachDatabase(
+        DetachDatabasePRequest.newBuilder().setDbName(dbName).build()).getSuccess());
   }
 
   @Override
