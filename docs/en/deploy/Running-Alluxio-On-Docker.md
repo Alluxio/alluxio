@@ -22,12 +22,14 @@ We'll also discuss more advanced topics and how to troubleshoot.
 - Ports 19998, 19999, 29998, 29999, and 30000 available
 
 If you don't have access to a machine with Docker installed, you can
-provision a t2.small EC2 machine (costs about $0.03/hour) to follow along with
-the tutorial. When provisioning the instance, set the security group so that
-port `19999` is open to your IP address. This will let you view the Alluxio web
-UI in your browser.
+provision a small AWS EC2 instance (for example  t2.small, it costs about $0.03/hour) to follow along with
+the tutorial. When provisioning the instance, set the security group so that the following ports are open to  your IP address and the CIDR range of the Alluxio clients (e.g. remote Spark clusters): 
 
-To set up Docker after provisioning the instance, run
++ 19999 for the IP address of your browser:  Allow you to access the Alluxio web UI. 
++ 19998 for the  CIDR range of your Alluxio clients: Allow the clients to communicate with Alluxio Master RPC process.
++ 29999 for the  CIDR range of your Alluxio clients: Allow the clients to communicate with Alluxio Workder RPC processes.
+
+To set up Docker after provisioning the instance, which will be referred as the Docker Host , run
 
 ```console
 $ sudo yum install -y docker
@@ -38,36 +40,103 @@ $ sudo usermod -a -G docker $(id -u -n)
 $ exit
 ```
 
-## Prepare network and UFS volume
+## Prepare network and UFS volume (optional)
 
-Create a network for connecting Alluxio containers, and create a volume for storing ufs data.
+Create a user-defined bridge network (optional) for connecting Alluxio containers, and create a volume for storing ufs data.
 
 ```console
-$ docker network create alluxio_nw
-$ docker volume create ufs
+$ docker network create alluxio_network
+$ docker volume create ufs   
 ```
 
-## Launch Alluxio
+You can decide to use them or not.  For the named volume ```ufs```, you can replace it with the host's absolute path name ```/alluxio_ufs```. Docker will create the directory in the host if it does not exist, or use the directory (including all the data underneath it) if already exist. 
 
-The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store Alluxio data.
 
-```console
-# Launch the Alluxio master
-$ docker run -d \
-  -p 19999:19999 \
-  --net=alluxio_nw \
+## Launch Alluxio Containers for Master and Worker
+
+According to Alluxio architecture, the Alluxio clients (local or remote) need to communicate with both Alluxio master and Workers. Therefore it is important to make sure the client can reach out both of the following services:
+
+- Master:19998   (master's rpc port)
+- Worker:29999   (worker's rpc port)    
+
+ There are two ways to launch Alluxio Docker containers on the Docker host -- using host network or the user-defined bridge network  ```alluxio_nw``` we created before. 
+
+
+
+### Launch Docker Alluxio Containers Using Host Network
+
+```
+# Launch the Alluxio Master
+docker run -d --rm \
+  --net=host \
   --name=alluxio-master \
   -v ufs:/opt/alluxio/underFSStorage \
   alluxio/alluxio master
-# Launch the Alluxio worker
-$ docker run -d \
-  --net=alluxio_nw \
+  
+#Launch the Alluxio Worker
+docker run -d --rm \
+  --net=host \
   --name=alluxio-worker \
   --shm-size=1G \
   -v ufs:/opt/alluxio/underFSStorage \
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=alluxio-master" \
+  -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)" \
+  alluxio/alluxio worker  
+```
+
+Notes: 
+
+1. The ```--net=host ``` argument will tell docker to use the host network.  All containers will have the same hostname and IP address as the Docker host, and all the host's ports are exposed to and directly mapped to containers, of course include the three important ports ```19999, 19998, 29999``` and they are available for the clients. 
+2.  The ```-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)"``` argument allocates the worker's memory capacity and bind the master address. In host network,  the master can't be refereed by the container name. It will throw "No Alluxio worker available" error if use the master's container name.  Instead, it can be refereed by the host IP address. The substitution ```$(hostname -i)``` does the trick.
+3. The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store Alluxio data.
+
+
+
+### Launch Docker Alluxio Containers Using User-Defined Network
+
+Using host network is simple, but it has disadvantages. For example 
+
++ The Services running inside the container could potentially conflict with other services in other containers which run on the same port.
++ Containers can access to the host's full network stack and bring up protentional security risks. 
+
+The better way is using the user-defined network, but we need to explicitly expose the required ports:   
+
+
+```console
+# Launch the Alluxio master
+$ docker run -d  --rm \
+  -p 19999:19999 \
+  -p 19998:19998 \
+  --net=alluxio_network \
+  --name=alluxio-master \
+  -v ufs:/opt/alluxio/underFSStorage \
+  alluxio/alluxio master
+  
+# Launch the Alluxio worker
+  docker run -d --rm \
+  -p 29999:29999 \
+  --net=alluxio_network \
+  --name=alluxio-worker \
+  --shm-size=1G \
+  -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+  -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G  -Dalluxio.master.hostname=$(hostname -i)  -Dalluxio.worker.hostname=$(hostname -i)" \
   alluxio/alluxio worker
 ```
+
+Notes: 
+
+1. The ```--net=alluxio_network``` argument will tell docker to use the user-defined bridge network.  All containers will use their own container IDs as their hostname, and each of they has a different IP address within the network's subnet. Only the specified ports (-p option) are exposed to the Docker host.
+
+2. You must expose the two ports 19999 and 19998 for the Master container and the port 29999 for the  Worker container. Otherwise, the clients can't communicate with the the master and worker. 
+
+3. When run worker container, you can refer to the Master either by the master container name   ``` -Dalluxio.master.hostname=alluxio-master```  or  by the Host's IP address: ``` -Dalluxio.master.hostname=$(hostname -i) ```, since this is an internal communication between master and worker within the docker network. 
+
+4. When run worker container, you must refer to the Worker by the docker host IP address:  ```-Dalluxio.worker.hostname=$(hostname -i) ```. You can't use the worker container name ```alluxio-worker", since it is an external communication between worker and clients outside the docker network.  Otherwise, clients but can't connect to worker, since clients do not recognize the worker's container Id. It will throw error like below:
+
+   ```
+   Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
+   ```
+
+   
 
 ## Verify the Cluster
 
@@ -97,6 +166,20 @@ Run the tests
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
 ```
+
+
+To test the remote client access, for example, from the Spark cluster (python 3)
+
+```
+textFile_alluxio_path = "alluxio://{docker_host-ip}:19998/path_to_the_file"  
+textFile_RDD = sc.textFile (textFile_alluxio_path)
+
+for line in textFile_RDD.collect(): 
+  print (line)  
+```
+
+Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
+
 
 Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
 
@@ -241,3 +324,4 @@ Alluxio server logs can be accessed by running `docker logs $container_id`.
 Usually the logs will give a good indication of what is wrong. If they are not enough to diagnose
 your issue, you can get help on the
 [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users).
+
