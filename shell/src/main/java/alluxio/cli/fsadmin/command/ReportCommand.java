@@ -15,6 +15,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
+import alluxio.cli.fsadmin.report.JobServiceMetricsCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
@@ -71,7 +72,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     CAPACITY, // Report worker capacity information
     METRICS, // Report metrics information
     SUMMARY, // Report cluster summary
-    UFS // Report under filesystem information
+    UFS, // Report under filesystem information
+    JOBSERVICE // Report job service metrics information
   }
 
   private AlluxioConfiguration mConf;
@@ -120,6 +122,9 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         case "ufs":
           command = Command.UFS;
           break;
+        case "jobservice":
+          command = Command.JOBSERVICE;
+          break;
         default:
           System.out.println(getUsage());
           System.out.println(getDescription());
@@ -156,6 +161,12 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       case UFS:
         UfsCommand ufsCommand = new UfsCommand(mFsClient);
         ufsCommand.run();
+        break;
+      case JOBSERVICE:
+        JobServiceMetricsCommand jobmetricsCommand = new JobServiceMetricsCommand(
+            mJobMasterClient, mPrintStream
+        );
+        jobmetricsCommand.run();
         break;
       default:
         break;
@@ -202,7 +213,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "    capacity         worker capacity information\n"
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
-        + "    ufs              under storage system information\n";
+        + "    ufs              under storage system information\n"
+        + "    jobservice       job service metrics information\n";
   }
 
   @Override
