@@ -33,7 +33,7 @@ function main {
     run_args+=" -it"
   fi
 
-  if [ -z ${ALLUXIO_DOCKER_GIT_CLEAN} ]
+  if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]
   then
     run_args+=" -e ALLUXIO_GIT_CLEAN=true"
   fi

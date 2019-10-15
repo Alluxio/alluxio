@@ -25,7 +25,7 @@ then
   ALLUXIO_BUILD_FORKCOUNT=4
 fi
 
-if [ -z ${ALLUXIO_GIT_CLEAN} ]
+if [ -n "${ALLUXIO_GIT_CLEAN}" ]
 then
   git clean -fdx
 fi
