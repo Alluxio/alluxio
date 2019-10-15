@@ -154,8 +154,7 @@ public class HiveDatabase implements UnderDatabase {
     String hiveUfsUri = table.getSd().getLocation();
 
     try {
-      PathTranslator pathTranslator =
-          new PathTranslator();
+      PathTranslator pathTranslator = new PathTranslator();
       ufsUri = new AlluxioURI(table.getSd().getLocation());
       pathTranslator.addMapping(mountAlluxioPath(tableName, ufsUri, alluxioUri), hiveUfsUri);
 
@@ -223,13 +222,20 @@ public class HiveDatabase implements UnderDatabase {
     if (mHive != null) {
       return mHive;
     }
+
+    // Hive uses/saves the thread context class loader.
+    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     try {
+      // use the extension class loader
+      Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
       HiveConf conf = new HiveConf();
       conf.set("hive.metastore.uris", mConfiguration.get(Property.HIVE_METASTORE_URIS));
       mHive = new HiveMetaStoreClient(conf);
       return mHive;
     } catch (MetaException e) {
       throw new IOException("Failed to create hive client: " + e.getMessage(), e);
+    } finally {
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
   }
 }
