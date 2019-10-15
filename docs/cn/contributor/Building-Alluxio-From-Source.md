@@ -114,17 +114,6 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 -Phadoop-2 -Dhadoop.version=2.0.0-cdh4.7.0
 ```
 
-#### MapR
-
-对于MapR发行版，其值为
-
-```properties
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1607
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1602
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1506
--Phadoop-2 -Dhadoop.version=2.3.0-mapr-4.0.0-FCS
-```
-
 #### Hortonworks
 
 对于Hortonworks发行版，使用`$apacheRelease.$hortonRelease`形式的版本号
