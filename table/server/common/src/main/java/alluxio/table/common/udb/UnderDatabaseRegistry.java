@@ -69,6 +69,7 @@ public class UnderDatabaseRegistry {
       LOG.warn("Failed to load udb libs from {}. error: {}", libDir, e.toString());
     }
 
+    // Load the UDBs from libraries
     for (File jar : files) {
       try {
         URL extensionURL = jar.toURI().toURL();
@@ -89,6 +90,18 @@ public class UnderDatabaseRegistry {
         LOG.warn("Failed to load udb jar {}", jar, t);
       }
     }
+
+    // Load the UDBs from the default classloader
+    for (UnderDatabaseFactory factory : ServiceLoader
+        .load(UnderDatabaseFactory.class, UnderDatabaseRegistry.class.getClassLoader())) {
+      UnderDatabaseFactory existingFactory = map.get(factory.getType());
+      if (existingFactory != null) {
+        LOG.warn("Ignoring duplicate under database type '{}' found in {}. Existing factory: {}",
+            factory.getType(), factory.getClass(), existingFactory.getClass());
+      }
+      map.put(factory.getType(), factory);
+    }
+
     mFactories = map;
     LOG.info("Registered UDBs: " + String.join(",", mFactories.keySet()));
   }
