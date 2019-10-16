@@ -2075,7 +2075,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // frameworks that use rename as a commit operation.
     if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()
         && shouldPersistPath(dstInodePath.toString())) {
-      LOG.debug("Schedule Async Persist on rename for File {}", srcInodePath.toString());
+      LOG.debug("Schedule Async Persist on rename for File {}", srcInodePath);
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(srcInode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
