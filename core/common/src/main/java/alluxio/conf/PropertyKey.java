@@ -1702,6 +1702,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             + "persist) but does not affect CACHE_THROUGH writes. Users may want to specify "
             + "temporary files in the blacklist to avoid unnecessary I/O and errors. Some "
             + "examples are `.staging` and `.tmp`.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =
       new Builder(Name.MASTER_REPLICATION_CHECK_INTERVAL_MS)
