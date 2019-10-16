@@ -39,7 +39,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>Install npm dependencies for lerna1</id>
+            <id>Install npm dependencies for lerna</id>
             <goals>
               <goal>npm</goal>
             </goals>
