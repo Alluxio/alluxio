@@ -1697,7 +1697,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_BLACKLIST =
       new Builder(Name.MASTER_PERSISTENCE_BLACKLIST)
-          .setDefaultValue("")
           .setDescription("Patterns to blacklist persist, comma separated, string match, no regex.")
           .build();
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =

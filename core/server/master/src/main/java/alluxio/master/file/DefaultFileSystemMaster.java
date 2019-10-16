@@ -1985,6 +1985,22 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
   }
 
+  private static final List<String> PERSISTENCE_BLACKLIST =
+      ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
+          ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
+          : Collections.emptyList();
+
+  private boolean shouldPersistPath(String path) {
+    for (String pattern : PERSISTENCE_BLACKLIST) {
+      if (path.contains(pattern)) {
+        LOG.debug("Not persisting path {} because it is in {} {}", path,
+            PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, PERSISTENCE_BLACKLIST);
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Renames a file to a destination.
    *
@@ -2058,7 +2074,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // frameworks that use rename as a commit operation.
     if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()
         && shouldPersistPath(dstInodePath.toString())) {
-      LOG.debug("Schedule Async Persist on rename for File {}",srcInodePath.toString());
+      LOG.debug("Schedule Async Persist on rename for File {}", srcInodePath.toString());
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(srcInode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
@@ -2073,15 +2089,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
 
-    // DO not merge to master
+    // If a directory is being renamed with persist on rename, attempt to persist children
     if (srcInode.isDirectory() && context.getPersist()
         && shouldPersistPath(dstInodePath.toString())) {
       LOG.debug("Schedule Async Persist on rename for Dir {}", dstInodePath.toString());
       try (LockedInodePathList descendants = mInodeTree.getDescendants(srcInodePath)) {
         for (LockedInodePath childPath : descendants) {
-          LOG.debug("childPath = {}", childPath);
           Inode childInode = childPath.getInode();
-          if (childInode.isFile() && !childInode.isPersisted()) {
+          // TODO(apc999): Resolve the child path legitimately
+          if (childInode.isFile() && !childInode.isPersisted()
+              && shouldPersistPath(
+                  childPath.toString().substring(srcInodePath.toString().length()))) {
             LOG.debug("Schedule Async Persist on rename for Child File {}", childPath.toString());
             mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
                 .setId(childInode.getId())
@@ -2099,20 +2117,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         }
       }
     }
-  }
-
-  private static final List<String> PERSISTENCE_BLACKLIST =
-      ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",");
-
-  private boolean shouldPersistPath(String path) {
-    for (String pattern : PERSISTENCE_BLACKLIST) {
-      if (path.contains(pattern)) {
-        LOG.debug("Not persisting path {} because it is in PERSISTENC_BLACKLIST {}",
-            path, PERSISTENCE_BLACKLIST);
-        return false;
-      }
-    }
-    return true;
   }
 
   /**
@@ -3209,13 +3213,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     if (shouldPersistPath(inodePath.toString())) {
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder().setId(inode.getId())
-        .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
+          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
       mPersistRequests.put(inode.getId(),
-        new alluxio.time.ExponentialTimer(
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          context.getPersistenceWaitTime(),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+          new alluxio.time.ExponentialTimer(
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+              context.getPersistenceWaitTime(),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
 
