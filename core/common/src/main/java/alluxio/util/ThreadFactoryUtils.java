@@ -34,6 +34,17 @@ public final class ThreadFactoryUtils {
    * @return the created factory
    */
   public static ThreadFactory build(final String nameFormat, boolean isDaemon) {
-    return new ThreadFactoryBuilder().setDaemon(isDaemon).setNameFormat(nameFormat).build();
+    return build(nameFormat, isDaemon, null);
+  }
+
+  public static ThreadFactory build(final String nameFormat, boolean isDaemon, Integer priority) {
+    ThreadFactoryBuilder threadFactoryBuilder = new ThreadFactoryBuilder().setDaemon(isDaemon)
+            .setNameFormat(nameFormat);
+
+    if (priority != null) {
+      threadFactoryBuilder.setPriority(priority);
+    }
+
+    return threadFactoryBuilder.build();
   }
 }
