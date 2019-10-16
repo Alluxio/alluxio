@@ -20,6 +20,7 @@ import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.UdbTableInfo;
 import alluxio.table.common.UdbPartition;
+import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.under.hive.util.PathTranslator;
 
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,7 +139,8 @@ public class HiveTable implements UdbTable {
         if (partition.getValues() != null) {
           pib.addAllValues(partition.getValues());
         }
-        udbPartitions.add(new HivePartition(new HiveLayout(pib.build(), statsMap.get(partName))));
+        udbPartitions.add(new HivePartition(
+            new HiveLayout(pib.build(), statsMap.getOrDefault(partName, Collections.emptyList()))));
       }
       return udbPartitions;
     } catch (TException e) {

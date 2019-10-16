@@ -13,6 +13,7 @@ package alluxio.table.under.hive;
 
 import alluxio.table.common.Layout;
 import alluxio.table.common.UdbPartition;
+import alluxio.table.common.layout.HiveLayout;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

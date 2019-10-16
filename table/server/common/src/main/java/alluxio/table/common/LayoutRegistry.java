@@ -43,7 +43,7 @@ public class LayoutRegistry {
       LayoutFactory existingFactory = map.get(factory.getType());
       if (existingFactory != null) {
         LOG.warn(
-            "Ignoring duplicate under database type '{}' found in factory {}. Existing factory: {}",
+            "Ignoring duplicate layout type '{}' found in factory {}. Existing factory: {}",
             factory.getType(), factory.getClass(), existingFactory.getClass());
       }
       map.put(factory.getType(), factory);
