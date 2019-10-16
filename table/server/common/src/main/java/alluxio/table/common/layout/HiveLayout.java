@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.table.under.hive;
+package alluxio.table.common.layout;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.table.ColumnStatisticsInfo;
@@ -74,7 +74,7 @@ public class HiveLayout implements Layout {
    * @param partitionInfo the partition info
    * @param stats column statistics
    */
-  HiveLayout(PartitionInfo partitionInfo, List<ColumnStatisticsInfo> stats) {
+  public HiveLayout(PartitionInfo partitionInfo, List<ColumnStatisticsInfo> stats) {
     mPartitionInfo = partitionInfo;
     mPartitionStatsInfo = stats.stream().collect(Collectors.toMap(
         ColumnStatisticsInfo::getColName, e -> e, (e1, e2) -> e2));

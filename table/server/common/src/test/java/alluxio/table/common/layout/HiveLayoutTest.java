@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.table.under.hive;
+package alluxio.table.common.layout;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -19,6 +19,7 @@ import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Storage;
 import alluxio.table.common.Layout;
+import alluxio.table.common.LayoutRegistry;
 import alluxio.util.CommonUtils;
 
 import org.junit.Test;
@@ -39,6 +40,18 @@ public class HiveLayoutTest {
   public void factoryCreate() throws Exception {
     HiveLayout layout = createRandom();
     assertNotNull(new HiveLayout.HiveLayoutFactory().create(layout.toProto()));
+  }
+
+  @Test
+  public void registryCreate() throws Exception {
+    HiveLayout layout = createRandom();
+    assertNotNull(new HiveLayout.HiveLayoutFactory().create(layout.toProto()));
+
+    LayoutRegistry registry = new LayoutRegistry();
+    registry.refresh();
+    Layout instance = registry.create(layout.toProto());
+    assertNotNull(instance);
+    assertEquals(layout.toProto(), instance.toProto());
   }
 
   @Test
