@@ -11,20 +11,42 @@
 
 package alluxio.table.common.transform;
 
+import alluxio.table.common.transform.action.TransformAction;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * The definition of a transformation.
  */
 public class TransformDefinition {
-  public final String mDefinition;
+  private final String mDefinition;
+  private final List<TransformAction> mActions;
 
   /**
    * Creates an instance.
    *
    * @param definition the string definition
+   * @param actions the list of actions
    */
-  private TransformDefinition(String definition) {
+  private TransformDefinition(String definition, List<TransformAction> actions) {
     mDefinition = definition;
-    // TODO(gpang): implement
+    mActions = actions;
+  }
+
+  /**
+   * @return the string definition
+   */
+  public String getDefinition() {
+    return mDefinition;
+  }
+
+  /**
+   * @return the list of actions for this transformation
+   */
+  public List<TransformAction> getActions() {
+    return mActions;
   }
 
   /**
@@ -32,6 +54,20 @@ public class TransformDefinition {
    * @return the {@link TransformDefinition} representation
    */
   public static TransformDefinition parse(String definition) {
-    return new TransformDefinition(definition);
+    // TODO(gpang): use real lexer/parser
+    definition = definition.trim();
+
+    if (definition.isEmpty()) {
+      return new TransformDefinition(definition, Collections.emptyList());
+    }
+
+    // ';' separates actions
+    String[] parts = definition.split(";");
+    List<TransformAction> actions = new ArrayList<>(parts.length);
+    for (String actionPart : parts) {
+      actions.add(TransformAction.Parser.parse(actionPart));
+    }
+
+    return new TransformDefinition(definition, actions);
   }
 }
