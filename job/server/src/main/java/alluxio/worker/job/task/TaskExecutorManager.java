@@ -61,7 +61,8 @@ public class TaskExecutorManager {
     mUnfinishedTasks = Maps.newHashMap();
     mTaskUpdates = Maps.newHashMap();
     mTaskExecutionService = Executors.newFixedThreadPool(taskExecutorPoolSize,
-      ThreadFactoryUtils.build("task-execution-service-%d", true, 1));
+      ThreadFactoryUtils.build("task-execution-service-%d", true,
+              Thread.NORM_PRIORITY - 1));
   }
 
   /**
