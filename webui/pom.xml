@@ -95,7 +95,8 @@
               <arguments>
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>bootstrap</argument>
-                <argument>-- --production -- --no-save -- --no-package-lock -- --no-shrinkwrap</argument>
+                <argument>--</argument>
+                <argument>--production  --no-save --no-package-lock --no-shrinkwrap</argument>
               </arguments>
             </configuration>
           </execution>
@@ -111,7 +112,8 @@
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>run</argument>
                 <argument>build</argument>
-                <argument>-- --production -- --no-save -- --no-package-lock -- --no-shrinkwrap</argument>
+                <argument>--</argument>
+                <argument>--production  --no-save --no-package-lock --no-shrinkwrap</argument>
               </arguments>
             </configuration>
           </execution>
@@ -127,7 +129,8 @@
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>run</argument>
                 <argument>test-ci</argument> <!-- NOTE: using the "test" command here will hang execution -->
-                <argument>-- --production -- --no-save -- --no-package-lock -- --no-shrinkwrap</argument>
+                <argument>--</argument>
+                <argument>--production  --no-save --no-package-lock --no-shrinkwrap</argument>
               </arguments>
             </configuration>
           </execution>
