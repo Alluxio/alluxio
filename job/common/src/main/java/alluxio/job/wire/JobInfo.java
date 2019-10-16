@@ -35,6 +35,8 @@ public final class JobInfo {
   private List<TaskInfo> mTaskInfoList;
   private Status mStatus;
   private String mResult;
+  private long mLastStatusChangeMs;
+
 
   /**
    * Default constructor.
@@ -53,6 +55,7 @@ public final class JobInfo {
     mTaskInfoList = Lists.newArrayList();
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mResult = jobInfo.getResult();
+    mLastStatusChangeMs = jobInfo.getLastStatusChangeMs();
     for (TaskInfo taskInfo : jobInfo.getTaskInfoList()) {
       mTaskInfoList.add(taskInfo);
     }
@@ -73,6 +76,7 @@ public final class JobInfo {
     }
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mResult = jobInfo.getResult();
+    mLastStatusChangeMs = jobInfo.getLastStatusChangeMs();
   }
 
   /**
@@ -162,6 +166,18 @@ public final class JobInfo {
   public String getErrorMessage() {
     return mErrorMessage;
   }
+
+  /**
+   * @param lastStatusChangeMs the time when status last changed in milliseconds
+   */
+  public void setLastStatusChangeMs(long lastStatusChangeMs) {
+    mLastStatusChangeMs = lastStatusChangeMs;
+  }
+
+  /**
+   * @return the time when status last changed in milliseconds
+   */
+  public long getLastStatusChangeMs() { return mLastStatusChangeMs; }
 
   /**
    * @return proto representation of the job info

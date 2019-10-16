@@ -28,6 +28,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class JobServiceMetricsCommandTest {
 
@@ -51,7 +52,7 @@ public class JobServiceMetricsCommandTest {
   @Test
   public void testBasic() throws IOException {
 
-    Collection<JobInfo> jobInfos = new ArrayList<>();
+    List<JobInfo> jobInfos = new ArrayList<>();
 
     jobInfos.add(createJobInfoWithStatus(Status.RUNNING));
     jobInfos.add(createJobInfoWithStatus(Status.CANCELED));

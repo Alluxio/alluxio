@@ -31,6 +31,7 @@ message JobInfo {
   repeated TaskInfo taskInfos = 3;
   optional Status status = 4;
   optional string result = 5;
+  optional int64 lastStatusChangeMs = 6;
 }
 
 message StatusSummary {
@@ -40,6 +41,8 @@ message StatusSummary {
 
 message JobServiceSummary {
   repeated StatusSummary summaryPerStatus = 1;
+  repeated JobInfo lastActivities = 2;
+  repeated JobInfo lastFailures = 3;
 }
 
 message JobCommand {

@@ -21,6 +21,7 @@ private static final long serialVersionUID = 0L;
     taskInfos_ = java.util.Collections.emptyList();
     status_ = 0;
     result_ = "";
+    lastStatusChangeMs_ = 0L;
   }
 
   @java.lang.Override
@@ -89,6 +90,11 @@ private static final long serialVersionUID = 0L;
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000008;
             result_ = bs;
+            break;
+          }
+          case 48: {
+            bitField0_ |= 0x00000010;
+            lastStatusChangeMs_ = input.readInt64();
             break;
           }
         }
@@ -269,6 +275,21 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int LASTSTATUSCHANGEMS_FIELD_NUMBER = 6;
+  private long lastStatusChangeMs_;
+  /**
+   * <code>optional int64 lastStatusChangeMs = 6;</code>
+   */
+  public boolean hasLastStatusChangeMs() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <code>optional int64 lastStatusChangeMs = 6;</code>
+   */
+  public long getLastStatusChangeMs() {
+    return lastStatusChangeMs_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -296,6 +317,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 5, result_);
     }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      output.writeInt64(6, lastStatusChangeMs_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -321,6 +345,10 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, result_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(6, lastStatusChangeMs_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -359,6 +387,11 @@ private static final long serialVersionUID = 0L;
       result = result && getResult()
           .equals(other.getResult());
     }
+    result = result && (hasLastStatusChangeMs() == other.hasLastStatusChangeMs());
+    if (hasLastStatusChangeMs()) {
+      result = result && (getLastStatusChangeMs()
+          == other.getLastStatusChangeMs());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -390,6 +423,11 @@ private static final long serialVersionUID = 0L;
     if (hasResult()) {
       hash = (37 * hash) + RESULT_FIELD_NUMBER;
       hash = (53 * hash) + getResult().hashCode();
+    }
+    if (hasLastStatusChangeMs()) {
+      hash = (37 * hash) + LASTSTATUSCHANGEMS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getLastStatusChangeMs());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -535,6 +573,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000008);
       result_ = "";
       bitField0_ = (bitField0_ & ~0x00000010);
+      lastStatusChangeMs_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
 
@@ -584,6 +624,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000008;
       }
       result.result_ = result_;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.lastStatusChangeMs_ = lastStatusChangeMs_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -667,6 +711,9 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00000010;
         result_ = other.result_;
         onChanged();
+      }
+      if (other.hasLastStatusChangeMs()) {
+        setLastStatusChangeMs(other.getLastStatusChangeMs());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1152,6 +1199,38 @@ private static final long serialVersionUID = 0L;
   }
   bitField0_ |= 0x00000010;
       result_ = value;
+      onChanged();
+      return this;
+    }
+
+    private long lastStatusChangeMs_ ;
+    /**
+     * <code>optional int64 lastStatusChangeMs = 6;</code>
+     */
+    public boolean hasLastStatusChangeMs() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional int64 lastStatusChangeMs = 6;</code>
+     */
+    public long getLastStatusChangeMs() {
+      return lastStatusChangeMs_;
+    }
+    /**
+     * <code>optional int64 lastStatusChangeMs = 6;</code>
+     */
+    public Builder setLastStatusChangeMs(long value) {
+      bitField0_ |= 0x00000020;
+      lastStatusChangeMs_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 lastStatusChangeMs = 6;</code>
+     */
+    public Builder clearLastStatusChangeMs() {
+      bitField0_ = (bitField0_ & ~0x00000020);
+      lastStatusChangeMs_ = 0L;
       onChanged();
       return this;
     }

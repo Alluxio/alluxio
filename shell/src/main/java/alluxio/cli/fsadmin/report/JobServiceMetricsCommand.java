@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.job.JobMasterClient;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.StatusSummary;
 
@@ -52,6 +53,29 @@ public class JobServiceMetricsCommand {
       mPrintStream.print(String.format("Status: %-10s", statusSummary.getStatus()));
       mPrintStream.println(String.format("Count: %s", statusSummary.getCount()));
     }
+
+
+    mPrintStream.println();
+    mPrintStream.println("Last 10 Activities:");
+
+    Collection<JobInfo> lastActivities = jobServiceSummary.getLastActivities();
+
+    for (JobInfo lastActivity : lastActivities) {
+      mPrintStream.print(String.format("Job Id: %-20s", lastActivity.getJobId()));
+      mPrintStream.println(String.format("Status: %s", lastActivity.getStatus()));
+    }
+
+
+    mPrintStream.println();
+    mPrintStream.println("Last 10 Failures:");
+
+    Collection<JobInfo> lastFailures = jobServiceSummary.getLastFailures();
+
+    for (JobInfo lastFailure : lastFailures) {
+      mPrintStream.print(String.format("Job Id: %-20s", lastFailure.getJobId()));
+      mPrintStream.println(String.format("Status: %s", lastFailure.getStatus()));
+    }
+
     return 0;
   }
 }

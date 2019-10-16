@@ -15,12 +15,9 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Job service summary.
@@ -29,14 +26,23 @@ import java.util.Map;
 public final class JobServiceSummary {
   private final List<StatusSummary> mSummaryPerStatus;
 
+  private List<JobInfo> mLastActivities;
+  private List<JobInfo> mLastFailures;
+
   /**
    * Constructs a new instance of {@link JobServiceSummary} from a
    * collection of {@link JobInfo} it possesses.
    *
    * @param jobInfos Collection of {@link JobInfo}
    */
-  public JobServiceSummary(Collection<JobInfo> jobInfos) {
+  public JobServiceSummary(List<JobInfo> jobInfos) {
+    jobInfos.sort(Comparator.comparing(JobInfo::getLastStatusChangeMs).reversed());
     mSummaryPerStatus = buildSummaryPerStatus(jobInfos);
+    mLastActivities = jobInfos.subList(0, Math.min(10, jobInfos.size()));
+    Collections.reverse(mLastActivities);
+    mLastFailures = jobInfos.stream().filter(jobInfo -> jobInfo.getStatus().equals(Status.FAILED))
+      .limit(10).collect(Collectors.toList());
+    Collections.reverse(mLastFailures);
   }
 
   /**
@@ -51,7 +57,7 @@ public final class JobServiceSummary {
     }
   }
 
-  private List<StatusSummary> buildSummaryPerStatus(Collection<JobInfo> jobInfos) {
+  private List<StatusSummary> buildSummaryPerStatus(List<JobInfo> jobInfos) {
 
     Map<Status, Long> countPerStatus = new HashMap<>();
 
@@ -83,13 +89,34 @@ public final class JobServiceSummary {
   }
 
   /**
-   * @return proto representation of the job service summary
+   * @return collection of {@link JobInfo} where the status was most recently updated
    */
-  public alluxio.grpc.JobServiceSummary toProto() {
+  public Collection<JobInfo> getLastActivities() {
+    return Collections.unmodifiableCollection(mLastActivities);
+  }
+
+  /**
+   * @return collection of {@link JobInfo} that have most recently failed
+   */
+  public Collection<JobInfo> getLastFailures() {
+    return Collections.unmodifiableCollection(mLastFailures);
+  }
+
+  /**
+   * @return proto representation of the job service summary
+   * @throws IOException if serialization fails
+   */
+  public alluxio.grpc.JobServiceSummary toProto() throws IOException {
     alluxio.grpc.JobServiceSummary.Builder jobServiceBuilder =
           alluxio.grpc.JobServiceSummary.newBuilder();
     for (StatusSummary statusSummary : mSummaryPerStatus) {
       jobServiceBuilder.addSummaryPerStatus(statusSummary.toProto());
+    }
+    for (JobInfo jobInfo : mLastActivities) {
+      jobServiceBuilder.addLastActivities(jobInfo.toProto());
+    }
+    for (JobInfo jobInfo : mLastFailures) {
+      jobServiceBuilder.addLastFailures(jobInfo.toProto());
     }
     return jobServiceBuilder.build();
   }
