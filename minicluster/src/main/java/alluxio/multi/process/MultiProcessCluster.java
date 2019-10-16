@@ -71,6 +71,7 @@ import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Class for starting, stopping, and interacting with an Alluxio cluster where each master and
@@ -673,7 +674,8 @@ public final class MultiProcessCluster {
             addresses.add(
                 InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
           }
-          return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
+          return new PollingMasterInquireClient(addresses, ServerConfiguration.global(),
+              new Subject());
         } else {
           return new SingleMasterInquireClient(InetSocketAddress.createUnresolved(
               mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));

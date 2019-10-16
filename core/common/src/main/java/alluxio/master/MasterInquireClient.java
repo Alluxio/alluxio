@@ -25,6 +25,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Client for determining the primary master.
@@ -73,10 +74,21 @@ public interface MasterInquireClient {
    */
   class Factory {
     /**
+     * Creates a master inquire client with default subject.
+     *
      * @param conf configuration for creating the master inquire client
      * @return a master inquire client
      */
     public static MasterInquireClient create(AlluxioConfiguration conf) {
+      return create(conf, new Subject());
+    }
+
+    /**
+     * @param conf configuration for creating the master inquire client
+     * @param subject subject of the user
+     * @return a master inquire client
+     */
+    public static MasterInquireClient create(AlluxioConfiguration conf, Subject subject) {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
@@ -86,14 +98,20 @@ public interface MasterInquireClient {
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
-          return new PollingMasterInquireClient(addresses, conf);
+          return new PollingMasterInquireClient(addresses, conf, subject);
         } else {
           return new SingleMasterInquireClient(addresses.get(0));
         }
       }
     }
 
-    public static MasterInquireClient createForJobMaster(AlluxioConfiguration conf) {
+    /**
+     * @param conf configuration for creating the master inquire client
+     * @param subject subject of the user
+     * @return a master inquire client
+     */
+    public static MasterInquireClient createForJobMaster(AlluxioConfiguration conf,
+        Subject subject) {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
@@ -103,7 +121,7 @@ public interface MasterInquireClient {
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
-          return new PollingMasterInquireClient(addresses, conf);
+          return new PollingMasterInquireClient(addresses, conf, subject);
         } else {
           return new SingleMasterInquireClient(addresses.get(0));
         }

@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * A shared context that isolates all operations within the same JVM. Usually, one user only needs
@@ -64,7 +65,8 @@ public final class JobContext implements Closeable  {
    * Initializes the context. Only called in the factory methods and reset.
    */
   private synchronized void init(AlluxioConfiguration alluxioConf) {
-    mJobMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(alluxioConf);
+    mJobMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(alluxioConf,
+        new Subject());
     mJobMasterClientPool =
         new JobMasterClientPool(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build());

@@ -261,7 +261,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     List<InetSocketAddress> addresses = mMultiMasterLocalAlluxioCluster.getMasterAddresses();
     Collections.shuffle(addresses);
     PollingMasterInquireClient inquireClient =
-        new PollingMasterInquireClient(addresses, ServerConfiguration.global());
+        new PollingMasterInquireClient(addresses, ServerConfiguration.global(),
+            FileSystemContext.create(ServerConfiguration.global()).getClientContext().getSubject());
     assertEquals(mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getAddress(),
         inquireClient.getPrimaryRpcAddress());
   }
