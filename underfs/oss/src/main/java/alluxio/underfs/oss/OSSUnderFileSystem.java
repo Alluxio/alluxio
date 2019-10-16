@@ -23,8 +23,9 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
-import com.aliyun.oss.ClientConfiguration;
-import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.OSSObjectSummary;
@@ -53,7 +54,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private static final String FOLDER_SUFFIX = "_$folder$";
 
   /** Aliyun OSS client. */
-  private final OSSClient mClient;
+  private final OSS mClient;
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
@@ -78,8 +79,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     String accessKey = conf.get(PropertyKey.OSS_SECRET_KEY);
     String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
 
-    ClientConfiguration ossClientConf = initializeOSSClientConfig(conf);
-    OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
+    ClientBuilderConfiguration ossClientConf = initializeOSSClientConfig(conf);
+    OSS ossClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);
 
     return new OSSUnderFileSystem(uri, ossClient, bucketName, conf);
   }
@@ -92,7 +93,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param conf configuration for this UFS
    */
-  protected OSSUnderFileSystem(AlluxioURI uri, OSSClient ossClient, String bucketName,
+  protected OSSUnderFileSystem(AlluxioURI uri, OSS ossClient, String bucketName,
       UnderFileSystemConfiguration conf) {
     super(uri, conf);
     mClient = ossClient;
@@ -265,10 +266,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Creates an OSS {@code ClientConfiguration} using an Alluxio Configuration.
    *
-   * @return the OSS {@link ClientConfiguration}
+   * @return the OSS {@link ClientBuilderConfiguration}
    */
-  private static ClientConfiguration initializeOSSClientConfig(AlluxioConfiguration alluxioConf) {
-    ClientConfiguration ossClientConf = new ClientConfiguration();
+  private static ClientBuilderConfiguration initializeOSSClientConfig(AlluxioConfiguration alluxioConf) {
+    ClientBuilderConfiguration ossClientConf = new ClientBuilderConfiguration();
     ossClientConf
         .setConnectionTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf
