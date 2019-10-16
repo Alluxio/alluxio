@@ -75,6 +75,7 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setCompleteFile(CompleteFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteBlock(DeleteBlockEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteFile(DeleteFileEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setDetachDb(Table.DetachDbEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteMountPoint(DeleteMountPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeDirectory(InodeDirectoryEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeDirectoryIdGenerator(InodeDirectoryIdGeneratorEntry.getDefaultInstance()).build(),

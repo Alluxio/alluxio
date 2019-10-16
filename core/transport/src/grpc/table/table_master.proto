@@ -331,6 +331,14 @@ message AttachDatabasePResponse {
     optional bool success = 1;
 }
 
+message DetachDatabasePRequest {
+    optional string db_name = 1;
+}
+
+message DetachDatabasePResponse {
+    optional bool success = 1;
+}
+
 message FileStatistics {
     map<string, ColumnStatisticsInfo> column = 1; //map column names to column statistics
 }
@@ -437,6 +445,11 @@ service TableMasterClientService {
      * Attach an existing database into the catalog as a new database name
      */
     rpc AttachDatabase(AttachDatabasePRequest) returns (AttachDatabasePResponse);
+
+    /**
+     * Detach existing database into the catalog, removing any metadata about the table
+     */
+    rpc DetachDatabase(DetachDatabasePRequest) returns (DetachDatabasePResponse);
 
     rpc GetTableColumnStatistics(GetTableColumnStatisticsPRequest) returns (GetTableColumnStatisticsPResponse);
 

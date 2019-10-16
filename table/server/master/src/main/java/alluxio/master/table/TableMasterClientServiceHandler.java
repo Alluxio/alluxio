@@ -14,6 +14,8 @@ package alluxio.master.table;
 import alluxio.RpcUtils;
 import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
+import alluxio.grpc.table.DetachDatabasePRequest;
+import alluxio.grpc.table.DetachDatabasePResponse;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.GetAllDatabasesPRequest;
 import alluxio.grpc.table.GetAllDatabasesPResponse;
@@ -58,6 +60,14 @@ public class TableMasterClientServiceHandler
     RpcUtils.call(LOG, () -> AttachDatabasePResponse.newBuilder().setSuccess(mTableMaster
             .attachDatabase(request.getDbName(), request.getDbType(),
                 request.getOptionsMap())).build(), "attachDatabase", "",
+        responseObserver);
+  }
+
+  @Override
+  public void detachDatabase(DetachDatabasePRequest request,
+      StreamObserver<DetachDatabasePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> DetachDatabasePResponse.newBuilder().setSuccess(mTableMaster
+            .detachDatabase(request.getDbName())).build(), "detachDatabase", "",
         responseObserver);
   }
 

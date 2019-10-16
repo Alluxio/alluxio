@@ -99,6 +99,24 @@ public class AlluxioCatalog implements Journaled {
   }
 
   /**
+   * Removes an existing database.
+   *
+   * @param journalContext journal context
+   * @param dbName the database name
+   * @return true if database successfully created
+   */
+  public boolean detachDatabase(JournalContext journalContext, String dbName)
+      throws IOException {
+    if (!mDBs.containsKey(dbName)) {
+      throw new IOException(String
+          .format("Unable to detach database. Database name %s does not exist", dbName));
+    }
+    applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
+        alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build()).build());
+    return true;
+  }
+
+  /**
    * Get a table object by name.
    *
    * @param dbName the database name
@@ -258,6 +276,11 @@ public class AlluxioCatalog implements Journaled {
     mDBs.put(dbName, db);
   }
 
+  private void apply(alluxio.proto.journal.Table.DetachDbEntry entry) {
+    String dbName = entry.getDbName();
+    mDBs.remove(dbName);
+  }
+
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
     if (entry.hasAttachDb()) {
@@ -266,6 +289,9 @@ public class AlluxioCatalog implements Journaled {
     } else if (entry.hasAddTable()) {
       Database db = mDBs.get(entry.getAddTable().getDbName());
       return db.processJournalEntry(entry);
+    } else if (entry.hasDetachDb()) {
+      apply(entry.getDetachDb());
+      return true;
     }
     return false;
   }

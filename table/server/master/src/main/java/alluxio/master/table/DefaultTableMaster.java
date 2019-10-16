@@ -64,6 +64,12 @@ public class DefaultTableMaster extends CoreMaster implements TableMaster, Deleg
   }
 
   @Override
+  public boolean detachDatabase(String dbName)
+      throws IOException {
+    return mCatalog.detachDatabase(createJournalContext(), dbName);
+  }
+
+  @Override
   public List<String> getAllDatabases() throws IOException {
     return mCatalog.getAllDatabases();
   }

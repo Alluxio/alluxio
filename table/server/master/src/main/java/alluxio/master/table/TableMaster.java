@@ -38,6 +38,15 @@ public interface TableMaster extends Master {
       throws IOException;
 
   /**
+   * Remove an existing database in the catalog.
+   *
+   * @param dbName the database name to remove
+   * @return true if deletion is successful
+   */
+  boolean detachDatabase(String dbName)
+      throws IOException;
+
+  /**
    * Get a listing of all databases.
    *
    * @return a list of database

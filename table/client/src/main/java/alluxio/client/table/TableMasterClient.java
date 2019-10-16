@@ -99,6 +99,16 @@ public interface TableMasterClient extends Client {
       throws AlluxioStatusException;
 
   /**
+   * Detaches an existing database in the catalog master.
+   *
+   * @param dbName database name
+   * @return true if database created successfully
+   * @throws AlluxioStatusException
+   */
+  boolean detachDatabase(String dbName)
+      throws AlluxioStatusException;
+
+  /**
    * Returns metadata for reading a table given constraints.
    *
    * @param databaseName database name

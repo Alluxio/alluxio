@@ -69,6 +69,23 @@ public class AlluxioCatalogTest {
   }
 
   @Test
+  public void detachNonExistingDb() throws Exception {
+    mException.expect(IOException.class);
+    mCatalog.detachDatabase(NoopJournalContext.INSTANCE, "testDb");
+  }
+
+  @Test
+  public void detachDb() throws Exception {
+    String dbName = "testdb";
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        NoopUdbFactory.TYPE, dbName,
+        Collections.emptyMap());
+    assertEquals(1, mCatalog.getAllDatabases().size());
+    assertTrue(mCatalog.detachDatabase(NoopJournalContext.INSTANCE, dbName));
+    assertEquals(0, mCatalog.getAllDatabases().size());
+  }
+
+  @Test
   public void testGetAllDatabase() throws Exception {
     addMockDbs();
     assertEquals(2, mCatalog.getAllDatabases().size());
