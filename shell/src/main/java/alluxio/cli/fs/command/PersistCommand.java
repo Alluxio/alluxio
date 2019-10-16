@@ -55,7 +55,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   private static final Option PARALLELISM_OPTION =
       Option.builder("p")
           .longOpt("parallelism")
-          .argName("# threads")
+          .argName("# concurrent operations")
           .numberOfArgs(1)
           .desc("Number of concurrent persist operations, default: " + DEFAULT_PARALLELISM)
           .required(false)
