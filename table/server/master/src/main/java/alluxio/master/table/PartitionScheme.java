@@ -38,15 +38,15 @@ public interface PartitionScheme {
    *
    * @param partitions partitions
    * @param tableInfo table info
-   * @param unpartitioned table is unpartitioned
+   * @param isPartitioned table is partitioned
    * @return a partition scheme object
    */
   static PartitionScheme createPartitionScheme(List<Partition> partitions, UdbTableInfo tableInfo,
-      boolean unpartitioned) {
-    if (unpartitioned) {
-      return new UnpartitionedTableScheme(partitions, tableInfo);
-    } else {
+      boolean isPartitioned) {
+    if (isPartitioned) {
       return new PartitionedTableScheme(partitions, tableInfo);
+    } else {
+      return new UnpartitionedTableScheme(partitions, tableInfo);
     }
   }
 }
