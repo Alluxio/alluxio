@@ -1985,16 +1985,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
   }
 
-  private static final List<String> PERSISTENCE_BLACKLIST =
-      ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-          ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
-          : Collections.emptyList();
-
   private boolean shouldPersistPath(String path) {
-    for (String pattern : PERSISTENCE_BLACKLIST) {
+    List<String> blacklist =
+        ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
+            ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
+            : Collections.emptyList();
+    for (String pattern : blacklist) {
       if (path.contains(pattern)) {
         LOG.debug("Not persisting path {} because it is in {} {}", path,
-            PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, PERSISTENCE_BLACKLIST);
+            PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, blacklist);
         return false;
       }
     }

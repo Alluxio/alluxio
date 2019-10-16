@@ -85,10 +85,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT,
       "MUST_CACHE", PropertyKey.Name.USER_FILE_PERSIST_ON_RENAME, "true"})
   public void persistOnRenameDirectory() throws Exception {
-    // Set the default write type to MUST_CACHE, so that directories are not persisted by default
-    ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    // Set the default behavior to be persist on rename
-    ServerConfiguration.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     String toPersist = testDir + "/foo";
     String persisted = testDir + "/foo_persisted";
@@ -108,7 +104,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/bar")).isPersisted());
     checkFilePersisted(new AlluxioURI(persisted + "/foobar1"), 10);
     checkFilePersisted(new AlluxioURI(persisted + "/foobar2"), 20);
-    ServerConfiguration.reset();
   }
 
   @Test
@@ -132,7 +127,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     }, WaitForOptions.defaults().setTimeoutMs(10000));
     assertFalse(mFileSystem.getStatus(new AlluxioURI(persisted + "/foobar2")).isPersisted());
     checkFilePersisted(new AlluxioURI(persisted + "/foobar1"), 10);
-    ServerConfiguration.reset();
   }
 
   @Test
