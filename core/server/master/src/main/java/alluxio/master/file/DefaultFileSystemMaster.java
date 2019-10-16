@@ -374,6 +374,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /** List of all master subcomponents which require journaling. */
   private final List<Journaled> mJournaledComponents;
 
+  /** List of strings which are blacklisted from async persist. */
+  private final List<String> mPersistBlacklist;
+
   /** Thread pool which asynchronously handles the completion of persist jobs. */
   private java.util.concurrent.ThreadPoolExecutor mPersistCheckerPool;
 
@@ -422,6 +425,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST, ","));
+    mPersistBlacklist = ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
+        ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
+        : Collections.emptyList();
 
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
     mJobMasterClientPool = new JobMasterClientPool(JobMasterClientContext
@@ -1986,14 +1992,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   private boolean shouldPersistPath(String path) {
-    List<String> blacklist =
-        ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-            ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
-            : Collections.emptyList();
-    for (String pattern : blacklist) {
+    for (String pattern : mPersistBlacklist) {
       if (path.contains(pattern)) {
-        LOG.debug("Not persisting path {} because it is in {} {}", path,
-            PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, blacklist);
+        LOG.debug("Not persisting path {} because it is in {}: {}", path,
+            PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, mPersistBlacklist);
         return false;
       }
     }
@@ -2091,7 +2093,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // If a directory is being renamed with persist on rename, attempt to persist children
     if (srcInode.isDirectory() && context.getPersist()
         && shouldPersistPath(dstInodePath.toString())) {
-      LOG.debug("Schedule Async Persist on rename for Dir {}", dstInodePath.toString());
+      LOG.debug("Schedule Async Persist on rename for Dir: {}", dstInodePath);
       try (LockedInodePathList descendants = mInodeTree.getDescendants(srcInodePath)) {
         for (LockedInodePath childPath : descendants) {
           Inode childInode = childPath.getInode();
@@ -2099,7 +2101,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           if (childInode.isFile() && !childInode.isPersisted()
               && shouldPersistPath(
                   childPath.toString().substring(srcInodePath.toString().length()))) {
-            LOG.debug("Schedule Async Persist on rename for Child File {}", childPath.toString());
+            LOG.debug("Schedule Async Persist on rename for Child File: {}", childPath);
             mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
                 .setId(childInode.getId())
                 .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())

@@ -1697,7 +1697,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_BLACKLIST =
       new Builder(Name.MASTER_PERSISTENCE_BLACKLIST)
-          .setDescription("Patterns to blacklist persist, comma separated, string match, no regex.")
+          .setDescription("Patterns to blacklist persist, comma separated, string match, no regex."
+            + " This affects any async persist call (including ASYNC_THROUGH writes and CLI "
+            + "persist) but does not affect CACHE_THROUGH writes. Users may want to specify "
+            + "temporary files in the blacklist to avoid unnecessary I/O and errors. Some "
+            + "examples are `.staging` and `.tmp`.")
           .build();
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =
       new Builder(Name.MASTER_REPLICATION_CHECK_INTERVAL_MS)
