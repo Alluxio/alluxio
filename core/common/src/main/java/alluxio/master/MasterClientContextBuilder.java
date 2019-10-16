@@ -50,7 +50,7 @@ public class MasterClientContextBuilder {
   public MasterClientContext build() {
     if (mMasterInquireClient == null) {
       mMasterInquireClient = MasterInquireClient.Factory.create(mContext.getClusterConf(),
-          mContext.getSubject());
+          mContext.getUserState());
     }
     return new MasterClientContext(mContext, mMasterInquireClient);
   }

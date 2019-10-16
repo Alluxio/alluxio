@@ -16,6 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
+import alluxio.security.user.UserState;
 import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.Closeable;
@@ -24,7 +25,6 @@ import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * A shared context that isolates all operations within the same JVM. Usually, one user only needs
@@ -48,11 +48,12 @@ public final class JobContext implements Closeable  {
    * Creates a job context.
    *
    * @param alluxioConf Alluxio configuration
+   * @param userState user state
    * @return the context
    */
-  public static JobContext create(AlluxioConfiguration alluxioConf) {
+  public static JobContext create(AlluxioConfiguration alluxioConf, UserState userState) {
     JobContext context = new JobContext();
-    context.init(alluxioConf);
+    context.init(alluxioConf, userState);
     return context;
   }
 
@@ -64,12 +65,12 @@ public final class JobContext implements Closeable  {
   /**
    * Initializes the context. Only called in the factory methods and reset.
    */
-  private synchronized void init(AlluxioConfiguration alluxioConf) {
-    mJobMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(alluxioConf,
-        new Subject());
+  private synchronized void init(AlluxioConfiguration alluxioConf, UserState userState) {
+    mJobMasterInquireClient = MasterInquireClient.Factory
+        .createForJobMaster(alluxioConf, userState);
     mJobMasterClientPool =
         new JobMasterClientPool(JobMasterClientContext
-            .newBuilder(ClientContext.create(alluxioConf)).build());
+            .newBuilder(ClientContext.create(userState.getSubject(), alluxioConf)).build());
   }
 
   /**

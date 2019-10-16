@@ -39,7 +39,6 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
-import javax.security.auth.Subject;
 
 /**
  * PollingMasterInquireClient finds the address of the primary master by polling a list of master
@@ -57,13 +56,13 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   /**
    * @param masterAddresses the potential master addresses
    * @param alluxioConf Alluxio configuration
-   * @param subject user subject
+   * @param userState user state
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       AlluxioConfiguration alluxioConf,
-      Subject subject) {
+      UserState userState) {
     this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30),
-        alluxioConf, subject);
+        alluxioConf, userState);
   }
 
   /**
@@ -84,16 +83,16 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    * @param masterAddresses the potential master addresses
    * @param retryPolicySupplier the retry policy supplier
    * @param alluxioConf Alluxio configuration
-   * @param subject subject of the user
+   * @param userState user state
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier,
       AlluxioConfiguration alluxioConf,
-      Subject subject) {
+      UserState userState) {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
-    mUserState = UserState.Factory.create(mConfiguration, subject);
+    mUserState = userState;
   }
 
   @Override

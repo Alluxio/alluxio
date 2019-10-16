@@ -260,9 +260,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   public void queryStandby() throws Exception {
     List<InetSocketAddress> addresses = mMultiMasterLocalAlluxioCluster.getMasterAddresses();
     Collections.shuffle(addresses);
-    PollingMasterInquireClient inquireClient =
-        new PollingMasterInquireClient(addresses, ServerConfiguration.global(),
-            FileSystemContext.create(ServerConfiguration.global()).getClientContext().getSubject());
+    PollingMasterInquireClient inquireClient = new PollingMasterInquireClient(addresses,
+        ServerConfiguration.global(),
+        FileSystemContext.create(ServerConfiguration.global()).getClientContext().getUserState());
     assertEquals(mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getAddress(),
         inquireClient.getPrimaryRpcAddress());
   }

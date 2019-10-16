@@ -168,7 +168,7 @@ public final class FileSystemContext implements Closeable {
     FileSystemContext context = new FileSystemContext();
     ClientContext ctx = ClientContext.create(subject, conf);
     MasterInquireClient inquireClient =
-        MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getSubject());
+        MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     context.init(ctx, inquireClient);
     return context;
   }
@@ -180,7 +180,7 @@ public final class FileSystemContext implements Closeable {
   public static FileSystemContext create(ClientContext clientContext) {
     FileSystemContext ctx = new FileSystemContext();
     ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
-        clientContext.getSubject()));
+        clientContext.getUserState()));
     return ctx;
   }
 
@@ -339,7 +339,7 @@ public final class FileSystemContext implements Closeable {
       }
       closeContext();
       initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
-          getClientContext().getSubject()));
+          getClientContext().getUserState()));
       mReinitializer.onSuccess();
     }
   }
