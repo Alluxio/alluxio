@@ -25,5 +25,8 @@ then
   ALLUXIO_BUILD_FORKCOUNT=4
 fi
 
-git clean -fdx
+if [ -n "${ALLUXIO_GIT_CLEAN}" ]
+then
+  git clean -fdx
+fi
 mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@
