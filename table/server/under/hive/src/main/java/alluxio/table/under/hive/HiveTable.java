@@ -112,6 +112,11 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
+  public boolean isPartitioned() {
+    return !getPartitionKeys().isEmpty();
+  }
+
+  @Override
   public List<UdbPartition> getPartitions() throws IOException {
     List<UdbPartition> udbPartitions = new ArrayList<>();
     try {

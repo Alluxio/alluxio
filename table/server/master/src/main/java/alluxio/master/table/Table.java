@@ -71,7 +71,7 @@ public class Table {
           udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
       UdbTableInfo tableInfo = udbTable.toProto();
       mStatistics = udbTable.getStatistics();
-      mIsPartitioned = !udbTable.getPartitionKeys().isEmpty();
+      mIsPartitioned = udbTable.isPartitioned();
       mPartitionScheme = PartitionScheme.createPartitionScheme(partitions,
           tableInfo, mIsPartitioned);
     } catch (IOException e) {

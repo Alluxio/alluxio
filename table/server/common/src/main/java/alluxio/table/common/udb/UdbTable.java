@@ -55,4 +55,9 @@ public interface UdbTable {
    * @return get partition keys
    */
   List<FieldSchema> getPartitionKeys();
+
+  /**
+   * @return true if partitioned
+   */
+  boolean isPartitioned();
 }
