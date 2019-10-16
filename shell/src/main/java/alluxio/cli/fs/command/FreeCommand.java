@@ -93,7 +93,7 @@ public final class FreeCommand extends AbstractFileSystemCommand {
     } catch (TimeoutException e) {
       throw new RuntimeException(e);
     }
-    System.out.println(path + " was successfully freed from memory.");
+    System.out.println(path + " was successfully freed from Alluxio space.");
   }
 
   @Override
