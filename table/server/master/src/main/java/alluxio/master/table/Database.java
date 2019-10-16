@@ -188,7 +188,7 @@ public class Database implements Journaled {
             .setTableName(tableName)
             .addAllPartitions(table.getPartitions().stream().map(Partition::toProto).collect(
                 Collectors.toList()))
-            .addAllTableStats(table.getStatistics())
+            .addAllTableStats(table.getStatistics()).setPartitioned(table.isPartitioned())
             .setSchema(table.getSchema())
             .build();
         Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
@@ -256,7 +256,7 @@ public class Database implements Journaled {
             .setTableName(table.getName())
             .addAllPartitions(table.getPartitions().stream().map(Partition::toProto).collect(
                 Collectors.toList()))
-            .addAllTableStats(table.getStatistics())
+            .addAllTableStats(table.getStatistics()).setPartitioned(table.isPartitioned())
             .setSchema(table.getSchema())
             .build();
 

@@ -12,6 +12,7 @@
 package alluxio.table.common.udb;
 
 import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.UdbTableInfo;
 import alluxio.table.common.UdbPartition;
@@ -49,4 +50,9 @@ public interface UdbTable {
    * @return returns a proto representing the table
    */
   UdbTableInfo toProto() throws IOException;
+
+  /**
+   * @return get partition keys
+   */
+  List<FieldSchema> getPartitionKeys();
 }

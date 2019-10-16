@@ -107,6 +107,11 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
+  public List<FieldSchema> getPartitionKeys() {
+    return mPartitionKeys;
+  }
+
+  @Override
   public List<UdbPartition> getPartitions() throws IOException {
     List<UdbPartition> udbPartitions = new ArrayList<>();
     try {
@@ -117,6 +122,21 @@ public class HiveTable implements UdbTable {
       List<String> partitionColumns = mTable.getPartitionKeys().stream()
           .map(org.apache.hadoop.hive.metastore.api.FieldSchema::getName)
           .collect(Collectors.toList());
+
+      if (partitionColumns.isEmpty()) {
+        // unpartitioned table, generate a partition
+        PartitionInfo.Builder pib = PartitionInfo.newBuilder()
+            .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
+            .addAllCols(HiveUtils.toProto(mTable.getSd().getCols()))
+            .setStorage(HiveUtils.toProto(mTable.getSd(), mPathTranslator))
+            .putAllFileMetadata(getPartitionMetadata(
+                mPathTranslator.toAlluxioPath(mTable.getSd().getLocation()),
+                mHiveDatabase.getUdbContext().getFileSystem()))
+            .setPartitionName(mName);
+        udbPartitions.add(new HivePartition(
+            new HiveLayout(pib.build(), Collections.emptyList())));
+        return udbPartitions;
+      }
 
       List<String> partitionNames = partitions.stream().map(
           partition -> FileUtils.makePartName(partitionColumns,

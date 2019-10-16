@@ -1722,6 +1722,15 @@ public final class Table {
      * <code>optional .alluxio.grpc.table.Schema schema = 6;</code>
      */
     alluxio.grpc.table.SchemaOrBuilder getSchemaOrBuilder();
+
+    /**
+     * <code>optional bool partitioned = 7;</code>
+     */
+    boolean hasPartitioned();
+    /**
+     * <code>optional bool partitioned = 7;</code>
+     */
+    boolean getPartitioned();
   }
   /**
    * <pre>
@@ -1744,6 +1753,7 @@ public final class Table {
       tableName_ = "";
       partitions_ = java.util.Collections.emptyList();
       tableStats_ = java.util.Collections.emptyList();
+      partitioned_ = false;
     }
 
     @java.lang.Override
@@ -1831,6 +1841,11 @@ public final class Table {
                 schema_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000008;
+              break;
+            }
+            case 56: {
+              bitField0_ |= 0x00000010;
+              partitioned_ = input.readBool();
               break;
             }
           }
@@ -2060,6 +2075,21 @@ public final class Table {
       return schema_ == null ? alluxio.grpc.table.Schema.getDefaultInstance() : schema_;
     }
 
+    public static final int PARTITIONED_FIELD_NUMBER = 7;
+    private boolean partitioned_;
+    /**
+     * <code>optional bool partitioned = 7;</code>
+     */
+    public boolean hasPartitioned() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool partitioned = 7;</code>
+     */
+    public boolean getPartitioned() {
+      return partitioned_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -2108,6 +2138,9 @@ public final class Table {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeMessage(6, getSchema());
       }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(7, partitioned_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -2137,6 +2170,10 @@ public final class Table {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, getSchema());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(7, partitioned_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -2178,6 +2215,11 @@ public final class Table {
         result = result && getSchema()
             .equals(other.getSchema());
       }
+      result = result && (hasPartitioned() == other.hasPartitioned());
+      if (hasPartitioned()) {
+        result = result && (getPartitioned()
+            == other.getPartitioned());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -2212,6 +2254,11 @@ public final class Table {
       if (hasSchema()) {
         hash = (37 * hash) + SCHEMA_FIELD_NUMBER;
         hash = (53 * hash) + getSchema().hashCode();
+      }
+      if (hasPartitioned()) {
+        hash = (37 * hash) + PARTITIONED_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getPartitioned());
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -2378,6 +2425,8 @@ public final class Table {
           schemaBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000020);
+        partitioned_ = false;
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
 
@@ -2444,6 +2493,10 @@ public final class Table {
         } else {
           result.schema_ = schemaBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.partitioned_ = partitioned_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2553,6 +2606,9 @@ public final class Table {
         }
         if (other.hasSchema()) {
           mergeSchema(other.getSchema());
+        }
+        if (other.hasPartitioned()) {
+          setPartitioned(other.getPartitioned());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -3464,6 +3520,38 @@ public final class Table {
         }
         return schemaBuilder_;
       }
+
+      private boolean partitioned_ ;
+      /**
+       * <code>optional bool partitioned = 7;</code>
+       */
+      public boolean hasPartitioned() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>optional bool partitioned = 7;</code>
+       */
+      public boolean getPartitioned() {
+        return partitioned_;
+      }
+      /**
+       * <code>optional bool partitioned = 7;</code>
+       */
+      public Builder setPartitioned(boolean value) {
+        bitField0_ |= 0x00000040;
+        partitioned_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool partitioned = 7;</code>
+       */
+      public Builder clearPartitioned() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        partitioned_ = false;
+        onChanged();
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -3548,14 +3636,15 @@ public final class Table {
       "name\030\002 \001(\t\022@\n\006config\030\003 \003(\01320.alluxio.pro" +
       "to.journal.AttachDbEntry.ConfigEntry\032-\n\013" +
       "ConfigEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:" +
-      "\0028\001\" \n\rDetachDbEntry\022\017\n\007db_name\030\001 \001(\t\"\207\002" +
+      "\0028\001\" \n\rDetachDbEntry\022\017\n\007db_name\030\001 \001(\t\"\234\002" +
       "\n\rAddTableEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntabl" +
       "e_name\030\002 \001(\t\0223\n\tudb_table\030\003 \001(\0132 .alluxi" +
       "o.grpc.table.UdbTableInfo\0221\n\npartitions\030" +
       "\004 \003(\0132\035.alluxio.grpc.table.Partition\022=\n\013" +
       "table_stats\030\005 \003(\0132(.alluxio.grpc.table.C" +
       "olumnStatisticsInfo\022*\n\006schema\030\006 \001(\0132\032.al" +
-      "luxio.grpc.table.Schema"
+      "luxio.grpc.table.Schema\022\023\n\013partitioned\030\007" +
+      " \001(\010"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3593,7 +3682,7 @@ public final class Table {
     internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddTableEntry_descriptor,
-        new java.lang.String[] { "DbName", "TableName", "UdbTable", "Partitions", "TableStats", "Schema", });
+        new java.lang.String[] { "DbName", "TableName", "UdbTable", "Partitions", "TableStats", "Schema", "Partitioned", });
     alluxio.grpc.table.TableMasterProto.getDescriptor();
   }
 

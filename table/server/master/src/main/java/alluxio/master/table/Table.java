@@ -37,10 +37,10 @@ public class Table {
   private String mName;
   private final Database mDatabase;
   private Schema mSchema;
-  private UdbTableInfo mTableInfo;
+  private PartitionScheme mPartitionScheme;
   // TODO(gpang): this should be indexable by partition spec
-  private List<Partition> mPartitions;
   private List<ColumnStatisticsInfo> mStatistics;
+  private boolean mIsPartitioned;
 
   private Table(Database database, UdbTable udbTable) {
     mDatabase = database;
@@ -48,12 +48,13 @@ public class Table {
   }
 
   private Table(Database database, List<Partition> partitions, Schema schema,
-      String tableName, UdbTableInfo tableInfo, List<ColumnStatisticsInfo> columnStats) {
+      String tableName, UdbTableInfo tableInfo, List<ColumnStatisticsInfo> columnStats,
+      boolean isPartitioned) {
     mDatabase = database;
     mName = tableName;
     mSchema = schema;
-    mPartitions = partitions;
-    mTableInfo = tableInfo;
+    mIsPartitioned = isPartitioned;
+    mPartitionScheme = PartitionScheme.createPartitionScheme(partitions, tableInfo, mIsPartitioned);
     mStatistics = columnStats;
   }
 
@@ -66,10 +67,13 @@ public class Table {
     try {
       mName = udbTable.getName();
       mSchema = udbTable.getSchema();
-      mPartitions =
+      List<Partition> partitions =
           udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
-      mTableInfo = udbTable.toProto();
+      UdbTableInfo tableInfo = udbTable.toProto();
       mStatistics = udbTable.getStatistics();
+      mIsPartitioned = !udbTable.getPartitionKeys().isEmpty();
+      mPartitionScheme = PartitionScheme.createPartitionScheme(partitions,
+          tableInfo, mIsPartitioned);
     } catch (IOException e) {
       LOG.info("Sync table {} failed {}", mName, e);
     }
@@ -95,7 +99,7 @@ public class Table {
         .collect(Collectors.toList());
 
     return new Table(database, partitions, entry.getSchema(), entry.getTableName(),
-        entry.getUdbTable(), entry.getTableStatsList());
+        entry.getUdbTable(), entry.getTableStatsList(), entry.getPartitioned());
   }
   /**
    * @return the table name
@@ -108,7 +112,7 @@ public class Table {
    * @return the list of partitions
    */
   public List<Partition> getPartitions() {
-    return mPartitions;
+    return mPartitionScheme.getPartitions();
   }
 
   /**
@@ -132,13 +136,20 @@ public class Table {
    * @return a list of {@link TransformPlan} to transform this table
    */
   public List<TransformPlan> getTransformPlans(TransformDefinition definition) throws IOException {
-    List<TransformPlan> plans = new ArrayList<>(mPartitions.size());
-    for (Partition partition : mPartitions) {
+    List<TransformPlan> plans = new ArrayList<>(getPartitions().size());
+    for (Partition partition : getPartitions()) {
       TransformContext transformContext =
           new TransformContext(mDatabase.getName(), mName, partition.getSpec().toString());
       plans.add(partition.getTransformPlan(transformContext, definition));
     }
     return plans;
+  }
+
+  /**
+   * @return if the table is partitioned
+   */
+  public boolean isPartitioned() {
+    return mIsPartitioned;
   }
 
   /**
@@ -150,7 +161,7 @@ public class Table {
         .setTableName(mName)
         .setSchema(mSchema);
 
-    builder.setUdbInfo(mTableInfo);
+    builder.setUdbInfo(mPartitionScheme.getTableLayout());
     return builder.build();
   }
 }

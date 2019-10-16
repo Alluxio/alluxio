@@ -26,4 +26,5 @@ message AddTableEntry {
     repeated alluxio.grpc.table.Partition partitions = 4;
     repeated alluxio.grpc.table.ColumnStatisticsInfo table_stats = 5;
     optional alluxio.grpc.table.Schema schema = 6;
+    optional bool partitioned = 7;
 }

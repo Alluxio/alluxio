@@ -101,6 +101,11 @@ public class HiveLayout implements Layout {
   }
 
   @Override
+  public String getLocation() {
+    return mPartitionInfo.getStorage().getLocation();
+  }
+
+  @Override
   public TransformPlan getTransformPlan(TransformContext transformContext,
       TransformDefinition definition)
       throws IOException {

@@ -47,6 +47,11 @@ public interface Layout {
   Map<String, ColumnStatisticsInfo> getColumnStatsData();
 
   /**
+   * @return get the location of the layout
+   */
+  String getLocation();
+
+  /**
    * @param transformContext the {@link TransformContext}
    * @param definition the transform definition
    * @return a new {@code TransformPlan} representing the layout transformation
