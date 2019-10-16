@@ -66,12 +66,6 @@
       <artifactId>alluxio-table-server-master</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- TODO(gpang): remove this when loaded from lib/ -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-table-server-under-hive</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <profiles>

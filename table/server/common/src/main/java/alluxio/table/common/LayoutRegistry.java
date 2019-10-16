@@ -49,6 +49,7 @@ public class LayoutRegistry {
       map.put(factory.getType(), factory);
     }
     mFactories = map;
+    LOG.info("Registered Table Layouts: " + String.join(",", mFactories.keySet()));
   }
 
   /**

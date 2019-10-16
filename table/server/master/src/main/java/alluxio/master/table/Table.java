@@ -48,11 +48,12 @@ public class Table {
   }
 
   private Table(Database database, List<Partition> partitions, Schema schema,
-      String tableName, List<ColumnStatisticsInfo> columnStats) {
+      String tableName, UdbTableInfo tableInfo, List<ColumnStatisticsInfo> columnStats) {
     mDatabase = database;
     mName = tableName;
     mSchema = schema;
     mPartitions = partitions;
+    mTableInfo = tableInfo;
     mStatistics = columnStats;
   }
 
@@ -92,8 +93,9 @@ public class Table {
     List<Partition> partitions = entry.getPartitionsList().stream()
         .map(p -> Partition.fromProto(database.getContext().getLayoutRegistry(), p))
         .collect(Collectors.toList());
+
     return new Table(database, partitions, entry.getSchema(), entry.getTableName(),
-        entry.getTableStatsList());
+        entry.getUdbTable(), entry.getTableStatsList());
   }
   /**
    * @return the table name

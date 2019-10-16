@@ -34,16 +34,18 @@
   </properties>
 
   <dependencies>
-    <!-- Internal dependencies -->
+    <!-- Internal dependencies (must have provided scope) -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-table-base</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-table-server-common</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
