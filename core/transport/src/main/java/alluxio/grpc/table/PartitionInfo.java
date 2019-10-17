@@ -101,23 +101,10 @@ private static final long serialVersionUID = 0L;
                 parameters__.getKey(), parameters__.getValue());
             break;
           }
-          case 50: {
-            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
-              fileMetadata_ = com.google.protobuf.MapField.newMapField(
-                  FileMetadataDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000020;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.table.ParquetMetadata>
-            fileMetadata__ = input.readMessage(
-                FileMetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            fileMetadata_.getMutableMap().put(
-                fileMetadata__.getKey(), fileMetadata__.getValue());
-            break;
-          }
           case 58: {
-            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
               cols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>();
-              mutable_bitField0_ |= 0x00000040;
+              mutable_bitField0_ |= 0x00000020;
             }
             cols_.add(
                 input.readMessage(alluxio.grpc.table.FieldSchema.PARSER, extensionRegistry));
@@ -140,7 +127,7 @@ private static final long serialVersionUID = 0L;
       if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
         values_ = values_.getUnmodifiableView();
       }
-      if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
         cols_ = java.util.Collections.unmodifiableList(cols_);
       }
       this.unknownFields = unknownFields.build();
@@ -158,8 +145,6 @@ private static final long serialVersionUID = 0L;
     switch (number) {
       case 5:
         return internalGetParameters();
-      case 6:
-        return internalGetFileMetadata();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -411,98 +396,6 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
-  public static final int FILE_METADATA_FIELD_NUMBER = 6;
-  private static final class FileMetadataDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, alluxio.grpc.table.ParquetMetadata> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, alluxio.grpc.table.ParquetMetadata>newDefaultInstance(
-                alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_PartitionInfo_FileMetadataEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                alluxio.grpc.table.ParquetMetadata.getDefaultInstance());
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, alluxio.grpc.table.ParquetMetadata> fileMetadata_;
-  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.table.ParquetMetadata>
-  internalGetFileMetadata() {
-    if (fileMetadata_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          FileMetadataDefaultEntryHolder.defaultEntry);
-    }
-    return fileMetadata_;
-  }
-
-  public int getFileMetadataCount() {
-    return internalGetFileMetadata().getMap().size();
-  }
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-
-  public boolean containsFileMetadata(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetFileMetadata().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getFileMetadataMap()} instead.
-   */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> getFileMetadata() {
-    return getFileMetadataMap();
-  }
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-
-  public java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> getFileMetadataMap() {
-    return internalGetFileMetadata().getMap();
-  }
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-
-  public alluxio.grpc.table.ParquetMetadata getFileMetadataOrDefault(
-      java.lang.String key,
-      alluxio.grpc.table.ParquetMetadata defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> map =
-        internalGetFileMetadata().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-
-  public alluxio.grpc.table.ParquetMetadata getFileMetadataOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> map =
-        internalGetFileMetadata().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
-  }
-
   public static final int COLS_FIELD_NUMBER = 7;
   private java.util.List<alluxio.grpc.table.FieldSchema> cols_;
   /**
@@ -628,12 +521,6 @@ private static final long serialVersionUID = 0L;
         internalGetParameters(),
         ParametersDefaultEntryHolder.defaultEntry,
         5);
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetFileMetadata(),
-        FileMetadataDefaultEntryHolder.defaultEntry,
-        6);
     for (int i = 0; i < cols_.size(); i++) {
       output.writeMessage(7, cols_.get(i));
     }
@@ -675,16 +562,6 @@ private static final long serialVersionUID = 0L;
           .build();
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, parameters__);
-    }
-    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.table.ParquetMetadata> entry
-         : internalGetFileMetadata().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.table.ParquetMetadata>
-      fileMetadata__ = FileMetadataDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, fileMetadata__);
     }
     for (int i = 0; i < cols_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
@@ -728,8 +605,6 @@ private static final long serialVersionUID = 0L;
     }
     result = result && internalGetParameters().equals(
         other.internalGetParameters());
-    result = result && internalGetFileMetadata().equals(
-        other.internalGetFileMetadata());
     result = result && getColsList()
         .equals(other.getColsList());
     result = result && (hasPartitionName() == other.hasPartitionName());
@@ -767,10 +642,6 @@ private static final long serialVersionUID = 0L;
     if (!internalGetParameters().getMap().isEmpty()) {
       hash = (37 * hash) + PARAMETERS_FIELD_NUMBER;
       hash = (53 * hash) + internalGetParameters().hashCode();
-    }
-    if (!internalGetFileMetadata().getMap().isEmpty()) {
-      hash = (37 * hash) + FILE_METADATA_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetFileMetadata().hashCode();
     }
     if (getColsCount() > 0) {
       hash = (37 * hash) + COLS_FIELD_NUMBER;
@@ -891,8 +762,6 @@ private static final long serialVersionUID = 0L;
       switch (number) {
         case 5:
           return internalGetParameters();
-        case 6:
-          return internalGetFileMetadata();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -904,8 +773,6 @@ private static final long serialVersionUID = 0L;
       switch (number) {
         case 5:
           return internalGetMutableParameters();
-        case 6:
-          return internalGetMutableFileMetadata();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -950,15 +817,14 @@ private static final long serialVersionUID = 0L;
       }
       bitField0_ = (bitField0_ & ~0x00000008);
       internalGetMutableParameters().clear();
-      internalGetMutableFileMetadata().clear();
       if (colsBuilder_ == null) {
         cols_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
       } else {
         colsBuilder_.clear();
       }
       partitionName_ = "";
-      bitField0_ = (bitField0_ & ~0x00000080);
+      bitField0_ = (bitField0_ & ~0x00000040);
       return this;
     }
 
@@ -1006,18 +872,16 @@ private static final long serialVersionUID = 0L;
       }
       result.parameters_ = internalGetParameters();
       result.parameters_.makeImmutable();
-      result.fileMetadata_ = internalGetFileMetadata();
-      result.fileMetadata_.makeImmutable();
       if (colsBuilder_ == null) {
-        if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        if (((bitField0_ & 0x00000020) == 0x00000020)) {
           cols_ = java.util.Collections.unmodifiableList(cols_);
-          bitField0_ = (bitField0_ & ~0x00000040);
+          bitField0_ = (bitField0_ & ~0x00000020);
         }
         result.cols_ = cols_;
       } else {
         result.cols_ = colsBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
         to_bitField0_ |= 0x00000008;
       }
       result.partitionName_ = partitionName_;
@@ -1088,13 +952,11 @@ private static final long serialVersionUID = 0L;
       }
       internalGetMutableParameters().mergeFrom(
           other.internalGetParameters());
-      internalGetMutableFileMetadata().mergeFrom(
-          other.internalGetFileMetadata());
       if (colsBuilder_ == null) {
         if (!other.cols_.isEmpty()) {
           if (cols_.isEmpty()) {
             cols_ = other.cols_;
-            bitField0_ = (bitField0_ & ~0x00000040);
+            bitField0_ = (bitField0_ & ~0x00000020);
           } else {
             ensureColsIsMutable();
             cols_.addAll(other.cols_);
@@ -1107,7 +969,7 @@ private static final long serialVersionUID = 0L;
             colsBuilder_.dispose();
             colsBuilder_ = null;
             cols_ = other.cols_;
-            bitField0_ = (bitField0_ & ~0x00000040);
+            bitField0_ = (bitField0_ & ~0x00000020);
             colsBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getColsFieldBuilder() : null;
@@ -1117,7 +979,7 @@ private static final long serialVersionUID = 0L;
         }
       }
       if (other.hasPartitionName()) {
-        bitField0_ |= 0x00000080;
+        bitField0_ |= 0x00000040;
         partitionName_ = other.partitionName_;
         onChanged();
       }
@@ -1712,163 +1574,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private com.google.protobuf.MapField<
-        java.lang.String, alluxio.grpc.table.ParquetMetadata> fileMetadata_;
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.table.ParquetMetadata>
-    internalGetFileMetadata() {
-      if (fileMetadata_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            FileMetadataDefaultEntryHolder.defaultEntry);
-      }
-      return fileMetadata_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.table.ParquetMetadata>
-    internalGetMutableFileMetadata() {
-      onChanged();;
-      if (fileMetadata_ == null) {
-        fileMetadata_ = com.google.protobuf.MapField.newMapField(
-            FileMetadataDefaultEntryHolder.defaultEntry);
-      }
-      if (!fileMetadata_.isMutable()) {
-        fileMetadata_ = fileMetadata_.copy();
-      }
-      return fileMetadata_;
-    }
-
-    public int getFileMetadataCount() {
-      return internalGetFileMetadata().getMap().size();
-    }
-    /**
-     * <pre>
-     * a map between file names and its parquet metadata info
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-     */
-
-    public boolean containsFileMetadata(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetFileMetadata().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getFileMetadataMap()} instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> getFileMetadata() {
-      return getFileMetadataMap();
-    }
-    /**
-     * <pre>
-     * a map between file names and its parquet metadata info
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-     */
-
-    public java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> getFileMetadataMap() {
-      return internalGetFileMetadata().getMap();
-    }
-    /**
-     * <pre>
-     * a map between file names and its parquet metadata info
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-     */
-
-    public alluxio.grpc.table.ParquetMetadata getFileMetadataOrDefault(
-        java.lang.String key,
-        alluxio.grpc.table.ParquetMetadata defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> map =
-          internalGetFileMetadata().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <pre>
-     * a map between file names and its parquet metadata info
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-     */
-
-    public alluxio.grpc.table.ParquetMetadata getFileMetadataOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> map =
-          internalGetFileMetadata().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public Builder clearFileMetadata() {
-      internalGetMutableFileMetadata().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <pre>
-     * a map between file names and its parquet metadata info
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-     */
-
-    public Builder removeFileMetadata(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableFileMetadata().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata>
-    getMutableFileMetadata() {
-      return internalGetMutableFileMetadata().getMutableMap();
-    }
-    /**
-     * <pre>
-     * a map between file names and its parquet metadata info
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-     */
-    public Builder putFileMetadata(
-        java.lang.String key,
-        alluxio.grpc.table.ParquetMetadata value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableFileMetadata().getMutableMap()
-          .put(key, value);
-      return this;
-    }
-    /**
-     * <pre>
-     * a map between file names and its parquet metadata info
-     * </pre>
-     *
-     * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-     */
-
-    public Builder putAllFileMetadata(
-        java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata> values) {
-      internalGetMutableFileMetadata().getMutableMap()
-          .putAll(values);
-      return this;
-    }
-
     private java.util.List<alluxio.grpc.table.FieldSchema> cols_ =
       java.util.Collections.emptyList();
     private void ensureColsIsMutable() {
-      if (!((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (!((bitField0_ & 0x00000020) == 0x00000020)) {
         cols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>(cols_);
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
        }
     }
 
@@ -2018,7 +1729,7 @@ private static final long serialVersionUID = 0L;
     public Builder clearCols() {
       if (colsBuilder_ == null) {
         cols_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         onChanged();
       } else {
         colsBuilder_.clear();
@@ -2095,7 +1806,7 @@ private static final long serialVersionUID = 0L;
         colsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.table.FieldSchema, alluxio.grpc.table.FieldSchema.Builder, alluxio.grpc.table.FieldSchemaOrBuilder>(
                 cols_,
-                ((bitField0_ & 0x00000040) == 0x00000040),
+                ((bitField0_ & 0x00000020) == 0x00000020),
                 getParentForChildren(),
                 isClean());
         cols_ = null;
@@ -2112,7 +1823,7 @@ private static final long serialVersionUID = 0L;
      * <code>optional string partitionName = 8;</code>
      */
     public boolean hasPartitionName() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
      * <pre>
@@ -2167,7 +1878,7 @@ private static final long serialVersionUID = 0L;
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  bitField0_ |= 0x00000040;
       partitionName_ = value;
       onChanged();
       return this;
@@ -2180,7 +1891,7 @@ private static final long serialVersionUID = 0L;
      * <code>optional string partitionName = 8;</code>
      */
     public Builder clearPartitionName() {
-      bitField0_ = (bitField0_ & ~0x00000080);
+      bitField0_ = (bitField0_ & ~0x00000040);
       partitionName_ = getDefaultInstance().getPartitionName();
       onChanged();
       return this;
@@ -2197,7 +1908,7 @@ private static final long serialVersionUID = 0L;
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  bitField0_ |= 0x00000040;
       partitionName_ = value;
       onChanged();
       return this;
