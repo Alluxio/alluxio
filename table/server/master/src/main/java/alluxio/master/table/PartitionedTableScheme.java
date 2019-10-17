@@ -29,6 +29,7 @@ public class PartitionedTableScheme implements PartitionScheme {
    *
    * @param partitions list of partitions
    * @param tableInfo table info
+   * @param partCols partition columns
    */
   PartitionedTableScheme(List<Partition> partitions, Layout tableInfo,
       List<FieldSchema> partCols) {
