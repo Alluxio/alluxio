@@ -179,17 +179,6 @@ public class Database implements Journaled {
         // add table from udb
         UdbTable udbTable = mUdb.getTable(tableName);
         table = Table.create(this, udbTable);
-/*
-        alluxio.proto.journal.Table.AddTableEntry addTableEntry =
-            alluxio.proto.journal.Table.AddTableEntry.newBuilder()
-            .setUdbTable(udbTable.toProto())
-            .setDbName(mName)
-            .setTableName(tableName)
-            .addAllPartitions(table.getPartitions().stream().map(Partition::toProto).collect(
-                Collectors.toList()))
-            .addAllTableStats(table.getStatistics()).setPartitioned(table.isPartitioned())
-            .setSchema(table.getSchema())
-            .build();*/
         alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();
         Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
             .build();
