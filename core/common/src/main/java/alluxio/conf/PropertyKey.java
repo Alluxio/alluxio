@@ -1258,14 +1258,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SINGLE_MASTER_ELECTION_TIMEOUT =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SINGLE_MASTER_ELECTION_TIMEOUT)
-          .setDescription(
-              "The election timeout to use for single master embedded journal cluster.")
-          .setDefaultValue("500ms")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL)
           .setDescription(
@@ -3997,8 +3989,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
         "alluxio.master.embedded.journal.election.timeout";
-    public static final String MASTER_EMBEDDED_JOURNAL_SINGLE_MASTER_ELECTION_TIMEOUT =
-        "alluxio.master.embedded.journal.single.master.election.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
         "alluxio.master.embedded.journal.appender.batch.size";
     public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
