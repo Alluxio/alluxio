@@ -220,6 +220,10 @@ start_master() {
   fi
 
   if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
+    if [[ `${LAUNCHER} ${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type` == "EMBEDDED" ]]; then
+      echo "Secondary master is not supported for journal type: EMBEDDED"
+      exit 1
+    fi
     echo "Starting secondary master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
     (nohup ${BIN}/launch-process secondary_master > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
   else
