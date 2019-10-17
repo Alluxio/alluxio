@@ -164,7 +164,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         break;
       case JOBSERVICE:
         JobServiceMetricsCommand jobmetricsCommand = new JobServiceMetricsCommand(
-            mJobMasterClient, mPrintStream
+            mJobMasterClient, mPrintStream, mConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN),
         );
         jobmetricsCommand.run();
         break;
