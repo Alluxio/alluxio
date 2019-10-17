@@ -37,7 +37,6 @@ public final class JobInfo {
   private String mResult;
   private long mLastStatusChangeMs;
 
-
   /**
    * Default constructor.
    */
@@ -177,7 +176,9 @@ public final class JobInfo {
   /**
    * @return the time when status last changed in milliseconds
    */
-  public long getLastStatusChangeMs() { return mLastStatusChangeMs; }
+  public long getLastStatusChangeMs() {
+    return mLastStatusChangeMs;
+  }
 
   /**
    * @return proto representation of the job info
