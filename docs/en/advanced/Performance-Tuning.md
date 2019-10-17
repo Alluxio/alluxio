@@ -278,7 +278,7 @@ alluxio.user.file.persist.on.rename=true
 # Determines the number of copies in Alluxio when files are not yet persisted, increase this to
 # a larger number to ensure fault tolerance in case of Alluxio worker failures
 alluxio.user.file.replication.durable=1
-# blacklist files which have _temporary in their path
+# blacklist files which contain the string "_temporary" anywhere in their path
 alluxio.master.persistence.blacklist=_temporary
 ```
 
