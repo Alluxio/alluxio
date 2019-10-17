@@ -222,8 +222,8 @@ The worker will asynchronously continue to read the remainder of the block witho
 The number of asynchronous threads used to finish reading partial blocks is set by the
 `alluxio.worker.network.async.cache.manager.threads.max` property.
 When large amounts of data are expected to be asynchronously cached concurrently, it may be helpful
-to increase this value to handle a higher workload. This is most commonly effective in cases where
-the files being cached are relatively small (> 10MB).
+to increase this value to handle a higher workload.
+This is most commonly effective in cases where the files being cached are relatively small (> 10MB).
 However, increase this number sparingly, as it will consume more CPU resources on the worker node
 as the number is increased.
 
@@ -297,8 +297,9 @@ to the object store is moved off the critical path.
 
 In some cases, the compute framework's commit protocol involves multiple renames or temporary files.
 Alluxio provides a mechanism for preventing files from being persisted by blacklisting a set of
-strings which are associated with temporary files. Any file which has any of the configured strings
-as part of its path will not be considered for persist.
+strings which are associated with temporary files.
+Any file which has any of the configured strings as part of its path will not be considered for
+persist.
 
 For example, if
 
@@ -307,8 +308,10 @@ alluxio.master.persistence.blacklist=.staging,_temporary
 ```
 
 Files such as `/data/_temporary/part-00001`, `/data/temporary.staging` will not be considered for
-persist. This works because eventually these temporary files will be deleted or renamed to
+persist.
+This works because eventually these temporary files will be deleted or renamed to
 non-permanent files. Because `alluxio.user.file.persist.on.rename=true` is set, the files will be
-considered for persist again when renamed. Note that persist on rename works for directories as well
-as files - if a top level directory is renamed with the persist on rename option, all its not yet
-persisted files will be scanned for eligbility for persist.
+considered for persist again when renamed.
+Note that persist on rename works for directories as well as files - if a top level directory is
+renamed with the persist on rename option, all its not yet persisted files will be scanned for
+eligbility for persist.
