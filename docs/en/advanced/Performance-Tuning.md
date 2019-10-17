@@ -309,8 +309,7 @@ alluxio.master.persistence.blacklist=.staging,_temporary
 
 Files such as `/data/_temporary/part-00001`, `/data/temporary.staging` will not be considered for
 persist.
-This works because eventually these temporary files will be deleted or renamed to
-non-permanent files.
+This works because eventually these temporary files will be deleted or renamed to permanent files.
 Because `alluxio.user.file.persist.on.rename=true` is set, the files will be considered for persist
 again when renamed.
 Note that persist on rename works for directories as well as files - if a top level directory is
