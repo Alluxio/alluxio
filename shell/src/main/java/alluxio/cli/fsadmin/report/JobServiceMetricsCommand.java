@@ -61,7 +61,7 @@ public class JobServiceMetricsCommand {
     }
 
     mPrintStream.println();
-    mPrintStream.println("Last 10 Activities:");
+    mPrintStream.println("10 Most Recently Modified Jobs:");
 
     List<JobInfo> lastActivities = jobServiceSummary.getRecentActivities();
 
@@ -73,7 +73,7 @@ public class JobServiceMetricsCommand {
     }
 
     mPrintStream.println();
-    mPrintStream.println("Last 10 Failures:");
+    mPrintStream.println("10 Most Recently Failed Jobs:");
 
     List<JobInfo> lastFailures = jobServiceSummary.getRecentFailures();
 

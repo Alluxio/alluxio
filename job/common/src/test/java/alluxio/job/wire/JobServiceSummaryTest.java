@@ -79,36 +79,36 @@ public class JobServiceSummaryTest {
   }
 
   @Test
-  public void testRecentFailures() {
-    Collection<JobInfo> lastFailures = mSummary.getRecentFailures();
+  public void testRecentActivities() {
+    Collection<JobInfo> recentActivities = mSummary.getRecentActivities();
 
-    Assert.assertEquals("Unexpected length of last failures", 3, lastFailures.size());
+    Assert.assertEquals("Unexpected length of recent activities", 6, recentActivities.size());
 
-    JobInfo[] lastFailuresArray = new JobInfo[3];
+    JobInfo[] recentActvitiesArray = new JobInfo[6];
 
-    lastFailures.toArray(lastFailuresArray);
+    recentActivities.toArray(recentActvitiesArray);
 
-    Assert.assertEquals(1, lastFailuresArray[0].getJobId());
-    Assert.assertEquals(6, lastFailuresArray[1].getJobId());
-    Assert.assertEquals(5, lastFailuresArray[2].getJobId());
-    Assert.assertEquals(3, lastFailuresArray[3].getJobId());
-    Assert.assertEquals(2, lastFailuresArray[4].getJobId());
-    Assert.assertEquals(4, lastFailuresArray[5].getJobId());
+    Assert.assertEquals(1, recentActvitiesArray[0].getJobId());
+    Assert.assertEquals(6, recentActvitiesArray[1].getJobId());
+    Assert.assertEquals(5, recentActvitiesArray[2].getJobId());
+    Assert.assertEquals(3, recentActvitiesArray[3].getJobId());
+    Assert.assertEquals(2, recentActvitiesArray[4].getJobId());
+    Assert.assertEquals(4, recentActvitiesArray[5].getJobId());
   }
 
   @Test
-  public void testRecentActivities() {
-    Collection<JobInfo> lastFailures = mSummary.getRecentActivities();
+  public void testRecentFailures() {
+    Collection<JobInfo> recentFailures = mSummary.getRecentFailures();
 
-    Assert.assertEquals("Unexpected length of last activities", 6, lastFailures.size());
+    Assert.assertEquals("Unexpected length of last activities", 3, recentFailures.size());
 
-    JobInfo[] lastFailuresArray = new JobInfo[6];
+    JobInfo[] recentFailuresArray = new JobInfo[3];
 
-    lastFailures.toArray(lastFailuresArray);
+    recentFailures.toArray(recentFailuresArray);
 
-    Assert.assertEquals(1, lastFailuresArray[0].getJobId());
-    Assert.assertEquals(6, lastFailuresArray[1].getJobId());
-    Assert.assertEquals(4, lastFailuresArray[2].getJobId());
+    Assert.assertEquals(1, recentFailuresArray[0].getJobId());
+    Assert.assertEquals(6, recentFailuresArray[1].getJobId());
+    Assert.assertEquals(4, recentFailuresArray[2].getJobId());
   }
 
   private JobInfo createJobInfo(int id, Status status, long lastStatusChangeMs) {
