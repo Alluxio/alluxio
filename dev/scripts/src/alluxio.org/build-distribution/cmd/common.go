@@ -25,8 +25,6 @@ const versionMarker = "${VERSION}"
 
 // hadoopDistributions maps hadoop distributions to versions
 var hadoopDistributions = map[string]version{
-	"hadoop-1.0": parseVersion("1.0.4"),
-	"hadoop-1.2": parseVersion("1.2.1"),
 	"hadoop-2.2": parseVersion("2.2.0"),
 	"hadoop-2.3": parseVersion("2.3.0"),
 	"hadoop-2.4": parseVersion("2.4.1"),
@@ -50,8 +48,6 @@ type module struct {
 
 // ufsModules is a map from ufs module to information for building the module.
 var ufsModules = map[string]module{
-	"ufs-hadoop-1.0": {"hadoop-1.0", false, "-pl underfs/hdfs -Pufs-hadoop-1 -Dufs.hadoop.version=1.0.4"},
-	"ufs-hadoop-1.2": {"hadoop-1.2", true, "-pl underfs/hdfs -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.1"},
 	"ufs-hadoop-2.2": {"hadoop-2.2", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0"},
 	"ufs-hadoop-2.3": {"hadoop-2.3", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0"},
 	"ufs-hadoop-2.4": {"hadoop-2.4", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.1"},
