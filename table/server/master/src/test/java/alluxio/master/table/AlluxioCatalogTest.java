@@ -13,7 +13,6 @@ package alluxio.master.table;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import alluxio.exception.status.NotFoundException;
@@ -22,7 +21,6 @@ import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.StringColumnStatsData;
-import alluxio.grpc.table.UdbTableInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -218,7 +216,6 @@ public class AlluxioCatalogTest {
     when(tbl.getSchema()).thenReturn(schema);
     when(tbl.getStatistics()).thenReturn(createRandomStatsForSchema(schema));
     when(tbl.getPartitions()).thenReturn(Collections.emptyList());
-    doReturn(UdbTableInfo.getDefaultInstance()).when(tbl).toProto();
     return tbl;
   }
 

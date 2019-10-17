@@ -19,7 +19,7 @@ private static final long serialVersionUID = 0L;
     values_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     dbName_ = "";
     tableName_ = "";
-    cols_ = java.util.Collections.emptyList();
+    dataCols_ = java.util.Collections.emptyList();
     partitionName_ = "";
   }
 
@@ -103,10 +103,10 @@ private static final long serialVersionUID = 0L;
           }
           case 58: {
             if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
-              cols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>();
+              dataCols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>();
               mutable_bitField0_ |= 0x00000020;
             }
-            cols_.add(
+            dataCols_.add(
                 input.readMessage(alluxio.grpc.table.FieldSchema.PARSER, extensionRegistry));
             break;
           }
@@ -128,7 +128,7 @@ private static final long serialVersionUID = 0L;
         values_ = values_.getUnmodifiableView();
       }
       if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
-        cols_ = java.util.Collections.unmodifiableList(cols_);
+        dataCols_ = java.util.Collections.unmodifiableList(dataCols_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -396,39 +396,39 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
-  public static final int COLS_FIELD_NUMBER = 7;
-  private java.util.List<alluxio.grpc.table.FieldSchema> cols_;
+  public static final int DATACOLS_FIELD_NUMBER = 7;
+  private java.util.List<alluxio.grpc.table.FieldSchema> dataCols_;
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
-  public java.util.List<alluxio.grpc.table.FieldSchema> getColsList() {
-    return cols_;
+  public java.util.List<alluxio.grpc.table.FieldSchema> getDataColsList() {
+    return dataCols_;
   }
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
   public java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
-      getColsOrBuilderList() {
-    return cols_;
+      getDataColsOrBuilderList() {
+    return dataCols_;
   }
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
-  public int getColsCount() {
-    return cols_.size();
+  public int getDataColsCount() {
+    return dataCols_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
-  public alluxio.grpc.table.FieldSchema getCols(int index) {
-    return cols_.get(index);
+  public alluxio.grpc.table.FieldSchema getDataCols(int index) {
+    return dataCols_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
-  public alluxio.grpc.table.FieldSchemaOrBuilder getColsOrBuilder(
+  public alluxio.grpc.table.FieldSchemaOrBuilder getDataColsOrBuilder(
       int index) {
-    return cols_.get(index);
+    return dataCols_.get(index);
   }
 
   public static final int PARTITIONNAME_FIELD_NUMBER = 8;
@@ -521,8 +521,8 @@ private static final long serialVersionUID = 0L;
         internalGetParameters(),
         ParametersDefaultEntryHolder.defaultEntry,
         5);
-    for (int i = 0; i < cols_.size(); i++) {
-      output.writeMessage(7, cols_.get(i));
+    for (int i = 0; i < dataCols_.size(); i++) {
+      output.writeMessage(7, dataCols_.get(i));
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 8, partitionName_);
@@ -563,9 +563,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, parameters__);
     }
-    for (int i = 0; i < cols_.size(); i++) {
+    for (int i = 0; i < dataCols_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(7, cols_.get(i));
+        .computeMessageSize(7, dataCols_.get(i));
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(8, partitionName_);
@@ -605,8 +605,8 @@ private static final long serialVersionUID = 0L;
     }
     result = result && internalGetParameters().equals(
         other.internalGetParameters());
-    result = result && getColsList()
-        .equals(other.getColsList());
+    result = result && getDataColsList()
+        .equals(other.getDataColsList());
     result = result && (hasPartitionName() == other.hasPartitionName());
     if (hasPartitionName()) {
       result = result && getPartitionName()
@@ -643,9 +643,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + PARAMETERS_FIELD_NUMBER;
       hash = (53 * hash) + internalGetParameters().hashCode();
     }
-    if (getColsCount() > 0) {
-      hash = (37 * hash) + COLS_FIELD_NUMBER;
-      hash = (53 * hash) + getColsList().hashCode();
+    if (getDataColsCount() > 0) {
+      hash = (37 * hash) + DATACOLS_FIELD_NUMBER;
+      hash = (53 * hash) + getDataColsList().hashCode();
     }
     if (hasPartitionName()) {
       hash = (37 * hash) + PARTITIONNAME_FIELD_NUMBER;
@@ -799,7 +799,7 @@ private static final long serialVersionUID = 0L;
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
         getStorageFieldBuilder();
-        getColsFieldBuilder();
+        getDataColsFieldBuilder();
       }
     }
     public Builder clear() {
@@ -817,11 +817,11 @@ private static final long serialVersionUID = 0L;
       }
       bitField0_ = (bitField0_ & ~0x00000008);
       internalGetMutableParameters().clear();
-      if (colsBuilder_ == null) {
-        cols_ = java.util.Collections.emptyList();
+      if (dataColsBuilder_ == null) {
+        dataCols_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000020);
       } else {
-        colsBuilder_.clear();
+        dataColsBuilder_.clear();
       }
       partitionName_ = "";
       bitField0_ = (bitField0_ & ~0x00000040);
@@ -872,14 +872,14 @@ private static final long serialVersionUID = 0L;
       }
       result.parameters_ = internalGetParameters();
       result.parameters_.makeImmutable();
-      if (colsBuilder_ == null) {
+      if (dataColsBuilder_ == null) {
         if (((bitField0_ & 0x00000020) == 0x00000020)) {
-          cols_ = java.util.Collections.unmodifiableList(cols_);
+          dataCols_ = java.util.Collections.unmodifiableList(dataCols_);
           bitField0_ = (bitField0_ & ~0x00000020);
         }
-        result.cols_ = cols_;
+        result.dataCols_ = dataCols_;
       } else {
-        result.cols_ = colsBuilder_.build();
+        result.dataCols_ = dataColsBuilder_.build();
       }
       if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
         to_bitField0_ |= 0x00000008;
@@ -952,29 +952,29 @@ private static final long serialVersionUID = 0L;
       }
       internalGetMutableParameters().mergeFrom(
           other.internalGetParameters());
-      if (colsBuilder_ == null) {
-        if (!other.cols_.isEmpty()) {
-          if (cols_.isEmpty()) {
-            cols_ = other.cols_;
+      if (dataColsBuilder_ == null) {
+        if (!other.dataCols_.isEmpty()) {
+          if (dataCols_.isEmpty()) {
+            dataCols_ = other.dataCols_;
             bitField0_ = (bitField0_ & ~0x00000020);
           } else {
-            ensureColsIsMutable();
-            cols_.addAll(other.cols_);
+            ensureDataColsIsMutable();
+            dataCols_.addAll(other.dataCols_);
           }
           onChanged();
         }
       } else {
-        if (!other.cols_.isEmpty()) {
-          if (colsBuilder_.isEmpty()) {
-            colsBuilder_.dispose();
-            colsBuilder_ = null;
-            cols_ = other.cols_;
+        if (!other.dataCols_.isEmpty()) {
+          if (dataColsBuilder_.isEmpty()) {
+            dataColsBuilder_.dispose();
+            dataColsBuilder_ = null;
+            dataCols_ = other.dataCols_;
             bitField0_ = (bitField0_ & ~0x00000020);
-            colsBuilder_ = 
+            dataColsBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getColsFieldBuilder() : null;
+                 getDataColsFieldBuilder() : null;
           } else {
-            colsBuilder_.addAllMessages(other.cols_);
+            dataColsBuilder_.addAllMessages(other.dataCols_);
           }
         }
       }
@@ -1574,244 +1574,244 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<alluxio.grpc.table.FieldSchema> cols_ =
+    private java.util.List<alluxio.grpc.table.FieldSchema> dataCols_ =
       java.util.Collections.emptyList();
-    private void ensureColsIsMutable() {
+    private void ensureDataColsIsMutable() {
       if (!((bitField0_ & 0x00000020) == 0x00000020)) {
-        cols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>(cols_);
+        dataCols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>(dataCols_);
         bitField0_ |= 0x00000020;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.table.FieldSchema, alluxio.grpc.table.FieldSchema.Builder, alluxio.grpc.table.FieldSchemaOrBuilder> colsBuilder_;
+        alluxio.grpc.table.FieldSchema, alluxio.grpc.table.FieldSchema.Builder, alluxio.grpc.table.FieldSchemaOrBuilder> dataColsBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public java.util.List<alluxio.grpc.table.FieldSchema> getColsList() {
-      if (colsBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(cols_);
+    public java.util.List<alluxio.grpc.table.FieldSchema> getDataColsList() {
+      if (dataColsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(dataCols_);
       } else {
-        return colsBuilder_.getMessageList();
+        return dataColsBuilder_.getMessageList();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public int getColsCount() {
-      if (colsBuilder_ == null) {
-        return cols_.size();
+    public int getDataColsCount() {
+      if (dataColsBuilder_ == null) {
+        return dataCols_.size();
       } else {
-        return colsBuilder_.getCount();
+        return dataColsBuilder_.getCount();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public alluxio.grpc.table.FieldSchema getCols(int index) {
-      if (colsBuilder_ == null) {
-        return cols_.get(index);
+    public alluxio.grpc.table.FieldSchema getDataCols(int index) {
+      if (dataColsBuilder_ == null) {
+        return dataCols_.get(index);
       } else {
-        return colsBuilder_.getMessage(index);
+        return dataColsBuilder_.getMessage(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder setCols(
+    public Builder setDataCols(
         int index, alluxio.grpc.table.FieldSchema value) {
-      if (colsBuilder_ == null) {
+      if (dataColsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureColsIsMutable();
-        cols_.set(index, value);
+        ensureDataColsIsMutable();
+        dataCols_.set(index, value);
         onChanged();
       } else {
-        colsBuilder_.setMessage(index, value);
+        dataColsBuilder_.setMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder setCols(
+    public Builder setDataCols(
         int index, alluxio.grpc.table.FieldSchema.Builder builderForValue) {
-      if (colsBuilder_ == null) {
-        ensureColsIsMutable();
-        cols_.set(index, builderForValue.build());
+      if (dataColsBuilder_ == null) {
+        ensureDataColsIsMutable();
+        dataCols_.set(index, builderForValue.build());
         onChanged();
       } else {
-        colsBuilder_.setMessage(index, builderForValue.build());
+        dataColsBuilder_.setMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder addCols(alluxio.grpc.table.FieldSchema value) {
-      if (colsBuilder_ == null) {
+    public Builder addDataCols(alluxio.grpc.table.FieldSchema value) {
+      if (dataColsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureColsIsMutable();
-        cols_.add(value);
+        ensureDataColsIsMutable();
+        dataCols_.add(value);
         onChanged();
       } else {
-        colsBuilder_.addMessage(value);
+        dataColsBuilder_.addMessage(value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder addCols(
+    public Builder addDataCols(
         int index, alluxio.grpc.table.FieldSchema value) {
-      if (colsBuilder_ == null) {
+      if (dataColsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureColsIsMutable();
-        cols_.add(index, value);
+        ensureDataColsIsMutable();
+        dataCols_.add(index, value);
         onChanged();
       } else {
-        colsBuilder_.addMessage(index, value);
+        dataColsBuilder_.addMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder addCols(
+    public Builder addDataCols(
         alluxio.grpc.table.FieldSchema.Builder builderForValue) {
-      if (colsBuilder_ == null) {
-        ensureColsIsMutable();
-        cols_.add(builderForValue.build());
+      if (dataColsBuilder_ == null) {
+        ensureDataColsIsMutable();
+        dataCols_.add(builderForValue.build());
         onChanged();
       } else {
-        colsBuilder_.addMessage(builderForValue.build());
+        dataColsBuilder_.addMessage(builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder addCols(
+    public Builder addDataCols(
         int index, alluxio.grpc.table.FieldSchema.Builder builderForValue) {
-      if (colsBuilder_ == null) {
-        ensureColsIsMutable();
-        cols_.add(index, builderForValue.build());
+      if (dataColsBuilder_ == null) {
+        ensureDataColsIsMutable();
+        dataCols_.add(index, builderForValue.build());
         onChanged();
       } else {
-        colsBuilder_.addMessage(index, builderForValue.build());
+        dataColsBuilder_.addMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder addAllCols(
+    public Builder addAllDataCols(
         java.lang.Iterable<? extends alluxio.grpc.table.FieldSchema> values) {
-      if (colsBuilder_ == null) {
-        ensureColsIsMutable();
+      if (dataColsBuilder_ == null) {
+        ensureDataColsIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, cols_);
+            values, dataCols_);
         onChanged();
       } else {
-        colsBuilder_.addAllMessages(values);
+        dataColsBuilder_.addAllMessages(values);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder clearCols() {
-      if (colsBuilder_ == null) {
-        cols_ = java.util.Collections.emptyList();
+    public Builder clearDataCols() {
+      if (dataColsBuilder_ == null) {
+        dataCols_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000020);
         onChanged();
       } else {
-        colsBuilder_.clear();
+        dataColsBuilder_.clear();
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public Builder removeCols(int index) {
-      if (colsBuilder_ == null) {
-        ensureColsIsMutable();
-        cols_.remove(index);
+    public Builder removeDataCols(int index) {
+      if (dataColsBuilder_ == null) {
+        ensureDataColsIsMutable();
+        dataCols_.remove(index);
         onChanged();
       } else {
-        colsBuilder_.remove(index);
+        dataColsBuilder_.remove(index);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public alluxio.grpc.table.FieldSchema.Builder getColsBuilder(
+    public alluxio.grpc.table.FieldSchema.Builder getDataColsBuilder(
         int index) {
-      return getColsFieldBuilder().getBuilder(index);
+      return getDataColsFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public alluxio.grpc.table.FieldSchemaOrBuilder getColsOrBuilder(
+    public alluxio.grpc.table.FieldSchemaOrBuilder getDataColsOrBuilder(
         int index) {
-      if (colsBuilder_ == null) {
-        return cols_.get(index);  } else {
-        return colsBuilder_.getMessageOrBuilder(index);
+      if (dataColsBuilder_ == null) {
+        return dataCols_.get(index);  } else {
+        return dataColsBuilder_.getMessageOrBuilder(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
     public java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
-         getColsOrBuilderList() {
-      if (colsBuilder_ != null) {
-        return colsBuilder_.getMessageOrBuilderList();
+         getDataColsOrBuilderList() {
+      if (dataColsBuilder_ != null) {
+        return dataColsBuilder_.getMessageOrBuilderList();
       } else {
-        return java.util.Collections.unmodifiableList(cols_);
+        return java.util.Collections.unmodifiableList(dataCols_);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public alluxio.grpc.table.FieldSchema.Builder addColsBuilder() {
-      return getColsFieldBuilder().addBuilder(
+    public alluxio.grpc.table.FieldSchema.Builder addDataColsBuilder() {
+      return getDataColsFieldBuilder().addBuilder(
           alluxio.grpc.table.FieldSchema.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
-    public alluxio.grpc.table.FieldSchema.Builder addColsBuilder(
+    public alluxio.grpc.table.FieldSchema.Builder addDataColsBuilder(
         int index) {
-      return getColsFieldBuilder().addBuilder(
+      return getDataColsFieldBuilder().addBuilder(
           index, alluxio.grpc.table.FieldSchema.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
      */
     public java.util.List<alluxio.grpc.table.FieldSchema.Builder> 
-         getColsBuilderList() {
-      return getColsFieldBuilder().getBuilderList();
+         getDataColsBuilderList() {
+      return getDataColsFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
         alluxio.grpc.table.FieldSchema, alluxio.grpc.table.FieldSchema.Builder, alluxio.grpc.table.FieldSchemaOrBuilder> 
-        getColsFieldBuilder() {
-      if (colsBuilder_ == null) {
-        colsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+        getDataColsFieldBuilder() {
+      if (dataColsBuilder_ == null) {
+        dataColsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.table.FieldSchema, alluxio.grpc.table.FieldSchema.Builder, alluxio.grpc.table.FieldSchemaOrBuilder>(
-                cols_,
+                dataCols_,
                 ((bitField0_ & 0x00000020) == 0x00000020),
                 getParentForChildren(),
                 isClean());
-        cols_ = null;
+        dataCols_ = null;
       }
-      return colsBuilder_;
+      return dataColsBuilder_;
     }
 
     private java.lang.Object partitionName_ = "";

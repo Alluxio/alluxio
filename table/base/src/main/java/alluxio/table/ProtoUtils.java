@@ -27,7 +27,7 @@ public final class ProtoUtils {
    * @param partition the partition proto
    * @return true if the partition has the hive layout, false otherwise
    */
-  public static boolean isHiveLayout(Partition partition) {
+  public static boolean hasHiveLayout(Partition partition) {
     if (!partition.hasLayout()) {
       return false;
     }
@@ -37,12 +37,20 @@ public final class ProtoUtils {
   }
 
   /**
+   * @param layout the layout proto
+   * @return true if the layout is a hive layout, false otherwise
+   */
+  public static boolean isHiveLayout(Layout layout) {
+    return Objects.equals(layout.getLayoutType(), "hive");
+  }
+
+  /**
    * @param partition the partition proto
    * @return the hive-specific partition proto
    */
   public static PartitionInfo extractHiveLayout(Partition partition)
       throws InvalidProtocolBufferException {
-    if (!isHiveLayout(partition)) {
+    if (!hasHiveLayout(partition)) {
       if (partition.hasLayout()) {
         throw new IllegalStateException(
             "Cannot parse hive-layout. layoutType: " + partition.getLayout().getLayoutType());
@@ -51,6 +59,22 @@ public final class ProtoUtils {
       }
     }
     Layout layout = partition.getLayout();
+    if (!layout.hasLayoutData()) {
+      throw new IllegalStateException("Cannot parse hive-layout from empty layout data");
+    }
+    return PartitionInfo.parseFrom(layout.getLayoutData());
+  }
+
+  /**
+   * @param layout the layout proto
+   * @return the hive-specific partition proto
+   */
+  public static PartitionInfo toHiveLayout(Layout layout)
+      throws InvalidProtocolBufferException {
+    if (!isHiveLayout(layout)) {
+      throw new IllegalStateException(
+          "Cannot parse hive-layout. layoutType: " + layout.getLayoutType());
+    }
     if (!layout.hasLayoutData()) {
       throw new IllegalStateException("Cannot parse hive-layout from empty layout data");
     }

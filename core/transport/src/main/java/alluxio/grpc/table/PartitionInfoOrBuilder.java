@@ -130,27 +130,27 @@ public interface PartitionInfoOrBuilder extends
       java.lang.String key);
 
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
   java.util.List<alluxio.grpc.table.FieldSchema> 
-      getColsList();
+      getDataColsList();
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
-  alluxio.grpc.table.FieldSchema getCols(int index);
+  alluxio.grpc.table.FieldSchema getDataCols(int index);
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
-  int getColsCount();
+  int getDataColsCount();
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
   java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
-      getColsOrBuilderList();
+      getDataColsOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
    */
-  alluxio.grpc.table.FieldSchemaOrBuilder getColsOrBuilder(
+  alluxio.grpc.table.FieldSchemaOrBuilder getDataColsOrBuilder(
       int index);
 
   /**
