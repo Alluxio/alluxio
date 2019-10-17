@@ -35,7 +35,8 @@ import java.util.stream.Collectors;
  */
 public class HiveLayout implements Layout {
   private static final Logger LOG = LoggerFactory.getLogger(HiveLayout.class);
-  private static final String TYPE = "hive";
+
+  public static final String TYPE = "hive";
 
   /**
    * Factory to create layout implementation.

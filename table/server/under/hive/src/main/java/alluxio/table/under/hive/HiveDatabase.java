@@ -18,6 +18,9 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.Layout;
+import alluxio.grpc.table.PartitionInfo;
+import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -207,10 +210,23 @@ public class HiveDatabase implements UnderDatabase {
       List<ColumnStatisticsInfo> colStats =
           columnStats.stream().map(HiveUtils::toProto).collect(Collectors.toList());
 
+      // construct table layout
+      PartitionInfo partitionInfo = PartitionInfo.newBuilder()
+          .setDbName(getUdbContext().getDbName())
+          .setTableName(tableName)
+          .addAllDataCols(HiveUtils.toProto(table.getSd().getCols()))
+          .setStorage(HiveUtils.toProto(table.getSd(), pathTranslator))
+          // ignore partition name
+          .build();
+      Layout layout = Layout.newBuilder()
+          .setLayoutType(HiveLayout.TYPE)
+          .setLayoutData(partitionInfo.toByteString())
+          // ignore spec and statistics for table layout
+          .build();
+
       return new HiveTable(this, pathTranslator, tableName,
-          HiveUtils.toProtoSchema(table.getSd().getCols()),
-          pathTranslator.toAlluxioPath(table.getSd().getLocation()), colStats,
-          HiveUtils.toProto(table.getPartitionKeys()), partitions, table);
+          HiveUtils.toProtoSchema(table.getSd().getCols()), colStats,
+          HiveUtils.toProto(table.getPartitionKeys()), partitions, layout, table);
     } catch (NoSuchObjectException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (TException e) {

@@ -69,7 +69,8 @@ public class HiveLayoutTest {
     pib.setDbName(CommonUtils.randomAlphaNumString(10));
     pib.setTableName(CommonUtils.randomAlphaNumString(10));
     for (int i = 0; i < ThreadLocalRandom.current().nextInt(1, 5); i++) {
-      pib.addCols(FieldSchema.newBuilder().setName(CommonUtils.randomAlphaNumString(10)).build());
+      pib.addDataCols(
+          FieldSchema.newBuilder().setName(CommonUtils.randomAlphaNumString(10)).build());
     }
     pib.setPartitionName(CommonUtils.randomAlphaNumString(10));
     pib.setStorage(Storage.newBuilder().setLocation(CommonUtils.randomAlphaNumString(10)).build());
