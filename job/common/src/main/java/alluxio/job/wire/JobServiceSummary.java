@@ -30,10 +30,12 @@ import java.util.stream.Collectors;
  */
 @NotThreadSafe
 public final class JobServiceSummary {
+  private static final int RECENT_LENGTH = 10;
+
   private final List<StatusSummary> mSummaryPerStatus;
 
-  private final List<JobInfo> mLastActivities;
-  private final List<JobInfo> mLastFailures;
+  private final List<JobInfo> mRecentActivities;
+  private final List<JobInfo> mRecentFailures;
 
   /**
    * Constructs a new instance of {@link JobServiceSummary} from a
@@ -44,11 +46,11 @@ public final class JobServiceSummary {
   public JobServiceSummary(List<JobInfo> jobInfos) {
     jobInfos.sort(Comparator.comparing(JobInfo::getLastStatusChangeMs).reversed());
     mSummaryPerStatus = buildSummaryPerStatus(jobInfos);
-    mLastActivities = jobInfos.subList(0, Math.min(10, jobInfos.size()));
-    Collections.reverse(mLastActivities);
-    mLastFailures = jobInfos.stream().filter(jobInfo -> jobInfo.getStatus().equals(Status.FAILED))
-      .limit(10).collect(Collectors.toList());
-    Collections.reverse(mLastFailures);
+
+    mRecentActivities = jobInfos.stream().limit(RECENT_LENGTH).collect(Collectors.toList());
+
+    mRecentFailures = jobInfos.stream().filter(jobInfo -> jobInfo.getStatus().equals(Status.FAILED))
+      .limit(RECENT_LENGTH).collect(Collectors.toList());
   }
 
   /**
@@ -61,13 +63,13 @@ public final class JobServiceSummary {
     for (alluxio.grpc.StatusSummary statusSummary : jobServiceSummary.getSummaryPerStatusList()) {
       mSummaryPerStatus.add(new StatusSummary(statusSummary));
     }
-    mLastActivities = new ArrayList<>();
-    for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getLastActivitiesList()) {
-      mLastActivities.add(new JobInfo(lastActivity));
+    mRecentActivities = new ArrayList<>();
+    for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getRecentActivitiesList()) {
+      mRecentActivities.add(new JobInfo(lastActivity));
     }
-    mLastFailures = new ArrayList<>();
-    for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getLastFailuresList()) {
-      mLastFailures.add(new JobInfo(lastFailure));
+    mRecentFailures = new ArrayList<>();
+    for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getRecentFailuresList()) {
+      mRecentFailures.add(new JobInfo(lastFailure));
     }
   }
 
@@ -105,15 +107,15 @@ public final class JobServiceSummary {
   /**
    * @return collection of {@link JobInfo} where the status was most recently updated
    */
-  public Collection<JobInfo> getLastActivities() {
-    return Collections.unmodifiableCollection(mLastActivities);
+  public List<JobInfo> getRecentActivities() {
+    return Collections.unmodifiableList(mRecentActivities);
   }
 
   /**
    * @return collection of {@link JobInfo} that have most recently failed
    */
-  public Collection<JobInfo> getLastFailures() {
-    return Collections.unmodifiableCollection(mLastFailures);
+  public List<JobInfo> getRecentFailures() {
+    return Collections.unmodifiableList(mRecentFailures);
   }
 
   /**
@@ -126,11 +128,11 @@ public final class JobServiceSummary {
     for (StatusSummary statusSummary : mSummaryPerStatus) {
       jobServiceBuilder.addSummaryPerStatus(statusSummary.toProto());
     }
-    for (JobInfo jobInfo : mLastActivities) {
-      jobServiceBuilder.addLastActivities(jobInfo.toProto());
+    for (JobInfo jobInfo : mRecentActivities) {
+      jobServiceBuilder.addRecentActivities(jobInfo.toProto());
     }
-    for (JobInfo jobInfo : mLastFailures) {
-      jobServiceBuilder.addLastFailures(jobInfo.toProto());
+    for (JobInfo jobInfo : mRecentFailures) {
+      jobServiceBuilder.addRecentFailures(jobInfo.toProto());
     }
     return jobServiceBuilder.build();
   }

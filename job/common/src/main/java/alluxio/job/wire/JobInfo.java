@@ -194,6 +194,7 @@ public final class JobInfo {
     if (mResult != null) {
       jobInfoBuilder.setResult(mResult);
     }
+    jobInfoBuilder.setLastStatusChangeMs(mLastStatusChangeMs);
     return jobInfoBuilder.build();
   }
 

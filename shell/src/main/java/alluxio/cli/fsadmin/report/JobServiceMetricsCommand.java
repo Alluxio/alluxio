@@ -20,6 +20,7 @@ import alluxio.util.CommonUtils;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Prints job service metric information.
@@ -62,7 +63,7 @@ public class JobServiceMetricsCommand {
     mPrintStream.println();
     mPrintStream.println("Last 10 Activities:");
 
-    Collection<JobInfo> lastActivities = jobServiceSummary.getLastActivities();
+    List<JobInfo> lastActivities = jobServiceSummary.getRecentActivities();
 
     for (JobInfo lastActivity : lastActivities) {
       mPrintStream.print(String.format("Timestamp: %-30s",
@@ -74,7 +75,7 @@ public class JobServiceMetricsCommand {
     mPrintStream.println();
     mPrintStream.println("Last 10 Failures:");
 
-    Collection<JobInfo> lastFailures = jobServiceSummary.getLastFailures();
+    List<JobInfo> lastFailures = jobServiceSummary.getRecentFailures();
 
     for (JobInfo lastFailure : lastFailures) {
       mPrintStream.print(String.format("Timestamp: %-30s",

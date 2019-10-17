@@ -32,50 +32,50 @@ public interface JobServiceSummaryOrBuilder extends
       int index);
 
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastActivities = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentActivities = 2;</code>
    */
   java.util.List<alluxio.grpc.JobInfo> 
-      getLastActivitiesList();
+      getRecentActivitiesList();
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastActivities = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentActivities = 2;</code>
    */
-  alluxio.grpc.JobInfo getLastActivities(int index);
+  alluxio.grpc.JobInfo getRecentActivities(int index);
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastActivities = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentActivities = 2;</code>
    */
-  int getLastActivitiesCount();
+  int getRecentActivitiesCount();
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastActivities = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentActivities = 2;</code>
    */
   java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
-      getLastActivitiesOrBuilderList();
+      getRecentActivitiesOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastActivities = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentActivities = 2;</code>
    */
-  alluxio.grpc.JobInfoOrBuilder getLastActivitiesOrBuilder(
+  alluxio.grpc.JobInfoOrBuilder getRecentActivitiesOrBuilder(
       int index);
 
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastFailures = 3;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentFailures = 3;</code>
    */
   java.util.List<alluxio.grpc.JobInfo> 
-      getLastFailuresList();
+      getRecentFailuresList();
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastFailures = 3;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentFailures = 3;</code>
    */
-  alluxio.grpc.JobInfo getLastFailures(int index);
+  alluxio.grpc.JobInfo getRecentFailures(int index);
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastFailures = 3;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentFailures = 3;</code>
    */
-  int getLastFailuresCount();
+  int getRecentFailuresCount();
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastFailures = 3;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentFailures = 3;</code>
    */
   java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
-      getLastFailuresOrBuilderList();
+      getRecentFailuresOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.job.JobInfo lastFailures = 3;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo recentFailures = 3;</code>
    */
-  alluxio.grpc.JobInfoOrBuilder getLastFailuresOrBuilder(
+  alluxio.grpc.JobInfoOrBuilder getRecentFailuresOrBuilder(
       int index);
 }
