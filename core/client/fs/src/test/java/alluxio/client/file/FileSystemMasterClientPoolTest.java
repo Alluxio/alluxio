@@ -39,7 +39,8 @@ public class FileSystemMasterClientPoolTest {
         .thenReturn(expectedClient);
     FileSystemMasterClient client;
     ClientContext clientContext = ClientContext.create(conf);
-    MasterInquireClient masterInquireClient = MasterInquireClient.Factory.create(conf);
+    MasterInquireClient masterInquireClient = MasterInquireClient.Factory
+        .create(conf, clientContext.getUserState());
     MasterClientContext masterClientContext = MasterClientContext.newBuilder(clientContext)
         .setMasterInquireClient(masterInquireClient).build();
     try (FileSystemMasterClientPool pool = new FileSystemMasterClientPool(masterClientContext)) {
