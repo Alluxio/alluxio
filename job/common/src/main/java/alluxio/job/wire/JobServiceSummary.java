@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 public final class JobServiceSummary {
   private final List<StatusSummary> mSummaryPerStatus;
 
-  private List<JobInfo> mLastActivities;
-  private List<JobInfo> mLastFailures;
+  private final List<JobInfo> mLastActivities;
+  private final List<JobInfo> mLastFailures;
 
   /**
    * Constructs a new instance of {@link JobServiceSummary} from a
@@ -56,10 +56,18 @@ public final class JobServiceSummary {
    *
    * @param jobServiceSummary the proto object
    */
-  public JobServiceSummary(alluxio.grpc.JobServiceSummary jobServiceSummary) {
+  public JobServiceSummary(alluxio.grpc.JobServiceSummary jobServiceSummary) throws IOException {
     mSummaryPerStatus = new ArrayList<>();
     for (alluxio.grpc.StatusSummary statusSummary : jobServiceSummary.getSummaryPerStatusList()) {
       mSummaryPerStatus.add(new StatusSummary(statusSummary));
+    }
+    mLastActivities = new ArrayList<>();
+    for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getLastActivitiesList()) {
+      mLastActivities.add(new JobInfo(lastActivity));
+    }
+    mLastFailures = new ArrayList<>();
+    for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getLastFailuresList()) {
+      mLastFailures.add(new JobInfo(lastFailure));
     }
   }
 
