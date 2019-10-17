@@ -52,11 +52,6 @@ public interface UdbTable {
   UdbTableInfo toProto() throws IOException;
 
   /**
-   * @return get partition keys
-   */
-  List<FieldSchema> getPartitionKeys();
-
-  /**
    * @return true if partitioned
    */
   boolean isPartitioned();

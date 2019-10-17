@@ -107,13 +107,8 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
-  public List<FieldSchema> getPartitionKeys() {
-    return mPartitionKeys;
-  }
-
-  @Override
   public boolean isPartitioned() {
-    return !getPartitionKeys().isEmpty();
+    return !mPartitionKeys.isEmpty();
   }
 
   @Override
