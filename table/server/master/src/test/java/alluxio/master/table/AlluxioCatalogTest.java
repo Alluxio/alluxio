@@ -249,6 +249,7 @@ public class AlluxioCatalogTest {
     when(tbl.getStatistics()).thenReturn(createRandomStatsForSchema(schema));
     when(tbl.getPartitionKeys()).thenReturn(Arrays.asList(FieldSchema.getDefaultInstance()));
     when(tbl.getPartitions()).thenReturn(Arrays.asList(partition, partition));
+    when(tbl.isPartitioned()).thenReturn(true);
     doReturn(UdbTableInfo.getDefaultInstance()).when(tbl).toProto();
     return tbl;
   }
@@ -264,6 +265,7 @@ public class AlluxioCatalogTest {
     when(tbl.getStatistics()).thenReturn(createRandomStatsForSchema(schema));
     when(tbl.getPartitionKeys()).thenReturn(Collections.emptyList());
     when(tbl.getPartitions()).thenReturn(Arrays.asList(partition));
+    when(tbl.isPartitioned()).thenReturn(false);
     doReturn(UdbTableInfo.getDefaultInstance()).when(tbl).toProto();
     return tbl;
   }
