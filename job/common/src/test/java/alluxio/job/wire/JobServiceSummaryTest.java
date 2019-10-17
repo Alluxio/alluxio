@@ -79,27 +79,44 @@ public class JobServiceSummaryTest {
   }
 
   @Test
-  public void testRecent() {
+  public void testRecentFailures() {
     Collection<JobInfo> lastFailures = mSummary.getRecentFailures();
 
     Assert.assertEquals("Unexpected length of last failures", 3, lastFailures.size());
 
-    JobInfo[] lastFailuresArray = (JobInfo[]) lastFailures.toArray();
+    JobInfo[] lastFailuresArray = new JobInfo[3];
+
+    lastFailures.toArray(lastFailuresArray);
+
+    Assert.assertEquals(1, lastFailuresArray[0].getJobId());
+    Assert.assertEquals(6, lastFailuresArray[1].getJobId());
+    Assert.assertEquals(5, lastFailuresArray[2].getJobId());
+    Assert.assertEquals(3, lastFailuresArray[3].getJobId());
+    Assert.assertEquals(2, lastFailuresArray[4].getJobId());
+    Assert.assertEquals(4, lastFailuresArray[5].getJobId());
+  }
+
+  @Test
+  public void testRecentActivities() {
+    Collection<JobInfo> lastFailures = mSummary.getRecentActivities();
+
+    Assert.assertEquals("Unexpected length of last activities", 6, lastFailures.size());
+
+    JobInfo[] lastFailuresArray = new JobInfo[6];
+
+    lastFailures.toArray(lastFailuresArray);
 
     Assert.assertEquals(1, lastFailuresArray[0].getJobId());
     Assert.assertEquals(6, lastFailuresArray[1].getJobId());
     Assert.assertEquals(4, lastFailuresArray[2].getJobId());
   }
 
-  private JobInfo createJobInfo(int id, Status status, Long lastStatusChangeMs) {
+  private JobInfo createJobInfo(int id, Status status, long lastStatusChangeMs) {
     JobInfo jobInfo = new JobInfo();
 
     jobInfo.setJobId(id);
     jobInfo.setStatus(status);
 
-    if (lastStatusChangeMs == null) {
-      lastStatusChangeMs = System.currentTimeMillis();
-    }
     jobInfo.setLastStatusChangeMs(lastStatusChangeMs);
 
     return jobInfo;

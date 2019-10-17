@@ -26,6 +26,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,12 +52,13 @@ public class JobServiceMetricsCommandTest {
   }
 
   @Test
-  public void testBasic() throws IOException {
+  public void testBasic() throws IOException, ParseException {
 
     List<JobInfo> jobInfos = new ArrayList<>();
 
-    jobInfos.add(createJobInfoWithStatus(Status.RUNNING));
-    jobInfos.add(createJobInfoWithStatus(Status.CANCELED));
+
+    jobInfos.add(createJobInfo(1, Status.RUNNING, "2019-10-17 12:00:00"));
+    jobInfos.add(createJobInfo(2, Status.FAILED, "2019-10-17 12:30:15"));
 
     Mockito.when(mJobMasterClient.getJobServiceSummary())
             .thenReturn(new JobServiceSummary(jobInfos));
@@ -63,16 +67,38 @@ public class JobServiceMetricsCommandTest {
 
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
 
-    Assert.assertEquals("Status: CREATED   Count: 0\n"
-        + "Status: CANCELED  Count: 1\n"
-        + "Status: FAILED    Count: 0\n"
-        + "Status: RUNNING   Count: 1\n"
-        + "Status: COMPLETED Count: 0\n", output);
+    String[] lineByLine = output.split("\n");
+
+
+    Assert.assertEquals("Status: CREATED   Count: 0", lineByLine[0]);
+    Assert.assertEquals("Status: CANCELED  Count: 0", lineByLine[1]);
+    Assert.assertEquals("Status: FAILED    Count: 1", lineByLine[2]);
+    Assert.assertEquals("Status: RUNNING   Count: 1", lineByLine[3]);
+    Assert.assertEquals("Status: COMPLETED Count: 0", lineByLine[4]);
+
+    Assert.assertEquals("Last 10 Activities:", lineByLine[6]);
+    Assert.assertEquals(
+      "Timestamp: 01-17-2019 12:30:15:000       Job Id: 2                   Status: FAILED",
+      lineByLine[7]);
+    Assert.assertEquals(
+      "Timestamp: 01-17-2019 12:00:00:000       Job Id: 1                   Status: RUNNING",
+      lineByLine[8]);
+
+    Assert.assertEquals("Last 10 Failures:", lineByLine[10]);
+    Assert.assertEquals(
+      "Timestamp: 01-17-2019 12:30:15:000       Job Id: 2                   Status: FAILED",
+      lineByLine[11]);
   }
 
-  private JobInfo createJobInfoWithStatus(Status status) {
+  private JobInfo createJobInfo(int id, Status status, String datetime) throws ParseException {
     JobInfo jobInfo = new JobInfo();
+
+    jobInfo.setJobId(id);
     jobInfo.setStatus(status);
+
+    long timeMillis = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss").parse(datetime).getTime();
+    jobInfo.setLastStatusChangeMs(timeMillis);
+
     return jobInfo;
   }
 }
