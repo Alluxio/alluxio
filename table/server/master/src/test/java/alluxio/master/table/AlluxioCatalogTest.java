@@ -19,7 +19,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsData;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
-import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.StringColumnStatsData;
