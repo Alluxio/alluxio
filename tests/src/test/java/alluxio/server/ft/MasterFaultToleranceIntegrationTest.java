@@ -35,6 +35,7 @@ import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.block.BlockMaster;
+import alluxio.security.user.ServerUserState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
@@ -261,8 +262,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     List<InetSocketAddress> addresses = mMultiMasterLocalAlluxioCluster.getMasterAddresses();
     Collections.shuffle(addresses);
     PollingMasterInquireClient inquireClient = new PollingMasterInquireClient(addresses,
-        ServerConfiguration.global(),
-        FileSystemContext.create(ServerConfiguration.global()).getClientContext().getUserState());
+        ServerConfiguration.global(), ServerUserState.global());
     assertEquals(mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getAddress(),
         inquireClient.getPrimaryRpcAddress());
   }
