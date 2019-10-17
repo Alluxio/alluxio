@@ -28,7 +28,6 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +55,6 @@ public class JobServiceMetricsCommandTest {
 
     List<JobInfo> jobInfos = new ArrayList<>();
 
-
     jobInfos.add(createJobInfo(1, Status.RUNNING, "2019-10-17 12:00:00"));
     jobInfos.add(createJobInfo(2, Status.FAILED, "2019-10-17 12:30:15"));
 
@@ -69,25 +67,24 @@ public class JobServiceMetricsCommandTest {
 
     String[] lineByLine = output.split("\n");
 
-
     Assert.assertEquals("Status: CREATED   Count: 0", lineByLine[0]);
     Assert.assertEquals("Status: CANCELED  Count: 0", lineByLine[1]);
     Assert.assertEquals("Status: FAILED    Count: 1", lineByLine[2]);
     Assert.assertEquals("Status: RUNNING   Count: 1", lineByLine[3]);
     Assert.assertEquals("Status: COMPLETED Count: 0", lineByLine[4]);
 
-    Assert.assertEquals("Last 10 Activities:", lineByLine[6]);
+    Assert.assertEquals("10 Most Recently Modified Jobs:", lineByLine[6]);
     Assert.assertEquals(
-      "Timestamp: 01-17-2019 12:30:15:000       Job Id: 2                   Status: FAILED",
-      lineByLine[7]);
+        "Timestamp: 01-17-2019 12:30:15:000       Job Id: 2                   Status: FAILED",
+        lineByLine[7]);
     Assert.assertEquals(
-      "Timestamp: 01-17-2019 12:00:00:000       Job Id: 1                   Status: RUNNING",
-      lineByLine[8]);
+        "Timestamp: 01-17-2019 12:00:00:000       Job Id: 1                   Status: RUNNING",
+        lineByLine[8]);
 
-    Assert.assertEquals("Last 10 Failures:", lineByLine[10]);
+    Assert.assertEquals("10 Most Recently Failed Jobs:", lineByLine[10]);
     Assert.assertEquals(
-      "Timestamp: 01-17-2019 12:30:15:000       Job Id: 2                   Status: FAILED",
-      lineByLine[11]);
+        "Timestamp: 01-17-2019 12:30:15:000       Job Id: 2                   Status: FAILED",
+        lineByLine[11]);
   }
 
   private JobInfo createJobInfo(int id, Status status, String datetime) throws ParseException {
