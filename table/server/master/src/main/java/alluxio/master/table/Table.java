@@ -12,9 +12,11 @@
 package alluxio.master.table;
 
 import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;
-import alluxio.grpc.table.UdbTableInfo;
+import alluxio.proto.journal.Table.AddTableEntry;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
@@ -25,7 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -38,24 +42,25 @@ public class Table {
   private final Database mDatabase;
   private Schema mSchema;
   private PartitionScheme mPartitionScheme;
-  // TODO(gpang): this should be indexable by partition spec
+  private String mOwner;
   private List<ColumnStatisticsInfo> mStatistics;
-  private boolean mIsPartitioned;
+  private Map<String, String> mParameters;
 
   private Table(Database database, UdbTable udbTable) {
     mDatabase = database;
     sync(udbTable);
   }
 
-  private Table(Database database, List<Partition> partitions, Schema schema,
-      String tableName, UdbTableInfo tableInfo, List<ColumnStatisticsInfo> columnStats,
-      boolean isPartitioned) {
+  private Table(Database database, List<Partition> partitions, Schema schema, String tableName,
+      String owner, List<ColumnStatisticsInfo> columnStats,
+      Map<String, String> parameters, List<FieldSchema> partitionCols, Layout layout) {
     mDatabase = database;
     mName = tableName;
     mSchema = schema;
-    mIsPartitioned = isPartitioned;
-    mPartitionScheme = PartitionScheme.createPartitionScheme(partitions, tableInfo, mIsPartitioned);
+    mPartitionScheme = PartitionScheme.createPartitionScheme(partitions, layout, partitionCols);
+    mOwner = owner;
     mStatistics = columnStats;
+    mParameters = new HashMap<>(parameters);
   }
 
   /**
@@ -67,13 +72,13 @@ public class Table {
     try {
       mName = udbTable.getName();
       mSchema = udbTable.getSchema();
-      List<Partition> partitions =
-          udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
-      UdbTableInfo tableInfo = udbTable.toProto();
+      mOwner = udbTable.getOwner();
       mStatistics = udbTable.getStatistics();
-      mIsPartitioned = udbTable.isPartitioned();
-      mPartitionScheme = PartitionScheme.createPartitionScheme(partitions,
-          tableInfo, mIsPartitioned);
+      mParameters = new HashMap<>(udbTable.getParameters());
+      List<FieldSchema> partitionCols = new ArrayList<>(udbTable.getPartitionCols());
+      mPartitionScheme = PartitionScheme.createPartitionScheme(
+          udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList()),
+          udbTable.getLayout(), partitionCols);
     } catch (IOException e) {
       LOG.info("Sync table {} failed {}", mName, e);
     }
@@ -99,7 +104,8 @@ public class Table {
         .collect(Collectors.toList());
 
     return new Table(database, partitions, entry.getSchema(), entry.getTableName(),
-        entry.getUdbTable(), entry.getTableStatsList(), entry.getPartitioned());
+        entry.getOwner(), entry.getTableStatsList(), entry.getParametersMap(),
+        entry.getPartitionColsList(), entry.getLayout());
   }
   /**
    * @return the table name
@@ -146,22 +152,36 @@ public class Table {
   }
 
   /**
-   * @return if the table is partitioned
-   */
-  public boolean isPartitioned() {
-    return mIsPartitioned;
-  }
-
-  /**
    * @return the proto representation
    */
   public TableInfo toProto() {
     TableInfo.Builder builder = TableInfo.newBuilder()
         .setDbName(mDatabase.getName())
         .setTableName(mName)
-        .setSchema(mSchema);
+        .setSchema(mSchema)
+        .setOwner(mOwner)
+        .putAllParameters(mParameters)
+        .addAllPartitionCols(mPartitionScheme.getPartitionCols())
+        .setLayout(mPartitionScheme.getTableLayout());
 
-    builder.setUdbInfo(mPartitionScheme.getTableLayout());
+    return builder.build();
+  }
+
+  /**
+   * @return the journal proto representation
+   */
+  public AddTableEntry toJournalProto() {
+    AddTableEntry.Builder builder = AddTableEntry.newBuilder()
+        .setDbName(mDatabase.getName())
+        .setTableName(mName)
+        .addAllPartitions(getPartitions().stream().map(Partition::toProto).collect(Collectors.toList()))
+        .addAllTableStats(mStatistics)
+        .setSchema(mSchema)
+        .setOwner(mOwner)
+        .putAllParameters(mParameters)
+        .addAllPartitionCols(mPartitionScheme.getPartitionCols())
+        .setLayout(mPartitionScheme.getTableLayout());
+
     return builder.build();
   }
 }

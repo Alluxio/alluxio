@@ -13,17 +13,16 @@ package alluxio.master.table;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsData;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.StringColumnStatsData;
-import alluxio.grpc.table.UdbTableInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
@@ -247,10 +246,10 @@ public class AlluxioCatalogTest {
     when(tbl.getName()).thenReturn(name);
     when(tbl.getSchema()).thenReturn(schema);
     when(tbl.getStatistics()).thenReturn(createRandomStatsForSchema(schema));
-    when(tbl.getPartitionKeys()).thenReturn(Arrays.asList(FieldSchema.getDefaultInstance()));
     when(tbl.getPartitions()).thenReturn(Arrays.asList(partition, partition));
-    when(tbl.isPartitioned()).thenReturn(true);
-    doReturn(UdbTableInfo.getDefaultInstance()).when(tbl).toProto();
+    when(tbl.getPartitionCols()).thenReturn(Arrays.asList(FieldSchema.getDefaultInstance()));
+    when(tbl.getLayout()).thenReturn(new HiveLayout(PartitionInfo.getDefaultInstance(),
+        Collections.emptyList()).toProto());
     return tbl;
   }
 
@@ -263,10 +262,10 @@ public class AlluxioCatalogTest {
     when(tbl.getName()).thenReturn(name);
     when(tbl.getSchema()).thenReturn(schema);
     when(tbl.getStatistics()).thenReturn(createRandomStatsForSchema(schema));
-    when(tbl.getPartitionKeys()).thenReturn(Collections.emptyList());
     when(tbl.getPartitions()).thenReturn(Arrays.asList(partition));
-    when(tbl.isPartitioned()).thenReturn(false);
-    doReturn(UdbTableInfo.getDefaultInstance()).when(tbl).toProto();
+    when(tbl.getPartitionCols()).thenReturn(Collections.emptyList());
+    when(tbl.getLayout()).thenReturn(new HiveLayout(PartitionInfo.getDefaultInstance(),
+        Collections.emptyList()).toProto());
     return tbl;
   }
 

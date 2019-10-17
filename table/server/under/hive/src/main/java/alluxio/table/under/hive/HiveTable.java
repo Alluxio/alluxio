@@ -11,14 +11,11 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.client.file.FileSystem;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
-import alluxio.grpc.table.HiveTableInfo;
-import alluxio.grpc.table.ParquetMetadata;
+import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
-import alluxio.grpc.table.UdbTableInfo;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbTable;
@@ -26,7 +23,6 @@ import alluxio.table.under.hive.util.PathTranslator;
 
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.metastore.api.Partition;
-import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -35,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,11 +45,13 @@ public class HiveTable implements UdbTable {
   private final PathTranslator mPathTranslator;
   private final String mName;
   private final Schema mSchema;
-  private final String mBaseLocation;
+  private final String mOwner;
   private final List<ColumnStatisticsInfo> mStatistics;
   private final List<FieldSchema> mPartitionKeys;
   private final Table mTable;
   private final List<Partition> mPartitions;
+  private final Map<String, String> mParameters;
+  private final Layout mLayout;
 
   /**
    * Creates a new instance.
@@ -63,32 +60,26 @@ public class HiveTable implements UdbTable {
    * @param pathTranslator the path translator
    * @param name the table name
    * @param schema the table schema
-   * @param baseLocation the base location
    * @param statistics the table statistics
    * @param cols partition keys
    * @param partitions partition list
+   * @param layout the table layout
    * @param table hive table object
    */
-  public HiveTable(HiveDatabase hiveDatabase,
-      PathTranslator pathTranslator, String name, Schema schema, String baseLocation,
-      List<ColumnStatisticsInfo> statistics, List<FieldSchema> cols, List<Partition> partitions,
-      Table table) {
+  public HiveTable(HiveDatabase hiveDatabase, PathTranslator pathTranslator, String name,
+      Schema schema, List<ColumnStatisticsInfo> statistics, List<FieldSchema> cols,
+      List<Partition> partitions, Layout layout, Table table) {
     mHiveDatabase = hiveDatabase;
     mTable = table;
     mPathTranslator = pathTranslator;
     mPartitions = partitions;
     mName = name;
     mSchema = schema;
-    mBaseLocation = baseLocation;
     mStatistics = statistics;
     mPartitionKeys = cols;
-  }
-
-  private static Map<String, ParquetMetadata> getPartitionMetadata(String path,
-      FileSystem alluxioFs) {
-    Map<String, ParquetMetadata> metadataMap = new HashMap<>();
-    // TODO(yuzhu): clean this up to use proper method to get a list of datafiles
-    return metadataMap;
+    mOwner = table.getOwner();
+    mParameters = (table.getParameters() != null) ? table.getParameters() : Collections.emptyMap();
+    mLayout = layout;
   }
 
   @Override
@@ -102,13 +93,28 @@ public class HiveTable implements UdbTable {
   }
 
   @Override
+  public String getOwner() {
+    return mOwner;
+  }
+
+  @Override
+  public Map<String, String> getParameters() {
+    return mParameters;
+  }
+
+  @Override
+  public List<FieldSchema> getPartitionCols() {
+    return mPartitionKeys;
+  }
+
+  @Override
   public List<ColumnStatisticsInfo> getStatistics() {
     return mStatistics;
   }
 
   @Override
-  public boolean isPartitioned() {
-    return !mPartitionKeys.isEmpty();
+  public Layout getLayout() {
+    return mLayout;
   }
 
   @Override
@@ -127,11 +133,8 @@ public class HiveTable implements UdbTable {
         // unpartitioned table, generate a partition
         PartitionInfo.Builder pib = PartitionInfo.newBuilder()
             .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
-            .addAllCols(HiveUtils.toProto(mTable.getSd().getCols()))
+            .addAllDataCols(HiveUtils.toProto(mTable.getSd().getCols()))
             .setStorage(HiveUtils.toProto(mTable.getSd(), mPathTranslator))
-            .putAllFileMetadata(getPartitionMetadata(
-                mPathTranslator.toAlluxioPath(mTable.getSd().getLocation()),
-                mHiveDatabase.getUdbContext().getFileSystem()))
             .setPartitionName(mName);
         udbPartitions.add(new HivePartition(
             new HiveLayout(pib.build(), Collections.emptyList())));
@@ -149,12 +152,10 @@ public class HiveTable implements UdbTable {
       for (Partition partition : partitions) {
         String partName = FileUtils.makePartName(partitionColumns, partition.getValues());
         PartitionInfo.Builder pib = PartitionInfo.newBuilder()
-            .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
-            .addAllCols(HiveUtils.toProto(partition.getSd().getCols()))
+            .setDbName(mHiveDatabase.getUdbContext().getDbName())
+            .setTableName(mName)
+            .addAllDataCols(HiveUtils.toProto(partition.getSd().getCols()))
             .setStorage(HiveUtils.toProto(partition.getSd(), mPathTranslator))
-            .putAllFileMetadata(getPartitionMetadata(
-                mPathTranslator.toAlluxioPath(partition.getSd().getLocation()),
-                mHiveDatabase.getUdbContext().getFileSystem()))
             .setPartitionName(partName);
         if (partition.getValues() != null) {
           pib.addAllValues(partition.getValues());
@@ -167,27 +168,5 @@ public class HiveTable implements UdbTable {
       throw new IOException(
           "failed to list hive partitions for table: " + mHiveDatabase.getName() + "." + mName, e);
     }
-  }
-
-  @Override
-  public UdbTableInfo toProto() throws IOException {
-    HiveTableInfo.Builder builder = HiveTableInfo.newBuilder();
-    builder.setDatabaseName(mHiveDatabase.getUdbContext().getDbName())
-        .setTableName(mTable.getTableName())
-        .setOwner(mTable.getOwner())
-        .setTableType(mTable.getTableType());
-
-    StorageDescriptor sd = mTable.getSd();
-    builder.addAllDataColumns(HiveUtils.toProto(mTable.getSd().getCols()))
-        .addAllPartitionColumns(HiveUtils.toProto(mTable.getPartitionKeys()))
-        .setStorage(HiveUtils.toProto(sd, mPathTranslator))
-        .putAllParameters(mTable.getParameters());
-    if (mTable.getViewOriginalText() != null) {
-      builder.setViewOriginalText(mTable.getViewOriginalText());
-    }
-    if (mTable.getViewExpandedText() != null) {
-      builder.setViewExpandedText(mTable.getViewExpandedText());
-    }
-    return (UdbTableInfo.newBuilder().setHiveTableInfo(builder.build()).build());
   }
 }

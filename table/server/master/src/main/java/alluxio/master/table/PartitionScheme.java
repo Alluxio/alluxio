@@ -11,7 +11,8 @@
 
 package alluxio.master.table;
 
-import alluxio.grpc.table.UdbTableInfo;
+import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.Layout;
 
 import java.util.List;
 
@@ -31,22 +32,29 @@ public interface PartitionScheme {
    *
    * @return table info
    */
-  UdbTableInfo getTableLayout();
+  Layout getTableLayout();
+
+  /**
+   * Get partition columns.
+   *
+   * @return partition columns
+   */
+  List<FieldSchema> getPartitionCols();
 
   /**
    * create a partition scheme object.
    *
    * @param partitions partitions
-   * @param tableInfo table info
-   * @param isPartitioned table is partitioned
+   * @param layout table layout
+   * @param partCols table partition columns
    * @return a partition scheme object
    */
-  static PartitionScheme createPartitionScheme(List<Partition> partitions, UdbTableInfo tableInfo,
-      boolean isPartitioned) {
-    if (isPartitioned) {
-      return new PartitionedTableScheme(partitions, tableInfo);
+  static PartitionScheme createPartitionScheme(List<Partition> partitions, Layout layout,
+      List<FieldSchema> partCols) {
+    if (partCols.isEmpty()) {
+      return new UnpartitionedTableScheme(partitions);
     } else {
-      return new UnpartitionedTableScheme(partitions, tableInfo);
+      return new PartitionedTableScheme(partitions, layout, partCols);
     }
   }
 }

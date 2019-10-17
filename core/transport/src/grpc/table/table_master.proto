@@ -56,136 +56,32 @@ message Storage {
     map<string, string> serde_parameters = 5;
 }
 
-message HiveTableInfo {
-    optional string database_name = 1;
-    optional string table_name = 2;
-    optional string owner = 3;
-    optional string table_type = 4;
-    repeated FieldSchema data_columns = 5;
-    repeated FieldSchema partition_columns = 6;
-    optional Storage storage = 7;
-    map<string, string> parameters = 8;
-    optional string view_original_text = 9;
-    optional string view_expanded_text = 10;
-}
-
-message UdbTableInfo {
-    oneof udb_table_info {
-        HiveTableInfo hive_table_info = 1;
-    }
-}
-
 message TableInfo {
-    optional string table_name = 1;
-    optional string db_name = 2;
+    optional string db_name = 1;
+    optional string table_name = 2;
     enum TableType {
-        NATIVE = 0; //native alluxio metastore table, both metadata and datafile managed by alluxio
-        IMPORTED = 1; //imported alluxio metastore table, only the metadata is managed by alluxio
+        NATIVE = 0;
+        IMPORTED = 1;
     }
     optional TableType type = 3;
-    optional uint32 version = 4;
+    optional string owner = 4;
     optional Schema schema = 5;
-    optional UdbTableInfo udb_info = 6;
-}
+    optional Layout layout = 6;
+    map<string, string> parameters = 7;
 
-// Parquet metadata related types
-enum Repetition {
-    REPEATED = 1;
-    OPTIONAL = 2;
-    REQUIRED = 3;
-}
-
-enum PrimitiveTypeName {
-    // prefix enums with PARQUETTYPE_ to avoid conflict
-    PARQUETTYPE_INT64 = 0;
-    PARQUETTYPE_INT32 = 1;
-    PARQUETTYPE_BOOLEAN = 2;
-    PARQUETTYPE_BINARY = 3;
-    PARQUETTYPE_FLOAT = 4;
-    PARQUETTYPE_DOUBLE = 5;
-    PARQUETTYPE_INT96 = 6;
-    PARQUETTYPE_FIXED_LEN_BYTE_ARRAY = 7;
-}
-
-message GroupType {
-    repeated FieldType fields = 1;
-}
-message FieldType {
-    optional Repetition repetition = 1;
-    optional string name = 2;
-    oneof type_info {
-        PrimitiveTypeName type_id = 3;
-        GroupType group = 4;
-    }
-}
-
-message MessageType {
-    optional string name = 1;
-    repeated FieldType type = 2;
-}
-
-message FileMetadata {
-    optional MessageType schema = 1;
-    map<string, string> key_value_metadata = 2;
-    optional string created_by = 3;
-}
-
-message ColumnPath {
-    repeated string path_segment = 1;
-}
-
-message ColumnChunkMetaData {
-    optional ColumnPath path = 1;
-    optional PrimitiveTypeName type = 2;
-    enum CompressionCodecName {
-        UNCOMPRESSED = 0;
-        SNAPPY = 1;
-        GZIP = 2;
-        LZO = 3;
-        BROTLI = 4;
-        LZ4 = 5;
-        ZSTD = 6;
-    }
-    optional CompressionCodecName codec = 3;
-    enum Encoding {
-        PLAIN = 0;
-        RLE = 1;
-        BIT_PACKED = 2;
-        PLAIN_DICTIONARY = 3;
-        DELTA_BINARY_PACKED = 4;
-        DELTA_LENGTH_BYTE_ARRAY = 5;
-        DELTA_BYTE_ARRAY = 6;
-        RLE_DICTIONARY = 7;
-    }
-    repeated Encoding encodings = 4;
-    optional int64 first_data_page = 5;
-    optional int64 page_offset = 6;
-    optional int64 value_count = 7;
-    optional int64 total_size = 8;
-    optional int64 total_uncompressed_size = 9;
-}
-
-message BlockMetadata {
-    optional int64 row_count = 1;
-    optional int64 total_byte_count = 2;
-    optional string path = 3;
-    repeated ColumnChunkMetaData col_data = 4;
-}
-
-message ParquetMetadata {
-    optional FileMetadata file_metadata = 1;
-    repeated BlockMetadata block_metadata = 2;
+    // partitioning scheme
+    repeated FieldSchema partition_cols = 8;
 }
 
 message PartitionInfo {
-  repeated string values = 1; // string value is converted to appropriate partition key type
-  optional string dbName = 2;
-  optional string tableName = 3;
-  optional Storage storage = 4; // storage descriptor
-  map<string, string> parameters = 5;
-  map<string, ParquetMetadata> file_metadata = 6; // a map between file names and its parquet metadata info
-  repeated FieldSchema cols = 7;
-  optional string partitionName = 8; // partition name in the form of "key=value"
+  repeated string values = 1; // list of string values for each partition column
+  optional string partitionName = 2; // partition name in the form of "key=value"
+
+  optional string dbName = 3;
+  optional string tableName = 4;
+  optional Storage storage = 5;
+  repeated FieldSchema dataCols = 6;
+  map<string, string> parameters = 7;
 }
 
 // TODO(gpang): update

@@ -13,12 +13,13 @@ package alluxio.table.common.udb;
 
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
-import alluxio.grpc.table.UdbTableInfo;
 import alluxio.table.common.UdbPartition;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The interface for the underdb table.
@@ -35,6 +36,26 @@ public interface UdbTable {
    */
   Schema getSchema();
 
+  /**
+   * @return the table owner
+   */
+  String getOwner();
+
+  /**
+   * @return the map of parameters
+   */
+  Map<String, String> getParameters();
+
+  /**
+   * @return the list of partition columns
+   */
+  List<FieldSchema> getPartitionCols();
+
+  /**
+   * @return the layout for the table (could differ from partition layouts)
+   */
+  Layout getLayout();
+
   // TODO(gpang): generalize statistics
   /**
    * @return statistics of the table
@@ -45,14 +66,4 @@ public interface UdbTable {
    * @return returns partitions for the table
    */
   List<UdbPartition> getPartitions() throws IOException;
-
-  /**
-   * @return returns a proto representing the table
-   */
-  UdbTableInfo toProto() throws IOException;
-
-  /**
-   * @return true if partitioned
-   */
-  boolean isPartitioned();
 }

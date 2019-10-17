@@ -14,7 +14,6 @@ package alluxio.master.table;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
 import alluxio.grpc.table.Schema;
-import alluxio.grpc.table.TableInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -34,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * The database implementation that manages a collection of tables.
@@ -181,6 +179,7 @@ public class Database implements Journaled {
         // add table from udb
         UdbTable udbTable = mUdb.getTable(tableName);
         table = Table.create(this, udbTable);
+/*
         alluxio.proto.journal.Table.AddTableEntry addTableEntry =
             alluxio.proto.journal.Table.AddTableEntry.newBuilder()
             .setUdbTable(udbTable.toProto())
@@ -190,7 +189,8 @@ public class Database implements Journaled {
                 Collectors.toList()))
             .addAllTableStats(table.getStatistics()).setPartitioned(table.isPartitioned())
             .setSchema(table.getSchema())
-            .build();
+            .build();*/
+        alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();
         Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
             .build();
         applyAndJournal(context, entry);
@@ -247,19 +247,7 @@ public class Database implements Journaled {
         }
         Table table = mEntry;
         mEntry = null;
-        TableInfo tableInfo = table.toProto();
-
-        alluxio.proto.journal.Table.AddTableEntry addTableEntry =
-            alluxio.proto.journal.Table.AddTableEntry.newBuilder()
-            .setUdbTable(tableInfo.getUdbInfo())
-            .setDbName(tableInfo.getDbName())
-            .setTableName(table.getName())
-            .addAllPartitions(table.getPartitions().stream().map(Partition::toProto).collect(
-                Collectors.toList()))
-            .addAllTableStats(table.getStatistics()).setPartitioned(table.isPartitioned())
-            .setSchema(table.getSchema())
-            .build();
-
+        alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();
         return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
       }
 
