@@ -122,7 +122,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RaftJournalSystem extends AbstractJournalSystem {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalSystem.class);
 
-  private static final long SINGLE_MASTER_ELECTION_TIMEOUT = 500;
+  // Election timeout to use in a single master cluster.
+  private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
 
   /// Lifecycle: constant from when the journal system is constructed.
 
@@ -203,10 +204,10 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     if (conf.getClusterAddresses().size() == 1
         && !ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
       LOG.debug("Overriding election timeout to {} for single master cluster.",
-          SINGLE_MASTER_ELECTION_TIMEOUT);
-      conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT);
+          SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
       // Use the highest heartbeat internal relative to election timeout.
-      conf.setHeartbeatIntervalMs(Math.max(1, (SINGLE_MASTER_ELECTION_TIMEOUT / 2) - 1));
+      conf.setHeartbeatIntervalMs(Math.max(1, (SINGLE_MASTER_ELECTION_TIMEOUT_MS / 2) - 1));
     }
     // Validate the conf.
     conf.validate();
