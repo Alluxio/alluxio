@@ -29,6 +29,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
@@ -91,7 +92,8 @@ public final class MigrateDefinitionRunTaskTest {
     when(mMockFileSystemContext.getClusterConf()).thenReturn(conf);
     when(mMockFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(conf);
     mMockInStream = new MockFileInStream(mMockFileSystemContext, TEST_SOURCE_CONTENTS, conf);
-    when(mMockFileSystem.openFile(new AlluxioURI(TEST_SOURCE))).thenReturn(mMockInStream);
+    when(mMockFileSystem.openFile(eq(new AlluxioURI(TEST_SOURCE)),
+        any(OpenFilePOptions.class))).thenReturn(mMockInStream);
     mMockOutStream = new MockFileOutStream(mMockFileSystemContext);
     when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)),
         any(CreateFilePOptions.class))).thenReturn(mMockOutStream);

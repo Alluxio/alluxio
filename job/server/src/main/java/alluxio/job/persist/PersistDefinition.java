@@ -12,6 +12,7 @@
 package alluxio.job.persist;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
@@ -177,7 +178,7 @@ public final class PersistDefinition
         List<AclEntry> allAcls = Stream.concat(status.getDefaultAcl().getEntries().stream(),
             status.getAcl().getEntries().stream()).collect(Collectors.toList());
         ufs.setAclEntries(dstPath.toString(), allAcls);
-        bytesWritten = IOUtils.copyLarge(in, out);
+        bytesWritten = IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
         incrementPersistedMetric(ufsClient.getUfsMountPointUri(), bytesWritten);
       }
       LOG.info("Persisted file {} with size {}", ufsPath, bytesWritten);
