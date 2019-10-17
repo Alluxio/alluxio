@@ -66,7 +66,7 @@ public class JobServiceMetricsCommand {
 
     for (JobInfo lastActivity : lastActivities) {
       mPrintStream.print(String.format("Timestamp: %-30s",
-        CommonUtils.convertMsToDate(lastActivity.getLastStatusChangeMs(), mDateFormatPattern)));
+          CommonUtils.convertMsToDate(lastActivity.getLastStatusChangeMs(), mDateFormatPattern)));
       mPrintStream.print(String.format("Job Id: %-20s", lastActivity.getJobId()));
       mPrintStream.println(String.format("Status: %s", lastActivity.getStatus()));
     }
@@ -78,7 +78,7 @@ public class JobServiceMetricsCommand {
 
     for (JobInfo lastFailure : lastFailures) {
       mPrintStream.print(String.format("Timestamp: %-30s",
-        CommonUtils.convertMsToDate(lastFailure.getLastStatusChangeMs(), mDateFormatPattern)));
+          CommonUtils.convertMsToDate(lastFailure.getLastStatusChangeMs(), mDateFormatPattern)));
       mPrintStream.print(String.format("Job Id: %-20s", lastFailure.getJobId()));
       mPrintStream.println(String.format("Status: %s", lastFailure.getStatus()));
     }

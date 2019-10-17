@@ -59,7 +59,7 @@ public class JobServiceMetricsCommandTest {
     Mockito.when(mJobMasterClient.getJobServiceSummary())
             .thenReturn(new JobServiceSummary(jobInfos));
 
-    new JobServiceMetricsCommand(mJobMasterClient, mPrintStream).run();
+    new JobServiceMetricsCommand(mJobMasterClient, mPrintStream, "MM-dd-yyyy HH:mm:ss:SSS").run();
 
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
 
