@@ -42,11 +42,11 @@ public class JobMasterClientContextBuilder extends MasterClientContextBuilder {
   public JobMasterClientContext build() {
     if (mMasterInquireClient == null) {
       mMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(
-          mContext.getClusterConf());
+          mContext.getClusterConf(), mContext.getUserState());
     }
     if (mConfMasterInquireClient == null) {
       mConfMasterInquireClient = MasterInquireClient.Factory.create(
-              mContext.getClusterConf());
+              mContext.getClusterConf(), mContext.getUserState());
     }
     return new JobMasterClientContext(mContext, mMasterInquireClient, mConfMasterInquireClient);
   }
