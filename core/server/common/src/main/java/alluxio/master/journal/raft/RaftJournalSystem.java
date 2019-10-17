@@ -175,6 +175,15 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * @param conf raft journal configuration
    */
   private RaftJournalSystem(RaftJournalConfiguration conf) {
+    // Override election/heartbeat timeouts for single master cluster.
+    if (conf.getClusterAddresses().size() == 1) {
+      long electionTimeout = ServerConfiguration
+          .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SINGLE_MASTER_ELECTION_TIMEOUT);
+      LOG.debug("Overriding election timeout to {} for single master cluster.", electionTimeout);
+      conf.setElectionTimeoutMs(electionTimeout);
+      // Use the highest heartbeat internal relative to election timeout.
+      conf.setHeartbeatIntervalMs(Math.max(1, (electionTimeout / 2) - 1));
+    }
     conf.validate();
     mConf = conf;
     mJournals = new ConcurrentHashMap<>();
