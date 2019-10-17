@@ -130,60 +130,6 @@ public interface PartitionInfoOrBuilder extends
       java.lang.String key);
 
   /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-  int getFileMetadataCount();
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-  boolean containsFileMetadata(
-      java.lang.String key);
-  /**
-   * Use {@link #getFileMetadataMap()} instead.
-   */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata>
-  getFileMetadata();
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-  java.util.Map<java.lang.String, alluxio.grpc.table.ParquetMetadata>
-  getFileMetadataMap();
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-
-  alluxio.grpc.table.ParquetMetadata getFileMetadataOrDefault(
-      java.lang.String key,
-      alluxio.grpc.table.ParquetMetadata defaultValue);
-  /**
-   * <pre>
-   * a map between file names and its parquet metadata info
-   * </pre>
-   *
-   * <code>map&lt;string, .alluxio.grpc.table.ParquetMetadata&gt; file_metadata = 6;</code>
-   */
-
-  alluxio.grpc.table.ParquetMetadata getFileMetadataOrThrow(
-      java.lang.String key);
-
-  /**
    * <code>repeated .alluxio.grpc.table.FieldSchema cols = 7;</code>
    */
   java.util.List<alluxio.grpc.table.FieldSchema> 

@@ -11,11 +11,9 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.client.file.FileSystem;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.HiveTableInfo;
-import alluxio.grpc.table.ParquetMetadata;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.UdbTableInfo;
@@ -35,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,13 +81,6 @@ public class HiveTable implements UdbTable {
     mPartitionKeys = cols;
   }
 
-  private static Map<String, ParquetMetadata> getPartitionMetadata(String path,
-      FileSystem alluxioFs) {
-    Map<String, ParquetMetadata> metadataMap = new HashMap<>();
-    // TODO(yuzhu): clean this up to use proper method to get a list of datafiles
-    return metadataMap;
-  }
-
   @Override
   public String getName() {
     return mName;
@@ -132,9 +122,6 @@ public class HiveTable implements UdbTable {
             .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
             .addAllCols(HiveUtils.toProto(partition.getSd().getCols()))
             .setStorage(HiveUtils.toProto(partition.getSd(), mPathTranslator))
-            .putAllFileMetadata(getPartitionMetadata(
-                mPathTranslator.toAlluxioPath(partition.getSd().getLocation()),
-                mHiveDatabase.getUdbContext().getFileSystem()))
             .setPartitionName(partName);
         if (partition.getValues() != null) {
           pib.addAllValues(partition.getValues());
