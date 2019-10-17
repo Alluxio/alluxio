@@ -203,11 +203,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     // This is to speed up single master cluster boot-up.
     if (conf.getClusterAddresses().size() == 1
         && !ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
-      LOG.debug("Overriding election timeout to {} for single master cluster.",
+      LOG.debug("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
       conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
       // Use the highest heartbeat internal relative to election timeout.
-      conf.setHeartbeatIntervalMs(Math.max(1, (SINGLE_MASTER_ELECTION_TIMEOUT_MS / 2) - 1));
+      conf.setHeartbeatIntervalMs((SINGLE_MASTER_ELECTION_TIMEOUT_MS / 2) - 1);
     }
     // Validate the conf.
     conf.validate();
