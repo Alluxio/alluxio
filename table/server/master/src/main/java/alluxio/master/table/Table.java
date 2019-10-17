@@ -41,14 +41,8 @@ public class Table {
   private String mName;
   private final Database mDatabase;
   private Schema mSchema;
+  private PartitionScheme mPartitionScheme;
   private String mOwner;
-
-  // partition scheme
-  // TODO(gpang): this should be indexable by partition spec
-  private List<Partition> mPartitions;
-  private List<FieldSchema> mPartitionCols;
-  private Layout mLayout;
-
   private List<ColumnStatisticsInfo> mStatistics;
   private Map<String, String> mParameters;
 
@@ -63,12 +57,10 @@ public class Table {
     mDatabase = database;
     mName = tableName;
     mSchema = schema;
+    mPartitionScheme = PartitionScheme.create(partitions, layout, partitionCols);
     mOwner = owner;
-    mPartitions = partitions;
     mStatistics = columnStats;
     mParameters = new HashMap<>(parameters);
-    mPartitionCols = new ArrayList<>(partitionCols);
-    mLayout = layout;
   }
 
   /**
@@ -81,12 +73,12 @@ public class Table {
       mName = udbTable.getName();
       mSchema = udbTable.getSchema();
       mOwner = udbTable.getOwner();
-      mPartitions =
-          udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
       mStatistics = udbTable.getStatistics();
       mParameters = new HashMap<>(udbTable.getParameters());
-      mPartitionCols = new ArrayList<>(udbTable.getPartitionCols());
-      mLayout = udbTable.getLayout();
+      List<FieldSchema> partitionCols = new ArrayList<>(udbTable.getPartitionCols());
+      mPartitionScheme = PartitionScheme.create(
+          udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList()),
+          udbTable.getLayout(), partitionCols);
     } catch (IOException e) {
       LOG.info("Sync table {} failed {}", mName, e);
     }
@@ -126,7 +118,7 @@ public class Table {
    * @return the list of partitions
    */
   public List<Partition> getPartitions() {
-    return mPartitions;
+    return mPartitionScheme.getPartitions();
   }
 
   /**
@@ -150,8 +142,8 @@ public class Table {
    * @return a list of {@link TransformPlan} to transform this table
    */
   public List<TransformPlan> getTransformPlans(TransformDefinition definition) throws IOException {
-    List<TransformPlan> plans = new ArrayList<>(mPartitions.size());
-    for (Partition partition : mPartitions) {
+    List<TransformPlan> plans = new ArrayList<>(getPartitions().size());
+    for (Partition partition : getPartitions()) {
       TransformContext transformContext =
           new TransformContext(mDatabase.getName(), mName, partition.getSpec().toString());
       plans.add(partition.getTransformPlan(transformContext, definition));
@@ -169,8 +161,8 @@ public class Table {
         .setSchema(mSchema)
         .setOwner(mOwner)
         .putAllParameters(mParameters)
-        .addAllPartitionCols(mPartitionCols)
-        .setLayout(mLayout);
+        .addAllPartitionCols(mPartitionScheme.getPartitionCols())
+        .setLayout(mPartitionScheme.getTableLayout());
 
     return builder.build();
   }
@@ -182,13 +174,14 @@ public class Table {
     AddTableEntry.Builder builder = AddTableEntry.newBuilder()
         .setDbName(mDatabase.getName())
         .setTableName(mName)
-        .addAllPartitions(mPartitions.stream().map(Partition::toProto).collect(Collectors.toList()))
+        .addAllPartitions(getPartitions().stream().map(Partition::toProto)
+            .collect(Collectors.toList()))
         .addAllTableStats(mStatistics)
         .setSchema(mSchema)
         .setOwner(mOwner)
         .putAllParameters(mParameters)
-        .addAllPartitionCols(mPartitionCols)
-        .setLayout(mLayout);
+        .addAllPartitionCols(mPartitionScheme.getPartitionCols())
+        .setLayout(mPartitionScheme.getTableLayout());
 
     return builder.build();
   }

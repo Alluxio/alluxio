@@ -129,6 +129,18 @@ public class HiveTable implements UdbTable {
           .map(org.apache.hadoop.hive.metastore.api.FieldSchema::getName)
           .collect(Collectors.toList());
 
+      if (partitionColumns.isEmpty()) {
+        // unpartitioned table, generate a partition
+        PartitionInfo.Builder pib = PartitionInfo.newBuilder()
+            .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
+            .addAllDataCols(HiveUtils.toProto(mTable.getSd().getCols()))
+            .setStorage(HiveUtils.toProto(mTable.getSd(), mPathTranslator))
+            .setPartitionName(mName);
+        udbPartitions.add(new HivePartition(
+            new HiveLayout(pib.build(), Collections.emptyList())));
+        return udbPartitions;
+      }
+
       List<String> partitionNames = partitions.stream().map(
           partition -> FileUtils.makePartName(partitionColumns,
               partition.getValues())).collect(Collectors.toList());

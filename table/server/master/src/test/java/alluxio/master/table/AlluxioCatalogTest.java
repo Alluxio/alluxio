@@ -19,9 +19,12 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsData;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.StringColumnStatsData;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.table.common.UdbPartition;
+import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
@@ -35,6 +38,7 @@ import org.mockito.Mockito;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -127,6 +131,28 @@ public class AlluxioCatalogTest {
   }
 
   @Test
+  public void testGetPartitionUnpartitonedUdbTable() throws Exception {
+    Schema s = schemaFromColNames("c1", "c2", "c3");
+    // setup
+    UdbTable tbl = createMockUdbTable("test", s);
+    Database db = createMockDatabase("noop", "test", Collections.emptyList());
+    db.addTable(tbl.getName(), Table.create(db, tbl));
+    addDbToCatalog(db);
+    assertEquals(1, mCatalog.getTable("test", "test").getPartitions().size());
+  }
+
+  @Test
+  public void testGetPartitionPartitonedUdbTable() throws Exception {
+    Schema s = schemaFromColNames("c1", "c2", "c3");
+    // setup
+    UdbTable tbl = createMockPartitionedUdbTable("test", s);
+    Database db = createMockDatabase("noop", "test", Collections.emptyList());
+    db.addTable(tbl.getName(), Table.create(db, tbl));
+    addDbToCatalog(db);
+    assertEquals(2, mCatalog.getTable("test", "test").getPartitions().size());
+  }
+
+  @Test
   public void testGetColumnStats() throws Exception {
     Schema s = schemaFromColNames("c1", "c2", "c3");
     // setup
@@ -210,12 +236,35 @@ public class AlluxioCatalogTest {
     ((Map<String, Database>) Whitebox.getInternalState(mCatalog, "mDBs")).put(db.getName(), db);
   }
 
-  UdbTable createMockUdbTable(String name, Schema schema) throws IOException {
+  UdbTable createMockPartitionedUdbTable(String name, Schema schema) throws IOException {
+    UdbPartition partition = Mockito.mock(UdbPartition.class);
+    when(partition.getSpec()).thenReturn(name);
+    when(partition.getLayout()).thenReturn(new HiveLayout(PartitionInfo.getDefaultInstance(),
+        Collections.emptyList()));
     UdbTable tbl = Mockito.mock(UdbTable.class);
     when(tbl.getName()).thenReturn(name);
     when(tbl.getSchema()).thenReturn(schema);
     when(tbl.getStatistics()).thenReturn(createRandomStatsForSchema(schema));
-    when(tbl.getPartitions()).thenReturn(Collections.emptyList());
+    when(tbl.getPartitions()).thenReturn(Arrays.asList(partition, partition));
+    when(tbl.getPartitionCols()).thenReturn(Arrays.asList(FieldSchema.getDefaultInstance()));
+    when(tbl.getLayout()).thenReturn(new HiveLayout(PartitionInfo.getDefaultInstance(),
+        Collections.emptyList()).toProto());
+    return tbl;
+  }
+
+  UdbTable createMockUdbTable(String name, Schema schema) throws IOException {
+    UdbPartition partition = Mockito.mock(UdbPartition.class);
+    when(partition.getSpec()).thenReturn(name);
+    when(partition.getLayout()).thenReturn(new HiveLayout(PartitionInfo.getDefaultInstance(),
+        Collections.emptyList()));
+    UdbTable tbl = Mockito.mock(UdbTable.class);
+    when(tbl.getName()).thenReturn(name);
+    when(tbl.getSchema()).thenReturn(schema);
+    when(tbl.getStatistics()).thenReturn(createRandomStatsForSchema(schema));
+    when(tbl.getPartitions()).thenReturn(Arrays.asList(partition));
+    when(tbl.getPartitionCols()).thenReturn(Collections.emptyList());
+    when(tbl.getLayout()).thenReturn(new HiveLayout(PartitionInfo.getDefaultInstance(),
+        Collections.emptyList()).toProto());
     return tbl;
   }
 
