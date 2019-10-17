@@ -20,9 +20,9 @@ import java.util.List;
  * Partitioned Table Scheme.
  */
 public class PartitionedTableScheme implements PartitionScheme {
-  private List<Partition> mPartitions;
-  private Layout mTableInfo;
-  private List<FieldSchema> mPartCols;
+  private final List<Partition> mPartitions;
+  private final Layout mTableInfo;
+  private final List<FieldSchema> mPartCols;
 
   /**
    * constructor for PartitionedTableScheme.
