@@ -35,7 +35,7 @@ The following is a checklist to run through to address common problems when tuni
    check that the client and worker use the same hostname string.
    Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
-   
+
    Note: In order to retrieve metrics for short circuit IO, the client metrics collection need to be enabled by setting
    `alluxio.user.metrics.collection.enabled=true` in `alluxio-site.properties` or corresponding application configuration.
 
@@ -223,6 +223,7 @@ The number of asynchronous threads used to finish reading partial blocks is set 
 `alluxio.worker.network.async.cache.manager.threads.max` property.
 When large amounts of data are expected to be asynchronously cached concurrently, it may be helpful
 to increase this value to handle a higher workload.
+This is most commonly effective in cases where the files being cached are relatively small (> 10MB).
 However, increase this number sparingly, as it will consume more CPU resources on the worker node
 as the number is increased.
 
@@ -277,6 +278,8 @@ alluxio.user.file.persist.on.rename=true
 # Determines the number of copies in Alluxio when files are not yet persisted, increase this to
 # a larger number to ensure fault tolerance in case of Alluxio worker failures
 alluxio.user.file.replication.durable=1
+# blacklist files which contain the string "_temporary" anywhere in their path
+alluxio.master.persistence.blacklist=_temporary
 ```
 
 With this configuration, the protocol translates to the following:
@@ -292,3 +295,23 @@ With this configuration, the protocol translates to the following:
 Overall, a copy and delete operation in the object store is saved, and the slow portion of writing
 to the object store is moved off the critical path.
 
+In some cases, the compute framework's commit protocol involves multiple renames or temporary files.
+Alluxio provides a mechanism for preventing files from being persisted by blacklisting a set of
+strings which are associated with temporary files.
+Any file which has any of the configured strings as part of its path will not be considered for
+persist.
+
+For example, if
+
+```
+alluxio.master.persistence.blacklist=.staging,_temporary
+```
+
+Files such as `/data/_temporary/part-00001`, `/data/temporary.staging` will not be considered for
+persist.
+This works because eventually these temporary files will be deleted or renamed to permanent files.
+Because `alluxio.user.file.persist.on.rename=true` is set, the files will be considered for persist
+again when renamed.
+Note that persist on rename works for directories as well as files - if a top level directory is
+renamed with the persist on rename option, all its not yet persisted files will be scanned for
+eligbility for persist.
