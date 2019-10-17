@@ -351,22 +351,22 @@ public final class TableMasterProto {
       "rametersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
       "\t:\0028\001\"\244\003\n\tTableInfo\022\017\n\007db_name\030\001 \001(\t\022\022\n\n" +
       "table_name\030\002 \001(\t\0225\n\004type\030\003 \001(\0162\'.alluxio" +
-      ".grpc.table.TableInfo.TableType\022*\n\006schem" +
-      "a\030\004 \001(\0132\032.alluxio.grpc.table.Schema\022\r\n\005o" +
-      "wner\030\005 \001(\t\0227\n\016partition_cols\030\006 \003(\0132\037.all" +
-      "uxio.grpc.table.FieldSchema\022*\n\006layout\030\007 " +
-      "\001(\0132\032.alluxio.grpc.table.Layout\022A\n\nparam" +
-      "eters\030\010 \003(\0132-.alluxio.grpc.table.TableIn" +
-      "fo.ParametersEntry\0321\n\017ParametersEntry\022\013\n" +
+      ".grpc.table.TableInfo.TableType\022\r\n\005owner" +
+      "\030\004 \001(\t\022*\n\006schema\030\005 \001(\0132\032.alluxio.grpc.ta" +
+      "ble.Schema\022*\n\006layout\030\006 \001(\0132\032.alluxio.grp" +
+      "c.table.Layout\022A\n\nparameters\030\007 \003(\0132-.all" +
+      "uxio.grpc.table.TableInfo.ParametersEntr" +
+      "y\0227\n\016partition_cols\030\010 \003(\0132\037.alluxio.grpc" +
+      ".table.FieldSchema\0321\n\017ParametersEntry\022\013\n" +
       "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"%\n\tTableTy" +
       "pe\022\n\n\006NATIVE\020\000\022\014\n\010IMPORTED\020\001\"\264\002\n\rPartiti" +
-      "onInfo\022\016\n\006values\030\001 \003(\t\022\016\n\006dbName\030\002 \001(\t\022\021" +
-      "\n\ttableName\030\003 \001(\t\022,\n\007storage\030\004 \001(\0132\033.all" +
-      "uxio.grpc.table.Storage\022E\n\nparameters\030\005 " +
-      "\003(\01321.alluxio.grpc.table.PartitionInfo.P" +
-      "arametersEntry\0221\n\010dataCols\030\007 \003(\0132\037.allux" +
-      "io.grpc.table.FieldSchema\022\025\n\rpartitionNa" +
-      "me\030\010 \001(\t\0321\n\017ParametersEntry\022\013\n\003key\030\001 \001(\t" +
+      "onInfo\022\016\n\006values\030\001 \003(\t\022\025\n\rpartitionName\030" +
+      "\002 \001(\t\022\016\n\006dbName\030\003 \001(\t\022\021\n\ttableName\030\004 \001(\t" +
+      "\022,\n\007storage\030\005 \001(\0132\033.alluxio.grpc.table.S" +
+      "torage\0221\n\010dataCols\030\006 \003(\0132\037.alluxio.grpc." +
+      "table.FieldSchema\022E\n\nparameters\030\007 \003(\01321." +
+      "alluxio.grpc.table.PartitionInfo.Paramet" +
+      "ersEntry\0321\n\017ParametersEntry\022\013\n\003key\030\001 \001(\t" +
       "\022\r\n\005value\030\002 \001(\t:\0028\001\"\032\n\nLayoutSpec\022\014\n\004spe" +
       "c\030\001 \001(\t\"\035\n\rPartitionSpec\022\014\n\004spec\030\001 \001(\t\"\362" +
       "\001\n\006Layout\022\022\n\nlayoutType\030\001 \001(\t\0222\n\nlayoutS" +
@@ -579,7 +579,7 @@ public final class TableMasterProto {
     internal_static_alluxio_grpc_table_TableInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_TableInfo_descriptor,
-        new java.lang.String[] { "DbName", "TableName", "Type", "Schema", "Owner", "PartitionCols", "Layout", "Parameters", });
+        new java.lang.String[] { "DbName", "TableName", "Type", "Owner", "Schema", "Layout", "Parameters", "PartitionCols", });
     internal_static_alluxio_grpc_table_TableInfo_ParametersEntry_descriptor =
       internal_static_alluxio_grpc_table_TableInfo_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_grpc_table_TableInfo_ParametersEntry_fieldAccessorTable = new
@@ -591,7 +591,7 @@ public final class TableMasterProto {
     internal_static_alluxio_grpc_table_PartitionInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_PartitionInfo_descriptor,
-        new java.lang.String[] { "Values", "DbName", "TableName", "Storage", "Parameters", "DataCols", "PartitionName", });
+        new java.lang.String[] { "Values", "PartitionName", "DbName", "TableName", "Storage", "DataCols", "Parameters", });
     internal_static_alluxio_grpc_table_PartitionInfo_ParametersEntry_descriptor =
       internal_static_alluxio_grpc_table_PartitionInfo_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_grpc_table_PartitionInfo_ParametersEntry_fieldAccessorTable = new

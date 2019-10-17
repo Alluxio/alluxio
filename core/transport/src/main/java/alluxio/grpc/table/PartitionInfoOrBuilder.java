@@ -9,7 +9,7 @@ public interface PartitionInfoOrBuilder extends
 
   /**
    * <pre>
-   * string value is converted to appropriate partition key type
+   * list of string values for each partition column
    * </pre>
    *
    * <code>repeated string values = 1;</code>
@@ -18,7 +18,7 @@ public interface PartitionInfoOrBuilder extends
       getValuesList();
   /**
    * <pre>
-   * string value is converted to appropriate partition key type
+   * list of string values for each partition column
    * </pre>
    *
    * <code>repeated string values = 1;</code>
@@ -26,7 +26,7 @@ public interface PartitionInfoOrBuilder extends
   int getValuesCount();
   /**
    * <pre>
-   * string value is converted to appropriate partition key type
+   * list of string values for each partition column
    * </pre>
    *
    * <code>repeated string values = 1;</code>
@@ -34,7 +34,7 @@ public interface PartitionInfoOrBuilder extends
   java.lang.String getValues(int index);
   /**
    * <pre>
-   * string value is converted to appropriate partition key type
+   * list of string values for each partition column
    * </pre>
    *
    * <code>repeated string values = 1;</code>
@@ -43,64 +43,102 @@ public interface PartitionInfoOrBuilder extends
       getValuesBytes(int index);
 
   /**
-   * <code>optional string dbName = 2;</code>
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 2;</code>
+   */
+  boolean hasPartitionName();
+  /**
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 2;</code>
+   */
+  java.lang.String getPartitionName();
+  /**
+   * <pre>
+   * partition name in the form of "key=value"
+   * </pre>
+   *
+   * <code>optional string partitionName = 2;</code>
+   */
+  com.google.protobuf.ByteString
+      getPartitionNameBytes();
+
+  /**
+   * <code>optional string dbName = 3;</code>
    */
   boolean hasDbName();
   /**
-   * <code>optional string dbName = 2;</code>
+   * <code>optional string dbName = 3;</code>
    */
   java.lang.String getDbName();
   /**
-   * <code>optional string dbName = 2;</code>
+   * <code>optional string dbName = 3;</code>
    */
   com.google.protobuf.ByteString
       getDbNameBytes();
 
   /**
-   * <code>optional string tableName = 3;</code>
+   * <code>optional string tableName = 4;</code>
    */
   boolean hasTableName();
   /**
-   * <code>optional string tableName = 3;</code>
+   * <code>optional string tableName = 4;</code>
    */
   java.lang.String getTableName();
   /**
-   * <code>optional string tableName = 3;</code>
+   * <code>optional string tableName = 4;</code>
    */
   com.google.protobuf.ByteString
       getTableNameBytes();
 
   /**
-   * <pre>
-   * storage descriptor
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.table.Storage storage = 4;</code>
+   * <code>optional .alluxio.grpc.table.Storage storage = 5;</code>
    */
   boolean hasStorage();
   /**
-   * <pre>
-   * storage descriptor
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.table.Storage storage = 4;</code>
+   * <code>optional .alluxio.grpc.table.Storage storage = 5;</code>
    */
   alluxio.grpc.table.Storage getStorage();
   /**
-   * <pre>
-   * storage descriptor
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.table.Storage storage = 4;</code>
+   * <code>optional .alluxio.grpc.table.Storage storage = 5;</code>
    */
   alluxio.grpc.table.StorageOrBuilder getStorageOrBuilder();
 
   /**
-   * <code>map&lt;string, string&gt; parameters = 5;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   */
+  java.util.List<alluxio.grpc.table.FieldSchema> 
+      getDataColsList();
+  /**
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   */
+  alluxio.grpc.table.FieldSchema getDataCols(int index);
+  /**
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   */
+  int getDataColsCount();
+  /**
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   */
+  java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
+      getDataColsOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   */
+  alluxio.grpc.table.FieldSchemaOrBuilder getDataColsOrBuilder(
+      int index);
+
+  /**
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
   int getParametersCount();
   /**
-   * <code>map&lt;string, string&gt; parameters = 5;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
   boolean containsParameters(
       java.lang.String key);
@@ -111,71 +149,21 @@ public interface PartitionInfoOrBuilder extends
   java.util.Map<java.lang.String, java.lang.String>
   getParameters();
   /**
-   * <code>map&lt;string, string&gt; parameters = 5;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
   java.util.Map<java.lang.String, java.lang.String>
   getParametersMap();
   /**
-   * <code>map&lt;string, string&gt; parameters = 5;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
 
   java.lang.String getParametersOrDefault(
       java.lang.String key,
       java.lang.String defaultValue);
   /**
-   * <code>map&lt;string, string&gt; parameters = 5;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
 
   java.lang.String getParametersOrThrow(
       java.lang.String key);
-
-  /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
-   */
-  java.util.List<alluxio.grpc.table.FieldSchema> 
-      getDataColsList();
-  /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
-   */
-  alluxio.grpc.table.FieldSchema getDataCols(int index);
-  /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
-   */
-  int getDataColsCount();
-  /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
-   */
-  java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
-      getDataColsOrBuilderList();
-  /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 7;</code>
-   */
-  alluxio.grpc.table.FieldSchemaOrBuilder getDataColsOrBuilder(
-      int index);
-
-  /**
-   * <pre>
-   * partition name in the form of "key=value"
-   * </pre>
-   *
-   * <code>optional string partitionName = 8;</code>
-   */
-  boolean hasPartitionName();
-  /**
-   * <pre>
-   * partition name in the form of "key=value"
-   * </pre>
-   *
-   * <code>optional string partitionName = 8;</code>
-   */
-  java.lang.String getPartitionName();
-  /**
-   * <pre>
-   * partition name in the form of "key=value"
-   * </pre>
-   *
-   * <code>optional string partitionName = 8;</code>
-   */
-  com.google.protobuf.ByteString
-      getPartitionNameBytes();
 }

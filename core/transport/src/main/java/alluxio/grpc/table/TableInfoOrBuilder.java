@@ -45,95 +45,51 @@ public interface TableInfoOrBuilder extends
   alluxio.grpc.table.TableInfo.TableType getType();
 
   /**
-   * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
-   */
-  boolean hasSchema();
-  /**
-   * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
-   */
-  alluxio.grpc.table.Schema getSchema();
-  /**
-   * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
-   */
-  alluxio.grpc.table.SchemaOrBuilder getSchemaOrBuilder();
-
-  /**
-   * <code>optional string owner = 5;</code>
+   * <code>optional string owner = 4;</code>
    */
   boolean hasOwner();
   /**
-   * <code>optional string owner = 5;</code>
+   * <code>optional string owner = 4;</code>
    */
   java.lang.String getOwner();
   /**
-   * <code>optional string owner = 5;</code>
+   * <code>optional string owner = 4;</code>
    */
   com.google.protobuf.ByteString
       getOwnerBytes();
 
   /**
-   * <pre>
-   * partitioning scheme
-   * </pre>
-   *
-   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 6;</code>
+   * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
    */
-  java.util.List<alluxio.grpc.table.FieldSchema> 
-      getPartitionColsList();
+  boolean hasSchema();
   /**
-   * <pre>
-   * partitioning scheme
-   * </pre>
-   *
-   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 6;</code>
+   * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
    */
-  alluxio.grpc.table.FieldSchema getPartitionCols(int index);
+  alluxio.grpc.table.Schema getSchema();
   /**
-   * <pre>
-   * partitioning scheme
-   * </pre>
-   *
-   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 6;</code>
+   * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
    */
-  int getPartitionColsCount();
-  /**
-   * <pre>
-   * partitioning scheme
-   * </pre>
-   *
-   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 6;</code>
-   */
-  java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
-      getPartitionColsOrBuilderList();
-  /**
-   * <pre>
-   * partitioning scheme
-   * </pre>
-   *
-   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 6;</code>
-   */
-  alluxio.grpc.table.FieldSchemaOrBuilder getPartitionColsOrBuilder(
-      int index);
+  alluxio.grpc.table.SchemaOrBuilder getSchemaOrBuilder();
 
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 7;</code>
+   * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
    */
   boolean hasLayout();
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 7;</code>
+   * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
    */
   alluxio.grpc.table.Layout getLayout();
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 7;</code>
+   * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
    */
   alluxio.grpc.table.LayoutOrBuilder getLayoutOrBuilder();
 
   /**
-   * <code>map&lt;string, string&gt; parameters = 8;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
   int getParametersCount();
   /**
-   * <code>map&lt;string, string&gt; parameters = 8;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
   boolean containsParameters(
       java.lang.String key);
@@ -144,21 +100,65 @@ public interface TableInfoOrBuilder extends
   java.util.Map<java.lang.String, java.lang.String>
   getParameters();
   /**
-   * <code>map&lt;string, string&gt; parameters = 8;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
   java.util.Map<java.lang.String, java.lang.String>
   getParametersMap();
   /**
-   * <code>map&lt;string, string&gt; parameters = 8;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
 
   java.lang.String getParametersOrDefault(
       java.lang.String key,
       java.lang.String defaultValue);
   /**
-   * <code>map&lt;string, string&gt; parameters = 8;</code>
+   * <code>map&lt;string, string&gt; parameters = 7;</code>
    */
 
   java.lang.String getParametersOrThrow(
       java.lang.String key);
+
+  /**
+   * <pre>
+   * partitioning scheme
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 8;</code>
+   */
+  java.util.List<alluxio.grpc.table.FieldSchema> 
+      getPartitionColsList();
+  /**
+   * <pre>
+   * partitioning scheme
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 8;</code>
+   */
+  alluxio.grpc.table.FieldSchema getPartitionCols(int index);
+  /**
+   * <pre>
+   * partitioning scheme
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 8;</code>
+   */
+  int getPartitionColsCount();
+  /**
+   * <pre>
+   * partitioning scheme
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 8;</code>
+   */
+  java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
+      getPartitionColsOrBuilderList();
+  /**
+   * <pre>
+   * partitioning scheme
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.FieldSchema partition_cols = 8;</code>
+   */
+  alluxio.grpc.table.FieldSchemaOrBuilder getPartitionColsOrBuilder(
+      int index);
 }
