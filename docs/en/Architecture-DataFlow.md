@@ -98,15 +98,12 @@ faster recovery in the future. However, they do not process any requests from ot
 Alluxio components. After leading master fail-over, the standby masters will re-elect the new
 leading master after.
 
-### Secondary Masters
+### Secondary Masters (for UFS journal)
 
-When running a single Alluxio master without HA mode, one can start a secondary master on
+When running a single Alluxio master without HA mode with UFS journal, one can start a secondary master on
 the same server as the leading master to write journal checkpoints. Note that, the secondary master
 is not designed to provide high availability but offload the work from the leading master for fast
 recovery. Different from standby masters, a secondary master can never upgrade to a leading master.
-
-Note: Secondary Master is designed to work with UFS journals only. 
-`Do not launch when running with Embedded Journal.`
 
 ### Job Masters
 
