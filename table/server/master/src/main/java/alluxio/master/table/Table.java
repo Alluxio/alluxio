@@ -57,7 +57,7 @@ public class Table {
     mDatabase = database;
     mName = tableName;
     mSchema = schema;
-    mPartitionScheme = PartitionScheme.createPartitionScheme(partitions, layout, partitionCols);
+    mPartitionScheme = PartitionScheme.create(partitions, layout, partitionCols);
     mOwner = owner;
     mStatistics = columnStats;
     mParameters = new HashMap<>(parameters);
@@ -76,7 +76,7 @@ public class Table {
       mStatistics = udbTable.getStatistics();
       mParameters = new HashMap<>(udbTable.getParameters());
       List<FieldSchema> partitionCols = new ArrayList<>(udbTable.getPartitionCols());
-      mPartitionScheme = PartitionScheme.createPartitionScheme(
+      mPartitionScheme = PartitionScheme.create(
           udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList()),
           udbTable.getLayout(), partitionCols);
     } catch (IOException e) {

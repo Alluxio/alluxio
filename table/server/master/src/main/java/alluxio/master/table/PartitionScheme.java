@@ -49,7 +49,7 @@ public interface PartitionScheme {
    * @param partCols table partition columns
    * @return a partition scheme object
    */
-  static PartitionScheme createPartitionScheme(List<Partition> partitions, Layout layout,
+  static PartitionScheme create(List<Partition> partitions, Layout layout,
       List<FieldSchema> partCols) {
     if (partCols.isEmpty()) {
       return new UnpartitionedTableScheme(partitions);
