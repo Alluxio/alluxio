@@ -23,7 +23,7 @@ public final class StatCommandTest extends JobShellTest {
     long jobId = runPersistJob();
     waitForJobToFinish(jobId);
     mJobShell.run("stat", "-v", Long.toString(jobId));
-    String expected = "ID: " + jobId + "\nStatus: COMPLETED\nTask 0\n\tStatus: COMPLETED\n";
+    String expected = "ID: " + jobId + "\nName: Persist\nStatus: COMPLETED\nTask 0\n\tStatus: COMPLETED\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 }
