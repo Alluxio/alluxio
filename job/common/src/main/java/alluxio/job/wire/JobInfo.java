@@ -21,7 +21,6 @@ import java.util.Collection;
  * The Job Info. {@link JobInfo} can currently be either a {@link TaskInfo} or a {@link PlanInfo}.
  */
 public interface JobInfo {
-
   /**
    * @return job id
    */
@@ -38,6 +37,12 @@ public interface JobInfo {
    */
   @Nonnull
   String getName();
+
+  /**
+   * @return description of the job
+   */
+  @Nonnull
+  String getDescription();
 
   /**
    * @return status of the job
@@ -72,6 +77,7 @@ public interface JobInfo {
    * @return proto representation of the job info
    * @throws IOException if serialization fails
    */
+
   @Nonnull
   alluxio.grpc.JobInfo toProto() throws IOException;
 }

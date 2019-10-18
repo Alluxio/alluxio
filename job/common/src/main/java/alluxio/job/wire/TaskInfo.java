@@ -15,6 +15,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobType;
 import alluxio.job.util.SerializationUtils;
 import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -41,11 +42,28 @@ public class TaskInfo implements JobInfo {
   private String mErrorMessage;
   private Serializable mResult;
   private long mLastUpdated;
+  private String mWorkerHost;
 
   /**
    * Default constructor.
    */
   public TaskInfo() {}
+
+  /**
+   * Constructor for TaskInfo.
+   * @param jobId the job id
+   * @param taskId the task id
+   * @param workerInfo the worker info
+   */
+  public TaskInfo(long jobId, long taskId, WorkerInfo workerInfo) {
+    mJobId = jobId;
+    mTaskId = taskId;
+    mStatus = Status.CREATED;
+    mErrorMessage = "";
+    mResult = null;
+    mLastUpdated = CommonUtils.getCurrentMs();
+    mWorkerHost = workerInfo.getAddress().getHost();
+  }
 
   /**
    * Constructs from the proto format.
@@ -60,6 +78,7 @@ public class TaskInfo implements JobInfo {
     mTaskId = taskInfo.getId();
     mStatus = Status.valueOf(taskInfo.getStatus().name());
     mErrorMessage = taskInfo.getErrorMessage();
+    mWorkerHost = taskInfo.getWorkerHost();
     mResult = null;
     if (taskInfo.hasResult()) {
       try {
@@ -105,6 +124,13 @@ public class TaskInfo implements JobInfo {
   }
 
   /**
+   * @return the worker host
+   */
+  public Object getWorkerHost() {
+    return mWorkerHost;
+  }
+
+  /**
    * @param jobId the job id
    * @return the updated task info object
    */
@@ -116,6 +142,11 @@ public class TaskInfo implements JobInfo {
   @Override
   public String getName() {
     return String.format("Task %s", mTaskId);
+  }
+
+  @Override
+  public String getDescription() {
+    return "";
   }
 
   @Override
@@ -180,6 +211,15 @@ public class TaskInfo implements JobInfo {
   }
 
   /**
+   * @param workerHost the worker host
+   * @return the updated task info object
+   */
+  public TaskInfo setWorkerHost(String workerHost) {
+    mWorkerHost = workerHost;
+    return this;
+  }
+
+  /**
    * @return proto representation of the task info
    * @throws IOException if serialization fails
    */
@@ -190,7 +230,7 @@ public class TaskInfo implements JobInfo {
     alluxio.grpc.JobInfo.Builder taskInfoBuilder =
         alluxio.grpc.JobInfo.newBuilder().setParentId(mJobId).setId(mTaskId)
             .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage)
-            .setLastUpdated(mLastUpdated).setType(JobType.TASK);
+            .setLastUpdated(mLastUpdated).setWorkerHost(mWorkerHost).setType(JobType.TASK);
     if (result != null) {
       taskInfoBuilder.setResult(ByteString.copyFrom(result));
     }
@@ -208,18 +248,20 @@ public class TaskInfo implements JobInfo {
     TaskInfo that = (TaskInfo) o;
     return Objects.equal(mJobId, that.mJobId) && Objects.equal(mTaskId, that.mTaskId)
         && Objects.equal(mStatus, that.mStatus) && Objects.equal(mErrorMessage, that.mErrorMessage)
-        && Objects.equal(mResult, that.mResult) && Objects.equal(mLastUpdated, that.mLastUpdated);
+        && Objects.equal(mResult, that.mResult) && Objects.equal(mLastUpdated, that.mLastUpdated)
+        && Objects.equal(mWorkerHost, that.mWorkerHost);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mJobId, mTaskId, mStatus, mErrorMessage, mResult, mLastUpdated);
+    return Objects.hashCode(mJobId, mTaskId, mStatus, mErrorMessage, mResult, mLastUpdated,
+        mWorkerHost);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("jobId", mJobId).add("taskId", mTaskId)
         .add("status", mStatus).add("errorMessage", mErrorMessage).add("result", mResult)
-        .add("lastUpdated", mLastUpdated).toString();
+        .add("lastUpdated", mLastUpdated).add("workerHost", mWorkerHost).toString();
   }
 }

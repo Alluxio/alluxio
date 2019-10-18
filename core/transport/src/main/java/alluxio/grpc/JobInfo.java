@@ -29,6 +29,8 @@ private static final long serialVersionUID = 0L;
     name_ = "";
     parentId_ = 0L;
     children_ = java.util.Collections.emptyList();
+    workerHost_ = "";
+    description_ = "";
     unused0_ = java.util.Collections.emptyList();
     unused1_ = "";
   }
@@ -76,9 +78,9 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 26: {
-            if (!((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
+            if (!((mutable_bitField0_ & 0x00000800) == 0x00000800)) {
               unused0_ = new java.util.ArrayList<alluxio.grpc.JobUnused>();
-              mutable_bitField0_ |= 0x00000200;
+              mutable_bitField0_ |= 0x00000800;
             }
             unused0_.add(
                 input.readMessage(alluxio.grpc.JobUnused.PARSER, extensionRegistry));
@@ -97,7 +99,7 @@ private static final long serialVersionUID = 0L;
           }
           case 42: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000100;
+            bitField0_ |= 0x00000400;
             unused1_ = bs;
             break;
           }
@@ -142,6 +144,18 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(alluxio.grpc.JobInfo.PARSER, extensionRegistry));
             break;
           }
+          case 98: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000100;
+            workerHost_ = bs;
+            break;
+          }
+          case 106: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000200;
+            description_ = bs;
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -150,7 +164,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((mutable_bitField0_ & 0x00000800) == 0x00000800)) {
         unused0_ = java.util.Collections.unmodifiableList(unused0_);
       }
       if (((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
@@ -396,6 +410,90 @@ private static final long serialVersionUID = 0L;
     return children_.get(index);
   }
 
+  public static final int WORKERHOST_FIELD_NUMBER = 12;
+  private volatile java.lang.Object workerHost_;
+  /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  public boolean hasWorkerHost() {
+    return ((bitField0_ & 0x00000100) == 0x00000100);
+  }
+  /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  public java.lang.String getWorkerHost() {
+    java.lang.Object ref = workerHost_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        workerHost_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  public com.google.protobuf.ByteString
+      getWorkerHostBytes() {
+    java.lang.Object ref = workerHost_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      workerHost_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int DESCRIPTION_FIELD_NUMBER = 13;
+  private volatile java.lang.Object description_;
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  public boolean hasDescription() {
+    return ((bitField0_ & 0x00000200) == 0x00000200);
+  }
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  public java.lang.String getDescription() {
+    java.lang.Object ref = description_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        description_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  public com.google.protobuf.ByteString
+      getDescriptionBytes() {
+    java.lang.Object ref = description_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      description_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   public static final int UNUSED0_FIELD_NUMBER = 3;
   private java.util.List<alluxio.grpc.JobUnused> unused0_;
   /**
@@ -461,7 +559,7 @@ private static final long serialVersionUID = 0L;
    * <code>optional string unused1 = 5;</code>
    */
   public boolean hasUnused1() {
-    return ((bitField0_ & 0x00000100) == 0x00000100);
+    return ((bitField0_ & 0x00000400) == 0x00000400);
   }
   /**
    * <pre>
@@ -529,7 +627,7 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       output.writeEnum(4, status_);
     }
-    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+    if (((bitField0_ & 0x00000400) == 0x00000400)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 5, unused1_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
@@ -549,6 +647,12 @@ private static final long serialVersionUID = 0L;
     }
     for (int i = 0; i < children_.size(); i++) {
       output.writeMessage(11, children_.get(i));
+    }
+    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 12, workerHost_);
+    }
+    if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 13, description_);
     }
     unknownFields.writeTo(output);
   }
@@ -573,7 +677,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(4, status_);
     }
-    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+    if (((bitField0_ & 0x00000400) == 0x00000400)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, unused1_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
@@ -598,6 +702,12 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < children_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(11, children_.get(i));
+    }
+    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(12, workerHost_);
+    }
+    if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(13, description_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -655,6 +765,16 @@ private static final long serialVersionUID = 0L;
     }
     result = result && getChildrenList()
         .equals(other.getChildrenList());
+    result = result && (hasWorkerHost() == other.hasWorkerHost());
+    if (hasWorkerHost()) {
+      result = result && getWorkerHost()
+          .equals(other.getWorkerHost());
+    }
+    result = result && (hasDescription() == other.hasDescription());
+    if (hasDescription()) {
+      result = result && getDescription()
+          .equals(other.getDescription());
+    }
     result = result && getUnused0List()
         .equals(other.getUnused0List());
     result = result && (hasUnused1() == other.hasUnused1());
@@ -711,6 +831,14 @@ private static final long serialVersionUID = 0L;
     if (getChildrenCount() > 0) {
       hash = (37 * hash) + CHILDREN_FIELD_NUMBER;
       hash = (53 * hash) + getChildrenList().hashCode();
+    }
+    if (hasWorkerHost()) {
+      hash = (37 * hash) + WORKERHOST_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkerHost().hashCode();
+    }
+    if (hasDescription()) {
+      hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+      hash = (53 * hash) + getDescription().hashCode();
     }
     if (getUnused0Count() > 0) {
       hash = (37 * hash) + UNUSED0_FIELD_NUMBER;
@@ -877,14 +1005,18 @@ private static final long serialVersionUID = 0L;
       } else {
         childrenBuilder_.clear();
       }
+      workerHost_ = "";
+      bitField0_ = (bitField0_ & ~0x00000200);
+      description_ = "";
+      bitField0_ = (bitField0_ & ~0x00000400);
       if (unused0Builder_ == null) {
         unused0_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000800);
       } else {
         unused0Builder_.clear();
       }
       unused1_ = "";
-      bitField0_ = (bitField0_ & ~0x00000400);
+      bitField0_ = (bitField0_ & ~0x00001000);
       return this;
     }
 
@@ -950,17 +1082,25 @@ private static final long serialVersionUID = 0L;
       } else {
         result.children_ = childrenBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+        to_bitField0_ |= 0x00000100;
+      }
+      result.workerHost_ = workerHost_;
+      if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+        to_bitField0_ |= 0x00000200;
+      }
+      result.description_ = description_;
       if (unused0Builder_ == null) {
-        if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        if (((bitField0_ & 0x00000800) == 0x00000800)) {
           unused0_ = java.util.Collections.unmodifiableList(unused0_);
-          bitField0_ = (bitField0_ & ~0x00000200);
+          bitField0_ = (bitField0_ & ~0x00000800);
         }
         result.unused0_ = unused0_;
       } else {
         result.unused0_ = unused0Builder_.build();
       }
-      if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
-        to_bitField0_ |= 0x00000100;
+      if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+        to_bitField0_ |= 0x00000400;
       }
       result.unused1_ = unused1_;
       result.bitField0_ = to_bitField0_;
@@ -1059,11 +1199,21 @@ private static final long serialVersionUID = 0L;
           }
         }
       }
+      if (other.hasWorkerHost()) {
+        bitField0_ |= 0x00000200;
+        workerHost_ = other.workerHost_;
+        onChanged();
+      }
+      if (other.hasDescription()) {
+        bitField0_ |= 0x00000400;
+        description_ = other.description_;
+        onChanged();
+      }
       if (unused0Builder_ == null) {
         if (!other.unused0_.isEmpty()) {
           if (unused0_.isEmpty()) {
             unused0_ = other.unused0_;
-            bitField0_ = (bitField0_ & ~0x00000200);
+            bitField0_ = (bitField0_ & ~0x00000800);
           } else {
             ensureUnused0IsMutable();
             unused0_.addAll(other.unused0_);
@@ -1076,7 +1226,7 @@ private static final long serialVersionUID = 0L;
             unused0Builder_.dispose();
             unused0Builder_ = null;
             unused0_ = other.unused0_;
-            bitField0_ = (bitField0_ & ~0x00000200);
+            bitField0_ = (bitField0_ & ~0x00000800);
             unused0Builder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getUnused0FieldBuilder() : null;
@@ -1086,7 +1236,7 @@ private static final long serialVersionUID = 0L;
         }
       }
       if (other.hasUnused1()) {
-        bitField0_ |= 0x00000400;
+        bitField0_ |= 0x00001000;
         unused1_ = other.unused1_;
         onChanged();
       }
@@ -1737,12 +1887,164 @@ private static final long serialVersionUID = 0L;
       return childrenBuilder_;
     }
 
+    private java.lang.Object workerHost_ = "";
+    /**
+     * <code>optional string workerHost = 12;</code>
+     */
+    public boolean hasWorkerHost() {
+      return ((bitField0_ & 0x00000200) == 0x00000200);
+    }
+    /**
+     * <code>optional string workerHost = 12;</code>
+     */
+    public java.lang.String getWorkerHost() {
+      java.lang.Object ref = workerHost_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          workerHost_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string workerHost = 12;</code>
+     */
+    public com.google.protobuf.ByteString
+        getWorkerHostBytes() {
+      java.lang.Object ref = workerHost_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        workerHost_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string workerHost = 12;</code>
+     */
+    public Builder setWorkerHost(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000200;
+      workerHost_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string workerHost = 12;</code>
+     */
+    public Builder clearWorkerHost() {
+      bitField0_ = (bitField0_ & ~0x00000200);
+      workerHost_ = getDefaultInstance().getWorkerHost();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string workerHost = 12;</code>
+     */
+    public Builder setWorkerHostBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000200;
+      workerHost_ = value;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object description_ = "";
+    /**
+     * <code>optional string description = 13;</code>
+     */
+    public boolean hasDescription() {
+      return ((bitField0_ & 0x00000400) == 0x00000400);
+    }
+    /**
+     * <code>optional string description = 13;</code>
+     */
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          description_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string description = 13;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string description = 13;</code>
+     */
+    public Builder setDescription(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000400;
+      description_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string description = 13;</code>
+     */
+    public Builder clearDescription() {
+      bitField0_ = (bitField0_ & ~0x00000400);
+      description_ = getDefaultInstance().getDescription();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string description = 13;</code>
+     */
+    public Builder setDescriptionBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000400;
+      description_ = value;
+      onChanged();
+      return this;
+    }
+
     private java.util.List<alluxio.grpc.JobUnused> unused0_ =
       java.util.Collections.emptyList();
     private void ensureUnused0IsMutable() {
-      if (!((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (!((bitField0_ & 0x00000800) == 0x00000800)) {
         unused0_ = new java.util.ArrayList<alluxio.grpc.JobUnused>(unused0_);
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000800;
        }
     }
 
@@ -1936,7 +2238,7 @@ private static final long serialVersionUID = 0L;
     public Builder clearUnused0() {
       if (unused0Builder_ == null) {
         unused0_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000800);
         onChanged();
       } else {
         unused0Builder_.clear();
@@ -2041,7 +2343,7 @@ private static final long serialVersionUID = 0L;
         unused0Builder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.JobUnused, alluxio.grpc.JobUnused.Builder, alluxio.grpc.JobUnusedOrBuilder>(
                 unused0_,
-                ((bitField0_ & 0x00000200) == 0x00000200),
+                ((bitField0_ & 0x00000800) == 0x00000800),
                 getParentForChildren(),
                 isClean());
         unused0_ = null;
@@ -2058,7 +2360,7 @@ private static final long serialVersionUID = 0L;
      * <code>optional string unused1 = 5;</code>
      */
     public boolean hasUnused1() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+      return ((bitField0_ & 0x00001000) == 0x00001000);
     }
     /**
      * <pre>
@@ -2113,7 +2415,7 @@ private static final long serialVersionUID = 0L;
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000400;
+  bitField0_ |= 0x00001000;
       unused1_ = value;
       onChanged();
       return this;
@@ -2126,7 +2428,7 @@ private static final long serialVersionUID = 0L;
      * <code>optional string unused1 = 5;</code>
      */
     public Builder clearUnused1() {
-      bitField0_ = (bitField0_ & ~0x00000400);
+      bitField0_ = (bitField0_ & ~0x00001000);
       unused1_ = getDefaultInstance().getUnused1();
       onChanged();
       return this;
@@ -2143,7 +2445,7 @@ private static final long serialVersionUID = 0L;
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000400;
+  bitField0_ |= 0x00001000;
       unused1_ = value;
       onChanged();
       return this;

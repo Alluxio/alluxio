@@ -35,6 +35,7 @@ import java.util.List;
 public final class PlanInfo implements JobInfo {
   private final long mId;
   private final String mName;
+  private final String mDescription;
   private final String mErrorMessage;
   private final List<JobInfo> mChildren;
   private final Status mStatus;
@@ -53,6 +54,7 @@ public final class PlanInfo implements JobInfo {
                   @Nullable String errorMessage) {
     mId = id;
     mName = name;
+    mDescription = "";
     mStatus = status;
     mLastUpdated = lastUpdated;
     mErrorMessage = (errorMessage == null) ? "" : errorMessage;
@@ -68,6 +70,7 @@ public final class PlanInfo implements JobInfo {
   public PlanInfo(alluxio.job.meta.JobInfo jobInfo) {
     mId = jobInfo.getId();
     mName = jobInfo.getJobConfig().getName();
+    mDescription = jobInfo.getJobConfig().toString();
     mErrorMessage = jobInfo.getErrorMessage();
     mChildren = Lists.newArrayList();
     mStatus = Status.valueOf(jobInfo.getStatus().name());
@@ -89,6 +92,7 @@ public final class PlanInfo implements JobInfo {
 
     mId = jobInfo.getId();
     mName = jobInfo.getName();
+    mDescription = jobInfo.getDescription();
     mErrorMessage = jobInfo.getErrorMessage();
     mChildren = new ArrayList<>();
     for (alluxio.grpc.JobInfo taskInfo : jobInfo.getChildrenList()) {
@@ -120,6 +124,11 @@ public final class PlanInfo implements JobInfo {
   @Override
   public String getName() {
     return mName;
+  }
+
+  @Override
+  public String getDescription() {
+    return mDescription;
   }
 
   @Override
@@ -155,7 +164,7 @@ public final class PlanInfo implements JobInfo {
     }
     alluxio.grpc.JobInfo.Builder jobInfoBuilder = alluxio.grpc.JobInfo.newBuilder().setId(mId)
         .setErrorMessage(mErrorMessage).addAllChildren(taskInfos).setStatus(mStatus.toProto())
-        .setName(mName).setType(JobType.PLAN);
+        .setName(mName).setDescription(mDescription).setType(JobType.PLAN);
     if (mResult != null && !mResult.isEmpty()) {
       ByteBuffer result =
           mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
@@ -182,12 +191,15 @@ public final class PlanInfo implements JobInfo {
         && Objects.equal(mChildren, that.mChildren)
         && Objects.equal(mStatus, that.mStatus)
         && Objects.equal(mResult, that.mResult)
-        && Objects.equal(mLastUpdated, that.mLastUpdated);
+        && Objects.equal(mLastUpdated, that.mLastUpdated)
+        && Objects.equal(mName, that.mName)
+        && Objects.equal(mDescription, that.mDescription);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mErrorMessage, mChildren, mStatus, mResult, mLastUpdated);
+    return Objects.hashCode(mId, mErrorMessage, mChildren, mStatus, mResult, mLastUpdated,
+        mName, mDescription);
   }
 
   @Override
@@ -199,6 +211,8 @@ public final class PlanInfo implements JobInfo {
         .add("status", mStatus)
         .add("result", mResult)
         .add("lastUpdated", mLastUpdated)
+        .add("name", mName)
+        .add("description", mDescription)
         .toString();
   }
 }

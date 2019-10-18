@@ -317,6 +317,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return the list of {@link JobCommand} to the worker
    */
   public List<JobCommand> workerHeartbeat(long workerId, List<TaskInfo> taskInfoList) {
+    String hostname;
     // Run under shared lock for mWorkers
     try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
       MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
@@ -324,6 +325,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
         return Collections.singletonList(JobCommand.newBuilder()
             .setRegisterCommand(RegisterCommand.getDefaultInstance()).build());
       }
+      hostname = worker.getWorkerAddress().getHost();
       // Update last-update-time of this particular worker under lock
       // to prevent lost worker detector clearing it under race
       worker.updateLastUpdatedTimeMs();
@@ -332,8 +334,9 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     // Update task infos for all jobs involved
     Map<Long, List<TaskInfo>> taskInfosPerJob = new HashMap<>();
     for (TaskInfo taskInfo : taskInfoList) {
+      taskInfo.setWorkerHost(hostname);
       if (!taskInfosPerJob.containsKey(taskInfo.getJobId())) {
-        taskInfosPerJob.put(taskInfo.getJobId(), new ArrayList<TaskInfo>());
+        taskInfosPerJob.put(taskInfo.getJobId(), new ArrayList());
       }
       taskInfosPerJob.get(taskInfo.getJobId()).add(taskInfo);
     }
