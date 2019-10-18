@@ -1695,6 +1695,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("How often the master schedules persistence jobs "
               + "for files written using ASYNC_THROUGH")
           .build();
+  public static final PropertyKey MASTER_PERSISTENCE_BLACKLIST =
+      new Builder(Name.MASTER_PERSISTENCE_BLACKLIST)
+          .setDescription("Patterns to blacklist persist, comma separated, string match, no regex."
+            + " This affects any async persist call (including ASYNC_THROUGH writes and CLI "
+            + "persist) but does not affect CACHE_THROUGH writes. Users may want to specify "
+            + "temporary files in the blacklist to avoid unnecessary I/O and errors. Some "
+            + "examples are `.staging` and `.tmp`.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =
       new Builder(Name.MASTER_REPLICATION_CHECK_INTERVAL_MS)
           .setDefaultValue("1min")
@@ -1722,6 +1732,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the server")
           .setIsHidden(true)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SKIP_ROOT_ACL_CHECK =
+      new Builder(Name.MASTER_SKIP_ROOT_ACL_CHECK)
+          .setDefaultValue(false)
+          .setDescription("Skip root directory ACL check when restarting either from journal or "
+              + "backup. This is to allow users to restore a backup from a different cluster onto "
+              + "their current one without having to recreate the different clusters owner user.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
@@ -4033,6 +4054,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.persistence.max.interval";
     public static final String MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS =
         "alluxio.master.persistence.scheduler.interval";
+    public static final String MASTER_PERSISTENCE_BLACKLIST =
+        "alluxio.master.persistence.blacklist";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
@@ -4055,6 +4078,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.executor.keepalive";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
+    public static final String MASTER_SKIP_ROOT_ACL_CHECK =
+        "alluxio.master.skip.root.acl.check";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =

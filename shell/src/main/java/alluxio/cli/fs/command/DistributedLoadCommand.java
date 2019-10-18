@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobGrpcClientUtils;
@@ -49,6 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(DistributedLoadCommand.class);
+  private static final int DEFAULT_REPLICATION = 1;
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -57,23 +59,22 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           .numberOfArgs(1)
           .type(Number.class)
           .argName("replicas")
-          .desc("Number of block replicas of each loaded file, default value is 1")
+          .desc("Number of block replicas of each loaded file, default: " + DEFAULT_REPLICATION)
           .build();
-  private static final Option THREADS_OPTION =
+  private static final int DEFAULT_PARALLELISM = 10;
+  private static final Option PARALLELISM_OPTION =
       Option.builder()
-          .longOpt("thread")
+          .longOpt("parallelism")
           .required(false)
           .hasArg(true)
+          .argName("# concurrent operations")
           .numberOfArgs(1)
-          .type(Number.class)
-          .argName("threads")
-          .desc("Number of threads used to load files in parallel, default value is CPU cores * 2")
+          .desc("Number of concurrent load operations, default: " + DEFAULT_PARALLELISM)
           .build();
 
   private ThreadPoolExecutor mDistributedLoadServicePool;
   private CompletionService<AlluxioURI> mDistributedLoadService;
   private ArrayList<Future<AlluxioURI>> mFutures = new ArrayList<>();
-  private int mThreads = Runtime.getRuntime().availableProcessors() * 2;
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -92,7 +93,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(REPLICATION_OPTION)
-        .addOption(THREADS_OPTION);
+        .addOption(PARALLELISM_OPTION);
   }
 
   @Override
@@ -104,18 +105,12 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    int replication = 1;
-    if (cl.hasOption(REPLICATION_OPTION.getLongOpt())) {
-      replication = Integer.parseInt(cl.getOptionValue(REPLICATION_OPTION.getLongOpt()));
-    }
-    if (cl.hasOption(THREADS_OPTION.getLongOpt())) {
-      mThreads = Integer.parseInt(cl.getOptionValue(THREADS_OPTION.getLongOpt()));
-    }
-    mDistributedLoadServicePool = new ThreadPoolExecutor(mThreads, mThreads, 60,
+    int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
+    int parallelism = FileSystemShellUtils.getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
+    mDistributedLoadServicePool = new ThreadPoolExecutor(parallelism, parallelism, 60,
         TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     mDistributedLoadServicePool.allowCoreThreadTimeOut(true);
-    mDistributedLoadService =
-        new ExecutorCompletionService<>(mDistributedLoadServicePool);
+    mDistributedLoadService = new ExecutorCompletionService<>(mDistributedLoadServicePool);
     try {
       distributedLoad(path, replication);
     } catch (InterruptedException e) {
@@ -174,7 +169,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       System.out.println(filePath + " is already fully loaded in Alluxio");
       return;
     }
-    if (mFutures.size() >= mThreads) {
+    if (mFutures.size() >= mDistributedLoadServicePool.getMaximumPoolSize()) {
       // Wait one job to complete.
       waitJob();
     }
@@ -225,11 +220,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--thread <threads>] <path>";
+    return "distributedLoad [--replication <num>] [--parallelism <num>] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Loads a file or directory in Alluxio space, making it resident in memory.";
+    return "Loads a file or all files in a directory into Alluxio space.";
   }
 }

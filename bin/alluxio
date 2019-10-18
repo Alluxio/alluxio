@@ -218,7 +218,7 @@ function main {
           shift # remove -s param
         fi
       else
-        echo "{Usage} $0 format [-s]"
+        echo "${Usage} $0 format [-s]"
         exit 2
       fi
     elif [[ $# -gt 1 ]]; then
