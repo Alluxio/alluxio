@@ -101,7 +101,8 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.journal.DelegatingGroupJournaled;
+import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -213,7 +214,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultFileSystemMaster extends CoreMaster
-    implements FileSystemMaster, DelegatingGroupJournaled {
+    implements FileSystemMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -365,8 +366,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
   /** This caches paths which have been synced with UFS. */
   private final UfsSyncPathCache mUfsSyncPathCache;
 
-  /** List of all master subcomponents which require journaling. */
-  private final List<Journaled> mJournaledComponents;
+  /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
+  private final JournaledGroup mJournaledGroup;
 
   /** List of strings which are blacklisted from async persist. */
   private final List<String> mPersistBlacklist;
@@ -436,7 +437,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
-    mJournaledComponents = new ArrayList<Journaled>() {
+    ArrayList<Journaled> journaledComponents = new ArrayList<Journaled>() {
       {
         add(mInodeTree);
         add(mDirectoryIdGenerator);
@@ -445,6 +446,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         add(mSyncManager);
       }
     };
+    mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -488,13 +490,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public CheckpointName getCheckpointName() {
-    return CheckpointName.FILE_SYSTEM_MASTER;
-  }
-
-  @Override
-  public List<Journaled> getDelegates() {
-    return mJournaledComponents;
+  public Journaled getDelegate() {
+    return mJournaledGroup;
   }
 
   @Override
