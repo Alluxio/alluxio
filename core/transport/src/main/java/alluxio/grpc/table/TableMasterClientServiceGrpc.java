@@ -319,6 +319,38 @@ public final class TableMasterClientServiceGrpc {
      return getReadTableMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.TransformTablePRequest,
+      alluxio.grpc.table.TransformTablePResponse> getTransformTableMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "TransformTable",
+      requestType = alluxio.grpc.table.TransformTablePRequest.class,
+      responseType = alluxio.grpc.table.TransformTablePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.table.TransformTablePRequest,
+      alluxio.grpc.table.TransformTablePResponse> getTransformTableMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.table.TransformTablePRequest, alluxio.grpc.table.TransformTablePResponse> getTransformTableMethod;
+    if ((getTransformTableMethod = TableMasterClientServiceGrpc.getTransformTableMethod) == null) {
+      synchronized (TableMasterClientServiceGrpc.class) {
+        if ((getTransformTableMethod = TableMasterClientServiceGrpc.getTransformTableMethod) == null) {
+          TableMasterClientServiceGrpc.getTransformTableMethod = getTransformTableMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.table.TransformTablePRequest, alluxio.grpc.table.TransformTablePResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.table.TableMasterClientService", "TransformTable"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.table.TransformTablePRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.table.TransformTablePResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("TransformTable"))
+                  .build();
+          }
+        }
+     }
+     return getTransformTableMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -437,6 +469,13 @@ public final class TableMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getReadTableMethod(), responseObserver);
     }
 
+    /**
+     */
+    public void transformTable(alluxio.grpc.table.TransformTablePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.table.TransformTablePResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getTransformTableMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -502,6 +541,13 @@ public final class TableMasterClientServiceGrpc {
                 alluxio.grpc.table.ReadTablePRequest,
                 alluxio.grpc.table.ReadTablePResponse>(
                   this, METHODID_READ_TABLE)))
+          .addMethod(
+            getTransformTableMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.table.TransformTablePRequest,
+                alluxio.grpc.table.TransformTablePResponse>(
+                  this, METHODID_TRANSFORM_TABLE)))
           .build();
     }
   }
@@ -623,6 +669,14 @@ public final class TableMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getReadTableMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void transformTable(alluxio.grpc.table.TransformTablePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.table.TransformTablePResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getTransformTableMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -732,6 +786,13 @@ public final class TableMasterClientServiceGrpc {
     public alluxio.grpc.table.ReadTablePResponse readTable(alluxio.grpc.table.ReadTablePRequest request) {
       return blockingUnaryCall(
           getChannel(), getReadTableMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public alluxio.grpc.table.TransformTablePResponse transformTable(alluxio.grpc.table.TransformTablePRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getTransformTableMethod(), getCallOptions(), request);
     }
   }
 
@@ -852,6 +913,14 @@ public final class TableMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getReadTableMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.table.TransformTablePResponse> transformTable(
+        alluxio.grpc.table.TransformTablePRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getTransformTableMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_ALL_DATABASES = 0;
@@ -863,6 +932,7 @@ public final class TableMasterClientServiceGrpc {
   private static final int METHODID_GET_TABLE_COLUMN_STATISTICS = 6;
   private static final int METHODID_GET_PARTITION_COLUMN_STATISTICS = 7;
   private static final int METHODID_READ_TABLE = 8;
+  private static final int METHODID_TRANSFORM_TABLE = 9;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -916,6 +986,10 @@ public final class TableMasterClientServiceGrpc {
         case METHODID_READ_TABLE:
           serviceImpl.readTable((alluxio.grpc.table.ReadTablePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.table.ReadTablePResponse>) responseObserver);
+          break;
+        case METHODID_TRANSFORM_TABLE:
+          serviceImpl.transformTable((alluxio.grpc.table.TransformTablePRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.table.TransformTablePResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -987,6 +1061,7 @@ public final class TableMasterClientServiceGrpc {
               .addMethod(getGetTableColumnStatisticsMethod())
               .addMethod(getGetPartitionColumnStatisticsMethod())
               .addMethod(getReadTableMethod())
+              .addMethod(getTransformTableMethod())
               .build();
         }
       }

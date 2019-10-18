@@ -25,9 +25,15 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.JournaledGroup;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.table.transform.TransformManager;
+import alluxio.table.common.transform.TransformDefinition;
+import alluxio.table.common.transform.TransformPlan;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +46,14 @@ import java.util.Set;
 /**
  * This table master manages catalogs metadata information.
  */
-public class DefaultTableMaster extends CoreMaster implements TableMaster, DelegatingJournaled {
+public class DefaultTableMaster extends CoreMaster
+    implements TableMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultTableMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(FileSystemMaster.class);
 
   private final AlluxioCatalog mCatalog;
+  private final TransformManager mTransformManager;
+  private final JournaledGroup mJournaledComponents;
 
   /**
    * Constructor for DefaultTableMaster.
@@ -55,6 +64,9 @@ public class DefaultTableMaster extends CoreMaster implements TableMaster, Deleg
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.TABLE_MASTER_NAME));
     mCatalog = new AlluxioCatalog();
+    mTransformManager = new TransformManager(this::createJournalContext, mCatalog);
+    mJournaledComponents = new JournaledGroup(Lists.newArrayList(mCatalog, mTransformManager),
+        CheckpointName.TABLE_MASTER);
   }
 
   @Override
@@ -103,6 +115,15 @@ public class DefaultTableMaster extends CoreMaster implements TableMaster, Deleg
   }
 
   @Override
+  public long transformTable(String dbName, String tableName, String definition)
+      throws IOException {
+    TransformDefinition transformDefinition = TransformDefinition.parse(definition);
+    Table table = getTable(dbName, tableName);
+    List<TransformPlan> plans = table.getTransformPlans(transformDefinition);
+    return mTransformManager.execute(dbName, tableName, plans);
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
@@ -123,6 +144,9 @@ public class DefaultTableMaster extends CoreMaster implements TableMaster, Deleg
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
+    if (isLeader) {
+      mTransformManager.start(getExecutorService(), mMasterContext.getUserState());
+    }
   }
 
   @Override
@@ -137,6 +161,6 @@ public class DefaultTableMaster extends CoreMaster implements TableMaster, Deleg
 
   @Override
   public Journaled getDelegate() {
-    return mCatalog;
+    return mJournaledComponents;
   }
 }

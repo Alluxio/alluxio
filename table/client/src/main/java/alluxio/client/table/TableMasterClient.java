@@ -190,4 +190,16 @@ public interface TableMasterClient extends Client {
           String tableName,
           List<String> partitionNames,
           List<String> columnNames) throws AlluxioStatusException;
+
+  /**
+   * Transforms a table.
+   *
+   * @param dbName the database name
+   * @param tableName the table name
+   * @param definition the transformation definition
+   * @return job ID which can be used to poll the job status from job service
+   * @throws AlluxioStatusException
+   */
+  long transformTable(String dbName, String tableName, String definition)
+      throws AlluxioStatusException;
 }

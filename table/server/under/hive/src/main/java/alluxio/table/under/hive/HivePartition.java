@@ -37,8 +37,7 @@ public class HivePartition implements UdbPartition {
 
   @Override
   public String getSpec() {
-    // TODO(gpang): implement
-    return "";
+    return mLayout.getSpec();
   }
 
   @Override

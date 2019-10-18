@@ -28,6 +28,12 @@ public interface PartitionScheme {
   List<Partition> getPartitions();
 
   /**
+   * @param spec the partition spec
+   * @return the corresponding partition, or null if spec does not exist
+   */
+  Partition getPartition(String spec);
+
+  /**
    * Get table layout.
    *
    * @return table info

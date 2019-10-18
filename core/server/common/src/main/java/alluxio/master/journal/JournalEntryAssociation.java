@@ -59,7 +59,9 @@ public final class JournalEntryAssociation {
     }
     if (entry.hasAttachDb()
         || entry.hasAddTable()
-        || entry.hasDetachDb()) {
+        || entry.hasDetachDb()
+        || entry.hasTransformJob()
+        || entry.hasRemoveTransformJob()) {
       return Constants.TABLE_MASTER_NAME;
     }
     throw new IllegalStateException("Unrecognized journal entry: " + entry);

@@ -32,9 +32,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * The table implementation which manages all the versions of the table.
  */
+@NotThreadSafe
 public class Table {
   private static final Logger LOG = LoggerFactory.getLogger(Table.class);
 
@@ -115,6 +118,14 @@ public class Table {
   }
 
   /**
+   * @param spec the partition spec
+   * @return the corresponding partition
+   */
+  public Partition getPartition(String spec) {
+    return mPartitionScheme.getPartition(spec);
+  }
+
+  /**
    * @return the list of partitions
    */
   public List<Partition> getPartitions() {
@@ -145,7 +156,7 @@ public class Table {
     List<TransformPlan> plans = new ArrayList<>(getPartitions().size());
     for (Partition partition : getPartitions()) {
       TransformContext transformContext =
-          new TransformContext(mDatabase.getName(), mName, partition.getSpec().toString());
+          new TransformContext(mDatabase.getName(), mName, partition.getSpec());
       plans.add(partition.getTransformPlan(transformContext, definition));
     }
     return plans;

@@ -92,7 +92,9 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setUpdateUfsMode(UpdateUfsModeEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setUpdateInode(UpdateInodeEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setUpdateInodeDirectory(UpdateInodeDirectoryEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build()
+      JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setTransformJob(Table.TransformJobEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setRemoveTransformJob(Table.RemoveTransformJobEntry.getDefaultInstance()).build()
   );
   // CHECKSTYLE.OFF: LineLengthExceed
 

@@ -27,6 +27,7 @@ import java.io.IOException;
 public class Partition {
   private final String mPartitionSpec;
   private final Layout mBaseLayout;
+  private Layout mTransformedLayout;
 
   /**
    * Creates an instance.
@@ -51,8 +52,24 @@ public class Partition {
   /**
    * @return the base layout
    */
-  public Layout getLayout() {
+  public Layout getBaseLayout() {
     return mBaseLayout;
+  }
+
+  /**
+   * @return the current layout
+   */
+  public synchronized Layout getLayout() {
+    return mTransformedLayout == null ? mBaseLayout : mTransformedLayout;
+  }
+
+  /**
+   * Sets the transformed layout.
+   *
+   * @param layout the transformed layout
+   */
+  public synchronized void setTransformedLayout(Layout layout) {
+    mTransformedLayout = layout;
   }
 
   /**
@@ -80,7 +97,7 @@ public class Partition {
   public alluxio.grpc.table.Partition toProto() {
     return alluxio.grpc.table.Partition.newBuilder()
         .setPartitionSpec(PartitionSpec.newBuilder().setSpec(mPartitionSpec).build())
-        .setLayout(mBaseLayout.toProto())
+        .setLayout(getLayout().toProto())
         .build();
   }
 

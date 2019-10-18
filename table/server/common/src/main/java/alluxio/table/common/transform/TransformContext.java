@@ -46,9 +46,9 @@ public class TransformContext {
   }
 
   /**
-   * @return an AlluxioUri of the transformation path
+   * @return a newly generated path to a transformed partition
    */
-  public AlluxioURI getTransformPath() {
+  public AlluxioURI generateTransformedPath() {
     String random =
         String.format("%s-%s", DATE_FORMAT.format(new Date()), CommonUtils.randomAlphaNumString(5));
     // append a random identifier, to avoid collisions

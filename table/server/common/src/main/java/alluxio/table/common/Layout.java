@@ -11,6 +11,7 @@
 
 package alluxio.table.common;
 
+import alluxio.AlluxioURI;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.LayoutSpec;
 import alluxio.table.common.transform.TransformContext;
@@ -45,6 +46,11 @@ public interface Layout {
    * @return a map of proto representing the statistics data for this partition
    */
   Map<String, ColumnStatisticsInfo> getColumnStatsData();
+
+  /**
+   * @return the location of the layout
+   */
+  AlluxioURI getLocation();
 
   /**
    * @param transformContext the {@link TransformContext}

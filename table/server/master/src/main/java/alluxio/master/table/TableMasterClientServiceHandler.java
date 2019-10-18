@@ -29,6 +29,8 @@ import alluxio.grpc.table.GetTablePRequest;
 import alluxio.grpc.table.GetTablePResponse;
 import alluxio.grpc.table.ReadTablePRequest;
 import alluxio.grpc.table.ReadTablePResponse;
+import alluxio.grpc.table.TransformTablePRequest;
+import alluxio.grpc.table.TransformTablePResponse;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -124,5 +126,13 @@ public class TableMasterClientServiceHandler
     RpcUtils.call(LOG, () -> ReadTablePResponse.newBuilder().addAllPartitions(mTableMaster
         .readTable(request.getDbName(), request.getTableName(), request.getConstraint()))
         .build(), "readTable", "", responseObserver);
+  }
+
+  @Override
+  public void transformTable(TransformTablePRequest request,
+      StreamObserver<TransformTablePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> TransformTablePResponse.newBuilder().setJobId(mTableMaster
+        .transformTable(request.getDbName(), request.getTableName(), request.getDefinition()))
+        .build(), "transformTable", "", responseObserver);
   }
 }

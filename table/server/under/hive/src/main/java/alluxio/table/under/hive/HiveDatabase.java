@@ -121,7 +121,7 @@ public class HiveDatabase implements UnderDatabase {
       throws IOException, AlluxioException {
     try {
       tableUri = mUdbContext.getFileSystem().reverseResolve(ufsUri);
-      LOG.info("Trying to mount table {} location {}, but table {} already mounted at location {}",
+      LOG.info("Trying to mount table {} location {}, but it is already mounted at location {}",
           tableName, ufsUri, tableUri);
       return tableUri.getPath();
     } catch (InvalidPathException e) {

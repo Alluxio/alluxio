@@ -26,11 +26,8 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.table.transform.TransformManager;
 import alluxio.proto.journal.Journal;
 import alluxio.table.common.LayoutRegistry;
-import alluxio.table.common.transform.TransformDefinition;
-import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 import alluxio.util.StreamUtils;
@@ -59,7 +56,6 @@ public class AlluxioCatalog implements Journaled {
   private final UnderDatabaseRegistry mUdbRegistry;
   private final LayoutRegistry mLayoutRegistry;
   private final FileSystem mFileSystem;
-  private final TransformManager mTransformManager;
 
   /**
    * Creates an instance.
@@ -70,7 +66,13 @@ public class AlluxioCatalog implements Journaled {
     mUdbRegistry.refresh();
     mLayoutRegistry = new LayoutRegistry();
     mLayoutRegistry.refresh();
-    mTransformManager = new TransformManager(this);
+  }
+
+  /**
+   * @return the layout registry
+   */
+  public LayoutRegistry getLayoutRegistry() {
+    return mLayoutRegistry;
   }
 
   /**
@@ -186,10 +188,10 @@ public class AlluxioCatalog implements Journaled {
       String tableName, List<String> partNames, List<String> colNames) throws IOException {
     Table table = getTable(dbName, tableName);
     List<Partition> partitions = table.getPartitions();
-    return partitions.stream().filter(p -> partNames.contains(p.getLayout().getSpec()))
-        .map(p -> new Pair<>(p.getLayout().getSpec(),
+    return partitions.stream().filter(p -> partNames.contains(p.getBaseLayout().getSpec()))
+        .map(p -> new Pair<>(p.getBaseLayout().getSpec(),
             ColumnStatisticsList.newBuilder().addAllStatistics(
-                p.getLayout().getColumnStatsData().entrySet().stream()
+                p.getBaseLayout().getColumnStatsData().entrySet().stream()
                     .filter(entry -> colNames.contains(entry.getKey()))
                     .map(Map.Entry::getValue).collect(Collectors.toList())).build()))
         .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (e1, e2) -> e2));
@@ -208,21 +210,6 @@ public class AlluxioCatalog implements Journaled {
     Table table = getTable(dbName, tableName);
     // TODO(david): implement partition pruning
     return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
-  }
-
-  /**
-   * Triggers a transformation for a table.
-   *
-   * @param dbName the database name
-   * @param tableName the table name
-   * @param definition the transformation definition
-   */
-  public void transformTable(String dbName, String tableName, String definition)
-      throws IOException {
-    TransformDefinition transformDefinition = TransformDefinition.parse(definition);
-    Table table = getTable(dbName, tableName);
-    List<TransformPlan> plans = table.getTransformPlans(transformDefinition);
-    mTransformManager.execute(dbName, tableName, plans);
   }
 
   private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
@@ -349,6 +336,6 @@ public class AlluxioCatalog implements Journaled {
 
   @Override
   public CheckpointName getCheckpointName() {
-    return CheckpointName.TABLE_SERVICE_MASTER;
+    return CheckpointName.TABLE_MASTER_CATALOG;
   }
 }
