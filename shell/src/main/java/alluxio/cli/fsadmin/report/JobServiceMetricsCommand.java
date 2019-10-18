@@ -12,12 +12,15 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.job.JobMasterClient;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.StatusSummary;
+import alluxio.util.CommonUtils;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Prints job service metric information.
@@ -26,16 +29,20 @@ public class JobServiceMetricsCommand {
 
   private final JobMasterClient mJobMasterClient;
   private final PrintStream mPrintStream;
+  private final String mDateFormatPattern;
 
   /**
    * Creates a new instance of {@link JobServiceMetricsCommand}.
    *
    * @param JobMasterClient client to connect to job master client
    * @param printStream stream to print job services metrics information to
+   * @param dateFormatPattern the pattern to follow when printing the date
    */
-  public JobServiceMetricsCommand(JobMasterClient JobMasterClient, PrintStream printStream) {
+  public JobServiceMetricsCommand(JobMasterClient JobMasterClient, PrintStream printStream,
+      String dateFormatPattern) {
     mJobMasterClient = JobMasterClient;
     mPrintStream = printStream;
+    mDateFormatPattern = dateFormatPattern;
   }
 
   /**
@@ -52,6 +59,31 @@ public class JobServiceMetricsCommand {
       mPrintStream.print(String.format("Status: %-10s", statusSummary.getStatus()));
       mPrintStream.println(String.format("Count: %s", statusSummary.getCount()));
     }
+
+    mPrintStream.println();
+    mPrintStream.println("10 Most Recently Modified Jobs:");
+
+    List<JobInfo> lastActivities = jobServiceSummary.getRecentActivities();
+
+    for (JobInfo lastActivity : lastActivities) {
+      mPrintStream.print(String.format("Timestamp: %-30s",
+          CommonUtils.convertMsToDate(lastActivity.getLastStatusChangeMs(), mDateFormatPattern)));
+      mPrintStream.print(String.format("Job Id: %-20s", lastActivity.getJobId()));
+      mPrintStream.println(String.format("Status: %s", lastActivity.getStatus()));
+    }
+
+    mPrintStream.println();
+    mPrintStream.println("10 Most Recently Failed Jobs:");
+
+    List<JobInfo> lastFailures = jobServiceSummary.getRecentFailures();
+
+    for (JobInfo lastFailure : lastFailures) {
+      mPrintStream.print(String.format("Timestamp: %-30s",
+          CommonUtils.convertMsToDate(lastFailure.getLastStatusChangeMs(), mDateFormatPattern)));
+      mPrintStream.print(String.format("Job Id: %-20s", lastFailure.getJobId()));
+      mPrintStream.println(String.format("Status: %s", lastFailure.getStatus()));
+    }
+
     return 0;
   }
 }
