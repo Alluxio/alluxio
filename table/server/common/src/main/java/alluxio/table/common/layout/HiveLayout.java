@@ -97,18 +97,33 @@ public class HiveLayout implements Layout {
   }
 
   @Override
+  public AlluxioURI getLocation() {
+    return new AlluxioURI(mPartitionInfo.getStorage().getLocation());
+  }
+
+  @Override
   public Map<String, ColumnStatisticsInfo> getColumnStatsData() {
     return mPartitionStatsInfo;
   }
 
+  private HiveLayout transformLayout(AlluxioURI transformedUri) {
+    PartitionInfo info = mPartitionInfo.toBuilder()
+        .setStorage(mPartitionInfo.getStorage().toBuilder()
+            .setLocation(transformedUri.toString())
+            .build())
+        .build();
+    List<ColumnStatisticsInfo> stats = new ArrayList<>(mPartitionStatsInfo.values());
+    return new HiveLayout(info, stats);
+  }
+
   @Override
   public TransformPlan getTransformPlan(TransformContext transformContext,
-      TransformDefinition definition)
-      throws IOException {
-    // TODO(cc): check to see if output is also hive
-    // TODO(cc): construct job definition to a new output location
-    AlluxioURI outputPath = transformContext.getTransformPath();
-    // TODO(cc): construct resulting layout
-    return new TransformPlan(definition);
+      TransformDefinition definition) throws IOException {
+    AlluxioURI baseUri = getLocation();
+    AlluxioURI outputPath = transformContext.generateTransformedPath();
+    AlluxioURI outputUri = new AlluxioURI(baseUri.getScheme(), baseUri.getAuthority(),
+        outputPath.getPath());
+    HiveLayout transformedLayout = transformLayout(outputUri);
+    return new TransformPlan(this, transformedLayout, definition);
   }
 }

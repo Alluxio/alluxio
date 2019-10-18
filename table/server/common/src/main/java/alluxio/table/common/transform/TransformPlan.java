@@ -11,19 +11,67 @@
 
 package alluxio.table.common.transform;
 
+import alluxio.job.JobConfig;
+import alluxio.table.common.Layout;
+
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
 /**
  * The plan for a transformation.
  */
 public class TransformPlan {
-  public final TransformDefinition mDefinition;
+  /**
+   * The base layout to transform from.
+   */
+  private final Layout mBaseLayout;
+  /**
+   * The layout to transform to.
+   */
+  private final Layout mTransformedLayout;
+  /**
+   * The list of jobs to execute the plan.
+   */
+  private final ArrayList<JobConfig> mJobConfigs;
 
   /**
-   * Creates an instance.
+   * A list of jobs will be computed based on the provided transform definition.
    *
+   * @param baseLayout the layout to transform from
+   * @param transformedLayout the layout to transform to
    * @param definition the transformation definition
    */
-  public TransformPlan(TransformDefinition definition) {
-    mDefinition = definition;
-    // TODO(gpang): implement
+  public TransformPlan(Layout baseLayout, Layout transformedLayout,
+      TransformDefinition definition) {
+    mBaseLayout = baseLayout;
+    mTransformedLayout = transformedLayout;
+    mJobConfigs = computeJobConfigs(definition);
+  }
+
+  private ArrayList<JobConfig> computeJobConfigs(TransformDefinition definition) {
+    return definition.getActions().stream()
+        .map(action -> action.generateJobConfig(mBaseLayout, mTransformedLayout))
+        .collect(Collectors.toCollection(ArrayList::new));
+  }
+
+  /**
+   * @return the base layout
+   */
+  public Layout getBaseLayout() {
+    return mBaseLayout;
+  }
+
+  /**
+   * @return the transformed layout
+   */
+  public Layout getTransformedLayout() {
+    return mTransformedLayout;
+  }
+
+  /**
+   * @return the list of job configurations to be executed sequentially
+   */
+  public ArrayList<JobConfig> getJobConfigs() {
+    return mJobConfigs;
   }
 }

@@ -15,7 +15,6 @@ import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Layout;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,9 +22,8 @@ import java.util.List;
 /**
  * Unpartitoned table scheme.
  */
-public class UnpartitionedTableScheme implements PartitionScheme {
+public class UnpartitionedTableScheme extends BasePartitionScheme {
   private final Partition mPartition;
-  private final List<Partition> mPartitionList;
 
   /**
    * Constructor for UnpartitionedTableScheme.
@@ -33,14 +31,9 @@ public class UnpartitionedTableScheme implements PartitionScheme {
    * @param partitions a list of partitions
    */
   public UnpartitionedTableScheme(List<Partition> partitions) {
+    super(partitions);
     Preconditions.checkArgument(partitions.size() == 1);
     mPartition = partitions.get(0);
-    mPartitionList = ImmutableList.of(mPartition);
-  }
-
-  @Override
-  public List<Partition> getPartitions() {
-    return mPartitionList;
   }
 
   @Override

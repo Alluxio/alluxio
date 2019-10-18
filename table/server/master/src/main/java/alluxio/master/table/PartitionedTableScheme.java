@@ -19,8 +19,7 @@ import java.util.List;
 /**
  * Partitioned Table Scheme.
  */
-public class PartitionedTableScheme implements PartitionScheme {
-  private final List<Partition> mPartitions;
+public class PartitionedTableScheme extends BasePartitionScheme {
   private final Layout mTableInfo;
   private final List<FieldSchema> mPartCols;
 
@@ -33,14 +32,9 @@ public class PartitionedTableScheme implements PartitionScheme {
    */
   PartitionedTableScheme(List<Partition> partitions, Layout tableInfo,
       List<FieldSchema> partCols) {
-    mPartitions = partitions;
+    super(partitions);
     mTableInfo = tableInfo;
     mPartCols = partCols;
-  }
-
-  @Override
-  public List<Partition> getPartitions() {
-    return mPartitions;
   }
 
   @Override

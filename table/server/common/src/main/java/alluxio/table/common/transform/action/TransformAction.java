@@ -11,6 +11,9 @@
 
 package alluxio.table.common.transform.action;
 
+import alluxio.job.JobConfig;
+import alluxio.table.common.Layout;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +26,12 @@ import java.util.regex.Pattern;
  * The definition of an individual transformation action.
  */
 public interface TransformAction {
+  /**
+   * @param base the layout to transform from
+   * @param transformed the layout to transform to
+   * @return the job configuration for this action
+   */
+  JobConfig generateJobConfig(Layout base, Layout transformed);
 
   /**
    * A class to parse transform actions.

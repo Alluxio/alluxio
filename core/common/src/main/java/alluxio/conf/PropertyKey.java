@@ -3739,6 +3739,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
+      new Builder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
+          .setDefaultValue(10 * Constants.SECOND_MS)
+          .setDescription("Job monitor is a heartbeat thread in the transform manager, "
+              + "this is the time interval in milliseconds the job monitor heartbeat is run to "
+              + "check the status of the transformation jobs and update table and partition "
+              + "locations after transformation.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   /**
    * @deprecated This key is used for testing. It is always deprecated.
@@ -4476,6 +4486,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String TABLE_ENABLED = "alluxio.table.enabled";
     public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
+    public static final String TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
+        "alluxio.table.transform.manager.job.monitor.interval";
 
     private Name() {} // prevent instantiation
   }

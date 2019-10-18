@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.table.AttachDatabasePRequest;
-import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
@@ -30,6 +29,8 @@ import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.ReadTablePRequest;
 import alluxio.grpc.table.TableInfo;
+import alluxio.grpc.table.TableMasterClientServiceGrpc;
+import alluxio.grpc.table.TransformTablePRequest;
 import alluxio.grpc.table.DetachDatabasePRequest;
 import alluxio.master.MasterClientContext;
 
@@ -169,5 +170,16 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
             .addAllPartNames(partitionNames).build()).getPartitionStatisticsMap())
         .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
             e->e.getValue().getStatisticsList(), (e1, e2) -> e1));
+  }
+
+  @Override
+  public long transformTable(String dbName, String tableName, String definition)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.transformTable(
+        TransformTablePRequest.newBuilder()
+            .setDbName(dbName)
+            .setTableName(tableName)
+            .setDefinition(definition)
+            .build()).getJobId());
   }
 }

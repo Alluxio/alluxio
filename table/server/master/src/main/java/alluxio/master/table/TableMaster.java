@@ -106,4 +106,14 @@ public interface TableMaster extends Master {
   Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
       String tableName, List<String> partNamesList, List<String> colNamesList)
     throws IOException;
+
+  /**
+   * Transforms a table to a new table.
+   *
+   * @param dbName the database name
+   * @param tableName the table name
+   * @param definition the transformation definition
+   * @return the job ID
+   */
+  long transformTable(String dbName, String tableName, String definition) throws IOException;
 }

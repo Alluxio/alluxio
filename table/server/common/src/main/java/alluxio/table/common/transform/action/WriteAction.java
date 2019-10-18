@@ -11,6 +11,12 @@
 
 package alluxio.table.common.transform.action;
 
+import alluxio.job.JobConfig;
+import alluxio.job.transform.CompactConfig;
+import alluxio.table.common.Layout;
+
+import com.google.common.base.Preconditions;
+
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +25,17 @@ import java.util.Map;
  */
 public class WriteAction implements TransformAction {
   private static final String NAME = "write";
+  private static final String NUM_FILES_OPTION = "hive.num.files";
+  private static final int DEFAULT_NUM_FILES = 1;
+
+  /**
+   * Layout type, for example "hive".
+   */
+  private final String mLayoutType;
+  /**
+   * Expected number of files after compaction.
+   */
+  private final int mNumFiles;
 
   /**
    * Factory to create an instance.
@@ -32,11 +49,23 @@ public class WriteAction implements TransformAction {
     @Override
     public TransformAction create(String definition, List<String> args,
         Map<String, String> options) {
-      return new WriteAction();
+      Preconditions.checkArgument(args.size() == 1, "Number of arguments should be 1");
+      String type = args.get(0);
+      int numFiles = options.containsKey(NUM_FILES_OPTION)
+          ? Integer.parseInt(options.get(NUM_FILES_OPTION))
+          : DEFAULT_NUM_FILES;
+      return new WriteAction(type, numFiles);
     }
   }
 
-  private WriteAction() {
-    // TODO(cc): implement
+  private WriteAction(String type, int numFiles) {
+    mLayoutType = type;
+    mNumFiles = numFiles;
+  }
+
+  @Override
+  public JobConfig generateJobConfig(Layout base, Layout transformed) {
+    return new CompactConfig(base.getLocation().getPath(), transformed.getLocation().getPath(),
+        mLayoutType, mNumFiles);
   }
 }

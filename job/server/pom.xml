@@ -40,6 +40,14 @@
       <version>1.0</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-avro</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-cli</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
       <artifactId>jersey-container-servlet-core</artifactId>
       <version>${jersey.version}</version>
@@ -59,6 +67,11 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

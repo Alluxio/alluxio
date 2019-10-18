@@ -255,6 +255,6 @@ public class Database implements Journaled {
 
   @Override
   public CheckpointName getCheckpointName() {
-    return CheckpointName.TABLE_SERVICE_DATABASE;
+    return CheckpointName.TABLE_MASTER_DATABASE;
   }
 }
