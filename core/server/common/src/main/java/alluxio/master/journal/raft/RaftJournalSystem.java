@@ -122,6 +122,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RaftJournalSystem extends AbstractJournalSystem {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalSystem.class);
 
+  // Election timeout to use in a single master cluster.
+  private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
+
   /// Lifecycle: constant from when the journal system is constructed.
 
   private final RaftJournalConfiguration mConf;
@@ -175,8 +178,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * @param conf raft journal configuration
    */
   private RaftJournalSystem(RaftJournalConfiguration conf) {
-    conf.validate();
-    mConf = conf;
+    mConf = processRaftConfiguration(conf);
     mJournals = new ConcurrentHashMap<>();
     mSnapshotAllowed = new AtomicBoolean(true);
     mJournalStateLock = new ReentrantReadWriteLock(true);
@@ -193,6 +195,23 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   public static RaftJournalSystem create(RaftJournalConfiguration conf) {
     RaftJournalSystem system = new RaftJournalSystem(conf);
     return system;
+  }
+
+  private RaftJournalConfiguration processRaftConfiguration(RaftJournalConfiguration conf) {
+    // Override election/heartbeat timeouts for single master cluster
+    // if election timeout is not set explicitly.
+    // This is to speed up single master cluster boot-up.
+    if (conf.getClusterAddresses().size() == 1
+        && !ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
+      LOG.debug("Overriding election timeout to {}ms for single master cluster.",
+          SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      // Use the highest heartbeat internal relative to election timeout.
+      conf.setHeartbeatIntervalMs((SINGLE_MASTER_ELECTION_TIMEOUT_MS / 2) - 1);
+    }
+    // Validate the conf.
+    conf.validate();
+    return conf;
   }
 
   private synchronized void initServer() {
