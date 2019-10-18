@@ -101,11 +101,10 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
@@ -150,13 +149,12 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.util.StreamUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 import alluxio.util.proto.ProtoUtils;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.CommandType;
@@ -179,8 +177,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
@@ -189,7 +185,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -197,7 +192,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -219,7 +213,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultFileSystemMaster extends CoreMaster implements FileSystemMaster {
+public final class DefaultFileSystemMaster extends CoreMaster
+    implements FileSystemMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -371,8 +366,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /** This caches paths which have been synced with UFS. */
   private final UfsSyncPathCache mUfsSyncPathCache;
 
-  /** List of all master subcomponents which require journaling. */
-  private final List<Journaled> mJournaledComponents;
+  /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
+  private final JournaledGroup mJournaledGroup;
 
   /** List of strings which are blacklisted from async persist. */
   private final List<String> mPersistBlacklist;
@@ -442,7 +437,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
-    mJournaledComponents = new ArrayList<Journaled>() {
+    ArrayList<Journaled> journaledComponents = new ArrayList<Journaled>() {
       {
         add(mInodeTree);
         add(mDirectoryIdGenerator);
@@ -451,6 +446,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         add(mSyncManager);
       }
     };
+    mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -494,41 +490,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public boolean processJournalEntry(JournalEntry entry) {
-    for (Journaled journaled : mJournaledComponents) {
-      if (journaled.processJournalEntry(entry)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public void resetState() {
-    // we resetState in the reverse order that we replay the journal
-    Lists.reverse(mJournaledComponents).forEach(Journaled::resetState);
-  }
-
-  @Override
-  public CheckpointName getCheckpointName() {
-    return CheckpointName.FILE_SYSTEM_MASTER;
-  }
-
-  @Override
-  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    JournalUtils.writeToCheckpoint(output, mJournaledComponents);
-  }
-
-  @Override
-  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    JournalUtils.restoreFromCheckpoint(input, mJournaledComponents);
-  }
-
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    List<Iterator<JournalEntry>> componentIters = StreamUtils
-        .map(JournalEntryIterable::getJournalEntryIterator, mJournaledComponents);
-    return Iterators.concat(componentIters.iterator());
+  public Journaled getDelegate() {
+    return mJournaledGroup;
   }
 
   @Override
