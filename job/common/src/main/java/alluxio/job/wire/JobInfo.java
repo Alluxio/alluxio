@@ -94,7 +94,7 @@ public final class JobInfo {
   /**
    * @param name the job name
    */
-  public void setJobName(String name) {
+  public void setName(String name) {
     mName = name;
   }
 
