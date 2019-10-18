@@ -10,8 +10,16 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+LAUNCHER=
+# If debugging is enabled propagate that through to sub-shells
+if [[ "$-" == *x* ]]; then
+  LAUNCHER="bash -x"
+fi
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+
 # Utility functions for alluxio scripts 
 
+# Generates an array of ramdisk paths in global variable RAMDISKARRAY 
 function get_ramdisk_array() {
   local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
   local medium_type=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.mediumtype)

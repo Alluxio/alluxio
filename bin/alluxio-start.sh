@@ -12,13 +12,6 @@
 
 . $(dirname "$0")/alluxio-common.sh
 
-LAUNCHER=
-# If debugging is enabled propagate that through to sub-shells
-if [[ "$-" == *x* ]]; then
-  LAUNCHER="bash -x"
-fi
-BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
-
 #start up alluxio
 
 USAGE="Usage: alluxio-start.sh [-hNwm] [-i backup] ACTION [MOPT] [-f]
@@ -114,7 +107,7 @@ check_mount_mode() {
         if [[ $? -ne 0 ]]; then
           echo "ERROR: Ramdisk ${tier_path} is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
           echo -e "${USAGE}" >&2
-        exit 1
+          exit 1
         fi
 
         if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
@@ -154,7 +147,7 @@ do_mount() {
           echo "Ramdisk already mounted. Skipping mounting procedure."
         else
           echo "Ramdisk not detected. Mounting..."
-          ${LAUNCHER} "${BIN}/alluxio-mount.sh" $1
+          ${LAUNCHER} "${BIN}/alluxio-mount.sh" "$1"
           MOUNT_FAILED=$?
         fi
       done
