@@ -21,11 +21,13 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.TaskInfo;
 import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +88,8 @@ public final class StatCommand extends AbstractFileSystemCommand {
     StringBuilder output = new StringBuilder();
     output.append("ID: ").append(info.getId()).append("\n");
     output.append("Name: ").append(info.getName()).append("\n");
+    output.append("Description: ").append(StringUtils.abbreviate(info.getDescription(), 100));
+    output.append("\n");
     output.append("Status: ").append(info.getStatus()).append("\n");
     if (info.getErrorMessage() != null && !info.getErrorMessage().isEmpty()) {
       output.append("Error: ").append(info.getErrorMessage()).append("\n");
@@ -95,14 +99,20 @@ public final class StatCommand extends AbstractFileSystemCommand {
     }
 
     if (cl.hasOption("v")) {
-      for (JobInfo taskInfo : info.getChildren()) {
-        output.append("Task ").append(taskInfo.getId()).append("\n");
-        output.append("\t").append("Status: ").append(taskInfo.getStatus()).append("\n");
-        if (taskInfo.getErrorMessage() != null && !taskInfo.getErrorMessage().isEmpty()) {
-          output.append("\t").append("Error: ").append(taskInfo.getErrorMessage()).append("\n");
+      for (JobInfo childInfo : info.getChildren()) {
+        output.append("Task ").append(childInfo.getId()).append("\n");
+        if (childInfo instanceof TaskInfo) {
+          TaskInfo taskInfo = (TaskInfo) childInfo;
+          if (taskInfo.getWorkerHost() != null) {
+            output.append("\t").append("Worker: ").append(taskInfo.getWorkerHost()).append("\n");
+          }
         }
-        if (taskInfo.getResult() != null) {
-          output.append("\t").append("Result: ").append(taskInfo.getResult()).append("\n");
+        output.append("\t").append("Status: ").append(childInfo.getStatus()).append("\n");
+        if (childInfo.getErrorMessage() != null && !childInfo.getErrorMessage().isEmpty()) {
+          output.append("\t").append("Error: ").append(childInfo.getErrorMessage()).append("\n");
+        }
+        if (childInfo.getResult() != null) {
+          output.append("\t").append("Result: ").append(childInfo.getResult()).append("\n");
         }
       }
     }

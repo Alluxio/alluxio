@@ -15,6 +15,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -77,11 +78,10 @@ public final class JobInfo implements Comparable<JobInfo> {
    * Registers a task.
    *
    * @param taskId the task id
+   * @param workerInfo the worker info
    */
-  public void addTask(long taskId) {
-    TaskInfo oldValue = mTaskIdToInfo.putIfAbsent(taskId,
-        new TaskInfo().setJobId(mId).setTaskId(taskId).setStatus(Status.CREATED).setErrorMessage("")
-            .setResult(null));
+  public void addTask(long taskId, WorkerInfo workerInfo) {
+    TaskInfo oldValue = mTaskIdToInfo.putIfAbsent(taskId, new TaskInfo(mId, taskId, workerInfo));
     // the task is expected to not exist in the map.
     Preconditions.checkState(oldValue == null,
         String.format("JobId %d cannot add duplicate taskId %d", mId, taskId));

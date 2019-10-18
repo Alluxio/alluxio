@@ -130,7 +130,7 @@ public final class JobCoordinator {
       LOG.debug("Selected executor {} with parameters {}.", entry.getKey(), entry.getValue());
       int taskId = mTaskIdToWorkerInfo.size();
       // create task
-      mJobInfo.addTask(taskId);
+      mJobInfo.addTask(taskId, entry.getKey());
       // submit commands
       mCommandManager.submitRunTaskCommand(mJobInfo.getId(), taskId, mJobInfo.getJobConfig(),
           entry.getValue(), entry.getKey().getId());

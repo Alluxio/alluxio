@@ -126,6 +126,34 @@ public interface JobInfoOrBuilder extends
       int index);
 
   /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  boolean hasWorkerHost();
+  /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  java.lang.String getWorkerHost();
+  /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  com.google.protobuf.ByteString
+      getWorkerHostBytes();
+
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  boolean hasDescription();
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  java.lang.String getDescription();
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  com.google.protobuf.ByteString
+      getDescriptionBytes();
+
+  /**
    * <pre>
    * Around for backwards compatibility
    * </pre>
