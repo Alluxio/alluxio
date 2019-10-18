@@ -220,7 +220,8 @@ public final class JobInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mJobId, mErrorMessage, mTaskInfoList, mStatus, mResult, mLastStatusChangeMs);
+    return Objects.hashCode(mJobId, mErrorMessage, mTaskInfoList, mStatus, mResult,
+        mLastStatusChangeMs);
   }
 
   @Override
