@@ -479,6 +479,38 @@ public final class FileSystemMasterClientServiceGrpc {
      return getRenameMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ReverseResolvePRequest,
+      alluxio.grpc.ReverseResolvePResponse> getReverseResolveMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ReverseResolve",
+      requestType = alluxio.grpc.ReverseResolvePRequest.class,
+      responseType = alluxio.grpc.ReverseResolvePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.ReverseResolvePRequest,
+      alluxio.grpc.ReverseResolvePResponse> getReverseResolveMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.ReverseResolvePRequest, alluxio.grpc.ReverseResolvePResponse> getReverseResolveMethod;
+    if ((getReverseResolveMethod = FileSystemMasterClientServiceGrpc.getReverseResolveMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getReverseResolveMethod = FileSystemMasterClientServiceGrpc.getReverseResolveMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getReverseResolveMethod = getReverseResolveMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.ReverseResolvePRequest, alluxio.grpc.ReverseResolvePResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "ReverseResolve"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.ReverseResolvePRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.ReverseResolvePResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("ReverseResolve"))
+                  .build();
+          }
+        }
+     }
+     return getReverseResolveMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ScheduleAsyncPersistencePRequest,
       alluxio.grpc.ScheduleAsyncPersistencePResponse> getScheduleAsyncPersistenceMethod;
 
@@ -926,6 +958,17 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Reverse resolve a ufs path.
+     * </pre>
+     */
+    public void reverseResolve(alluxio.grpc.ReverseResolvePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.ReverseResolvePResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getReverseResolveMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Schedules async persistence.
      * </pre>
      */
@@ -1113,6 +1156,13 @@ public final class FileSystemMasterClientServiceGrpc {
                 alluxio.grpc.RenamePRequest,
                 alluxio.grpc.RenamePResponse>(
                   this, METHODID_RENAME)))
+          .addMethod(
+            getReverseResolveMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.ReverseResolvePRequest,
+                alluxio.grpc.ReverseResolvePResponse>(
+                  this, METHODID_REVERSE_RESOLVE)))
           .addMethod(
             getScheduleAsyncPersistenceMethod(),
             asyncUnaryCall(
@@ -1364,6 +1414,18 @@ public final class FileSystemMasterClientServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.RenamePResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getRenameMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Reverse resolve a ufs path.
+     * </pre>
+     */
+    public void reverseResolve(alluxio.grpc.ReverseResolvePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.ReverseResolvePResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getReverseResolveMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -1648,6 +1710,17 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Reverse resolve a ufs path.
+     * </pre>
+     */
+    public alluxio.grpc.ReverseResolvePResponse reverseResolve(alluxio.grpc.ReverseResolvePRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getReverseResolveMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Schedules async persistence.
      * </pre>
      */
@@ -1918,6 +1991,18 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Reverse resolve a ufs path.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.ReverseResolvePResponse> reverseResolve(
+        alluxio.grpc.ReverseResolvePRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getReverseResolveMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Schedules async persistence.
      * </pre>
      */
@@ -2028,14 +2113,15 @@ public final class FileSystemMasterClientServiceGrpc {
   private static final int METHODID_MOUNT = 11;
   private static final int METHODID_REMOVE = 12;
   private static final int METHODID_RENAME = 13;
-  private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 14;
-  private static final int METHODID_SET_ACL = 15;
-  private static final int METHODID_SET_ATTRIBUTE = 16;
-  private static final int METHODID_START_SYNC = 17;
-  private static final int METHODID_STOP_SYNC = 18;
-  private static final int METHODID_UNMOUNT = 19;
-  private static final int METHODID_UPDATE_MOUNT = 20;
-  private static final int METHODID_UPDATE_UFS_MODE = 21;
+  private static final int METHODID_REVERSE_RESOLVE = 14;
+  private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 15;
+  private static final int METHODID_SET_ACL = 16;
+  private static final int METHODID_SET_ATTRIBUTE = 17;
+  private static final int METHODID_START_SYNC = 18;
+  private static final int METHODID_STOP_SYNC = 19;
+  private static final int METHODID_UNMOUNT = 20;
+  private static final int METHODID_UPDATE_MOUNT = 21;
+  private static final int METHODID_UPDATE_UFS_MODE = 22;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -2109,6 +2195,10 @@ public final class FileSystemMasterClientServiceGrpc {
         case METHODID_RENAME:
           serviceImpl.rename((alluxio.grpc.RenamePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.RenamePResponse>) responseObserver);
+          break;
+        case METHODID_REVERSE_RESOLVE:
+          serviceImpl.reverseResolve((alluxio.grpc.ReverseResolvePRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.ReverseResolvePResponse>) responseObserver);
           break;
         case METHODID_SCHEDULE_ASYNC_PERSISTENCE:
           serviceImpl.scheduleAsyncPersistence((alluxio.grpc.ScheduleAsyncPersistencePRequest) request,
@@ -2217,6 +2307,7 @@ public final class FileSystemMasterClientServiceGrpc {
               .addMethod(getMountMethod())
               .addMethod(getRemoveMethod())
               .addMethod(getRenameMethod())
+              .addMethod(getReverseResolveMethod())
               .addMethod(getScheduleAsyncPersistenceMethod())
               .addMethod(getSetAclMethod())
               .addMethod(getSetAttributeMethod())

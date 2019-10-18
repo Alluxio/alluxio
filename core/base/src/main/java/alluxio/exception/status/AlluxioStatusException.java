@@ -26,6 +26,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 
@@ -223,7 +224,7 @@ public class AlluxioStatusException extends IOException {
     } catch (BlockAlreadyExistsException | FileAlreadyCompletedException
         | FileAlreadyExistsException e) {
       return new AlreadyExistsException(e);
-    } catch (BlockDoesNotExistException | FileDoesNotExistException e) {
+    } catch (BlockDoesNotExistException | FileDoesNotExistException | JobDoesNotExistException e) {
       return new NotFoundException(e);
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);

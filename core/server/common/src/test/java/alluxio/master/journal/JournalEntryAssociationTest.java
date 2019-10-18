@@ -42,6 +42,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Meta.ClusterInfoEntry;
 import alluxio.proto.journal.Meta.PathPropertiesEntry;
 import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
+import alluxio.proto.journal.Table;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,14 +65,17 @@ public class JournalEntryAssociationTest {
   private static List<JournalEntry> ENTRIES = Arrays.asList(
       JournalEntry.newBuilder().setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAddSyncPoint(AddSyncPointEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setAddTable(Table.AddTableEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setActiveSyncTxId(File.ActiveSyncTxIdEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAsyncPersistRequest(AsyncPersistRequestEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setAttachDb(Table.AttachDbEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockContainerIdGenerator(BlockContainerIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockInfo(BlockInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setClusterInfo(ClusterInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setCompleteFile(CompleteFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteBlock(DeleteBlockEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteFile(DeleteFileEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setDetachDb(Table.DetachDbEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setDeleteMountPoint(DeleteMountPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeDirectory(InodeDirectoryEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeDirectoryIdGenerator(InodeDirectoryIdGeneratorEntry.getDefaultInstance()).build(),
@@ -88,7 +92,9 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setUpdateUfsMode(UpdateUfsModeEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setUpdateInode(UpdateInodeEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setUpdateInodeDirectory(UpdateInodeDirectoryEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build()
+      JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setTransformJob(Table.TransformJobEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setRemoveTransformJob(Table.RemoveTransformJobEntry.getDefaultInstance()).build()
   );
   // CHECKSTYLE.OFF: LineLengthExceed
 

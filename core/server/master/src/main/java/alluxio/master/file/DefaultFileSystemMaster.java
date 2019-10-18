@@ -4634,4 +4634,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public List<TimeSeries> getTimeSeries() {
     return mTimeSeriesStore.getTimeSeries();
   }
+
+  @Override
+  public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws InvalidPathException {
+    MountTable.ReverseResolution resolution = mMountTable.reverseResolve(ufsUri);
+    if (resolution == null) {
+      throw new InvalidPathException(ufsUri.toString() + " is not a valid ufs uri");
+    }
+    return resolution.getUri();
+  }
 }
