@@ -199,6 +199,15 @@ public interface FileSystemMasterClient extends Client {
   void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) throws AlluxioStatusException;
 
   /**
+   * Reverse resolve a ufs uri.
+   *
+   * @param ufsUri the ufs uri
+   * @return the alluxio path for the ufsUri
+   * @throws AlluxioStatusException
+   */
+  AlluxioURI reverseResolve(AlluxioURI ufsUri) throws AlluxioStatusException;
+
+  /**
    * Sets the ACL for a path.
    *
    * @param path the file or directory path

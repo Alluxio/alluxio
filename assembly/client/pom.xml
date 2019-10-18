@@ -51,6 +51,11 @@
       <artifactId>alluxio-shell</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-table-shell</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

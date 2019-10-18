@@ -23,6 +23,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -532,6 +533,15 @@ public interface FileSystem extends Closeable {
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Reverse resolve a ufs uri.
+   *
+   * @param ufsUri the ufs uri
+   * @return the alluxio path for the ufsUri
+   * @throws AlluxioStatusException
+   */
+  AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclPOptions)} with
