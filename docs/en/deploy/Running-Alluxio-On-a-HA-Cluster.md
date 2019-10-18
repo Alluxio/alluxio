@@ -351,6 +351,11 @@ Below are the steps to add a new master to a live cluster:
 
 Note: Adding to an already shut down cluster still requires adding only single master at a time.
 
+Note: When adding a master to a single master cluster, you should shut down and update configuration for the existing master.
+Then both masters could be started together.
+
+See [here]({{ '/en/operation/Journal.html' | relativize_url }}) for configuring embedded journal.
+
 ##### Removing a master
 Embedded journal cluster will take a notice when a member is not available anymore. Such masters will count
 against failure tolerance of the cluster based on the initial member count. In order to resize the cluster
