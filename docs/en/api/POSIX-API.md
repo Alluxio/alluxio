@@ -173,7 +173,8 @@ characteristics, please be aware that:
 
 * Files can be written only once, only sequentially, and never be modified. That means overriding a
   file is not allowed, and an explicit combination of delete and then create is needed. For example,
-  `cp` command will fail when the destination file exists.
+  `cp` command will fail when the destination file exists. `vi` and `vim` commands will succeed because the 
+  underlying system do create, delete, and rename operation combinations.
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported,
   neither the hardlinks number is displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio POSIX API is configured to use
