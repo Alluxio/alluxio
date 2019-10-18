@@ -534,11 +534,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
    */
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
-    try (Closer closer = Closer.create()) {
-      FileInStream is = closer.register(mFileSystem.openFile(srcPath));
-      FileOutStream os = closer.register(mFileSystem.createFile(dstPath));
+    try (FileInStream is = mFileSystem.openFile(srcPath);
+         FileOutStream os = mFileSystem.createFile(dstPath)) {
       try {
-        IOUtils.copy(is, os);
+        IOUtils.copyLarge(is, os, new byte[8 * Constants.MB]);
       } catch (Exception e) {
         os.cancel();
         throw e;

@@ -12,6 +12,7 @@
 package alluxio.job.migrate;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -26,6 +27,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.RunTaskContext;
@@ -39,7 +42,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -308,10 +311,12 @@ public final class MigrateDefinition
 
     CreateFilePOptions createOptions =
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
-
-    try (FileOutStream out = fileSystem.createFile(new AlluxioURI(destination), createOptions)) {
-      try (FileInStream in = fileSystem.openFile(new AlluxioURI(source))) {
-        IOUtils.copy(in, out);
+    OpenFilePOptions openFileOptions =
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
+    try (FileOutStream out = fileSystem.createFile(new AlluxioURI(destination), createOptions);
+         FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions)) {
+      try {
+        IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
       } catch (Throwable t) {
         try {
           out.cancel();
