@@ -144,9 +144,9 @@ do_mount() {
       do
         is_ram_folder_mounted "${tier_path}" # Returns 0 if already mounted.
         if [[ $? -eq 0 ]]; then
-          echo "Ramdisk already mounted. Skipping mounting procedure."
+          echo "Ramdisk ${tier_path} already mounted. Skipping mounting procedure."
         else
-          echo "Ramdisk not detected. Mounting..."
+          echo "Ramdisk ${tier_path} not detected. Mounting..."
           ${LAUNCHER} "${BIN}/alluxio-mount.sh" "$1"
           MOUNT_FAILED=$?
         fi
