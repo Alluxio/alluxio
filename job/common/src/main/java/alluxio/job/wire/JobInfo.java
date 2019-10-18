@@ -215,12 +215,14 @@ public final class JobInfo {
         && Objects.equal(mErrorMessage, that.mErrorMessage)
         && Objects.equal(mTaskInfoList, that.mTaskInfoList)
         && Objects.equal(mStatus, that.mStatus)
-        && Objects.equal(mResult, that.mResult);
+        && Objects.equal(mResult, that.mResult)
+        && Objects.equal(mLastStatusChangeMs, that.mLastStatusChangeMs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mJobId, mJobConfig, mErrorMessage, mTaskInfoList, mStatus, mResult);
+    return Objects.hashCode(mJobId, mJobConfig, mErrorMessage, mTaskInfoList, mStatus, mResult,
+        mLastStatusChangeMs);
   }
 
   @Override
@@ -232,6 +234,7 @@ public final class JobInfo {
         .add("taskInfoList", mTaskInfoList)
         .add("status", mStatus)
         .add("result", mResult)
+        .add("lastStatusChangeMs", mLastStatusChangeMs)
         .toString();
   }
 }
