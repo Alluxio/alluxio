@@ -35,6 +35,7 @@ public final class JobInfo {
   private List<TaskInfo> mTaskInfoList;
   private Status mStatus;
   private String mResult;
+  private long mLastStatusChangeMs;
 
   /**
    * Default constructor.
@@ -53,6 +54,7 @@ public final class JobInfo {
     mTaskInfoList = Lists.newArrayList();
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mResult = jobInfo.getResult();
+    mLastStatusChangeMs = jobInfo.getLastStatusChangeMs();
     for (TaskInfo taskInfo : jobInfo.getTaskInfoList()) {
       mTaskInfoList.add(taskInfo);
     }
@@ -73,6 +75,7 @@ public final class JobInfo {
     }
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mResult = jobInfo.getResult();
+    mLastStatusChangeMs = jobInfo.getLastStatusChangeMs();
   }
 
   /**
@@ -164,6 +167,20 @@ public final class JobInfo {
   }
 
   /**
+   * @param lastStatusChangeMs the time when status last changed in milliseconds
+   */
+  public void setLastStatusChangeMs(long lastStatusChangeMs) {
+    mLastStatusChangeMs = lastStatusChangeMs;
+  }
+
+  /**
+   * @return the time when status last changed in milliseconds
+   */
+  public long getLastStatusChangeMs() {
+    return mLastStatusChangeMs;
+  }
+
+  /**
    * @return proto representation of the job info
    * @throws IOException if serialization fails
    */
@@ -177,6 +194,7 @@ public final class JobInfo {
     if (mResult != null) {
       jobInfoBuilder.setResult(mResult);
     }
+    jobInfoBuilder.setLastStatusChangeMs(mLastStatusChangeMs);
     return jobInfoBuilder.build();
   }
 
@@ -197,12 +215,14 @@ public final class JobInfo {
         && Objects.equal(mErrorMessage, that.mErrorMessage)
         && Objects.equal(mTaskInfoList, that.mTaskInfoList)
         && Objects.equal(mStatus, that.mStatus)
-        && Objects.equal(mResult, that.mResult);
+        && Objects.equal(mResult, that.mResult)
+        && Objects.equal(mLastStatusChangeMs, that.mLastStatusChangeMs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mJobId, mJobConfig, mErrorMessage, mTaskInfoList, mStatus, mResult);
+    return Objects.hashCode(mJobId, mJobConfig, mErrorMessage, mTaskInfoList, mStatus, mResult,
+        mLastStatusChangeMs);
   }
 
   @Override
@@ -214,6 +234,7 @@ public final class JobInfo {
         .add("taskInfoList", mTaskInfoList)
         .add("status", mStatus)
         .add("result", mResult)
+        .add("lastStatusChangeMs", mLastStatusChangeMs)
         .toString();
   }
 }

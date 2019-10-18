@@ -15,19 +15,27 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Job service summary.
  */
 @NotThreadSafe
 public final class JobServiceSummary {
+  private static final int RECENT_LENGTH = 10;
+
   private final List<StatusSummary> mSummaryPerStatus;
+
+  private final List<JobInfo> mRecentActivities;
+  private final List<JobInfo> mRecentFailures;
 
   /**
    * Constructs a new instance of {@link JobServiceSummary} from a
@@ -35,8 +43,14 @@ public final class JobServiceSummary {
    *
    * @param jobInfos Collection of {@link JobInfo}
    */
-  public JobServiceSummary(Collection<JobInfo> jobInfos) {
+  public JobServiceSummary(List<JobInfo> jobInfos) {
+    jobInfos.sort(Comparator.comparing(JobInfo::getLastStatusChangeMs).reversed());
     mSummaryPerStatus = buildSummaryPerStatus(jobInfos);
+
+    mRecentActivities = jobInfos.stream().limit(RECENT_LENGTH).collect(Collectors.toList());
+
+    mRecentFailures = jobInfos.stream().filter(jobInfo -> jobInfo.getStatus().equals(Status.FAILED))
+      .limit(RECENT_LENGTH).collect(Collectors.toList());
   }
 
   /**
@@ -44,14 +58,22 @@ public final class JobServiceSummary {
    *
    * @param jobServiceSummary the proto object
    */
-  public JobServiceSummary(alluxio.grpc.JobServiceSummary jobServiceSummary) {
+  public JobServiceSummary(alluxio.grpc.JobServiceSummary jobServiceSummary) throws IOException {
     mSummaryPerStatus = new ArrayList<>();
     for (alluxio.grpc.StatusSummary statusSummary : jobServiceSummary.getSummaryPerStatusList()) {
       mSummaryPerStatus.add(new StatusSummary(statusSummary));
     }
+    mRecentActivities = new ArrayList<>();
+    for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getRecentActivitiesList()) {
+      mRecentActivities.add(new JobInfo(lastActivity));
+    }
+    mRecentFailures = new ArrayList<>();
+    for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getRecentFailuresList()) {
+      mRecentFailures.add(new JobInfo(lastFailure));
+    }
   }
 
-  private List<StatusSummary> buildSummaryPerStatus(Collection<JobInfo> jobInfos) {
+  private List<StatusSummary> buildSummaryPerStatus(List<JobInfo> jobInfos) {
 
     Map<Status, Long> countPerStatus = new HashMap<>();
 
@@ -83,13 +105,34 @@ public final class JobServiceSummary {
   }
 
   /**
-   * @return proto representation of the job service summary
+   * @return collection of {@link JobInfo} where the status was most recently updated
    */
-  public alluxio.grpc.JobServiceSummary toProto() {
+  public List<JobInfo> getRecentActivities() {
+    return Collections.unmodifiableList(mRecentActivities);
+  }
+
+  /**
+   * @return collection of {@link JobInfo} that have most recently failed
+   */
+  public List<JobInfo> getRecentFailures() {
+    return Collections.unmodifiableList(mRecentFailures);
+  }
+
+  /**
+   * @return proto representation of the job service summary
+   * @throws IOException if serialization fails
+   */
+  public alluxio.grpc.JobServiceSummary toProto() throws IOException {
     alluxio.grpc.JobServiceSummary.Builder jobServiceBuilder =
           alluxio.grpc.JobServiceSummary.newBuilder();
     for (StatusSummary statusSummary : mSummaryPerStatus) {
       jobServiceBuilder.addSummaryPerStatus(statusSummary.toProto());
+    }
+    for (JobInfo jobInfo : mRecentActivities) {
+      jobServiceBuilder.addRecentActivities(jobInfo.toProto());
+    }
+    for (JobInfo jobInfo : mRecentFailures) {
+      jobServiceBuilder.addRecentFailures(jobInfo.toProto());
     }
     return jobServiceBuilder.build();
   }
