@@ -21,14 +21,14 @@ message Schema {
 }
 
 message Database {
-    optional string name = 1;
+    optional string db_name = 1;
     optional string description = 2;
     optional string location = 3;
     map<string, string> parameter = 4;
 }
 
 message StorageFormat {
-    optional string ser_de = 1;
+    optional string serde = 1;
     optional string input_format = 2;
     optional string output_format = 3;
 }
@@ -75,12 +75,12 @@ message TableInfo {
 
 message PartitionInfo {
   repeated string values = 1; // list of string values for each partition column
-  optional string partitionName = 2; // partition name in the form of "key=value"
+  optional string partition_name = 2; // partition name in the form of "key=value"
 
-  optional string dbName = 3;
-  optional string tableName = 4;
+  optional string db_name = 3;
+  optional string table_name = 4;
   optional Storage storage = 5;
-  repeated FieldSchema dataCols = 6;
+  repeated FieldSchema data_cols = 6;
   map<string, string> parameters = 7;
 }
 
@@ -95,14 +95,14 @@ message PartitionSpec {
 }
 
 message Layout {
-  optional string layoutType = 1;
-  optional LayoutSpec layoutSpec = 2;
-  optional bytes layoutData = 3;
+  optional string layout_type = 1;
+  optional LayoutSpec layout_spec = 2;
+  optional bytes layout_data = 3;
   map<string, ColumnStatisticsInfo> stats = 4;
 }
 
 message Partition {
-    optional PartitionSpec partitionSpec = 1;
+    optional PartitionSpec partition_spec = 1;
     optional Layout layout = 2;
 }
 
@@ -114,37 +114,37 @@ message ColumnStatisticsInfo {
 
 message ColumnStatisticsData {
     oneof data {
-        BooleanColumnStatsData booleanStats = 1;
-        LongColumnStatsData longStats = 2;
-        DoubleColumnStatsData doubleStats = 3;
-        StringColumnStatsData stringStats = 4;
-        BinaryColumnStatsData binaryStats = 5;
-        DecimalColumnStatsData decimalStats = 6;
-        DateColumnStatsData dateStats = 7;
+        BooleanColumnStatsData boolean_stats = 1;
+        LongColumnStatsData long_stats = 2;
+        DoubleColumnStatsData double_stats = 3;
+        StringColumnStatsData string_stats = 4;
+        BinaryColumnStatsData binary_stats = 5;
+        DecimalColumnStatsData decimal_stats = 6;
+        DateColumnStatsData date_stats = 7;
     }
 }
 
 message BooleanColumnStatsData {
-    optional int64 numTrues = 1;
-    optional int64 numFalses = 2;
-    optional int64 numNulls = 3;
-    optional string bitVectors = 4;
+    optional int64 num_trues = 1;
+    optional int64 num_falses = 2;
+    optional int64 num_nulls = 3;
+    optional string bit_vectors = 4;
 }
 
 message LongColumnStatsData {
-    optional int64 lowValue = 1;
-    optional int64 highValue = 2;
-    optional int64 numNulls = 3;
-    optional int64 numDVs = 4;
-    optional string bitVectors = 5;
+    optional int64 low_value = 1;
+    optional int64 high_value = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
 }
 
 message DoubleColumnStatsData {
-    optional double lowValue = 1;
-    optional double highValue = 2;
-    optional int64 numNulls = 3;
-    optional int64 numDVs = 4;
-    optional string bitVectors = 5;
+    optional double low_value = 1;
+    optional double high_value = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
 }
 
 message Decimal {
@@ -152,37 +152,37 @@ message Decimal {
     required bytes unscaled = 2;
 }
 message DecimalColumnStatsData {
-    optional Decimal lowValue = 1;
-    optional Decimal highValue = 2;
-    optional int64 numNulls = 3;
-    optional int64 numDVs = 4;
-    optional string bitVectors = 5;
+    optional Decimal low_value = 1;
+    optional Decimal high_value = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
 }
 
 message StringColumnStatsData {
-    optional int64 maxColLen = 1;
-    optional double avgColLen = 2;
-    optional int64 numNulls = 3;
-    optional int64 numDVs = 4;
-    optional string bitVectors = 5;
+    optional int64 max_col_len = 1;
+    optional double avg_col_len = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
 }
 
 message BinaryColumnStatsData {
-    optional int64 maxColLen = 1;
-    optional double avgColLen = 2;
-    optional int64 numNulls = 3;
-    optional string bitVectors = 4;
+    optional int64 max_col_len = 1;
+    optional double avg_col_len = 2;
+    optional int64 num_nulls = 3;
+    optional string bit_vectors = 4;
 }
 
 message Date {
-    required int64 daysSinceEpoch = 1;
+    required int64 days_since_epoch = 1;
 }
 message DateColumnStatsData {
-    optional Date lowValue = 1;
-    optional Date highValue = 2;
-    optional int64 numNulls = 3;
-    optional int64 numDVs = 4;
-    optional string bitVectors = 5;
+    optional Date low_value = 1;
+    optional Date high_value = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
 }
 
 message GetAllDatabasesPRequest {
@@ -260,7 +260,7 @@ message ColumnStatisticsList {
     repeated ColumnStatisticsInfo statistics = 1;
 }
 message GetPartitionColumnStatisticsPResponse {
-    map<string, ColumnStatisticsList> partitionStatistics = 1;
+    map<string, ColumnStatisticsList> partition_statistics = 1;
 }
 
 message Value {

@@ -91,7 +91,7 @@ public class HiveUtils {
     StorageFormat format = StorageFormat.newBuilder()
         .setInputFormat(sd.getInputFormat())
         .setOutputFormat(sd.getOutputFormat())
-        .setSerDe(serDe).build(); // Check SerDe info
+        .setSerde(serDe).build(); // Check SerDe info
     Storage.Builder storageBuilder = Storage.newBuilder();
     List<Order> orderList = sd.getSortCols();
     List<SortingColumn> sortingColumns;
@@ -140,7 +140,7 @@ public class HiveUtils {
       if (doubleStats != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setDoubleStats(DoubleColumnStatsData.newBuilder()
-                .setNumDVs(doubleStats.getNumDVs()).setHighValue(doubleStats.getHighValue())
+                .setNumDistincts(doubleStats.getNumDVs()).setHighValue(doubleStats.getHighValue())
                 .setLowValue(doubleStats.getLowValue()).setNumNulls(doubleStats.getNumNulls())
                 .setBitVectors(doubleStats.getBitVectors()).build()).build());
       }
@@ -151,7 +151,7 @@ public class HiveUtils {
       if (longData != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setLongStats(LongColumnStatsData.newBuilder()
-                .setNumDVs(longData.getNumDVs()).setHighValue(longData.getHighValue())
+                .setNumDistincts(longData.getNumDVs()).setHighValue(longData.getHighValue())
                 .setLowValue(longData.getLowValue())
                 .setNumNulls(longData.getNumNulls()).setBitVectors(longData.getBitVectors())
                 .build()).build());
@@ -163,7 +163,7 @@ public class HiveUtils {
       if (stringData != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setStringStats(StringColumnStatsData.newBuilder()
-                .setNumDVs(stringData.getNumDVs()).setAvgColLen(stringData.getAvgColLen())
+                .setNumDistincts(stringData.getNumDVs()).setAvgColLen(stringData.getAvgColLen())
                 .setMaxColLen(stringData.getMaxColLen())
                 .setNumNulls(stringData.getNumNulls()).setBitVectors(stringData.getBitVectors())
                 .build()).build());
@@ -189,7 +189,7 @@ public class HiveUtils {
                 .setHighValue(toProto(data.getHighValue()))
                 .setLowValue(toProto(data.getLowValue()))
                 .setNumNulls(data.getNumNulls())
-                .setNumDVs(data.getNumDVs())
+                .setNumDistincts(data.getNumDVs())
                 .setBitVectors(data.getBitVectors())
                 .build()).build());
       }
@@ -204,7 +204,7 @@ public class HiveUtils {
                 .setHighValue(toProto(data.getHighValue()))
                 .setLowValue(toProto(data.getLowValue()))
                 .setNumNulls(data.getNumNulls())
-                .setNumDVs(data.getNumDVs())
+                .setNumDistincts(data.getNumDVs())
                 .setBitVectors(data.getBitVectors())
                 .build()).build());
       }

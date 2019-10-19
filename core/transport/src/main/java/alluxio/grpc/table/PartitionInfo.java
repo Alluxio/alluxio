@@ -203,14 +203,14 @@ private static final long serialVersionUID = 0L;
     return values_.getByteString(index);
   }
 
-  public static final int PARTITIONNAME_FIELD_NUMBER = 2;
+  public static final int PARTITION_NAME_FIELD_NUMBER = 2;
   private volatile java.lang.Object partitionName_;
   /**
    * <pre>
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 2;</code>
+   * <code>optional string partition_name = 2;</code>
    */
   public boolean hasPartitionName() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
@@ -220,7 +220,7 @@ private static final long serialVersionUID = 0L;
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 2;</code>
+   * <code>optional string partition_name = 2;</code>
    */
   public java.lang.String getPartitionName() {
     java.lang.Object ref = partitionName_;
@@ -241,7 +241,7 @@ private static final long serialVersionUID = 0L;
    * partition name in the form of "key=value"
    * </pre>
    *
-   * <code>optional string partitionName = 2;</code>
+   * <code>optional string partition_name = 2;</code>
    */
   public com.google.protobuf.ByteString
       getPartitionNameBytes() {
@@ -257,16 +257,16 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int DBNAME_FIELD_NUMBER = 3;
+  public static final int DB_NAME_FIELD_NUMBER = 3;
   private volatile java.lang.Object dbName_;
   /**
-   * <code>optional string dbName = 3;</code>
+   * <code>optional string db_name = 3;</code>
    */
   public boolean hasDbName() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional string dbName = 3;</code>
+   * <code>optional string db_name = 3;</code>
    */
   public java.lang.String getDbName() {
     java.lang.Object ref = dbName_;
@@ -283,7 +283,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string dbName = 3;</code>
+   * <code>optional string db_name = 3;</code>
    */
   public com.google.protobuf.ByteString
       getDbNameBytes() {
@@ -299,16 +299,16 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int TABLENAME_FIELD_NUMBER = 4;
+  public static final int TABLE_NAME_FIELD_NUMBER = 4;
   private volatile java.lang.Object tableName_;
   /**
-   * <code>optional string tableName = 4;</code>
+   * <code>optional string table_name = 4;</code>
    */
   public boolean hasTableName() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional string tableName = 4;</code>
+   * <code>optional string table_name = 4;</code>
    */
   public java.lang.String getTableName() {
     java.lang.Object ref = tableName_;
@@ -325,7 +325,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string tableName = 4;</code>
+   * <code>optional string table_name = 4;</code>
    */
   public com.google.protobuf.ByteString
       getTableNameBytes() {
@@ -362,35 +362,35 @@ private static final long serialVersionUID = 0L;
     return storage_ == null ? alluxio.grpc.table.Storage.getDefaultInstance() : storage_;
   }
 
-  public static final int DATACOLS_FIELD_NUMBER = 6;
+  public static final int DATA_COLS_FIELD_NUMBER = 6;
   private java.util.List<alluxio.grpc.table.FieldSchema> dataCols_;
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
    */
   public java.util.List<alluxio.grpc.table.FieldSchema> getDataColsList() {
     return dataCols_;
   }
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
    */
   public java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
       getDataColsOrBuilderList() {
     return dataCols_;
   }
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
    */
   public int getDataColsCount() {
     return dataCols_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
    */
   public alluxio.grpc.table.FieldSchema getDataCols(int index) {
     return dataCols_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+   * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
    */
   public alluxio.grpc.table.FieldSchemaOrBuilder getDataColsOrBuilder(
       int index) {
@@ -616,15 +616,15 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + getValuesList().hashCode();
     }
     if (hasPartitionName()) {
-      hash = (37 * hash) + PARTITIONNAME_FIELD_NUMBER;
+      hash = (37 * hash) + PARTITION_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getPartitionName().hashCode();
     }
     if (hasDbName()) {
-      hash = (37 * hash) + DBNAME_FIELD_NUMBER;
+      hash = (37 * hash) + DB_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getDbName().hashCode();
     }
     if (hasTableName()) {
-      hash = (37 * hash) + TABLENAME_FIELD_NUMBER;
+      hash = (37 * hash) + TABLE_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getTableName().hashCode();
     }
     if (hasStorage()) {
@@ -632,7 +632,7 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + getStorage().hashCode();
     }
     if (getDataColsCount() > 0) {
-      hash = (37 * hash) + DATACOLS_FIELD_NUMBER;
+      hash = (37 * hash) + DATA_COLS_FIELD_NUMBER;
       hash = (53 * hash) + getDataColsList().hashCode();
     }
     if (!internalGetParameters().getMap().isEmpty()) {
@@ -1139,7 +1139,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 2;</code>
+     * <code>optional string partition_name = 2;</code>
      */
     public boolean hasPartitionName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
@@ -1149,7 +1149,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 2;</code>
+     * <code>optional string partition_name = 2;</code>
      */
     public java.lang.String getPartitionName() {
       java.lang.Object ref = partitionName_;
@@ -1170,7 +1170,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 2;</code>
+     * <code>optional string partition_name = 2;</code>
      */
     public com.google.protobuf.ByteString
         getPartitionNameBytes() {
@@ -1190,7 +1190,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 2;</code>
+     * <code>optional string partition_name = 2;</code>
      */
     public Builder setPartitionName(
         java.lang.String value) {
@@ -1207,7 +1207,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 2;</code>
+     * <code>optional string partition_name = 2;</code>
      */
     public Builder clearPartitionName() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -1220,7 +1220,7 @@ private static final long serialVersionUID = 0L;
      * partition name in the form of "key=value"
      * </pre>
      *
-     * <code>optional string partitionName = 2;</code>
+     * <code>optional string partition_name = 2;</code>
      */
     public Builder setPartitionNameBytes(
         com.google.protobuf.ByteString value) {
@@ -1235,13 +1235,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object dbName_ = "";
     /**
-     * <code>optional string dbName = 3;</code>
+     * <code>optional string db_name = 3;</code>
      */
     public boolean hasDbName() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string dbName = 3;</code>
+     * <code>optional string db_name = 3;</code>
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -1258,7 +1258,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string dbName = 3;</code>
+     * <code>optional string db_name = 3;</code>
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -1274,7 +1274,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string dbName = 3;</code>
+     * <code>optional string db_name = 3;</code>
      */
     public Builder setDbName(
         java.lang.String value) {
@@ -1287,7 +1287,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string dbName = 3;</code>
+     * <code>optional string db_name = 3;</code>
      */
     public Builder clearDbName() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -1296,7 +1296,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string dbName = 3;</code>
+     * <code>optional string db_name = 3;</code>
      */
     public Builder setDbNameBytes(
         com.google.protobuf.ByteString value) {
@@ -1311,13 +1311,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object tableName_ = "";
     /**
-     * <code>optional string tableName = 4;</code>
+     * <code>optional string table_name = 4;</code>
      */
     public boolean hasTableName() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional string tableName = 4;</code>
+     * <code>optional string table_name = 4;</code>
      */
     public java.lang.String getTableName() {
       java.lang.Object ref = tableName_;
@@ -1334,7 +1334,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string tableName = 4;</code>
+     * <code>optional string table_name = 4;</code>
      */
     public com.google.protobuf.ByteString
         getTableNameBytes() {
@@ -1350,7 +1350,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string tableName = 4;</code>
+     * <code>optional string table_name = 4;</code>
      */
     public Builder setTableName(
         java.lang.String value) {
@@ -1363,7 +1363,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string tableName = 4;</code>
+     * <code>optional string table_name = 4;</code>
      */
     public Builder clearTableName() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -1372,7 +1372,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string tableName = 4;</code>
+     * <code>optional string table_name = 4;</code>
      */
     public Builder setTableNameBytes(
         com.google.protobuf.ByteString value) {
@@ -1516,7 +1516,7 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.FieldSchema, alluxio.grpc.table.FieldSchema.Builder, alluxio.grpc.table.FieldSchemaOrBuilder> dataColsBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public java.util.List<alluxio.grpc.table.FieldSchema> getDataColsList() {
       if (dataColsBuilder_ == null) {
@@ -1526,7 +1526,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public int getDataColsCount() {
       if (dataColsBuilder_ == null) {
@@ -1536,7 +1536,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public alluxio.grpc.table.FieldSchema getDataCols(int index) {
       if (dataColsBuilder_ == null) {
@@ -1546,7 +1546,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder setDataCols(
         int index, alluxio.grpc.table.FieldSchema value) {
@@ -1563,7 +1563,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder setDataCols(
         int index, alluxio.grpc.table.FieldSchema.Builder builderForValue) {
@@ -1577,7 +1577,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder addDataCols(alluxio.grpc.table.FieldSchema value) {
       if (dataColsBuilder_ == null) {
@@ -1593,7 +1593,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder addDataCols(
         int index, alluxio.grpc.table.FieldSchema value) {
@@ -1610,7 +1610,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder addDataCols(
         alluxio.grpc.table.FieldSchema.Builder builderForValue) {
@@ -1624,7 +1624,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder addDataCols(
         int index, alluxio.grpc.table.FieldSchema.Builder builderForValue) {
@@ -1638,7 +1638,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder addAllDataCols(
         java.lang.Iterable<? extends alluxio.grpc.table.FieldSchema> values) {
@@ -1653,7 +1653,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder clearDataCols() {
       if (dataColsBuilder_ == null) {
@@ -1666,7 +1666,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public Builder removeDataCols(int index) {
       if (dataColsBuilder_ == null) {
@@ -1679,14 +1679,14 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public alluxio.grpc.table.FieldSchema.Builder getDataColsBuilder(
         int index) {
       return getDataColsFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public alluxio.grpc.table.FieldSchemaOrBuilder getDataColsOrBuilder(
         int index) {
@@ -1696,7 +1696,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public java.util.List<? extends alluxio.grpc.table.FieldSchemaOrBuilder> 
          getDataColsOrBuilderList() {
@@ -1707,14 +1707,14 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public alluxio.grpc.table.FieldSchema.Builder addDataColsBuilder() {
       return getDataColsFieldBuilder().addBuilder(
           alluxio.grpc.table.FieldSchema.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public alluxio.grpc.table.FieldSchema.Builder addDataColsBuilder(
         int index) {
@@ -1722,7 +1722,7 @@ private static final long serialVersionUID = 0L;
           index, alluxio.grpc.table.FieldSchema.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.table.FieldSchema dataCols = 6;</code>
+     * <code>repeated .alluxio.grpc.table.FieldSchema data_cols = 6;</code>
      */
     public java.util.List<alluxio.grpc.table.FieldSchema.Builder> 
          getDataColsBuilderList() {

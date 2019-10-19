@@ -8,18 +8,18 @@ public interface StorageFormatOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string ser_de = 1;</code>
+   * <code>optional string serde = 1;</code>
    */
-  boolean hasSerDe();
+  boolean hasSerde();
   /**
-   * <code>optional string ser_de = 1;</code>
+   * <code>optional string serde = 1;</code>
    */
-  java.lang.String getSerDe();
+  java.lang.String getSerde();
   /**
-   * <code>optional string ser_de = 1;</code>
+   * <code>optional string serde = 1;</code>
    */
   com.google.protobuf.ByteString
-      getSerDeBytes();
+      getSerdeBytes();
 
   /**
    * <code>optional string input_format = 2;</code>

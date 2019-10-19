@@ -16,7 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private StorageFormat() {
-    serDe_ = "";
+    serde_ = "";
     inputFormat_ = "";
     outputFormat_ = "";
   }
@@ -55,7 +55,7 @@ private static final long serialVersionUID = 0L;
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
-            serDe_ = bs;
+            serde_ = bs;
             break;
           }
           case 18: {
@@ -95,19 +95,19 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int SER_DE_FIELD_NUMBER = 1;
-  private volatile java.lang.Object serDe_;
+  public static final int SERDE_FIELD_NUMBER = 1;
+  private volatile java.lang.Object serde_;
   /**
-   * <code>optional string ser_de = 1;</code>
+   * <code>optional string serde = 1;</code>
    */
-  public boolean hasSerDe() {
+  public boolean hasSerde() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string ser_de = 1;</code>
+   * <code>optional string serde = 1;</code>
    */
-  public java.lang.String getSerDe() {
-    java.lang.Object ref = serDe_;
+  public java.lang.String getSerde() {
+    java.lang.Object ref = serde_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -115,22 +115,22 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        serDe_ = s;
+        serde_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string ser_de = 1;</code>
+   * <code>optional string serde = 1;</code>
    */
   public com.google.protobuf.ByteString
-      getSerDeBytes() {
-    java.lang.Object ref = serDe_;
+      getSerdeBytes() {
+    java.lang.Object ref = serde_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      serDe_ = b;
+      serde_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -234,7 +234,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, serDe_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, serde_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, inputFormat_);
@@ -251,7 +251,7 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, serDe_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, serde_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, inputFormat_);
@@ -275,10 +275,10 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.table.StorageFormat other = (alluxio.grpc.table.StorageFormat) obj;
 
     boolean result = true;
-    result = result && (hasSerDe() == other.hasSerDe());
-    if (hasSerDe()) {
-      result = result && getSerDe()
-          .equals(other.getSerDe());
+    result = result && (hasSerde() == other.hasSerde());
+    if (hasSerde()) {
+      result = result && getSerde()
+          .equals(other.getSerde());
     }
     result = result && (hasInputFormat() == other.hasInputFormat());
     if (hasInputFormat()) {
@@ -301,9 +301,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasSerDe()) {
-      hash = (37 * hash) + SER_DE_FIELD_NUMBER;
-      hash = (53 * hash) + getSerDe().hashCode();
+    if (hasSerde()) {
+      hash = (37 * hash) + SERDE_FIELD_NUMBER;
+      hash = (53 * hash) + getSerde().hashCode();
     }
     if (hasInputFormat()) {
       hash = (37 * hash) + INPUT_FORMAT_FIELD_NUMBER;
@@ -442,7 +442,7 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      serDe_ = "";
+      serde_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
       inputFormat_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -475,7 +475,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.serDe_ = serDe_;
+      result.serde_ = serde_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
@@ -526,9 +526,9 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.table.StorageFormat other) {
       if (other == alluxio.grpc.table.StorageFormat.getDefaultInstance()) return this;
-      if (other.hasSerDe()) {
+      if (other.hasSerde()) {
         bitField0_ |= 0x00000001;
-        serDe_ = other.serDe_;
+        serde_ = other.serde_;
         onChanged();
       }
       if (other.hasInputFormat()) {
@@ -569,24 +569,24 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object serDe_ = "";
+    private java.lang.Object serde_ = "";
     /**
-     * <code>optional string ser_de = 1;</code>
+     * <code>optional string serde = 1;</code>
      */
-    public boolean hasSerDe() {
+    public boolean hasSerde() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string ser_de = 1;</code>
+     * <code>optional string serde = 1;</code>
      */
-    public java.lang.String getSerDe() {
-      java.lang.Object ref = serDe_;
+    public java.lang.String getSerde() {
+      java.lang.Object ref = serde_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          serDe_ = s;
+          serde_ = s;
         }
         return s;
       } else {
@@ -594,53 +594,53 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string ser_de = 1;</code>
+     * <code>optional string serde = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getSerDeBytes() {
-      java.lang.Object ref = serDe_;
+        getSerdeBytes() {
+      java.lang.Object ref = serde_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        serDe_ = b;
+        serde_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string ser_de = 1;</code>
+     * <code>optional string serde = 1;</code>
      */
-    public Builder setSerDe(
+    public Builder setSerde(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      serDe_ = value;
+      serde_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string ser_de = 1;</code>
+     * <code>optional string serde = 1;</code>
      */
-    public Builder clearSerDe() {
+    public Builder clearSerde() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      serDe_ = getDefaultInstance().getSerDe();
+      serde_ = getDefaultInstance().getSerde();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string ser_de = 1;</code>
+     * <code>optional string serde = 1;</code>
      */
-    public Builder setSerDeBytes(
+    public Builder setSerdeBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      serDe_ = value;
+      serde_ = value;
       onChanged();
       return this;
     }
