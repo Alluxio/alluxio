@@ -20,13 +20,13 @@ import alluxio.grpc.table.DateColumnStatsData;
 import alluxio.grpc.table.Decimal;
 import alluxio.grpc.table.DecimalColumnStatsData;
 import alluxio.grpc.table.DoubleColumnStatsData;
-import alluxio.grpc.table.HiveBucketProperty;
 import alluxio.grpc.table.LongColumnStatsData;
 import alluxio.grpc.table.Schema;
-import alluxio.grpc.table.SortingColumn;
-import alluxio.grpc.table.Storage;
-import alluxio.grpc.table.StorageFormat;
 import alluxio.grpc.table.StringColumnStatsData;
+import alluxio.grpc.table.layout.hive.HiveBucketProperty;
+import alluxio.grpc.table.layout.hive.SortingColumn;
+import alluxio.grpc.table.layout.hive.Storage;
+import alluxio.grpc.table.layout.hive.StorageFormat;
 import alluxio.table.under.hive.util.PathTranslator;
 
 import com.google.protobuf.ByteString;
