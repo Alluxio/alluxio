@@ -146,7 +146,7 @@ journal:
   folder: "hdfs://{$hostname}:{$hostport}/journal"
 
 properties:
-  alluxio.master.mount.table.root.ufs: "hdfs://{$hostname}:{$hostport}/{$underFSStorage}"
+  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
   alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 
 secrets:
@@ -156,7 +156,7 @@ secrets:
     alluxio-hdfs-config: hdfsConfig
 ```
 
-***Example: Embedded Journal***
+***Example: Multi-master with Embedded Journal***
 
 ```properties
 master:
@@ -202,15 +202,10 @@ volumes:
       mountPath: /metastore
 ```
 
-***Example: Tiered Storage***
-
-```properties
-
-```
-
 ***Example: Multiple Secrets***
 
-Multiple secrets can be mounted by adding more rows to the configuration such as:
+Multiple secrets can be mounted to both master and worker pods.
+The format for the section for each pod is `<secretName>: <mountPath>`
 ```properties
 secrets:
   master:
