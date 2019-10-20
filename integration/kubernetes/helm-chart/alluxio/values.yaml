@@ -65,7 +65,7 @@ master:
   args:
     - master
     - -no-format
-# properties for the master components
+  # properties for the master components
   properties:
     # Example: use ROCKS DB instead of Heap
     # alluxio.master.metastore: ROCKS
@@ -83,8 +83,8 @@ master:
       web: 19999
   jvmOptions: ""
   nodeSelector: {}
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
+  hostNetwork: false
+  dnsPolicy: ClusterFirst
   metastore:
     medium: ""
     size: 1Gi
@@ -130,7 +130,7 @@ worker:
 jobWorker:
   args:
     - job-worker
-# properties for the jobWorker components
+  # properties for the jobWorker components
   properties:
   resources:
     limits:
