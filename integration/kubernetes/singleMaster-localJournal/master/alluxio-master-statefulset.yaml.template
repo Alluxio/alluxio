@@ -52,7 +52,7 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 0
-        command: ["/bin/chown","-R", "1000:10000", "/journal"]
+        command: ["/bin/chown","-R", "1000:1000", "/journal"]
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
@@ -62,7 +62,7 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -88,7 +88,7 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
