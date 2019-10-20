@@ -232,31 +232,33 @@ $ kubectl create -f alluxio-configmap.yaml
 
 #### Install
 
+***Prepare the Specification***
+
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the **Docker image**, and CPU and memory requirements for pods.
 
 If using a persistent volume for the journal, create the claim:
 ```console
-$ cp master/alluxio-master-journal-pvc.yaml.template master/alluxio-master-journal-pvc.yaml
+$ mv master/alluxio-master-journal-pvc.yaml.template master/alluxio-master-journal-pvc.yaml
 ```
 
 For the master(s), create the `Service` and `StatefulSet`:
 ```console
-$ cp master/alluxio-master-service.yaml.template master/alluxio-master-service.yaml
-$ cp master/alluxio-master-statefulset.yaml.template master/alluxio-master-statefulset.yaml
+$ mv master/alluxio-master-service.yaml.template master/alluxio-master-service.yaml
+$ mv master/alluxio-master-statefulset.yaml.template master/alluxio-master-statefulset.yaml
 ```
 
 For the workers, create the `DaemonSet`:
 ```console
-$ cp worker/alluxio-worker-daemonset.yaml.template worker/alluxio-worker-daemonset.yaml
+$ mv worker/alluxio-worker-daemonset.yaml.template worker/alluxio-worker-daemonset.yaml
 ```
 
 Note: Please make sure that the version of the Kubernetes specification matches the version of the
 Alluxio Docker image being used.
 
-***Remote Storage Access***
+***(Optional) Remote Storage Access***
 
-(Optional) Additional steps are required when Alluxio is connecting to storage hosts outside the
+Additional steps are required when Alluxio is connecting to storage hosts outside the
 Kubernetes cluster it is deployed on. The remainder of this section explains how to configure the
 connection to a remote HDFS accessible but not managed by Kubernetes.
 
@@ -305,7 +307,7 @@ create a Kubernetes Secret for the HDFS client configuration.
 ```console
 kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
-These two configuration files are referred in `alluxio-master.yaml` and `alluxio-worker.yaml`.
+These two configuration files are referred in `alluxio-master.yaml` and `alluxio-worker-daemonset.yaml`.
 Alluxio processes need the HDFS configuration files to connect, and the location of these files in
 the container is controlled by property `alluxio.underfs.hdfs.configuration`.
 
@@ -328,13 +330,13 @@ $ kubectl delete -f ./master/
 $ kubectl delete configmaps alluxio-config
 ```
 
-Execute the following to remove the persistent volume storing the Alluxio journal. Note: Alluxio metadata
-will be lost.
+(Optional) If using persistent volumes, execute the following to remove the persistent volume
+storing the Alluxio journal. Note: Alluxio metadata will be lost.
 ```console
 $ kubectl delete -f alluxio-master-journal-pv.yaml
 ```
 
-#### Upgrade Alluxio
+#### Upgrade
 
 This section will go over how to upgrade Alluxio in your Kubernetes cluster with `kubectl`.
 
@@ -451,13 +453,12 @@ master. Only the primary master serves the Web UI.
 
 Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
 ```console
-$ kubectl exec -ti alluxio-master--0 /bin/bash
+$ kubectl exec -ti alluxio-master-0-0 /bin/bash
 ```
 
 From the master pod, execute the following:
 ```console
-$ cd /opt/alluxio
-$ ./bin/alluxio runTests
+$ alluxio runTests
 ```
 
 (Optional) If using peristent volumes for Alluxio master, the status of the volume should change to
@@ -525,13 +526,12 @@ follows:
 
 Access the Alluxio CLI from the master pod.
 ```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0-0 /bin/bash
 ```
 
 From the master pod, execute the following:
 ```console
-$ cd /opt/alluxio
-$ ./bin/alluxio logLevel --level DEBUG --logName alluxio
+$ alluxio logLevel --level DEBUG --logName alluxio
 ```
 
 ### Accessing Logs
@@ -542,7 +542,7 @@ the individual containers as follows.
 
 Master:
 ```console
-$ kubectl logs -f alluxio-master-0 -c alluxio-master
+$ kubectl logs -f alluxio-master-0-0 -c alluxio-master
 ```
 
 Worker:
