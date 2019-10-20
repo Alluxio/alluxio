@@ -25,7 +25,7 @@ user: 1000
 group: 1000
 fsGroup: 1000
 
-# Properties for all the components
+# Site properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
@@ -44,7 +44,7 @@ master:
   args:
     - master
     - -no-format
-  # properties for the master components
+  # Properties for the master component
   properties:
     # Example: use ROCKS DB instead of Heap
     # alluxio.master.metastore: ROCKS
@@ -72,6 +72,8 @@ master:
 jobMaster:
   args:
     - job-master
+  # Properties for the jobMaster component
+  properties:
   resources:
     limits:
       cpu: "1"
@@ -100,7 +102,7 @@ journal:
   size: 1Gi
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED"
-  folder: "/journal" # Mount location inside master pod
+  folder: "/journal" # Master journal folder
   # Configuration for journal formatting job
   format:
     job:
@@ -113,7 +115,7 @@ journal:
 # Tiered Storage
 tieredstore:
   levels:
-  - alias: MEM
+  - alias: MEM # Medium type
     level: 0
     path: /dev/shm
     type: emptyDir
@@ -128,6 +130,8 @@ worker:
   args:
     - worker
     - -no-format
+  # Properties for the worker component
+  properties:
   resources:
     limits:
       cpu: "1"
@@ -146,11 +150,15 @@ worker:
   dnsPolicy: ClusterFirstWithHostNet
   ramdisk:
     size: 1Gi
+  # shortCircuitPolicy can be local or uuid,
+  # local means the cache directory is in the same mount namespace,
+  # uuid means interact with domain socket
+  shortCircuitPolicy: uuid
 
 jobWorker:
   args:
     - job-worker
-  # Properties for the jobWorker components
+  # Properties for the jobWorker component
   properties:
   resources:
     limits:
@@ -176,10 +184,6 @@ fuse:
   # Customize the MaxDirectMemorySize
   # These options are specific to the FUSE daemon
   jvmOptions: " -XX:MaxDirectMemorySize=2g "
-  # shortCircuitPolicy can be local or uuid,
-  # local means the cache directory is in the same mount namespace,
-  # uuid means interact with domain socket
-  shortCircuitPolicy: uuid
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
   args:
