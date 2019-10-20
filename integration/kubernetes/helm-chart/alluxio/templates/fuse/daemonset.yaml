@@ -81,7 +81,7 @@ spec:
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.fuse.args }}
-          args: 
+          args:
 {{ toYaml .Values.fuse.args | indent 12 }}
           {{- end }}
           env:

@@ -35,15 +35,22 @@ properties:
 # These JVM options are common to all Alluxio services
 # jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 "
 
+# Mount Persistent Volumes to all components
+# mounts:
+# - name: <persistentVolume claimName>
+#   path: <mountPath>
+
+# Use labels to run Alluxio on a subset of the K8s nodes
+# nodeSelector: {}
 
 ## Master ##
 
 master:
   count: 1 # For multiMaster mode increase this to >1
   replicas: 1 # Do NOT modify
-  args:
-    - master
-    - -no-format
+  args: # Arguments to Docker entrypoint
+    - master-only
+    - --no-format
   # Properties for the master component
   properties:
     # Example: use ROCKS DB instead of Heap
@@ -101,7 +108,7 @@ journal:
   storageClass: "standard"
   size: 1Gi
   type: "UFS" # "UFS" or "EMBEDDED"
-  ufsType: "local" # Ignored if type is "EMBEDDED"
+  ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
   # Configuration for journal formatting job
   format:
@@ -129,7 +136,7 @@ domainHostPath: "/tmp/alluxio-domain"
 worker:
   args:
     - worker
-    - -no-format
+    - --no-format
   # Properties for the worker component
   properties:
   resources:
@@ -181,6 +188,8 @@ fuse:
   image: alluxio/alluxio-fuse
   imageTag: 2.1.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
+  # Properties for the jobWorker component
+  properties:
   # Customize the MaxDirectMemorySize
   # These options are specific to the FUSE daemon
   jvmOptions: " -XX:MaxDirectMemorySize=2g "
@@ -195,9 +204,7 @@ fuse:
 
 # Format: (<name>:<mount path under /secrets/>):
 # secrets:
-#   master:
+#   master: # Shared by master and jobMaster containers
 #     alluxio-hdfs-config: hdfsConfig
-#     alluxio-ceph-config: cephConfig
-#   worker:
+#   worker: # Shared by worker and jobWorker containers
 #     alluxio-hdfs-config: hdfsConfig
-#     alluxio-ceph-config: cephConfig

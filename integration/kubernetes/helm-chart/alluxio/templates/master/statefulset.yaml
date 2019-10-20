@@ -99,7 +99,10 @@ spec:
             {{- end }}
           {{- end }}
           command: ["/entrypoint.sh"]
-          args: ["master-only", "--no-format"]
+          {{- if .Values.master.args }}
+          args:
+{{ toYaml .Values.master.args | indent 12 }}
+          {{- end }}
           {{- if $isHaEmbedded }}
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
@@ -159,7 +162,10 @@ spec:
             {{- end }}
           {{- end }}
           command: ["/entrypoint.sh"]
-          args: ["job-master"]
+          {{- if .Values.jobMaster.args }}
+          args:
+{{ toYaml .Values.jobMaster.args | indent 12 }}
+          {{- end }}
           {{- if $isHaEmbedded }}
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
@@ -177,8 +183,8 @@ spec:
             name: job-web
           volumeMounts:
           {{- if $root.Values.secrets }}
-            {{- if $root.Values.secrets.jobMaster }}
-              {{- range $key, $val := $root.Values.secrets.jobMaster }}
+            {{- if $root.Values.secrets.master }}
+              {{- range $key, $val := $root.Values.secrets.master }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
               readOnly: true
