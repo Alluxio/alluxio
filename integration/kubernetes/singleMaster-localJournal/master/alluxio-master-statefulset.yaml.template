@@ -74,7 +74,6 @@ spec:
           args:
             - master-only
             - --no-format
-            
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -102,7 +101,6 @@ spec:
           command: ["/entrypoint.sh"]
           args:
             - job-master
-            
           envFrom:
           - configMapRef:
               name: alluxio-config

@@ -101,7 +101,7 @@ spec:
           command: ["/entrypoint.sh"]
           {{- if $root.Values.master.args }}
           args:
-{{ toYaml $root.Values.master.args | indent 12 }}
+{{ toYaml $root.Values.master.args | trim | indent 12 }}
           {{- end }}
           {{- if $isHaEmbedded }}
           env:
@@ -164,7 +164,7 @@ spec:
           command: ["/entrypoint.sh"]
           {{- if $root.Values.jobMaster.args }}
           args:
-{{ toYaml $root.Values.jobMaster.args | indent 12 }}
+{{ toYaml $root.Values.jobMaster.args | trim | indent 12 }}
           {{- end }}
           {{- if $isHaEmbedded }}
           env:

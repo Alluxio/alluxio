@@ -65,7 +65,6 @@ spec:
           args:
             - worker
             - --no-format
-            
           env:
           - name: ALLUXIO_WORKER_HOSTNAME
             valueFrom:
@@ -99,7 +98,6 @@ spec:
           command: ["/entrypoint.sh"]
           args:
             - job-worker
-            
           env:
           - name: ALLUXIO_WORKER_HOSTNAME
             valueFrom:

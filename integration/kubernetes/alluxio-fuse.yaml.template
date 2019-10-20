@@ -67,7 +67,6 @@ spec:
           args:
             - fuse
             - --fuse-opts=allow_other
-            
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:

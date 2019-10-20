@@ -77,7 +77,7 @@ spec:
           command: ["/entrypoint.sh"]
           {{- if .Values.worker.args }}
           args:
-{{ toYaml .Values.worker.args | indent 12 }}
+{{ toYaml .Values.worker.args | trim | indent 12 }}
           {{- end }}
           env:
           - name: ALLUXIO_WORKER_HOSTNAME
@@ -161,7 +161,7 @@ spec:
           command: ["/entrypoint.sh"]
           {{- if .Values.jobWorker.args }}
           args:
-{{ toYaml .Values.jobWorker.args | indent 12 }}
+{{ toYaml .Values.jobWorker.args | trim | indent 12 }}
           {{- end }}
           env:
           - name: ALLUXIO_WORKER_HOSTNAME

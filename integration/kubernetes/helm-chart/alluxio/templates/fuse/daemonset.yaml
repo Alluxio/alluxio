@@ -82,7 +82,7 @@ spec:
           command: ["/entrypoint.sh"]
           {{- if .Values.fuse.args }}
           args:
-{{ toYaml .Values.fuse.args | indent 12 }}
+{{ toYaml .Values.fuse.args | trim | indent 12 }}
           {{- end }}
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME

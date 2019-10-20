@@ -74,7 +74,6 @@ spec:
           args:
             - master-only
             - --no-format
-            
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-0 "
@@ -109,7 +108,6 @@ spec:
           command: ["/entrypoint.sh"]
           args:
             - job-master
-            
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-0 "
@@ -191,7 +189,6 @@ spec:
           args:
             - master-only
             - --no-format
-            
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-1 "
@@ -226,7 +223,6 @@ spec:
           command: ["/entrypoint.sh"]
           args:
             - job-master
-            
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-1 "
@@ -308,7 +304,6 @@ spec:
           args:
             - master-only
             - --no-format
-            
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-2 "
@@ -343,7 +338,6 @@ spec:
           command: ["/entrypoint.sh"]
           args:
             - job-master
-            
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-2 "
