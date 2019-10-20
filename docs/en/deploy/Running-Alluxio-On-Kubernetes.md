@@ -307,7 +307,7 @@ create a Kubernetes Secret for the HDFS client configuration.
 ```console
 kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
-These two configuration files are referred in `alluxio-master.yaml` and `alluxio-worker-daemonset.yaml`.
+These two configuration files are referred in `alluxio-master-statefulset.yaml` and `alluxio-worker-daemonset.yaml`.
 Alluxio processes need the HDFS configuration files to connect, and the location of these files in
 the container is controlled by property `alluxio.underfs.hdfs.configuration`.
 
