@@ -52,7 +52,7 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -79,7 +79,7 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
