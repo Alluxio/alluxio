@@ -127,6 +127,10 @@ spec:
             - name: alluxio-journal
               mountPath: /journal
             {{- end }}
+            {{- if $root.Values.master.metastore }}
+            - name: alluxio-metastore
+              mountPath: {{ $root.Values.master.metastore.mountPath }}
+            {{- end }}
             {{- if $root.Values.secrets }}
               {{- if $root.Values.secrets.master }}
                 {{- range $key, $val := $root.Values.secrets.master }}
@@ -203,6 +207,12 @@ spec:
         - name: alluxio-journal
           persistentVolumeClaim:
             claimName: {{ $root.Values.journal.pvcName }}
+        {{- end }}
+        {{- if $root.Values.master.metastore }}
+        - name: alluxio-metastore
+          emptyDir:
+            medium: {{ $root.Values.master.metastore.medium }}
+            sizeLimit: {{ $root.Values.master.metastore.size | quote }}
         {{- end }}
         {{- if $isHaEmbedded }}
         - name: alluxio-journal

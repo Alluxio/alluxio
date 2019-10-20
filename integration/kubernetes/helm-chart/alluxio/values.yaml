@@ -55,7 +55,7 @@ master:
   properties:
     # Example: use ROCKS DB instead of Heap
     # alluxio.master.metastore: ROCKS
-    # alluxio.master.metastore.dir: /opt/alluxio/metastore
+    # alluxio.master.metastore.dir: /metastore
   resources:
     limits:
       cpu: "1"
@@ -72,9 +72,10 @@ master:
   nodeSelector: {}
   hostNetwork: false
   dnsPolicy: ClusterFirst
-  metastore:
-    medium: ""
-    size: 1Gi
+  # metastore:
+  #   medium: ""
+  #   size: 1Gi
+  #   mountPath: /metastore
 
 jobMaster:
   args:
