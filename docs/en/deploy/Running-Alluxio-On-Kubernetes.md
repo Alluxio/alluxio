@@ -85,37 +85,87 @@ The offical public helm repo can install Alluxio from [stable/alluxio](https://g
 (Optional) To prepare a local helm repository:
 ```console
 $ helm init
-$ helm package helm/alluxio/
-$ mkdir -p helm/charts/
-$ cp alluxio-{{site.ALLUXIO_VERSION_STRING}}.tgz helm/charts/
-$ helm repo index helm/charts/
-$ helm serve --repo-path helm/charts
+$ helm package helm-chart/alluxio/
+$ mkdir -p helm-chart/charts/
+$ cp alluxio-{{site.ALLUXIO_HELM_VERSION_STRING}}.tgz helm-chart/charts/
+$ helm repo index helm-chart/charts/
+$ helm serve --repo-path helm-chart/charts
 $ helm repo add alluxio-local http://127.0.0.1:8879
 $ helm repo update alluxio-local
 ```
 
 #### Configuration
 
-Once the helm repository is available, prepare the Alluxio configuration:
-```console
-$ cat << EOF > config.yaml
+Once the helm repository is available, prepare the Alluxio configuration.
+The minimal configuration must contain the under storage address:
+```properties
 properties:
   alluxio.master.mount.table.root.ufs: "<under_storage_address>"
-EOF
 ```
 Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
 
-***Example: Amazon S3 as the under store***
+To view the complete list of supported properties run the `helm inspect` command:
 ```console
-$ cat << EOF > config.yaml
+$ helm inspect values alluxio-local/alluxio
+```
+
+The remainder of this section describes various configuration options with examples.
+
+***Example: Amazon S3 as the under store***
+
+```properties
 properties:
   alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
   aws.accessKeyId: "<accessKey>"
   aws.secretKey: "<secretKey>"
-EOF
 ```
 
-The remainder of this section describes various configuration options with examples.
+***Example: Single Master and Journal in a Persistent Volume***
+
+```properties
+master:
+  count: 1 # For multiMaster mode increase this to >1
+
+journal:
+  type: "UFS"
+  ufsType: "local"
+  folder: "/journal"
+```
+
+***Example: HDFS as Journal***
+
+First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
+```console
+$ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
+```
+
+```properties
+journal:
+  type: "UFS"
+  ufsType: "HDFS"
+  folder: "hdfs://{$hostname}:{$hostport}/journal"
+
+properties:
+  alluxio.master.mount.table.root.ufs: "hdfs://{$hostname}:{$hostport}/{$underFSStorage}"
+  alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+```
+
+***Example: Embedded Journal***
+
+```properties
+master:
+  count: 3
+
+journal:
+  type: "EMBEDDED"
+  folder: "/journal"
+```
 
 ***Example: HDFS as the under store***
 
@@ -123,43 +173,24 @@ First create secrets for any configuration required by an HDFS client. These are
 ```console
 $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
-Then mount these secrets to the Alluxio master and worker containers as follows:
-```console
-$ cat << EOF > config.yaml
+
+```properties
 properties:
   alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
-  alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+  alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 secrets:
   master:
     alluxio-hdfs-config: hdfsConfig
   worker:
     alluxio-hdfs-config: hdfsConfig
-EOF
-```
-Note: Multiple secrets can be mounted by adding more rows to the configuration such as:
-```console
-$ cat << EOF > config.yaml
-...
-secrets:
-  master:
-    alluxio-hdfs-config: hdfsConfig
-    alluxio-ceph-config: cephConfig
-    ...
-  worker:
-    alluxio-hdfs-config: hdfsConfig
-    alluxio-ceph-config: cephConfig
-    ...
-EOF
 ```
 
 ***Example: Off-heap Metastore Management***
 
 The following configuration provisions an emptyDir volume with the specified configuration and
 configures the Alluxio master to use the mounted directory for the RocksDB metastore.
-```console
-$ cat << EOF > config.yaml
+```properties
 properties:
-  ...
   alluxio.master.metastore: ROCKS
   alluxio.master.metastore.dir: /metastore
 
@@ -169,12 +200,30 @@ volumes:
       medium: ""
       size: 1Gi
       mountPath: /metastore
-EOF
+```
+
+***Example: Tiered Storage***
+
+```properties
+
+```
+
+***Example: Multiple Secrets***
+
+Multiple secrets can be mounted by adding more rows to the configuration such as:
+```properties
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+    alluxio-ceph-config: cephConfig
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+    alluxio-ceph-config: cephConfig
 ```
 
 #### Install
 
-Once the configuration is finalized, install as follows:
+Once the configuration is finalized in a file named `config.yaml`, install as follows:
 ```console
 helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
 ```

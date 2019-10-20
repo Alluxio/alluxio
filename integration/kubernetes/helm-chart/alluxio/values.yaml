@@ -9,59 +9,38 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# Do NOT modify
 fullnameOverride: alluxio
 
+
+## Common ##
+
+# Docker Image
 image: alluxio/alluxio
 imageTag: 2.1.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
-# Set the tieredstore
-tieredstore:
-  levels:
-  - alias: MEM
-    level: 0
-    path: /dev/shm
-    type: emptyDir
-    quota: 1G
-    high: 0.95
-    low: 0.7
-
-# set the uid, gid and fsGroup
+# Security Context
 user: 1000
 group: 1000
 fsGroup: 1000
 
-# The domain hostPath for uuid mode in short Circuit
-domainHostPath: "/tmp/alluxio-domain"
-
-# properties for all the components
+# Properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
 
 # Recommended JVM Heap options for running in Docker
 # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
+# These JVM options are common to all Alluxio services
 # jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 "
 
-fuse:
-  image: alluxio/alluxio-fuse
-  imageTag: 2.1.0-SNAPSHOT
-  imagePullPolicy: IfNotPresent
-  # Customize the MaxDirectMemorySize
-  jvmOptions: " -XX:MaxDirectMemorySize=2g "
-  # shortCircuitPolicy can be local or uuid,
-  # local means the cache directory is in the same mount namespace,
-  # uuid means interact with domain socket
-  shortCircuitPolicy: uuid
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
-  args:
-    - fuse
-    - --fuse-opts=allow_other
+
+## Master ##
 
 master:
   count: 1 # For multiMaster mode increase this to >1
-  replicas: 1
+  replicas: 1 # Do NOT modify
   args:
     - master
     - -no-format
@@ -81,6 +60,7 @@ master:
       embedded: 19200
       rpc: 19998
       web: 19999
+  # JVM options specific to the master container
   jvmOptions: ""
   nodeSelector: {}
   hostNetwork: false
@@ -102,7 +82,47 @@ jobMaster:
     ports:
       rpc: 20001
       web: 20002
+  # JVM options specific to the jobMaster container
   jvmOptions: ""
+
+# Alluxio supports journal type of UFS and EMBEDDED
+# UFS journal with HDFS example
+# journal:
+#   type: "UFS"
+#   folder: "hdfs://{$hostname}:{$hostport}/journal"
+# EMBEDDED journal to /journal example
+# journal:
+#   type: "EMBEDDED"
+#   folder: "/journal"
+journal:
+  pvcName: alluxio-pv-claim
+  storageClass: "standard"
+  size: 1Gi
+  type: "UFS" # "UFS" or "EMBEDDED"
+  ufsType: "local" # Ignored if type is "EMBEDDED"
+  folder: "/journal" # Mount location inside master pod
+  # Configuration for journal formatting job
+  format:
+    job:
+      activeDeadlineSeconds: 30
+      ttlSecondsAfterFinished: 10
+
+
+## Worker ##
+
+# Tiered Storage
+tieredstore:
+  levels:
+  - alias: MEM
+    level: 0
+    path: /dev/shm
+    type: emptyDir
+    quota: 1G
+    high: 0.95
+    low: 0.7
+
+# The domain hostPath for uuid mode in short-circuit
+domainHostPath: "/tmp/alluxio-domain"
 
 worker:
   args:
@@ -118,6 +138,7 @@ worker:
     ports:
       rpc: 29999
       web: 30000
+  # JVM options specific to the worker container
   jvmOptions: ""
   nodeSelector: {}
   domainHostPath: "/tmp/alluxio-domain"
@@ -126,11 +147,10 @@ worker:
   ramdisk:
     size: 1Gi
 
-
 jobWorker:
   args:
     - job-worker
-  # properties for the jobWorker components
+  # Properties for the jobWorker components
   properties:
   resources:
     limits:
@@ -143,37 +163,37 @@ jobWorker:
       rpc: 30001
       data: 30002
       web: 30003
+  # JVM options specific to the jobWorker container
   jvmOptions: ""
 
 
-# Alluxio supports journal type of UFS and EMBEDDED
-# UFS journal with HDFS example
-# journal:
-#   type: "UFS"
-#   folder: "hdfs://{$hostname}:{$hostport}/journal"
-# EMBEDDED journal to /journal example
-# journal:
-#   type: "EMBEDDED"
-#   folder: "/journal"
-journal:
-  pvcName: alluxio-pv-claim
-  storageClass: "standard"
-  size: 1Gi
-  type: "UFS"
-  ufsType: "local" # Ignored if type is "EMBEDDED"
-  folder: "/journal"
-  # Configuration for journal formatting job
-  format:
-    job:
-      activeDeadlineSeconds: 30
-      ttlSecondsAfterFinished: 10
+## FUSE ##
 
-# Secrets Example: (<name>:<mount path under /secrets/>):
+fuse:
+  image: alluxio/alluxio-fuse
+  imageTag: 2.1.0-SNAPSHOT
+  imagePullPolicy: IfNotPresent
+  # Customize the MaxDirectMemorySize
+  # These options are specific to the FUSE daemon
+  jvmOptions: " -XX:MaxDirectMemorySize=2g "
+  # shortCircuitPolicy can be local or uuid,
+  # local means the cache directory is in the same mount namespace,
+  # uuid means interact with domain socket
+  shortCircuitPolicy: uuid
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  args:
+    - fuse
+    - --fuse-opts=allow_other
+
+
+##  Secrets ##
+
+# Format: (<name>:<mount path under /secrets/>):
 # secrets:
 #   master:
 #     alluxio-hdfs-config: hdfsConfig
+#     alluxio-ceph-config: cephConfig
 #   worker:
 #     alluxio-hdfs-config: hdfsConfig
-
-
-
+#     alluxio-ceph-config: cephConfig
