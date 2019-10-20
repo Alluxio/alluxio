@@ -61,7 +61,10 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["master-only", "--no-format"]
+          args:
+            - master-only
+            - --no-format
+            
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -88,7 +91,9 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["job-master"]
+          args:
+            - job-master
+            
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -98,6 +103,9 @@ spec:
           - containerPort: 20002
             name: job-web
           volumeMounts:
+            - name: secret-alluxio-hdfs-config-volume
+              mountPath: /secrets/hdfsConfig
+              readOnly: true
       restartPolicy: Always
       volumes:
         - name: secret-alluxio-hdfs-config-volume
