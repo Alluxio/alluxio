@@ -41,8 +41,8 @@ spec:
         heritage: Tiller
         role: alluxio-master
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
       nodeSelector:
       securityContext:
         fsGroup: 1000
@@ -153,8 +153,8 @@ spec:
         heritage: Tiller
         role: alluxio-master
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
       nodeSelector:
       securityContext:
         fsGroup: 1000
@@ -265,8 +265,8 @@ spec:
         heritage: Tiller
         role: alluxio-master
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
       nodeSelector:
       securityContext:
         fsGroup: 1000
