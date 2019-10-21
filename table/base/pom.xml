@@ -31,10 +31,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-transport</artifactId>
       <version>${project.version}</version>
