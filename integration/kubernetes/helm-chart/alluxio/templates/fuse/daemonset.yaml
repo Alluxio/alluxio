@@ -81,8 +81,8 @@ spec:
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.fuse.args }}
-          args: 
-{{ toYaml .Values.fuse.args | indent 12 }}
+          args:
+{{ toYaml .Values.fuse.args | trim | indent 12 }}
           {{- end }}
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
@@ -109,11 +109,11 @@ spec:
             - name: alluxio-fuse-mount
               mountPath: /alluxio-fuse
               mountPropagation: Bidirectional
-            {{- if eq .Values.fuse.shortCircuitPolicy "uuid" }}
+            {{- if eq .Values.worker.shortCircuitPolicy "uuid" }}
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- end }}
-            {{- if eq .Values.fuse.shortCircuitPolicy "local" }}
+            {{- if eq .Values.worker.shortCircuitPolicy "local" }}
               {{- if .Values.tieredstore }} 
                 {{- if .Values.tieredstore.levels }} 
                   {{- range .Values.tieredstore.levels }}
@@ -152,13 +152,13 @@ spec:
           hostPath:
             path: /alluxio-fuse
             type: DirectoryOrCreate
-        {{- if eq .Values.fuse.shortCircuitPolicy "uuid" }}
+        {{- if eq .Values.worker.shortCircuitPolicy "uuid" }}
         - name: alluxio-domain
           hostPath:
             path: {{ .Values.domainHostPath }}
             type: "Directory"
         {{- end }}
-        {{- if eq .Values.fuse.shortCircuitPolicy "local" }}
+        {{- if eq .Values.worker.shortCircuitPolicy "local" }}
           {{- if .Values.tieredstore }} 
             {{- if .Values.tieredstore.levels }} 
               {{- range .Values.tieredstore.levels }}

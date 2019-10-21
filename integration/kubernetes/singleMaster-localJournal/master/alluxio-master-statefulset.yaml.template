@@ -71,7 +71,9 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["master-only", "--no-format"]
+          args:
+            - master-only
+            - --no-format
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -97,7 +99,8 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["job-master"]
+          args:
+            - job-master
           envFrom:
           - configMapRef:
               name: alluxio-config
