@@ -14,8 +14,10 @@ package alluxio;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.ServiceNotFoundException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
@@ -235,6 +237,10 @@ public abstract class AbstractClient implements Client {
         LOG.debug("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         lastConnectFailure = e;
+        if (e instanceof NotFoundException) {
+          // service is not found in the server, skip retry
+          break;
+        }
       }
     }
     // Reaching here indicates that we did not successfully connect.
@@ -254,6 +260,10 @@ public abstract class AbstractClient implements Client {
      */
     if (lastConnectFailure instanceof UnauthenticatedException) {
       throw (AlluxioStatusException) lastConnectFailure;
+    }
+    if (lastConnectFailure instanceof NotFoundException) {
+      throw new NotFoundException(lastConnectFailure.getMessage(),
+          new ServiceNotFoundException(lastConnectFailure.getMessage(), lastConnectFailure));
     }
 
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",

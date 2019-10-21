@@ -47,7 +47,9 @@ public final class ServiceVersionClientServiceHandler
 
     ServiceType serviceType = request.getServiceType();
     if (serviceType != ServiceType.UNKNOWN_SERVICE && !mServices.contains(serviceType)) {
-      responseObserver.onError(Status.NOT_FOUND.asException());
+      responseObserver.onError(Status.NOT_FOUND
+          .withDescription(String.format("Service %s is not found.", serviceType.name()))
+          .asException());
       return;
     }
 
