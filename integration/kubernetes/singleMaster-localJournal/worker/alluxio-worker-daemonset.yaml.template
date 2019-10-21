@@ -62,7 +62,9 @@ spec:
               cpu: 1
               memory: 2G
           command: ["/entrypoint.sh"]
-          args: ["worker-only", "--no-format"]
+          args:
+            - worker
+            - --no-format
           env:
           - name: ALLUXIO_WORKER_HOSTNAME
             valueFrom:
@@ -94,7 +96,8 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["job-worker"]
+          args:
+            - job-worker
           env:
           - name: ALLUXIO_WORKER_HOSTNAME
             valueFrom:
