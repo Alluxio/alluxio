@@ -194,12 +194,11 @@ properties:
   alluxio.master.metastore: ROCKS
   alluxio.master.metastore.dir: /metastore
 
-volumes:
-  master:
-    metastore:
-      medium: ""
-      size: 1Gi
-      mountPath: /metastore
+master:
+  metastore:
+    medium: ""
+    size: 1Gi
+    mountPath: /metastore
 ```
 
 ***Example: Multiple Secrets***
