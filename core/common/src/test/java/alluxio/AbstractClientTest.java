@@ -78,7 +78,7 @@ public final class AbstractClientTest {
     }
   }
 
-  private static class TestSerivceNotFoundClient extends BaseTestClient {
+  private static class TestServiceNotFoundClient extends BaseTestClient {
     protected long getRemoteServiceVersion() throws AlluxioStatusException {
       throw new NotFoundException("Service not found");
     }
@@ -160,7 +160,7 @@ public final class AbstractClientTest {
   @Test
   public void serviceNotFound() throws Exception {
     mExpectedException.expect(NotFoundException.class);
-    final AbstractClient client = new TestSerivceNotFoundClient();
+    final AbstractClient client = new TestServiceNotFoundClient();
     client.checkVersion(0);
     client.close();
   }
