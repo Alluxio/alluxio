@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -66,8 +66,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf the configuration for this UFS
    * @return the created {@link OSSUnderFileSystem} instance
    */
-  public static OSSUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf) throws Exception {
+  public static OSSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf)
+      throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ACCESS_KEY),
         "Property %s is required to connect to OSS", PropertyKey.OSS_ACCESS_KEY);
@@ -268,12 +268,12 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @return the OSS {@link ClientBuilderConfiguration}
    */
-  private static ClientBuilderConfiguration initializeOSSClientConfig(AlluxioConfiguration alluxioConf) {
+  private static ClientBuilderConfiguration initializeOSSClientConfig(
+      AlluxioConfiguration alluxioConf) {
     ClientBuilderConfiguration ossClientConf = new ClientBuilderConfiguration();
     ossClientConf
         .setConnectionTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
-    ossClientConf
-        .setSocketTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
+    ossClientConf.setSocketTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
     ossClientConf.setConnectionTTL(alluxioConf.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
