@@ -21,8 +21,13 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
 ## Prerequisites
 
 * To deploy a Alluxio cluster, first [download](https://alluxio.io/download) the pre-compiled Alluxio
-  binary file, extract the tarball and copy the extracted directory to all nodes (including nodes
-  running masters and workers).
+  binary file, extract the tarball with the below command, and copy the extracted directory to all
+  nodes (including nodes running masters and workers).
+  
+  ```console
+  $ tar -xvzpf alluxio-<version>-bin.tar.gz
+  ```
+  
 * Enable SSH login without password from master node to worker nodes. You can add a public SSH key for
   the host into `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * TCP traffic across all nodes is allowed. For basic functionality make sure RPC port (default :19998) is open
