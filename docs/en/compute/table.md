@@ -27,7 +27,7 @@ metadata to these SQL engines.
 {{feature_name}} is designed in a way very similar to the normal Alluxio filesystem.
 The service itself is not responsible for retaining all data, but is rather a caching service for
 metadata that originates in another location (i.e. MySQL, Hive).
-These are called **UDBs**.
+These are called **UDBs** (**U**nder **D**ata**B**ase).
 UDBs are responsible for the management and storage of the metadata.
 Currently, Hive is the only supported UDB.
 {{feature_name}} caches and makes the metadata available universally through the Alluxio filesystem
@@ -85,9 +85,14 @@ the metastore located at `thrift://metastore_host:9083`
 
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table attachdb alluxio_db hive \
-    --option udb-hive.database-name=default \
-    --option udb-hive.metastore.uris=thrift://metastore_host:9083
+    --option hive.database-name=default \
+    --option hive.metastore.uris=thrift://metastore_host:9083
 ```
+
+> **Note:** When databases are attached, all tables will be synced from the configured UDB.
+If out-of-band updates occur to the database or table and the user wants query results to reflect
+the updates, the user must detach ([See Detaching Databases](#detaching-databases)) and then
+re-attach the database to reflect up any updates.
 
 ### Exploring Attached Databases
 
@@ -219,6 +224,26 @@ $ presto --catalog <???????>
 By default, presto will now retrieve database and table information from Alluxio's {{feature_name}}
 when executing any queries.
 
+Confirm that configuration is correct by running some of the following queries:
+
+- List out the attached databases:
+
+```sql
+SHOW SCHEMAS;
+```
+
+- List tables from one of the schemas:
+
+```sql
+SHOW TABLES FROM <schema name>;
+```
+
+- Run a simple query which will read data from the metastore a load data from a table:
+
+```sql
+DESCRIBE <schema name>.<table name>;
+SELECT count(*) FROM <schema name>.<table name>;
+```
 
 
 
