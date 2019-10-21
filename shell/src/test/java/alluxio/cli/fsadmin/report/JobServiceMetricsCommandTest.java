@@ -90,7 +90,8 @@ public class JobServiceMetricsCommandTest {
         lineByLine[11]);
   }
 
-  private JobInfo createJobInfo(int id, String name, Status status, String datetime) throws ParseException {
+  private JobInfo createJobInfo(int id, String name, Status status, String datetime)
+      throws ParseException {
     JobInfo jobInfo = new JobInfo();
 
     jobInfo.setName(name);
