@@ -254,7 +254,7 @@ It is recommended to have at least 3 masters for an HA Alluxio cluster.
 
 ## Advanced
 
-### Managing the journal size
+### Managing the UFS journal size
 
 When running with a single master, the journal folder size will grow indefinitely
 as metadata operations are written to journal log files. To address this, production
@@ -269,6 +269,7 @@ By default, checkpoints are automatically taken every 2 million entries. This ca
 setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
+
 
 #### Checkpointing on secondary master
 
