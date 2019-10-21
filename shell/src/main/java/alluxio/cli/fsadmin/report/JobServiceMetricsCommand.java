@@ -66,10 +66,7 @@ public class JobServiceMetricsCommand {
     List<JobInfo> lastActivities = jobServiceSummary.getRecentActivities();
 
     for (JobInfo lastActivity : lastActivities) {
-      mPrintStream.print(String.format("Timestamp: %-30s",
-          CommonUtils.convertMsToDate(lastActivity.getLastStatusChangeMs(), mDateFormatPattern)));
-      mPrintStream.print(String.format("Job Id: %-20s", lastActivity.getJobId()));
-      mPrintStream.println(String.format("Status: %s", lastActivity.getStatus()));
+      printJobInfo(lastActivity);
     }
 
     mPrintStream.println();
@@ -78,12 +75,17 @@ public class JobServiceMetricsCommand {
     List<JobInfo> lastFailures = jobServiceSummary.getRecentFailures();
 
     for (JobInfo lastFailure : lastFailures) {
-      mPrintStream.print(String.format("Timestamp: %-30s",
-          CommonUtils.convertMsToDate(lastFailure.getLastStatusChangeMs(), mDateFormatPattern)));
-      mPrintStream.print(String.format("Job Id: %-20s", lastFailure.getJobId()));
-      mPrintStream.println(String.format("Status: %s", lastFailure.getStatus()));
+      printJobInfo(lastFailure);
     }
 
     return 0;
+  }
+
+  private void printJobInfo(JobInfo jobInfo) {
+    mPrintStream.print(String.format("Timestamp: %-30s",
+            CommonUtils.convertMsToDate(jobInfo.getLastStatusChangeMs(), mDateFormatPattern)));
+    mPrintStream.print(String.format("Id: %-20s", jobInfo.getJobId()));
+    mPrintStream.print(String.format("Name: %-20s", jobInfo.getName()));
+    mPrintStream.println(String.format("Status: %s", jobInfo.getStatus()));
   }
 }
