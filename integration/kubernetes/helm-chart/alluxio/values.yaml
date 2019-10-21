@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# Do NOT modify
+# This should not be modified in the usual case.
 fullnameOverride: alluxio
 
 
@@ -46,8 +46,8 @@ properties:
 ## Master ##
 
 master:
-  count: 1 # For multiMaster mode increase this to >1
-  replicas: 1 # Do NOT modify
+  count: 1 # Controls the number of StatefulSets. For multiMaster mode increase this to >1.
+  replicas: 1 # Controls #replicas in a StatefulSet and should not be modified in the usual case.
   args: # Arguments to Docker entrypoint
     - master-only
     - --no-format
