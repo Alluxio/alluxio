@@ -22,11 +22,12 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collection;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -36,6 +37,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class TaskInfo implements JobInfo {
+  private static final Logger LOG = LoggerFactory.getLogger(TaskInfo.class);
+
   private long mJobId;
   private long mTaskId;
   private Status mStatus;
@@ -63,6 +66,21 @@ public class TaskInfo implements JobInfo {
     mResult = null;
     mLastUpdated = CommonUtils.getCurrentMs();
     mWorkerHost = workerInfo.getAddress().getHost();
+  }
+
+  /**
+   * Constructs a new TaskInfo from jobId, taskId, and Status.
+   * @param jobId the job id
+   * @param taskId the task id
+   * @param status the status
+   */
+  public TaskInfo(long jobId, long taskId, Status status) {
+    mJobId = jobId;
+    mTaskId = taskId;
+    mStatus = status;
+    mErrorMessage = "";
+    mResult = null;
+    mWorkerHost = "";
   }
 
   /**
@@ -205,8 +223,8 @@ public class TaskInfo implements JobInfo {
    * @param result the result
    * @return the updated task info object
    */
-  public TaskInfo setResult(byte[] result) {
-    mResult = result == null ? null : Arrays.copyOf(result, result.length);
+  public TaskInfo setResult(Serializable result) {
+    mResult = result;
     return this;
   }
 
@@ -223,9 +241,15 @@ public class TaskInfo implements JobInfo {
    * @return proto representation of the task info
    * @throws IOException if serialization fails
    */
-  public alluxio.grpc.JobInfo toProto() throws IOException {
-    ByteBuffer result =
-        mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
+  public alluxio.grpc.JobInfo toProto() {
+    ByteBuffer result = null;
+    try {
+      result = mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
+    } catch (IOException e) {
+      // TODO(bradley) better error handling
+      LOG.warn("Failed to serialize {} : {}", mResult, e.getMessage());
+      LOG.warn("Exception: ", e);
+    }
 
     alluxio.grpc.JobInfo.Builder taskInfoBuilder =
         alluxio.grpc.JobInfo.newBuilder().setParentId(mJobId).setId(mTaskId)
