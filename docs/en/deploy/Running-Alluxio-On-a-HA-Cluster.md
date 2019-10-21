@@ -328,75 +328,11 @@ a timeout on the master (configured by master parameter `alluxio.master.worker.t
 will consider the worker as "lost", and no longer consider it as part of the cluster.
 
 ### Add/Remove Masters
-
 In order to add a master, the Alluxio cluster must operate in HA mode. If you are running the cluster as
 a single master cluster, you must configure it to be an HA cluster before having more than one master.
 
-#### Alluxio HA cluster with embedded journal
-When internal leader election is used, Alluxio masters are determined with a quorum. Adding or removing
-masters requires to keep this quorum in a consistent state. 
-
-##### Adding a new master
-In order to prevent inconsistencies in the cluster configuration across masters, only a single master
-should be added to an existing embedded journal cluster. 
-
-Below are the steps to add a new master to a live cluster:
-* Prepare the new master.
-    * New master should contain all existing masters in its embedded journal configuration, complete with its own address.
-* Start new master.
-    * This will introduce the new master to existing cluster.
-    * New master will catch up with cluster's state in the background.
-* Update existing masters' configuration with the new master address.
-    * This is in order to make sure existing members will connect the new member directly upon restart.
-
-Note: Adding to an already shut down cluster still requires adding only single master at a time.
-
-Note: When adding a master to a single master cluster, you should shut down and update configuration for the existing master.
-Then both masters could be started together.
-
-See [here]({{ '/en/operation/Journal.html' | relativize_url }}) for configuring embedded journal.
-
-##### Removing a master
-Embedded journal cluster will take a notice when a member is not available anymore. Such masters will count
-against failure tolerance of the cluster based on the initial member count. In order to resize the cluster
-after a node failure an explicit action is required.
-
-`Please note -domain parameter in below commands. This is because embedded journal based leader election is supported
-for both regular masters and job service masters. You should supply correct value based on which cluster you intend to work on.` 
-
-
-1- Check current quorum state:
-
-```console
-$ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
-```
-
-This will print out node status for all currently participating members of the embedded journal cluster. You should verify 
-that the removed master is shown as `UNAVAILABLE`.
-
-2- Remove member from quorum:
-
-`-address` option below should reflect the exact address that is returned by the `.. quorum info` command provided above. 
-```console
-$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <address>
-```
-
-3- Verify that removed member is no longer shown in the quorum info.
-
-#### Alluxio HA cluster with Zookeeper and Shared Journal
-
-To add a master to an HA Alluxio cluster, you can simply start a new Alluxio master process, with
-the appropriate configuration. The configuration for the new master should be the same as other masters,
-except that the parameter `alluxio.master.hostname=<MASTER_HOSTNAME>` should reflect the new hostname.
-Once the new master is started, it will start interacting with ZooKeeper to participate in leader election.
-
-Removing a master is as simple as stopping the master process. If the cluster is a single master cluster,
-stopping the master will essentially shutdown the cluster, since the single master is down. If the
-Alluxio cluster is an HA cluster, stopping the leading master will force ZooKeeper to elect a new leading master
-and failover to that new leader. If a standby master is stopped, then the operation of the cluster is
-unaffected. Keep in mind, Alluxio masters high availability depends on the availability on standby
-masters. If there are not enough standby masters, the availability of the leading master will be affected.
-It is recommended to have at least 3 masters for an HA Alluxio cluster.
+See [journal management documentation]({{ '/en/operation/Journal.html' | relativize_url }}) for more information about 
+adding and removing masters.
 
 ### Update Master-side Configuration
 
