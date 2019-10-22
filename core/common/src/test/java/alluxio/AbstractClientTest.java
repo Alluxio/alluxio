@@ -14,6 +14,8 @@ package alluxio;
 import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
 
 import alluxio.conf.InstancedConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
@@ -71,8 +73,24 @@ public final class AbstractClientTest {
     }
 
     @Override
-    protected long getRemoteServiceVersion() {
+    protected long getRemoteServiceVersion() throws AlluxioStatusException {
       return mRemoteServiceVersion;
+    }
+  }
+
+  private static class TestServiceNotFoundClient extends BaseTestClient {
+    protected long getRemoteServiceVersion() throws AlluxioStatusException {
+      throw new NotFoundException("Service not found");
+    }
+
+    @Override
+    protected void afterConnect() throws IOException {
+      return;
+    }
+
+    @Override
+    protected void beforeConnect() throws IOException {
+      return;
     }
   }
 
@@ -137,5 +155,13 @@ public final class AbstractClientTest {
     }
 
     Assert.assertEquals(confAddress, argument.getValue());
+  }
+
+  @Test
+  public void serviceNotFound() throws Exception {
+    mExpectedException.expect(NotFoundException.class);
+    final AbstractClient client = new TestServiceNotFoundClient();
+    client.checkVersion(0);
+    client.close();
   }
 }
