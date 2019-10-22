@@ -13,6 +13,7 @@ package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -101,7 +102,7 @@ public class TableMasterJournalIntegrationTest {
   }
 
   @Test
-  public void journalAttachDb() throws Exception {
+  public void journalAttachandDetachDb() throws Exception {
     mClusterResource.start();
     LocalAlluxioCluster mCluster = mClusterResource.get();
     TableMaster tableMaster =
@@ -124,6 +125,7 @@ public class TableMasterJournalIntegrationTest {
     Table tableNew = tableMasterRestart.getTable(DB_NAME, newTableNames.get(0));
     assertEquals(tableOld.getName(), tableNew.getName());
     tableMasterRestart.detachDatabase(DB_NAME);
+    assertTrue(tableMasterRestart.getAllDatabases().isEmpty());
     tableMasterRestart.attachDatabase(DB_NAME, HiveDatabaseFactory.TYPE, Collections.emptyMap());
 
     List<String> reattachedTableNames = tableMasterRestart.getAllTables(DB_NAME);
