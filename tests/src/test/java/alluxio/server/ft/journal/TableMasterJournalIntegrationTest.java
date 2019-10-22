@@ -62,13 +62,13 @@ public class TableMasterJournalIntegrationTest {
           .build();
 
   private static final String DB_NAME = "testdb";
-  private static final String TABLE_NAME = "testtable";
+  private static final String TABLE_NAME_PREFIX = "testtable";
 
   private void createMockUdbAndTable(int numOfTables) throws Exception {
     UnderDatabase udb = PowerMockito.mock(UnderDatabase.class);
     when(udb.getName()).thenReturn(DB_NAME);
     String[] tableNames = new String[numOfTables];
-    Arrays.setAll(tableNames, i -> TABLE_NAME + Integer.toString(i));
+    Arrays.setAll(tableNames, i -> TABLE_NAME_PREFIX + Integer.toString(i));
     when(udb.getTableNames()).thenReturn(Arrays.asList(tableNames));
 
     for (String tableName : tableNames) {
