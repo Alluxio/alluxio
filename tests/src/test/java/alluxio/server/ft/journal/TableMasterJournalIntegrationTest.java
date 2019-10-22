@@ -20,9 +20,9 @@ import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.grpc.table.Layout;
-import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
-import alluxio.grpc.table.Storage;
+import alluxio.grpc.table.layout.hive.PartitionInfo;
+import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.table.AlluxioCatalog;
 import alluxio.master.table.Table;
