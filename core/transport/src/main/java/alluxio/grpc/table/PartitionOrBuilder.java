@@ -8,15 +8,15 @@ public interface PartitionOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+   * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
    */
   boolean hasPartitionSpec();
   /**
-   * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+   * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
    */
   alluxio.grpc.table.PartitionSpec getPartitionSpec();
   /**
-   * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+   * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
    */
   alluxio.grpc.table.PartitionSpecOrBuilder getPartitionSpecOrBuilder();
 

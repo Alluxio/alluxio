@@ -19,9 +19,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
-import alluxio.grpc.table.Domain;
-import alluxio.grpc.table.FieldSchema;
-import alluxio.grpc.table.PartitionInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
@@ -32,7 +29,6 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 import alluxio.util.StreamUtils;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -210,46 +206,6 @@ public class AlluxioCatalog implements Journaled {
     Table table = getTable(dbName, tableName);
     // TODO(david): implement partition pruning
     return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
-  }
-
-  private static boolean checkDomain(String value, FieldSchema schema, Domain constraint) {
-    Comparable object;
-    // TODO(yuzhu): handle more complex data types
-    switch (schema.getType()) {
-      case "boolean":
-        object = Boolean.valueOf(value);
-        break;
-      case "int":
-      case "integer":
-        object = Integer.valueOf(value);
-        break;
-      case "long":
-        object = Long.valueOf(value);
-        break;
-      case "string":
-        object = value;
-        break;
-      case "double":
-        object = Double.valueOf(value);
-        break;
-      default:
-        return false;
-    }
-    return alluxio.master.table.Domain.parseFrom(constraint).isInDomain(object);
-  }
-
-  private static boolean checkDomain(PartitionInfo partitionInfo,
-      Map<FieldSchema, Domain> constraints) {
-    Preconditions.checkArgument(constraints.size() == partitionInfo.getValuesList().size(),
-        "partition key size is not the same as constraint size");
-    int index = 0;
-    for (Map.Entry<FieldSchema, Domain> entry : constraints.entrySet()) {
-      String val = partitionInfo.getValuesList().get(index++);
-      if (!checkDomain(val, entry.getKey(), entry.getValue())) {
-        return false;
-      }
-    }
-    return true;
   }
 
   private void apply(alluxio.proto.journal.Table.AttachDbEntry entry) {
