@@ -11,8 +11,7 @@
 
 package alluxio.job.transform.format.parquet;
 
-import alluxio.client.WriteType;
-import alluxio.conf.PropertyKey;
+import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 import alluxio.job.transform.format.TableWriter;
@@ -62,10 +61,7 @@ public final class ParquetWriter implements TableWriter {
    */
   public static ParquetWriter create(TableSchema schema, String scheme, String output)
       throws IOException {
-    Configuration conf = new Configuration();
-    conf.setEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName(), WriteType.THROUGH);
-    // The cached filesystem might not be configured with the above write type.
-    conf.setBoolean(ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE, true);
+    Configuration conf = ReadWriterUtils.writeThroughConf();
     ParquetSchema parquetSchema = schema.toParquet();
     return new ParquetWriter(AvroParquetWriter.<Record>builder(
         HadoopOutputFile.fromPath(new Path(scheme, "", output), conf))
