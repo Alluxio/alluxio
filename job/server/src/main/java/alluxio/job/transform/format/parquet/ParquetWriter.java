@@ -11,6 +11,8 @@
 
 package alluxio.job.transform.format.parquet;
 
+import alluxio.client.WriteType;
+import alluxio.conf.PropertyKey;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 import alluxio.job.transform.format.TableWriter;
@@ -38,6 +40,8 @@ public final class ParquetWriter implements TableWriter {
   private static final int MAX_IN_MEMORY_RECORDS = 10000;
   private static final int ROW_GROUP_SIZE =
       org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE;
+  private static final String ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE =
+      "fs.alluxio.impl.disable.cache";
 
   private final org.apache.parquet.hadoop.ParquetWriter<Record> mWriter;
   private long mRecordSize; // bytes
@@ -59,6 +63,9 @@ public final class ParquetWriter implements TableWriter {
   public static ParquetWriter create(TableSchema schema, String scheme, String output)
       throws IOException {
     Configuration conf = new Configuration();
+    conf.setEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName(), WriteType.THROUGH);
+    // The cached filesystem might not be configured with the above write type.
+    conf.setBoolean(ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE, true);
     ParquetSchema parquetSchema = schema.toParquet();
     return new ParquetWriter(AvroParquetWriter.<Record>builder(
         HadoopOutputFile.fromPath(new Path(scheme, "", output), conf))
