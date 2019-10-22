@@ -248,7 +248,8 @@ public class HiveDatabase implements UnderDatabase {
       conf.set("hive.metastore.uris", mConfiguration.get(Property.HIVE_METASTORE_URIS));
       mHive = new HiveMetaStoreClient(conf);
       return mHive;
-    } catch (MetaException e) {
+    } catch (MetaException | NullPointerException e) {
+      // HiveMetaStoreClient throws a NPE if the uri is not a uri for hive metastore
       throw new IOException("Failed to create hive client: " + e.getMessage(), e);
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
