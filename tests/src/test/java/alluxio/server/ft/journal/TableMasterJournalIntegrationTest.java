@@ -11,6 +11,13 @@
 
 package alluxio.server.ft.journal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
+import static org.powermock.api.mockito.PowerMockito.when;
+
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
@@ -40,14 +47,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.when;
-
 
 /**
  * Integration tests for table master functionality.
@@ -118,13 +117,13 @@ public class TableMasterJournalIntegrationTest {
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     List<String> newTableNames = tableMaster.getAllTables(DB_NAME);
-    assertEquals(oldTableNames,newTableNames);
+    assertEquals(oldTableNames, newTableNames);
     Table tableNew = tableMasterRestart.getTable(DB_NAME, newTableNames.get(0));
     assertEquals(tableOld.getName(), tableNew.getName());
     tableMasterRestart.detachDatabase(DB_NAME);
     tableMasterRestart.attachDatabase(DB_NAME, HiveDatabaseFactory.TYPE, Collections.emptyMap());
 
     List<String> reattachedTableNames = tableMasterRestart.getAllTables(DB_NAME);
-    assertNotEquals(oldTableNames,reattachedTableNames);
+    assertNotEquals(oldTableNames, reattachedTableNames);
   }
 }
