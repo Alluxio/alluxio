@@ -63,7 +63,7 @@ spec:
               memory: 2G
           command: ["/entrypoint.sh"]
           args:
-            - worker
+            - worker-only
             - --no-format
           env:
           - name: ALLUXIO_WORKER_HOSTNAME
