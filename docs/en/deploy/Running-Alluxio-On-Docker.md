@@ -22,7 +22,6 @@ We'll also discuss more advanced topics and how to troubleshoot.
 - A machine with Docker installed.
 - Ports 19998, 19999, 29998, 29999, and 30000 available
 
-
 If you don't have access to a machine with Docker installed, you can
 provision a small AWS EC2 instance (e.g. t2.small)
 to follow along with the tutorial. When provisioning the instance, set the security group
@@ -61,7 +60,6 @@ containers data. To create a host volume, run:
   ```
   The file or directory is referenced by its full path on the Docker host. It can exist on the Docker host already, or it will be created automatically if it does not yet exist.
 
-
 + **Named Volume**: Docker manage where they are located.  It should be be referred to by specific names.
 To create a named volume, run:
 
@@ -83,7 +81,6 @@ Alluxio UFS root mount point in the Alluxio docker image:
   ```
   Of course, you can choose different path `/alluxio_ufs` you like to mount but please make sure it
   is writable.
-
 
 ## Launch Alluxio Containers for Master and Worker
 
@@ -224,16 +221,13 @@ $ ./bin/alluxio runTests
 
 To test the remote client access, for example, from the Spark cluster (python 3)
 
-```
+```scala
 textFile_alluxio_path = "alluxio://{docker_host-ip}:19998/path_to_the_file"
 textFile_RDD = sc.textFile (textFile_alluxio_path)
 
 for line in textFile_RDD.collect():
   print (line)
 ```
-
-Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
-
 
 Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
 
