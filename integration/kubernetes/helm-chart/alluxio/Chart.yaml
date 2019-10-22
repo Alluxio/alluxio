@@ -10,7 +10,7 @@
 #
 
 name: alluxio
-apiVersion: 2.1.0-SNAPSHOT
+apiVersion: 2.2.0-SNAPSHOT
 description: Open source data orchestration for analytics and machine learning in any cloud.
 version: 0.5.0
 home: https://www.alluxio.io/

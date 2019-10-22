@@ -10,12 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-LAUNCHER=
-# If debugging is enabled propagate that through to sub-shells
-if [[ "$-" == *x* ]]; then
-  LAUNCHER="bash -x"
-fi
-BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+. $(dirname "$0")/alluxio-common.sh
 
 #start up alluxio
 
@@ -100,21 +95,26 @@ check_mount_mode() {
     SudoMount);;
     NoMount)
       local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-      local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+      local tier_path 
+      get_ramdisk_array
       if [[ ${tier_alias} != "MEM" ]]; then
         # if the top tier is not MEM, skip check
         return
       fi
-      is_ram_folder_mounted "${tier_path}"
-      if [[ $? -ne 0 ]]; then
-        echo "ERROR: Ramdisk ${tier_path} is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
-        echo -e "${USAGE}" >&2
-        exit 1
-      fi
-      if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
-        echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
-        echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
-      fi
+      for tier_path in "${RAMDISKARRAY[@]}"
+      do
+        is_ram_folder_mounted "${tier_path}"
+        if [[ $? -ne 0 ]]; then
+          echo "ERROR: Ramdisk ${tier_path} is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
+          echo -e "${USAGE}" >&2
+          exit 1
+        fi
+
+        if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
+          echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
+          echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
+        fi
+      done
       ;;
     *)
       if [[ -z $1 ]]; then
@@ -133,21 +133,24 @@ do_mount() {
   case "$1" in
     Mount|SudoMount)
       local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-      local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
-
+      local tier_path
+      get_ramdisk_array
       if [[ ${tier_alias} != "MEM" ]]; then
         echo "Can't Mount/SudoMount when alluxio.worker.tieredstore.level0.alias is not MEM"
         exit 1
       fi
 
-      is_ram_folder_mounted "${tier_path}" # Returns 0 if already mounted.
-      if [[ $? -eq 0 ]]; then
-        echo "Ramdisk already mounted. Skipping mounting procedure."
-      else
-        echo "Ramdisk not detected. Mounting..."
-        ${LAUNCHER} "${BIN}/alluxio-mount.sh" $1
-        MOUNT_FAILED=$?
-      fi
+      for tier_path in "${RAMDISKARRAY[@]}"
+      do
+        is_ram_folder_mounted "${tier_path}" # Returns 0 if already mounted.
+        if [[ $? -eq 0 ]]; then
+          echo "Ramdisk ${tier_path} already mounted. Skipping mounting procedure."
+        else
+          echo "Ramdisk ${tier_path} not detected. Mounting..."
+          ${LAUNCHER} "${BIN}/alluxio-mount.sh" "$1"
+          MOUNT_FAILED=$?
+        fi
+      done
       ;;
     NoMount)
       ;;
