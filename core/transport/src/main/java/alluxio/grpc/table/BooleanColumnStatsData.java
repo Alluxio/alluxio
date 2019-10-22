@@ -99,61 +99,61 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int NUMTRUES_FIELD_NUMBER = 1;
+  public static final int NUM_TRUES_FIELD_NUMBER = 1;
   private long numTrues_;
   /**
-   * <code>optional int64 numTrues = 1;</code>
+   * <code>optional int64 num_trues = 1;</code>
    */
   public boolean hasNumTrues() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional int64 numTrues = 1;</code>
+   * <code>optional int64 num_trues = 1;</code>
    */
   public long getNumTrues() {
     return numTrues_;
   }
 
-  public static final int NUMFALSES_FIELD_NUMBER = 2;
+  public static final int NUM_FALSES_FIELD_NUMBER = 2;
   private long numFalses_;
   /**
-   * <code>optional int64 numFalses = 2;</code>
+   * <code>optional int64 num_falses = 2;</code>
    */
   public boolean hasNumFalses() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional int64 numFalses = 2;</code>
+   * <code>optional int64 num_falses = 2;</code>
    */
   public long getNumFalses() {
     return numFalses_;
   }
 
-  public static final int NUMNULLS_FIELD_NUMBER = 3;
+  public static final int NUM_NULLS_FIELD_NUMBER = 3;
   private long numNulls_;
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   public boolean hasNumNulls() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   public long getNumNulls() {
     return numNulls_;
   }
 
-  public static final int BITVECTORS_FIELD_NUMBER = 4;
+  public static final int BIT_VECTORS_FIELD_NUMBER = 4;
   private volatile java.lang.Object bitVectors_;
   /**
-   * <code>optional string bitVectors = 4;</code>
+   * <code>optional string bit_vectors = 4;</code>
    */
   public boolean hasBitVectors() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <code>optional string bitVectors = 4;</code>
+   * <code>optional string bit_vectors = 4;</code>
    */
   public java.lang.String getBitVectors() {
     java.lang.Object ref = bitVectors_;
@@ -170,7 +170,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string bitVectors = 4;</code>
+   * <code>optional string bit_vectors = 4;</code>
    */
   public com.google.protobuf.ByteString
       getBitVectorsBytes() {
@@ -281,22 +281,22 @@ private static final long serialVersionUID = 0L;
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
     if (hasNumTrues()) {
-      hash = (37 * hash) + NUMTRUES_FIELD_NUMBER;
+      hash = (37 * hash) + NUM_TRUES_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getNumTrues());
     }
     if (hasNumFalses()) {
-      hash = (37 * hash) + NUMFALSES_FIELD_NUMBER;
+      hash = (37 * hash) + NUM_FALSES_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getNumFalses());
     }
     if (hasNumNulls()) {
-      hash = (37 * hash) + NUMNULLS_FIELD_NUMBER;
+      hash = (37 * hash) + NUM_NULLS_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getNumNulls());
     }
     if (hasBitVectors()) {
-      hash = (37 * hash) + BITVECTORS_FIELD_NUMBER;
+      hash = (37 * hash) + BIT_VECTORS_FIELD_NUMBER;
       hash = (53 * hash) + getBitVectors().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
@@ -562,19 +562,19 @@ private static final long serialVersionUID = 0L;
 
     private long numTrues_ ;
     /**
-     * <code>optional int64 numTrues = 1;</code>
+     * <code>optional int64 num_trues = 1;</code>
      */
     public boolean hasNumTrues() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 numTrues = 1;</code>
+     * <code>optional int64 num_trues = 1;</code>
      */
     public long getNumTrues() {
       return numTrues_;
     }
     /**
-     * <code>optional int64 numTrues = 1;</code>
+     * <code>optional int64 num_trues = 1;</code>
      */
     public Builder setNumTrues(long value) {
       bitField0_ |= 0x00000001;
@@ -583,7 +583,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional int64 numTrues = 1;</code>
+     * <code>optional int64 num_trues = 1;</code>
      */
     public Builder clearNumTrues() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -594,19 +594,19 @@ private static final long serialVersionUID = 0L;
 
     private long numFalses_ ;
     /**
-     * <code>optional int64 numFalses = 2;</code>
+     * <code>optional int64 num_falses = 2;</code>
      */
     public boolean hasNumFalses() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 numFalses = 2;</code>
+     * <code>optional int64 num_falses = 2;</code>
      */
     public long getNumFalses() {
       return numFalses_;
     }
     /**
-     * <code>optional int64 numFalses = 2;</code>
+     * <code>optional int64 num_falses = 2;</code>
      */
     public Builder setNumFalses(long value) {
       bitField0_ |= 0x00000002;
@@ -615,7 +615,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional int64 numFalses = 2;</code>
+     * <code>optional int64 num_falses = 2;</code>
      */
     public Builder clearNumFalses() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -626,19 +626,19 @@ private static final long serialVersionUID = 0L;
 
     private long numNulls_ ;
     /**
-     * <code>optional int64 numNulls = 3;</code>
+     * <code>optional int64 num_nulls = 3;</code>
      */
     public boolean hasNumNulls() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 numNulls = 3;</code>
+     * <code>optional int64 num_nulls = 3;</code>
      */
     public long getNumNulls() {
       return numNulls_;
     }
     /**
-     * <code>optional int64 numNulls = 3;</code>
+     * <code>optional int64 num_nulls = 3;</code>
      */
     public Builder setNumNulls(long value) {
       bitField0_ |= 0x00000004;
@@ -647,7 +647,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional int64 numNulls = 3;</code>
+     * <code>optional int64 num_nulls = 3;</code>
      */
     public Builder clearNumNulls() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -658,13 +658,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object bitVectors_ = "";
     /**
-     * <code>optional string bitVectors = 4;</code>
+     * <code>optional string bit_vectors = 4;</code>
      */
     public boolean hasBitVectors() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional string bitVectors = 4;</code>
+     * <code>optional string bit_vectors = 4;</code>
      */
     public java.lang.String getBitVectors() {
       java.lang.Object ref = bitVectors_;
@@ -681,7 +681,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string bitVectors = 4;</code>
+     * <code>optional string bit_vectors = 4;</code>
      */
     public com.google.protobuf.ByteString
         getBitVectorsBytes() {
@@ -697,7 +697,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string bitVectors = 4;</code>
+     * <code>optional string bit_vectors = 4;</code>
      */
     public Builder setBitVectors(
         java.lang.String value) {
@@ -710,7 +710,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string bitVectors = 4;</code>
+     * <code>optional string bit_vectors = 4;</code>
      */
     public Builder clearBitVectors() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -719,7 +719,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string bitVectors = 4;</code>
+     * <code>optional string bit_vectors = 4;</code>
      */
     public Builder setBitVectorsBytes(
         com.google.protobuf.ByteString value) {

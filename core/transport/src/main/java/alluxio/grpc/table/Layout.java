@@ -124,16 +124,16 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int LAYOUTTYPE_FIELD_NUMBER = 1;
+  public static final int LAYOUT_TYPE_FIELD_NUMBER = 1;
   private volatile java.lang.Object layoutType_;
   /**
-   * <code>optional string layoutType = 1;</code>
+   * <code>optional string layout_type = 1;</code>
    */
   public boolean hasLayoutType() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string layoutType = 1;</code>
+   * <code>optional string layout_type = 1;</code>
    */
   public java.lang.String getLayoutType() {
     java.lang.Object ref = layoutType_;
@@ -150,7 +150,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string layoutType = 1;</code>
+   * <code>optional string layout_type = 1;</code>
    */
   public com.google.protobuf.ByteString
       getLayoutTypeBytes() {
@@ -166,37 +166,37 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int LAYOUTSPEC_FIELD_NUMBER = 2;
+  public static final int LAYOUT_SPEC_FIELD_NUMBER = 2;
   private alluxio.grpc.table.LayoutSpec layoutSpec_;
   /**
-   * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+   * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
    */
   public boolean hasLayoutSpec() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+   * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
    */
   public alluxio.grpc.table.LayoutSpec getLayoutSpec() {
     return layoutSpec_ == null ? alluxio.grpc.table.LayoutSpec.getDefaultInstance() : layoutSpec_;
   }
   /**
-   * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+   * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
    */
   public alluxio.grpc.table.LayoutSpecOrBuilder getLayoutSpecOrBuilder() {
     return layoutSpec_ == null ? alluxio.grpc.table.LayoutSpec.getDefaultInstance() : layoutSpec_;
   }
 
-  public static final int LAYOUTDATA_FIELD_NUMBER = 3;
+  public static final int LAYOUT_DATA_FIELD_NUMBER = 3;
   private com.google.protobuf.ByteString layoutData_;
   /**
-   * <code>optional bytes layoutData = 3;</code>
+   * <code>optional bytes layout_data = 3;</code>
    */
   public boolean hasLayoutData() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional bytes layoutData = 3;</code>
+   * <code>optional bytes layout_data = 3;</code>
    */
   public com.google.protobuf.ByteString getLayoutData() {
     return layoutData_;
@@ -385,15 +385,15 @@ private static final long serialVersionUID = 0L;
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
     if (hasLayoutType()) {
-      hash = (37 * hash) + LAYOUTTYPE_FIELD_NUMBER;
+      hash = (37 * hash) + LAYOUT_TYPE_FIELD_NUMBER;
       hash = (53 * hash) + getLayoutType().hashCode();
     }
     if (hasLayoutSpec()) {
-      hash = (37 * hash) + LAYOUTSPEC_FIELD_NUMBER;
+      hash = (37 * hash) + LAYOUT_SPEC_FIELD_NUMBER;
       hash = (53 * hash) + getLayoutSpec().hashCode();
     }
     if (hasLayoutData()) {
-      hash = (37 * hash) + LAYOUTDATA_FIELD_NUMBER;
+      hash = (37 * hash) + LAYOUT_DATA_FIELD_NUMBER;
       hash = (53 * hash) + getLayoutData().hashCode();
     }
     if (!internalGetStats().getMap().isEmpty()) {
@@ -695,13 +695,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object layoutType_ = "";
     /**
-     * <code>optional string layoutType = 1;</code>
+     * <code>optional string layout_type = 1;</code>
      */
     public boolean hasLayoutType() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string layoutType = 1;</code>
+     * <code>optional string layout_type = 1;</code>
      */
     public java.lang.String getLayoutType() {
       java.lang.Object ref = layoutType_;
@@ -718,7 +718,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string layoutType = 1;</code>
+     * <code>optional string layout_type = 1;</code>
      */
     public com.google.protobuf.ByteString
         getLayoutTypeBytes() {
@@ -734,7 +734,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string layoutType = 1;</code>
+     * <code>optional string layout_type = 1;</code>
      */
     public Builder setLayoutType(
         java.lang.String value) {
@@ -747,7 +747,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string layoutType = 1;</code>
+     * <code>optional string layout_type = 1;</code>
      */
     public Builder clearLayoutType() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -756,7 +756,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string layoutType = 1;</code>
+     * <code>optional string layout_type = 1;</code>
      */
     public Builder setLayoutTypeBytes(
         com.google.protobuf.ByteString value) {
@@ -773,13 +773,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.LayoutSpec, alluxio.grpc.table.LayoutSpec.Builder, alluxio.grpc.table.LayoutSpecOrBuilder> layoutSpecBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     public boolean hasLayoutSpec() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     public alluxio.grpc.table.LayoutSpec getLayoutSpec() {
       if (layoutSpecBuilder_ == null) {
@@ -789,7 +789,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     public Builder setLayoutSpec(alluxio.grpc.table.LayoutSpec value) {
       if (layoutSpecBuilder_ == null) {
@@ -805,7 +805,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     public Builder setLayoutSpec(
         alluxio.grpc.table.LayoutSpec.Builder builderForValue) {
@@ -819,7 +819,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     public Builder mergeLayoutSpec(alluxio.grpc.table.LayoutSpec value) {
       if (layoutSpecBuilder_ == null) {
@@ -839,7 +839,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     public Builder clearLayoutSpec() {
       if (layoutSpecBuilder_ == null) {
@@ -852,7 +852,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     public alluxio.grpc.table.LayoutSpec.Builder getLayoutSpecBuilder() {
       bitField0_ |= 0x00000002;
@@ -860,7 +860,7 @@ private static final long serialVersionUID = 0L;
       return getLayoutSpecFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     public alluxio.grpc.table.LayoutSpecOrBuilder getLayoutSpecOrBuilder() {
       if (layoutSpecBuilder_ != null) {
@@ -871,7 +871,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+     * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.LayoutSpec, alluxio.grpc.table.LayoutSpec.Builder, alluxio.grpc.table.LayoutSpecOrBuilder> 
@@ -889,19 +889,19 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.ByteString layoutData_ = com.google.protobuf.ByteString.EMPTY;
     /**
-     * <code>optional bytes layoutData = 3;</code>
+     * <code>optional bytes layout_data = 3;</code>
      */
     public boolean hasLayoutData() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional bytes layoutData = 3;</code>
+     * <code>optional bytes layout_data = 3;</code>
      */
     public com.google.protobuf.ByteString getLayoutData() {
       return layoutData_;
     }
     /**
-     * <code>optional bytes layoutData = 3;</code>
+     * <code>optional bytes layout_data = 3;</code>
      */
     public Builder setLayoutData(com.google.protobuf.ByteString value) {
       if (value == null) {
@@ -913,7 +913,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional bytes layoutData = 3;</code>
+     * <code>optional bytes layout_data = 3;</code>
      */
     public Builder clearLayoutData() {
       bitField0_ = (bitField0_ & ~0x00000004);

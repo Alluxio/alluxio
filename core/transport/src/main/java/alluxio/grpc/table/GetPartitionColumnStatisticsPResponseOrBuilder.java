@@ -8,11 +8,11 @@ public interface GetPartitionColumnStatisticsPResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
   int getPartitionStatisticsCount();
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
   boolean containsPartitionStatistics(
       java.lang.String key);
@@ -23,19 +23,19 @@ public interface GetPartitionColumnStatisticsPResponseOrBuilder extends
   java.util.Map<java.lang.String, alluxio.grpc.table.ColumnStatisticsList>
   getPartitionStatistics();
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
   java.util.Map<java.lang.String, alluxio.grpc.table.ColumnStatisticsList>
   getPartitionStatisticsMap();
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
 
   alluxio.grpc.table.ColumnStatisticsList getPartitionStatisticsOrDefault(
       java.lang.String key,
       alluxio.grpc.table.ColumnStatisticsList defaultValue);
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
 
   alluxio.grpc.table.ColumnStatisticsList getPartitionStatisticsOrThrow(
