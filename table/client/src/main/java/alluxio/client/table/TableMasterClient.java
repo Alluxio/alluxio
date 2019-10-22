@@ -17,7 +17,6 @@ import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
-import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.TableInfo;
 import alluxio.master.MasterClientContext;
 
@@ -146,34 +145,6 @@ public interface TableMasterClient extends Client {
   List<String> getPartitionNames(
           String databaseName,
           String tableName) throws AlluxioStatusException;
-
-  /**
-   * get partition metadata with given database name, table name and partition names.
-   *
-   * @param databaseName database name
-   * @param tableName table name
-   * @param partitionNames partition names
-   * @return list of partition metadata
-   * @throws AlluxioStatusException
-   */
-  List<PartitionInfo> getPartitionsByNames(
-          String databaseName,
-          String tableName,
-          List<String> partitionNames) throws AlluxioStatusException;
-
-  /**
-   * get partition metadata with given database name, table name and partition values.
-   *
-   * @param databaseName database name
-   * @param tableName table name
-   * @param partitionValues partition values
-   * @return partition metadata
-   * @throws AlluxioStatusException
-   */
-  PartitionInfo getPartition(
-          String databaseName,
-          String tableName,
-          List<String> partitionValues) throws AlluxioStatusException;
 
   /**
    * Get column statistics for selected partition and column.

@@ -8,38 +8,38 @@ public interface LayoutOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string layoutType = 1;</code>
+   * <code>optional string layout_type = 1;</code>
    */
   boolean hasLayoutType();
   /**
-   * <code>optional string layoutType = 1;</code>
+   * <code>optional string layout_type = 1;</code>
    */
   java.lang.String getLayoutType();
   /**
-   * <code>optional string layoutType = 1;</code>
+   * <code>optional string layout_type = 1;</code>
    */
   com.google.protobuf.ByteString
       getLayoutTypeBytes();
 
   /**
-   * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+   * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
    */
   boolean hasLayoutSpec();
   /**
-   * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+   * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
    */
   alluxio.grpc.table.LayoutSpec getLayoutSpec();
   /**
-   * <code>optional .alluxio.grpc.table.LayoutSpec layoutSpec = 2;</code>
+   * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
    */
   alluxio.grpc.table.LayoutSpecOrBuilder getLayoutSpecOrBuilder();
 
   /**
-   * <code>optional bytes layoutData = 3;</code>
+   * <code>optional bytes layout_data = 3;</code>
    */
   boolean hasLayoutData();
   /**
-   * <code>optional bytes layoutData = 3;</code>
+   * <code>optional bytes layout_data = 3;</code>
    */
   com.google.protobuf.ByteString getLayoutData();
 

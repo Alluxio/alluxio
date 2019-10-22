@@ -19,7 +19,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Layout;
-import alluxio.grpc.table.PartitionInfo;
+import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;

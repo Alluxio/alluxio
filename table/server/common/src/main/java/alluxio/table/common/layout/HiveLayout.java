@@ -13,7 +13,7 @@ package alluxio.table.common.layout;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.table.ColumnStatisticsInfo;
-import alluxio.grpc.table.PartitionInfo;
+import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutFactory;
 import alluxio.table.common.transform.TransformContext;
