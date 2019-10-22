@@ -170,25 +170,28 @@ public class Database implements Journaled {
   /**
    * Syncs the metadata from the under db.
    * @param context journal context
-   * @return true if the database changed as a result of sync
+   * @return true if the database changed as a result of fullSync
    */
   public boolean sync(JournalContext context) throws IOException {
     boolean returnVal = false;
     for (String tableName : mUdb.getTableNames()) {
       // TODO(gpang): concurrency control
+      boolean tableUpdated = false;
       Table table = mTables.get(tableName);
       if (table == null) {
         // add table from udb
         UdbTable udbTable = mUdb.getTable(tableName);
         table = Table.create(this, udbTable);
+        tableUpdated = true;
+      } else {
+        tableUpdated = table.incrementalSync(mUdb.getTable(tableName));
+      }
+      if (tableUpdated) {
         alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();
         Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
             .build();
         applyAndJournal(context, entry);
         returnVal = true;
-      } else {
-        // sync metadata from udb
-        // TODO(gpang): implement
       }
     }
     return returnVal;
