@@ -136,7 +136,7 @@ domainHostPath: "/tmp/alluxio-domain"
 
 worker:
   args:
-    - worker
+    - worker-only
     - --no-format
   # Properties for the worker component
   properties:

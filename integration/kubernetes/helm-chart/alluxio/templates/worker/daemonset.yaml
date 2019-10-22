@@ -270,9 +270,9 @@ spec:
         - name: {{ .alias | lower }}
           emptyDir:
             medium: "Memory"
-                  {{- if .quota }} 
+                  {{- if .quota }}
             sizeLimit: {{ .quota }}
-                  {{- end}} 
+                  {{- end}}
                 {{- end}}
               {{- end}}
             {{- end}} 
