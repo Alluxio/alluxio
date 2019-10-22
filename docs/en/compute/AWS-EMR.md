@@ -221,7 +221,8 @@ If a different Alluxio version is desired, see the -d option.
 Making configuration changes to the Alluxio Service can be done in a few different ways via the
 bootstrap script.
 The `[-p]` flag allows users to pass in a set of delimited key-value properties to be set on all of
-the Alluxio nodes. An alternative would be to pass in a custom file using the [-f] flag named
+the Alluxio nodes.
+An alternative would be to pass in a custom file using the `[-f]` flag named
 `alluxio-site.properties`.
 The bootstrap will make sure to overwrite any user-provided configs while retaining any defaults
 that are not overwritten.
