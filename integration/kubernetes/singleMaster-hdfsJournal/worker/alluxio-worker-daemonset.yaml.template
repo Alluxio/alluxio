@@ -138,6 +138,6 @@ spec:
             defaultMode: 256
         - name: mem
           emptyDir:
-            medium: "Memory" 
+            medium: "Memory"
             sizeLimit: 1G
 
