@@ -100,22 +100,22 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int PARTITIONSPEC_FIELD_NUMBER = 1;
+  public static final int PARTITION_SPEC_FIELD_NUMBER = 1;
   private alluxio.grpc.table.PartitionSpec partitionSpec_;
   /**
-   * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+   * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
    */
   public boolean hasPartitionSpec() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+   * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
    */
   public alluxio.grpc.table.PartitionSpec getPartitionSpec() {
     return partitionSpec_ == null ? alluxio.grpc.table.PartitionSpec.getDefaultInstance() : partitionSpec_;
   }
   /**
-   * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+   * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
    */
   public alluxio.grpc.table.PartitionSpecOrBuilder getPartitionSpecOrBuilder() {
     return partitionSpec_ == null ? alluxio.grpc.table.PartitionSpec.getDefaultInstance() : partitionSpec_;
@@ -220,7 +220,7 @@ private static final long serialVersionUID = 0L;
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
     if (hasPartitionSpec()) {
-      hash = (37 * hash) + PARTITIONSPEC_FIELD_NUMBER;
+      hash = (37 * hash) + PARTITION_SPEC_FIELD_NUMBER;
       hash = (53 * hash) + getPartitionSpec().hashCode();
     }
     if (hasLayout()) {
@@ -495,13 +495,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.PartitionSpec, alluxio.grpc.table.PartitionSpec.Builder, alluxio.grpc.table.PartitionSpecOrBuilder> partitionSpecBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     public boolean hasPartitionSpec() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     public alluxio.grpc.table.PartitionSpec getPartitionSpec() {
       if (partitionSpecBuilder_ == null) {
@@ -511,7 +511,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     public Builder setPartitionSpec(alluxio.grpc.table.PartitionSpec value) {
       if (partitionSpecBuilder_ == null) {
@@ -527,7 +527,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     public Builder setPartitionSpec(
         alluxio.grpc.table.PartitionSpec.Builder builderForValue) {
@@ -541,7 +541,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     public Builder mergePartitionSpec(alluxio.grpc.table.PartitionSpec value) {
       if (partitionSpecBuilder_ == null) {
@@ -561,7 +561,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     public Builder clearPartitionSpec() {
       if (partitionSpecBuilder_ == null) {
@@ -574,7 +574,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     public alluxio.grpc.table.PartitionSpec.Builder getPartitionSpecBuilder() {
       bitField0_ |= 0x00000001;
@@ -582,7 +582,7 @@ private static final long serialVersionUID = 0L;
       return getPartitionSpecFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     public alluxio.grpc.table.PartitionSpecOrBuilder getPartitionSpecOrBuilder() {
       if (partitionSpecBuilder_ != null) {
@@ -593,7 +593,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.PartitionSpec partitionSpec = 1;</code>
+     * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.PartitionSpec, alluxio.grpc.table.PartitionSpec.Builder, alluxio.grpc.table.PartitionSpecOrBuilder> 

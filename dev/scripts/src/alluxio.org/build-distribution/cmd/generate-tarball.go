@@ -168,6 +168,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	chdir(srcPath)
 	pathsToCopy := []string{
 		"bin/alluxio",
+		"bin/alluxio-common.sh",
 		"bin/alluxio-masters.sh",
 		"bin/alluxio-monitor.sh",
 		"bin/alluxio-mount.sh",

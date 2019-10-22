@@ -8,59 +8,59 @@ public interface DecimalColumnStatsDataOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+   * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
    */
   boolean hasLowValue();
   /**
-   * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+   * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
    */
   alluxio.grpc.table.Decimal getLowValue();
   /**
-   * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+   * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
    */
   alluxio.grpc.table.DecimalOrBuilder getLowValueOrBuilder();
 
   /**
-   * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+   * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
    */
   boolean hasHighValue();
   /**
-   * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+   * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
    */
   alluxio.grpc.table.Decimal getHighValue();
   /**
-   * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+   * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
    */
   alluxio.grpc.table.DecimalOrBuilder getHighValueOrBuilder();
 
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   boolean hasNumNulls();
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   long getNumNulls();
 
   /**
-   * <code>optional int64 numDVs = 4;</code>
+   * <code>optional int64 num_distincts = 4;</code>
    */
-  boolean hasNumDVs();
+  boolean hasNumDistincts();
   /**
-   * <code>optional int64 numDVs = 4;</code>
+   * <code>optional int64 num_distincts = 4;</code>
    */
-  long getNumDVs();
+  long getNumDistincts();
 
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   boolean hasBitVectors();
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   java.lang.String getBitVectors();
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   com.google.protobuf.ByteString
       getBitVectorsBytes();

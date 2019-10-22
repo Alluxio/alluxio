@@ -20,13 +20,13 @@ import alluxio.grpc.table.DateColumnStatsData;
 import alluxio.grpc.table.Decimal;
 import alluxio.grpc.table.DecimalColumnStatsData;
 import alluxio.grpc.table.DoubleColumnStatsData;
-import alluxio.grpc.table.HiveBucketProperty;
 import alluxio.grpc.table.LongColumnStatsData;
 import alluxio.grpc.table.Schema;
-import alluxio.grpc.table.SortingColumn;
-import alluxio.grpc.table.Storage;
-import alluxio.grpc.table.StorageFormat;
 import alluxio.grpc.table.StringColumnStatsData;
+import alluxio.grpc.table.layout.hive.HiveBucketProperty;
+import alluxio.grpc.table.layout.hive.SortingColumn;
+import alluxio.grpc.table.layout.hive.Storage;
+import alluxio.grpc.table.layout.hive.StorageFormat;
 import alluxio.table.under.hive.util.PathTranslator;
 
 import com.google.protobuf.ByteString;
@@ -91,7 +91,7 @@ public class HiveUtils {
     StorageFormat format = StorageFormat.newBuilder()
         .setInputFormat(sd.getInputFormat())
         .setOutputFormat(sd.getOutputFormat())
-        .setSerDe(serDe).build(); // Check SerDe info
+        .setSerde(serDe).build(); // Check SerDe info
     Storage.Builder storageBuilder = Storage.newBuilder();
     List<Order> orderList = sd.getSortCols();
     List<SortingColumn> sortingColumns;
@@ -130,7 +130,8 @@ public class HiveUtils {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setBooleanStats(BooleanColumnStatsData.newBuilder()
                 .setNumTrues(data.getNumTrues()).setNumFalses(data.getNumFalses())
-                .setNumNulls(data.getNumNulls()).setBitVectors(data.getBitVectors())
+                .setNumNulls(data.getNumNulls())
+                .setBitVectors(data.getBitVectors() == null ? "" : data.getBitVectors())
                 .build()).build());
       }
     }
@@ -140,9 +141,11 @@ public class HiveUtils {
       if (doubleStats != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setDoubleStats(DoubleColumnStatsData.newBuilder()
-                .setNumDVs(doubleStats.getNumDVs()).setHighValue(doubleStats.getHighValue())
+                .setNumDistincts(doubleStats.getNumDVs()).setHighValue(doubleStats.getHighValue())
                 .setLowValue(doubleStats.getLowValue()).setNumNulls(doubleStats.getNumNulls())
-                .setBitVectors(doubleStats.getBitVectors()).build()).build());
+                .setBitVectors(doubleStats.getBitVectors() == null
+                    ? "" : doubleStats.getBitVectors())
+                .build()).build());
       }
     }
     if (statsData.isSetLongStats()) {
@@ -151,9 +154,11 @@ public class HiveUtils {
       if (longData != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setLongStats(LongColumnStatsData.newBuilder()
-                .setNumDVs(longData.getNumDVs()).setHighValue(longData.getHighValue())
+                .setNumDistincts(longData.getNumDVs()).setHighValue(longData.getHighValue())
                 .setLowValue(longData.getLowValue())
-                .setNumNulls(longData.getNumNulls()).setBitVectors(longData.getBitVectors())
+                .setNumNulls(longData.getNumNulls())
+                .setBitVectors(longData.getBitVectors() == null
+                    ? "" : longData.getBitVectors())
                 .build()).build());
       }
     }
@@ -163,20 +168,24 @@ public class HiveUtils {
       if (stringData != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setStringStats(StringColumnStatsData.newBuilder()
-                .setNumDVs(stringData.getNumDVs()).setAvgColLen(stringData.getAvgColLen())
+                .setNumDistincts(stringData.getNumDVs()).setAvgColLen(stringData.getAvgColLen())
                 .setMaxColLen(stringData.getMaxColLen())
-                .setNumNulls(stringData.getNumNulls()).setBitVectors(stringData.getBitVectors())
+                .setNumNulls(stringData.getNumNulls())
+                .setBitVectors(stringData.getBitVectors() == null
+                    ? "" : stringData.getBitVectors())
                 .build()).build());
       }
     }
-    if (statsData.isSetStringStats()) {
+    if (statsData.isSetBinaryStats()) {
       org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData data =
           statsData.getBinaryStats();
       if (data != null) {
         builder.setData(ColumnStatisticsData.newBuilder()
             .setBinaryStats(BinaryColumnStatsData.newBuilder()
                 .setMaxColLen(data.getMaxColLen()).setAvgColLen(data.getAvgColLen())
-                .setNumNulls(data.getNumNulls()).setBitVectors(data.getBitVectors())
+                .setNumNulls(data.getNumNulls())
+                .setBitVectors(data.getBitVectors() == null
+                    ? "" : data.getBitVectors())
                 .build()).build());
       }
     }
@@ -189,8 +198,9 @@ public class HiveUtils {
                 .setHighValue(toProto(data.getHighValue()))
                 .setLowValue(toProto(data.getLowValue()))
                 .setNumNulls(data.getNumNulls())
-                .setNumDVs(data.getNumDVs())
-                .setBitVectors(data.getBitVectors())
+                .setNumDistincts(data.getNumDVs())
+                .setBitVectors(data.getBitVectors() == null
+                    ? "" : data.getBitVectors())
                 .build()).build());
       }
     }
@@ -204,8 +214,9 @@ public class HiveUtils {
                 .setHighValue(toProto(data.getHighValue()))
                 .setLowValue(toProto(data.getLowValue()))
                 .setNumNulls(data.getNumNulls())
-                .setNumDVs(data.getNumDVs())
-                .setBitVectors(data.getBitVectors())
+                .setNumDistincts(data.getNumDVs())
+                .setBitVectors(data.getBitVectors() == null
+                    ? "" : data.getBitVectors())
                 .build()).build());
       }
     }

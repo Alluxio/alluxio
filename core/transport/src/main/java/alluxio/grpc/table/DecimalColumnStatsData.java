@@ -17,7 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private DecimalColumnStatsData() {
     numNulls_ = 0L;
-    numDVs_ = 0L;
+    numDistincts_ = 0L;
     bitVectors_ = "";
   }
 
@@ -85,7 +85,7 @@ private static final long serialVersionUID = 0L;
           }
           case 32: {
             bitField0_ |= 0x00000008;
-            numDVs_ = input.readInt64();
+            numDistincts_ = input.readInt64();
             break;
           }
           case 42: {
@@ -119,88 +119,88 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int LOWVALUE_FIELD_NUMBER = 1;
+  public static final int LOW_VALUE_FIELD_NUMBER = 1;
   private alluxio.grpc.table.Decimal lowValue_;
   /**
-   * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+   * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
    */
   public boolean hasLowValue() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+   * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
    */
   public alluxio.grpc.table.Decimal getLowValue() {
     return lowValue_ == null ? alluxio.grpc.table.Decimal.getDefaultInstance() : lowValue_;
   }
   /**
-   * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+   * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
    */
   public alluxio.grpc.table.DecimalOrBuilder getLowValueOrBuilder() {
     return lowValue_ == null ? alluxio.grpc.table.Decimal.getDefaultInstance() : lowValue_;
   }
 
-  public static final int HIGHVALUE_FIELD_NUMBER = 2;
+  public static final int HIGH_VALUE_FIELD_NUMBER = 2;
   private alluxio.grpc.table.Decimal highValue_;
   /**
-   * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+   * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
    */
   public boolean hasHighValue() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+   * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
    */
   public alluxio.grpc.table.Decimal getHighValue() {
     return highValue_ == null ? alluxio.grpc.table.Decimal.getDefaultInstance() : highValue_;
   }
   /**
-   * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+   * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
    */
   public alluxio.grpc.table.DecimalOrBuilder getHighValueOrBuilder() {
     return highValue_ == null ? alluxio.grpc.table.Decimal.getDefaultInstance() : highValue_;
   }
 
-  public static final int NUMNULLS_FIELD_NUMBER = 3;
+  public static final int NUM_NULLS_FIELD_NUMBER = 3;
   private long numNulls_;
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   public boolean hasNumNulls() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   public long getNumNulls() {
     return numNulls_;
   }
 
-  public static final int NUMDVS_FIELD_NUMBER = 4;
-  private long numDVs_;
+  public static final int NUM_DISTINCTS_FIELD_NUMBER = 4;
+  private long numDistincts_;
   /**
-   * <code>optional int64 numDVs = 4;</code>
+   * <code>optional int64 num_distincts = 4;</code>
    */
-  public boolean hasNumDVs() {
+  public boolean hasNumDistincts() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <code>optional int64 numDVs = 4;</code>
+   * <code>optional int64 num_distincts = 4;</code>
    */
-  public long getNumDVs() {
-    return numDVs_;
+  public long getNumDistincts() {
+    return numDistincts_;
   }
 
-  public static final int BITVECTORS_FIELD_NUMBER = 5;
+  public static final int BIT_VECTORS_FIELD_NUMBER = 5;
   private volatile java.lang.Object bitVectors_;
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   public boolean hasBitVectors() {
     return ((bitField0_ & 0x00000010) == 0x00000010);
   }
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   public java.lang.String getBitVectors() {
     java.lang.Object ref = bitVectors_;
@@ -217,7 +217,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   public com.google.protobuf.ByteString
       getBitVectorsBytes() {
@@ -267,7 +267,7 @@ private static final long serialVersionUID = 0L;
       output.writeInt64(3, numNulls_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      output.writeInt64(4, numDVs_);
+      output.writeInt64(4, numDistincts_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 5, bitVectors_);
@@ -294,7 +294,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(4, numDVs_);
+        .computeInt64Size(4, numDistincts_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, bitVectors_);
@@ -330,10 +330,10 @@ private static final long serialVersionUID = 0L;
       result = result && (getNumNulls()
           == other.getNumNulls());
     }
-    result = result && (hasNumDVs() == other.hasNumDVs());
-    if (hasNumDVs()) {
-      result = result && (getNumDVs()
-          == other.getNumDVs());
+    result = result && (hasNumDistincts() == other.hasNumDistincts());
+    if (hasNumDistincts()) {
+      result = result && (getNumDistincts()
+          == other.getNumDistincts());
     }
     result = result && (hasBitVectors() == other.hasBitVectors());
     if (hasBitVectors()) {
@@ -352,25 +352,25 @@ private static final long serialVersionUID = 0L;
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
     if (hasLowValue()) {
-      hash = (37 * hash) + LOWVALUE_FIELD_NUMBER;
+      hash = (37 * hash) + LOW_VALUE_FIELD_NUMBER;
       hash = (53 * hash) + getLowValue().hashCode();
     }
     if (hasHighValue()) {
-      hash = (37 * hash) + HIGHVALUE_FIELD_NUMBER;
+      hash = (37 * hash) + HIGH_VALUE_FIELD_NUMBER;
       hash = (53 * hash) + getHighValue().hashCode();
     }
     if (hasNumNulls()) {
-      hash = (37 * hash) + NUMNULLS_FIELD_NUMBER;
+      hash = (37 * hash) + NUM_NULLS_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getNumNulls());
     }
-    if (hasNumDVs()) {
-      hash = (37 * hash) + NUMDVS_FIELD_NUMBER;
+    if (hasNumDistincts()) {
+      hash = (37 * hash) + NUM_DISTINCTS_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getNumDVs());
+          getNumDistincts());
     }
     if (hasBitVectors()) {
-      hash = (37 * hash) + BITVECTORS_FIELD_NUMBER;
+      hash = (37 * hash) + BIT_VECTORS_FIELD_NUMBER;
       hash = (53 * hash) + getBitVectors().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
@@ -518,7 +518,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       numNulls_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000004);
-      numDVs_ = 0L;
+      numDistincts_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000008);
       bitVectors_ = "";
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -569,7 +569,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
       }
-      result.numDVs_ = numDVs_;
+      result.numDistincts_ = numDistincts_;
       if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
         to_bitField0_ |= 0x00000010;
       }
@@ -625,8 +625,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasNumNulls()) {
         setNumNulls(other.getNumNulls());
       }
-      if (other.hasNumDVs()) {
-        setNumDVs(other.getNumDVs());
+      if (other.hasNumDistincts()) {
+        setNumDistincts(other.getNumDistincts());
       }
       if (other.hasBitVectors()) {
         bitField0_ |= 0x00000010;
@@ -675,13 +675,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.Decimal, alluxio.grpc.table.Decimal.Builder, alluxio.grpc.table.DecimalOrBuilder> lowValueBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     public boolean hasLowValue() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     public alluxio.grpc.table.Decimal getLowValue() {
       if (lowValueBuilder_ == null) {
@@ -691,7 +691,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     public Builder setLowValue(alluxio.grpc.table.Decimal value) {
       if (lowValueBuilder_ == null) {
@@ -707,7 +707,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     public Builder setLowValue(
         alluxio.grpc.table.Decimal.Builder builderForValue) {
@@ -721,7 +721,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     public Builder mergeLowValue(alluxio.grpc.table.Decimal value) {
       if (lowValueBuilder_ == null) {
@@ -741,7 +741,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     public Builder clearLowValue() {
       if (lowValueBuilder_ == null) {
@@ -754,7 +754,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     public alluxio.grpc.table.Decimal.Builder getLowValueBuilder() {
       bitField0_ |= 0x00000001;
@@ -762,7 +762,7 @@ private static final long serialVersionUID = 0L;
       return getLowValueFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     public alluxio.grpc.table.DecimalOrBuilder getLowValueOrBuilder() {
       if (lowValueBuilder_ != null) {
@@ -773,7 +773,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal lowValue = 1;</code>
+     * <code>optional .alluxio.grpc.table.Decimal low_value = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.Decimal, alluxio.grpc.table.Decimal.Builder, alluxio.grpc.table.DecimalOrBuilder> 
@@ -793,13 +793,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.Decimal, alluxio.grpc.table.Decimal.Builder, alluxio.grpc.table.DecimalOrBuilder> highValueBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     public boolean hasHighValue() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     public alluxio.grpc.table.Decimal getHighValue() {
       if (highValueBuilder_ == null) {
@@ -809,7 +809,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     public Builder setHighValue(alluxio.grpc.table.Decimal value) {
       if (highValueBuilder_ == null) {
@@ -825,7 +825,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     public Builder setHighValue(
         alluxio.grpc.table.Decimal.Builder builderForValue) {
@@ -839,7 +839,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     public Builder mergeHighValue(alluxio.grpc.table.Decimal value) {
       if (highValueBuilder_ == null) {
@@ -859,7 +859,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     public Builder clearHighValue() {
       if (highValueBuilder_ == null) {
@@ -872,7 +872,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     public alluxio.grpc.table.Decimal.Builder getHighValueBuilder() {
       bitField0_ |= 0x00000002;
@@ -880,7 +880,7 @@ private static final long serialVersionUID = 0L;
       return getHighValueFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     public alluxio.grpc.table.DecimalOrBuilder getHighValueOrBuilder() {
       if (highValueBuilder_ != null) {
@@ -891,7 +891,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.Decimal highValue = 2;</code>
+     * <code>optional .alluxio.grpc.table.Decimal high_value = 2;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.Decimal, alluxio.grpc.table.Decimal.Builder, alluxio.grpc.table.DecimalOrBuilder> 
@@ -909,19 +909,19 @@ private static final long serialVersionUID = 0L;
 
     private long numNulls_ ;
     /**
-     * <code>optional int64 numNulls = 3;</code>
+     * <code>optional int64 num_nulls = 3;</code>
      */
     public boolean hasNumNulls() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 numNulls = 3;</code>
+     * <code>optional int64 num_nulls = 3;</code>
      */
     public long getNumNulls() {
       return numNulls_;
     }
     /**
-     * <code>optional int64 numNulls = 3;</code>
+     * <code>optional int64 num_nulls = 3;</code>
      */
     public Builder setNumNulls(long value) {
       bitField0_ |= 0x00000004;
@@ -930,7 +930,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional int64 numNulls = 3;</code>
+     * <code>optional int64 num_nulls = 3;</code>
      */
     public Builder clearNumNulls() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -939,47 +939,47 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private long numDVs_ ;
+    private long numDistincts_ ;
     /**
-     * <code>optional int64 numDVs = 4;</code>
+     * <code>optional int64 num_distincts = 4;</code>
      */
-    public boolean hasNumDVs() {
+    public boolean hasNumDistincts() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional int64 numDVs = 4;</code>
+     * <code>optional int64 num_distincts = 4;</code>
      */
-    public long getNumDVs() {
-      return numDVs_;
+    public long getNumDistincts() {
+      return numDistincts_;
     }
     /**
-     * <code>optional int64 numDVs = 4;</code>
+     * <code>optional int64 num_distincts = 4;</code>
      */
-    public Builder setNumDVs(long value) {
+    public Builder setNumDistincts(long value) {
       bitField0_ |= 0x00000008;
-      numDVs_ = value;
+      numDistincts_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 numDVs = 4;</code>
+     * <code>optional int64 num_distincts = 4;</code>
      */
-    public Builder clearNumDVs() {
+    public Builder clearNumDistincts() {
       bitField0_ = (bitField0_ & ~0x00000008);
-      numDVs_ = 0L;
+      numDistincts_ = 0L;
       onChanged();
       return this;
     }
 
     private java.lang.Object bitVectors_ = "";
     /**
-     * <code>optional string bitVectors = 5;</code>
+     * <code>optional string bit_vectors = 5;</code>
      */
     public boolean hasBitVectors() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional string bitVectors = 5;</code>
+     * <code>optional string bit_vectors = 5;</code>
      */
     public java.lang.String getBitVectors() {
       java.lang.Object ref = bitVectors_;
@@ -996,7 +996,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string bitVectors = 5;</code>
+     * <code>optional string bit_vectors = 5;</code>
      */
     public com.google.protobuf.ByteString
         getBitVectorsBytes() {
@@ -1012,7 +1012,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string bitVectors = 5;</code>
+     * <code>optional string bit_vectors = 5;</code>
      */
     public Builder setBitVectors(
         java.lang.String value) {
@@ -1025,7 +1025,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string bitVectors = 5;</code>
+     * <code>optional string bit_vectors = 5;</code>
      */
     public Builder clearBitVectors() {
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -1034,7 +1034,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional string bitVectors = 5;</code>
+     * <code>optional string bit_vectors = 5;</code>
      */
     public Builder setBitVectorsBytes(
         com.google.protobuf.ByteString value) {

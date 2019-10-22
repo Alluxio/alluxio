@@ -13,7 +13,7 @@ package alluxio.table;
 
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Partition;
-import alluxio.grpc.table.PartitionInfo;
+import alluxio.grpc.table.layout.hive.PartitionInfo;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 

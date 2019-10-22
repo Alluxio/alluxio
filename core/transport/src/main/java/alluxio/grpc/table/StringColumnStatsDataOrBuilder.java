@@ -8,51 +8,51 @@ public interface StringColumnStatsDataOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional int64 maxColLen = 1;</code>
+   * <code>optional int64 max_col_len = 1;</code>
    */
   boolean hasMaxColLen();
   /**
-   * <code>optional int64 maxColLen = 1;</code>
+   * <code>optional int64 max_col_len = 1;</code>
    */
   long getMaxColLen();
 
   /**
-   * <code>optional double avgColLen = 2;</code>
+   * <code>optional double avg_col_len = 2;</code>
    */
   boolean hasAvgColLen();
   /**
-   * <code>optional double avgColLen = 2;</code>
+   * <code>optional double avg_col_len = 2;</code>
    */
   double getAvgColLen();
 
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   boolean hasNumNulls();
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   long getNumNulls();
 
   /**
-   * <code>optional int64 numDVs = 4;</code>
+   * <code>optional int64 num_distincts = 4;</code>
    */
-  boolean hasNumDVs();
+  boolean hasNumDistincts();
   /**
-   * <code>optional int64 numDVs = 4;</code>
+   * <code>optional int64 num_distincts = 4;</code>
    */
-  long getNumDVs();
+  long getNumDistincts();
 
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   boolean hasBitVectors();
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   java.lang.String getBitVectors();
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   com.google.protobuf.ByteString
       getBitVectorsBytes();

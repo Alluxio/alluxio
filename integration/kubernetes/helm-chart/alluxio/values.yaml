@@ -9,67 +9,53 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# This should not be modified in the usual case.
 fullnameOverride: alluxio
 
+
+## Common ##
+
+# Docker Image
 image: alluxio/alluxio
-imageTag: 2.1.0-SNAPSHOT
+imageTag: 2.2.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
-# Set the tieredstore
-tieredstore:
-  levels:
-  - alias: MEM
-    level: 0
-    path: /dev/shm
-    type: emptyDir
-    quota: 1G
-    high: 0.95
-    low: 0.7
-
-# set the uid, gid and fsGroup
+# Security Context
 user: 1000
-group: 10000
+group: 1000
 fsGroup: 1000
 
-# The domain hostPath for uuid mode in short Circuit
-domainHostPath: "/tmp/alluxio-domain"
-
-# properties for all the components
+# Site properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
 
 # Recommended JVM Heap options for running in Docker
 # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
+# These JVM options are common to all Alluxio services
 # jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 "
 
-fuse:
-  image: alluxio/alluxio-fuse
-  imageTag: 2.1.0-SNAPSHOT
-  imagePullPolicy: IfNotPresent
-  # Customize the MaxDirectMemorySize
-  jvmOptions: " -XX:MaxDirectMemorySize=2g "
-  # shortCircuitPolicy can be local or uuid,
-  # local means the cache directory is in the same mount namespace,
-  # uuid means interact with domain socket
-  shortCircuitPolicy: uuid
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
-  args:
-    - fuse
-    - --fuse-opts=allow_other
+# Mount Persistent Volumes to all components
+# mounts:
+# - name: <persistentVolume claimName>
+#   path: <mountPath>
+
+# Use labels to run Alluxio on a subset of the K8s nodes
+# nodeSelector: {}
+
+## Master ##
 
 master:
-  count: 1 # For multiMaster mode increase this to >1
-  replicas: 1
-  args:
-    - master
-    - -no-format
-# properties for the master components
+  count: 1 # Controls the number of StatefulSets. For multiMaster mode increase this to >1.
+  replicas: 1 # Controls #replicas in a StatefulSet and should not be modified in the usual case.
+  args: # Arguments to Docker entrypoint
+    - master-only
+    - --no-format
+  # Properties for the master component
   properties:
     # Example: use ROCKS DB instead of Heap
     # alluxio.master.metastore: ROCKS
-    # alluxio.master.metastore.dir: /opt/alluxio/metastore
+    # alluxio.master.metastore.dir: /metastore
   resources:
     limits:
       cpu: "1"
@@ -81,17 +67,21 @@ master:
       embedded: 19200
       rpc: 19998
       web: 19999
+  # JVM options specific to the master container
   jvmOptions: ""
   nodeSelector: {}
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
-  metastore:
-    medium: ""
-    size: 1Gi
+  hostNetwork: false
+  dnsPolicy: ClusterFirst
+  # metastore:
+  #   medium: ""
+  #   size: 1Gi
+  #   mountPath: /metastore
 
 jobMaster:
   args:
     - job-master
+  # Properties for the jobMaster component
+  properties:
   resources:
     limits:
       cpu: "1"
@@ -102,49 +92,8 @@ jobMaster:
     ports:
       rpc: 20001
       web: 20002
+  # JVM options specific to the jobMaster container
   jvmOptions: ""
-
-worker:
-  args:
-    - worker
-    - -no-format
-  resources:
-    limits:
-      cpu: "1"
-      memory: "2G"
-    requests:
-      cpu: "1"
-      memory: "2G"
-    ports:
-      rpc: 29999
-      web: 30000
-  jvmOptions: ""
-  nodeSelector: {}
-  domainHostPath: "/tmp/alluxio-domain"
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
-  ramdisk:
-    size: 1Gi
-
-
-jobWorker:
-  args:
-    - job-worker
-# properties for the jobWorker components
-  properties:
-  resources:
-    limits:
-      cpu: "1"
-      memory: "1G"
-    requests:
-      cpu: "1"
-      memory: "1G"
-    ports:
-      rpc: 30001
-      data: 30002
-      web: 30003
-  jvmOptions: ""
-
 
 # Alluxio supports journal type of UFS and EMBEDDED
 # UFS journal with HDFS example
@@ -159,21 +108,104 @@ journal:
   pvcName: alluxio-pv-claim
   storageClass: "standard"
   size: 1Gi
-  type: "UFS"
-  ufsType: "local" # Ignored if type is "EMBEDDED"
-  folder: "/journal"
+  type: "UFS" # "UFS" or "EMBEDDED"
+  ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
+  folder: "/journal" # Master journal folder
   # Configuration for journal formatting job
   format:
     job:
       activeDeadlineSeconds: 30
       ttlSecondsAfterFinished: 10
 
-# Secrets Example: (<name>:<mount path under /secrets/>):
+
+## Worker ##
+
+# Tiered Storage
+tieredstore:
+  levels:
+  - alias: MEM # Medium type
+    level: 0
+    path: /dev/shm
+    type: emptyDir
+    quota: 1G
+    high: 0.95
+    low: 0.7
+
+# The domain hostPath for uuid mode in short-circuit
+domainHostPath: "/tmp/alluxio-domain"
+
+worker:
+  args:
+    - worker-only
+    - --no-format
+  # Properties for the worker component
+  properties:
+  resources:
+    limits:
+      cpu: "1"
+      memory: "2G"
+    requests:
+      cpu: "1"
+      memory: "2G"
+    ports:
+      rpc: 29999
+      web: 30000
+  # JVM options specific to the worker container
+  jvmOptions: ""
+  nodeSelector: {}
+  domainHostPath: "/tmp/alluxio-domain"
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  ramdisk:
+    size: 1Gi
+  # shortCircuitPolicy can be local or uuid,
+  # local means the cache directory is in the same mount namespace,
+  # uuid means interact with domain socket
+  shortCircuitPolicy: uuid
+
+jobWorker:
+  args:
+    - job-worker
+  # Properties for the jobWorker component
+  properties:
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+    ports:
+      rpc: 30001
+      data: 30002
+      web: 30003
+  # JVM options specific to the jobWorker container
+  jvmOptions: ""
+
+
+## FUSE ##
+
+fuse:
+  image: alluxio/alluxio-fuse
+  imageTag: 2.2.0-SNAPSHOT
+  imagePullPolicy: IfNotPresent
+  # Properties for the jobWorker component
+  properties:
+  # Customize the MaxDirectMemorySize
+  # These options are specific to the FUSE daemon
+  jvmOptions: " -XX:MaxDirectMemorySize=2g "
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  args:
+    - fuse
+    - --fuse-opts=allow_other
+
+
+##  Secrets ##
+
+# Format: (<name>:<mount path under /secrets/>):
 # secrets:
-#   master:
+#   master: # Shared by master and jobMaster containers
 #     alluxio-hdfs-config: hdfsConfig
-#   worker:
+#   worker: # Shared by worker and jobWorker containers
 #     alluxio-hdfs-config: hdfsConfig
-
-
-

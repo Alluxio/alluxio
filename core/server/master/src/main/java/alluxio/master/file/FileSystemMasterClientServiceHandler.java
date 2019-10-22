@@ -300,7 +300,7 @@ public final class FileSystemMasterClientServiceHandler
   public void reverseResolve(ReverseResolvePRequest request,
       StreamObserver<ReverseResolvePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      AlluxioURI ufsUri = getAlluxioURI(request.getUfsUri());
+      AlluxioURI ufsUri = new AlluxioURI(request.getUfsUri());
       AlluxioURI alluxioPath = mFileSystemMaster.reverseResolve(ufsUri);
       return ReverseResolvePResponse.newBuilder().setAlluxioPath(alluxioPath.getPath()).build();
     }, "ReverseResolve", "request=%s", responseObserver, request);

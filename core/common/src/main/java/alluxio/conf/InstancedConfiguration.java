@@ -246,7 +246,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Integer.parseInt(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(rawValue, key));
     }
   }
 
@@ -257,7 +257,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Long.parseLong(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_LONG.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_LONG.getMessage(rawValue, key));
     }
   }
 
@@ -268,7 +268,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Double.parseDouble(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(rawValue, key));
     }
   }
 
@@ -279,7 +279,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Float.parseFloat(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_FLOAT.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_FLOAT.getMessage(rawValue, key));
     }
   }
 
@@ -292,7 +292,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     } else if (rawValue.equalsIgnoreCase("false")) {
       return false;
     } else {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(rawValue, key));
     }
   }
 
@@ -313,7 +313,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Enum.valueOf(enumType, rawValue);
     } catch (IllegalArgumentException e) {
-      throw new RuntimeException(ExceptionMessage.UNKNOWN_ENUM.getMessage(rawValue,
+      throw new RuntimeException(ExceptionMessage.UNKNOWN_ENUM.getMessage(rawValue, key,
           Arrays.toString(enumType.getEnumConstants())));
     }
   }
@@ -325,7 +325,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return FormatUtils.parseSpaceSize(rawValue);
     } catch (Exception ex) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(rawValue, key));
     }
   }
 
@@ -335,7 +335,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return FormatUtils.parseTimeSize(rawValue);
     } catch (Exception e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(rawValue, key));
     }
   }
 

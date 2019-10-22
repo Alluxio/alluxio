@@ -41,28 +41,28 @@ spec:
         heritage: Tiller
         role: alluxio-master
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
       nodeSelector:
       securityContext:
         fsGroup: 1000
       initContainers:
       - name: journal-chown
-        image: alluxio/alluxio:2.1.0-SNAPSHOT
+        image: alluxio/alluxio:2.2.0-SNAPSHOT
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 0
-        command: ["/bin/chown","-R", "1000:10000", "/journal"]
+        command: ["/bin/chown","-R", "1000:1000", "/journal"]
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -71,7 +71,9 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["master-only", "--no-format"]
+          args:
+            - master-only
+            - --no-format
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-0 "
@@ -91,11 +93,11 @@ spec:
             - name: alluxio-journal
               mountPath: /journal
         - name: alluxio-job-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -104,7 +106,8 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["job-master"]
+          args:
+            - job-master
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-0 "
@@ -153,28 +156,28 @@ spec:
         heritage: Tiller
         role: alluxio-master
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
       nodeSelector:
       securityContext:
         fsGroup: 1000
       initContainers:
       - name: journal-chown
-        image: alluxio/alluxio:2.1.0-SNAPSHOT
+        image: alluxio/alluxio:2.2.0-SNAPSHOT
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 0
-        command: ["/bin/chown","-R", "1000:10000", "/journal"]
+        command: ["/bin/chown","-R", "1000:1000", "/journal"]
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -183,7 +186,9 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["master-only", "--no-format"]
+          args:
+            - master-only
+            - --no-format
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-1 "
@@ -203,11 +208,11 @@ spec:
             - name: alluxio-journal
               mountPath: /journal
         - name: alluxio-job-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -216,7 +221,8 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["job-master"]
+          args:
+            - job-master
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-1 "
@@ -265,28 +271,28 @@ spec:
         heritage: Tiller
         role: alluxio-master
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
       nodeSelector:
       securityContext:
         fsGroup: 1000
       initContainers:
       - name: journal-chown
-        image: alluxio/alluxio:2.1.0-SNAPSHOT
+        image: alluxio/alluxio:2.2.0-SNAPSHOT
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 0
-        command: ["/bin/chown","-R", "1000:10000", "/journal"]
+        command: ["/bin/chown","-R", "1000:1000", "/journal"]
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -295,7 +301,9 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["master-only", "--no-format"]
+          args:
+            - master-only
+            - --no-format
           env:
           - name: ALLUXIO_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-2 "
@@ -315,11 +323,11 @@ spec:
             - name: alluxio-journal
               mountPath: /journal
         - name: alluxio-job-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -328,7 +336,8 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["job-master"]
+          args:
+            - job-master
           env:
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
             value: " -Dalluxio.master.hostname=alluxio-master-2 "
