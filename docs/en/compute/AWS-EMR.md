@@ -44,8 +44,8 @@ To begin with, [download an Alluxio release](https://www.alluxio.io/download) an
 $ aws emr create-default-roles
 ```
 2. The Alluxio bootstrap script is hosted in a publicly readable
-[S3 bucket](https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.sh).
-This bucket can also be accessed using it's S3 URI: `s3://alluxio-public/emr/2.0.1/alluxio-emr.sh`
+[S3 bucket](https://alluxio-public.s3.amazonaws.com/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh).
+This bucket can also be accessed using it's S3 URI: `s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh`
 The bootstrap script only requires a root UFS URI as an argument.
 Additional options can be seen in the comments at the top of the bootstrap script.
 ```console
@@ -56,9 +56,9 @@ $ aws emr create-cluster \
 --applications Name=Presto Name=Hive Name=Spark \
 --name '<cluster-name>' \
 --bootstrap-actions \
-Path=s3://alluxio-public/emr/2.0.1/alluxio-emr.sh,\
+Path=s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh,\
 Args=[s3://test-bucket/path/to/mount/] \
---configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
+--configurations https://alluxio-public.s3.amazonaws.com/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json \
 --ec2-attributes KeyName=<ec2-keypair-name>
 ```
 4. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to
@@ -89,9 +89,9 @@ $ aws emr create-cluster \
 --applications Name=Presto Name=Hive \
 --name 'Test Cluster' \
 --bootstrap-actions \
-Path=s3://alluxio-public/emr/2.0.1/alluxio-emr.sh,\
+Path=s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh,\
 Args=[s3://test-bucket/path/to/mount/] \
---configurations https://alluxio-public.s3.amazonaws.com/emr/2.0.1/alluxio-emr.json \
+--configurations https://alluxio-public.s3.amazonaws.com/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json \
 --ec2-attributes KeyName=admin-key
 ```
 
@@ -152,16 +152,86 @@ Tuning of Alluxio properties can be done in a few different locations.
 Depending on which service needs tuning, EMR offers different ways of modifying the service
 settings/environment variables.
 
+### Bootstrap Script Usage
+
+```
+Usage: alluxio-emr.sh <root-ufs-uri>
+                             [-b <backup_uri>]
+                             [ -d <alluxio-download-uri>]
+                             [-f <file_uri>]
+                             [-i <journal_backup_uri>]
+                             [-p <delimited_properties>]
+                             [-s <property_delimiter>]
+                             
+alluxio-emr.sh is a script which can be used to bootstrap an AWS EMR cluster
+with Alluxio. It can download and install Alluxio as well as add properties
+specified as arguments to the script.
+  
+By default, if the environment this script executes in does not already contain
+an Alluxio install at /opt/alluxio then it will download, untar, and configure
+the environment at /opt/alluxio. If an install already exists at /opt/alluxio,
+nothing will be installed over it, even if -d is specified.
+  
+If a specific Alluxio tarball is desired, see the -d option.
+  
+  <root-ufs-uri>    (Required) The URI of the root UFS in the Alluxio
+                    namespace.
+                    
+  -b                An s3:// URI that the Alluxio master will write a backup
+                    to upon shutdown of the EMR cluster. The backup and and
+                    upload MUST be run within 60 seconds. If the backup cannot
+                    finish within 60 seconds, then an incomplete journal may
+                    be uploaded. This option is not recommended for production
+                    or mission critical use cases where the backup is relied
+                    upon to restore cluster state after a previous shutdown.
+                    
+
+  -d                An s3:// or http(s):// URI which points to an Alluxio
+                    tarball. This script will download and untar the
+                    Alluxio tarball and install Alluxio at /opt/alluxio if an
+                    Alluxio installation doesn't already exist at that location.
+                    
+
+  -f                An s3:// or http(s):// URI to any remote file. This property
+                    can be specified multiple times. Any file specified through
+                    this property will be downloaded and stored with the same
+                    name to /opt/alluxio/conf/
+                    
+
+  -i                An s3:// or http(s):// URI which represents the URI of a
+                    previous Alluxio journal backup. If supplied, the backup
+                    will be downloaded, and upon Alluxio startup, the Alluxio
+                    master will read and restore the backup.
+                    
+
+  -p                A string containing a delimited set of properties which
+                    should be added to the
+                    ${ALLUXIO_HOME}/conf/alluxio-site.properties file. The
+                    delimiter by default is a semicolon ";". If a different
+                    delimiter is desired use the [-s] argument.
+                    
+
+  -s                A string containing a single character representing what
+                    delimiter should be used to split the Alluxio properties
+                    provided in the [-p] argument.
+```
+
 ### Alluxio Service
 
-Any server-side configuration changes must be made in the `alluxio-emr.sh` bootstrap script.
-In the section for generating the `alluxio-site.properties`, add a line with the configuration
-needed to append to the bottom of the file.
-Options can also be passed as the 3rd argument to the bootstrap script with a ';' delimiter.
+Making configuration changes to the Alluxio Service can be done in a few different ways via the
+bootstrap script.
+The `[-p]` flag allows users to pass in a set of delimited key-value properties to be set on all of
+the Alluxio nodes.
+An alternative would be to pass in a custom file using the `[-f]` flag named
+`alluxio-site.properties`.
+The bootstrap will make sure to overwrite any user-provided configs while retaining any defaults
+that are not overwritten.
+The bootstrap also allows users to install previous versions of Alluxio (>=2.0) by specifying
+a download URL (HTTP or S3 only).
 
 ### Alluxio Client
 
 Generic client-side properties can also be edited via the bootstrap script as mentioned above.
 This is mostly for the native client (CLI).
-Property changes for a specific service like Presto/Hive should be done in the respective
-configuration file i.e. `core-site.xml`, `hive.catalog`.
+Property changes for a specific service like Presto/Hive should be done in the respective section
+of the EMR JSON configuration file i.e. `core-site.xml` or `hive.catalog`.
