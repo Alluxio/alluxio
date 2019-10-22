@@ -170,8 +170,10 @@ public class Database implements Journaled {
   /**
    * Syncs the metadata from the under db.
    * @param context journal context
+   * @return true if the database changed as a result of sync
    */
-  public void sync(JournalContext context) throws IOException {
+  public boolean sync(JournalContext context) throws IOException {
+    boolean returnVal = false;
     for (String tableName : mUdb.getTableNames()) {
       // TODO(gpang): concurrency control
       Table table = mTables.get(tableName);
@@ -183,11 +185,13 @@ public class Database implements Journaled {
         Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
             .build();
         applyAndJournal(context, entry);
+        returnVal = true;
       } else {
         // sync metadata from udb
         // TODO(gpang): implement
       }
     }
+    return returnVal;
   }
 
   @Override

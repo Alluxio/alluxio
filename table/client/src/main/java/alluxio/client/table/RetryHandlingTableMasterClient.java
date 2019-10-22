@@ -28,6 +28,7 @@ import alluxio.grpc.table.GetTableColumnStatisticsPRequest;
 import alluxio.grpc.table.GetTablePRequest;
 import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.ReadTablePRequest;
+import alluxio.grpc.table.SyncDatabasePRequest;
 import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.TransformTablePRequest;
@@ -114,6 +115,12 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
       throws AlluxioStatusException {
     return retryRPC(() -> mClient.detachDatabase(
         DetachDatabasePRequest.newBuilder().setDbName(dbName).build()).getSuccess());
+  }
+
+  @Override
+  public boolean syncDatabase(String dbName) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.syncDatabase(
+        SyncDatabasePRequest.newBuilder().setDbName(dbName).build()).getSuccess());
   }
 
   @Override
