@@ -66,9 +66,12 @@ public final class ParquetReader implements TableReader {
             .withConf(conf)
             .build();
 
-    ParquetMetadata footer = new ParquetFileReader(inputFile,
-        ParquetReadOptions.builder().build()).getFooter();
-    Schema schema = new AvroSchemaConverter().convert(footer.getFileMetaData().getSchema());
+    Schema schema;
+    try (ParquetFileReader r = new ParquetFileReader(inputFile,
+        ParquetReadOptions.builder().build())) {
+      ParquetMetadata footer = r.getFooter();
+      schema = new AvroSchemaConverter().convert(footer.getFileMetaData().getSchema());
+    }
 
     return new ParquetReader(reader, schema);
   }
