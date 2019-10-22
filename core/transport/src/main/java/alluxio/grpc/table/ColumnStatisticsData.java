@@ -176,13 +176,13 @@ private static final long serialVersionUID = 0L;
   private java.lang.Object data_;
   public enum DataCase
       implements com.google.protobuf.Internal.EnumLite {
-    BOOLEANSTATS(1),
-    LONGSTATS(2),
-    DOUBLESTATS(3),
-    STRINGSTATS(4),
-    BINARYSTATS(5),
-    DECIMALSTATS(6),
-    DATESTATS(7),
+    BOOLEAN_STATS(1),
+    LONG_STATS(2),
+    DOUBLE_STATS(3),
+    STRING_STATS(4),
+    BINARY_STATS(5),
+    DECIMAL_STATS(6),
+    DATE_STATS(7),
     DATA_NOT_SET(0);
     private final int value;
     private DataCase(int value) {
@@ -198,13 +198,13 @@ private static final long serialVersionUID = 0L;
 
     public static DataCase forNumber(int value) {
       switch (value) {
-        case 1: return BOOLEANSTATS;
-        case 2: return LONGSTATS;
-        case 3: return DOUBLESTATS;
-        case 4: return STRINGSTATS;
-        case 5: return BINARYSTATS;
-        case 6: return DECIMALSTATS;
-        case 7: return DATESTATS;
+        case 1: return BOOLEAN_STATS;
+        case 2: return LONG_STATS;
+        case 3: return DOUBLE_STATS;
+        case 4: return STRING_STATS;
+        case 5: return BINARY_STATS;
+        case 6: return DECIMAL_STATS;
+        case 7: return DATE_STATS;
         case 0: return DATA_NOT_SET;
         default: return null;
       }
@@ -220,15 +220,15 @@ private static final long serialVersionUID = 0L;
         dataCase_);
   }
 
-  public static final int BOOLEANSTATS_FIELD_NUMBER = 1;
+  public static final int BOOLEAN_STATS_FIELD_NUMBER = 1;
   /**
-   * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+   * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
    */
   public boolean hasBooleanStats() {
     return dataCase_ == 1;
   }
   /**
-   * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+   * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
    */
   public alluxio.grpc.table.BooleanColumnStatsData getBooleanStats() {
     if (dataCase_ == 1) {
@@ -237,7 +237,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.BooleanColumnStatsData.getDefaultInstance();
   }
   /**
-   * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+   * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
    */
   public alluxio.grpc.table.BooleanColumnStatsDataOrBuilder getBooleanStatsOrBuilder() {
     if (dataCase_ == 1) {
@@ -246,15 +246,15 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.BooleanColumnStatsData.getDefaultInstance();
   }
 
-  public static final int LONGSTATS_FIELD_NUMBER = 2;
+  public static final int LONG_STATS_FIELD_NUMBER = 2;
   /**
-   * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+   * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
    */
   public boolean hasLongStats() {
     return dataCase_ == 2;
   }
   /**
-   * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+   * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
    */
   public alluxio.grpc.table.LongColumnStatsData getLongStats() {
     if (dataCase_ == 2) {
@@ -263,7 +263,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.LongColumnStatsData.getDefaultInstance();
   }
   /**
-   * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+   * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
    */
   public alluxio.grpc.table.LongColumnStatsDataOrBuilder getLongStatsOrBuilder() {
     if (dataCase_ == 2) {
@@ -272,15 +272,15 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.LongColumnStatsData.getDefaultInstance();
   }
 
-  public static final int DOUBLESTATS_FIELD_NUMBER = 3;
+  public static final int DOUBLE_STATS_FIELD_NUMBER = 3;
   /**
-   * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+   * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
    */
   public boolean hasDoubleStats() {
     return dataCase_ == 3;
   }
   /**
-   * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+   * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
    */
   public alluxio.grpc.table.DoubleColumnStatsData getDoubleStats() {
     if (dataCase_ == 3) {
@@ -289,7 +289,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.DoubleColumnStatsData.getDefaultInstance();
   }
   /**
-   * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+   * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
    */
   public alluxio.grpc.table.DoubleColumnStatsDataOrBuilder getDoubleStatsOrBuilder() {
     if (dataCase_ == 3) {
@@ -298,15 +298,15 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.DoubleColumnStatsData.getDefaultInstance();
   }
 
-  public static final int STRINGSTATS_FIELD_NUMBER = 4;
+  public static final int STRING_STATS_FIELD_NUMBER = 4;
   /**
-   * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+   * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
    */
   public boolean hasStringStats() {
     return dataCase_ == 4;
   }
   /**
-   * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+   * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
    */
   public alluxio.grpc.table.StringColumnStatsData getStringStats() {
     if (dataCase_ == 4) {
@@ -315,7 +315,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.StringColumnStatsData.getDefaultInstance();
   }
   /**
-   * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+   * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
    */
   public alluxio.grpc.table.StringColumnStatsDataOrBuilder getStringStatsOrBuilder() {
     if (dataCase_ == 4) {
@@ -324,15 +324,15 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.StringColumnStatsData.getDefaultInstance();
   }
 
-  public static final int BINARYSTATS_FIELD_NUMBER = 5;
+  public static final int BINARY_STATS_FIELD_NUMBER = 5;
   /**
-   * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+   * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
    */
   public boolean hasBinaryStats() {
     return dataCase_ == 5;
   }
   /**
-   * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+   * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
    */
   public alluxio.grpc.table.BinaryColumnStatsData getBinaryStats() {
     if (dataCase_ == 5) {
@@ -341,7 +341,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.BinaryColumnStatsData.getDefaultInstance();
   }
   /**
-   * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+   * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
    */
   public alluxio.grpc.table.BinaryColumnStatsDataOrBuilder getBinaryStatsOrBuilder() {
     if (dataCase_ == 5) {
@@ -350,15 +350,15 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.BinaryColumnStatsData.getDefaultInstance();
   }
 
-  public static final int DECIMALSTATS_FIELD_NUMBER = 6;
+  public static final int DECIMAL_STATS_FIELD_NUMBER = 6;
   /**
-   * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+   * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
    */
   public boolean hasDecimalStats() {
     return dataCase_ == 6;
   }
   /**
-   * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+   * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
    */
   public alluxio.grpc.table.DecimalColumnStatsData getDecimalStats() {
     if (dataCase_ == 6) {
@@ -367,7 +367,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.DecimalColumnStatsData.getDefaultInstance();
   }
   /**
-   * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+   * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
    */
   public alluxio.grpc.table.DecimalColumnStatsDataOrBuilder getDecimalStatsOrBuilder() {
     if (dataCase_ == 6) {
@@ -376,15 +376,15 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.DecimalColumnStatsData.getDefaultInstance();
   }
 
-  public static final int DATESTATS_FIELD_NUMBER = 7;
+  public static final int DATE_STATS_FIELD_NUMBER = 7;
   /**
-   * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+   * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
    */
   public boolean hasDateStats() {
     return dataCase_ == 7;
   }
   /**
-   * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+   * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
    */
   public alluxio.grpc.table.DateColumnStatsData getDateStats() {
     if (dataCase_ == 7) {
@@ -393,7 +393,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.DateColumnStatsData.getDefaultInstance();
   }
   /**
-   * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+   * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
    */
   public alluxio.grpc.table.DateColumnStatsDataOrBuilder getDateStatsOrBuilder() {
     if (dataCase_ == 7) {
@@ -547,31 +547,31 @@ private static final long serialVersionUID = 0L;
     hash = (19 * hash) + getDescriptor().hashCode();
     switch (dataCase_) {
       case 1:
-        hash = (37 * hash) + BOOLEANSTATS_FIELD_NUMBER;
+        hash = (37 * hash) + BOOLEAN_STATS_FIELD_NUMBER;
         hash = (53 * hash) + getBooleanStats().hashCode();
         break;
       case 2:
-        hash = (37 * hash) + LONGSTATS_FIELD_NUMBER;
+        hash = (37 * hash) + LONG_STATS_FIELD_NUMBER;
         hash = (53 * hash) + getLongStats().hashCode();
         break;
       case 3:
-        hash = (37 * hash) + DOUBLESTATS_FIELD_NUMBER;
+        hash = (37 * hash) + DOUBLE_STATS_FIELD_NUMBER;
         hash = (53 * hash) + getDoubleStats().hashCode();
         break;
       case 4:
-        hash = (37 * hash) + STRINGSTATS_FIELD_NUMBER;
+        hash = (37 * hash) + STRING_STATS_FIELD_NUMBER;
         hash = (53 * hash) + getStringStats().hashCode();
         break;
       case 5:
-        hash = (37 * hash) + BINARYSTATS_FIELD_NUMBER;
+        hash = (37 * hash) + BINARY_STATS_FIELD_NUMBER;
         hash = (53 * hash) + getBinaryStats().hashCode();
         break;
       case 6:
-        hash = (37 * hash) + DECIMALSTATS_FIELD_NUMBER;
+        hash = (37 * hash) + DECIMAL_STATS_FIELD_NUMBER;
         hash = (53 * hash) + getDecimalStats().hashCode();
         break;
       case 7:
-        hash = (37 * hash) + DATESTATS_FIELD_NUMBER;
+        hash = (37 * hash) + DATE_STATS_FIELD_NUMBER;
         hash = (53 * hash) + getDateStats().hashCode();
         break;
       case 0:
@@ -825,31 +825,31 @@ private static final long serialVersionUID = 0L;
     public Builder mergeFrom(alluxio.grpc.table.ColumnStatisticsData other) {
       if (other == alluxio.grpc.table.ColumnStatisticsData.getDefaultInstance()) return this;
       switch (other.getDataCase()) {
-        case BOOLEANSTATS: {
+        case BOOLEAN_STATS: {
           mergeBooleanStats(other.getBooleanStats());
           break;
         }
-        case LONGSTATS: {
+        case LONG_STATS: {
           mergeLongStats(other.getLongStats());
           break;
         }
-        case DOUBLESTATS: {
+        case DOUBLE_STATS: {
           mergeDoubleStats(other.getDoubleStats());
           break;
         }
-        case STRINGSTATS: {
+        case STRING_STATS: {
           mergeStringStats(other.getStringStats());
           break;
         }
-        case BINARYSTATS: {
+        case BINARY_STATS: {
           mergeBinaryStats(other.getBinaryStats());
           break;
         }
-        case DECIMALSTATS: {
+        case DECIMAL_STATS: {
           mergeDecimalStats(other.getDecimalStats());
           break;
         }
-        case DATESTATS: {
+        case DATE_STATS: {
           mergeDateStats(other.getDateStats());
           break;
         }
@@ -913,13 +913,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.BooleanColumnStatsData, alluxio.grpc.table.BooleanColumnStatsData.Builder, alluxio.grpc.table.BooleanColumnStatsDataOrBuilder> booleanStatsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     public boolean hasBooleanStats() {
       return dataCase_ == 1;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     public alluxio.grpc.table.BooleanColumnStatsData getBooleanStats() {
       if (booleanStatsBuilder_ == null) {
@@ -935,7 +935,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     public Builder setBooleanStats(alluxio.grpc.table.BooleanColumnStatsData value) {
       if (booleanStatsBuilder_ == null) {
@@ -951,7 +951,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     public Builder setBooleanStats(
         alluxio.grpc.table.BooleanColumnStatsData.Builder builderForValue) {
@@ -965,7 +965,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     public Builder mergeBooleanStats(alluxio.grpc.table.BooleanColumnStatsData value) {
       if (booleanStatsBuilder_ == null) {
@@ -987,7 +987,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     public Builder clearBooleanStats() {
       if (booleanStatsBuilder_ == null) {
@@ -1006,13 +1006,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     public alluxio.grpc.table.BooleanColumnStatsData.Builder getBooleanStatsBuilder() {
       return getBooleanStatsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     public alluxio.grpc.table.BooleanColumnStatsDataOrBuilder getBooleanStatsOrBuilder() {
       if ((dataCase_ == 1) && (booleanStatsBuilder_ != null)) {
@@ -1025,7 +1025,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData booleanStats = 1;</code>
+     * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.BooleanColumnStatsData, alluxio.grpc.table.BooleanColumnStatsData.Builder, alluxio.grpc.table.BooleanColumnStatsDataOrBuilder> 
@@ -1049,13 +1049,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.LongColumnStatsData, alluxio.grpc.table.LongColumnStatsData.Builder, alluxio.grpc.table.LongColumnStatsDataOrBuilder> longStatsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     public boolean hasLongStats() {
       return dataCase_ == 2;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     public alluxio.grpc.table.LongColumnStatsData getLongStats() {
       if (longStatsBuilder_ == null) {
@@ -1071,7 +1071,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     public Builder setLongStats(alluxio.grpc.table.LongColumnStatsData value) {
       if (longStatsBuilder_ == null) {
@@ -1087,7 +1087,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     public Builder setLongStats(
         alluxio.grpc.table.LongColumnStatsData.Builder builderForValue) {
@@ -1101,7 +1101,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     public Builder mergeLongStats(alluxio.grpc.table.LongColumnStatsData value) {
       if (longStatsBuilder_ == null) {
@@ -1123,7 +1123,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     public Builder clearLongStats() {
       if (longStatsBuilder_ == null) {
@@ -1142,13 +1142,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     public alluxio.grpc.table.LongColumnStatsData.Builder getLongStatsBuilder() {
       return getLongStatsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     public alluxio.grpc.table.LongColumnStatsDataOrBuilder getLongStatsOrBuilder() {
       if ((dataCase_ == 2) && (longStatsBuilder_ != null)) {
@@ -1161,7 +1161,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.LongColumnStatsData longStats = 2;</code>
+     * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.LongColumnStatsData, alluxio.grpc.table.LongColumnStatsData.Builder, alluxio.grpc.table.LongColumnStatsDataOrBuilder> 
@@ -1185,13 +1185,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.DoubleColumnStatsData, alluxio.grpc.table.DoubleColumnStatsData.Builder, alluxio.grpc.table.DoubleColumnStatsDataOrBuilder> doubleStatsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     public boolean hasDoubleStats() {
       return dataCase_ == 3;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     public alluxio.grpc.table.DoubleColumnStatsData getDoubleStats() {
       if (doubleStatsBuilder_ == null) {
@@ -1207,7 +1207,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     public Builder setDoubleStats(alluxio.grpc.table.DoubleColumnStatsData value) {
       if (doubleStatsBuilder_ == null) {
@@ -1223,7 +1223,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     public Builder setDoubleStats(
         alluxio.grpc.table.DoubleColumnStatsData.Builder builderForValue) {
@@ -1237,7 +1237,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     public Builder mergeDoubleStats(alluxio.grpc.table.DoubleColumnStatsData value) {
       if (doubleStatsBuilder_ == null) {
@@ -1259,7 +1259,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     public Builder clearDoubleStats() {
       if (doubleStatsBuilder_ == null) {
@@ -1278,13 +1278,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     public alluxio.grpc.table.DoubleColumnStatsData.Builder getDoubleStatsBuilder() {
       return getDoubleStatsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     public alluxio.grpc.table.DoubleColumnStatsDataOrBuilder getDoubleStatsOrBuilder() {
       if ((dataCase_ == 3) && (doubleStatsBuilder_ != null)) {
@@ -1297,7 +1297,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData doubleStats = 3;</code>
+     * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.DoubleColumnStatsData, alluxio.grpc.table.DoubleColumnStatsData.Builder, alluxio.grpc.table.DoubleColumnStatsDataOrBuilder> 
@@ -1321,13 +1321,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.StringColumnStatsData, alluxio.grpc.table.StringColumnStatsData.Builder, alluxio.grpc.table.StringColumnStatsDataOrBuilder> stringStatsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     public boolean hasStringStats() {
       return dataCase_ == 4;
     }
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     public alluxio.grpc.table.StringColumnStatsData getStringStats() {
       if (stringStatsBuilder_ == null) {
@@ -1343,7 +1343,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     public Builder setStringStats(alluxio.grpc.table.StringColumnStatsData value) {
       if (stringStatsBuilder_ == null) {
@@ -1359,7 +1359,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     public Builder setStringStats(
         alluxio.grpc.table.StringColumnStatsData.Builder builderForValue) {
@@ -1373,7 +1373,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     public Builder mergeStringStats(alluxio.grpc.table.StringColumnStatsData value) {
       if (stringStatsBuilder_ == null) {
@@ -1395,7 +1395,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     public Builder clearStringStats() {
       if (stringStatsBuilder_ == null) {
@@ -1414,13 +1414,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     public alluxio.grpc.table.StringColumnStatsData.Builder getStringStatsBuilder() {
       return getStringStatsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     public alluxio.grpc.table.StringColumnStatsDataOrBuilder getStringStatsOrBuilder() {
       if ((dataCase_ == 4) && (stringStatsBuilder_ != null)) {
@@ -1433,7 +1433,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.StringColumnStatsData stringStats = 4;</code>
+     * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.StringColumnStatsData, alluxio.grpc.table.StringColumnStatsData.Builder, alluxio.grpc.table.StringColumnStatsDataOrBuilder> 
@@ -1457,13 +1457,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.BinaryColumnStatsData, alluxio.grpc.table.BinaryColumnStatsData.Builder, alluxio.grpc.table.BinaryColumnStatsDataOrBuilder> binaryStatsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     public boolean hasBinaryStats() {
       return dataCase_ == 5;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     public alluxio.grpc.table.BinaryColumnStatsData getBinaryStats() {
       if (binaryStatsBuilder_ == null) {
@@ -1479,7 +1479,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     public Builder setBinaryStats(alluxio.grpc.table.BinaryColumnStatsData value) {
       if (binaryStatsBuilder_ == null) {
@@ -1495,7 +1495,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     public Builder setBinaryStats(
         alluxio.grpc.table.BinaryColumnStatsData.Builder builderForValue) {
@@ -1509,7 +1509,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     public Builder mergeBinaryStats(alluxio.grpc.table.BinaryColumnStatsData value) {
       if (binaryStatsBuilder_ == null) {
@@ -1531,7 +1531,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     public Builder clearBinaryStats() {
       if (binaryStatsBuilder_ == null) {
@@ -1550,13 +1550,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     public alluxio.grpc.table.BinaryColumnStatsData.Builder getBinaryStatsBuilder() {
       return getBinaryStatsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     public alluxio.grpc.table.BinaryColumnStatsDataOrBuilder getBinaryStatsOrBuilder() {
       if ((dataCase_ == 5) && (binaryStatsBuilder_ != null)) {
@@ -1569,7 +1569,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binaryStats = 5;</code>
+     * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.BinaryColumnStatsData, alluxio.grpc.table.BinaryColumnStatsData.Builder, alluxio.grpc.table.BinaryColumnStatsDataOrBuilder> 
@@ -1593,13 +1593,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.DecimalColumnStatsData, alluxio.grpc.table.DecimalColumnStatsData.Builder, alluxio.grpc.table.DecimalColumnStatsDataOrBuilder> decimalStatsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     public boolean hasDecimalStats() {
       return dataCase_ == 6;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     public alluxio.grpc.table.DecimalColumnStatsData getDecimalStats() {
       if (decimalStatsBuilder_ == null) {
@@ -1615,7 +1615,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     public Builder setDecimalStats(alluxio.grpc.table.DecimalColumnStatsData value) {
       if (decimalStatsBuilder_ == null) {
@@ -1631,7 +1631,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     public Builder setDecimalStats(
         alluxio.grpc.table.DecimalColumnStatsData.Builder builderForValue) {
@@ -1645,7 +1645,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     public Builder mergeDecimalStats(alluxio.grpc.table.DecimalColumnStatsData value) {
       if (decimalStatsBuilder_ == null) {
@@ -1667,7 +1667,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     public Builder clearDecimalStats() {
       if (decimalStatsBuilder_ == null) {
@@ -1686,13 +1686,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     public alluxio.grpc.table.DecimalColumnStatsData.Builder getDecimalStatsBuilder() {
       return getDecimalStatsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     public alluxio.grpc.table.DecimalColumnStatsDataOrBuilder getDecimalStatsOrBuilder() {
       if ((dataCase_ == 6) && (decimalStatsBuilder_ != null)) {
@@ -1705,7 +1705,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimalStats = 6;</code>
+     * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.DecimalColumnStatsData, alluxio.grpc.table.DecimalColumnStatsData.Builder, alluxio.grpc.table.DecimalColumnStatsDataOrBuilder> 
@@ -1729,13 +1729,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.DateColumnStatsData, alluxio.grpc.table.DateColumnStatsData.Builder, alluxio.grpc.table.DateColumnStatsDataOrBuilder> dateStatsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     public boolean hasDateStats() {
       return dataCase_ == 7;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     public alluxio.grpc.table.DateColumnStatsData getDateStats() {
       if (dateStatsBuilder_ == null) {
@@ -1751,7 +1751,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     public Builder setDateStats(alluxio.grpc.table.DateColumnStatsData value) {
       if (dateStatsBuilder_ == null) {
@@ -1767,7 +1767,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     public Builder setDateStats(
         alluxio.grpc.table.DateColumnStatsData.Builder builderForValue) {
@@ -1781,7 +1781,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     public Builder mergeDateStats(alluxio.grpc.table.DateColumnStatsData value) {
       if (dateStatsBuilder_ == null) {
@@ -1803,7 +1803,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     public Builder clearDateStats() {
       if (dateStatsBuilder_ == null) {
@@ -1822,13 +1822,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     public alluxio.grpc.table.DateColumnStatsData.Builder getDateStatsBuilder() {
       return getDateStatsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     public alluxio.grpc.table.DateColumnStatsDataOrBuilder getDateStatsOrBuilder() {
       if ((dataCase_ == 7) && (dateStatsBuilder_ != null)) {
@@ -1841,7 +1841,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.DateColumnStatsData dateStats = 7;</code>
+     * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.DateColumnStatsData, alluxio.grpc.table.DateColumnStatsData.Builder, alluxio.grpc.table.DateColumnStatsDataOrBuilder> 

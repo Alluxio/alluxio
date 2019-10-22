@@ -97,7 +97,7 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.table.GetPartitionColumnStatisticsPResponse.class, alluxio.grpc.table.GetPartitionColumnStatisticsPResponse.Builder.class);
   }
 
-  public static final int PARTITIONSTATISTICS_FIELD_NUMBER = 1;
+  public static final int PARTITION_STATISTICS_FIELD_NUMBER = 1;
   private static final class PartitionStatisticsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, alluxio.grpc.table.ColumnStatisticsList> defaultEntry =
@@ -124,7 +124,7 @@ private static final long serialVersionUID = 0L;
     return internalGetPartitionStatistics().getMap().size();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
 
   public boolean containsPartitionStatistics(
@@ -140,14 +140,14 @@ private static final long serialVersionUID = 0L;
     return getPartitionStatisticsMap();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
 
   public java.util.Map<java.lang.String, alluxio.grpc.table.ColumnStatisticsList> getPartitionStatisticsMap() {
     return internalGetPartitionStatistics().getMap();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
 
   public alluxio.grpc.table.ColumnStatisticsList getPartitionStatisticsOrDefault(
@@ -159,7 +159,7 @@ private static final long serialVersionUID = 0L;
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
    */
 
   public alluxio.grpc.table.ColumnStatisticsList getPartitionStatisticsOrThrow(
@@ -245,7 +245,7 @@ private static final long serialVersionUID = 0L;
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
     if (!internalGetPartitionStatistics().getMap().isEmpty()) {
-      hash = (37 * hash) + PARTITIONSTATISTICS_FIELD_NUMBER;
+      hash = (37 * hash) + PARTITION_STATISTICS_FIELD_NUMBER;
       hash = (53 * hash) + internalGetPartitionStatistics().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
@@ -528,7 +528,7 @@ private static final long serialVersionUID = 0L;
       return internalGetPartitionStatistics().getMap().size();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
      */
 
     public boolean containsPartitionStatistics(
@@ -544,14 +544,14 @@ private static final long serialVersionUID = 0L;
       return getPartitionStatisticsMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
      */
 
     public java.util.Map<java.lang.String, alluxio.grpc.table.ColumnStatisticsList> getPartitionStatisticsMap() {
       return internalGetPartitionStatistics().getMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
      */
 
     public alluxio.grpc.table.ColumnStatisticsList getPartitionStatisticsOrDefault(
@@ -563,7 +563,7 @@ private static final long serialVersionUID = 0L;
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
      */
 
     public alluxio.grpc.table.ColumnStatisticsList getPartitionStatisticsOrThrow(
@@ -583,7 +583,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
      */
 
     public Builder removePartitionStatistics(
@@ -602,7 +602,7 @@ private static final long serialVersionUID = 0L;
       return internalGetMutablePartitionStatistics().getMutableMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
      */
     public Builder putPartitionStatistics(
         java.lang.String key,
@@ -614,7 +614,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partitionStatistics = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.ColumnStatisticsList&gt; partition_statistics = 1;</code>
      */
 
     public Builder putAllPartitionStatistics(

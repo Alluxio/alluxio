@@ -80,16 +80,16 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int DAYSSINCEEPOCH_FIELD_NUMBER = 1;
+  public static final int DAYS_SINCE_EPOCH_FIELD_NUMBER = 1;
   private long daysSinceEpoch_;
   /**
-   * <code>required int64 daysSinceEpoch = 1;</code>
+   * <code>required int64 days_since_epoch = 1;</code>
    */
   public boolean hasDaysSinceEpoch() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>required int64 daysSinceEpoch = 1;</code>
+   * <code>required int64 days_since_epoch = 1;</code>
    */
   public long getDaysSinceEpoch() {
     return daysSinceEpoch_;
@@ -159,7 +159,7 @@ private static final long serialVersionUID = 0L;
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
     if (hasDaysSinceEpoch()) {
-      hash = (37 * hash) + DAYSSINCEEPOCH_FIELD_NUMBER;
+      hash = (37 * hash) + DAYS_SINCE_EPOCH_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getDaysSinceEpoch());
     }
@@ -400,19 +400,19 @@ private static final long serialVersionUID = 0L;
 
     private long daysSinceEpoch_ ;
     /**
-     * <code>required int64 daysSinceEpoch = 1;</code>
+     * <code>required int64 days_since_epoch = 1;</code>
      */
     public boolean hasDaysSinceEpoch() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>required int64 daysSinceEpoch = 1;</code>
+     * <code>required int64 days_since_epoch = 1;</code>
      */
     public long getDaysSinceEpoch() {
       return daysSinceEpoch_;
     }
     /**
-     * <code>required int64 daysSinceEpoch = 1;</code>
+     * <code>required int64 days_since_epoch = 1;</code>
      */
     public Builder setDaysSinceEpoch(long value) {
       bitField0_ |= 0x00000001;
@@ -421,7 +421,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>required int64 daysSinceEpoch = 1;</code>
+     * <code>required int64 days_since_epoch = 1;</code>
      */
     public Builder clearDaysSinceEpoch() {
       bitField0_ = (bitField0_ & ~0x00000001);

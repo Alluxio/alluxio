@@ -8,51 +8,51 @@ public interface LongColumnStatsDataOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional int64 lowValue = 1;</code>
+   * <code>optional int64 low_value = 1;</code>
    */
   boolean hasLowValue();
   /**
-   * <code>optional int64 lowValue = 1;</code>
+   * <code>optional int64 low_value = 1;</code>
    */
   long getLowValue();
 
   /**
-   * <code>optional int64 highValue = 2;</code>
+   * <code>optional int64 high_value = 2;</code>
    */
   boolean hasHighValue();
   /**
-   * <code>optional int64 highValue = 2;</code>
+   * <code>optional int64 high_value = 2;</code>
    */
   long getHighValue();
 
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   boolean hasNumNulls();
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   long getNumNulls();
 
   /**
-   * <code>optional int64 numDVs = 4;</code>
+   * <code>optional int64 num_distincts = 4;</code>
    */
-  boolean hasNumDVs();
+  boolean hasNumDistincts();
   /**
-   * <code>optional int64 numDVs = 4;</code>
+   * <code>optional int64 num_distincts = 4;</code>
    */
-  long getNumDVs();
+  long getNumDistincts();
 
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   boolean hasBitVectors();
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   java.lang.String getBitVectors();
   /**
-   * <code>optional string bitVectors = 5;</code>
+   * <code>optional string bit_vectors = 5;</code>
    */
   com.google.protobuf.ByteString
       getBitVectorsBytes();
