@@ -21,6 +21,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.Storage;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.table.AlluxioCatalog;
 import alluxio.master.table.Table;
@@ -80,7 +81,9 @@ public class TableMasterJournalIntegrationTest {
       when(udbTable.getParameters()).thenReturn(Collections.emptyMap());
       when(udbTable.getSchema()).thenReturn(Schema.getDefaultInstance());
       when(udbTable.getPartitions()).thenReturn(Arrays.asList(new HivePartition(
-          new HiveLayout(PartitionInfo.getDefaultInstance(), Collections.emptyList()))));
+          new HiveLayout(PartitionInfo.newBuilder().setDbName(DB_NAME)
+              .setTableName(tableName).setStorage(Storage.getDefaultInstance()).build(),
+              Collections.emptyList()))));
       when(udb.getTable(tableName)).thenReturn(udbTable);
     }
 
