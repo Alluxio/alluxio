@@ -233,5 +233,5 @@ a download URL (HTTP or S3 only).
 
 Generic client-side properties can also be edited via the bootstrap script as mentioned above.
 This is mostly for the native client (CLI).
-Property changes for a specific service like Presto/Hive should be done in the respective
-configuration file i.e. `core-site.xml`, `hive.catalog` via the EMR JSON entry-point.
+Property changes for a specific service like Presto/Hive should be done in the respective section
+of the EMR JSON configuration file i.e. `core-site.xml` or `hive.catalog`.
