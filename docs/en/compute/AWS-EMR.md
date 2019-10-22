@@ -172,7 +172,7 @@ an Alluxio install at /opt/alluxio then it will download, untar, and configure
 the environment at /opt/alluxio. If an install already exists at /opt/alluxio,
 nothing will be installed over it, even if -d is specified.
   
-If a different Alluxio version is desired, see the -d option.
+If a specific Alluxio tarball is desired, see the -d option.
   
   <root-ufs-uri>    (Required) The URI of the root UFS in the Alluxio
                     namespace.
