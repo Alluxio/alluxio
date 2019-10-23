@@ -8,11 +8,11 @@ public interface DateOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>required int64 daysSinceEpoch = 1;</code>
+   * <code>required int64 days_since_epoch = 1;</code>
    */
   boolean hasDaysSinceEpoch();
   /**
-   * <code>required int64 daysSinceEpoch = 1;</code>
+   * <code>required int64 days_since_epoch = 1;</code>
    */
   long getDaysSinceEpoch();
 }

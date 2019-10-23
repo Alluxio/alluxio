@@ -35,31 +35,6 @@ public final class TableMasterProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_table_Database_ParameterEntry_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_table_StorageFormat_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_table_StorageFormat_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_table_HiveBucketProperty_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_table_HiveBucketProperty_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_table_SortingColumn_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_table_SortingColumn_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_table_Storage_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_table_Storage_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_table_Storage_SerdeParametersEntry_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_table_Storage_SerdeParametersEntry_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_table_TableInfo_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -69,16 +44,6 @@ public final class TableMasterProto {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_table_TableInfo_ParametersEntry_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_table_PartitionInfo_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_table_PartitionInfo_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_table_PartitionInfo_ParametersEntry_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_table_PartitionInfo_ParametersEntry_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_table_LayoutSpec_descriptor;
   static final 
@@ -338,191 +303,169 @@ public final class TableMasterProto {
       "chema\022\n\n\002id\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\014\n\004type\030" +
       "\003 \001(\t\022\020\n\010optional\030\004 \001(\010\022\017\n\007comment\030\005 \001(\t" +
       "\"7\n\006Schema\022-\n\004cols\030\001 \003(\0132\037.alluxio.grpc." +
-      "table.FieldSchema\"\261\001\n\010Database\022\014\n\004name\030\001" +
-      " \001(\t\022\023\n\013description\030\002 \001(\t\022\020\n\010location\030\003 " +
-      "\001(\t\022>\n\tparameter\030\004 \003(\0132+.alluxio.grpc.ta" +
-      "ble.Database.ParameterEntry\0320\n\016Parameter" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"L\n" +
-      "\rStorageFormat\022\016\n\006ser_de\030\001 \001(\t\022\024\n\014input_" +
-      "format\030\002 \001(\t\022\025\n\routput_format\030\003 \001(\t\"u\n\022H" +
-      "iveBucketProperty\022\023\n\013bucketed_by\030\001 \003(\t\022\024" +
-      "\n\014bucket_count\030\002 \001(\003\0224\n\tsorted_by\030\003 \003(\0132" +
-      "!.alluxio.grpc.table.SortingColumn\"\222\001\n\rS" +
-      "ortingColumn\022\023\n\013column_name\030\001 \002(\t\022=\n\005ord" +
-      "er\030\002 \002(\0162..alluxio.grpc.table.SortingCol" +
-      "umn.SortingOrder\"-\n\014SortingOrder\022\r\n\tASCE" +
-      "NDING\020\000\022\016\n\nDESCENDING\020\001\"\253\002\n\007Storage\0229\n\016s" +
-      "torage_format\030\001 \001(\0132!.alluxio.grpc.table" +
-      ".StorageFormat\022\020\n\010location\030\002 \001(\t\022?\n\017buck" +
-      "et_property\030\003 \001(\0132&.alluxio.grpc.table.H" +
-      "iveBucketProperty\022\016\n\006skewed\030\004 \001(\010\022J\n\020ser" +
-      "de_parameters\030\005 \003(\01320.alluxio.grpc.table" +
-      ".Storage.SerdeParametersEntry\0326\n\024SerdePa" +
-      "rametersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001\"\244\003\n\tTableInfo\022\017\n\007db_name\030\001 \001(\t\022\022\n\n" +
-      "table_name\030\002 \001(\t\0225\n\004type\030\003 \001(\0162\'.alluxio" +
-      ".grpc.table.TableInfo.TableType\022\r\n\005owner" +
-      "\030\004 \001(\t\022*\n\006schema\030\005 \001(\0132\032.alluxio.grpc.ta" +
-      "ble.Schema\022*\n\006layout\030\006 \001(\0132\032.alluxio.grp" +
-      "c.table.Layout\022A\n\nparameters\030\007 \003(\0132-.all" +
-      "uxio.grpc.table.TableInfo.ParametersEntr" +
-      "y\0227\n\016partition_cols\030\010 \003(\0132\037.alluxio.grpc" +
-      ".table.FieldSchema\0321\n\017ParametersEntry\022\013\n" +
-      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"%\n\tTableTy" +
-      "pe\022\n\n\006NATIVE\020\000\022\014\n\010IMPORTED\020\001\"\264\002\n\rPartiti" +
-      "onInfo\022\016\n\006values\030\001 \003(\t\022\025\n\rpartitionName\030" +
-      "\002 \001(\t\022\016\n\006dbName\030\003 \001(\t\022\021\n\ttableName\030\004 \001(\t" +
-      "\022,\n\007storage\030\005 \001(\0132\033.alluxio.grpc.table.S" +
-      "torage\0221\n\010dataCols\030\006 \003(\0132\037.alluxio.grpc." +
-      "table.FieldSchema\022E\n\nparameters\030\007 \003(\01321." +
-      "alluxio.grpc.table.PartitionInfo.Paramet" +
-      "ersEntry\0321\n\017ParametersEntry\022\013\n\003key\030\001 \001(\t" +
-      "\022\r\n\005value\030\002 \001(\t:\0028\001\"\032\n\nLayoutSpec\022\014\n\004spe" +
-      "c\030\001 \001(\t\"\035\n\rPartitionSpec\022\014\n\004spec\030\001 \001(\t\"\362" +
-      "\001\n\006Layout\022\022\n\nlayoutType\030\001 \001(\t\0222\n\nlayoutS" +
-      "pec\030\002 \001(\0132\036.alluxio.grpc.table.LayoutSpe" +
-      "c\022\022\n\nlayoutData\030\003 \001(\014\0224\n\005stats\030\004 \003(\0132%.a" +
-      "lluxio.grpc.table.Layout.StatsEntry\032V\n\nS" +
-      "tatsEntry\022\013\n\003key\030\001 \001(\t\0227\n\005value\030\002 \001(\0132(." +
-      "alluxio.grpc.table.ColumnStatisticsInfo:" +
-      "\0028\001\"q\n\tPartition\0228\n\rpartitionSpec\030\001 \001(\0132" +
-      "!.alluxio.grpc.table.PartitionSpec\022*\n\006la" +
-      "yout\030\002 \001(\0132\032.alluxio.grpc.table.Layout\"r" +
-      "\n\024ColumnStatisticsInfo\022\020\n\010col_name\030\001 \001(\t" +
-      "\022\020\n\010col_type\030\002 \001(\t\0226\n\004data\030\003 \001(\0132(.allux" +
-      "io.grpc.table.ColumnStatisticsData\"\350\003\n\024C" +
-      "olumnStatisticsData\022B\n\014booleanStats\030\001 \001(" +
-      "\0132*.alluxio.grpc.table.BooleanColumnStat" +
-      "sDataH\000\022<\n\tlongStats\030\002 \001(\0132\'.alluxio.grp" +
-      "c.table.LongColumnStatsDataH\000\022@\n\013doubleS" +
-      "tats\030\003 \001(\0132).alluxio.grpc.table.DoubleCo" +
-      "lumnStatsDataH\000\022@\n\013stringStats\030\004 \001(\0132).a" +
-      "lluxio.grpc.table.StringColumnStatsDataH" +
-      "\000\022@\n\013binaryStats\030\005 \001(\0132).alluxio.grpc.ta" +
-      "ble.BinaryColumnStatsDataH\000\022B\n\014decimalSt" +
-      "ats\030\006 \001(\0132*.alluxio.grpc.table.DecimalCo" +
-      "lumnStatsDataH\000\022<\n\tdateStats\030\007 \001(\0132\'.all" +
-      "uxio.grpc.table.DateColumnStatsDataH\000B\006\n" +
-      "\004data\"c\n\026BooleanColumnStatsData\022\020\n\010numTr" +
-      "ues\030\001 \001(\003\022\021\n\tnumFalses\030\002 \001(\003\022\020\n\010numNulls" +
-      "\030\003 \001(\003\022\022\n\nbitVectors\030\004 \001(\t\"p\n\023LongColumn" +
-      "StatsData\022\020\n\010lowValue\030\001 \001(\003\022\021\n\thighValue" +
-      "\030\002 \001(\003\022\020\n\010numNulls\030\003 \001(\003\022\016\n\006numDVs\030\004 \001(\003" +
-      "\022\022\n\nbitVectors\030\005 \001(\t\"r\n\025DoubleColumnStat" +
-      "sData\022\020\n\010lowValue\030\001 \001(\001\022\021\n\thighValue\030\002 \001" +
-      "(\001\022\020\n\010numNulls\030\003 \001(\003\022\016\n\006numDVs\030\004 \001(\003\022\022\n\n" +
-      "bitVectors\030\005 \001(\t\"*\n\007Decimal\022\r\n\005scale\030\001 \002" +
-      "(\005\022\020\n\010unscaled\030\002 \002(\014\"\255\001\n\026DecimalColumnSt" +
-      "atsData\022-\n\010lowValue\030\001 \001(\0132\033.alluxio.grpc" +
-      ".table.Decimal\022.\n\thighValue\030\002 \001(\0132\033.allu" +
-      "xio.grpc.table.Decimal\022\020\n\010numNulls\030\003 \001(\003" +
-      "\022\016\n\006numDVs\030\004 \001(\003\022\022\n\nbitVectors\030\005 \001(\t\"s\n\025" +
-      "StringColumnStatsData\022\021\n\tmaxColLen\030\001 \001(\003" +
-      "\022\021\n\tavgColLen\030\002 \001(\001\022\020\n\010numNulls\030\003 \001(\003\022\016\n" +
-      "\006numDVs\030\004 \001(\003\022\022\n\nbitVectors\030\005 \001(\t\"c\n\025Bin" +
-      "aryColumnStatsData\022\021\n\tmaxColLen\030\001 \001(\003\022\021\n" +
-      "\tavgColLen\030\002 \001(\001\022\020\n\010numNulls\030\003 \001(\003\022\022\n\nbi" +
-      "tVectors\030\004 \001(\t\"\036\n\004Date\022\026\n\016daysSinceEpoch" +
-      "\030\001 \002(\003\"\244\001\n\023DateColumnStatsData\022*\n\010lowVal" +
-      "ue\030\001 \001(\0132\030.alluxio.grpc.table.Date\022+\n\thi" +
-      "ghValue\030\002 \001(\0132\030.alluxio.grpc.table.Date\022" +
-      "\020\n\010numNulls\030\003 \001(\003\022\016\n\006numDVs\030\004 \001(\003\022\022\n\nbit" +
-      "Vectors\030\005 \001(\t\"\031\n\027GetAllDatabasesPRequest" +
-      "\",\n\030GetAllDatabasesPResponse\022\020\n\010database" +
-      "\030\001 \003(\t\"(\n\024GetAllTablesPRequest\022\020\n\010databa" +
-      "se\030\001 \001(\t\"&\n\025GetAllTablesPResponse\022\r\n\005tab" +
-      "le\030\001 \003(\t\"&\n\023GetDatabasePRequest\022\017\n\007db_na" +
-      "me\030\001 \001(\t\"@\n\024GetDatabasePResponse\022(\n\002db\030\001" +
-      " \001(\0132\034.alluxio.grpc.table.Database\"7\n\020Ge" +
-      "tTablePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable" +
-      "_name\030\002 \001(\t\"F\n\021GetTablePResponse\0221\n\ntabl" +
-      "e_info\030\001 \001(\0132\035.alluxio.grpc.table.TableI" +
-      "nfo\"\346\001\n\026AttachDatabasePRequest\022\020\n\010udb_ty" +
-      "pe\030\001 \001(\t\022\032\n\022udb_connection_uri\030\002 \001(\t\022\023\n\013" +
-      "udb_db_name\030\003 \001(\t\022\017\n\007db_name\030\004 \001(\t\022H\n\007op" +
-      "tions\030\005 \003(\01327.alluxio.grpc.table.AttachD" +
-      "atabasePRequest.OptionsEntry\032.\n\014OptionsE" +
-      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"*\n\027" +
-      "AttachDatabasePResponse\022\017\n\007success\030\001 \001(\010" +
-      "\")\n\026DetachDatabasePRequest\022\017\n\007db_name\030\001 " +
-      "\001(\t\"*\n\027DetachDatabasePResponse\022\017\n\007succes" +
-      "s\030\001 \001(\010\"\251\001\n\016FileStatistics\022>\n\006column\030\001 \003" +
-      "(\0132..alluxio.grpc.table.FileStatistics.C" +
-      "olumnEntry\032W\n\013ColumnEntry\022\013\n\003key\030\001 \001(\t\0227" +
-      "\n\005value\030\002 \001(\0132(.alluxio.grpc.table.Colum" +
-      "nStatisticsInfo:\0028\001\"Z\n GetTableColumnSta" +
-      "tisticsPRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntabl" +
-      "e_name\030\002 \001(\t\022\021\n\tcol_names\030\003 \003(\t\"r\n$GetPa" +
-      "rtitionColumnStatisticsPRequest\022\017\n\007db_na" +
-      "me\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\021\n\tcol_name" +
-      "s\030\003 \003(\t\022\022\n\npart_names\030\004 \003(\t\"a\n!GetTableC" +
-      "olumnStatisticsPResponse\022<\n\nstatistics\030\001" +
-      " \003(\0132(.alluxio.grpc.table.ColumnStatisti" +
-      "csInfo\"T\n\024ColumnStatisticsList\022<\n\nstatis" +
-      "tics\030\001 \003(\0132(.alluxio.grpc.table.ColumnSt" +
-      "atisticsInfo\"\376\001\n%GetPartitionColumnStati" +
-      "sticsPResponse\022o\n\023partitionStatistics\030\001 " +
-      "\003(\0132R.alluxio.grpc.table.GetPartitionCol" +
-      "umnStatisticsPResponse.PartitionStatisti" +
-      "csEntry\032d\n\030PartitionStatisticsEntry\022\013\n\003k" +
-      "ey\030\001 \001(\t\0227\n\005value\030\002 \001(\0132(.alluxio.grpc.t" +
-      "able.ColumnStatisticsList:\0028\001\"k\n\005Value\022\023" +
-      "\n\tlong_type\030\001 \001(\003H\000\022\025\n\013double_type\030\002 \001(\001" +
-      "H\000\022\025\n\013string_type\030\003 \001(\tH\000\022\026\n\014boolean_typ" +
-      "e\030\004 \001(\010H\000B\007\n\005value\"X\n\005Range\022&\n\003low\030\001 \001(\013" +
-      "2\031.alluxio.grpc.table.Value\022\'\n\004high\030\002 \001(" +
-      "\0132\031.alluxio.grpc.table.Value\"5\n\010RangeSet" +
-      "\022)\n\006ranges\030\001 \003(\0132\031.alluxio.grpc.table.Ra" +
-      "nge\"V\n\021EquatableValueSet\022-\n\ncandidates\030\001" +
-      " \003(\0132\031.alluxio.grpc.table.Value\022\022\n\nwhite" +
-      "_list\030\002 \001(\010\"\033\n\014AllOrNoneSet\022\013\n\003all\030\001 \001(\010" +
-      "\"\271\001\n\006Domain\022-\n\005range\030\001 \001(\0132\034.alluxio.grp" +
-      "c.table.RangeSetH\000\022:\n\tequatable\030\002 \001(\0132%." +
-      "alluxio.grpc.table.EquatableValueSetH\000\0227" +
-      "\n\013all_or_none\030\003 \001(\0132 .alluxio.grpc.table" +
-      ".AllOrNoneSetH\000B\013\n\tvalue_set\"\265\001\n\nConstra" +
-      "int\022Q\n\022column_constraints\030\001 \003(\01325.alluxi" +
-      "o.grpc.table.Constraint.ColumnConstraint" +
-      "sEntry\032T\n\026ColumnConstraintsEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.alluxio.grpc.tabl" +
-      "e.Domain:\0028\001\"l\n\021ReadTablePRequest\022\017\n\007db_" +
-      "name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\0222\n\nconstr" +
-      "aint\030\003 \001(\0132\036.alluxio.grpc.table.Constrai" +
-      "nt\"G\n\022ReadTablePResponse\0221\n\npartitions\030\001" +
-      " \003(\0132\035.alluxio.grpc.table.Partition\"Q\n\026T" +
-      "ransformTablePRequest\022\017\n\007db_name\030\001 \001(\t\022\022" +
-      "\n\ntable_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\")" +
-      "\n\027TransformTablePResponse\022\016\n\006job_id\030\001 \001(" +
-      "\0032\345\010\n\030TableMasterClientService\022l\n\017GetAll" +
-      "Databases\022+.alluxio.grpc.table.GetAllDat" +
-      "abasesPRequest\032,.alluxio.grpc.table.GetA" +
-      "llDatabasesPResponse\022c\n\014GetAllTables\022(.a" +
-      "lluxio.grpc.table.GetAllTablesPRequest\032)" +
-      ".alluxio.grpc.table.GetAllTablesPRespons" +
-      "e\022`\n\013GetDatabase\022\'.alluxio.grpc.table.Ge" +
-      "tDatabasePRequest\032(.alluxio.grpc.table.G" +
-      "etDatabasePResponse\022W\n\010GetTable\022$.alluxi" +
-      "o.grpc.table.GetTablePRequest\032%.alluxio." +
-      "grpc.table.GetTablePResponse\022i\n\016AttachDa" +
-      "tabase\022*.alluxio.grpc.table.AttachDataba" +
-      "sePRequest\032+.alluxio.grpc.table.AttachDa" +
-      "tabasePResponse\022i\n\016DetachDatabase\022*.allu" +
-      "xio.grpc.table.DetachDatabasePRequest\032+." +
-      "alluxio.grpc.table.DetachDatabasePRespon" +
-      "se\022\207\001\n\030GetTableColumnStatistics\0224.alluxi" +
-      "o.grpc.table.GetTableColumnStatisticsPRe" +
-      "quest\0325.alluxio.grpc.table.GetTableColum" +
-      "nStatisticsPResponse\022\223\001\n\034GetPartitionCol" +
-      "umnStatistics\0228.alluxio.grpc.table.GetPa" +
-      "rtitionColumnStatisticsPRequest\0329.alluxi" +
-      "o.grpc.table.GetPartitionColumnStatistic" +
-      "sPResponse\022Z\n\tReadTable\022%.alluxio.grpc.t" +
-      "able.ReadTablePRequest\032&.alluxio.grpc.ta" +
-      "ble.ReadTablePResponse\022i\n\016TransformTable" +
-      "\022*.alluxio.grpc.table.TransformTablePReq" +
-      "uest\032+.alluxio.grpc.table.TransformTable" +
-      "PResponseB(\n\022alluxio.grpc.tableB\020TableMa" +
-      "sterProtoP\001"
+      "table.FieldSchema\"\264\001\n\010Database\022\017\n\007db_nam" +
+      "e\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022\020\n\010location" +
+      "\030\003 \001(\t\022>\n\tparameter\030\004 \003(\0132+.alluxio.grpc" +
+      ".table.Database.ParameterEntry\0320\n\016Parame" +
+      "terEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001" +
+      "\"\244\003\n\tTableInfo\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable" +
+      "_name\030\002 \001(\t\0225\n\004type\030\003 \001(\0162\'.alluxio.grpc" +
+      ".table.TableInfo.TableType\022\r\n\005owner\030\004 \001(" +
+      "\t\022*\n\006schema\030\005 \001(\0132\032.alluxio.grpc.table.S" +
+      "chema\022*\n\006layout\030\006 \001(\0132\032.alluxio.grpc.tab" +
+      "le.Layout\022A\n\nparameters\030\007 \003(\0132-.alluxio." +
+      "grpc.table.TableInfo.ParametersEntry\0227\n\016" +
+      "partition_cols\030\010 \003(\0132\037.alluxio.grpc.tabl" +
+      "e.FieldSchema\0321\n\017ParametersEntry\022\013\n\003key\030" +
+      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"%\n\tTableType\022\n\n" +
+      "\006NATIVE\020\000\022\014\n\010IMPORTED\020\001\"\032\n\nLayoutSpec\022\014\n" +
+      "\004spec\030\001 \001(\t\"\035\n\rPartitionSpec\022\014\n\004spec\030\001 \001" +
+      "(\t\"\365\001\n\006Layout\022\023\n\013layout_type\030\001 \001(\t\0223\n\013la" +
+      "yout_spec\030\002 \001(\0132\036.alluxio.grpc.table.Lay" +
+      "outSpec\022\023\n\013layout_data\030\003 \001(\014\0224\n\005stats\030\004 " +
+      "\003(\0132%.alluxio.grpc.table.Layout.StatsEnt" +
+      "ry\032V\n\nStatsEntry\022\013\n\003key\030\001 \001(\t\0227\n\005value\030\002" +
+      " \001(\0132(.alluxio.grpc.table.ColumnStatisti" +
+      "csInfo:\0028\001\"r\n\tPartition\0229\n\016partition_spe" +
+      "c\030\001 \001(\0132!.alluxio.grpc.table.PartitionSp" +
+      "ec\022*\n\006layout\030\002 \001(\0132\032.alluxio.grpc.table." +
+      "Layout\"r\n\024ColumnStatisticsInfo\022\020\n\010col_na" +
+      "me\030\001 \001(\t\022\020\n\010col_type\030\002 \001(\t\0226\n\004data\030\003 \001(\013" +
+      "2(.alluxio.grpc.table.ColumnStatisticsDa" +
+      "ta\"\357\003\n\024ColumnStatisticsData\022C\n\rboolean_s" +
+      "tats\030\001 \001(\0132*.alluxio.grpc.table.BooleanC" +
+      "olumnStatsDataH\000\022=\n\nlong_stats\030\002 \001(\0132\'.a" +
+      "lluxio.grpc.table.LongColumnStatsDataH\000\022" +
+      "A\n\014double_stats\030\003 \001(\0132).alluxio.grpc.tab" +
+      "le.DoubleColumnStatsDataH\000\022A\n\014string_sta" +
+      "ts\030\004 \001(\0132).alluxio.grpc.table.StringColu" +
+      "mnStatsDataH\000\022A\n\014binary_stats\030\005 \001(\0132).al" +
+      "luxio.grpc.table.BinaryColumnStatsDataH\000" +
+      "\022C\n\rdecimal_stats\030\006 \001(\0132*.alluxio.grpc.t" +
+      "able.DecimalColumnStatsDataH\000\022=\n\ndate_st" +
+      "ats\030\007 \001(\0132\'.alluxio.grpc.table.DateColum" +
+      "nStatsDataH\000B\006\n\004data\"g\n\026BooleanColumnSta" +
+      "tsData\022\021\n\tnum_trues\030\001 \001(\003\022\022\n\nnum_falses\030" +
+      "\002 \001(\003\022\021\n\tnum_nulls\030\003 \001(\003\022\023\n\013bit_vectors\030" +
+      "\004 \001(\t\"{\n\023LongColumnStatsData\022\021\n\tlow_valu" +
+      "e\030\001 \001(\003\022\022\n\nhigh_value\030\002 \001(\003\022\021\n\tnum_nulls" +
+      "\030\003 \001(\003\022\025\n\rnum_distincts\030\004 \001(\003\022\023\n\013bit_vec" +
+      "tors\030\005 \001(\t\"}\n\025DoubleColumnStatsData\022\021\n\tl" +
+      "ow_value\030\001 \001(\001\022\022\n\nhigh_value\030\002 \001(\001\022\021\n\tnu" +
+      "m_nulls\030\003 \001(\003\022\025\n\rnum_distincts\030\004 \001(\003\022\023\n\013" +
+      "bit_vectors\030\005 \001(\t\"*\n\007Decimal\022\r\n\005scale\030\001 " +
+      "\002(\005\022\020\n\010unscaled\030\002 \002(\014\"\270\001\n\026DecimalColumnS" +
+      "tatsData\022.\n\tlow_value\030\001 \001(\0132\033.alluxio.gr" +
+      "pc.table.Decimal\022/\n\nhigh_value\030\002 \001(\0132\033.a" +
+      "lluxio.grpc.table.Decimal\022\021\n\tnum_nulls\030\003" +
+      " \001(\003\022\025\n\rnum_distincts\030\004 \001(\003\022\023\n\013bit_vecto" +
+      "rs\030\005 \001(\t\"\200\001\n\025StringColumnStatsData\022\023\n\013ma" +
+      "x_col_len\030\001 \001(\003\022\023\n\013avg_col_len\030\002 \001(\001\022\021\n\t" +
+      "num_nulls\030\003 \001(\003\022\025\n\rnum_distincts\030\004 \001(\003\022\023" +
+      "\n\013bit_vectors\030\005 \001(\t\"i\n\025BinaryColumnStats" +
+      "Data\022\023\n\013max_col_len\030\001 \001(\003\022\023\n\013avg_col_len" +
+      "\030\002 \001(\001\022\021\n\tnum_nulls\030\003 \001(\003\022\023\n\013bit_vectors" +
+      "\030\004 \001(\t\" \n\004Date\022\030\n\020days_since_epoch\030\001 \002(\003" +
+      "\"\257\001\n\023DateColumnStatsData\022+\n\tlow_value\030\001 " +
+      "\001(\0132\030.alluxio.grpc.table.Date\022,\n\nhigh_va" +
+      "lue\030\002 \001(\0132\030.alluxio.grpc.table.Date\022\021\n\tn" +
+      "um_nulls\030\003 \001(\003\022\025\n\rnum_distincts\030\004 \001(\003\022\023\n" +
+      "\013bit_vectors\030\005 \001(\t\"\031\n\027GetAllDatabasesPRe" +
+      "quest\",\n\030GetAllDatabasesPResponse\022\020\n\010dat" +
+      "abase\030\001 \003(\t\"(\n\024GetAllTablesPRequest\022\020\n\010d" +
+      "atabase\030\001 \001(\t\"&\n\025GetAllTablesPResponse\022\r" +
+      "\n\005table\030\001 \003(\t\"&\n\023GetDatabasePRequest\022\017\n\007" +
+      "db_name\030\001 \001(\t\"@\n\024GetDatabasePResponse\022(\n" +
+      "\002db\030\001 \001(\0132\034.alluxio.grpc.table.Database\"" +
+      "7\n\020GetTablePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\n" +
+      "table_name\030\002 \001(\t\"F\n\021GetTablePResponse\0221\n" +
+      "\ntable_info\030\001 \001(\0132\035.alluxio.grpc.table.T" +
+      "ableInfo\"\346\001\n\026AttachDatabasePRequest\022\020\n\010u" +
+      "db_type\030\001 \001(\t\022\032\n\022udb_connection_uri\030\002 \001(" +
+      "\t\022\023\n\013udb_db_name\030\003 \001(\t\022\017\n\007db_name\030\004 \001(\t\022" +
+      "H\n\007options\030\005 \003(\01327.alluxio.grpc.table.At" +
+      "tachDatabasePRequest.OptionsEntry\032.\n\014Opt" +
+      "ionsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
+      "\001\"*\n\027AttachDatabasePResponse\022\017\n\007success\030" +
+      "\001 \001(\010\")\n\026DetachDatabasePRequest\022\017\n\007db_na" +
+      "me\030\001 \001(\t\"*\n\027DetachDatabasePResponse\022\017\n\007s" +
+      "uccess\030\001 \001(\010\"\251\001\n\016FileStatistics\022>\n\006colum" +
+      "n\030\001 \003(\0132..alluxio.grpc.table.FileStatist" +
+      "ics.ColumnEntry\032W\n\013ColumnEntry\022\013\n\003key\030\001 " +
+      "\001(\t\0227\n\005value\030\002 \001(\0132(.alluxio.grpc.table." +
+      "ColumnStatisticsInfo:\0028\001\"Z\n GetTableColu" +
+      "mnStatisticsPRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n" +
+      "\ntable_name\030\002 \001(\t\022\021\n\tcol_names\030\003 \003(\t\"r\n$" +
+      "GetPartitionColumnStatisticsPRequest\022\017\n\007" +
+      "db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\021\n\tcol" +
+      "_names\030\003 \003(\t\022\022\n\npart_names\030\004 \003(\t\"a\n!GetT" +
+      "ableColumnStatisticsPResponse\022<\n\nstatist" +
+      "ics\030\001 \003(\0132(.alluxio.grpc.table.ColumnSta" +
+      "tisticsInfo\"T\n\024ColumnStatisticsList\022<\n\ns" +
+      "tatistics\030\001 \003(\0132(.alluxio.grpc.table.Col" +
+      "umnStatisticsInfo\"\377\001\n%GetPartitionColumn" +
+      "StatisticsPResponse\022p\n\024partition_statist" +
+      "ics\030\001 \003(\0132R.alluxio.grpc.table.GetPartit" +
+      "ionColumnStatisticsPResponse.PartitionSt" +
+      "atisticsEntry\032d\n\030PartitionStatisticsEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\0227\n\005value\030\002 \001(\0132(.alluxio." +
+      "grpc.table.ColumnStatisticsList:\0028\001\"k\n\005V" +
+      "alue\022\023\n\tlong_type\030\001 \001(\003H\000\022\025\n\013double_type" +
+      "\030\002 \001(\001H\000\022\025\n\013string_type\030\003 \001(\tH\000\022\026\n\014boole" +
+      "an_type\030\004 \001(\010H\000B\007\n\005value\"X\n\005Range\022&\n\003low" +
+      "\030\001 \001(\0132\031.alluxio.grpc.table.Value\022\'\n\004hig" +
+      "h\030\002 \001(\0132\031.alluxio.grpc.table.Value\"5\n\010Ra" +
+      "ngeSet\022)\n\006ranges\030\001 \003(\0132\031.alluxio.grpc.ta" +
+      "ble.Range\"V\n\021EquatableValueSet\022-\n\ncandid" +
+      "ates\030\001 \003(\0132\031.alluxio.grpc.table.Value\022\022\n" +
+      "\nwhite_list\030\002 \001(\010\"\033\n\014AllOrNoneSet\022\013\n\003all" +
+      "\030\001 \001(\010\"\271\001\n\006Domain\022-\n\005range\030\001 \001(\0132\034.allux" +
+      "io.grpc.table.RangeSetH\000\022:\n\tequatable\030\002 " +
+      "\001(\0132%.alluxio.grpc.table.EquatableValueS" +
+      "etH\000\0227\n\013all_or_none\030\003 \001(\0132 .alluxio.grpc" +
+      ".table.AllOrNoneSetH\000B\013\n\tvalue_set\"\265\001\n\nC" +
+      "onstraint\022Q\n\022column_constraints\030\001 \003(\01325." +
+      "alluxio.grpc.table.Constraint.ColumnCons" +
+      "traintsEntry\032T\n\026ColumnConstraintsEntry\022\013" +
+      "\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.alluxio.grp" +
+      "c.table.Domain:\0028\001\"l\n\021ReadTablePRequest\022" +
+      "\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\0222\n\n" +
+      "constraint\030\003 \001(\0132\036.alluxio.grpc.table.Co" +
+      "nstraint\"G\n\022ReadTablePResponse\0221\n\npartit" +
+      "ions\030\001 \003(\0132\035.alluxio.grpc.table.Partitio" +
+      "n\"Q\n\026TransformTablePRequest\022\017\n\007db_name\030\001" +
+      " \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\022\n\ndefinition\030\003" +
+      " \001(\t\")\n\027TransformTablePResponse\022\016\n\006job_i" +
+      "d\030\001 \001(\0032\345\010\n\030TableMasterClientService\022l\n\017" +
+      "GetAllDatabases\022+.alluxio.grpc.table.Get" +
+      "AllDatabasesPRequest\032,.alluxio.grpc.tabl" +
+      "e.GetAllDatabasesPResponse\022c\n\014GetAllTabl" +
+      "es\022(.alluxio.grpc.table.GetAllTablesPReq" +
+      "uest\032).alluxio.grpc.table.GetAllTablesPR" +
+      "esponse\022`\n\013GetDatabase\022\'.alluxio.grpc.ta" +
+      "ble.GetDatabasePRequest\032(.alluxio.grpc.t" +
+      "able.GetDatabasePResponse\022W\n\010GetTable\022$." +
+      "alluxio.grpc.table.GetTablePRequest\032%.al" +
+      "luxio.grpc.table.GetTablePResponse\022i\n\016At" +
+      "tachDatabase\022*.alluxio.grpc.table.Attach" +
+      "DatabasePRequest\032+.alluxio.grpc.table.At" +
+      "tachDatabasePResponse\022i\n\016DetachDatabase\022" +
+      "*.alluxio.grpc.table.DetachDatabasePRequ" +
+      "est\032+.alluxio.grpc.table.DetachDatabaseP" +
+      "Response\022\207\001\n\030GetTableColumnStatistics\0224." +
+      "alluxio.grpc.table.GetTableColumnStatist" +
+      "icsPRequest\0325.alluxio.grpc.table.GetTabl" +
+      "eColumnStatisticsPResponse\022\223\001\n\034GetPartit" +
+      "ionColumnStatistics\0228.alluxio.grpc.table" +
+      ".GetPartitionColumnStatisticsPRequest\0329." +
+      "alluxio.grpc.table.GetPartitionColumnSta" +
+      "tisticsPResponse\022Z\n\tReadTable\022%.alluxio." +
+      "grpc.table.ReadTablePRequest\032&.alluxio.g" +
+      "rpc.table.ReadTablePResponse\022i\n\016Transfor" +
+      "mTable\022*.alluxio.grpc.table.TransformTab" +
+      "lePRequest\032+.alluxio.grpc.table.Transfor" +
+      "mTablePResponseB(\n\022alluxio.grpc.tableB\020T" +
+      "ableMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -554,45 +497,15 @@ public final class TableMasterProto {
     internal_static_alluxio_grpc_table_Database_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Database_descriptor,
-        new java.lang.String[] { "Name", "Description", "Location", "Parameter", });
+        new java.lang.String[] { "DbName", "Description", "Location", "Parameter", });
     internal_static_alluxio_grpc_table_Database_ParameterEntry_descriptor =
       internal_static_alluxio_grpc_table_Database_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_grpc_table_Database_ParameterEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Database_ParameterEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_alluxio_grpc_table_StorageFormat_descriptor =
-      getDescriptor().getMessageTypes().get(3);
-    internal_static_alluxio_grpc_table_StorageFormat_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_table_StorageFormat_descriptor,
-        new java.lang.String[] { "SerDe", "InputFormat", "OutputFormat", });
-    internal_static_alluxio_grpc_table_HiveBucketProperty_descriptor =
-      getDescriptor().getMessageTypes().get(4);
-    internal_static_alluxio_grpc_table_HiveBucketProperty_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_table_HiveBucketProperty_descriptor,
-        new java.lang.String[] { "BucketedBy", "BucketCount", "SortedBy", });
-    internal_static_alluxio_grpc_table_SortingColumn_descriptor =
-      getDescriptor().getMessageTypes().get(5);
-    internal_static_alluxio_grpc_table_SortingColumn_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_table_SortingColumn_descriptor,
-        new java.lang.String[] { "ColumnName", "Order", });
-    internal_static_alluxio_grpc_table_Storage_descriptor =
-      getDescriptor().getMessageTypes().get(6);
-    internal_static_alluxio_grpc_table_Storage_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_table_Storage_descriptor,
-        new java.lang.String[] { "StorageFormat", "Location", "BucketProperty", "Skewed", "SerdeParameters", });
-    internal_static_alluxio_grpc_table_Storage_SerdeParametersEntry_descriptor =
-      internal_static_alluxio_grpc_table_Storage_descriptor.getNestedTypes().get(0);
-    internal_static_alluxio_grpc_table_Storage_SerdeParametersEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_table_Storage_SerdeParametersEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_table_TableInfo_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_alluxio_grpc_table_TableInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_TableInfo_descriptor,
@@ -603,32 +516,20 @@ public final class TableMasterProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_TableInfo_ParametersEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_alluxio_grpc_table_PartitionInfo_descriptor =
-      getDescriptor().getMessageTypes().get(8);
-    internal_static_alluxio_grpc_table_PartitionInfo_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_table_PartitionInfo_descriptor,
-        new java.lang.String[] { "Values", "PartitionName", "DbName", "TableName", "Storage", "DataCols", "Parameters", });
-    internal_static_alluxio_grpc_table_PartitionInfo_ParametersEntry_descriptor =
-      internal_static_alluxio_grpc_table_PartitionInfo_descriptor.getNestedTypes().get(0);
-    internal_static_alluxio_grpc_table_PartitionInfo_ParametersEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_table_PartitionInfo_ParametersEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_table_LayoutSpec_descriptor =
-      getDescriptor().getMessageTypes().get(9);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_alluxio_grpc_table_LayoutSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_LayoutSpec_descriptor,
         new java.lang.String[] { "Spec", });
     internal_static_alluxio_grpc_table_PartitionSpec_descriptor =
-      getDescriptor().getMessageTypes().get(10);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_grpc_table_PartitionSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_PartitionSpec_descriptor,
         new java.lang.String[] { "Spec", });
     internal_static_alluxio_grpc_table_Layout_descriptor =
-      getDescriptor().getMessageTypes().get(11);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_alluxio_grpc_table_Layout_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Layout_descriptor,
@@ -640,127 +541,127 @@ public final class TableMasterProto {
         internal_static_alluxio_grpc_table_Layout_StatsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_table_Partition_descriptor =
-      getDescriptor().getMessageTypes().get(12);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_alluxio_grpc_table_Partition_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Partition_descriptor,
         new java.lang.String[] { "PartitionSpec", "Layout", });
     internal_static_alluxio_grpc_table_ColumnStatisticsInfo_descriptor =
-      getDescriptor().getMessageTypes().get(13);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_alluxio_grpc_table_ColumnStatisticsInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_ColumnStatisticsInfo_descriptor,
         new java.lang.String[] { "ColName", "ColType", "Data", });
     internal_static_alluxio_grpc_table_ColumnStatisticsData_descriptor =
-      getDescriptor().getMessageTypes().get(14);
+      getDescriptor().getMessageTypes().get(9);
     internal_static_alluxio_grpc_table_ColumnStatisticsData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_ColumnStatisticsData_descriptor,
         new java.lang.String[] { "BooleanStats", "LongStats", "DoubleStats", "StringStats", "BinaryStats", "DecimalStats", "DateStats", "Data", });
     internal_static_alluxio_grpc_table_BooleanColumnStatsData_descriptor =
-      getDescriptor().getMessageTypes().get(15);
+      getDescriptor().getMessageTypes().get(10);
     internal_static_alluxio_grpc_table_BooleanColumnStatsData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_BooleanColumnStatsData_descriptor,
         new java.lang.String[] { "NumTrues", "NumFalses", "NumNulls", "BitVectors", });
     internal_static_alluxio_grpc_table_LongColumnStatsData_descriptor =
-      getDescriptor().getMessageTypes().get(16);
+      getDescriptor().getMessageTypes().get(11);
     internal_static_alluxio_grpc_table_LongColumnStatsData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_LongColumnStatsData_descriptor,
-        new java.lang.String[] { "LowValue", "HighValue", "NumNulls", "NumDVs", "BitVectors", });
+        new java.lang.String[] { "LowValue", "HighValue", "NumNulls", "NumDistincts", "BitVectors", });
     internal_static_alluxio_grpc_table_DoubleColumnStatsData_descriptor =
-      getDescriptor().getMessageTypes().get(17);
+      getDescriptor().getMessageTypes().get(12);
     internal_static_alluxio_grpc_table_DoubleColumnStatsData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_DoubleColumnStatsData_descriptor,
-        new java.lang.String[] { "LowValue", "HighValue", "NumNulls", "NumDVs", "BitVectors", });
+        new java.lang.String[] { "LowValue", "HighValue", "NumNulls", "NumDistincts", "BitVectors", });
     internal_static_alluxio_grpc_table_Decimal_descriptor =
-      getDescriptor().getMessageTypes().get(18);
+      getDescriptor().getMessageTypes().get(13);
     internal_static_alluxio_grpc_table_Decimal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Decimal_descriptor,
         new java.lang.String[] { "Scale", "Unscaled", });
     internal_static_alluxio_grpc_table_DecimalColumnStatsData_descriptor =
-      getDescriptor().getMessageTypes().get(19);
+      getDescriptor().getMessageTypes().get(14);
     internal_static_alluxio_grpc_table_DecimalColumnStatsData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_DecimalColumnStatsData_descriptor,
-        new java.lang.String[] { "LowValue", "HighValue", "NumNulls", "NumDVs", "BitVectors", });
+        new java.lang.String[] { "LowValue", "HighValue", "NumNulls", "NumDistincts", "BitVectors", });
     internal_static_alluxio_grpc_table_StringColumnStatsData_descriptor =
-      getDescriptor().getMessageTypes().get(20);
+      getDescriptor().getMessageTypes().get(15);
     internal_static_alluxio_grpc_table_StringColumnStatsData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_StringColumnStatsData_descriptor,
-        new java.lang.String[] { "MaxColLen", "AvgColLen", "NumNulls", "NumDVs", "BitVectors", });
+        new java.lang.String[] { "MaxColLen", "AvgColLen", "NumNulls", "NumDistincts", "BitVectors", });
     internal_static_alluxio_grpc_table_BinaryColumnStatsData_descriptor =
-      getDescriptor().getMessageTypes().get(21);
+      getDescriptor().getMessageTypes().get(16);
     internal_static_alluxio_grpc_table_BinaryColumnStatsData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_BinaryColumnStatsData_descriptor,
         new java.lang.String[] { "MaxColLen", "AvgColLen", "NumNulls", "BitVectors", });
     internal_static_alluxio_grpc_table_Date_descriptor =
-      getDescriptor().getMessageTypes().get(22);
+      getDescriptor().getMessageTypes().get(17);
     internal_static_alluxio_grpc_table_Date_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Date_descriptor,
         new java.lang.String[] { "DaysSinceEpoch", });
     internal_static_alluxio_grpc_table_DateColumnStatsData_descriptor =
-      getDescriptor().getMessageTypes().get(23);
+      getDescriptor().getMessageTypes().get(18);
     internal_static_alluxio_grpc_table_DateColumnStatsData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_DateColumnStatsData_descriptor,
-        new java.lang.String[] { "LowValue", "HighValue", "NumNulls", "NumDVs", "BitVectors", });
+        new java.lang.String[] { "LowValue", "HighValue", "NumNulls", "NumDistincts", "BitVectors", });
     internal_static_alluxio_grpc_table_GetAllDatabasesPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(24);
+      getDescriptor().getMessageTypes().get(19);
     internal_static_alluxio_grpc_table_GetAllDatabasesPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetAllDatabasesPRequest_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_table_GetAllDatabasesPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(25);
+      getDescriptor().getMessageTypes().get(20);
     internal_static_alluxio_grpc_table_GetAllDatabasesPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetAllDatabasesPResponse_descriptor,
         new java.lang.String[] { "Database", });
     internal_static_alluxio_grpc_table_GetAllTablesPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(26);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_alluxio_grpc_table_GetAllTablesPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetAllTablesPRequest_descriptor,
         new java.lang.String[] { "Database", });
     internal_static_alluxio_grpc_table_GetAllTablesPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(27);
+      getDescriptor().getMessageTypes().get(22);
     internal_static_alluxio_grpc_table_GetAllTablesPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetAllTablesPResponse_descriptor,
         new java.lang.String[] { "Table", });
     internal_static_alluxio_grpc_table_GetDatabasePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(28);
+      getDescriptor().getMessageTypes().get(23);
     internal_static_alluxio_grpc_table_GetDatabasePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetDatabasePRequest_descriptor,
         new java.lang.String[] { "DbName", });
     internal_static_alluxio_grpc_table_GetDatabasePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(29);
+      getDescriptor().getMessageTypes().get(24);
     internal_static_alluxio_grpc_table_GetDatabasePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetDatabasePResponse_descriptor,
         new java.lang.String[] { "Db", });
     internal_static_alluxio_grpc_table_GetTablePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(30);
+      getDescriptor().getMessageTypes().get(25);
     internal_static_alluxio_grpc_table_GetTablePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetTablePRequest_descriptor,
         new java.lang.String[] { "DbName", "TableName", });
     internal_static_alluxio_grpc_table_GetTablePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(31);
+      getDescriptor().getMessageTypes().get(26);
     internal_static_alluxio_grpc_table_GetTablePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetTablePResponse_descriptor,
         new java.lang.String[] { "TableInfo", });
     internal_static_alluxio_grpc_table_AttachDatabasePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(32);
+      getDescriptor().getMessageTypes().get(27);
     internal_static_alluxio_grpc_table_AttachDatabasePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_AttachDatabasePRequest_descriptor,
@@ -772,25 +673,25 @@ public final class TableMasterProto {
         internal_static_alluxio_grpc_table_AttachDatabasePRequest_OptionsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_table_AttachDatabasePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(33);
+      getDescriptor().getMessageTypes().get(28);
     internal_static_alluxio_grpc_table_AttachDatabasePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_AttachDatabasePResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_alluxio_grpc_table_DetachDatabasePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(34);
+      getDescriptor().getMessageTypes().get(29);
     internal_static_alluxio_grpc_table_DetachDatabasePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_DetachDatabasePRequest_descriptor,
         new java.lang.String[] { "DbName", });
     internal_static_alluxio_grpc_table_DetachDatabasePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(35);
+      getDescriptor().getMessageTypes().get(30);
     internal_static_alluxio_grpc_table_DetachDatabasePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_DetachDatabasePResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_alluxio_grpc_table_FileStatistics_descriptor =
-      getDescriptor().getMessageTypes().get(36);
+      getDescriptor().getMessageTypes().get(31);
     internal_static_alluxio_grpc_table_FileStatistics_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_FileStatistics_descriptor,
@@ -802,31 +703,31 @@ public final class TableMasterProto {
         internal_static_alluxio_grpc_table_FileStatistics_ColumnEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_table_GetTableColumnStatisticsPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(37);
+      getDescriptor().getMessageTypes().get(32);
     internal_static_alluxio_grpc_table_GetTableColumnStatisticsPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetTableColumnStatisticsPRequest_descriptor,
         new java.lang.String[] { "DbName", "TableName", "ColNames", });
     internal_static_alluxio_grpc_table_GetPartitionColumnStatisticsPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(38);
+      getDescriptor().getMessageTypes().get(33);
     internal_static_alluxio_grpc_table_GetPartitionColumnStatisticsPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetPartitionColumnStatisticsPRequest_descriptor,
         new java.lang.String[] { "DbName", "TableName", "ColNames", "PartNames", });
     internal_static_alluxio_grpc_table_GetTableColumnStatisticsPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(39);
+      getDescriptor().getMessageTypes().get(34);
     internal_static_alluxio_grpc_table_GetTableColumnStatisticsPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetTableColumnStatisticsPResponse_descriptor,
         new java.lang.String[] { "Statistics", });
     internal_static_alluxio_grpc_table_ColumnStatisticsList_descriptor =
-      getDescriptor().getMessageTypes().get(40);
+      getDescriptor().getMessageTypes().get(35);
     internal_static_alluxio_grpc_table_ColumnStatisticsList_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_ColumnStatisticsList_descriptor,
         new java.lang.String[] { "Statistics", });
     internal_static_alluxio_grpc_table_GetPartitionColumnStatisticsPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(41);
+      getDescriptor().getMessageTypes().get(36);
     internal_static_alluxio_grpc_table_GetPartitionColumnStatisticsPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_GetPartitionColumnStatisticsPResponse_descriptor,
@@ -838,43 +739,43 @@ public final class TableMasterProto {
         internal_static_alluxio_grpc_table_GetPartitionColumnStatisticsPResponse_PartitionStatisticsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_table_Value_descriptor =
-      getDescriptor().getMessageTypes().get(42);
+      getDescriptor().getMessageTypes().get(37);
     internal_static_alluxio_grpc_table_Value_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Value_descriptor,
         new java.lang.String[] { "LongType", "DoubleType", "StringType", "BooleanType", "Value", });
     internal_static_alluxio_grpc_table_Range_descriptor =
-      getDescriptor().getMessageTypes().get(43);
+      getDescriptor().getMessageTypes().get(38);
     internal_static_alluxio_grpc_table_Range_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Range_descriptor,
         new java.lang.String[] { "Low", "High", });
     internal_static_alluxio_grpc_table_RangeSet_descriptor =
-      getDescriptor().getMessageTypes().get(44);
+      getDescriptor().getMessageTypes().get(39);
     internal_static_alluxio_grpc_table_RangeSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_RangeSet_descriptor,
         new java.lang.String[] { "Ranges", });
     internal_static_alluxio_grpc_table_EquatableValueSet_descriptor =
-      getDescriptor().getMessageTypes().get(45);
+      getDescriptor().getMessageTypes().get(40);
     internal_static_alluxio_grpc_table_EquatableValueSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_EquatableValueSet_descriptor,
         new java.lang.String[] { "Candidates", "WhiteList", });
     internal_static_alluxio_grpc_table_AllOrNoneSet_descriptor =
-      getDescriptor().getMessageTypes().get(46);
+      getDescriptor().getMessageTypes().get(41);
     internal_static_alluxio_grpc_table_AllOrNoneSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_AllOrNoneSet_descriptor,
         new java.lang.String[] { "All", });
     internal_static_alluxio_grpc_table_Domain_descriptor =
-      getDescriptor().getMessageTypes().get(47);
+      getDescriptor().getMessageTypes().get(42);
     internal_static_alluxio_grpc_table_Domain_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Domain_descriptor,
         new java.lang.String[] { "Range", "Equatable", "AllOrNone", "ValueSet", });
     internal_static_alluxio_grpc_table_Constraint_descriptor =
-      getDescriptor().getMessageTypes().get(48);
+      getDescriptor().getMessageTypes().get(43);
     internal_static_alluxio_grpc_table_Constraint_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_Constraint_descriptor,
@@ -886,25 +787,25 @@ public final class TableMasterProto {
         internal_static_alluxio_grpc_table_Constraint_ColumnConstraintsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_table_ReadTablePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(49);
+      getDescriptor().getMessageTypes().get(44);
     internal_static_alluxio_grpc_table_ReadTablePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_ReadTablePRequest_descriptor,
         new java.lang.String[] { "DbName", "TableName", "Constraint", });
     internal_static_alluxio_grpc_table_ReadTablePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(50);
+      getDescriptor().getMessageTypes().get(45);
     internal_static_alluxio_grpc_table_ReadTablePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_ReadTablePResponse_descriptor,
         new java.lang.String[] { "Partitions", });
     internal_static_alluxio_grpc_table_TransformTablePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(51);
+      getDescriptor().getMessageTypes().get(46);
     internal_static_alluxio_grpc_table_TransformTablePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_TransformTablePRequest_descriptor,
         new java.lang.String[] { "DbName", "TableName", "Definition", });
     internal_static_alluxio_grpc_table_TransformTablePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(52);
+      getDescriptor().getMessageTypes().get(47);
     internal_static_alluxio_grpc_table_TransformTablePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_TransformTablePResponse_descriptor,

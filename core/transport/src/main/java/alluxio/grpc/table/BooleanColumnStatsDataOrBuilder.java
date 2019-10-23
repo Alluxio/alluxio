@@ -8,42 +8,42 @@ public interface BooleanColumnStatsDataOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional int64 numTrues = 1;</code>
+   * <code>optional int64 num_trues = 1;</code>
    */
   boolean hasNumTrues();
   /**
-   * <code>optional int64 numTrues = 1;</code>
+   * <code>optional int64 num_trues = 1;</code>
    */
   long getNumTrues();
 
   /**
-   * <code>optional int64 numFalses = 2;</code>
+   * <code>optional int64 num_falses = 2;</code>
    */
   boolean hasNumFalses();
   /**
-   * <code>optional int64 numFalses = 2;</code>
+   * <code>optional int64 num_falses = 2;</code>
    */
   long getNumFalses();
 
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   boolean hasNumNulls();
   /**
-   * <code>optional int64 numNulls = 3;</code>
+   * <code>optional int64 num_nulls = 3;</code>
    */
   long getNumNulls();
 
   /**
-   * <code>optional string bitVectors = 4;</code>
+   * <code>optional string bit_vectors = 4;</code>
    */
   boolean hasBitVectors();
   /**
-   * <code>optional string bitVectors = 4;</code>
+   * <code>optional string bit_vectors = 4;</code>
    */
   java.lang.String getBitVectors();
   /**
-   * <code>optional string bitVectors = 4;</code>
+   * <code>optional string bit_vectors = 4;</code>
    */
   com.google.protobuf.ByteString
       getBitVectorsBytes();

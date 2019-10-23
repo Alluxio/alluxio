@@ -2828,7 +2828,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CONF_SYNC_INTERVAL =
       new Builder(Name.USER_CONF_SYNC_INTERVAL)
-          .setDefaultValue("3sec")
+          .setDefaultValue("1min")
           .setDescription("The time period of client master heartbeat to "
               + "update the configuration if necessary from meta master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

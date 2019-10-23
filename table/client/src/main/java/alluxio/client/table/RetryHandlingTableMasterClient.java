@@ -19,6 +19,7 @@ import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
+import alluxio.grpc.table.DetachDatabasePRequest;
 import alluxio.grpc.table.GetAllDatabasesPRequest;
 import alluxio.grpc.table.GetAllTablesPRequest;
 import alluxio.grpc.table.GetDatabasePRequest;
@@ -26,12 +27,10 @@ import alluxio.grpc.table.GetPartitionColumnStatisticsPRequest;
 import alluxio.grpc.table.GetTableColumnStatisticsPRequest;
 import alluxio.grpc.table.GetTablePRequest;
 import alluxio.grpc.table.Partition;
-import alluxio.grpc.table.PartitionInfo;
 import alluxio.grpc.table.ReadTablePRequest;
 import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.TransformTablePRequest;
-import alluxio.grpc.table.DetachDatabasePRequest;
 import alluxio.master.MasterClientContext;
 
 import java.util.List;
@@ -140,22 +139,6 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
   public List<String> getPartitionNames(
           String databaseName,
           String tableName) throws AlluxioStatusException {
-    return null;
-  }
-
-  @Override
-  public List<PartitionInfo> getPartitionsByNames(
-          String databaseName,
-          String tableName,
-          List<String> partitionNames) throws AlluxioStatusException {
-    return null;
-  }
-
-  @Override
-  public PartitionInfo getPartition(
-          String databaseName,
-          String tableName,
-          List<String> partitionValues) throws AlluxioStatusException {
     return null;
   }
 
