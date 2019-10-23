@@ -201,6 +201,14 @@ message DetachDatabasePResponse {
     optional bool success = 1;
 }
 
+message SyncDatabasePRequest {
+    optional string db_name = 1;
+}
+
+message SyncDatabasePResponse {
+    optional bool success = 1;
+}
+
 message FileStatistics {
     map<string, ColumnStatisticsInfo> column = 1; //map column names to column statistics
 }
@@ -322,6 +330,11 @@ service TableMasterClientService {
      * Detach existing database into the catalog, removing any metadata about the table
      */
     rpc DetachDatabase(DetachDatabasePRequest) returns (DetachDatabasePResponse);
+
+    /**
+     * Sync existing database into the catalog
+     */
+    rpc SyncDatabase(SyncDatabasePRequest) returns (SyncDatabasePResponse);
 
     rpc GetTableColumnStatistics(GetTableColumnStatisticsPRequest) returns (GetTableColumnStatisticsPResponse);
 

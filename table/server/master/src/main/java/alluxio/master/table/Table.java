@@ -17,6 +17,7 @@ import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;
 import alluxio.proto.journal.Table.AddTableEntry;
+import alluxio.table.common.UdbPartition;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
@@ -30,6 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -66,25 +69,63 @@ public class Table {
     mParameters = new HashMap<>(parameters);
   }
 
+  private boolean isSyncable(UdbTable udbTable) {
+    if (mSchema == null && mPartitionScheme == null) {
+      return true;
+    }
+    if (Objects.equals(mSchema, udbTable.getSchema())) {
+      // can't sync if the schema is different
+      return false;
+    }
+    if (mPartitionScheme == null || mPartitionScheme.getPartitionCols().isEmpty()) {
+      // can't sync if it is non-partitioned table
+      return false;
+    }
+    List<FieldSchema> partitionCols = new ArrayList<>(udbTable.getPartitionCols());
+    return Objects.equals(partitionCols, mPartitionScheme.getPartitionCols());
+  }
+
   /**
-   * sync the table with a udbtable.
+   * Sync the table with a udbtable.
    *
    * @param udbTable udb table to be synced
+   * @return true if the table changed
    */
-  public void sync(UdbTable udbTable) {
+  public boolean sync(UdbTable udbTable) {
+    boolean changed = false;
     try {
-      mName = udbTable.getName();
-      mSchema = udbTable.getSchema();
-      mOwner = udbTable.getOwner();
-      mStatistics = udbTable.getStatistics();
-      mParameters = new HashMap<>(udbTable.getParameters());
-      List<FieldSchema> partitionCols = new ArrayList<>(udbTable.getPartitionCols());
-      mPartitionScheme = PartitionScheme.create(
-          udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList()),
-          udbTable.getLayout(), partitionCols);
+      if (!isSyncable(udbTable)) {
+        return false;
+      }
+      // only sync these fields if the table is uninitialized
+      if (mName == null) {
+        mName = udbTable.getName();
+        mSchema = udbTable.getSchema();
+        mOwner = udbTable.getOwner();
+        mStatistics = udbTable.getStatistics();
+        mParameters = new HashMap<>(udbTable.getParameters());
+        changed = true;
+      }
+      List<Partition> partitions = mPartitionScheme == null
+          ? new ArrayList<>() : mPartitionScheme.getPartitions();
+      Layout tableLayout = mPartitionScheme == null
+          ? udbTable.getLayout() : mPartitionScheme.getTableLayout();
+      Set<String> partNames = partitions.stream().map(Partition::getSpec)
+          .collect(Collectors.toSet());
+      for (UdbPartition udbpart : udbTable.getPartitions()) {
+        if (!partNames.contains(udbpart.getSpec())) {
+          partitions.add(new Partition(udbpart));
+          changed = true;
+        }
+      }
+      if (changed) {
+        mPartitionScheme = PartitionScheme.create(partitions,
+            tableLayout, udbTable.getPartitionCols());
+      }
     } catch (IOException e) {
       LOG.info("Sync table {} failed {}", mName, e);
     }
+    return changed;
   }
 
   /**

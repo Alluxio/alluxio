@@ -97,6 +97,18 @@ public class AlluxioCatalog implements Journaled {
   }
 
   /**
+   * Syncs a database.
+   *
+   * @param journalContext journal context
+   * @param dbName database name
+   * @return true if the database changed as a result of fullSync
+   */
+  public boolean syncDatabase(JournalContext journalContext, String dbName) throws IOException {
+    Database db = getDatabaseByName(dbName);
+    return db.sync(journalContext);
+  }
+
+  /**
    * Removes an existing database.
    *
    * @param journalContext journal context

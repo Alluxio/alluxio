@@ -49,6 +49,7 @@ public class DefaultTableMaster extends CoreMaster
     implements TableMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultTableMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(FileSystemMaster.class);
+  private static final String DEFAULT_TRANSFORMATION = "write(hive).option(hive.num.files, 100);";
 
   private final AlluxioCatalog mCatalog;
   private final TransformManager mTransformManager;
@@ -116,8 +117,16 @@ public class DefaultTableMaster extends CoreMaster
   @Override
   public long transformTable(String dbName, String tableName, String definition)
       throws IOException {
+    if (definition == null || definition.trim().isEmpty()) {
+      definition = DEFAULT_TRANSFORMATION;
+    }
     TransformDefinition transformDefinition = TransformDefinition.parse(definition);
     return mTransformManager.execute(dbName, tableName, transformDefinition);
+  }
+
+  @Override
+  public boolean syncDatabase(String dbName) throws IOException {
+    return mCatalog.syncDatabase(createJournalContext(), dbName);
   }
 
   @Override

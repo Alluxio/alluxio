@@ -85,4 +85,18 @@ public interface JobInfoOrBuilder extends
    * <code>optional int64 lastStatusChangeMs = 6;</code>
    */
   long getLastStatusChangeMs();
+
+  /**
+   * <code>optional string name = 7;</code>
+   */
+  boolean hasName();
+  /**
+   * <code>optional string name = 7;</code>
+   */
+  java.lang.String getName();
+  /**
+   * <code>optional string name = 7;</code>
+   */
+  com.google.protobuf.ByteString
+      getNameBytes();
 }
