@@ -90,7 +90,7 @@ public final class TransformTableCommand extends AbstractTableCommand {
     if (cl.hasOption(DEFINITION_OPTION.getLongOpt())) {
       String optDefinition = cl.getOptionValue(DEFINITION_OPTION.getLongOpt());
       if (optDefinition != null && !optDefinition.isEmpty()) {
-        definition = optDefinition;
+        definition = optDefinition.trim();
       }
     }
 
