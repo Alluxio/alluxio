@@ -72,7 +72,7 @@ public class JobServiceMetricsCommandTest {
     Assert.assertEquals("Status: FAILED    Count: 1", lineByLine[2]);
     Assert.assertEquals("Status: RUNNING   Count: 1", lineByLine[3]);
     Assert.assertEquals("Status: COMPLETED Count: 0", lineByLine[4]);
-
+    Assert.assertEquals("", lineByLine[5]);
     Assert.assertEquals("10 Most Recently Modified Jobs:", lineByLine[6]);
     Assert.assertEquals(
         "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"
@@ -82,7 +82,7 @@ public class JobServiceMetricsCommandTest {
         "Timestamp: 01-17-2019 12:00:00:000       Id: 1                   Name: Test1"
         + "               Status: RUNNING",
         lineByLine[8]);
-
+    Assert.assertEquals("", lineByLine[9]);
     Assert.assertEquals("10 Most Recently Failed Jobs:", lineByLine[10]);
     Assert.assertEquals(
         "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"

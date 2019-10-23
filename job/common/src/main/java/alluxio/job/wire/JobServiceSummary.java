@@ -30,12 +30,13 @@ import java.util.stream.Collectors;
  */
 @NotThreadSafe
 public final class JobServiceSummary {
-  private static final int RECENT_LENGTH = 10;
+  public static final int RECENT_LENGTH = 10;
 
   private final List<StatusSummary> mSummaryPerStatus;
 
   private final List<JobInfo> mRecentActivities;
   private final List<JobInfo> mRecentFailures;
+  private final List<JobInfo> mLongestRunning;
 
   /**
    * Constructs a new instance of {@link JobServiceSummary} from a
@@ -51,6 +52,10 @@ public final class JobServiceSummary {
 
     mRecentFailures = jobInfos.stream().filter(jobInfo -> jobInfo.getStatus().equals(Status.FAILED))
       .limit(RECENT_LENGTH).collect(Collectors.toList());
+
+    Collections.reverse(jobInfos);
+    mLongestRunning = jobInfos.stream().filter(jobInfo -> jobInfo.getStatus().equals(Status.RUNNING))
+      .limit(RECENT_LENGTH).collect(Collectors.toList());
   }
 
   /**
@@ -63,13 +68,20 @@ public final class JobServiceSummary {
     for (alluxio.grpc.StatusSummary statusSummary : jobServiceSummary.getSummaryPerStatusList()) {
       mSummaryPerStatus.add(new StatusSummary(statusSummary));
     }
+
     mRecentActivities = new ArrayList<>();
     for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getRecentActivitiesList()) {
       mRecentActivities.add(new JobInfo(lastActivity));
     }
+
     mRecentFailures = new ArrayList<>();
     for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getRecentFailuresList()) {
       mRecentFailures.add(new JobInfo(lastFailure));
+    }
+
+    mLongestRunning = new ArrayList<>();
+    for (alluxio.grpc.JobInfo longestRunning : jobServiceSummary.getLongestRunningList()) {
+      mLongestRunning.add(new JobInfo(longestRunning));
     }
   }
 
@@ -119,21 +131,34 @@ public final class JobServiceSummary {
   }
 
   /**
+   * @return collection of {@link JobInfo}
+   */
+  public List<JobInfo> getLongestRunning() { return Collections.unmodifiableList(mLongestRunning); }
+
+  /**
    * @return proto representation of the job service summary
    * @throws IOException if serialization fails
    */
   public alluxio.grpc.JobServiceSummary toProto() throws IOException {
     alluxio.grpc.JobServiceSummary.Builder jobServiceBuilder =
           alluxio.grpc.JobServiceSummary.newBuilder();
+
     for (StatusSummary statusSummary : mSummaryPerStatus) {
       jobServiceBuilder.addSummaryPerStatus(statusSummary.toProto());
     }
+
     for (JobInfo jobInfo : mRecentActivities) {
       jobServiceBuilder.addRecentActivities(jobInfo.toProto());
     }
+
     for (JobInfo jobInfo : mRecentFailures) {
       jobServiceBuilder.addRecentFailures(jobInfo.toProto());
     }
+
+    for (JobInfo jobInfo : mLongestRunning) {
+      jobServiceBuilder.addLongestRunning(jobInfo.toProto());
+    }
+
     return jobServiceBuilder.build();
   }
 
@@ -149,7 +174,10 @@ public final class JobServiceSummary {
       return false;
     }
     JobServiceSummary that = (JobServiceSummary) o;
-    return Objects.equal(mSummaryPerStatus, that.mSummaryPerStatus);
+    return Objects.equal(mSummaryPerStatus, that.mSummaryPerStatus)
+        && Objects.equal(mRecentActivities, that.mRecentActivities)
+        && Objects.equal(mRecentFailures, that.mRecentFailures)
+        && Objects.equal(mLongestRunning, that.mLongestRunning);
   }
 
   @Override
@@ -160,8 +188,11 @@ public final class JobServiceSummary {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-            .add("summaryPerStatus", mSummaryPerStatus)
-            .toString();
+        .add("summaryPerStatus", mSummaryPerStatus)
+        .add("recentActivities", mRecentActivities)
+        .add("recentFailures", mRecentFailures)
+        .add("oldRunning", mLongestRunning)
+        .toString();
   }
 }
 

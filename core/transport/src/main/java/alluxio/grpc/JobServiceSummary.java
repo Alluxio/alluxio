@@ -19,6 +19,7 @@ private static final long serialVersionUID = 0L;
     summaryPerStatus_ = java.util.Collections.emptyList();
     recentActivities_ = java.util.Collections.emptyList();
     recentFailures_ = java.util.Collections.emptyList();
+    longestRunning_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -79,6 +80,15 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(alluxio.grpc.JobInfo.PARSER, extensionRegistry));
             break;
           }
+          case 34: {
+            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+              longestRunning_ = new java.util.ArrayList<alluxio.grpc.JobInfo>();
+              mutable_bitField0_ |= 0x00000008;
+            }
+            longestRunning_.add(
+                input.readMessage(alluxio.grpc.JobInfo.PARSER, extensionRegistry));
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -95,6 +105,9 @@ private static final long serialVersionUID = 0L;
       }
       if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
         recentFailures_ = java.util.Collections.unmodifiableList(recentFailures_);
+      }
+      if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+        longestRunning_ = java.util.Collections.unmodifiableList(longestRunning_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -217,6 +230,41 @@ private static final long serialVersionUID = 0L;
     return recentFailures_.get(index);
   }
 
+  public static final int LONGESTRUNNING_FIELD_NUMBER = 4;
+  private java.util.List<alluxio.grpc.JobInfo> longestRunning_;
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  public java.util.List<alluxio.grpc.JobInfo> getLongestRunningList() {
+    return longestRunning_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  public java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
+      getLongestRunningOrBuilderList() {
+    return longestRunning_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  public int getLongestRunningCount() {
+    return longestRunning_.size();
+  }
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  public alluxio.grpc.JobInfo getLongestRunning(int index) {
+    return longestRunning_.get(index);
+  }
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  public alluxio.grpc.JobInfoOrBuilder getLongestRunningOrBuilder(
+      int index) {
+    return longestRunning_.get(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -238,6 +286,9 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < recentFailures_.size(); i++) {
       output.writeMessage(3, recentFailures_.get(i));
     }
+    for (int i = 0; i < longestRunning_.size(); i++) {
+      output.writeMessage(4, longestRunning_.get(i));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -257,6 +308,10 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < recentFailures_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, recentFailures_.get(i));
+    }
+    for (int i = 0; i < longestRunning_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, longestRunning_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -280,6 +335,8 @@ private static final long serialVersionUID = 0L;
         .equals(other.getRecentActivitiesList());
     result = result && getRecentFailuresList()
         .equals(other.getRecentFailuresList());
+    result = result && getLongestRunningList()
+        .equals(other.getLongestRunningList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -302,6 +359,10 @@ private static final long serialVersionUID = 0L;
     if (getRecentFailuresCount() > 0) {
       hash = (37 * hash) + RECENTFAILURES_FIELD_NUMBER;
       hash = (53 * hash) + getRecentFailuresList().hashCode();
+    }
+    if (getLongestRunningCount() > 0) {
+      hash = (37 * hash) + LONGESTRUNNING_FIELD_NUMBER;
+      hash = (53 * hash) + getLongestRunningList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -431,6 +492,7 @@ private static final long serialVersionUID = 0L;
         getSummaryPerStatusFieldBuilder();
         getRecentActivitiesFieldBuilder();
         getRecentFailuresFieldBuilder();
+        getLongestRunningFieldBuilder();
       }
     }
     public Builder clear() {
@@ -452,6 +514,12 @@ private static final long serialVersionUID = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
       } else {
         recentFailuresBuilder_.clear();
+      }
+      if (longestRunningBuilder_ == null) {
+        longestRunning_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+      } else {
+        longestRunningBuilder_.clear();
       }
       return this;
     }
@@ -502,6 +570,15 @@ private static final long serialVersionUID = 0L;
         result.recentFailures_ = recentFailures_;
       } else {
         result.recentFailures_ = recentFailuresBuilder_.build();
+      }
+      if (longestRunningBuilder_ == null) {
+        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          longestRunning_ = java.util.Collections.unmodifiableList(longestRunning_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.longestRunning_ = longestRunning_;
+      } else {
+        result.longestRunning_ = longestRunningBuilder_.build();
       }
       onBuilt();
       return result;
@@ -619,6 +696,32 @@ private static final long serialVersionUID = 0L;
                  getRecentFailuresFieldBuilder() : null;
           } else {
             recentFailuresBuilder_.addAllMessages(other.recentFailures_);
+          }
+        }
+      }
+      if (longestRunningBuilder_ == null) {
+        if (!other.longestRunning_.isEmpty()) {
+          if (longestRunning_.isEmpty()) {
+            longestRunning_ = other.longestRunning_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureLongestRunningIsMutable();
+            longestRunning_.addAll(other.longestRunning_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.longestRunning_.isEmpty()) {
+          if (longestRunningBuilder_.isEmpty()) {
+            longestRunningBuilder_.dispose();
+            longestRunningBuilder_ = null;
+            longestRunning_ = other.longestRunning_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+            longestRunningBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getLongestRunningFieldBuilder() : null;
+          } else {
+            longestRunningBuilder_.addAllMessages(other.longestRunning_);
           }
         }
       }
@@ -1368,6 +1471,246 @@ private static final long serialVersionUID = 0L;
         recentFailures_ = null;
       }
       return recentFailuresBuilder_;
+    }
+
+    private java.util.List<alluxio.grpc.JobInfo> longestRunning_ =
+      java.util.Collections.emptyList();
+    private void ensureLongestRunningIsMutable() {
+      if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+        longestRunning_ = new java.util.ArrayList<alluxio.grpc.JobInfo>(longestRunning_);
+        bitField0_ |= 0x00000008;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder> longestRunningBuilder_;
+
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public java.util.List<alluxio.grpc.JobInfo> getLongestRunningList() {
+      if (longestRunningBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(longestRunning_);
+      } else {
+        return longestRunningBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public int getLongestRunningCount() {
+      if (longestRunningBuilder_ == null) {
+        return longestRunning_.size();
+      } else {
+        return longestRunningBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public alluxio.grpc.JobInfo getLongestRunning(int index) {
+      if (longestRunningBuilder_ == null) {
+        return longestRunning_.get(index);
+      } else {
+        return longestRunningBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder setLongestRunning(
+        int index, alluxio.grpc.JobInfo value) {
+      if (longestRunningBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureLongestRunningIsMutable();
+        longestRunning_.set(index, value);
+        onChanged();
+      } else {
+        longestRunningBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder setLongestRunning(
+        int index, alluxio.grpc.JobInfo.Builder builderForValue) {
+      if (longestRunningBuilder_ == null) {
+        ensureLongestRunningIsMutable();
+        longestRunning_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        longestRunningBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder addLongestRunning(alluxio.grpc.JobInfo value) {
+      if (longestRunningBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureLongestRunningIsMutable();
+        longestRunning_.add(value);
+        onChanged();
+      } else {
+        longestRunningBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder addLongestRunning(
+        int index, alluxio.grpc.JobInfo value) {
+      if (longestRunningBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureLongestRunningIsMutable();
+        longestRunning_.add(index, value);
+        onChanged();
+      } else {
+        longestRunningBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder addLongestRunning(
+        alluxio.grpc.JobInfo.Builder builderForValue) {
+      if (longestRunningBuilder_ == null) {
+        ensureLongestRunningIsMutable();
+        longestRunning_.add(builderForValue.build());
+        onChanged();
+      } else {
+        longestRunningBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder addLongestRunning(
+        int index, alluxio.grpc.JobInfo.Builder builderForValue) {
+      if (longestRunningBuilder_ == null) {
+        ensureLongestRunningIsMutable();
+        longestRunning_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        longestRunningBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder addAllLongestRunning(
+        java.lang.Iterable<? extends alluxio.grpc.JobInfo> values) {
+      if (longestRunningBuilder_ == null) {
+        ensureLongestRunningIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, longestRunning_);
+        onChanged();
+      } else {
+        longestRunningBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder clearLongestRunning() {
+      if (longestRunningBuilder_ == null) {
+        longestRunning_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+      } else {
+        longestRunningBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public Builder removeLongestRunning(int index) {
+      if (longestRunningBuilder_ == null) {
+        ensureLongestRunningIsMutable();
+        longestRunning_.remove(index);
+        onChanged();
+      } else {
+        longestRunningBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public alluxio.grpc.JobInfo.Builder getLongestRunningBuilder(
+        int index) {
+      return getLongestRunningFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public alluxio.grpc.JobInfoOrBuilder getLongestRunningOrBuilder(
+        int index) {
+      if (longestRunningBuilder_ == null) {
+        return longestRunning_.get(index);  } else {
+        return longestRunningBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
+         getLongestRunningOrBuilderList() {
+      if (longestRunningBuilder_ != null) {
+        return longestRunningBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(longestRunning_);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public alluxio.grpc.JobInfo.Builder addLongestRunningBuilder() {
+      return getLongestRunningFieldBuilder().addBuilder(
+          alluxio.grpc.JobInfo.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public alluxio.grpc.JobInfo.Builder addLongestRunningBuilder(
+        int index) {
+      return getLongestRunningFieldBuilder().addBuilder(
+          index, alluxio.grpc.JobInfo.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+     */
+    public java.util.List<alluxio.grpc.JobInfo.Builder> 
+         getLongestRunningBuilderList() {
+      return getLongestRunningFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder> 
+        getLongestRunningFieldBuilder() {
+      if (longestRunningBuilder_ == null) {
+        longestRunningBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder>(
+                longestRunning_,
+                ((bitField0_ & 0x00000008) == 0x00000008),
+                getParentForChildren(),
+                isClean());
+        longestRunning_ = null;
+      }
+      return longestRunningBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

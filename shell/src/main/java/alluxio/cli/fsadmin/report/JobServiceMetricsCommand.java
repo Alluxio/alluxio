@@ -61,31 +61,35 @@ public class JobServiceMetricsCommand {
     }
 
     mPrintStream.println();
-    mPrintStream.println("10 Most Recently Modified Jobs:");
+    mPrintStream.println(String.format("%s Most Recently Modified Jobs:",
+        JobServiceSummary.RECENT_LENGTH));
 
     List<JobInfo> lastActivities = jobServiceSummary.getRecentActivities();
+    printJobInfos(lastActivities);
 
-    for (JobInfo lastActivity : lastActivities) {
-      printJobInfo(lastActivity);
-    }
-
-    mPrintStream.println();
-    mPrintStream.println("10 Most Recently Failed Jobs:");
+    mPrintStream.println(String.format("%s Most Recently Failed Jobs:",
+        JobServiceSummary.RECENT_LENGTH));
 
     List<JobInfo> lastFailures = jobServiceSummary.getRecentFailures();
+    printJobInfos(lastFailures);
 
-    for (JobInfo lastFailure : lastFailures) {
-      printJobInfo(lastFailure);
-    }
+    mPrintStream.println(String.format("%s Longest Running Jobs:",
+        JobServiceSummary.RECENT_LENGTH));
+
+    List<JobInfo> longestRunning = jobServiceSummary.getLongestRunning();
+    printJobInfos(longestRunning);
 
     return 0;
   }
 
-  private void printJobInfo(JobInfo jobInfo) {
-    mPrintStream.print(String.format("Timestamp: %-30s",
-            CommonUtils.convertMsToDate(jobInfo.getLastStatusChangeMs(), mDateFormatPattern)));
-    mPrintStream.print(String.format("Id: %-20s", jobInfo.getJobId()));
-    mPrintStream.print(String.format("Name: %-20s", jobInfo.getName()));
-    mPrintStream.println(String.format("Status: %s", jobInfo.getStatus()));
+  private void printJobInfos(List<JobInfo> jobInfos) {
+    for (JobInfo jobInfo : jobInfos) {
+      mPrintStream.print(String.format("Timestamp: %-30s",
+          CommonUtils.convertMsToDate(jobInfo.getLastStatusChangeMs(), mDateFormatPattern)));
+      mPrintStream.print(String.format("Id: %-20s", jobInfo.getJobId()));
+      mPrintStream.print(String.format("Name: %-20s", jobInfo.getName()));
+      mPrintStream.println(String.format("Status: %s", jobInfo.getStatus()));
+    }
+    mPrintStream.println();
   }
 }
