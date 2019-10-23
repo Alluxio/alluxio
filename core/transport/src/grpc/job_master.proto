@@ -32,6 +32,7 @@ message JobInfo {
   optional Status status = 4;
   optional string result = 5;
   optional int64 lastStatusChangeMs = 6;
+  optional string name = 7;
 }
 
 message StatusSummary {

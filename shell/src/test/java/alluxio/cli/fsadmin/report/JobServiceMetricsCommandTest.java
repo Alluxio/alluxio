@@ -55,8 +55,8 @@ public class JobServiceMetricsCommandTest {
 
     List<JobInfo> jobInfos = new ArrayList<>();
 
-    jobInfos.add(createJobInfo(1, Status.RUNNING, "2019-10-17 12:00:00"));
-    jobInfos.add(createJobInfo(2, Status.FAILED, "2019-10-17 12:30:15"));
+    jobInfos.add(createJobInfo(1, "Test1", Status.RUNNING, "2019-10-17 12:00:00"));
+    jobInfos.add(createJobInfo(2, "Test2", Status.FAILED, "2019-10-17 12:30:15"));
 
     Mockito.when(mJobMasterClient.getJobServiceSummary())
             .thenReturn(new JobServiceSummary(jobInfos));
@@ -75,21 +75,26 @@ public class JobServiceMetricsCommandTest {
 
     Assert.assertEquals("10 Most Recently Modified Jobs:", lineByLine[6]);
     Assert.assertEquals(
-        "Timestamp: 01-17-2019 12:30:15:000       Job Id: 2                   Status: FAILED",
+        "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"
+        + "               Status: FAILED",
         lineByLine[7]);
     Assert.assertEquals(
-        "Timestamp: 01-17-2019 12:00:00:000       Job Id: 1                   Status: RUNNING",
+        "Timestamp: 01-17-2019 12:00:00:000       Id: 1                   Name: Test1"
+        + "               Status: RUNNING",
         lineByLine[8]);
 
     Assert.assertEquals("10 Most Recently Failed Jobs:", lineByLine[10]);
     Assert.assertEquals(
-        "Timestamp: 01-17-2019 12:30:15:000       Job Id: 2                   Status: FAILED",
+        "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"
+        + "               Status: FAILED",
         lineByLine[11]);
   }
 
-  private JobInfo createJobInfo(int id, Status status, String datetime) throws ParseException {
+  private JobInfo createJobInfo(int id, String name, Status status, String datetime)
+      throws ParseException {
     JobInfo jobInfo = new JobInfo();
 
+    jobInfo.setName(name);
     jobInfo.setJobId(id);
     jobInfo.setStatus(status);
 
