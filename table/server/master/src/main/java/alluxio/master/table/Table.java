@@ -155,9 +155,11 @@ public class Table {
   public List<TransformPlan> getTransformPlans(TransformDefinition definition) throws IOException {
     List<TransformPlan> plans = new ArrayList<>(getPartitions().size());
     for (Partition partition : getPartitions()) {
-      TransformContext transformContext =
-          new TransformContext(mDatabase.getName(), mName, partition.getSpec());
-      plans.add(partition.getTransformPlan(transformContext, definition));
+      if (!partition.isTransformed(definition)) {
+        TransformContext transformContext =
+            new TransformContext(mDatabase.getName(), mName, partition.getSpec());
+        plans.add(partition.getTransformPlan(transformContext, definition));
+      }
     }
     return plans;
   }

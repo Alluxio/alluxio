@@ -29,7 +29,6 @@ import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.transform.TransformManager;
 import alluxio.table.common.transform.TransformDefinition;
-import alluxio.table.common.transform.TransformPlan;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableSet;
@@ -118,9 +117,7 @@ public class DefaultTableMaster extends CoreMaster
   public long transformTable(String dbName, String tableName, String definition)
       throws IOException {
     TransformDefinition transformDefinition = TransformDefinition.parse(definition);
-    Table table = getTable(dbName, tableName);
-    List<TransformPlan> plans = table.getTransformPlans(transformDefinition);
-    return mTransformManager.execute(dbName, tableName, plans);
+    return mTransformManager.execute(dbName, tableName, transformDefinition);
   }
 
   @Override

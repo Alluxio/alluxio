@@ -37,6 +37,7 @@ import alluxio.proto.journal.Table.RemoveTransformJobEntry;
 import alluxio.proto.journal.Table.TransformJobEntry;
 import alluxio.security.user.UserState;
 import alluxio.table.common.Layout;
+import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
 import alluxio.worker.job.JobMasterClientContext;
 
@@ -62,22 +63,32 @@ public class TransformManager implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(TransformManager.class);
   private static final long INVALID_JOB_ID = -1;
   private static final TransformJob EMPTY_TRANSFORM_JOB =
-      new TransformJob(INVALID_JOB_ID, Collections.emptyMap());
+      new TransformJob("", INVALID_JOB_ID, Collections.emptyMap());
 
   /**
    * Information kept for a transformation job.
    */
   private static final class TransformJob {
+    private final String mDefinition;
     private final long mJobId;
     private final Map<String, Layout> mTransformedLayouts;
 
     /**
+     * @param definition the transformation definition
      * @param jobId the job ID
      * @param transformedLayouts the mapping from a partition spec to its transformed layout
      */
-    TransformJob(long jobId, Map<String, Layout> transformedLayouts) {
+    TransformJob(String definition, long jobId, Map<String, Layout> transformedLayouts) {
+      mDefinition = definition;
       mJobId = jobId;
       mTransformedLayouts = Collections.unmodifiableMap(transformedLayouts);
+    }
+
+    /**
+     * @return the transformation definition
+     */
+    String getDefinition() {
+      return mDefinition;
     }
 
     /**
@@ -152,13 +163,20 @@ public class TransformManager implements Journaled {
    *
    * @param dbName the database name
    * @param tableName the table name
-   * @param plans the plans to execute for the transformation
+   * @param definition the parsed transformation definition
    * @return the job ID for the transformation job
-   * @throws IOException when there is an ongoing transformation on the table or the transformation
-   *    job fails to be started
+   * @throws IOException when there is an ongoing transformation on the table, or the transformation
+   *    job fails to be started, or all partitions of the table have been transformed with the same
+   *    definition
    */
-  public long execute(String dbName, String tableName, List<TransformPlan> plans)
+  public long execute(String dbName, String tableName, TransformDefinition definition)
       throws IOException {
+    List<TransformPlan> plans = mCatalog.getTable(dbName, tableName)
+        .getTransformPlans(definition);
+    if (plans.isEmpty()) {
+      throw new IOException(String.format("Database %s table %s has already been transformed by "
+          + "definition '%s'", dbName, tableName, definition.getDefinition()));
+    }
     Pair<String, String> table = new Pair<>(dbName, tableName);
     // Atomically try to acquire the permit to execute the transformation job.
     // This PUT does not need to be journaled, because if this PUT succeeds and master crashes,
@@ -198,10 +216,11 @@ public class TransformManager implements Journaled {
     for (TransformPlan plan : plans) {
       transformedLayouts.put(plan.getBaseLayout().getSpec(), plan.getTransformedLayout());
     }
-    mJobs.put(table, new TransformJob(jobId, transformedLayouts));
+    mJobs.put(table, new TransformJob(definition.getDefinition(), jobId, transformedLayouts));
     TransformJobEntry journalEntry = TransformJobEntry.newBuilder()
         .setDbName(dbName)
         .setTableName(tableName)
+        .setDefinition(definition.getDefinition())
         .setJobId(jobId)
         .putAllTransformedLayouts(Maps.transformValues(transformedLayouts, Layout::toProto))
         .build();
@@ -217,15 +236,16 @@ public class TransformManager implements Journaled {
    * if a transformation job succeeds, then update the Table partitions' layouts.
    */
   private final class JobMonitor implements HeartbeatExecutor {
-    private void updatePartitionLayouts(String dbName, String tableName,
-        Map<String, Layout> transformedLayouts) throws IOException {
+    private void completePartitionTransformation(String dbName, String tableName, TransformJob job)
+        throws IOException {
       Table table = mCatalog.getTable(dbName, tableName);
-      for (Map.Entry<String, Layout> entry : transformedLayouts.entrySet()) {
+      for (Map.Entry<String, Layout> entry : job.getTransformedLayouts().entrySet()) {
         String spec = entry.getKey();
         Layout layout = entry.getValue();
         Partition partition = table.getPartition(spec);
-        partition.setTransformedLayout(layout);
-        LOG.debug("Updated partition {} to {}", spec, layout);
+        partition.transform(job.getDefinition(), layout);
+        LOG.debug("Transformed partition {} to {} with definition {}", spec, layout,
+            job.getDefinition());
       }
     }
 
@@ -261,7 +281,7 @@ public class TransformManager implements Journaled {
      */
     private void handleJobSuccess(Pair<String, String> table, TransformJob job) {
       try {
-        updatePartitionLayouts(table.getFirst(), table.getSecond(), job.getTransformedLayouts());
+        completePartitionTransformation(table.getFirst(), table.getSecond(), job);
       } catch (IOException e) {
         LOG.error("Failed to update partition layouts for database {} table {}",
             table.getFirst(), table.getSecond());
@@ -340,7 +360,8 @@ public class TransformManager implements Journaled {
     Map<String, alluxio.grpc.table.Layout> layouts = entry.getTransformedLayoutsMap();
     Map<String, Layout> transformedLayouts = Maps.transformValues(layouts,
         layout -> mCatalog.getLayoutRegistry().create(layout));
-    TransformJob job = new TransformJob(entry.getJobId(), transformedLayouts);
+    TransformJob job = new TransformJob(entry.getDefinition(), entry.getJobId(),
+        transformedLayouts);
     mJobs.put(table, job);
   }
 
@@ -362,6 +383,7 @@ public class TransformManager implements Journaled {
       TransformJobEntry journal = TransformJobEntry.newBuilder()
           .setDbName(dbName)
           .setTableName(tableName)
+          .setDefinition(job.getDefinition())
           .setJobId(job.getJobId())
           .putAllTransformedLayouts(Maps.transformValues(
               job.getTransformedLayouts(), Layout::toProto))
