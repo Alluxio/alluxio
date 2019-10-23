@@ -139,6 +139,37 @@ $ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
 $ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
 ```
 
+### job
+
+The `job` command is a tool for interacting with the job service.
+
+The usage is `job [generic options]`
+where `[generic options]` can be one of the following values:
+* `leader`: Prints the hostname of the job master service leader.
+* `ls`: Prints the IDs of the most recent jobs, running and finished, in the history up to the capacity set in `alluxio.job.master.job.capacity`.
+* `stat [-v] <id>`:Displays the status info for the specific job. Use -v flag to display the status of every task.
+
+```console
+# Prints the hostname of the job master service leader.
+$ ./bin/alluxio job leader
+
+# Prints the IDs of the most recent jobs, running and finished.
+$ ./bin/alluxio job ls
+1571865684755
+1571865684754
+1571865684753
+1571865684759
+1571865684758
+1571865684757
+
+# Displays the status info for the specific job.
+$ ./bin/alluxio job stat -v 1571865684755
+ID: 1571865684755
+Status: COMPLETED
+Task 0
+	Status: COMPLETED
+```
+
 ### logLevel
 
 The `logLevel` command returns the current value of or updates the log level of a particular class
