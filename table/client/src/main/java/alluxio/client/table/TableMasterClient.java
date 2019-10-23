@@ -30,7 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface TableMasterClient extends Client {
-
   /**
    * Factory for {@link TableMasterClient}.
    */
@@ -106,6 +105,14 @@ public interface TableMasterClient extends Client {
    */
   boolean detachDatabase(String dbName)
       throws AlluxioStatusException;
+
+  /**
+   * Syncs an existing database in the catalog master.
+   *
+   * @param dbName database name
+   * @return true if the database changed as a result of sync
+   */
+  boolean syncDatabase(String dbName) throws AlluxioStatusException;
 
   /**
    * Returns metadata for reading a table given constraints.
