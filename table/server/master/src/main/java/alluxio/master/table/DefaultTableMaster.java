@@ -126,6 +126,11 @@ public class DefaultTableMaster extends CoreMaster
   }
 
   @Override
+  public boolean syncDatabase(String dbName) throws IOException {
+    return mCatalog.syncDatabase(createJournalContext(), dbName);
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }

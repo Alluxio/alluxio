@@ -16,6 +16,8 @@ import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
 import alluxio.grpc.table.DetachDatabasePRequest;
 import alluxio.grpc.table.DetachDatabasePResponse;
+import alluxio.grpc.table.SyncDatabasePRequest;
+import alluxio.grpc.table.SyncDatabasePResponse;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.GetAllDatabasesPRequest;
 import alluxio.grpc.table.GetAllDatabasesPResponse;
@@ -135,5 +137,13 @@ public class TableMasterClientServiceHandler
     RpcUtils.call(LOG, () -> TransformTablePResponse.newBuilder().setJobId(mTableMaster
         .transformTable(request.getDbName(), request.getTableName(), request.getDefinition()))
         .build(), "transformTable", "", responseObserver);
+  }
+
+  @Override
+  public void syncDatabase(SyncDatabasePRequest request,
+      StreamObserver<SyncDatabasePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> SyncDatabasePResponse.newBuilder().setSuccess(mTableMaster
+        .syncDatabase(request.getDbName()))
+        .build(), "syncDatabase", "", responseObserver);
   }
 }
