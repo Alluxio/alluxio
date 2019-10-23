@@ -116,4 +116,12 @@ public interface TableMaster extends Master {
    * @return the job ID
    */
   long transformTable(String dbName, String tableName, String definition) throws IOException;
+
+  /**
+   * Syncs a database.
+   *
+   * @param dbName the database name
+   * @return true if the database was changed as a result
+   */
+  boolean syncDatabase(String dbName) throws IOException;
 }
