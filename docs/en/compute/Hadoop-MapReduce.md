@@ -6,7 +6,7 @@ group: Data Applications
 priority: 1
 ---
 
-This guide describes how configure Alluxio with Apache Hadoop MapReduce, so that your
+This guide describes how to configure Alluxio with Apache Hadoop MapReduce, so that your
 MapReduce programs can read+write data stored in Alluxio.
 
 * Table of Contents
@@ -68,7 +68,7 @@ This makes the Alluxio client available to JVMs which are created when running `
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
-Alternative configurations are described in the [Advanced Setup](#advanced-setup) section
+Alternative configurations are described in the [Advanced Setup](#advanced-setup) section.
 
 ## Example
 
@@ -164,7 +164,7 @@ for more details.
 ### Customize Alluxio User Properties for Individual MapReduce Jobs
 
 Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `yarn jar` command
-and the properties will be propagated to all the tasks of this job. 
+and the properties will be propagated to all the tasks of this job.
 For example, the following MapReduce wordcount job sets write type to `CACHE_THROUGH` when writing
 to Alluxio:
 

@@ -28,7 +28,7 @@ meanwhile, as a near-compute cache, Alluxio can still provide compute frameworks
 ## Prerequisites
 
 * Java 8 Update 60 or higher (8u60+), 64-bit.
-* An Alluxio is set up and is running.
+* An Alluxio cluster is set up and is running.
 This guide assumes the persistent under storage is a local HDFS deployment. E.g., a line of
 `alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/` is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 Note that Alluxio supports many other under storage systems in addition to HDFS.
@@ -48,8 +48,8 @@ executors are running.
 Specifically, put the client jar on the same local path (e.g.
 `{{site.ALLUXIO_CLIENT_JAR_PATH}}`) on each node.
 
-The Alluxio client jar must be in the classpath of Spark drivers and executors
-in order for Spark applications to read and write files to Alluxio.
+The Alluxio client jar must be in the classpath of Spark drivers and executors in order for Spark
+applications to access Alluxio.
 Specifically, add the following line to `spark/conf/spark-defaults.conf` on every node running
 Spark.
 Also, make sure the client jar is copied to **every node running Spark**.
@@ -117,8 +117,8 @@ Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file sy
 ### Configure Spark to find Alluxio cluster in HA mode
 
 When connecting to the Alluxio HA cluster using internal leader election,
-add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf` so Spark applications
-know which Alluxio masters to connect and which is the leader master.
+add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf` so Spark applications know which
+Alluxio masters to connect to and how to identify the leader.
 
 ```
 spark.driver.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
@@ -167,7 +167,7 @@ Note that in client mode you need to set `--driver-java-options "-Dalluxio.user.
 ### Access Data from Alluxio in HA Mode
 
 If Spark is set up by the instructions in [Configure Spark to find Alluxio cluster in HA mode](#configure-spark-to-find-alluxio-cluster-in-ha-mode),
-you can write URIs using the "`alluxio:///`" scheme without specifying cluster information in the authority.
+you can write URIs using the "`alluxio://`" scheme without specifying cluster information in the authority.
 This is because in HA mode, the address of leader Alluxio master will be served by the internal leader election
 or by the configured Zookeeper service.
 
