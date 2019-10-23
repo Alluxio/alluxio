@@ -12,7 +12,6 @@
 package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.master.LocalAlluxioCluster;
@@ -46,7 +45,7 @@ public class TableMasterJournalIntegrationTest {
   }
 
   @Test
-  public void journalAttachandDetachDb() throws Exception {
+  public void journalAttachDb() throws Exception {
     mClusterResource.start();
     LocalAlluxioCluster mCluster = mClusterResource.get();
     TableMaster tableMaster =
@@ -68,12 +67,23 @@ public class TableMasterJournalIntegrationTest {
     assertEquals(oldTableNames, newTableNames);
     Table tableNew = tableMasterRestart.getTable(DB_NAME, newTableNames.get(0));
     assertEquals(tableOld.getName(), tableNew.getName());
-    tableMasterRestart.detachDatabase(DB_NAME);
-    assertTrue(tableMasterRestart.getAllDatabases().isEmpty());
-    tableMasterRestart.attachDatabase(DB_NAME, TestUdbFactory.TYPE, Collections.emptyMap());
+  }
 
-    List<String> reattachedTableNames = tableMasterRestart.getAllTables(DB_NAME);
-    assertEquals(2, reattachedTableNames.size());
-    assertNotEquals(oldTableNames, reattachedTableNames);
+  @Test
+  public void journalDetachDb() throws Exception {
+    mClusterResource.start();
+    LocalAlluxioCluster mCluster = mClusterResource.get();
+    TableMaster tableMaster =
+        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+
+    tableMaster.attachDatabase(DB_NAME, TestUdbFactory.TYPE, Collections.emptyMap());
+    tableMaster.detachDatabase(DB_NAME);
+    assertTrue(tableMaster.getAllDatabases().isEmpty());
+    mCluster.stopMasters();
+    TestDatabase.genTable(2);
+    mCluster.startMasters();
+    TableMaster tableMasterRestart =
+        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+    assertTrue(tableMasterRestart.getAllDatabases().isEmpty());
   }
 }
