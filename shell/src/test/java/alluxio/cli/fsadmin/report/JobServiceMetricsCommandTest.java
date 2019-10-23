@@ -88,6 +88,12 @@ public class JobServiceMetricsCommandTest {
         "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"
         + "               Status: FAILED",
         lineByLine[11]);
+    Assert.assertEquals("", lineByLine[12]);
+    Assert.assertEquals("10 Longest Running Jobs:", lineByLine[13]);
+    Assert.assertEquals(
+        "Timestamp: 01-17-2019 12:00:00:000       Id: 1                   Name: Test1"
+            + "               Status: RUNNING",
+        lineByLine[14]);
   }
 
   private JobInfo createJobInfo(int id, String name, Status status, String datetime)

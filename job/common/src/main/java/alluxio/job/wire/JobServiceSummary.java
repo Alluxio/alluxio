@@ -54,7 +54,8 @@ public final class JobServiceSummary {
       .limit(RECENT_LENGTH).collect(Collectors.toList());
 
     Collections.reverse(jobInfos);
-    mLongestRunning = jobInfos.stream().filter(jobInfo -> jobInfo.getStatus().equals(Status.RUNNING))
+    mLongestRunning = jobInfos.stream()
+      .filter(jobInfo -> jobInfo.getStatus().equals(Status.RUNNING))
       .limit(RECENT_LENGTH).collect(Collectors.toList());
   }
 
@@ -133,7 +134,9 @@ public final class JobServiceSummary {
   /**
    * @return collection of {@link JobInfo}
    */
-  public List<JobInfo> getLongestRunning() { return Collections.unmodifiableList(mLongestRunning); }
+  public List<JobInfo> getLongestRunning() {
+    return Collections.unmodifiableList(mLongestRunning);
+  }
 
   /**
    * @return proto representation of the job service summary
