@@ -18,6 +18,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,13 @@ public final class TransformTableCommand extends AbstractTableCommand {
   private static final Logger LOG = LoggerFactory.getLogger(TransformTableCommand.class);
 
   private static final String COMMAND_NAME = "transform";
+
+  private static final Option DEFINITION_OPTION = Option.builder("d")
+      .longOpt("definition")
+      .required(false)
+      .hasArg(true)
+      .numberOfArgs(1)
+      .build();
 
   /**
    * creates the command.
@@ -51,26 +60,24 @@ public final class TransformTableCommand extends AbstractTableCommand {
 
   @Override
   public String getUsage() {
-    return COMMAND_NAME + " <database_name> <table_name> <definition>";
+    return COMMAND_NAME + " <database_name> <table_name>";
+  }
+
+  @Override
+  public Options getOptions() {
+    return new Options().addOption(DEFINITION_OPTION);
   }
 
   @Override
   public String getDescription() {
     return "Transform files representing a structured table under an Alluxio directory."
         + "\n\n"
-        + "After transformation, the table's metadata will be updated "
-        + "so that queries will query against the transformed table."
-        + "\n\n"
-        + "Files are compacted into a specified number of new files, "
-        + "if the number of existing files is less than the specified number, "
-        + "no compaction happens."
-        + "\n\n"
-        + "definition is a DSL like 'write(hive).option(hive.num.files, 100).'";
+        + "Files are coalesced and converted to parquet format.";
   }
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsEquals(this, cl, 3);
+    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
 
   @Override
@@ -78,7 +85,14 @@ public final class TransformTableCommand extends AbstractTableCommand {
     String[] args = cl.getArgs();
     String databaseName = args[0];
     String tableName = args[1];
-    String definition = args[2];
+    String definition = "";
+
+    if (cl.hasOption(DEFINITION_OPTION.getLongOpt())) {
+      String optDefinition = cl.getOptionValue(DEFINITION_OPTION.getLongOpt());
+      if (optDefinition != null && !optDefinition.isEmpty()) {
+        definition = optDefinition;
+      }
+    }
 
     long jobId = mClient.transformTable(databaseName, tableName, definition);
     System.out.println("Started transformation job with job ID " + jobId + ", "
