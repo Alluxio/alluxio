@@ -16,9 +16,9 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.common.udb.UnderDatabaseFactory;
 
-public class NoopUdbFactory implements UnderDatabaseFactory {
+public class TestUdbFactory implements UnderDatabaseFactory {
 
-  public static final String TYPE = "noopudb";
+  public static final String TYPE = "testudb";
 
   @Override
   public String getType() {
@@ -27,6 +27,6 @@ public class NoopUdbFactory implements UnderDatabaseFactory {
 
   @Override
   public UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
-    return NoopDatabase.create(udbContext, configuration);
+    return TestDatabase.create(udbContext, configuration);
   }
 }
