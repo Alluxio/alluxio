@@ -17,21 +17,23 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A udb implementation which does nothing, used for testing.
  */
-public class NoopDatabase implements UnderDatabase {
-  private static final String DB_NAME = "noop_udb_name";
+public class TestDatabase implements UnderDatabase {
+  public static final String DB_NAME = "test_udb_name";
+  public static final String TABLE_NAME_PREFIX = "test_table_name";
+  private static final TestDatabase DATABASE = new TestDatabase();
 
-  private final UdbContext mUdbContext;
-  private final UdbConfiguration mConfiguration;
+  private Map<String, UdbTable> mUdbTables;
 
-  private NoopDatabase(UdbContext udbContext, UdbConfiguration configuration) {
-    mUdbContext = udbContext;
-    mConfiguration = configuration;
+  private TestDatabase() {
+    mUdbTables = new HashMap<>();
   }
 
   /**
@@ -41,13 +43,14 @@ public class NoopDatabase implements UnderDatabase {
    * @param configuration the configuration
    * @return the new instance
    */
-  public static NoopDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
-    return new NoopDatabase(udbContext, configuration);
+  public static TestDatabase create(UdbContext udbContext,
+      UdbConfiguration configuration) {
+    return DATABASE;
   }
 
   @Override
   public String getType() {
-    return NoopUdbFactory.TYPE;
+    return TestUdbFactory.TYPE;
   }
 
   @Override
@@ -57,11 +60,22 @@ public class NoopDatabase implements UnderDatabase {
 
   @Override
   public List<String> getTableNames() throws IOException {
-    return Collections.emptyList();
+    return new ArrayList<>(mUdbTables.keySet());
   }
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
-    throw new IOException(String.format("NoopDb Table %s does not exist.", tableName));
+    return mUdbTables.get(tableName);
+  }
+
+  public static String getTableName(int i) {
+    return TABLE_NAME_PREFIX + Integer.toString(i);
+  }
+
+  public static void genTable(int numOfTable) {
+    DATABASE.mUdbTables.clear();
+    for (int i = 0; i < numOfTable; i++) {
+      DATABASE.mUdbTables.put(getTableName(i), new TestUdbTable(DB_NAME, getTableName(i)));
+    }
   }
 }
