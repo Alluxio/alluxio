@@ -266,6 +266,8 @@ public final class FileSystemContext implements Closeable {
       for (BlockWorkerClientPool pool : mBlockWorkerClientPool.values()) {
         pool.close();
       }
+      // Close worker group after block master clients in order to allow
+      // clean termination for open streams.
       mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
       mBlockWorkerClientPool.clear();
       mLocalWorkerInitialized = false;
