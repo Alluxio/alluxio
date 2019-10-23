@@ -259,7 +259,6 @@ public final class FileSystemContext implements Closeable {
       // developers should first mark their resources as closed prior to any exceptions being
       // thrown.
       mClosed.set(true);
-      mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
       mFileSystemMasterClientPool.close();
       mFileSystemMasterClientPool = null;
       mBlockMasterClientPool.close();
@@ -267,6 +266,7 @@ public final class FileSystemContext implements Closeable {
       for (BlockWorkerClientPool pool : mBlockWorkerClientPool.values()) {
         pool.close();
       }
+      mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
       mBlockWorkerClientPool.clear();
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
