@@ -33,7 +33,7 @@ public class Partition {
   /**
    * Information kept for the latest transformation on the partition.
    */
-  private final static class Transformation {
+  private static final class Transformation {
     /** The definition of the transformation. */
     private String mDefinition;
     /** The transformed layout. */
