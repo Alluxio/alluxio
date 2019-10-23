@@ -2507,6 +2507,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
+    createFileContext.setIsAsync(false);
     createFileContext.setMetadataLoad(true);
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());

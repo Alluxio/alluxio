@@ -130,6 +130,8 @@ public class SpaceReserver implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
+    // Sync the pin list before attempting to reserve space
+    mBlockWorker.syncPinList();
     reserveSpace();
   }
 

@@ -802,10 +802,13 @@ public class InodeTree implements DelegatingJournaled {
         AccessControlList acl = dAcl.generateChildFileACL(mode);
         newFile.setInternalAcl(acl);
       }
-
       if (fileContext.isCacheable()) {
         newFile.setCacheable(true);
       }
+      if (fileContext.isAsync()) {
+        newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
+      }
+
       newInode = newFile;
     } else {
       throw new IllegalStateException(String.format("Unrecognized create options: %s", context));

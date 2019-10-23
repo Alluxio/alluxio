@@ -11,8 +11,10 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.client.WriteType;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
@@ -24,6 +26,7 @@ public class CreateFileContext
     extends CreatePathContext<CreateFilePOptions.Builder, CreateFileContext> {
 
   private boolean mCacheable;
+  private boolean mIsAsync;
 
   /**
    * Creates context with given option data.
@@ -33,6 +36,7 @@ public class CreateFileContext
   private CreateFileContext(CreateFilePOptions.Builder optionsBuilder) {
     super(optionsBuilder);
     mCacheable = false;
+    mIsAsync = optionsBuilder.getWriteType() == WritePType.ASYNC_THROUGH;
   }
 
   /**
@@ -69,6 +73,22 @@ public class CreateFileContext
   }
 
   /**
+   * @return whether this is a file created with {@link WriteType#ASYNC_THROUGH}
+   */
+  public boolean isAsync() {
+    return mIsAsync;
+  }
+
+  /**
+   * @param isAsync whether or not we are creating an async file
+   * @return the updated context
+   */
+  public CreateFileContext setIsAsync(boolean isAsync) {
+    mIsAsync = isAsync;
+    return getThis();
+  }
+
+  /**
    * @return true if file is cacheable
    */
   public boolean isCacheable() {
@@ -89,6 +109,7 @@ public class CreateFileContext
     return MoreObjects.toStringHelper(this)
         .add("PathContext", super.toString())
         .add("Cacheable", mCacheable)
+        .add("isAsync", mIsAsync)
         .toString();
   }
 }

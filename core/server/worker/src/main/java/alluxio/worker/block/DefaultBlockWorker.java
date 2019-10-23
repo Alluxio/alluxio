@@ -231,12 +231,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             ServerConfiguration.global(), ServerUserState.global()));
 
-    // Start the pinlist syncer to perform the periodical fetching
-    getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
-            (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            ServerConfiguration.global(), ServerUserState.global()));
-
     // Setup storage checker
     if (ServerConfiguration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
       mStorageChecker = new StorageChecker();
@@ -580,6 +574,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void cleanupSession(long sessionId) {
     mBlockStore.cleanupSession(sessionId);
     mUnderFileSystemBlockStore.cleanupSession(sessionId);
+  }
+
+  @Override
+  public void syncPinList() {
+    mPinListSync.heartbeat();
   }
 
   /**
