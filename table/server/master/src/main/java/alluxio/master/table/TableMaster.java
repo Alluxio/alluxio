@@ -29,13 +29,15 @@ public interface TableMaster extends Master {
   /**
    * Attach an existing database to the catalog.
    *
-   * @param dbName the database name to attach to
-   * @param dbType the database type
+   * @param udbType the database type
+   * @param udbConnectionUri the udb connection uri
+   * @param udbDbName the database name in the udb
+   * @param dbName the database name in Alluxio
    * @param configuration the configuration
    * @return true if creation is successful
    */
-  boolean attachDatabase(String dbName, String dbType, Map<String, String> configuration)
-      throws IOException;
+  boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName, String dbName,
+      Map<String, String> configuration) throws IOException;
 
   /**
    * Remove an existing database in the catalog.

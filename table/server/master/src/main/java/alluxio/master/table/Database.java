@@ -109,6 +109,13 @@ public class Database implements Journaled {
   }
 
   /**
+   * @return the {@link UnderDatabase}
+   */
+  public UnderDatabase getUdb() {
+    return mUdb;
+  }
+
+  /**
    * @return the list of all tables
    */
   public List<Table> getTables() {

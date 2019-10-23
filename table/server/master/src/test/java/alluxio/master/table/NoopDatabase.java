@@ -64,4 +64,9 @@ public class NoopDatabase implements UnderDatabase {
   public UdbTable getTable(String tableName) throws IOException {
     throw new IOException(String.format("NoopDb Table %s does not exist.", tableName));
   }
+
+  @Override
+  public UdbContext getUdbContext() {
+    return mUdbContext;
+  }
 }

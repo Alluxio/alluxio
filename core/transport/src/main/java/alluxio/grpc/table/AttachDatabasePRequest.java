@@ -16,8 +16,10 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private AttachDatabasePRequest() {
+    udbType_ = "";
+    udbConnectionUri_ = "";
+    udbDbName_ = "";
     dbName_ = "";
-    dbType_ = "";
   }
 
   @java.lang.Override
@@ -54,20 +56,32 @@ private static final long serialVersionUID = 0L;
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
-            dbName_ = bs;
+            udbType_ = bs;
             break;
           }
           case 18: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
-            dbType_ = bs;
+            udbConnectionUri_ = bs;
             break;
           }
           case 26: {
-            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000004;
+            udbDbName_ = bs;
+            break;
+          }
+          case 34: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000008;
+            dbName_ = bs;
+            break;
+          }
+          case 42: {
+            if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
               options_ = com.google.protobuf.MapField.newMapField(
                   OptionsDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000004;
+              mutable_bitField0_ |= 0x00000010;
             }
             com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
             options__ = input.readMessage(
@@ -97,7 +111,7 @@ private static final long serialVersionUID = 0L;
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
-      case 3:
+      case 5:
         return internalGetOptions();
       default:
         throw new RuntimeException(
@@ -112,16 +126,142 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int DB_NAME_FIELD_NUMBER = 1;
-  private volatile java.lang.Object dbName_;
+  public static final int UDB_TYPE_FIELD_NUMBER = 1;
+  private volatile java.lang.Object udbType_;
   /**
-   * <code>optional string db_name = 1;</code>
+   * <code>optional string udb_type = 1;</code>
    */
-  public boolean hasDbName() {
+  public boolean hasUdbType() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string db_name = 1;</code>
+   * <code>optional string udb_type = 1;</code>
+   */
+  public java.lang.String getUdbType() {
+    java.lang.Object ref = udbType_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        udbType_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string udb_type = 1;</code>
+   */
+  public com.google.protobuf.ByteString
+      getUdbTypeBytes() {
+    java.lang.Object ref = udbType_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      udbType_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int UDB_CONNECTION_URI_FIELD_NUMBER = 2;
+  private volatile java.lang.Object udbConnectionUri_;
+  /**
+   * <code>optional string udb_connection_uri = 2;</code>
+   */
+  public boolean hasUdbConnectionUri() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional string udb_connection_uri = 2;</code>
+   */
+  public java.lang.String getUdbConnectionUri() {
+    java.lang.Object ref = udbConnectionUri_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        udbConnectionUri_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string udb_connection_uri = 2;</code>
+   */
+  public com.google.protobuf.ByteString
+      getUdbConnectionUriBytes() {
+    java.lang.Object ref = udbConnectionUri_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      udbConnectionUri_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int UDB_DB_NAME_FIELD_NUMBER = 3;
+  private volatile java.lang.Object udbDbName_;
+  /**
+   * <code>optional string udb_db_name = 3;</code>
+   */
+  public boolean hasUdbDbName() {
+    return ((bitField0_ & 0x00000004) == 0x00000004);
+  }
+  /**
+   * <code>optional string udb_db_name = 3;</code>
+   */
+  public java.lang.String getUdbDbName() {
+    java.lang.Object ref = udbDbName_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        udbDbName_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string udb_db_name = 3;</code>
+   */
+  public com.google.protobuf.ByteString
+      getUdbDbNameBytes() {
+    java.lang.Object ref = udbDbName_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      udbDbName_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int DB_NAME_FIELD_NUMBER = 4;
+  private volatile java.lang.Object dbName_;
+  /**
+   * <code>optional string db_name = 4;</code>
+   */
+  public boolean hasDbName() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional string db_name = 4;</code>
    */
   public java.lang.String getDbName() {
     java.lang.Object ref = dbName_;
@@ -138,7 +278,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string db_name = 1;</code>
+   * <code>optional string db_name = 4;</code>
    */
   public com.google.protobuf.ByteString
       getDbNameBytes() {
@@ -154,49 +294,7 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int DB_TYPE_FIELD_NUMBER = 2;
-  private volatile java.lang.Object dbType_;
-  /**
-   * <code>optional string db_type = 2;</code>
-   */
-  public boolean hasDbType() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
-  }
-  /**
-   * <code>optional string db_type = 2;</code>
-   */
-  public java.lang.String getDbType() {
-    java.lang.Object ref = dbType_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        dbType_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string db_type = 2;</code>
-   */
-  public com.google.protobuf.ByteString
-      getDbTypeBytes() {
-    java.lang.Object ref = dbType_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      dbType_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int OPTIONS_FIELD_NUMBER = 3;
+  public static final int OPTIONS_FIELD_NUMBER = 5;
   private static final class OptionsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, java.lang.String> defaultEntry =
@@ -223,7 +321,7 @@ private static final long serialVersionUID = 0L;
     return internalGetOptions().getMap().size();
   }
   /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
 
   public boolean containsOptions(
@@ -239,14 +337,14 @@ private static final long serialVersionUID = 0L;
     return getOptionsMap();
   }
   /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
 
   public java.util.Map<java.lang.String, java.lang.String> getOptionsMap() {
     return internalGetOptions().getMap();
   }
   /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
 
   public java.lang.String getOptionsOrDefault(
@@ -258,7 +356,7 @@ private static final long serialVersionUID = 0L;
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
 
   public java.lang.String getOptionsOrThrow(
@@ -285,17 +383,23 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, udbType_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, dbType_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, udbConnectionUri_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, udbDbName_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, dbName_);
     }
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
         internalGetOptions(),
         OptionsDefaultEntryHolder.defaultEntry,
-        3);
+        5);
     unknownFields.writeTo(output);
   }
 
@@ -305,10 +409,16 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, udbType_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, dbType_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, udbConnectionUri_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, udbDbName_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, dbName_);
     }
     for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
          : internalGetOptions().getMap().entrySet()) {
@@ -318,7 +428,7 @@ private static final long serialVersionUID = 0L;
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, options__);
+          .computeMessageSize(5, options__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -336,15 +446,25 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.table.AttachDatabasePRequest other = (alluxio.grpc.table.AttachDatabasePRequest) obj;
 
     boolean result = true;
+    result = result && (hasUdbType() == other.hasUdbType());
+    if (hasUdbType()) {
+      result = result && getUdbType()
+          .equals(other.getUdbType());
+    }
+    result = result && (hasUdbConnectionUri() == other.hasUdbConnectionUri());
+    if (hasUdbConnectionUri()) {
+      result = result && getUdbConnectionUri()
+          .equals(other.getUdbConnectionUri());
+    }
+    result = result && (hasUdbDbName() == other.hasUdbDbName());
+    if (hasUdbDbName()) {
+      result = result && getUdbDbName()
+          .equals(other.getUdbDbName());
+    }
     result = result && (hasDbName() == other.hasDbName());
     if (hasDbName()) {
       result = result && getDbName()
           .equals(other.getDbName());
-    }
-    result = result && (hasDbType() == other.hasDbType());
-    if (hasDbType()) {
-      result = result && getDbType()
-          .equals(other.getDbType());
     }
     result = result && internalGetOptions().equals(
         other.internalGetOptions());
@@ -359,13 +479,21 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    if (hasUdbType()) {
+      hash = (37 * hash) + UDB_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getUdbType().hashCode();
+    }
+    if (hasUdbConnectionUri()) {
+      hash = (37 * hash) + UDB_CONNECTION_URI_FIELD_NUMBER;
+      hash = (53 * hash) + getUdbConnectionUri().hashCode();
+    }
+    if (hasUdbDbName()) {
+      hash = (37 * hash) + UDB_DB_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getUdbDbName().hashCode();
+    }
     if (hasDbName()) {
       hash = (37 * hash) + DB_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getDbName().hashCode();
-    }
-    if (hasDbType()) {
-      hash = (37 * hash) + DB_TYPE_FIELD_NUMBER;
-      hash = (53 * hash) + getDbType().hashCode();
     }
     if (!internalGetOptions().getMap().isEmpty()) {
       hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
@@ -480,7 +608,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
-        case 3:
+        case 5:
           return internalGetOptions();
         default:
           throw new RuntimeException(
@@ -491,7 +619,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMutableMapField(
         int number) {
       switch (number) {
-        case 3:
+        case 5:
           return internalGetMutableOptions();
         default:
           throw new RuntimeException(
@@ -522,10 +650,14 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      dbName_ = "";
+      udbType_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      dbType_ = "";
+      udbConnectionUri_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
+      udbDbName_ = "";
+      bitField0_ = (bitField0_ & ~0x00000004);
+      dbName_ = "";
+      bitField0_ = (bitField0_ & ~0x00000008);
       internalGetMutableOptions().clear();
       return this;
     }
@@ -554,11 +686,19 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.dbName_ = dbName_;
+      result.udbType_ = udbType_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.dbType_ = dbType_;
+      result.udbConnectionUri_ = udbConnectionUri_;
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.udbDbName_ = udbDbName_;
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.dbName_ = dbName_;
       result.options_ = internalGetOptions();
       result.options_.makeImmutable();
       result.bitField0_ = to_bitField0_;
@@ -603,14 +743,24 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.table.AttachDatabasePRequest other) {
       if (other == alluxio.grpc.table.AttachDatabasePRequest.getDefaultInstance()) return this;
-      if (other.hasDbName()) {
+      if (other.hasUdbType()) {
         bitField0_ |= 0x00000001;
-        dbName_ = other.dbName_;
+        udbType_ = other.udbType_;
         onChanged();
       }
-      if (other.hasDbType()) {
+      if (other.hasUdbConnectionUri()) {
         bitField0_ |= 0x00000002;
-        dbType_ = other.dbType_;
+        udbConnectionUri_ = other.udbConnectionUri_;
+        onChanged();
+      }
+      if (other.hasUdbDbName()) {
+        bitField0_ |= 0x00000004;
+        udbDbName_ = other.udbDbName_;
+        onChanged();
+      }
+      if (other.hasDbName()) {
+        bitField0_ |= 0x00000008;
+        dbName_ = other.dbName_;
         onChanged();
       }
       internalGetMutableOptions().mergeFrom(
@@ -643,15 +793,243 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object dbName_ = "";
+    private java.lang.Object udbType_ = "";
     /**
-     * <code>optional string db_name = 1;</code>
+     * <code>optional string udb_type = 1;</code>
      */
-    public boolean hasDbName() {
+    public boolean hasUdbType() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string db_name = 1;</code>
+     * <code>optional string udb_type = 1;</code>
+     */
+    public java.lang.String getUdbType() {
+      java.lang.Object ref = udbType_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          udbType_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string udb_type = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUdbTypeBytes() {
+      java.lang.Object ref = udbType_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        udbType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string udb_type = 1;</code>
+     */
+    public Builder setUdbType(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      udbType_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string udb_type = 1;</code>
+     */
+    public Builder clearUdbType() {
+      bitField0_ = (bitField0_ & ~0x00000001);
+      udbType_ = getDefaultInstance().getUdbType();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string udb_type = 1;</code>
+     */
+    public Builder setUdbTypeBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      udbType_ = value;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object udbConnectionUri_ = "";
+    /**
+     * <code>optional string udb_connection_uri = 2;</code>
+     */
+    public boolean hasUdbConnectionUri() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string udb_connection_uri = 2;</code>
+     */
+    public java.lang.String getUdbConnectionUri() {
+      java.lang.Object ref = udbConnectionUri_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          udbConnectionUri_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string udb_connection_uri = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUdbConnectionUriBytes() {
+      java.lang.Object ref = udbConnectionUri_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        udbConnectionUri_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string udb_connection_uri = 2;</code>
+     */
+    public Builder setUdbConnectionUri(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      udbConnectionUri_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string udb_connection_uri = 2;</code>
+     */
+    public Builder clearUdbConnectionUri() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      udbConnectionUri_ = getDefaultInstance().getUdbConnectionUri();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string udb_connection_uri = 2;</code>
+     */
+    public Builder setUdbConnectionUriBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      udbConnectionUri_ = value;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object udbDbName_ = "";
+    /**
+     * <code>optional string udb_db_name = 3;</code>
+     */
+    public boolean hasUdbDbName() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string udb_db_name = 3;</code>
+     */
+    public java.lang.String getUdbDbName() {
+      java.lang.Object ref = udbDbName_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          udbDbName_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string udb_db_name = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUdbDbNameBytes() {
+      java.lang.Object ref = udbDbName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        udbDbName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string udb_db_name = 3;</code>
+     */
+    public Builder setUdbDbName(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+      udbDbName_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string udb_db_name = 3;</code>
+     */
+    public Builder clearUdbDbName() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      udbDbName_ = getDefaultInstance().getUdbDbName();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string udb_db_name = 3;</code>
+     */
+    public Builder setUdbDbNameBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+      udbDbName_ = value;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object dbName_ = "";
+    /**
+     * <code>optional string db_name = 4;</code>
+     */
+    public boolean hasDbName() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional string db_name = 4;</code>
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -668,7 +1046,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string db_name = 1;</code>
+     * <code>optional string db_name = 4;</code>
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -684,113 +1062,37 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string db_name = 1;</code>
+     * <code>optional string db_name = 4;</code>
      */
     public Builder setDbName(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000001;
+  bitField0_ |= 0x00000008;
       dbName_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string db_name = 1;</code>
+     * <code>optional string db_name = 4;</code>
      */
     public Builder clearDbName() {
-      bitField0_ = (bitField0_ & ~0x00000001);
+      bitField0_ = (bitField0_ & ~0x00000008);
       dbName_ = getDefaultInstance().getDbName();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string db_name = 1;</code>
+     * <code>optional string db_name = 4;</code>
      */
     public Builder setDbNameBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000001;
+  bitField0_ |= 0x00000008;
       dbName_ = value;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object dbType_ = "";
-    /**
-     * <code>optional string db_type = 2;</code>
-     */
-    public boolean hasDbType() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional string db_type = 2;</code>
-     */
-    public java.lang.String getDbType() {
-      java.lang.Object ref = dbType_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          dbType_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>optional string db_type = 2;</code>
-     */
-    public com.google.protobuf.ByteString
-        getDbTypeBytes() {
-      java.lang.Object ref = dbType_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        dbType_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string db_type = 2;</code>
-     */
-    public Builder setDbType(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-      dbType_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string db_type = 2;</code>
-     */
-    public Builder clearDbType() {
-      bitField0_ = (bitField0_ & ~0x00000002);
-      dbType_ = getDefaultInstance().getDbType();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string db_type = 2;</code>
-     */
-    public Builder setDbTypeBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-      dbType_ = value;
       onChanged();
       return this;
     }
@@ -822,7 +1124,7 @@ private static final long serialVersionUID = 0L;
       return internalGetOptions().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; options = 3;</code>
+     * <code>map&lt;string, string&gt; options = 5;</code>
      */
 
     public boolean containsOptions(
@@ -838,14 +1140,14 @@ private static final long serialVersionUID = 0L;
       return getOptionsMap();
     }
     /**
-     * <code>map&lt;string, string&gt; options = 3;</code>
+     * <code>map&lt;string, string&gt; options = 5;</code>
      */
 
     public java.util.Map<java.lang.String, java.lang.String> getOptionsMap() {
       return internalGetOptions().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; options = 3;</code>
+     * <code>map&lt;string, string&gt; options = 5;</code>
      */
 
     public java.lang.String getOptionsOrDefault(
@@ -857,7 +1159,7 @@ private static final long serialVersionUID = 0L;
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; options = 3;</code>
+     * <code>map&lt;string, string&gt; options = 5;</code>
      */
 
     public java.lang.String getOptionsOrThrow(
@@ -877,7 +1179,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; options = 3;</code>
+     * <code>map&lt;string, string&gt; options = 5;</code>
      */
 
     public Builder removeOptions(
@@ -896,7 +1198,7 @@ private static final long serialVersionUID = 0L;
       return internalGetMutableOptions().getMutableMap();
     }
     /**
-     * <code>map&lt;string, string&gt; options = 3;</code>
+     * <code>map&lt;string, string&gt; options = 5;</code>
      */
     public Builder putOptions(
         java.lang.String key,
@@ -908,7 +1210,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; options = 3;</code>
+     * <code>map&lt;string, string&gt; options = 5;</code>
      */
 
     public Builder putAllOptions(

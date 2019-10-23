@@ -54,6 +54,8 @@ public class HiveDatabase implements UnderDatabase {
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
+  /** the connection uri for the hive metastore. */
+  private final String mConnectionUri;
   /** the name of the hive db. */
   private final String mHiveDbName;
 
@@ -61,9 +63,10 @@ public class HiveDatabase implements UnderDatabase {
   private HiveMetaStoreClient mHive = null;
 
   private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
-      String hiveDbName) {
+      String connectionUri, String hiveDbName) {
     mUdbContext = udbContext;
     mConfiguration = configuration;
+    mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
   }
 
@@ -75,25 +78,20 @@ public class HiveDatabase implements UnderDatabase {
    * @return the new instance
    */
   public static HiveDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
-    String uris = configuration.get(Property.HIVE_METASTORE_URIS);
-    if (uris.isEmpty()) {
+    String connectionUri = udbContext.getConnectionUri();
+    if (connectionUri == null || connectionUri.isEmpty()) {
       throw new IllegalArgumentException(
-          "Hive metastore uris is not configured. Please set parameter: "
-              + Property.HIVE_METASTORE_URIS.getFullName(HiveDatabaseFactory.TYPE));
+          "Hive udb connection uri cannot be empty: " + connectionUri);
     }
-    String dbName = configuration.get(Property.DATABASE_NAME);
-    if (dbName.isEmpty()) {
-      throw new IllegalArgumentException(
-          "Hive database name is not configured. Please set parameter: " + Property.DATABASE_NAME
-              .getFullName(HiveDatabaseFactory.TYPE));
+    String hiveDbName = udbContext.getUdbDbName();
+    if (hiveDbName == null || hiveDbName.isEmpty()) {
+      throw new IllegalArgumentException("Hive database name cannot be empty: " + hiveDbName);
     }
 
-    return new HiveDatabase(udbContext, configuration, dbName);
+    return new HiveDatabase(udbContext, configuration, connectionUri, hiveDbName);
   }
 
-  /**
-   * @return the udb context
-   */
+  @Override
   public UdbContext getUdbContext() {
     return mUdbContext;
   }
@@ -245,12 +243,19 @@ public class HiveDatabase implements UnderDatabase {
       // use the extension class loader
       Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
       HiveConf conf = new HiveConf();
-      conf.set("hive.metastore.uris", mConfiguration.get(Property.HIVE_METASTORE_URIS));
+      conf.set("hive.metastore.uris", mConnectionUri);
       mHive = new HiveMetaStoreClient(conf);
+      mHive.getDatabase(mHiveDbName);
       return mHive;
-    } catch (MetaException | NullPointerException e) {
+    } catch (NoSuchObjectException e) {
+      throw new IOException(String
+          .format("hive db name '%s' does not exist at metastore: %s", mHiveDbName, mConnectionUri),
+          e);
+    } catch (NullPointerException | TException e) {
       // HiveMetaStoreClient throws a NPE if the uri is not a uri for hive metastore
-      throw new IOException("Failed to create hive client: " + e.getMessage(), e);
+      throw new IOException(String
+          .format("Failed to create client to hive metastore: %s. error: %s", mConnectionUri,
+              e.getMessage()), e);
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }

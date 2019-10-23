@@ -103,10 +103,11 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public boolean attachDatabase(String dbName, String dbType, Map<String, String> configuration)
-      throws AlluxioStatusException {
+  public boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName,
+      String dbName, Map<String, String> configuration) throws AlluxioStatusException {
     return retryRPC(() -> mClient.attachDatabase(
-        AttachDatabasePRequest.newBuilder().setDbName(dbName).setDbType(dbType)
+        AttachDatabasePRequest.newBuilder().setUdbType(udbType)
+            .setUdbConnectionUri(udbConnectionUri).setUdbDbName(udbDbName).setDbName(dbName)
             .putAllOptions(configuration).build()).getSuccess());
   }
 

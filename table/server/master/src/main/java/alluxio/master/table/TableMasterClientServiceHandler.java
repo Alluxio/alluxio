@@ -60,8 +60,9 @@ public class TableMasterClientServiceHandler
   public void attachDatabase(AttachDatabasePRequest request,
       StreamObserver<AttachDatabasePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> AttachDatabasePResponse.newBuilder().setSuccess(mTableMaster
-            .attachDatabase(request.getDbName(), request.getDbType(),
-                request.getOptionsMap())).build(), "attachDatabase", "",
+            .attachDatabase(request.getUdbType(), request.getUdbConnectionUri(),
+                request.getUdbDbName(),
+                request.getDbName(), request.getOptionsMap())).build(), "attachDatabase", "",
         responseObserver);
   }
 

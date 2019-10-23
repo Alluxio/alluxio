@@ -63,7 +63,7 @@ public class AlluxioCatalogTest {
   public void attachDb() throws Exception {
     String dbName = "testdb";
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
-        NoopUdbFactory.TYPE, dbName,
+        NoopUdbFactory.TYPE, "connect_URI", dbName, dbName,
         Collections.emptyMap());
     List<String> dbs = mCatalog.getAllDatabases();
     assertEquals(1, dbs.size());
@@ -80,7 +80,7 @@ public class AlluxioCatalogTest {
   public void detachDb() throws Exception {
     String dbName = "testdb";
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
-        NoopUdbFactory.TYPE, dbName,
+        NoopUdbFactory.TYPE, "connect_URI", dbName, dbName,
         Collections.emptyMap());
     assertEquals(1, mCatalog.getAllDatabases().size());
     assertTrue(mCatalog.detachDatabase(NoopJournalContext.INSTANCE, dbName));
@@ -92,7 +92,7 @@ public class AlluxioCatalogTest {
     addMockDbs();
     assertEquals(2, mCatalog.getAllDatabases().size());
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
-        NoopUdbFactory.TYPE, "noop",
+        NoopUdbFactory.TYPE, "connect_URI", "noop", "noop",
         Collections.emptyMap());
     assertEquals(3, mCatalog.getAllDatabases().size());
   }
