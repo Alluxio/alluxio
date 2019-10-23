@@ -184,7 +184,7 @@ public class Database implements Journaled {
         table = Table.create(this, udbTable);
         tableUpdated = true;
       } else {
-        tableUpdated = table.incrementalSync(mUdb.getTable(tableName));
+        tableUpdated = table.sync(mUdb.getTable(tableName));
       }
       if (tableUpdated) {
         alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();

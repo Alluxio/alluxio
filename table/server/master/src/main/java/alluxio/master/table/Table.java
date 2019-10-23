@@ -54,7 +54,7 @@ public class Table {
 
   private Table(Database database, UdbTable udbTable) {
     mDatabase = database;
-    fullSync(udbTable);
+    sync(udbTable);
   }
 
   private Table(Database database, List<Partition> partitions, Schema schema, String tableName,
@@ -69,28 +69,10 @@ public class Table {
     mParameters = new HashMap<>(parameters);
   }
 
-  /**
-   * fullSync the table with a udbtable.
-   *
-   * @param udbTable udb table to be synced
-   */
-  public void fullSync(UdbTable udbTable) {
-    try {
-      mName = udbTable.getName();
-      mSchema = udbTable.getSchema();
-      mOwner = udbTable.getOwner();
-      mStatistics = udbTable.getStatistics();
-      mParameters = new HashMap<>(udbTable.getParameters());
-      List<FieldSchema> partitionCols = new ArrayList<>(udbTable.getPartitionCols());
-      mPartitionScheme = PartitionScheme.create(
-          udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList()),
-          udbTable.getLayout(), partitionCols);
-    } catch (IOException e) {
-      LOG.info("Sync table {} failed {}", mName, e);
+  private boolean isSyncable(UdbTable udbTable) {
+    if (mSchema == null && mPartitionScheme == null) {
+      return true;
     }
-  }
-
-  private boolean checkSyncable(UdbTable udbTable) {
     if (Objects.equals(mSchema, udbTable.getSchema())) {
       // can't sync if the schema is different
       return false;
@@ -104,18 +86,30 @@ public class Table {
   }
 
   /**
-   * incremental sync the table with a udbtable.
+   * Sync the table with a udbtable.
    *
    * @param udbTable udb table to be synced
    * @return true if the table changed
    */
-  public boolean incrementalSync(UdbTable udbTable) {
+  public boolean sync(UdbTable udbTable) {
     boolean changed = false;
     try {
-      if (!checkSyncable(udbTable)) {
+      if (!isSyncable(udbTable)) {
         return false;
       }
-      List<Partition> partitions = mPartitionScheme.getPartitions();
+      // only sync these fields if the table is uninitialized
+      if (mName == null) {
+        mName = udbTable.getName();
+        mSchema = udbTable.getSchema();
+        mOwner = udbTable.getOwner();
+        mStatistics = udbTable.getStatistics();
+        mParameters = new HashMap<>(udbTable.getParameters());
+        changed = true;
+      }
+      List<Partition> partitions = mPartitionScheme == null
+          ? new ArrayList<>() : mPartitionScheme.getPartitions();
+      Layout tableLayout = mPartitionScheme == null
+          ? udbTable.getLayout() : mPartitionScheme.getTableLayout();
       Set<String> partNames = partitions.stream().map(Partition::getSpec)
           .collect(Collectors.toSet());
       for (UdbPartition udbpart : udbTable.getPartitions()) {
@@ -126,10 +120,10 @@ public class Table {
       }
       if (changed) {
         mPartitionScheme = PartitionScheme.create(partitions,
-            mPartitionScheme.getTableLayout(), mPartitionScheme.getPartitionCols());
+            tableLayout, udbTable.getPartitionCols());
       }
     } catch (IOException e) {
-      LOG.info("Incremtnal Sync table {} failed {}", mName, e);
+      LOG.info("Sync table {} failed {}", mName, e);
     }
     return changed;
   }
