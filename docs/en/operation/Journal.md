@@ -49,11 +49,16 @@ recommended to put the journal in an object store like S3. With an object store,
 metadata operation requires a new object to be created, which is
 prohibitively slow for most serious use cases.
 
+UFS journal options can be configured using the configuration prefix:
+
+`alluxio.master.journal.ufs.option.<some alluxio property>`
+
 **Configuration examples:**
 
 Use HDFS to store the journal:
 ```
 alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
+alluxio.master.journal.ufs.option.alluxio.underfs.version=2.6
 ```
 
 Use the local file system to store the journal:
