@@ -223,6 +223,38 @@ public final class TableMasterClientServiceGrpc {
      return getDetachDatabaseMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.SyncDatabasePRequest,
+      alluxio.grpc.table.SyncDatabasePResponse> getSyncDatabaseMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "SyncDatabase",
+      requestType = alluxio.grpc.table.SyncDatabasePRequest.class,
+      responseType = alluxio.grpc.table.SyncDatabasePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.table.SyncDatabasePRequest,
+      alluxio.grpc.table.SyncDatabasePResponse> getSyncDatabaseMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.table.SyncDatabasePRequest, alluxio.grpc.table.SyncDatabasePResponse> getSyncDatabaseMethod;
+    if ((getSyncDatabaseMethod = TableMasterClientServiceGrpc.getSyncDatabaseMethod) == null) {
+      synchronized (TableMasterClientServiceGrpc.class) {
+        if ((getSyncDatabaseMethod = TableMasterClientServiceGrpc.getSyncDatabaseMethod) == null) {
+          TableMasterClientServiceGrpc.getSyncDatabaseMethod = getSyncDatabaseMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.table.SyncDatabasePRequest, alluxio.grpc.table.SyncDatabasePResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.table.TableMasterClientService", "SyncDatabase"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.table.SyncDatabasePRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.table.SyncDatabasePResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("SyncDatabase"))
+                  .build();
+          }
+        }
+     }
+     return getSyncDatabaseMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.GetTableColumnStatisticsPRequest,
       alluxio.grpc.table.GetTableColumnStatisticsPResponse> getGetTableColumnStatisticsMethod;
 
@@ -449,6 +481,17 @@ public final class TableMasterClientServiceGrpc {
     }
 
     /**
+     * <pre>
+     **
+     * Sync existing database into the catalog
+     * </pre>
+     */
+    public void syncDatabase(alluxio.grpc.table.SyncDatabasePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.table.SyncDatabasePResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getSyncDatabaseMethod(), responseObserver);
+    }
+
+    /**
      */
     public void getTableColumnStatistics(alluxio.grpc.table.GetTableColumnStatisticsPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.table.GetTableColumnStatisticsPResponse> responseObserver) {
@@ -520,6 +563,13 @@ public final class TableMasterClientServiceGrpc {
                 alluxio.grpc.table.DetachDatabasePRequest,
                 alluxio.grpc.table.DetachDatabasePResponse>(
                   this, METHODID_DETACH_DATABASE)))
+          .addMethod(
+            getSyncDatabaseMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.table.SyncDatabasePRequest,
+                alluxio.grpc.table.SyncDatabasePResponse>(
+                  this, METHODID_SYNC_DATABASE)))
           .addMethod(
             getGetTableColumnStatisticsMethod(),
             asyncUnaryCall(
@@ -647,6 +697,18 @@ public final class TableMasterClientServiceGrpc {
     }
 
     /**
+     * <pre>
+     **
+     * Sync existing database into the catalog
+     * </pre>
+     */
+    public void syncDatabase(alluxio.grpc.table.SyncDatabasePRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.table.SyncDatabasePResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getSyncDatabaseMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
      */
     public void getTableColumnStatistics(alluxio.grpc.table.GetTableColumnStatisticsPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.table.GetTableColumnStatisticsPResponse> responseObserver) {
@@ -765,6 +827,17 @@ public final class TableMasterClientServiceGrpc {
     public alluxio.grpc.table.DetachDatabasePResponse detachDatabase(alluxio.grpc.table.DetachDatabasePRequest request) {
       return blockingUnaryCall(
           getChannel(), getDetachDatabaseMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Sync existing database into the catalog
+     * </pre>
+     */
+    public alluxio.grpc.table.SyncDatabasePResponse syncDatabase(alluxio.grpc.table.SyncDatabasePRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getSyncDatabaseMethod(), getCallOptions(), request);
     }
 
     /**
@@ -891,6 +964,18 @@ public final class TableMasterClientServiceGrpc {
     }
 
     /**
+     * <pre>
+     **
+     * Sync existing database into the catalog
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.table.SyncDatabasePResponse> syncDatabase(
+        alluxio.grpc.table.SyncDatabasePRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getSyncDatabaseMethod(), getCallOptions()), request);
+    }
+
+    /**
      */
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.table.GetTableColumnStatisticsPResponse> getTableColumnStatistics(
         alluxio.grpc.table.GetTableColumnStatisticsPRequest request) {
@@ -929,10 +1014,11 @@ public final class TableMasterClientServiceGrpc {
   private static final int METHODID_GET_TABLE = 3;
   private static final int METHODID_ATTACH_DATABASE = 4;
   private static final int METHODID_DETACH_DATABASE = 5;
-  private static final int METHODID_GET_TABLE_COLUMN_STATISTICS = 6;
-  private static final int METHODID_GET_PARTITION_COLUMN_STATISTICS = 7;
-  private static final int METHODID_READ_TABLE = 8;
-  private static final int METHODID_TRANSFORM_TABLE = 9;
+  private static final int METHODID_SYNC_DATABASE = 6;
+  private static final int METHODID_GET_TABLE_COLUMN_STATISTICS = 7;
+  private static final int METHODID_GET_PARTITION_COLUMN_STATISTICS = 8;
+  private static final int METHODID_READ_TABLE = 9;
+  private static final int METHODID_TRANSFORM_TABLE = 10;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -974,6 +1060,10 @@ public final class TableMasterClientServiceGrpc {
         case METHODID_DETACH_DATABASE:
           serviceImpl.detachDatabase((alluxio.grpc.table.DetachDatabasePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.table.DetachDatabasePResponse>) responseObserver);
+          break;
+        case METHODID_SYNC_DATABASE:
+          serviceImpl.syncDatabase((alluxio.grpc.table.SyncDatabasePRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.table.SyncDatabasePResponse>) responseObserver);
           break;
         case METHODID_GET_TABLE_COLUMN_STATISTICS:
           serviceImpl.getTableColumnStatistics((alluxio.grpc.table.GetTableColumnStatisticsPRequest) request,
@@ -1058,6 +1148,7 @@ public final class TableMasterClientServiceGrpc {
               .addMethod(getGetTableMethod())
               .addMethod(getAttachDatabaseMethod())
               .addMethod(getDetachDatabaseMethod())
+              .addMethod(getSyncDatabaseMethod())
               .addMethod(getGetTableColumnStatisticsMethod())
               .addMethod(getGetPartitionColumnStatisticsMethod())
               .addMethod(getReadTableMethod())
