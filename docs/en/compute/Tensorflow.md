@@ -156,35 +156,35 @@ script [tf_cnn_benchmarsk.py](https://github.com/tensorflow/benchmarks/blob/mast
 
 ### Write Tensorflow applications with data location parameter
 
-When running Tensorflow on top of HDFS, S3, and other under storages, it requires to 
-configure Tensorflow and modify tensorflow applications. Through Alluxio POSIX API,
-users only need to mount their various under storages to Alluxio once and mount the 
-parent folder of those under storages that containing training data to the local filesystem.
-After mounting, data in various under storages become immediately available through Alluxio
-fuse mount point and can be transparently accessed to Tensorflow applications.
-If the Tensorflow application has the data location parameter, we only need to pass the 
+Running Tensorflow on top of HDFS, S3, and other under storages could require different 
+configurations, making it difficult to manage and integrate Tensorflow applications with 
+different under storages. Through Alluxio POSIX API,
+users only need to mount under storages to Alluxio once and mount the 
+parent folder of those under storages that contain training data to the local filesystem.
+After the initial mounting, the data becomes immediately available through Alluxio
+fuse mount point and can be transparently accessed in Tensorflow applications.
+If a Tensorflow application has the data location parameter set, we only need to pass the 
 data location inside fuse mount point to the Tensorflow application without modifying it.
 This greatly simplifies the application development, which otherwise 
-would need the integration of each particular storage
-system as well as the configurations of the credentials.
+would require different integration setups and credential configurations for each under storage.
 
 ### Co-locating Tensorflow with Alluxio worker
 
 By co-locating Tensorflow applications with Alluxio worker, Alluxio caches the remote data
-locally for the future access, providing data locality. Without Alluxio, slow remote
+locally for future access, providing data locality. Without Alluxio, slow remote
 storage may result in bottleneck on I/O and leave GPU resources underutilized. 
 When concurrently writing or reading big files, Alluxio POSIX API can provide significantly better
-performance when running on Alluxio worker node. When the worker node has big enough memory space to 
-host all the training data, Alluxio POSIX API on worker node can provide nearly 2X performance improvement.
+performance when running on Alluxio worker node. Setting up a worker node with memory space to 
+host all the training data can allow Alluxio POSIX API to provide nearly 2X performance improvement.
 
 ### Configure Alluxio write type and read type
 
 Many Tensorflow applications generate a lot of small intermediate files during their
-workflow. Those intermediate files are only useful for a short time and are not needed to be 
-persistent to under storages. If we directly link Tensorflow with remote storages, all the 
-files no matter they are data, intermediate files, or results will write to the remote storage 
-and become persistent. With Alluxio -- a cache layer between the Tensorflow applications and remote storages, 
-users can reduce unneeded remote persistent works and speed up the write/read time.
+workflow. Those intermediate files are only useful for a short time and do not need to be 
+persisted to under storages. If we directly link Tensorflow with remote storages, all files 
+(regardless of the type - data files, intermediate files, results, etc.) will be written to and persisted 
+in the remote storage. With Alluxio -- a cache layer between the Tensorflow applications and remote storages, 
+users can reduce unneeded remote persistent work and speed up the write/read time.
 
 With `alluxio.user.file.writetype.default` set to `MUST_CACHE`, We can write to the top tier (usually it is the memory tier) 
 of Alluxio worker storage. With `alluxio.user.file.readtype.default` set to `CACHE_PROMOTE`, we can cache the read data in Alluxio 
