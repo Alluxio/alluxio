@@ -150,8 +150,6 @@ public final class JobCoordinatorTest {
     setTasksWithStatuses(jobCoordinator, Status.COMPLETED, Status.COMPLETED, Status.COMPLETED);
 
     Assert.assertEquals(Status.COMPLETED, jobCoordinator.getJobInfoWire().getStatus());
-    Mockito.verify(mJobDefinition).join(Mockito.eq(jobCoordinator.getJobInfoWire().getJobConfig()),
-        Mockito.anyMapOf(WorkerInfo.class, Serializable.class));
   }
 
   @Test
