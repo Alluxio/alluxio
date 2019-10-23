@@ -22,16 +22,11 @@ an external Zookeeper cluster for coordination, and relies on a UFS for persiste
 To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes, 
 such as HDFS or NFS.
 
-The embedded journal does its own coordination and persistent storage, but has a few limitations:
-* `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
+The embedded journal does its own coordination and persistent storage, which comes with a limitation on fault tolerance.
+`n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
 compared to `n-1` for UFS journal. For example, With `3` masters, UFS journal can tolerate `2` failures, 
 while embedded journal can only tolerate `1`. However, UFS journal depends on Zookeeper, 
 which similarly only supports `floor(#zookeeper_nodes / 2)` failures.
-
-* embedded journal does not support dynamically changing master membership. 
-With UFS journal, replacing a master on `host1` with a new master on `host2` is as simple as starting a new master on `host2`, 
-then killing the master on `host1`. Changing the masters in an embedded journal cluster requires [backing up](#backing-up-the-journal) 
-the cluster, shutting it down, and then starting up again with the new masters using the backup.
 
 If a fast UFS and Zookeeper cluster are readily available and stable, it is recommended to use the UFS journal. 
 Otherwise, we recommend using the embedded journal.
@@ -191,16 +186,75 @@ in the leading master logs.
 
 ### Changing masters
 
-If the journal is stored in a shared storage system like HDFS, changing masters is easy.
-As long as the new master sets `alluxio.master.journal.folder` the same as the old
-master, it will start up in the same state that the old master left off.
+#### Embedded Journal Cluster
+When internal leader election is used, Alluxio masters are determined with a quorum. Adding or removing
+masters requires to keep this quorum in a consistent state. 
 
-If the journal is stored on the local filesystem, the journal folder needs to be
-copied to the new master.
+##### Adding a new master
+In order to prevent inconsistencies in the cluster configuration across masters, only a single master
+should be added to an existing embedded journal cluster. 
+
+Below are the steps to add a new master to a live cluster:
+* Prepare the new master.
+    * New master should contain all existing masters in its embedded journal configuration, complete with its own address.
+* Start new master.
+    * This will introduce the new master to existing cluster.
+    * New master will catch up with cluster's state in the background.
+* Update existing masters' configuration with the new master address.
+    * This is in order to make sure existing members will connect the new member directly upon restart.
+
+Note: Adding to an already shut down cluster still requires adding only single master at a time.
+
+Note: When adding a master to a single master cluster, you should shut down and update configuration for the existing master.
+Then both masters could be started together.
+
+See [here]({{ '/en/operation/Journal.html' | relativize_url }}) for configuring embedded journal.
+
+##### Removing a master
+Embedded journal cluster will take a notice when a member is not available anymore. Such masters will count
+against failure tolerance of the cluster based on the initial member count. In order to resize the cluster
+after a node failure an explicit action is required.
+
+`Please note -domain parameter in below commands. This is because embedded journal based leader election is supported
+for both regular masters and job service masters. You should supply correct value based on which cluster you intend to work on.` 
+
+
+1- Check current quorum state:
+
+```console
+$ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
+```
+
+This will print out node status for all currently participating members of the embedded journal cluster. You should verify 
+that the removed master is shown as `UNAVAILABLE`.
+
+2- Remove member from quorum:
+
+`-address` option below should reflect the exact address that is returned by the `.. quorum info` command provided above. 
+```console
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <address>
+```
+
+3- Verify that removed member is no longer shown in the quorum info.
+
+#### UFS Journal Cluster
+
+To add a master to an HA Alluxio cluster, you can simply start a new Alluxio master process, with
+the appropriate configuration. The configuration for the new master should be the same as other masters,
+except that the parameter `alluxio.master.hostname=<MASTER_HOSTNAME>` should reflect the new hostname.
+Once the new master is started, it will start interacting with ZooKeeper to participate in leader election.
+
+Removing a master is as simple as stopping the master process. If the cluster is a single master cluster,
+stopping the master will essentially shutdown the cluster, since the single master is down. If the
+Alluxio cluster is an HA cluster, stopping the leading master will force ZooKeeper to elect a new leading master
+and failover to that new leader. If a standby master is stopped, then the operation of the cluster is
+unaffected. Keep in mind, Alluxio masters high availability depends on the availability on standby
+masters. If there are not enough standby masters, the availability of the leading master will be affected.
+It is recommended to have at least 3 masters for an HA Alluxio cluster.
 
 ## Advanced
 
-### Managing the journal size
+### Managing the UFS journal size
 
 When running with a single master, the journal folder size will grow indefinitely
 as metadata operations are written to journal log files. To address this, production
@@ -215,6 +269,7 @@ By default, checkpoints are automatically taken every 2 million entries. This ca
 setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
+
 
 #### Checkpointing on secondary master
 
