@@ -32,4 +32,17 @@ public interface PartitionOrBuilder extends
    * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
    */
   alluxio.grpc.table.LayoutOrBuilder getLayoutOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   */
+  boolean hasTransformation();
+  /**
+   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   */
+  alluxio.grpc.table.Transformation getTransformation();
+  /**
+   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   */
+  alluxio.grpc.table.TransformationOrBuilder getTransformationOrBuilder();
 }
