@@ -1,14 +1,17 @@
 ---
 layout: global
-title: Alluxio Structured Data Service
-nickname: {{feature_name}}
-group: Data Applications
-priority: 7
+title: Alluxio Catalog Service
+nickname: Catalog Service
+group: Structured Data
+priority: 0
 ---
+
 {% assign feature_name="A GOOD FEATURE NAME" %}
 
+* Table of Contents
+{:toc}
 
-## Structured Data Services
+## Overview
 
 Alluxio 2.1.0 introduces a new service within Alluxio called {{feature_name}}.
 {{feature_name}} is a service for managing access to structured data, which serves a purpose similar to the
@@ -182,12 +185,6 @@ $ ${ALLUXIO_HOME}/bin/alluxio table detachdb alluxio_db
 Running `alluxio table ls` afterwards will not display the database any more.
 Continue to the next section to see how to use {{feature_name}} with presto
 
-## Data Transformations
-
-```
-<TBD>
-```
-
 ## Alluxio {{feature_name}} with Presto
 
 {{feature_name}} is built to be used as connector in Presto.
@@ -215,13 +212,14 @@ Once configured on each node, restart all presto coordinators and workers
 
 ### Using {{feature_name}} with Presto
 
-In order to utilize the Alluxio Presto plugin start the presto CLI with
+In order to utilize the Alluxio Presto plugin start the presto CLI with the following (assuming
+the `/etc/catalog/hive-alluxio.properties` file has been created)
 
 ```console
-$ presto --catalog <???????>
+$ presto --catalog hive-alluxio
 ```
 
-By default, presto will now retrieve database and table information from Alluxio's {{feature_name}}
+By default, presto will now retrieve database and table information from Alluxio's catalog service
 when executing any queries.
 
 Confirm that configuration is correct by running some of the following queries:
@@ -244,6 +242,3 @@ SHOW TABLES FROM <schema name>;
 DESCRIBE <schema name>.<table name>;
 SELECT count(*) FROM <schema name>.<table name>;
 ```
-
-
-
