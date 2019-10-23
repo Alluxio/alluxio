@@ -75,9 +75,12 @@ to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/ba
 Issue the following command to use the S3 interface:
 ```console
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> --option aws .secretKey=<CEPH_SECRET_ACCESS_KEY>\
-  --option alluxio.underfs.s3.endpoint=<HTTP_ENDPOINT> --option alluxio.underfs.s3.disable.dns.buckets=true \
-  --option alluxio.underfs.s3.inherit_acl=false /mnt/ceph s3://<BUCKET>/<FOLDER>
+  --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> \
+  --option aws.secretKey=<CEPH_SECRET_ACCESS_KEY> \
+  --option alluxio.underfs.s3.endpoint=<HTTP_ENDPOINT> \
+  --option alluxio.underfs.s3.disable.dns.buckets=true \
+  --option alluxio.underfs.s3.inherit.acl=false \
+  /mnt/ceph s3://<BUCKET>/<FOLDER>
 ```
 
 Similarly, to use the Swift interface:
@@ -85,7 +88,8 @@ Similarly, to use the Swift interface:
 $ ./bin/alluxio fs mount \
   --option fs.swift.user=<SWIFT_USER> \
   --option fs.swift.tenant=<SWIFT_TENANT> \
-  --option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
+  --option fs.swift.password=<SWIFT_PASSWORD> \
+  --option fs.swift.auth.url=<AUTH_URL> \
   --option fs.swift.auth.method=<AUTH_METHOD> \
   /mnt/ceph swift://<BUCKET>/<FOLDER>
 ```
