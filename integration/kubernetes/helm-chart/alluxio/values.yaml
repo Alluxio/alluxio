@@ -58,6 +58,13 @@ fuse:
   args:
     - fuse
     - --fuse-opts=allow_other
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: "1G"
+    limits:
+      cpu: "1"
+      memory: "1G"
 
 master:
   count: 1 # For multiMaster mode increase this to >1

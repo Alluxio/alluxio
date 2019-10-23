@@ -63,6 +63,13 @@ spec:
         - name: alluxio-fuse
           image: alluxio/alluxio-fuse:2.1.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 1
+              memory: 1G
+            requests:
+              cpu: 0.5
+              memory: 1G
           command: ["/entrypoint.sh"]
           args: 
             - fuse
