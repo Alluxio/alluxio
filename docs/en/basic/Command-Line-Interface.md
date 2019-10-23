@@ -104,9 +104,9 @@ See [File System Operations](#File-System-Operations).
 
 ### fsadmin
 
-The `fsadmin` command is meant for administrators of the Alluxio cluster. It provides added tools for
-diagnostics and troubleshooting. For more information see the
-[main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
+The `fsadmin` command is meant for administrators of the Alluxio cluster.
+It provides added tools for diagnostics and troubleshooting.
+For more information see the [main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
 ### getConf
 
