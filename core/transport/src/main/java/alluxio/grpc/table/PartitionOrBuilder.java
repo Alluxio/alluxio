@@ -34,15 +34,26 @@ public interface PartitionOrBuilder extends
   alluxio.grpc.table.LayoutOrBuilder getLayoutOrBuilder();
 
   /**
-   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
-  boolean hasTransformation();
+  java.util.List<alluxio.grpc.table.Transformation> 
+      getTransformationsList();
   /**
-   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
-  alluxio.grpc.table.Transformation getTransformation();
+  alluxio.grpc.table.Transformation getTransformations(int index);
   /**
-   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
-  alluxio.grpc.table.TransformationOrBuilder getTransformationOrBuilder();
+  int getTransformationsCount();
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  java.util.List<? extends alluxio.grpc.table.TransformationOrBuilder> 
+      getTransformationsOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  alluxio.grpc.table.TransformationOrBuilder getTransformationsOrBuilder(
+      int index);
 }

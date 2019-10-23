@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private Partition() {
+    transformations_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -76,16 +77,12 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 26: {
-            alluxio.grpc.table.Transformation.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000004) == 0x00000004)) {
-              subBuilder = transformation_.toBuilder();
+            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+              transformations_ = new java.util.ArrayList<alluxio.grpc.table.Transformation>();
+              mutable_bitField0_ |= 0x00000004;
             }
-            transformation_ = input.readMessage(alluxio.grpc.table.Transformation.PARSER, extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(transformation_);
-              transformation_ = subBuilder.buildPartial();
-            }
-            bitField0_ |= 0x00000004;
+            transformations_.add(
+                input.readMessage(alluxio.grpc.table.Transformation.PARSER, extensionRegistry));
             break;
           }
         }
@@ -96,6 +93,9 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        transformations_ = java.util.Collections.unmodifiableList(transformations_);
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -155,25 +155,39 @@ private static final long serialVersionUID = 0L;
     return layout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : layout_;
   }
 
-  public static final int TRANSFORMATION_FIELD_NUMBER = 3;
-  private alluxio.grpc.table.Transformation transformation_;
+  public static final int TRANSFORMATIONS_FIELD_NUMBER = 3;
+  private java.util.List<alluxio.grpc.table.Transformation> transformations_;
   /**
-   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
-  public boolean hasTransformation() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+  public java.util.List<alluxio.grpc.table.Transformation> getTransformationsList() {
+    return transformations_;
   }
   /**
-   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
-  public alluxio.grpc.table.Transformation getTransformation() {
-    return transformation_ == null ? alluxio.grpc.table.Transformation.getDefaultInstance() : transformation_;
+  public java.util.List<? extends alluxio.grpc.table.TransformationOrBuilder> 
+      getTransformationsOrBuilderList() {
+    return transformations_;
   }
   /**
-   * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
-  public alluxio.grpc.table.TransformationOrBuilder getTransformationOrBuilder() {
-    return transformation_ == null ? alluxio.grpc.table.Transformation.getDefaultInstance() : transformation_;
+  public int getTransformationsCount() {
+    return transformations_.size();
+  }
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  public alluxio.grpc.table.Transformation getTransformations(int index) {
+    return transformations_.get(index);
+  }
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  public alluxio.grpc.table.TransformationOrBuilder getTransformationsOrBuilder(
+      int index) {
+    return transformations_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -188,8 +202,8 @@ private static final long serialVersionUID = 0L;
         return false;
       }
     }
-    if (hasTransformation()) {
-      if (!getTransformation().isInitialized()) {
+    for (int i = 0; i < getTransformationsCount(); i++) {
+      if (!getTransformations(i).isInitialized()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -206,8 +220,8 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       output.writeMessage(2, getLayout());
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      output.writeMessage(3, getTransformation());
+    for (int i = 0; i < transformations_.size(); i++) {
+      output.writeMessage(3, transformations_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -225,9 +239,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, getLayout());
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    for (int i = 0; i < transformations_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getTransformation());
+        .computeMessageSize(3, transformations_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -255,11 +269,8 @@ private static final long serialVersionUID = 0L;
       result = result && getLayout()
           .equals(other.getLayout());
     }
-    result = result && (hasTransformation() == other.hasTransformation());
-    if (hasTransformation()) {
-      result = result && getTransformation()
-          .equals(other.getTransformation());
-    }
+    result = result && getTransformationsList()
+        .equals(other.getTransformationsList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -279,9 +290,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + LAYOUT_FIELD_NUMBER;
       hash = (53 * hash) + getLayout().hashCode();
     }
-    if (hasTransformation()) {
-      hash = (37 * hash) + TRANSFORMATION_FIELD_NUMBER;
-      hash = (53 * hash) + getTransformation().hashCode();
+    if (getTransformationsCount() > 0) {
+      hash = (37 * hash) + TRANSFORMATIONS_FIELD_NUMBER;
+      hash = (53 * hash) + getTransformationsList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -410,7 +421,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
         getPartitionSpecFieldBuilder();
         getLayoutFieldBuilder();
-        getTransformationFieldBuilder();
+        getTransformationsFieldBuilder();
       }
     }
     public Builder clear() {
@@ -427,12 +438,12 @@ private static final long serialVersionUID = 0L;
         layoutBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000002);
-      if (transformationBuilder_ == null) {
-        transformation_ = null;
+      if (transformationsBuilder_ == null) {
+        transformations_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
       } else {
-        transformationBuilder_.clear();
+        transformationsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
@@ -473,13 +484,14 @@ private static final long serialVersionUID = 0L;
       } else {
         result.layout_ = layoutBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-        to_bitField0_ |= 0x00000004;
-      }
-      if (transformationBuilder_ == null) {
-        result.transformation_ = transformation_;
+      if (transformationsBuilder_ == null) {
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          transformations_ = java.util.Collections.unmodifiableList(transformations_);
+          bitField0_ = (bitField0_ & ~0x00000004);
+        }
+        result.transformations_ = transformations_;
       } else {
-        result.transformation_ = transformationBuilder_.build();
+        result.transformations_ = transformationsBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -529,8 +541,31 @@ private static final long serialVersionUID = 0L;
       if (other.hasLayout()) {
         mergeLayout(other.getLayout());
       }
-      if (other.hasTransformation()) {
-        mergeTransformation(other.getTransformation());
+      if (transformationsBuilder_ == null) {
+        if (!other.transformations_.isEmpty()) {
+          if (transformations_.isEmpty()) {
+            transformations_ = other.transformations_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+          } else {
+            ensureTransformationsIsMutable();
+            transformations_.addAll(other.transformations_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.transformations_.isEmpty()) {
+          if (transformationsBuilder_.isEmpty()) {
+            transformationsBuilder_.dispose();
+            transformationsBuilder_ = null;
+            transformations_ = other.transformations_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+            transformationsBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getTransformationsFieldBuilder() : null;
+          } else {
+            transformationsBuilder_.addAllMessages(other.transformations_);
+          }
+        }
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -543,8 +578,8 @@ private static final long serialVersionUID = 0L;
           return false;
         }
       }
-      if (hasTransformation()) {
-        if (!getTransformation().isInitialized()) {
+      for (int i = 0; i < getTransformationsCount(); i++) {
+        if (!getTransformations(i).isInitialized()) {
           return false;
         }
       }
@@ -806,122 +841,244 @@ private static final long serialVersionUID = 0L;
       return layoutBuilder_;
     }
 
-    private alluxio.grpc.table.Transformation transformation_ = null;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.table.Transformation, alluxio.grpc.table.Transformation.Builder, alluxio.grpc.table.TransformationOrBuilder> transformationBuilder_;
-    /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
-     */
-    public boolean hasTransformation() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+    private java.util.List<alluxio.grpc.table.Transformation> transformations_ =
+      java.util.Collections.emptyList();
+    private void ensureTransformationsIsMutable() {
+      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        transformations_ = new java.util.ArrayList<alluxio.grpc.table.Transformation>(transformations_);
+        bitField0_ |= 0x00000004;
+       }
     }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.table.Transformation, alluxio.grpc.table.Transformation.Builder, alluxio.grpc.table.TransformationOrBuilder> transformationsBuilder_;
+
     /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
-    public alluxio.grpc.table.Transformation getTransformation() {
-      if (transformationBuilder_ == null) {
-        return transformation_ == null ? alluxio.grpc.table.Transformation.getDefaultInstance() : transformation_;
+    public java.util.List<alluxio.grpc.table.Transformation> getTransformationsList() {
+      if (transformationsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(transformations_);
       } else {
-        return transformationBuilder_.getMessage();
+        return transformationsBuilder_.getMessageList();
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
-    public Builder setTransformation(alluxio.grpc.table.Transformation value) {
-      if (transformationBuilder_ == null) {
+    public int getTransformationsCount() {
+      if (transformationsBuilder_ == null) {
+        return transformations_.size();
+      } else {
+        return transformationsBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public alluxio.grpc.table.Transformation getTransformations(int index) {
+      if (transformationsBuilder_ == null) {
+        return transformations_.get(index);
+      } else {
+        return transformationsBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public Builder setTransformations(
+        int index, alluxio.grpc.table.Transformation value) {
+      if (transformationsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        transformation_ = value;
+        ensureTransformationsIsMutable();
+        transformations_.set(index, value);
         onChanged();
       } else {
-        transformationBuilder_.setMessage(value);
+        transformationsBuilder_.setMessage(index, value);
       }
-      bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
-    public Builder setTransformation(
-        alluxio.grpc.table.Transformation.Builder builderForValue) {
-      if (transformationBuilder_ == null) {
-        transformation_ = builderForValue.build();
+    public Builder setTransformations(
+        int index, alluxio.grpc.table.Transformation.Builder builderForValue) {
+      if (transformationsBuilder_ == null) {
+        ensureTransformationsIsMutable();
+        transformations_.set(index, builderForValue.build());
         onChanged();
       } else {
-        transformationBuilder_.setMessage(builderForValue.build());
+        transformationsBuilder_.setMessage(index, builderForValue.build());
       }
-      bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
-    public Builder mergeTransformation(alluxio.grpc.table.Transformation value) {
-      if (transformationBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
-            transformation_ != null &&
-            transformation_ != alluxio.grpc.table.Transformation.getDefaultInstance()) {
-          transformation_ =
-            alluxio.grpc.table.Transformation.newBuilder(transformation_).mergeFrom(value).buildPartial();
-        } else {
-          transformation_ = value;
+    public Builder addTransformations(alluxio.grpc.table.Transformation value) {
+      if (transformationsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
         }
+        ensureTransformationsIsMutable();
+        transformations_.add(value);
         onChanged();
       } else {
-        transformationBuilder_.mergeFrom(value);
+        transformationsBuilder_.addMessage(value);
       }
-      bitField0_ |= 0x00000004;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
-    public Builder clearTransformation() {
-      if (transformationBuilder_ == null) {
-        transformation_ = null;
+    public Builder addTransformations(
+        int index, alluxio.grpc.table.Transformation value) {
+      if (transformationsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureTransformationsIsMutable();
+        transformations_.add(index, value);
         onChanged();
       } else {
-        transformationBuilder_.clear();
+        transformationsBuilder_.addMessage(index, value);
       }
-      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
-    public alluxio.grpc.table.Transformation.Builder getTransformationBuilder() {
-      bitField0_ |= 0x00000004;
-      onChanged();
-      return getTransformationFieldBuilder().getBuilder();
+    public Builder addTransformations(
+        alluxio.grpc.table.Transformation.Builder builderForValue) {
+      if (transformationsBuilder_ == null) {
+        ensureTransformationsIsMutable();
+        transformations_.add(builderForValue.build());
+        onChanged();
+      } else {
+        transformationsBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
-    public alluxio.grpc.table.TransformationOrBuilder getTransformationOrBuilder() {
-      if (transformationBuilder_ != null) {
-        return transformationBuilder_.getMessageOrBuilder();
+    public Builder addTransformations(
+        int index, alluxio.grpc.table.Transformation.Builder builderForValue) {
+      if (transformationsBuilder_ == null) {
+        ensureTransformationsIsMutable();
+        transformations_.add(index, builderForValue.build());
+        onChanged();
       } else {
-        return transformation_ == null ?
-            alluxio.grpc.table.Transformation.getDefaultInstance() : transformation_;
+        transformationsBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public Builder addAllTransformations(
+        java.lang.Iterable<? extends alluxio.grpc.table.Transformation> values) {
+      if (transformationsBuilder_ == null) {
+        ensureTransformationsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, transformations_);
+        onChanged();
+      } else {
+        transformationsBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public Builder clearTransformations() {
+      if (transformationsBuilder_ == null) {
+        transformations_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+      } else {
+        transformationsBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public Builder removeTransformations(int index) {
+      if (transformationsBuilder_ == null) {
+        ensureTransformationsIsMutable();
+        transformations_.remove(index);
+        onChanged();
+      } else {
+        transformationsBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public alluxio.grpc.table.Transformation.Builder getTransformationsBuilder(
+        int index) {
+      return getTransformationsFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public alluxio.grpc.table.TransformationOrBuilder getTransformationsOrBuilder(
+        int index) {
+      if (transformationsBuilder_ == null) {
+        return transformations_.get(index);  } else {
+        return transformationsBuilder_.getMessageOrBuilder(index);
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.Transformation transformation = 3;</code>
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
-    private com.google.protobuf.SingleFieldBuilderV3<
+    public java.util.List<? extends alluxio.grpc.table.TransformationOrBuilder> 
+         getTransformationsOrBuilderList() {
+      if (transformationsBuilder_ != null) {
+        return transformationsBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(transformations_);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public alluxio.grpc.table.Transformation.Builder addTransformationsBuilder() {
+      return getTransformationsFieldBuilder().addBuilder(
+          alluxio.grpc.table.Transformation.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public alluxio.grpc.table.Transformation.Builder addTransformationsBuilder(
+        int index) {
+      return getTransformationsFieldBuilder().addBuilder(
+          index, alluxio.grpc.table.Transformation.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+     */
+    public java.util.List<alluxio.grpc.table.Transformation.Builder> 
+         getTransformationsBuilderList() {
+      return getTransformationsFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
         alluxio.grpc.table.Transformation, alluxio.grpc.table.Transformation.Builder, alluxio.grpc.table.TransformationOrBuilder> 
-        getTransformationFieldBuilder() {
-      if (transformationBuilder_ == null) {
-        transformationBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+        getTransformationsFieldBuilder() {
+      if (transformationsBuilder_ == null) {
+        transformationsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.table.Transformation, alluxio.grpc.table.Transformation.Builder, alluxio.grpc.table.TransformationOrBuilder>(
-                getTransformation(),
+                transformations_,
+                ((bitField0_ & 0x00000004) == 0x00000004),
                 getParentForChildren(),
                 isClean());
-        transformation_ = null;
+        transformations_ = null;
       }
-      return transformationBuilder_;
+      return transformationsBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

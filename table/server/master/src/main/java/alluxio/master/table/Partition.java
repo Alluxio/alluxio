@@ -20,7 +20,9 @@ import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Collectors;
 
 /**
  * The table partition class.
@@ -28,7 +30,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Partition {
   private final String mPartitionSpec;
   private final Layout mBaseLayout;
-  private final AtomicReference<Transformation> mTransformation;
+  /** New transformation is pushed to the end of the queue. */
+  private final ConcurrentLinkedDeque<Transformation> mTransformations =
+      new ConcurrentLinkedDeque<>();
 
   /**
    * Information kept for the latest transformation on the partition.
@@ -92,7 +96,6 @@ public class Partition {
   public Partition(String partitionSpec, Layout baseLayout) {
     mPartitionSpec = partitionSpec;
     mBaseLayout = baseLayout;
-    mTransformation = new AtomicReference<>(null);
   }
 
   /**
@@ -111,12 +114,16 @@ public class Partition {
     return mBaseLayout;
   }
 
+  private Optional<Transformation> getLastTransformation() {
+    return mTransformations.isEmpty() ? Optional.empty() : Optional.of(mTransformations.getLast());
+  }
+
   /**
    * @return the current layout
    */
   public Layout getLayout() {
-    Transformation transformation = mTransformation.get();
-    return transformation == null ? mBaseLayout : transformation.getLayout();
+    Optional<Transformation> lastTransformation = getLastTransformation();
+    return lastTransformation.isPresent() ? lastTransformation.get().getLayout() : mBaseLayout;
   }
 
   /**
@@ -126,7 +133,7 @@ public class Partition {
    * @param layout the transformed layout
    */
   public void transform(String definition, Layout layout) {
-    mTransformation.set(new Transformation(definition, layout));
+    mTransformations.push(new Transformation(definition, layout));
   }
 
   /**
@@ -134,9 +141,9 @@ public class Partition {
    * @return whether the latest transformation of Partition has the same definition
    */
   public boolean isTransformed(TransformDefinition definition) {
-    Transformation transformation = mTransformation.get();
-    return transformation != null
-        && transformation.getDefinition().equals(definition.getDefinition());
+    Optional<Transformation> lastTransformation = getLastTransformation();
+    return lastTransformation.isPresent()
+        && lastTransformation.get().getDefinition().equals(definition.getDefinition());
   }
 
   /**
@@ -162,14 +169,12 @@ public class Partition {
    * @return the proto representation
    */
   public alluxio.grpc.table.Partition toProto() {
-    alluxio.grpc.table.Partition.Builder builder = alluxio.grpc.table.Partition.newBuilder()
+    return alluxio.grpc.table.Partition.newBuilder()
         .setPartitionSpec(PartitionSpec.newBuilder().setSpec(mPartitionSpec).build())
-        .setLayout(mBaseLayout.toProto());
-    Transformation transformation = mTransformation.get();
-    if (transformation != null) {
-      builder.setTransformation(transformation.toProto());
-    }
-    return builder.build();
+        .setLayout(mBaseLayout.toProto())
+        .addAllTransformations(mTransformations.stream()
+            .map(Transformation::toProto).collect(Collectors.toList()))
+        .build();
   }
 
   /**
@@ -181,10 +186,8 @@ public class Partition {
       alluxio.grpc.table.Partition proto) {
     Partition partition = new Partition(proto.getPartitionSpec().getSpec(),
         layoutRegistry.create(proto.getLayout()));
-    if (proto.hasTransformation()) {
-      partition.mTransformation.set(Transformation.fromProto(layoutRegistry,
-          proto.getTransformation()));
-    }
+    proto.getTransformationsList().forEach(
+        t -> partition.mTransformations.push(Transformation.fromProto(layoutRegistry, t)));
     return partition;
   }
 }
