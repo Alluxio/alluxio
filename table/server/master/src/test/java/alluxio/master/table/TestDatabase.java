@@ -72,10 +72,11 @@ public class TestDatabase implements UnderDatabase {
     return TABLE_NAME_PREFIX + Integer.toString(i);
   }
 
-  public static void genTable(int numOfTable) {
+  public static void genTable(int numOfTable, int numOfPartitions) {
     DATABASE.mUdbTables.clear();
     for (int i = 0; i < numOfTable; i++) {
-      DATABASE.mUdbTables.put(getTableName(i), new TestUdbTable(DB_NAME, getTableName(i)));
+      DATABASE.mUdbTables.put(getTableName(i),
+          new TestUdbTable(DB_NAME, getTableName(i), numOfPartitions));
     }
   }
 }
