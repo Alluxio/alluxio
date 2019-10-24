@@ -4826,20 +4826,34 @@ public final class Table {
         getTableNameBytes();
 
     /**
-     * <code>optional int64 job_id = 3;</code>
+     * <code>optional string definition = 3;</code>
+     */
+    boolean hasDefinition();
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    java.lang.String getDefinition();
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getDefinitionBytes();
+
+    /**
+     * <code>optional int64 job_id = 4;</code>
      */
     boolean hasJobId();
     /**
-     * <code>optional int64 job_id = 3;</code>
+     * <code>optional int64 job_id = 4;</code>
      */
     long getJobId();
 
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
     int getTransformedLayoutsCount();
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
     boolean containsTransformedLayouts(
         java.lang.String key);
@@ -4850,19 +4864,19 @@ public final class Table {
     java.util.Map<java.lang.String, alluxio.grpc.table.Layout>
     getTransformedLayouts();
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
     java.util.Map<java.lang.String, alluxio.grpc.table.Layout>
     getTransformedLayoutsMap();
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
 
     alluxio.grpc.table.Layout getTransformedLayoutsOrDefault(
         java.lang.String key,
         alluxio.grpc.table.Layout defaultValue);
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
 
     alluxio.grpc.table.Layout getTransformedLayoutsOrThrow(
@@ -4870,7 +4884,7 @@ public final class Table {
   }
   /**
    * <pre>
-   * next available id: 5
+   * next available id: 6
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.TransformJobEntry}
@@ -4887,6 +4901,7 @@ public final class Table {
     private TransformJobEntry() {
       dbName_ = "";
       tableName_ = "";
+      definition_ = "";
       jobId_ = 0L;
     }
 
@@ -4933,16 +4948,22 @@ public final class Table {
               tableName_ = bs;
               break;
             }
-            case 24: {
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
+              definition_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
               jobId_ = input.readInt64();
               break;
             }
-            case 34: {
-              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+            case 42: {
+              if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
                 transformedLayouts_ = com.google.protobuf.MapField.newMapField(
                     TransformedLayoutsDefaultEntryHolder.defaultEntry);
-                mutable_bitField0_ |= 0x00000008;
+                mutable_bitField0_ |= 0x00000010;
               }
               com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.table.Layout>
               transformedLayouts__ = input.readMessage(
@@ -4972,7 +4993,7 @@ public final class Table {
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
-        case 4:
+        case 5:
           return internalGetTransformedLayouts();
         default:
           throw new RuntimeException(
@@ -5071,22 +5092,64 @@ public final class Table {
       }
     }
 
-    public static final int JOB_ID_FIELD_NUMBER = 3;
-    private long jobId_;
+    public static final int DEFINITION_FIELD_NUMBER = 3;
+    private volatile java.lang.Object definition_;
     /**
-     * <code>optional int64 job_id = 3;</code>
+     * <code>optional string definition = 3;</code>
      */
-    public boolean hasJobId() {
+    public boolean hasDefinition() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 job_id = 3;</code>
+     * <code>optional string definition = 3;</code>
+     */
+    public java.lang.String getDefinition() {
+      java.lang.Object ref = definition_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          definition_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDefinitionBytes() {
+      java.lang.Object ref = definition_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        definition_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int JOB_ID_FIELD_NUMBER = 4;
+    private long jobId_;
+    /**
+     * <code>optional int64 job_id = 4;</code>
+     */
+    public boolean hasJobId() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int64 job_id = 4;</code>
      */
     public long getJobId() {
       return jobId_;
     }
 
-    public static final int TRANSFORMED_LAYOUTS_FIELD_NUMBER = 4;
+    public static final int TRANSFORMED_LAYOUTS_FIELD_NUMBER = 5;
     private static final class TransformedLayoutsDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
           java.lang.String, alluxio.grpc.table.Layout> defaultEntry =
@@ -5113,7 +5176,7 @@ public final class Table {
       return internalGetTransformedLayouts().getMap().size();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
 
     public boolean containsTransformedLayouts(
@@ -5129,14 +5192,14 @@ public final class Table {
       return getTransformedLayoutsMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
 
     public java.util.Map<java.lang.String, alluxio.grpc.table.Layout> getTransformedLayoutsMap() {
       return internalGetTransformedLayouts().getMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
 
     public alluxio.grpc.table.Layout getTransformedLayoutsOrDefault(
@@ -5148,7 +5211,7 @@ public final class Table {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
      */
 
     public alluxio.grpc.table.Layout getTransformedLayoutsOrThrow(
@@ -5187,14 +5250,17 @@ public final class Table {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeInt64(3, jobId_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, definition_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt64(4, jobId_);
       }
       com.google.protobuf.GeneratedMessageV3
         .serializeStringMapTo(
           output,
           internalGetTransformedLayouts(),
           TransformedLayoutsDefaultEntryHolder.defaultEntry,
-          4);
+          5);
       unknownFields.writeTo(output);
     }
 
@@ -5210,8 +5276,11 @@ public final class Table {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, definition_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, jobId_);
+          .computeInt64Size(4, jobId_);
       }
       for (java.util.Map.Entry<java.lang.String, alluxio.grpc.table.Layout> entry
            : internalGetTransformedLayouts().getMap().entrySet()) {
@@ -5221,7 +5290,7 @@ public final class Table {
             .setValue(entry.getValue())
             .build();
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(4, transformedLayouts__);
+            .computeMessageSize(5, transformedLayouts__);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -5249,6 +5318,11 @@ public final class Table {
         result = result && getTableName()
             .equals(other.getTableName());
       }
+      result = result && (hasDefinition() == other.hasDefinition());
+      if (hasDefinition()) {
+        result = result && getDefinition()
+            .equals(other.getDefinition());
+      }
       result = result && (hasJobId() == other.hasJobId());
       if (hasJobId()) {
         result = result && (getJobId()
@@ -5274,6 +5348,10 @@ public final class Table {
       if (hasTableName()) {
         hash = (37 * hash) + TABLE_NAME_FIELD_NUMBER;
         hash = (53 * hash) + getTableName().hashCode();
+      }
+      if (hasDefinition()) {
+        hash = (37 * hash) + DEFINITION_FIELD_NUMBER;
+        hash = (53 * hash) + getDefinition().hashCode();
       }
       if (hasJobId()) {
         hash = (37 * hash) + JOB_ID_FIELD_NUMBER;
@@ -5379,7 +5457,7 @@ public final class Table {
     }
     /**
      * <pre>
-     * next available id: 5
+     * next available id: 6
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.TransformJobEntry}
@@ -5397,7 +5475,7 @@ public final class Table {
       protected com.google.protobuf.MapField internalGetMapField(
           int number) {
         switch (number) {
-          case 4:
+          case 5:
             return internalGetTransformedLayouts();
           default:
             throw new RuntimeException(
@@ -5408,7 +5486,7 @@ public final class Table {
       protected com.google.protobuf.MapField internalGetMutableMapField(
           int number) {
         switch (number) {
-          case 4:
+          case 5:
             return internalGetMutableTransformedLayouts();
           default:
             throw new RuntimeException(
@@ -5443,8 +5521,10 @@ public final class Table {
         bitField0_ = (bitField0_ & ~0x00000001);
         tableName_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
-        jobId_ = 0L;
+        definition_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
+        jobId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
         internalGetMutableTransformedLayouts().clear();
         return this;
       }
@@ -5480,6 +5560,10 @@ public final class Table {
         result.tableName_ = tableName_;
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
+        }
+        result.definition_ = definition_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
         }
         result.jobId_ = jobId_;
         result.transformedLayouts_ = internalGetTransformedLayouts();
@@ -5534,6 +5618,11 @@ public final class Table {
         if (other.hasTableName()) {
           bitField0_ |= 0x00000002;
           tableName_ = other.tableName_;
+          onChanged();
+        }
+        if (other.hasDefinition()) {
+          bitField0_ |= 0x00000004;
+          definition_ = other.definition_;
           onChanged();
         }
         if (other.hasJobId()) {
@@ -5726,33 +5815,109 @@ public final class Table {
         return this;
       }
 
-      private long jobId_ ;
+      private java.lang.Object definition_ = "";
       /**
-       * <code>optional int64 job_id = 3;</code>
+       * <code>optional string definition = 3;</code>
        */
-      public boolean hasJobId() {
+      public boolean hasDefinition() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional int64 job_id = 3;</code>
+       * <code>optional string definition = 3;</code>
+       */
+      public java.lang.String getDefinition() {
+        java.lang.Object ref = definition_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            definition_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDefinitionBytes() {
+        java.lang.Object ref = definition_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          definition_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder setDefinition(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        definition_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder clearDefinition() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        definition_ = getDefaultInstance().getDefinition();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder setDefinitionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        definition_ = value;
+        onChanged();
+        return this;
+      }
+
+      private long jobId_ ;
+      /**
+       * <code>optional int64 job_id = 4;</code>
+       */
+      public boolean hasJobId() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional int64 job_id = 4;</code>
        */
       public long getJobId() {
         return jobId_;
       }
       /**
-       * <code>optional int64 job_id = 3;</code>
+       * <code>optional int64 job_id = 4;</code>
        */
       public Builder setJobId(long value) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000008;
         jobId_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 job_id = 3;</code>
+       * <code>optional int64 job_id = 4;</code>
        */
       public Builder clearJobId() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000008);
         jobId_ = 0L;
         onChanged();
         return this;
@@ -5785,7 +5950,7 @@ public final class Table {
         return internalGetTransformedLayouts().getMap().size();
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public boolean containsTransformedLayouts(
@@ -5801,14 +5966,14 @@ public final class Table {
         return getTransformedLayoutsMap();
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public java.util.Map<java.lang.String, alluxio.grpc.table.Layout> getTransformedLayoutsMap() {
         return internalGetTransformedLayouts().getMap();
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public alluxio.grpc.table.Layout getTransformedLayoutsOrDefault(
@@ -5820,7 +5985,7 @@ public final class Table {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public alluxio.grpc.table.Layout getTransformedLayoutsOrThrow(
@@ -5840,7 +6005,7 @@ public final class Table {
         return this;
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public Builder removeTransformedLayouts(
@@ -5859,7 +6024,7 @@ public final class Table {
         return internalGetMutableTransformedLayouts().getMutableMap();
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
       public Builder putTransformedLayouts(
           java.lang.String key,
@@ -5871,7 +6036,7 @@ public final class Table {
         return this;
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public Builder putAllTransformedLayouts(
@@ -6728,15 +6893,16 @@ public final class Table {
       "ols\030\010 \003(\0132\037.alluxio.grpc.table.FieldSche" +
       "ma\0221\n\npartitions\030\t \003(\0132\035.alluxio.grpc.ta" +
       "ble.Partition\0321\n\017ParametersEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\376\001\n\021TransformJo" +
+      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\222\002\n\021TransformJo" +
       "bEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 " +
-      "\001(\t\022\016\n\006job_id\030\003 \001(\003\022]\n\023transformed_layou" +
-      "ts\030\004 \003(\0132@.alluxio.proto.journal.Transfo" +
-      "rmJobEntry.TransformedLayoutsEntry\032U\n\027Tr" +
-      "ansformedLayoutsEntry\022\013\n\003key\030\001 \001(\t\022)\n\005va" +
-      "lue\030\002 \001(\0132\032.alluxio.grpc.table.Layout:\0028" +
-      "\001\">\n\027RemoveTransformJobEntry\022\017\n\007db_name\030" +
-      "\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t"
+      "\001(\t\022\022\n\ndefinition\030\003 \001(\t\022\016\n\006job_id\030\004 \001(\003\022" +
+      "]\n\023transformed_layouts\030\005 \003(\0132@.alluxio.p" +
+      "roto.journal.TransformJobEntry.Transform" +
+      "edLayoutsEntry\032U\n\027TransformedLayoutsEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.alluxio." +
+      "grpc.table.Layout:\0028\001\">\n\027RemoveTransform" +
+      "JobEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030" +
+      "\002 \001(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -6786,7 +6952,7 @@ public final class Table {
     internal_static_alluxio_proto_journal_TransformJobEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_TransformJobEntry_descriptor,
-        new java.lang.String[] { "DbName", "TableName", "JobId", "TransformedLayouts", });
+        new java.lang.String[] { "DbName", "TableName", "Definition", "JobId", "TransformedLayouts", });
     internal_static_alluxio_proto_journal_TransformJobEntry_TransformedLayoutsEntry_descriptor =
       internal_static_alluxio_proto_journal_TransformJobEntry_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_proto_journal_TransformJobEntry_TransformedLayoutsEntry_fieldAccessorTable = new
