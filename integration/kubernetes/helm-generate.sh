@@ -10,6 +10,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+readonly RELEASE_NAME='alluxio'
+
 function printUsage {
   echo "Usage: MODE [UFS]"
   echo
@@ -42,39 +44,39 @@ function generateTemplates {
 
 function generateConfigTemplates {
   echo "Generating configmap templates into $dir"
-  helm template helm-chart/alluxio/ -x templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
 }
 
 function generateMasterTemplates {
   echo "Generating master templates into $dir"
-  helm template helm-chart/alluxio/ -x templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
-  helm template helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
 }
 
 function generateFormatJournalJobTemplates {
   echo "Generating format journal job templates into $dir"
-  helm template helm-chart/alluxio/ -x templates/job/format-journal-job.yaml -f $dir/config.yaml > "$dir/job/alluxio-format-journal-job.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/job/format-journal-job.yaml -f $dir/config.yaml > "$dir/job/alluxio-format-journal-job.yaml.template"
 
 }
 
 function generateJournalTemplates {
-  helm template helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pv.yaml.template"
-  helm template helm-chart/alluxio/ -x templates/master/journal-pvc.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pvc.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pv.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/journal-pvc.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pvc.yaml.template"
 }
 
 function generateWorkerTemplates {
   echo "Generating worker templates into $dir"
-  helm template helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
 }
 
 function generateFuseTemplates {
   echo "Generating fuse templates"
-  helm template helm-chart/alluxio/ -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
-  helm template helm-chart/alluxio/ -x templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
 }
 
 function generateMasterServiceTemplates {
-  helm template helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
 }
 
 function generateSingleUfsTemplates {
