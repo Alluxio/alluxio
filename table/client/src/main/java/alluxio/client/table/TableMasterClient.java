@@ -87,14 +87,16 @@ public interface TableMasterClient extends Client {
   /**
    * Attaches an existing database.
    *
-   * @param dbName database name
-   * @param dbType database type
-   * @param configuration the configuration
+   * @param udbType the database type
+   * @param udbConnectionUri the udb connection uri
+   * @param udbDbName the database name in the udb
+   * @param dbName the database name in Alluxio
+   * @param configuration the configuration map
    * @return true if database created successfully
    * @throws AlluxioStatusException
    */
-  boolean attachDatabase(String dbName, String dbType, Map<String, String> configuration)
-      throws AlluxioStatusException;
+  boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName, String dbName,
+      Map<String, String> configuration) throws AlluxioStatusException;
 
   /**
    * Detaches an existing database in the catalog master.
