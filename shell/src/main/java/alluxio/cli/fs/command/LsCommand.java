@@ -325,15 +325,16 @@ public final class LsCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path, cl);
-
+    for (String dirArg : args) {
+      AlluxioURI path = new AlluxioURI(dirArg);
+      runWildCardCmd(path, cl);
+    }
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path>";
+    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path1> <path2>...";
   }
 
   @Override
