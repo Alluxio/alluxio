@@ -17,10 +17,10 @@
     <groupId>org.alluxio</groupId>
     <version>2.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-table-server-under</artifactId>
+  <artifactId>alluxio-table-server-underdb</artifactId>
   <packaging>pom</packaging>
-  <name>Alluxio Table - Server - Under</name>
-  <description>Alluxio table under implementations</description>
+  <name>Alluxio Table - Server - UnderDB</name>
+  <description>Alluxio table underDB implementations</description>
 
   <modules>
     <module>hive</module>

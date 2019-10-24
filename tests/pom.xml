@@ -220,7 +220,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-table-server-under-hive</artifactId>
+      <artifactId>alluxio-table-server-underdb-hive</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
