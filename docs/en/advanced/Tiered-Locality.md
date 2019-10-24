@@ -11,8 +11,8 @@ priority: 1
 
 The tiered locality feature enables applications to make intelligent, topology-based decisions
 regarding which Alluxio workers to read from and write to.
-For an application running on `host1`, reading data from an Alluxio worker on `host1` is more efficient
-than reading from a worker on `host2`.
+For an application running on `host1`, reading data from an Alluxio worker on `host1` is more
+efficient than reading from a worker on `host2`.
 Similarly, reading from a worker on the same rack or in the same data center is faster than reading
 from a worker on a different rack or different data center.
 Tiered locality allows users to take advantage of various levels of locality by configuring
@@ -23,14 +23,17 @@ servers and clients with network topology information.
 Each entity is identified with a *Tiered Identity*, where an entity is a master, worker, or client.
 This identity is an address tuple in the format **(tierName1=value1, tierName2=value2, ...)**.
 Each entry in the tuple is called a *locality tier*.
-Alluxio clients will favor interacting with workers that share identical identity entries in the provided order.
+Alluxio clients will favor interacting with workers that share identical identity entries in the
+provided order.
 
 Using the template identity of **`(node=node_name, rack=rack_name, datacenter=datacenter_name)`**,
-a client with an identity **`(node=A, rack=rack1, datacenter=dc1)`** will prefer to read from a worker at
-**`(node=B, rack=rack1, datacenter=dc1)`** over a worker at **`(node=C, rack=rack2, datacenter=dc1)`** because:
+a client with an identity **`(node=A, rack=rack1, datacenter=dc1)`** will prefer to read from a
+worker at **`(node=B, rack=rack1, datacenter=dc1)`** over a worker at
+**`(node=C, rack=rack2, datacenter=dc1)`** because:
 - no worker shares the same `node` value as the client
 - the first worker shares the same `rack` value, `rack1`, as the client
-- the `datacenter` entry is ignored because at least one match was found in the previous locality tier
+- the `datacenter` entry is ignored because at least one match was found in the previous locality
+tier
 
 ## Basic Setup
 
@@ -40,8 +43,8 @@ To configure tiered locality:
 1. Write a script named `alluxio-locality.sh`.
    Alluxio uses this script to determine the tiered identity for each entity.
    The output format is a comma-separated list of `tierName=tierValue` pairs.
-   ```
-   #!/bin/bash
+   ```bash
+   #!/usr/bin/env bash
 
    node=$(hostname)
    # Ask EC2 which availability zone we're in
@@ -52,8 +55,8 @@ To configure tiered locality:
 
 1. Make the script executable with `chmod +x alluxio-locality.sh`.
 
-1. Include the script on the classpath of your applications and Alluxio servers. For servers,
-   put the file in the `conf` directory.
+1. Include the script on the classpath of your applications and Alluxio servers.
+For servers, put the file in the `conf` directory.
 
 1. On the Alluxio master(s), set `alluxio.locality.order=node,availability_zone` to define the order
    of locality tiers.
@@ -63,7 +66,7 @@ To configure tiered locality:
 To verify that the configuration is working, check the master, worker, and application logs.
 A log entry should appear of the format:
 
-```
+```log
 INFO  TieredIdentityFactory - Initialized tiered identity TieredIdentity(node=ip-xx-xx-xx-xx, availability_zone=us-east-1)
 ```
 
@@ -92,7 +95,8 @@ If other locality tiers are left unset, they will not be used to inform locality
 
 #### Locality script
 
-By default, Alluxio clients and servers search the classpath for a script named `alluxio-locality.sh`.
+By default, Alluxio clients and servers search the classpath for a script named
+`alluxio-locality.sh`.
 Output format of this script is a comma-separated list of tierName=tierValue pairs.
 The script name can be overridden by setting:
 
@@ -112,8 +116,8 @@ alluxio.locality.node=node_name
 alluxio.locality.rack=rack_name
 ```
 
-See the [Configuration-Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) page
-for the different ways to set configuration properties.
+See the [Configuration-Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})
+page for the different ways to set configuration properties.
 
 ### Tier value priority order
 
@@ -121,13 +125,16 @@ For every tier name (e.g. `node`, `rack`, `availibility_zone` etc.) the order of
 obtaining its value, from highest priority to lowest priority, is as follows:
 
 1. From `alluxio.locality.node` set in `alluxio-site.properties`
-1. From `node=...` in the output of the script, whose name is configured by `alluxio.locality.script`
 
-In order to supply a default value for a particular `node` tier, above list is followed by two more sources,
-from highest to lowest priority:
+1. From `node=...` in the output of the script, whose name is configured by
+`alluxio.locality.script`
+
+In order to supply a default value for a particular `node` tier, above list is followed by two more
+sources, from highest to lowest priority:
 
 1. From `alluxio.worker.hostname` on a worker, `alluxio.master.hostname` on a master, or
 `alluxio.user.hostname` on a client in their respective `alluxio-site.properties`
+
 1. If none of the above are configured, node locality is determined by hostname lookup
 
 ### When exactly is tiered locality used?
@@ -139,10 +146,11 @@ to choose which worker to write to when writing data to Alluxio
 
 ## Custom locality tiers
 
-By default, Alluxio has two locality tiers: `node` and `rack`. Users may customize the
-set of locality tiers to take advantage of more advanced topologies. To change the set
-of tiers available, set `alluxio.locality.order`. The order should go from most specific
-to least specific. For example, to add availability zone locality to a cluster, set
+By default, Alluxio has two locality tiers: `node` and `rack`.
+Users may customize the set of locality tiers to take advantage of more advanced topologies.
+To change the set of tiers available, set `alluxio.locality.order`. The order should go from most
+specific to least specific.
+For example, to add availability zone locality to a cluster, set
 
 ```
 alluxio.locality.order=node,rack,availability_zone
