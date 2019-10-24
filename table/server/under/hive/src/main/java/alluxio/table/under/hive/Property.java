@@ -11,8 +11,6 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.table.common.udb.UdbProperty;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +19,4 @@ import org.slf4j.LoggerFactory;
  */
 public final class Property {
   private static final Logger LOG = LoggerFactory.getLogger(Property.class);
-
-  public static final UdbProperty DATABASE_NAME =
-      new UdbProperty("database-name", "The name of the database in the hive metastore.", "");
-  public static final UdbProperty HIVE_METASTORE_URIS =
-      new UdbProperty("hive.metastore.uris", "The thrift URI for the hive metastore.", "");
 }
