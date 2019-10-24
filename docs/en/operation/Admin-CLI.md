@@ -155,12 +155,12 @@ Status: RUNNING   Count: 118
 Status: COMPLETED Count: 223
 
 10 Most Recently Modified Jobs:
-Timestamp: 10-23-2019 21:26:30:349       Job Id: 1571865684978       Status: COMPLETED
-Timestamp: 10-23-2019 21:26:29:515       Job Id: 1571865685094       Status: RUNNING
+Timestamp: 10-24-2019 17:15:25:014       Id: 1571936656844       Name: Persist             Status: COMPLETED
+Timestamp: 10-24-2019 17:15:24:340       Id: 1571936656957       Name: Persist             Status: RUNNING
 (only a subset of the results is shown)
 
 10 Most Recently Failed Jobs:
-Timestamp: 10-23-2019 21:24:38:314       Job Id: 1571865684898       Status: FAILED
+Timestamp: 10-24-2019 17:15:22:946       Id: 1571936656839       Name: Persist             Status: FAILED
 ```
 
 ### ufs

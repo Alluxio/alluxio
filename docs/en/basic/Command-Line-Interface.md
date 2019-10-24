@@ -163,8 +163,9 @@ $ ./bin/alluxio job ls
 1571865684757
 
 # Displays the status info for the specific job.
-$ ./bin/alluxio job stat -v 1571865684755
-ID: 1571865684755
+$ ./bin/alluxio job stat -v 1571936656625
+ID: 1571936656625
+Name: Persist
 Status: COMPLETED
 Task 0
 	Status: COMPLETED
