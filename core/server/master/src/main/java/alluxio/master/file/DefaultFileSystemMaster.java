@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.Server;
+import alluxio.client.WriteType;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
@@ -1273,7 +1274,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
-      if (context.getPersisted()) {
+      if (context.isPersisted()) {
         // Check if ufs is writable
         checkUfsMode(path, OperationType.WRITE);
       }
@@ -1856,7 +1857,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
-      if (context.getPersisted()) {
+      if (context.isPersisted()) {
         checkUfsMode(path, OperationType.WRITE);
       }
       createDirectoryInternal(rpcContext, inodePath, context);
@@ -1903,7 +1904,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .setUfsFingerprint(ufsFingerprint)
           .build());
 
-      if (context.getPersisted()) {
+      if (context.isPersisted()) {
         // The path exists in UFS, so it is no longer absent.
         mUfsAbsentPathCache.processExisting(inodePath.getUri());
       }
@@ -2507,11 +2508,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
-    createFileContext.setIsAsync(false);
+    createFileContext.setWriteType(WriteType.THROUGH); // set as through since already in UFS
     createFileContext.setMetadataLoad(true);
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
-    createFileContext.setPersisted(true);
     createFileContext.setXAttr(context.getUfsStatus().getXAttr());
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
@@ -2571,7 +2571,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createDirectoryContext.setMountPoint(mMountTable.isMountPoint(inodePath.getUri()));
     createDirectoryContext.setMetadataLoad(true);
-    createDirectoryContext.setPersisted(true);
+    createDirectoryContext.setWriteType(WriteType.THROUGH);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
 
     AlluxioURI ufsUri = resolution.getUri();
