@@ -101,11 +101,10 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
@@ -150,13 +149,12 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.util.StreamUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 import alluxio.util.proto.ProtoUtils;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.CommandType;
@@ -179,8 +177,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
@@ -189,7 +185,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -197,7 +192,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -219,7 +213,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultFileSystemMaster extends CoreMaster implements FileSystemMaster {
+public final class DefaultFileSystemMaster extends CoreMaster
+    implements FileSystemMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -371,8 +366,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /** This caches paths which have been synced with UFS. */
   private final UfsSyncPathCache mUfsSyncPathCache;
 
-  /** List of all master subcomponents which require journaling. */
-  private final List<Journaled> mJournaledComponents;
+  /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
+  private final JournaledGroup mJournaledGroup;
+
+  /** List of strings which are blacklisted from async persist. */
+  private final List<String> mPersistBlacklist;
 
   /** Thread pool which asynchronously handles the completion of persist jobs. */
   private java.util.concurrent.ThreadPoolExecutor mPersistCheckerPool;
@@ -422,6 +420,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST, ","));
+    mPersistBlacklist = ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
+        ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
+        : Collections.emptyList();
 
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
     mJobMasterClientPool = new JobMasterClientPool(JobMasterClientContext
@@ -436,7 +437,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
-    mJournaledComponents = new ArrayList<Journaled>() {
+    ArrayList<Journaled> journaledComponents = new ArrayList<Journaled>() {
       {
         add(mInodeTree);
         add(mDirectoryIdGenerator);
@@ -445,6 +446,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         add(mSyncManager);
       }
     };
+    mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -488,41 +490,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public boolean processJournalEntry(JournalEntry entry) {
-    for (Journaled journaled : mJournaledComponents) {
-      if (journaled.processJournalEntry(entry)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public void resetState() {
-    // we resetState in the reverse order that we replay the journal
-    Lists.reverse(mJournaledComponents).forEach(Journaled::resetState);
-  }
-
-  @Override
-  public CheckpointName getCheckpointName() {
-    return CheckpointName.FILE_SYSTEM_MASTER;
-  }
-
-  @Override
-  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    JournalUtils.writeToCheckpoint(output, mJournaledComponents);
-  }
-
-  @Override
-  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    JournalUtils.restoreFromCheckpoint(input, mJournaledComponents);
-  }
-
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    List<Iterator<JournalEntry>> componentIters = StreamUtils
-        .map(JournalEntryIterable::getJournalEntryIterator, mJournaledComponents);
-    return Iterators.concat(componentIters.iterator());
+  public Journaled getDelegate() {
+    return mJournaledGroup;
   }
 
   @Override
@@ -541,7 +510,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
                   ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
               context);
         }
-      } else {
+      } else if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SKIP_ROOT_ACL_CHECK)) {
         // For backwards-compatibility:
         // Empty root owner indicates that previously the master had no security. In this case, the
         // master is allowed to be started with security turned on.
@@ -1985,6 +1954,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
   }
 
+  private boolean shouldPersistPath(String path) {
+    for (String pattern : mPersistBlacklist) {
+      if (path.contains(pattern)) {
+        LOG.debug("Not persisting path {} because it is in {}: {}", path,
+            PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, mPersistBlacklist);
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Renames a file to a destination.
    *
@@ -2056,7 +2036,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     // Check options and determine if we should schedule async persist. This is helpful for compute
     // frameworks that use rename as a commit operation.
-    if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()) {
+    if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()
+        && shouldPersistPath(dstInodePath.toString())) {
+      LOG.debug("Schedule Async Persist on rename for File {}", srcInodePath);
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(srcInode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
@@ -2069,6 +2051,35 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
           persistenceWaitTime,
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+    }
+
+    // If a directory is being renamed with persist on rename, attempt to persist children
+    if (srcInode.isDirectory() && context.getPersist()
+        && shouldPersistPath(dstInodePath.toString())) {
+      LOG.debug("Schedule Async Persist on rename for Dir: {}", dstInodePath);
+      try (LockedInodePathList descendants = mInodeTree.getDescendants(srcInodePath)) {
+        for (LockedInodePath childPath : descendants) {
+          Inode childInode = childPath.getInode();
+          // TODO(apc999): Resolve the child path legitimately
+          if (childInode.isFile() && !childInode.isPersisted()
+              && shouldPersistPath(
+                  childPath.toString().substring(srcInodePath.toString().length()))) {
+            LOG.debug("Schedule Async Persist on rename for Child File: {}", childPath);
+            mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+                .setId(childInode.getId())
+                .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
+                .build());
+            long shouldPersistTime = childInode.asFile().getShouldPersistTime();
+            long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST ? 0
+                : getPersistenceWaitTime(shouldPersistTime);
+            mPersistRequests.put(childInode.getId(), new alluxio.time.ExponentialTimer(
+                ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+                ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+                persistenceWaitTime,
+                ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+          }
+        }
+      }
     }
   }
 
@@ -2650,7 +2661,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       // Check that the ufsPath exists and is a directory
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
-            ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+            ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.toString()));
       }
       if (UnderFileSystemUtils.isWeb(ufs)) {
         mountOption.setReadOnly(true);
@@ -3164,14 +3175,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throw new InvalidPathException(
           "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
     }
-    mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder().setId(inode.getId())
-        .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
-    mPersistRequests.put(inode.getId(),
-        new alluxio.time.ExponentialTimer(
-            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-            context.getPersistenceWaitTime(),
-            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+    if (shouldPersistPath(inodePath.toString())) {
+      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder().setId(inode.getId())
+          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
+      mPersistRequests.put(inode.getId(),
+          new alluxio.time.ExponentialTimer(
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+              context.getPersistenceWaitTime(),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+    }
   }
 
   /**
@@ -4620,5 +4633,14 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   @Override
   public List<TimeSeries> getTimeSeries() {
     return mTimeSeriesStore.getTimeSeries();
+  }
+
+  @Override
+  public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws InvalidPathException {
+    MountTable.ReverseResolution resolution = mMountTable.reverseResolve(ufsUri);
+    if (resolution == null) {
+      throw new InvalidPathException(ufsUri.toString() + " is not a valid ufs uri");
+    }
+    return resolution.getUri();
   }
 }

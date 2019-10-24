@@ -13,12 +13,7 @@
 # Starts the Alluxio master on this node.
 # Starts an Alluxio worker on each node specified in conf/workers
 
-LAUNCHER=
-# If debugging is enabled propagate that through to sub-shells
-if [[ "$-" == *x* ]]; then
-  LAUNCHER="bash -x"
-fi
-BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+. $(dirname "$0")/alluxio-common.sh
 
 USAGE="Usage: alluxio-mount.sh [Mount|SudoMount|Umount|SudoUmount] [MACHINE]
 \nIf omitted, MACHINE is default to be 'local'. MACHINE is one of:\n
@@ -30,19 +25,7 @@ function init_env() {
   . ${libexec_dir}/alluxio-config.sh
   MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.memory.size)
   TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-  TIER_PATHS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
-  MEDIUM_TYPE=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.mediumtype)
-  OLDIFS=$IFS
-  IFS=','
-  read -ra PATHARRAY <<< "$TIER_PATHS"
-  read -ra MEDIUMTYPEARRAY <<< "$MEDIUM_TYPE"
-  RAMDISKARRAY=()
-  for i in "${!PATHARRAY[@]}"; do 
-    if [ "${MEDIUMTYPEARRAY[$i]}" = "MEM" ]; then
-      RAMDISKARRAY+=(${PATHARRAY[$i]})
-    fi
-  done
-  IFS=$OLDIFS
+  get_ramdisk_array
 }
 
 function check_space_linux() {
@@ -90,7 +73,7 @@ function mount_ramfs_linux() {
 
 function umount_ramfs_linux() {
   TIER_PATH=${1}
-  if mount | grep ${TIER_PATH} > /dev/null; then
+  if mount | grep -E "(^|[[:space:]])${TIER_PATH}($|[[:space:]])" > /dev/null; then
     echo "Unmounting ${TIER_PATH}"
     if [[ ${USE_SUDO} == true ]]; then
       sudo umount -l -f ${TIER_PATH}
@@ -117,7 +100,7 @@ function mount_ramfs_mac() {
 
 function umount_ramfs_mac() {
   TIER_PATH=${1}
-  local device=$(df -l | grep ${TIER_PATH} | cut -d " " -f 1)
+  local device=$(df -l | grep -E "(^|[[:space:]])${TIER_PATH}($|[[:space:]])" | cut -d " " -f 1)
   if [[ -n "${device}" ]]; then
     echo "Unmounting ramfs at ${TIER_PATH}"
     hdiutil detach -force ${device}

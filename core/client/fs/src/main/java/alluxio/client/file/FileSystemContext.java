@@ -167,7 +167,8 @@ public final class FileSystemContext implements Closeable {
       @Nullable AlluxioConfiguration conf) {
     FileSystemContext context = new FileSystemContext();
     ClientContext ctx = ClientContext.create(subject, conf);
-    MasterInquireClient inquireClient = MasterInquireClient.Factory.create(ctx.getClusterConf());
+    MasterInquireClient inquireClient =
+        MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     context.init(ctx, inquireClient);
     return context;
   }
@@ -178,7 +179,8 @@ public final class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(ClientContext clientContext) {
     FileSystemContext ctx = new FileSystemContext();
-    ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf()));
+    ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
+        clientContext.getUserState()));
     return ctx;
   }
 
@@ -257,7 +259,6 @@ public final class FileSystemContext implements Closeable {
       // developers should first mark their resources as closed prior to any exceptions being
       // thrown.
       mClosed.set(true);
-      mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
       mFileSystemMasterClientPool.close();
       mFileSystemMasterClientPool = null;
       mBlockMasterClientPool.close();
@@ -265,6 +266,9 @@ public final class FileSystemContext implements Closeable {
       for (BlockWorkerClientPool pool : mBlockWorkerClientPool.values()) {
         pool.close();
       }
+      // Close worker group after block master clients in order to allow
+      // clean termination for open streams.
+      mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
       mBlockWorkerClientPool.clear();
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
@@ -336,7 +340,8 @@ public final class FileSystemContext implements Closeable {
             + "meta master (%s) during reinitialization", masterAddr), e);
       }
       closeContext();
-      initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf()));
+      initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
+          getClientContext().getUserState()));
       mReinitializer.onSuccess();
     }
   }

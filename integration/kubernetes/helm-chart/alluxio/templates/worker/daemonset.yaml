@@ -75,7 +75,10 @@ spec:
             {{- end }}
           {{- end }}
           command: ["/entrypoint.sh"]
-          args: ["worker-only", "--no-format"]
+          {{- if .Values.worker.args }}
+          args:
+{{ toYaml .Values.worker.args | trim | indent 12 }}
+          {{- end }}
           env:
           - name: ALLUXIO_WORKER_HOSTNAME
             valueFrom:
@@ -156,7 +159,10 @@ spec:
                 {{- end }}
               {{- end }}
           command: ["/entrypoint.sh"]
-          args: ["job-worker"]
+          {{- if .Values.jobWorker.args }}
+          args:
+{{ toYaml .Values.jobWorker.args | trim | indent 12 }}
+          {{- end }}
           env:
           - name: ALLUXIO_WORKER_HOSTNAME
             valueFrom:
@@ -264,9 +270,9 @@ spec:
         - name: {{ .alias | lower }}
           emptyDir:
             medium: "Memory"
-                  {{- if .quota }} 
+                  {{- if .quota }}
             sizeLimit: {{ .quota }}
-                  {{- end}} 
+                  {{- end}}
                 {{- end}}
               {{- end}}
             {{- end}} 

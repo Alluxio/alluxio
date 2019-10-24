@@ -18,7 +18,7 @@ metadata:
     name: alluxio-format-master
     app: alluxio
     chart: alluxio-0.5.0
-    release: release-name
+    release: alluxio
     heritage: Tiller
     role: alluxio-master
 spec:
@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           resources:
             limits:

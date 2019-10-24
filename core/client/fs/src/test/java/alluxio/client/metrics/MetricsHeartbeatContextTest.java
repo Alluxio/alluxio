@@ -43,7 +43,8 @@ public class MetricsHeartbeatContextTest {
   public void testExecutorInitialized() {
 
     ClientContext ctx = ClientContext.create();
-    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getClusterConf());
+    MasterInquireClient client = MasterInquireClient.Factory
+        .create(ctx.getClusterConf(), ctx.getUserState());
 
     // Add and delete a single context, make sure it is non null after adding, and then null after
     // removing
@@ -75,7 +76,8 @@ public class MetricsHeartbeatContextTest {
     assertTrue(map.isEmpty());
 
     ClientContext ctx = ClientContext.create();
-    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getClusterConf());
+    MasterInquireClient client = MasterInquireClient.Factory
+        .create(ctx.getClusterConf(), ctx.getUserState());
     MetricsHeartbeatContext.addHeartbeat(ctx, client);
     assertFalse(map.isEmpty());
 
@@ -89,7 +91,8 @@ public class MetricsHeartbeatContextTest {
     InstancedConfiguration conf = ConfigurationTestUtils.defaults();
     conf.set(PropertyKey.MASTER_RPC_ADDRESSES, "master1:19998,master2:19998,master3:19998");
     ClientContext haCtx = ClientContext.create(conf);
-    MetricsHeartbeatContext.addHeartbeat(haCtx, MasterInquireClient.Factory.create(conf));
+    MetricsHeartbeatContext.addHeartbeat(haCtx, MasterInquireClient.Factory
+        .create(conf, haCtx.getUserState()));
     assertEquals(2, map.size());
 
     MetricsHeartbeatContext.removeHeartbeat(ctx);
@@ -113,7 +116,8 @@ public class MetricsHeartbeatContextTest {
     ScheduledFuture<?> future = Mockito.mock(ScheduledFuture.class);
     when(future.cancel(any(Boolean.class))).thenReturn(true);
     ClientContext ctx = ClientContext.create();
-    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getClusterConf());
+    MasterInquireClient client = MasterInquireClient.Factory
+        .create(ctx.getClusterConf(), ctx.getUserState());
     MetricsHeartbeatContext.addHeartbeat(ctx, client);
     assertFalse(map.isEmpty());
     map.forEach((addr, heartbeat) -> {

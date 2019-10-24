@@ -24,17 +24,17 @@ metadata:
     name: alluxio-config
     app: alluxio
     chart: alluxio-0.5.0
-    release: release-name
+    release: alluxio
     heritage: Tiller
 data:
   ALLUXIO_JAVA_OPTS: |-
-     -Dalluxio.master.journal.type=EMBEDDED -Dalluxio.master.journal.folder=/journal -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=30000 -Dalluxio.job.worker.rpc.port=30001 -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003 -Dalluxio.master.embedded.journal.addresses=alluxio-alluxio-master-0:19200,alluxio-alluxio-master-1:19200,alluxio-alluxio-master-2:19200,  -Dalluxio.worker.tieredstore.levels=1 -Dalluxio.worker.tieredstore.level0.alias=MEM -Dalluxio.worker.tieredstore.level0.dirs.mediumtype=MEM -Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm -Dalluxio.worker.tieredstore.level0.dirs.quota=1G -Dalluxio.worker.tieredstore.level0.watermark.high.ratio=0.95 -Dalluxio.worker.tieredstore.level0.watermark.low.ratio=0.7 -Dalluxio.security.stale.channel.purge.interval=365d
+     -Dalluxio.master.journal.type=EMBEDDED -Dalluxio.master.journal.folder=/journal -Dalluxio.master.embedded.journal.addresses=alluxio-master-0:19200,alluxio-master-1:19200,alluxio-master-2:19200,  -Dalluxio.security.stale.channel.purge.interval=365d
   ALLUXIO_MASTER_JAVA_OPTS: |-
     -Dalluxio.master.web.bind.host=0.0.0.0  
   ALLUXIO_JOB_MASTER_JAVA_OPTS: |-
     -Dalluxio.job.master.bind.host=0.0.0.0  
   ALLUXIO_WORKER_JAVA_OPTS: |-
-    -Dalluxio.worker.bind.host=0.0.0.0  -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.memory.size=2G -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=30000 -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} 
+    -Dalluxio.worker.bind.host=0.0.0.0  -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.memory.size=2G -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=30000 -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} -Dalluxio.worker.tieredstore.levels=1 -Dalluxio.worker.tieredstore.level0.alias=MEM -Dalluxio.worker.tieredstore.level0.dirs.mediumtype=MEM -Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm -Dalluxio.worker.tieredstore.level0.dirs.quota=1G -Dalluxio.worker.tieredstore.level0.watermark.high.ratio=0.95 -Dalluxio.worker.tieredstore.level0.watermark.low.ratio=0.7
   ALLUXIO_JOB_WORKER_JAVA_OPTS: |-
     -Dalluxio.job.worker.rpc.port=30001  -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003 -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME}  
   ALLUXIO_FUSE_JAVA_OPTS: |-

@@ -354,7 +354,6 @@ Various under storage systems can be accessed through Alluxio.
 * [Alluxio with Ceph]({{ '/en/ufs/Ceph.html' | relativize_url }})
 * [Alluxio with Swift]({{ '/en/ufs/Swift.html' | relativize_url }})
 * [Alluxio with GlusterFS]({{ '/en/ufs/GlusterFS.html' | relativize_url }})
-* [Alluxio with MapR-FS]({{ '/en/ufs/MapR-FS.html' | relativize_url }})
 * [Alluxio with HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
 * [Alluxio with OSS]({{ '/en/ufs/OSS.html' | relativize_url }})
 * [Alluxio with NFS]({{ '/en/ufs/NFS.html' | relativize_url }})

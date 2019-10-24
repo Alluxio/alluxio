@@ -20,7 +20,7 @@ metadata:
     name: alluxio-master-0
     app: alluxio
     chart: alluxio-0.5.0
-    release: release-name
+    release: alluxio
     heritage: Tiller
     role: alluxio-master
 spec:
@@ -37,22 +37,22 @@ spec:
         name: alluxio-master-0
         app: alluxio
         chart: alluxio-0.5.0
-        release: release-name
+        release: alluxio
         heritage: Tiller
         role: alluxio-master
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
       nodeSelector:
       securityContext:
         fsGroup: 1000
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -61,7 +61,9 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["master-only", "--no-format"]
+          args:
+            - master-only
+            - --no-format
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -75,11 +77,11 @@ spec:
               mountPath: /secrets/hdfsConfig
               readOnly: true
         - name: alluxio-job-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 10000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -88,7 +90,8 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/entrypoint.sh"]
-          args: ["job-master"]
+          args:
+            - job-master
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -98,6 +101,9 @@ spec:
           - containerPort: 20002
             name: job-web
           volumeMounts:
+            - name: secret-alluxio-hdfs-config-volume
+              mountPath: /secrets/hdfsConfig
+              readOnly: true
       restartPolicy: Always
       volumes:
         - name: secret-alluxio-hdfs-config-volume

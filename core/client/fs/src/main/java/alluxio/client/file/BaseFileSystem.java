@@ -448,6 +448,15 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException {
+    return rpc(client -> {
+      AlluxioURI path = client.reverseResolve(ufsUri);
+      LOG.debug("Reverse resolved {} to {}", ufsUri, path.getPath());
+      return path;
+    });
+  }
+
+  @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
       throws FileDoesNotExistException, IOException, AlluxioException {
     setAcl(path, action, entries, SetAclPOptions.getDefaultInstance());
@@ -566,7 +575,8 @@ public class BaseFileSystem implements FileSystem {
        * user passes. If not, throw an exception letting the user know they don't match.
        */
       Authority configured =
-          MasterInquireClient.Factory.create(mFsContext.getClusterConf())
+          MasterInquireClient.Factory
+              .create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
               .getConnectDetails().toAuthority();
       if (!configured.equals(uri.getAuthority())) {
         throw new IllegalArgumentException(

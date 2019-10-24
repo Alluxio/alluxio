@@ -168,6 +168,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	chdir(srcPath)
 	pathsToCopy := []string{
 		"bin/alluxio",
+		"bin/alluxio-common.sh",
 		"bin/alluxio-masters.sh",
 		"bin/alluxio-monitor.sh",
 		"bin/alluxio-mount.sh",
@@ -193,13 +194,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
-		"integration/kubernetes/alluxio-configmap.yaml.template",
 		"integration/kubernetes/alluxio-fuse.yaml.template",
 		"integration/kubernetes/alluxio-fuse-client.yaml.template",
-		"integration/kubernetes/alluxio-master-journal-pv.yaml.template",
-		"integration/kubernetes/alluxio-master-journal-pvc.yaml.template",
-		"integration/kubernetes/alluxio-master-service.yaml.template",
-		"integration/kubernetes/alluxio-master-statefulset.yaml.template",
 		"integration/kubernetes/helm-generate.sh",
 		"integration/kubernetes/helm-chart/alluxio/.helmignore",
 		"integration/kubernetes/helm-chart/alluxio/Chart.yaml",

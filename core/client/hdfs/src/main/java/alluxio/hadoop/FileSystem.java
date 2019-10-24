@@ -17,13 +17,18 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.uri.Authority;
+import alluxio.uri.MultiMasterAuthority;
+import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UnknownAuthority;
+import alluxio.uri.ZookeeperAuthority;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -60,6 +65,37 @@ public final class FileSystem extends AbstractFileSystem {
   @Override
   protected boolean isZookeeperMode() {
     return mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+  }
+
+  @Override
+  protected Map<String, Object> getConfigurationFromUri(URI uri) {
+    AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
+    Map<String, Object> alluxioConfProperties = new HashMap<>();
+
+    if (alluxioUri.getAuthority() instanceof ZookeeperAuthority) {
+      ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getAuthority();
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
+              authority.getZookeeperAddress());
+    } else if (alluxioUri.getAuthority() instanceof SingleMasterAuthority) {
+      SingleMasterAuthority authority = (SingleMasterAuthority) alluxioUri.getAuthority();
+      alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), authority.getHost());
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), authority.getPort());
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+      // Unset the embedded journal related configuration
+      // to support alluxio URI has the highest priority
+      alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(), null);
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), null);
+    } else if (alluxioUri.getAuthority() instanceof MultiMasterAuthority) {
+      MultiMasterAuthority authority = (MultiMasterAuthority) alluxioUri.getAuthority();
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
+              authority.getMasterAddresses());
+      // Unset the zookeeper configuration to support alluxio URI has the highest priority
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+    }
+    return alluxioConfProperties;
   }
 
   @Override

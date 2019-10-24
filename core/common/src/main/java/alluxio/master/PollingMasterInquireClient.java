@@ -56,11 +56,13 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   /**
    * @param masterAddresses the potential master addresses
    * @param alluxioConf Alluxio configuration
+   * @param userState user state
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-      AlluxioConfiguration alluxioConf) {
+      AlluxioConfiguration alluxioConf,
+      UserState userState) {
     this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30),
-        alluxioConf);
+        alluxioConf, userState);
   }
 
   /**
@@ -75,6 +77,22 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
     mUserState = UserState.Factory.create(mConfiguration);
+  }
+
+  /**
+   * @param masterAddresses the potential master addresses
+   * @param retryPolicySupplier the retry policy supplier
+   * @param alluxioConf Alluxio configuration
+   * @param userState user state
+   */
+  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration alluxioConf,
+      UserState userState) {
+    mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
+    mRetryPolicySupplier = retryPolicySupplier;
+    mConfiguration = alluxioConf;
+    mUserState = userState;
   }
 
   @Override

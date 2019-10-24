@@ -37,6 +37,7 @@ public final class JobInfoTest {
     JobInfo result = new JobInfo();
     Random random = new Random();
 
+    result.setName(CommonUtils.randomAlphaNumString(random.nextInt(10)));
     List<TaskInfo> taskInfoList = Lists.newArrayList();
     for (int i = 0; i < random.nextInt(10); i++) {
       taskInfoList.add(TaskInfoTest.createRandom());

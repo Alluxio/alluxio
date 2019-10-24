@@ -49,6 +49,7 @@ public final class JobGrpcClientUtils {
   public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     CountingRetry retryPolicy = new CountingRetry(attempts);
+    String errorMessage = "";
     while (retryPolicy.attempt()) {
       long jobId;
       try (JobMasterClient client = JobMasterClient.Factory.create(
@@ -67,10 +68,11 @@ public final class JobGrpcClientUtils {
       if (jobInfo.getStatus() == Status.COMPLETED || jobInfo.getStatus() == Status.CANCELED) {
         return;
       }
+      errorMessage = jobInfo.getErrorMessage();
       LOG.warn("Job {} failed to complete with attempt {}. error: {}",
-          jobId, retryPolicy.getAttemptCount(), jobInfo.getErrorMessage());
+          jobId, retryPolicy.getAttemptCount(), errorMessage);
     }
-    throw new RuntimeException("Failed to successfully complete the job.");
+    throw new RuntimeException("Failed to successfully complete the job: " + errorMessage);
   }
 
   /**

@@ -31,6 +31,19 @@ message JobInfo {
   repeated TaskInfo taskInfos = 3;
   optional Status status = 4;
   optional string result = 5;
+  optional int64 lastStatusChangeMs = 6;
+  optional string name = 7;
+}
+
+message StatusSummary {
+  optional Status status = 1;
+  optional int64 count = 2;
+}
+
+message JobServiceSummary {
+  repeated StatusSummary summaryPerStatus = 1;
+  repeated JobInfo recentActivities = 2;
+  repeated JobInfo recentFailures = 3;
 }
 
 message JobCommand {
@@ -86,6 +99,14 @@ message RunPResponse {
   optional int64 jobId = 1;
 }
 
+message GetJobServiceSummaryPOptions {}
+message GetJobServiceSummaryPRequest {
+  optional GetJobServiceSummaryPOptions options = 1;
+}
+message GetJobServiceSummaryPResponse {
+  optional JobServiceSummary summary = 1;
+}
+
 /**
  * This interface contains job master service endpoints for job service clients.
  */
@@ -100,6 +121,11 @@ service JobMasterClientService {
    * Gets the status of the given job.
    */
   rpc GetJobStatus(GetJobStatusPRequest) returns (GetJobStatusPResponse);
+
+  /**
+   * Gets the summary of the job service.
+   */
+  rpc GetJobServiceSummary(GetJobServiceSummaryPRequest) returns (GetJobServiceSummaryPResponse);
 
   /**
    * Lists ids of all known jobs.

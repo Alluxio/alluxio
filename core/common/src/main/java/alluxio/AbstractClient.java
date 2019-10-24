@@ -14,8 +14,10 @@ package alluxio;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.ServiceNotFoundException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
@@ -55,6 +57,9 @@ public abstract class AbstractClient implements Client {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   protected InetSocketAddress mAddress;
+
+  /** Address to load configuration, which may differ from {@code mAddress}. */
+  protected InetSocketAddress mConfAddress;
 
   /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
@@ -163,7 +168,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      mContext.loadConfIfNotLoaded(mAddress);
+      mContext.loadConfIfNotLoaded(mConfAddress);
     }
   }
 
@@ -205,6 +210,7 @@ public abstract class AbstractClient implements Client {
       // failover).
       try {
         mAddress = getAddress();
+        mConfAddress = getConfAddress();
       } catch (UnavailableException e) {
         LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
@@ -231,6 +237,10 @@ public abstract class AbstractClient implements Client {
         LOG.debug("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         lastConnectFailure = e;
+        if (e instanceof NotFoundException) {
+          // service is not found in the server, skip retry
+          break;
+        }
       }
     }
     // Reaching here indicates that we did not successfully connect.
@@ -250,6 +260,10 @@ public abstract class AbstractClient implements Client {
      */
     if (lastConnectFailure instanceof UnauthenticatedException) {
       throw (AlluxioStatusException) lastConnectFailure;
+    }
+    if (lastConnectFailure instanceof NotFoundException) {
+      throw new NotFoundException(lastConnectFailure.getMessage(),
+          new ServiceNotFoundException(lastConnectFailure.getMessage(), lastConnectFailure));
     }
 
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
@@ -290,6 +304,14 @@ public abstract class AbstractClient implements Client {
 
   @Override
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
+    return mAddress;
+  }
+
+  @Override
+  public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
+    if (mConfAddress != null) {
+      return mConfAddress;
+    }
     return mAddress;
   }
 

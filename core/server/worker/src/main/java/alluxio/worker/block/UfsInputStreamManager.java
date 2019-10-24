@@ -248,7 +248,7 @@ public class UfsInputStreamManager {
           });
         } catch (ExecutionException e) {
           LOG.warn("Failed to create a new cached ufs instream of file id {} and path {}", fileId,
-              path);
+              path, e);
           // fall back to a ufs creation.
           return ufs.openExistingFile(path,
               OpenOptions.defaults().setOffset(openOptions.getOffset()));

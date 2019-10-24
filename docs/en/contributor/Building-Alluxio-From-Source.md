@@ -144,17 +144,6 @@ To build against Cloudera's releases, just use a version like `$apacheRelease-cd
 -Phadoop-2 -Dhadoop.version=2.0.0-cdh4.7.0
 ```
 
-#### MapR
-
-To build against a MapR release
-
-```properties
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1607
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1602
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1506
--Phadoop-2 -Dhadoop.version=2.3.0-mapr-4.0.0-FCS
-```
-
 #### Hortonworks
 
 To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonRelease`
