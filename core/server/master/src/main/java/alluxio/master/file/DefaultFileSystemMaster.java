@@ -552,6 +552,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       for (Long id : mInodeTree.getToBePersistedIds()) {
         Inode inode = mInodeStore.get(id).get();
         if (inode.isDirectory()
+            || !inode.asFile().isCompleted() // When file is completed it is added to persist reqs
             || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
             || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
           continue;
