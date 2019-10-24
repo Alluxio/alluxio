@@ -454,6 +454,7 @@ public final class PersistenceTest {
         CreateFileContext
             .mergeFrom(
                 CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto()))
+            .setWriteType(WriteType.MUST_CACHE)
             .setOwner(owner).setGroup(group));
     mFileSystemMaster.completeFile(path, CompleteFileContext.defaults());
     return path;
