@@ -31,6 +31,7 @@ public class TestDatabase implements UnderDatabase {
   private static final TestDatabase DATABASE = new TestDatabase();
 
   private Map<String, UdbTable> mUdbTables;
+  private UdbContext mUdbContext;
 
   private TestDatabase() {
     mUdbTables = new HashMap<>();
@@ -45,6 +46,7 @@ public class TestDatabase implements UnderDatabase {
    */
   public static TestDatabase create(UdbContext udbContext,
       UdbConfiguration configuration) {
+    DATABASE.setUdbContext(udbContext);
     return DATABASE;
   }
 
@@ -72,10 +74,20 @@ public class TestDatabase implements UnderDatabase {
     return TABLE_NAME_PREFIX + Integer.toString(i);
   }
 
-  public static void genTable(int numOfTable) {
+  public static void genTable(int numOfTable, int numOfPartitions) {
     DATABASE.mUdbTables.clear();
     for (int i = 0; i < numOfTable; i++) {
-      DATABASE.mUdbTables.put(getTableName(i), new TestUdbTable(DB_NAME, getTableName(i)));
+      DATABASE.mUdbTables.put(getTableName(i),
+          new TestUdbTable(DB_NAME, getTableName(i), numOfPartitions));
     }
+  }
+
+  private void setUdbContext(UdbContext udbContext) {
+    mUdbContext = udbContext;
+  }
+
+  @Override
+  public UdbContext getUdbContext() {
+    return mUdbContext;
   }
 }

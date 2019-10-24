@@ -39,6 +39,14 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
       .valueSeparator('=')
       .desc("options associated with this UDB")
       .build();
+  private static final Option DB_OPTION = Option.builder()
+      .longOpt("db")
+      .required(false)
+      .hasArg(true)
+      .numberOfArgs(1)
+      .argName("alluxio db name")
+      .desc("The name of the db in Alluxio. If unset, will use the udb db name.")
+      .build();
 
   /**
    * Creates a new instance of {@link AttachDatabaseCommand}.
@@ -52,21 +60,31 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(OPTION_OPTION);
+    return new Options().addOption(OPTION_OPTION).addOption(DB_OPTION);
   }
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+    CommandUtils.checkNumOfArgsEquals(this, cl, 3);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioStatusException {
     String[] args = cl.getArgs();
-    String dbName = args[0];
-    String dbType = args[1];
+    String udbType = args[0];
+    String udbConnectionUri = args[1];
+    String udbDbName = args[2];
+    String dbName = udbDbName;
+
+    if (cl.hasOption(DB_OPTION.getLongOpt())) {
+      String optDbName = cl.getOptionValue(DB_OPTION.getLongOpt());
+      if (optDbName != null && !optDbName.isEmpty()) {
+        dbName = optDbName;
+      }
+    }
+
     Properties p = cl.getOptionProperties(OPTION_OPTION.getOpt());
-    mClient.attachDatabase(dbName, dbType, Maps.fromProperties(p));
+    mClient.attachDatabase(udbType, udbConnectionUri, udbDbName, dbName, Maps.fromProperties(p));
     return 0;
   }
 
@@ -77,11 +95,12 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
 
   @Override
   public String getDescription() {
-    return "Attaches a database to the Alluxio table service from an under store DB";
+    return "Attaches a database to the Alluxio catalog from an under DB";
   }
 
   @Override
   public String getUsage() {
-    return "attachdb <dbName> <dbType> [-o|--option <key=value>]";
+    return "attachdb [-o|--option <key=value>] [--db <alluxio db name>] "
+        + "<udb type> <udb connection uri> <udb db name>";
   }
 }

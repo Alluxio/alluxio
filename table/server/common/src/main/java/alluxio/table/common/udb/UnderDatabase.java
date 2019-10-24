@@ -39,4 +39,9 @@ public interface UnderDatabase {
    * @return the {@link UdbTable} for the specified table name
    */
   UdbTable getTable(String tableName) throws IOException;
+
+  /**
+   * @return the {@link UdbContext}
+   */
+  UdbContext getUdbContext();
 }

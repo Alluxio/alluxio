@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,52 +30,63 @@ public class HiveDatabaseTest {
   private static final String DB_NAME = "test";
   private static final Map<String, String> CONF = new HashMap<>();
 
-  static {
-    CONF.put(Property.DATABASE_NAME.getName(), DB_NAME);
-    CONF.put(Property.HIVE_METASTORE_URIS.getName(), "thrift://not_running:9083");
-  }
-
   @Rule
   public ExpectedException mExpection = ExpectedException.none();
 
   private UdbContext mUdbContext;
   private UdbConfiguration mUdbConf;
-  private HiveDatabase mHiveDb;
 
   @Before
   public void before() {
-    mUdbContext = Mockito.mock(UdbContext.class);
+    mUdbContext =
+        new UdbContext(null, null, "hive", "thrift://not_running:9083", DB_NAME, DB_NAME);
     mUdbConf = new UdbConfiguration(CONF);
-    mHiveDb = HiveDatabase.create(mUdbContext, mUdbConf);
   }
 
   @Test
-  public void testCreateWithName() {
+  public void create() {
     assertEquals(DB_NAME, HiveDatabase.create(mUdbContext, mUdbConf).getName());
   }
 
   @Test
-  public void testCreateWithNoConfig() {
+  public void createEmptyName() {
     mExpection.expect(IllegalArgumentException.class);
-    assertEquals(DB_NAME, HiveDatabase.create(mUdbContext,
+    UdbContext udbContext =
+        new UdbContext(null, null, "hive", "thrift://not_running:9083", "", DB_NAME);
+    assertEquals(DB_NAME,
+        HiveDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
+  }
+
+  @Test
+  public void createNullName() {
+    mExpection.expect(IllegalArgumentException.class);
+    UdbContext udbContext =
+        new UdbContext(null, null, "hive", "thrift://not_running:9083", null, DB_NAME);
+    assertEquals(DB_NAME,
+        HiveDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
+  }
+
+  @Test
+  public void createEmptyConnectionUri() {
+    mExpection.expect(IllegalArgumentException.class);
+    UdbContext udbContext = new UdbContext(null, null, "hive", "", DB_NAME, DB_NAME);
+    assertEquals(DB_NAME, HiveDatabase.create(udbContext,
         new UdbConfiguration(ImmutableMap.of())).getName());
   }
 
   @Test
-  public void testCreateWithNoName() {
+  public void createNullConnectionUri() {
     mExpection.expect(IllegalArgumentException.class);
-    Map<String, String> props = ImmutableMap.of(
-        Property.HIVE_METASTORE_URIS.getName(), "thrift:///"
-    );
-    assertEquals(DB_NAME, HiveDatabase.create(mUdbContext,
-        new UdbConfiguration(props)).getName());
+    UdbContext udbContext = new UdbContext(null, null, "hive", null, DB_NAME, DB_NAME);
+    assertEquals(DB_NAME, HiveDatabase.create(udbContext,
+        new UdbConfiguration(ImmutableMap.of())).getName());
   }
 
   @Test
-  public void testCreateWithProps() {
+  public void createWithProps() {
     Map<String, String> props = ImmutableMap.of(
-        Property.HIVE_METASTORE_URIS.getName(), "thrift:///",
-        Property.DATABASE_NAME.getName(), DB_NAME
+        "prop1", "value1",
+        "prop2", "value2"
     );
     assertEquals(DB_NAME, HiveDatabase.create(mUdbContext, new UdbConfiguration(props)).getName());
   }

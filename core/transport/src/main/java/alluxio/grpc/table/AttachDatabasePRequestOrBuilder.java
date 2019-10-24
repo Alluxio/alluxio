@@ -8,39 +8,67 @@ public interface AttachDatabasePRequestOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string db_name = 1;</code>
+   * <code>optional string udb_type = 1;</code>
+   */
+  boolean hasUdbType();
+  /**
+   * <code>optional string udb_type = 1;</code>
+   */
+  java.lang.String getUdbType();
+  /**
+   * <code>optional string udb_type = 1;</code>
+   */
+  com.google.protobuf.ByteString
+      getUdbTypeBytes();
+
+  /**
+   * <code>optional string udb_connection_uri = 2;</code>
+   */
+  boolean hasUdbConnectionUri();
+  /**
+   * <code>optional string udb_connection_uri = 2;</code>
+   */
+  java.lang.String getUdbConnectionUri();
+  /**
+   * <code>optional string udb_connection_uri = 2;</code>
+   */
+  com.google.protobuf.ByteString
+      getUdbConnectionUriBytes();
+
+  /**
+   * <code>optional string udb_db_name = 3;</code>
+   */
+  boolean hasUdbDbName();
+  /**
+   * <code>optional string udb_db_name = 3;</code>
+   */
+  java.lang.String getUdbDbName();
+  /**
+   * <code>optional string udb_db_name = 3;</code>
+   */
+  com.google.protobuf.ByteString
+      getUdbDbNameBytes();
+
+  /**
+   * <code>optional string db_name = 4;</code>
    */
   boolean hasDbName();
   /**
-   * <code>optional string db_name = 1;</code>
+   * <code>optional string db_name = 4;</code>
    */
   java.lang.String getDbName();
   /**
-   * <code>optional string db_name = 1;</code>
+   * <code>optional string db_name = 4;</code>
    */
   com.google.protobuf.ByteString
       getDbNameBytes();
 
   /**
-   * <code>optional string db_type = 2;</code>
-   */
-  boolean hasDbType();
-  /**
-   * <code>optional string db_type = 2;</code>
-   */
-  java.lang.String getDbType();
-  /**
-   * <code>optional string db_type = 2;</code>
-   */
-  com.google.protobuf.ByteString
-      getDbTypeBytes();
-
-  /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
   int getOptionsCount();
   /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
   boolean containsOptions(
       java.lang.String key);
@@ -51,19 +79,19 @@ public interface AttachDatabasePRequestOrBuilder extends
   java.util.Map<java.lang.String, java.lang.String>
   getOptions();
   /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
   java.util.Map<java.lang.String, java.lang.String>
   getOptionsMap();
   /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
 
   java.lang.String getOptionsOrDefault(
       java.lang.String key,
       java.lang.String defaultValue);
   /**
-   * <code>map&lt;string, string&gt; options = 3;</code>
+   * <code>map&lt;string, string&gt; options = 5;</code>
    */
 
   java.lang.String getOptionsOrThrow(

@@ -70,9 +70,11 @@ public class DefaultTableMaster extends CoreMaster
   }
 
   @Override
-  public boolean attachDatabase(String dbName, String dbType, Map<String, String> configuration)
-      throws IOException {
-    return mCatalog.attachDatabase(createJournalContext(), dbType, dbName, configuration);
+  public boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName,
+      String dbName, Map<String, String> configuration) throws IOException {
+    return mCatalog
+        .attachDatabase(createJournalContext(), udbType, udbConnectionUri, udbDbName, dbName,
+            configuration);
   }
 
   @Override

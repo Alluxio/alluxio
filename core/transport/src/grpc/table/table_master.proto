@@ -184,9 +184,11 @@ message GetTablePResponse {
 }
 
 message AttachDatabasePRequest {
-    optional string db_name = 1;
-    optional string db_type = 2;
-    map<string, string> options = 3;
+    optional string udb_type = 1;
+    optional string udb_connection_uri = 2;
+    optional string udb_db_name = 3;
+    optional string db_name = 4;
+    map<string, string> options = 5;
 }
 
 message AttachDatabasePResponse {

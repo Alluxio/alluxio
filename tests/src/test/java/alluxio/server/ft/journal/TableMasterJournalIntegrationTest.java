@@ -41,7 +41,44 @@ public class TableMasterJournalIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    TestDatabase.genTable(1);
+    TestDatabase.genTable(1, 2);
+  }
+
+  @Test
+  public void journalSync() throws Exception {
+    mClusterResource.start();
+    LocalAlluxioCluster mCluster = mClusterResource.get();
+    TableMaster tableMaster =
+        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+
+    tableMaster
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+    List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
+
+    assertEquals(2, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(0))
+        .getPartitions().size());
+
+    // Update Udb, the table should stay the same, until we sync
+    TestDatabase.genTable(2, 3);
+
+    tableMaster.syncDatabase(DB_NAME);
+    assertEquals(2, tableMaster.getAllTables(DB_NAME).size());
+    assertEquals(3, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(0))
+        .getPartitions().size());
+    assertEquals(3, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(1))
+        .getPartitions().size());
+
+    mCluster.stopMasters();
+    mCluster.startMasters();
+
+    TableMaster tableMasterRestart =
+        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+    tableMasterRestart.syncDatabase(DB_NAME);
+    assertEquals(2, tableMasterRestart.getAllTables(DB_NAME).size());
+    assertEquals(3, tableMasterRestart.getTable(DB_NAME, TestDatabase.getTableName(0))
+        .getPartitions().size());
+    assertEquals(3, tableMasterRestart.getTable(DB_NAME, TestDatabase.getTableName(1))
+        .getPartitions().size());
   }
 
   @Test
@@ -51,14 +88,15 @@ public class TableMasterJournalIntegrationTest {
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
 
-    tableMaster.attachDatabase(DB_NAME, TestUdbFactory.TYPE, Collections.emptyMap());
+    tableMaster
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
     Table tableOld = tableMaster.getTable(DB_NAME, oldTableNames.get(0));
 
     mCluster.stopMasters();
 
     // Update Udb, the table should stay the same, until we detach / reattach
-    TestDatabase.genTable(2);
+    TestDatabase.genTable(2, 2);
 
     mCluster.startMasters();
     TableMaster tableMasterRestart =
@@ -76,11 +114,12 @@ public class TableMasterJournalIntegrationTest {
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
 
-    tableMaster.attachDatabase(DB_NAME, TestUdbFactory.TYPE, Collections.emptyMap());
+    tableMaster
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     tableMaster.detachDatabase(DB_NAME);
     assertTrue(tableMaster.getAllDatabases().isEmpty());
     mCluster.stopMasters();
-    TestDatabase.genTable(2);
+    TestDatabase.genTable(2, 2);
     mCluster.startMasters();
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);

@@ -73,7 +73,7 @@ public class Table {
     if (mSchema == null && mPartitionScheme == null) {
       return true;
     }
-    if (Objects.equals(mSchema, udbTable.getSchema())) {
+    if (!Objects.equals(mSchema, udbTable.getSchema())) {
       // can't sync if the schema is different
       return false;
     }
@@ -107,7 +107,7 @@ public class Table {
         changed = true;
       }
       List<Partition> partitions = mPartitionScheme == null
-          ? new ArrayList<>() : mPartitionScheme.getPartitions();
+          ? new ArrayList<>() : new ArrayList<>(mPartitionScheme.getPartitions());
       Layout tableLayout = mPartitionScheme == null
           ? udbTable.getLayout() : mPartitionScheme.getTableLayout();
       Set<String> partNames = partitions.stream().map(Partition::getSpec)

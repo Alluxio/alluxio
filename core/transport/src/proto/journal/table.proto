@@ -6,11 +6,13 @@ import "grpc/table/table_master.proto";
 
 // Journal entry messages for the table master
 
-// next available id: 4
+// next available id: 6
 message AttachDbEntry {
-    optional string type = 1;
-    optional string db_name = 2;
-    map<string, string> config = 3;
+    optional string udb_type = 1;
+    optional string udb_connection_uri = 2;
+    optional string udb_db_name = 3;
+    optional string db_name = 4;
+    map<string, string> config = 5;
 }
 
 // next available id: 2
