@@ -24,6 +24,7 @@ import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.LockResource;
 import alluxio.table.common.LayoutRegistry;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
@@ -40,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +52,7 @@ public class AlluxioCatalog implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioCatalog.class);
 
   private final Map<String, Database> mDBs = new ConcurrentHashMap<>();
+  private final Map<String, ReadWriteLock> mDbLocks = new ConcurrentHashMap<>();
   private final UnderDatabaseRegistry mUdbRegistry;
   private final LayoutRegistry mLayoutRegistry;
   private final FileSystem mFileSystem;
@@ -64,6 +68,15 @@ public class AlluxioCatalog implements Journaled {
     mLayoutRegistry.refresh();
   }
 
+  private LockResource getLock(String dbName, boolean readLock) {
+    ReadWriteLock rwLock = mDbLocks.compute(dbName,
+        (key, value) -> value == null ? new ReentrantReadWriteLock() : value);
+    if (readLock) {
+      return new LockResource(rwLock.readLock());
+    } else {
+      return new LockResource(rwLock.writeLock());
+    }
+  }
   /**
    * @return the layout registry
    */
@@ -85,32 +98,34 @@ public class AlluxioCatalog implements Journaled {
   public boolean attachDatabase(JournalContext journalContext, String udbType,
       String udbConnectionUri, String udbDbName, String dbName, Map<String, String> map)
       throws IOException {
-    if (mDBs.containsKey(dbName)) {
-      throw new IOException(String
-          .format("Unable to attach database. Database name %s (type: %s) already exists.",
-              dbName, udbType));
-    }
+    try (LockResource l = getLock(dbName, false)) {
+      if (mDBs.containsKey(dbName)) {
+        throw new IOException(String
+            .format("Unable to attach database. Database name %s (type: %s) already exists.",
+                dbName, udbType));
+      }
 
-    applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setAttachDb(
-        alluxio.proto.journal.Table.AttachDbEntry.newBuilder()
-            .setUdbType(udbType)
-            .setUdbConnectionUri(udbConnectionUri)
-            .setUdbDbName(udbDbName)
-            .setDbName(dbName)
-            .putAllConfig(map).build()).build());
+      applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setAttachDb(
+          alluxio.proto.journal.Table.AttachDbEntry.newBuilder()
+              .setUdbType(udbType)
+              .setUdbConnectionUri(udbConnectionUri)
+              .setUdbDbName(udbDbName)
+              .setDbName(dbName)
+              .putAllConfig(map).build()).build());
 
-    try {
-      mDBs.get(dbName).sync(journalContext);
-    } catch (Exception e) {
-      // Failed to connect to and sync the udb.
-      applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
-          alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
-          .build());
-      throw new IOException(String
-          .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
-              e.getMessage()), e);
+      try {
+        mDBs.get(dbName).sync(journalContext);
+      } catch (Exception e) {
+        // Failed to connect to and sync the udb.
+        applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
+            alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
+            .build());
+        throw new IOException(String
+            .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
+                e.getMessage()), e);
+      }
+      return true;
     }
-    return true;
   }
 
   /**
@@ -121,8 +136,10 @@ public class AlluxioCatalog implements Journaled {
    * @return true if the database changed as a result of fullSync
    */
   public boolean syncDatabase(JournalContext journalContext, String dbName) throws IOException {
-    Database db = getDatabaseByName(dbName);
-    return db.sync(journalContext);
+    try (LockResource l = getLock(dbName, false)) {
+      Database db = getDatabaseByName(dbName);
+      return db.sync(journalContext);
+    }
   }
 
   /**
@@ -134,13 +151,16 @@ public class AlluxioCatalog implements Journaled {
    */
   public boolean detachDatabase(JournalContext journalContext, String dbName)
       throws IOException {
-    if (!mDBs.containsKey(dbName)) {
-      throw new IOException(String
-          .format("Unable to detach database. Database name %s does not exist", dbName));
+    try (LockResource l = getLock(dbName, false)) {
+      if (!mDBs.containsKey(dbName)) {
+        throw new IOException(String
+            .format("Unable to detach database. Database name %s does not exist", dbName));
+      }
+      applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
+          alluxio.proto.journal.Table.DetachDbEntry.newBuilder()
+              .setDbName(dbName).build()).build());
+      return true;
     }
-    applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
-        alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build()).build());
-    return true;
   }
 
   /**
@@ -151,8 +171,10 @@ public class AlluxioCatalog implements Journaled {
    * @return a table object
    */
   public Table getTable(String dbName, String tableName) throws IOException {
-    Database db = getDatabaseByName(dbName);
-    return db.getTable(tableName);
+    try (LockResource l = getLock(dbName, true)) {
+      Database db = getDatabaseByName(dbName);
+      return db.getTable(tableName);
+    }
   }
 
   /**
@@ -180,8 +202,10 @@ public class AlluxioCatalog implements Journaled {
    * @return a list of table names in the database
    */
   public List<String> getAllTables(String dbName) throws IOException {
-    Database db = getDatabaseByName(dbName);
-    return db.getTables().stream().map(Table::getName).collect(Collectors.toList());
+    try (LockResource l = getLock(dbName, true)) {
+      Database db = getDatabaseByName(dbName);
+      return db.getTables().stream().map(Table::getName).collect(Collectors.toList());
+    }
   }
 
   /**
@@ -195,9 +219,11 @@ public class AlluxioCatalog implements Journaled {
   public List<ColumnStatisticsInfo> getTableColumnStatistics(String dbName, String tableName,
       List<String> colNames)
       throws IOException {
-    Table table = getTable(dbName, tableName);
-    return table.getStatistics().stream()
-        .filter(info -> colNames.contains(info.getColName())).collect(Collectors.toList());
+    try (LockResource l = getLock(dbName, true)) {
+      Table table = getTable(dbName, tableName);
+      return table.getStatistics().stream()
+          .filter(info -> colNames.contains(info.getColName())).collect(Collectors.toList());
+    }
   }
 
   /**
@@ -211,15 +237,17 @@ public class AlluxioCatalog implements Journaled {
    */
   public Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
       String tableName, List<String> partNames, List<String> colNames) throws IOException {
-    Table table = getTable(dbName, tableName);
-    List<Partition> partitions = table.getPartitions();
-    return partitions.stream().filter(p -> partNames.contains(p.getBaseLayout().getSpec()))
-        .map(p -> new Pair<>(p.getBaseLayout().getSpec(),
-            ColumnStatisticsList.newBuilder().addAllStatistics(
-                p.getBaseLayout().getColumnStatsData().entrySet().stream()
-                    .filter(entry -> colNames.contains(entry.getKey()))
-                    .map(Map.Entry::getValue).collect(Collectors.toList())).build()))
-        .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (e1, e2) -> e2));
+    try (LockResource l = getLock(dbName, true)) {
+      Table table = getTable(dbName, tableName);
+      List<Partition> partitions = table.getPartitions();
+      return partitions.stream().filter(p -> partNames.contains(p.getBaseLayout().getSpec()))
+          .map(p -> new Pair<>(p.getBaseLayout().getSpec(),
+              ColumnStatisticsList.newBuilder().addAllStatistics(
+                  p.getBaseLayout().getColumnStatsData().entrySet().stream()
+                      .filter(entry -> colNames.contains(entry.getKey()))
+                      .map(Map.Entry::getValue).collect(Collectors.toList())).build()))
+          .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (e1, e2) -> e2));
+    }
   }
 
   /**
@@ -232,9 +260,11 @@ public class AlluxioCatalog implements Journaled {
    */
   public List<alluxio.grpc.table.Partition> readTable(String dbName, String tableName,
       Constraint constraint) throws IOException {
-    Table table = getTable(dbName, tableName);
-    // TODO(david): implement partition pruning
-    return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
+    try (LockResource l = getLock(dbName, true)) {
+      Table table = getTable(dbName, tableName);
+      // TODO(david): implement partition pruning
+      return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
+    }
   }
 
   private void apply(alluxio.proto.journal.Table.AttachDbEntry entry) {
