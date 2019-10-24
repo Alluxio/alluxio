@@ -255,7 +255,7 @@ tieredstore:
 ```properties
 tieredstore:
   levels:
-  - alias: HYBRID
+  - alias: MEM
     mediumtype: MEM,SSD
     level: 0
     path: /dev/shm,/alluxio-ssd
