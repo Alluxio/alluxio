@@ -215,6 +215,56 @@ secrets:
     alluxio-ceph-config: cephConfig
 ```
 
+***Examples: Memory Tiered Store Only***
+
+```properties
+tieredstore:
+  levels:
+  - alias: MEM
+    mediumtype: MEM
+    level: 0
+    path: /dev/shm
+    type: hostPath
+    high: 0.95
+    low: 0.7
+```
+
+***Examples: Memory and SSD Tiered Store***
+
+```properties
+tieredstore:
+  levels:
+  - alias: MEM
+    mediumtype: MEM
+    level: 0
+    path: /dev/shm
+    type: hostPath
+    high: 0.95
+    low: 0.7
+  - alias: SSD
+    mediumtype: SSD
+    level: 1
+    path: /ssd-disk
+    type: hostPath
+    high: 0.95
+    low: 0.7
+```
+
+***Examples: Memory and SSD Tiered Store***
+
+```properties
+tieredstore:
+  levels:
+  - alias: HYBRID
+    mediumtype: MEM,SSD
+    level: 0
+    path: /dev/shm,/alluxio-ssd
+    type: hostPath
+    quota: 1GB,10GB
+    high: 0.95
+    low: 0.7
+```
+
 #### Install
 
 Once the configuration is finalized in a file named `config.yaml`, install as follows:

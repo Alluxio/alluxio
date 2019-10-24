@@ -87,8 +87,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          - name: ALLUXIO_WORKER_JAVA_OPTS
-            value: {{ print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) " | quote }}
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
@@ -174,8 +172,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          - name: ALLUXIO_JOB_WORKER_JAVA_OPTS
-            value: {{ print " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) " | quote }}
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
