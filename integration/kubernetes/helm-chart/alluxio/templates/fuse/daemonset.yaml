@@ -128,16 +128,16 @@ spec:
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
                           {{- end}}
                         {{- end}}
-                      {{- end}}
                       {{- else}}
-                      {{- if eq .type "hostPath"}}
+                        {{- if eq .type "hostPath"}}
             - name: {{ .alias | lower }}
               mountPath: {{ .path }}
-                      {{- else }}
+                        {{- else }}
             # report error and exit
             {{ .name }} with {{ .type }} is not supported in shortCircuitPolicy local
-                      {{- end }} 
-                    {{- end }} 
+                        {{- end }} 
+                      {{- end }}
+                    {{- end}} 
                   {{- end }} 
                 {{- end }} 
               {{- end }} 
@@ -182,7 +182,6 @@ spec:
                         {{- end}} 
                       {{- end}}
                     {{- end}}
-                  {{- end}}
                   {{- else}}
                     {{- if eq .type "hostPath"}}
         - hostPath:
@@ -190,8 +189,9 @@ spec:
             type: DirectoryOrCreate
           name: {{ .alias | lower }}
                     {{- end }}
-                  {{- end }} 
-                {{- end }} 
+                  {{- end }}
+                {{- end}}
               {{- end }} 
             {{- end }} 
+          {{- end }} 
         {{- end }}
