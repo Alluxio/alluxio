@@ -11,12 +11,15 @@
 
 package alluxio.cli.table.command;
 
+import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import alluxio.util.io.PathUtils;
 import org.apache.commons.cli.CommandLine;
 
 /**
@@ -58,7 +61,13 @@ public class DetachDatabaseCommand extends AbstractTableCommand {
 
   @Override
   public int run(CommandLine cli) throws AlluxioStatusException {
-    mClient.detachDatabase(cli.getArgs()[0]);
+    String dbName =cli.getArgs()[0];
+    if (mClient.detachDatabase(dbName)) {
+      AlluxioURI path = new AlluxioURI(PathUtils
+          .concatPath(mConf.get(PropertyKey.TABLE_CATALOG_PATH), dbName));
+      System.out.println("Please unmount and clean up the alluxio location at " + path
+          + " before attaching another database named " + dbName);
+    }
     return 0;
   }
 }
