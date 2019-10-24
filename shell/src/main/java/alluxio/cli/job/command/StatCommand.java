@@ -86,9 +86,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
   private String formatOutput(CommandLine cl, JobInfo info) {
     StringBuilder output = new StringBuilder();
     output.append("ID: ").append(info.getJobId()).append("\n");
-    if (info.getJobConfig() != null) {
-      output.append("Config: ").append(info.getJobConfig()).append("\n");
-    }
+    output.append("Name: ").append(info.getName()).append("\n");
     output.append("Status: ").append(info.getStatus()).append("\n");
     if (info.getErrorMessage() != null && !info.getErrorMessage().isEmpty()) {
       output.append("Error: ").append(info.getErrorMessage()).append("\n");
