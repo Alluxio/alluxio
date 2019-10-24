@@ -27,6 +27,7 @@ import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.table.transform.TransformJobInfo;
 import alluxio.master.table.transform.TransformManager;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -124,6 +126,20 @@ public class DefaultTableMaster extends CoreMaster
     }
     TransformDefinition transformDefinition = TransformDefinition.parse(definition);
     return mTransformManager.execute(dbName, tableName, transformDefinition);
+  }
+
+  @Override
+  public TransformJobInfo getTransformJobInfo(long jobId) throws IOException {
+    Optional<TransformJobInfo> info = mTransformManager.getTransformJobInfo(jobId);
+    if (!info.isPresent()) {
+      throw new IOException("No transformation information for job ID " + jobId);
+    }
+    return info.get();
+  }
+
+  @Override
+  public List<TransformJobInfo> getAllTransformJobInfo() throws IOException {
+    return mTransformManager.getAllTransformJobInfo();
   }
 
   @Override

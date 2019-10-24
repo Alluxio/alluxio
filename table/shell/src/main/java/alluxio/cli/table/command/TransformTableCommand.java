@@ -96,7 +96,8 @@ public final class TransformTableCommand extends AbstractTableCommand {
 
     long jobId = mClient.transformTable(databaseName, tableName, definition);
     System.out.println("Started transformation job with job ID " + jobId + ", "
-        + "you can monitor the status of the job with './bin/alluxio job stat -v " + jobId + "'.");
+        + "you can monitor the status of the job with "
+        + "'./bin/alluxio table transformStatus " + jobId + "'.");
     return 0;
   }
 }

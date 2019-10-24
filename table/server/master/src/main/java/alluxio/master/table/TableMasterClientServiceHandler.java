@@ -16,9 +16,6 @@ import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
 import alluxio.grpc.table.DetachDatabasePRequest;
 import alluxio.grpc.table.DetachDatabasePResponse;
-import alluxio.grpc.table.SyncDatabasePRequest;
-import alluxio.grpc.table.SyncDatabasePResponse;
-import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.GetAllDatabasesPRequest;
 import alluxio.grpc.table.GetAllDatabasesPResponse;
 import alluxio.grpc.table.GetAllTablesPRequest;
@@ -29,15 +26,23 @@ import alluxio.grpc.table.GetTableColumnStatisticsPRequest;
 import alluxio.grpc.table.GetTableColumnStatisticsPResponse;
 import alluxio.grpc.table.GetTablePRequest;
 import alluxio.grpc.table.GetTablePResponse;
+import alluxio.grpc.table.GetTransformJobInfoPRequest;
+import alluxio.grpc.table.GetTransformJobInfoPResponse;
 import alluxio.grpc.table.ReadTablePRequest;
 import alluxio.grpc.table.ReadTablePResponse;
+import alluxio.grpc.table.SyncDatabasePRequest;
+import alluxio.grpc.table.SyncDatabasePResponse;
+import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.TransformTablePRequest;
 import alluxio.grpc.table.TransformTablePResponse;
+import alluxio.master.table.transform.TransformJobInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.stream.Collectors;
 
 /**
  * This class is a gRPC handler for table master RPCs.
@@ -145,5 +150,20 @@ public class TableMasterClientServiceHandler
     RpcUtils.call(LOG, () -> SyncDatabasePResponse.newBuilder().setSuccess(mTableMaster
         .syncDatabase(request.getDbName()))
         .build(), "syncDatabase", "", responseObserver);
+  }
+
+  @Override
+  public void getTransformJobInfo(GetTransformJobInfoPRequest request,
+      StreamObserver<GetTransformJobInfoPResponse> responseObserver) {
+    if (request.hasJobId()) {
+      RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addInfo(mTableMaster
+          .getTransformJobInfo(request.getJobId()).toProto()).build(),
+          "getTransformJobInfo", "", responseObserver);
+    } else {
+      RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addAllInfo(mTableMaster
+              .getAllTransformJobInfo().stream().map(TransformJobInfo::toProto)
+              .collect(Collectors.toList())).build(),
+          "getTransformJobInfo", "", responseObserver);
+    }
   }
 }
