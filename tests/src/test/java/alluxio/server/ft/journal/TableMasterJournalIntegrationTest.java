@@ -51,7 +51,8 @@ public class TableMasterJournalIntegrationTest {
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
 
-    tableMaster.attachDatabase(DB_NAME, TestUdbFactory.TYPE, Collections.emptyMap());
+    tableMaster
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
 
     assertEquals(2, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(0))
@@ -87,7 +88,8 @@ public class TableMasterJournalIntegrationTest {
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
 
-    tableMaster.attachDatabase(DB_NAME, TestUdbFactory.TYPE, Collections.emptyMap());
+    tableMaster
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
     Table tableOld = tableMaster.getTable(DB_NAME, oldTableNames.get(0));
 
@@ -112,7 +114,8 @@ public class TableMasterJournalIntegrationTest {
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
 
-    tableMaster.attachDatabase(DB_NAME, TestUdbFactory.TYPE, Collections.emptyMap());
+    tableMaster
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     tableMaster.detachDatabase(DB_NAME);
     assertTrue(tableMaster.getAllDatabases().isEmpty());
     mCluster.stopMasters();
