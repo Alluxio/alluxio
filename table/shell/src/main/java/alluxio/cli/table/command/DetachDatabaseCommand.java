@@ -18,8 +18,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import alluxio.util.io.PathUtils;
+
 import org.apache.commons.cli.CommandLine;
 
 /**
