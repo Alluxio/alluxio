@@ -6,7 +6,7 @@ group: Structured Data
 priority: 0
 ---
 
-{% assign feature_name="A GOOD FEATURE NAME" %}
+{% assign feature_name="the Alluxio Catalog Service" %}
 
 * Table of Contents
 {:toc}
@@ -39,7 +39,7 @@ namespace.
 ```
 Query Engine     Metadata service            Under meta service
 +--------+       +-------------------+       +----------------+
-| Presto | <---> | Alluxio {{feature_name}} | <---> | Hive Metastore |
+| Presto | <---> | {{feature_name}}  | <---> | Hive Metastore |
 +--------+       +-------------------+       +----------------+
 ```
 
@@ -185,7 +185,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio table detachdb alluxio_db
 Running `alluxio table ls` afterwards will not display the database any more.
 Continue to the next section to see how to use {{feature_name}} with presto
 
-## Alluxio {{feature_name}} with Presto
+## Alluxio Structured Data with Presto
 
 {{feature_name}} is built to be used as connector in Presto.
 The latest Alluxio distribution contains a presto connector jar which can be dropped into the
