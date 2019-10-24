@@ -106,7 +106,7 @@ Note: The Alluxio under filesystem address MUST be modified. Any credentials MUS
 
 To view the complete list of supported properties run the `helm inspect` command:
 ```console
-$ helm inspect values alluxio-local/alluxio
+$ helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
 ```
 
 The remainder of this section describes various configuration options with examples.
@@ -384,7 +384,7 @@ $ kubectl delete -f alluxio-master-journal-pv.yaml
 This section will go over how to upgrade Alluxio in your Kubernetes cluster with `kubectl`.
 
 **Step 1: Upgrade the docker image version tag**
- 
+
 Each released Alluxio version will have the corresponding docker image released on [dockerhub](https://hub.docker.com/r/alluxio/alluxio).
 
 You should update the `image` field of all the Alluxio containers to use the target version tag. Tag `latest` will point to the latest stable version.
@@ -434,7 +434,7 @@ If you are running UFS journal, there is only one place for the journal.
 There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
 template that can be used for only formatting the master.
 The Job runs `alluxio formatMasters` and formats the journal for all masters.
-You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.  
+You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.
 
 ```console
 $ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
@@ -451,13 +451,13 @@ In order to format the journals you have two options.
 
 1. Format all masters by running the Kubernetes Job:
 ```console
-$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml 
+$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
 $ kubectl apply -f ./job/alluxio-format-journal-job.yaml
 ```
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
-You should delete and recreate the Persistent Volumes. 
+You should delete and recreate the Persistent Volumes.
 
 Once all the journals and Alluxio storage have been formatted, you are ready to restart the Alluxio master and worker Pods.
 
