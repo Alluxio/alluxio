@@ -46,9 +46,9 @@ spec:
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
       securityContext:
-        runAsUser: {{ .Values.user }}
-        runAsGroup: {{ .Values.group }}
-        fsGroup: {{ .Values.fsGroup }}
+        runAsUser: {{ .Values.fuse.user }}
+        runAsGroup: {{ .Values.fuse.group }}
+        fsGroup: {{ .Values.fuse.fsGroup }}
       affinity:
         podAffinity:
           RequiredDuringSchedulingIgnoredDuringExecution:

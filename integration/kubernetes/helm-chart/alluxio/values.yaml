@@ -196,6 +196,9 @@ fuse:
   jvmOptions: " -XX:MaxDirectMemorySize=2g "
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
+  user: 0
+  group: 0
+  fsGroup: 0
   args:
     - fuse
     - --fuse-opts=allow_other
