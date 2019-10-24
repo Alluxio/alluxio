@@ -25,7 +25,7 @@
   <modules>
     <module>common</module>
     <module>master</module>
-    <module>under</module>
+    <module>underdb</module>
   </modules>
 
   <properties>
