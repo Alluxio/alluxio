@@ -123,14 +123,14 @@ spec:
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
                         {{- end}}
                       {{- end}}
-                    {{- end}}
                     {{- else}}
             - mountPath: {{ .path }}
               name: {{ .alias | lower }}
                     {{- end}}
-                  {{- end}} 
+                  {{- end}}
                 {{- end}} 
-              {{- end}}
+              {{- end}} 
+            {{- end}} 
             {{- if .Values.mounts }}   
               {{- range .Values.mounts }}
             - name: "{{ .name }}"
@@ -212,10 +212,10 @@ spec:
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
                         {{- end}}
                       {{- end}}
-                    {{- end}}
-                  {{- else}}
+                    {{- else}}
             - mountPath: {{ .path }}
               name: {{ .alias | lower }}
+                    {{- end}}
                   {{- end}}
                 {{- end}} 
               {{- end}} 
@@ -265,19 +265,19 @@ spec:
                       {{- end}} 
                     {{- end}}
                   {{- end}}
-                {{- end}}
-              {{- else}}
-                {{- if eq .type "hostPath"}}
+                {{- else}}
+                  {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
             type: DirectoryOrCreate
           name: {{ .alias | lower }}
-                {{- else }}
+                  {{- else }}
         - name: {{ .alias | lower }}
           emptyDir:
             medium: "Memory"
-                  {{- if .quota }}
+                    {{- if .quota }}
             sizeLimit: {{ .quota }}
+                    {{- end}}
                   {{- end}}
                 {{- end}}
               {{- end}}
