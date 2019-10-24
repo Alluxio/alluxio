@@ -265,6 +265,8 @@ tieredstore:
     low: 0.7
 ```
 
+> There 2 supported volume `type`: `hostPath` and `emptyDir`. `hostPath` mounts the directory from the host node’s filesystem into your Pod. The benifits are that data can be kept even the worker restarted. `emptyDir` is first created when a Pod is assigned to a Node, and exists as long as that Pod is running on that node. As the name says, it is initially empty. The benifit of empty dir is that it can set memory limit in Kubernetes level.
+
 #### Install
 
 Once the configuration is finalized in a file named `config.yaml`, install as follows:
