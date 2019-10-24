@@ -81,6 +81,7 @@ public final class UpdateCheck {
   public static String getUserAgentString(String clusterID) throws IOException {
     Joiner joiner = Joiner.on("; ").skipNulls();
     String sysInfo = joiner.join(
+        clusterID,
         EnvironmentUtils.isDocker() ? "docker" : null,
         EnvironmentUtils.isKubernetes() ? "kubernetes" : null
     );
