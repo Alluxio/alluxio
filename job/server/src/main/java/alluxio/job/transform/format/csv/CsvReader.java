@@ -13,6 +13,7 @@ package alluxio.job.transform.format.csv;
 
 import alluxio.job.transform.format.Format;
 import alluxio.job.transform.format.TableReader;
+import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 
@@ -71,7 +72,7 @@ public final class CsvReader implements TableReader {
         .hasHeader()
         .build();
     Path inputPath = new Path(scheme, "", input);
-    Configuration conf = new Configuration();
+    Configuration conf = ReadWriterUtils.readNoCacheConf();
     FileSystem fs = inputPath.getFileSystem(conf);
     Schema schema;
     try (InputStream inputStream = open(fs, inputPath)) {

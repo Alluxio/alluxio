@@ -61,9 +61,15 @@ message Layout {
   map<string, ColumnStatisticsInfo> stats = 4;
 }
 
+message Transformation {
+    optional Layout layout = 1;
+    optional string definition = 2;
+}
+
 message Partition {
     optional PartitionSpec partition_spec = 1;
     optional Layout layout = 2;
+    repeated Transformation transformations = 3;
 }
 
 message ColumnStatisticsInfo {
