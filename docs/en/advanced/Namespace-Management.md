@@ -101,7 +101,7 @@ The following configuration shows how to set other parameters for the root mount
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal=client
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file=keytab
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
-alluxio.master.mount.table.root.option.alluxio.underfs.version=2.6
+alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
 ```
 
 ### Nested Mount Points
@@ -290,7 +290,7 @@ hello
 In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space and the UFS when the UFS is HDFS.
 The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master. 
 Because active sync feature depends on HDFS events, this feature is only available when the UFS HDFS versions is later than 2.6.1.
-Be sure to specify a value for `alluxio.underfs.version` in your configuration file. It defaults to 2.2, which does not support HDFS events.
+You might need to change the value for `alluxio.underfs.version` in your configuration file.
 Please refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of supported Hdfs versions.
 
 To enable active sync on a directory, issue the following Alluxio command.
