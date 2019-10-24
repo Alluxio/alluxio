@@ -221,6 +221,10 @@ The `copyDir` command copies the directory at `PATH` to all worker nodes listed 
 $ ./bin/alluxio copyDir conf/alluxio-site.properties
 ```
 
+### table
+
+See [Table Operations](#Table-Operations).
+
 ### version
 
 The `version` command prints Alluxio version.
