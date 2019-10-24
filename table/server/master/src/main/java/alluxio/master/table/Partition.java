@@ -20,6 +20,8 @@ import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The table partition class.
@@ -27,7 +29,60 @@ import java.io.IOException;
 public class Partition {
   private final String mPartitionSpec;
   private final Layout mBaseLayout;
-  private Layout mTransformedLayout;
+  private final AtomicReference<Transformation> mTransformation = new AtomicReference<>(null);
+
+  /**
+   * Information kept for the latest transformation on the partition.
+   */
+  private static final class Transformation {
+    /** The definition of the transformation. */
+    private String mDefinition;
+    /** The transformed layout. */
+    private Layout mLayout;
+
+    /**
+     * @param definition the transformation definition
+     * @param layout the transformed layout
+     */
+    public Transformation(String definition, Layout layout) {
+      mDefinition = definition;
+      mLayout = layout;
+    }
+
+    /**
+     * @return the transformation definition
+     */
+    public String getDefinition() {
+      return mDefinition;
+    }
+
+    /**
+     * @return the transformed layout
+     */
+    public Layout getLayout() {
+      return mLayout;
+    }
+
+    /**
+     * @return the proto representation
+     */
+    public alluxio.grpc.table.Transformation toProto() {
+      return alluxio.grpc.table.Transformation.newBuilder()
+          .setDefinition(mDefinition)
+          .setLayout(mLayout.toProto())
+          .build();
+    }
+
+    /**
+     * @param layoutRegistry the layout registry
+     * @param proto the proto representation
+     * @return the java representation
+     */
+    public static Transformation fromProto(LayoutRegistry layoutRegistry,
+        alluxio.grpc.table.Transformation proto) {
+      return new Transformation(proto.getDefinition(), layoutRegistry.create(proto.getLayout()));
+    }
+  }
 
   /**
    * Creates an instance.
@@ -59,17 +114,29 @@ public class Partition {
   /**
    * @return the current layout
    */
-  public synchronized Layout getLayout() {
-    return mTransformedLayout == null ? mBaseLayout : mTransformedLayout;
+  public Layout getLayout() {
+    Transformation transformation = mTransformation.get();
+    return transformation == null ? mBaseLayout : transformation.getLayout();
   }
 
   /**
-   * Sets the transformed layout.
+   * Transform the partition.
    *
+   * @param definition the transformation definition
    * @param layout the transformed layout
    */
-  public synchronized void setTransformedLayout(Layout layout) {
-    mTransformedLayout = layout;
+  public void transform(String definition, Layout layout) {
+    mTransformation.set(new Transformation(definition, layout));
+  }
+
+  /**
+   * @param definition the transformation definition
+   * @return whether the latest transformation of Partition has the same definition
+   */
+  public boolean isTransformed(TransformDefinition definition) {
+    Transformation transformation = mTransformation.get();
+    return transformation != null
+        && transformation.getDefinition().equals(definition.getDefinition());
   }
 
   /**
@@ -95,10 +162,14 @@ public class Partition {
    * @return the proto representation
    */
   public alluxio.grpc.table.Partition toProto() {
-    return alluxio.grpc.table.Partition.newBuilder()
+    alluxio.grpc.table.Partition.Builder builder = alluxio.grpc.table.Partition.newBuilder()
         .setPartitionSpec(PartitionSpec.newBuilder().setSpec(mPartitionSpec).build())
-        .setLayout(getLayout().toProto())
-        .build();
+        .setLayout(mBaseLayout.toProto());
+    Transformation transformation = mTransformation.get();
+    if (transformation != null) {
+      builder.addTransformations(transformation.toProto());
+    }
+    return builder.build();
   }
 
   /**
@@ -108,7 +179,13 @@ public class Partition {
    */
   public static Partition fromProto(LayoutRegistry layoutRegistry,
       alluxio.grpc.table.Partition proto) {
-    return new Partition(proto.getPartitionSpec().getSpec(),
+    Partition partition = new Partition(proto.getPartitionSpec().getSpec(),
         layoutRegistry.create(proto.getLayout()));
+    List<alluxio.grpc.table.Transformation> transformations = proto.getTransformationsList();
+    if (!transformations.isEmpty()) {
+      partition.mTransformation.set(Transformation.fromProto(layoutRegistry,
+          transformations.get(0)));
+    }
+    return partition;
   }
 }

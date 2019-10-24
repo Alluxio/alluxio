@@ -32,4 +32,28 @@ public interface PartitionOrBuilder extends
    * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
    */
   alluxio.grpc.table.LayoutOrBuilder getLayoutOrBuilder();
+
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  java.util.List<alluxio.grpc.table.Transformation> 
+      getTransformationsList();
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  alluxio.grpc.table.Transformation getTransformations(int index);
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  int getTransformationsCount();
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  java.util.List<? extends alluxio.grpc.table.TransformationOrBuilder> 
+      getTransformationsOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  alluxio.grpc.table.TransformationOrBuilder getTransformationsOrBuilder(
+      int index);
 }
