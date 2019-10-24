@@ -19,7 +19,7 @@ metadata:
   labels:
     app: alluxio
     chart: alluxio-0.5.0
-    release: release-name
+    release: alluxio
     heritage: Tiller
     role: alluxio-fuse
 spec:
@@ -27,7 +27,7 @@ spec:
     matchLabels:
       app: alluxio
       chart: alluxio-0.5.0
-      release: release-name
+      release: alluxio
       heritage: Tiller
       role: alluxio-fuse
   template:
@@ -35,7 +35,7 @@ spec:
       labels:
         app: alluxio
         chart: alluxio-0.5.0
-        release: release-name
+        release: alluxio
         heritage: Tiller
         role: alluxio-fuse
     spec:
