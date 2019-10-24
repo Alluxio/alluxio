@@ -65,7 +65,8 @@ public class DetachDatabaseCommand extends AbstractTableCommand {
     if (mClient.detachDatabase(dbName)) {
       AlluxioURI path = new AlluxioURI(PathUtils
           .concatPath(mConf.get(PropertyKey.TABLE_CATALOG_PATH), dbName));
-      System.out.println("Please unmount and clean up the alluxio location at " + path
+      System.out.println("Successfully detached db " + dbName
+          + ". Please unmount and clean up the alluxio location at " + path
           + " before attaching another database named " + dbName);
     }
     return 0;
