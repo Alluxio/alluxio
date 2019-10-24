@@ -39,8 +39,6 @@ public final class ParquetWriter implements TableWriter {
   private static final int MAX_IN_MEMORY_RECORDS = 10000;
   private static final int ROW_GROUP_SIZE =
       org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE;
-  private static final String ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE =
-      "fs.alluxio.impl.disable.cache";
 
   private final org.apache.parquet.hadoop.ParquetWriter<Record> mWriter;
   private long mRecordSize; // bytes
