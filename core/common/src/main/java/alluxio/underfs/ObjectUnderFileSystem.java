@@ -886,8 +886,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return true if the path is the root, false otherwise
    */
   protected boolean isRoot(String path) {
-    return PathUtils.normalizePath(path, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
+    String normalizePath = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    return normalizePath.equals(PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR))
+        || normalizePath.equals(PATH_SEPARATOR);
   }
 
   /**
