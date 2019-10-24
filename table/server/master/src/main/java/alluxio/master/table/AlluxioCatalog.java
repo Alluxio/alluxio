@@ -72,27 +72,44 @@ public class AlluxioCatalog implements Journaled {
   }
 
   /**
-   * Attaches an existing database.
-   *
+   * Attaches an udb database to Alluxio catalog.
    *
    * @param journalContext journal context
-   * @param type the database type
-   * @param dbName the database name
+   * @param udbType the database type
+   * @param udbConnectionUri the udb connection uri
+   * @param udbDbName the database name in the udb
+   * @param dbName the database name in Alluxio
    * @param map the configuration
    * @return true if database successfully created
    */
-  public boolean attachDatabase(JournalContext journalContext, String type,
-      String dbName, Map<String, String> map)
+  public boolean attachDatabase(JournalContext journalContext, String udbType,
+      String udbConnectionUri, String udbDbName, String dbName, Map<String, String> map)
       throws IOException {
     if (mDBs.containsKey(dbName)) {
       throw new IOException(String
-          .format("Unable to attach database. Database name %s (type: %s) already exists.", dbName,
-              type));
+          .format("Unable to attach database. Database name %s (type: %s) already exists.",
+              dbName, udbType));
     }
+
     applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setAttachDb(
-        alluxio.proto.journal.Table.AttachDbEntry.newBuilder().setType(type).setDbName(dbName)
+        alluxio.proto.journal.Table.AttachDbEntry.newBuilder()
+            .setUdbType(udbType)
+            .setUdbConnectionUri(udbConnectionUri)
+            .setUdbDbName(udbDbName)
+            .setDbName(dbName)
             .putAllConfig(map).build()).build());
-    mDBs.get(dbName).sync(journalContext);
+
+    try {
+      mDBs.get(dbName).sync(journalContext);
+    } catch (Exception e) {
+      // Failed to connect to and sync the udb.
+      applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
+          alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
+          .build());
+      throw new IOException(String
+          .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
+              e.getMessage()), e);
+    }
     return true;
   }
 
@@ -221,13 +238,17 @@ public class AlluxioCatalog implements Journaled {
   }
 
   private void apply(alluxio.proto.journal.Table.AttachDbEntry entry) {
-    String type = entry.getType();
+    String udbType = entry.getUdbType();
+    String udbConnectionUri = entry.getUdbConnectionUri();
+    String udbDbName = entry.getUdbDbName();
     String dbName = entry.getDbName();
 
     CatalogContext catalogContext = new CatalogContext(mUdbRegistry, mLayoutRegistry);
-    UdbContext udbContext = new UdbContext(mUdbRegistry, mFileSystem, type, dbName);
+    UdbContext udbContext =
+        new UdbContext(mUdbRegistry, mFileSystem, udbType, udbConnectionUri, udbDbName, dbName);
 
-    Database db = Database.create(catalogContext, udbContext, type, dbName, entry.getConfigMap());
+    Database db =
+        Database.create(catalogContext, udbContext, udbType, dbName, entry.getConfigMap());
     mDBs.put(dbName, db);
   }
 
@@ -280,11 +301,16 @@ public class AlluxioCatalog implements Journaled {
         }
         String dbName = mEntry.getKey();
         Database database = mEntry.getValue();
+        UdbContext udbContext = database.getUdb().getUdbContext();
         mEntry = null;
 
         return Journal.JournalEntry.newBuilder().setAttachDb(
-            alluxio.proto.journal.Table.AttachDbEntry.newBuilder().setDbName(dbName)
-                .setType(database.getType()).putAllConfig(database.getConfig()).build()).build();
+            alluxio.proto.journal.Table.AttachDbEntry.newBuilder()
+                .setUdbType(database.getType())
+                .setUdbConnectionUri(udbContext.getConnectionUri())
+                .setUdbDbName(udbContext.getUdbDbName())
+                .setDbName(dbName)
+                .putAllConfig(database.getConfig()).build()).build();
       }
 
       @Override

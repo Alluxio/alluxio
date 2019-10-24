@@ -26,7 +26,14 @@ public class UdbContext {
 
   private final UnderDatabaseRegistry mUdbRegistry;
   private final FileSystem mFileSystem;
+
+  /** The udb type. */
   private final String mType;
+  /** The connection uri for the udb. */
+  private final String mConnectionUri;
+  /** The name of the database in the udb. */
+  private final String mUdbDbName;
+  /** The name of the database in Alluxio. */
   private final String mDbName;
 
   /**
@@ -35,18 +42,22 @@ public class UdbContext {
    * @param udbRegistry the udb registry
    * @param fileSystem the alluxio fs client
    * @param type the db type
-   * @param dbName the db name
+   * @param connectionUri the connection uri for the udb
+   * @param udbDbName name of the database in the udb
+   * @param dbName name of the database in Alluxio
    */
   public UdbContext(UnderDatabaseRegistry udbRegistry, FileSystem fileSystem, String type,
-      String dbName) {
+      String connectionUri, String udbDbName, String dbName) {
     mUdbRegistry = udbRegistry;
     mFileSystem = fileSystem;
     mType = type;
+    mConnectionUri = connectionUri;
+    mUdbDbName = udbDbName;
     mDbName = dbName;
   }
 
   /**
-   * @return the db name
+   * @return the db name in Alluxio
    */
   public String getDbName() {
     return mDbName;
@@ -64,6 +75,20 @@ public class UdbContext {
    */
   public UnderDatabaseRegistry getUdbRegistry() {
     return mUdbRegistry;
+  }
+
+  /**
+   * @return the connection uri for the udb
+   */
+  public String getConnectionUri() {
+    return mConnectionUri;
+  }
+
+  /**
+   * @return the db name in Udb
+   */
+  public String getUdbDbName() {
+    return mUdbDbName;
   }
 
   /**
