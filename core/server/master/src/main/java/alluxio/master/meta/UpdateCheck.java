@@ -45,7 +45,7 @@ public final class UpdateCheck {
       long connectTimeout, long socketTimeout) throws IOException {
     // Create the GET request.
     Joiner joiner = Joiner.on("/");
-    String path = joiner.join("v1", "version");
+    String path = joiner.join("v0", "version");
     String url = new URL(new URL(ProjectConstants.UPDATE_CHECK_HOST), path).toString();
 
     HttpGet post = new HttpGet(url);
