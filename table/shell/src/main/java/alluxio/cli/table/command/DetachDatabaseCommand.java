@@ -61,7 +61,7 @@ public class DetachDatabaseCommand extends AbstractTableCommand {
 
   @Override
   public int run(CommandLine cli) throws AlluxioStatusException {
-    String dbName =cli.getArgs()[0];
+    String dbName = cli.getArgs()[0];
     if (mClient.detachDatabase(dbName)) {
       AlluxioURI path = new AlluxioURI(PathUtils
           .concatPath(mConf.get(PropertyKey.TABLE_CATALOG_PATH), dbName));
