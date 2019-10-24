@@ -37,7 +37,7 @@ public class UpdateCheckTest {
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(
-        userAgentString.equals(String.format("Alluxio/%s ()", ProjectConstants.VERSION)));
+        userAgentString.equals(String.format("Alluxio/%s (cluster1)", ProjectConstants.VERSION)));
   }
 
   @Test
@@ -48,7 +48,7 @@ public class UpdateCheckTest {
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(
-        userAgentString.equals(String.format("Alluxio/%s (docker)", ProjectConstants.VERSION)));
+        userAgentString.equals(String.format("Alluxio/%s (cluster1; docker)", ProjectConstants.VERSION)));
   }
 
   @Test
@@ -59,6 +59,6 @@ public class UpdateCheckTest {
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString
-        .equals(String.format("Alluxio/%s (docker; kubernetes)", ProjectConstants.VERSION)));
+        .equals(String.format("Alluxio/%s (cluster1; docker; kubernetes)", ProjectConstants.VERSION)));
   }
 }
