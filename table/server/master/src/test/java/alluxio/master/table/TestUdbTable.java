@@ -25,19 +25,44 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TestUdbTable implements UdbTable {
   private String mDbName;
   private String mName;
   private PartitionInfo mPartitionInfo;
+  private Layout mTableLayout;
+  private List<UdbPartition> mTestPartitions;
+  private Schema mSchema;
+  private List<FieldSchema> mPartitionCols;
 
-  public TestUdbTable(String dbName, String name) {
+  public TestUdbTable(String dbName, String name, int numOfPartitions) {
     mDbName = dbName;
     mName = name;
     mPartitionInfo = PartitionInfo.newBuilder()
         .setDbName(mDbName)
         .setTableName(mName)
         .setPartitionName(mName).build();
+    mTableLayout = Layout.newBuilder()
+        .setLayoutType(HiveLayout.TYPE)
+        .setLayoutData(mPartitionInfo.toByteString())
+        .build();
+    FieldSchema col = FieldSchema.newBuilder().setName("col1")
+        .setType("int").setId(1).build();
+    mSchema = Schema.newBuilder().addCols(col).build();
+    mPartitionCols = Arrays.asList(col);
+    mTestPartitions = Stream.iterate(1, n -> n + 1)
+        .limit(numOfPartitions).map(i -> new TestPartition(new HiveLayout(genPartitionInfo(
+            mDbName, mName, i), Collections.emptyList())))
+        .collect(Collectors.toList());
+  }
+
+  private static PartitionInfo genPartitionInfo(String dbName, String tableName, int index) {
+    return PartitionInfo.newBuilder()
+        .setDbName(dbName)
+        .setTableName(tableName)
+        .setPartitionName("col1=" + index).build();
   }
 
   @Override
@@ -47,7 +72,7 @@ public class TestUdbTable implements UdbTable {
 
   @Override
   public Schema getSchema() {
-    return Schema.getDefaultInstance();
+    return mSchema;
   }
 
   @Override
@@ -62,15 +87,12 @@ public class TestUdbTable implements UdbTable {
 
   @Override
   public List<FieldSchema> getPartitionCols() {
-    return Collections.emptyList();
+    return mPartitionCols;
   }
 
   @Override
   public Layout getLayout() {
-    return Layout.newBuilder()
-        .setLayoutType(HiveLayout.TYPE)
-        .setLayoutData(mPartitionInfo.toByteString())
-        .build();
+    return mTableLayout;
   }
 
   @Override
@@ -80,12 +102,11 @@ public class TestUdbTable implements UdbTable {
 
   @Override
   public List<UdbPartition> getPartitions() throws IOException {
-    return Arrays.asList(new TestPartition(
-        new HiveLayout(mPartitionInfo, Collections.emptyList())));
+    return mTestPartitions;
   }
 
   private class TestPartition implements UdbPartition{
-    private alluxio.table.common.Layout mLayout;
+    private HiveLayout mLayout;
 
     private TestPartition(HiveLayout hiveLayout) {
       mLayout = hiveLayout;
@@ -93,7 +114,7 @@ public class TestUdbTable implements UdbTable {
 
     @Override
     public String getSpec() {
-      return "testPartition";
+      return mLayout.getSpec();
     }
 
     @Override
