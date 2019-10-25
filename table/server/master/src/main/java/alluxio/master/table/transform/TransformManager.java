@@ -30,8 +30,6 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.AlluxioCatalog;
-import alluxio.master.table.Partition;
-import alluxio.master.table.Table;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Table.RemoveTransformJobEntry;
@@ -73,7 +71,7 @@ public class TransformManager implements DelegatingJournaled {
   /** The function used to create a {@link JournalContext}. */
   private final ThrowingSupplier<JournalContext, UnavailableException> mCreateJournalContext;
 
-  /** The catalog for retrieving {@link Table}. */
+  /** The catalog. */
   private final AlluxioCatalog mCatalog;
 
   /** The client to talk to job master. */
@@ -145,8 +143,7 @@ public class TransformManager implements DelegatingJournaled {
    */
   public long execute(String dbName, String tableName, TransformDefinition definition)
       throws IOException {
-    List<TransformPlan> plans = mCatalog.getTable(dbName, tableName)
-        .getTransformPlans(definition);
+    List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, definition);
     if (plans.isEmpty()) {
       throw new IOException(String.format("Database %s table %s has already been transformed by "
           + "definition '%s'", dbName, tableName, definition.getDefinition()));
@@ -237,18 +234,6 @@ public class TransformManager implements DelegatingJournaled {
    * if a transformation job succeeds, then update the Table partitions' layouts.
    */
   private final class JobMonitor implements HeartbeatExecutor {
-    private void updatePartition(TransformJobInfo job) throws IOException {
-      Table table = mCatalog.getTable(job.getDb(), job.getTable());
-      for (Map.Entry<String, Layout> entry : job.getTransformedLayouts().entrySet()) {
-        String spec = entry.getKey();
-        Layout layout = entry.getValue();
-        Partition partition = table.getPartition(spec);
-        partition.transform(job.getDefinition(), layout);
-        LOG.debug("Transformed partition {} to {} with definition {}", spec, layout,
-            job.getDefinition());
-      }
-    }
-
     private void onFinish(TransformJobInfo job) {
       mJobHistory.put(job.getJobId(), job);
       RemoveTransformJobEntry journalEntry = RemoveTransformJobEntry.newBuilder()
@@ -284,7 +269,7 @@ public class TransformManager implements DelegatingJournaled {
      */
     private void handleJobSuccess(TransformJobInfo job) {
       try {
-        updatePartition(job);
+        mCatalog.transformTable(job);
         job.setJobStatus(Status.COMPLETED);
       } catch (IOException e) {
         String error = String.format("Failed to update partition layouts for database %s table %s",

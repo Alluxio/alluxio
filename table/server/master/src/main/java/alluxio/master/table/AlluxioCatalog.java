@@ -23,9 +23,13 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.table.transform.TransformJobInfo;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
+import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutRegistry;
+import alluxio.table.common.transform.TransformDefinition;
+import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 import alluxio.util.StreamUtils;
@@ -264,6 +268,37 @@ public class AlluxioCatalog implements Journaled {
       Table table = getTable(dbName, tableName);
       // TODO(david): implement partition pruning
       return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
+    }
+  }
+
+  /**
+   * Updates the layouts of the table's partitions.
+   *
+   * @param job the transformation job's information
+   */
+  public void transformTable(TransformJobInfo job) throws IOException {
+    try (LockResource l = getLock(job.getDb(), false)) {
+      Table table = getTable(job.getDb(), job.getTable());
+      for (Map.Entry<String, Layout> entry : job.getTransformedLayouts().entrySet()) {
+        String spec = entry.getKey();
+        Layout layout = entry.getValue();
+        Partition partition = table.getPartition(spec);
+        partition.transform(job.getDefinition(), layout);
+        LOG.debug("Transformed partition {} to {} with definition {}", spec, layout,
+            job.getDefinition());
+      }
+    }
+  }
+
+  /**
+   * @param dbName the database name
+   * @param tableName the table name
+   * @return the transformation plan for the table
+   */
+  public List<TransformPlan> getTransformPlan(String dbName, String tableName,
+      TransformDefinition definition) throws IOException {
+    try (LockResource l = getLock(dbName, true)) {
+      return getTable(dbName, tableName).getTransformPlans(definition);
     }
   }
 
