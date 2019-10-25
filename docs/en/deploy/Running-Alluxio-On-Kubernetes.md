@@ -215,6 +215,54 @@ secrets:
     alluxio-ceph-config: cephConfig
 ```
 
+***Examples: Memory Tiered Store Only***
+
+```properties
+tieredstore:
+  levels:
+  - level: 0
+    mediumtype: MEM
+    path: /dev/shm
+    type: hostPath
+    high: 0.95
+    low: 0.7
+```
+
+***Examples: Memory and SSD Tiered Store***
+
+```properties
+tieredstore:
+  levels:
+  - level: 0
+    mediumtype: MEM
+    path: /dev/shm
+    type: hostPath
+    high: 0.95
+    low: 0.7
+  - level: 1
+    mediumtype: SSD
+    path: /ssd-disk
+    type: hostPath
+    high: 0.95
+    low: 0.7
+```
+
+***Examples: Memory and SSD Tiered Store***
+
+```properties
+tieredstore:
+  levels:
+  - level: 0
+    mediumtype: MEM,SSD
+    path: /dev/shm,/alluxio-ssd
+    type: hostPath
+    quota: 1GB,10GB
+    high: 0.95
+    low: 0.7
+```
+
+> There 2 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) and [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
+
 #### Install
 
 Once the configuration is finalized in a file named `config.yaml`, install as follows:

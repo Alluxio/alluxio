@@ -46,9 +46,9 @@ spec:
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
       securityContext:
-        runAsUser: {{ .Values.user }}
-        runAsGroup: {{ .Values.group }}
-        fsGroup: {{ .Values.fsGroup }}
+        runAsUser: {{ .Values.fuse.user }}
+        runAsGroup: {{ .Values.fuse.group }}
+        fsGroup: {{ .Values.fuse.fsGroup }}
       affinity:
         podAffinity:
           RequiredDuringSchedulingIgnoredDuringExecution:
@@ -128,16 +128,16 @@ spec:
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
                           {{- end}}
                         {{- end}}
-                      {{- end}}
                       {{- else}}
-                      {{- if eq .type "hostPath"}}
-            - name: {{ .alias | lower }}
+                        {{- if eq .type "hostPath"}}
+            - name: {{ .mediumtype | replace "," "-" | lower }}
               mountPath: {{ .path }}
-                      {{- else }}
+                        {{- else }}
             # report error and exit
             {{ .name }} with {{ .type }} is not supported in shortCircuitPolicy local
-                      {{- end }} 
-                    {{- end }} 
+                        {{- end }} 
+                      {{- end }}
+                    {{- end}} 
                   {{- end }} 
                 {{- end }} 
               {{- end }} 
@@ -182,16 +182,16 @@ spec:
                         {{- end}} 
                       {{- end}}
                     {{- end}}
-                  {{- end}}
                   {{- else}}
                     {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
             type: DirectoryOrCreate
-          name: {{ .alias | lower }}
+          name: {{ .mediumtype | replace "," "-" | lower }}
                     {{- end }}
-                  {{- end }} 
-                {{- end }} 
+                  {{- end }}
+                {{- end}}
               {{- end }} 
             {{- end }} 
+          {{- end }} 
         {{- end }}
