@@ -47,7 +47,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   protected String mOwner;
   protected String mGroup;
   protected boolean mMetadataLoad;
-  protected boolean mPersisted;
+  private WriteType mWriteType;
   protected Map<String, byte[]> mXAttr;
 
   //
@@ -87,7 +87,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     } else if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
       writeType = ((CreateDirectoryPOptions.Builder) optionsBuilder).getWriteType();
     }
-    mPersisted = WriteType.fromProto(writeType).isThrough();
+    mWriteType = WriteType.fromProto(writeType);
     mXAttr = null;
   }
 
@@ -125,7 +125,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    */
   public boolean isPersisted() {
     loadExtractedFields();
-    return mPersisted;
+    return mWriteType.isThrough();
   }
 
   /**
@@ -231,18 +231,18 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   }
 
   /**
-   * @return true if persisted
+   * @return the write type of this path
    */
-  public boolean getPersisted() {
-    return mPersisted;
+  public WriteType getWriteType() {
+    return mWriteType;
   }
 
   /**
-   * @param persisted if path should be persisted
+   * @param writeType type of write on this create
    * @return the updated context
    */
-  public K setPersisted(boolean persisted) {
-    mPersisted = persisted;
+  public K setWriteType(WriteType writeType) {
+    mWriteType = writeType;
     return getThis();
   }
 
@@ -296,6 +296,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
         .add("Owner", mOwner)
         .add("Group", mGroup)
         .add("MetadataLoad", mMetadataLoad)
+        .add("writeType", mWriteType)
         .add("xattr", mXAttr)
         .toString();
   }

@@ -20,6 +20,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
@@ -292,7 +293,7 @@ public final class PermissionCheckTest {
               CreateFilePOptions.newBuilder().setRecursive(recursive))
           .setOwner(SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global()))
           .setGroup(SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global()))
-          .setPersisted(true);
+          .setWriteType(WriteType.CACHE_THROUGH);
 
       FileInfo fileInfo = mFileSystemMaster.createFile(new AlluxioURI(path), context);
       String[] pathComponents = path.split("/");

@@ -77,7 +77,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     location = updateBlockStoreLocation(bytesToBeAvailable, location);
 
     // 1. If bytesToBeAvailable can already be satisfied without eviction, return the eligible
-    // StoargeDirView
+    // StorageDirView
     StorageDirEvictorView candidateDirView = (StorageDirEvictorView)
         EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mMetadataView);
     if (candidateDirView != null) {
