@@ -180,12 +180,14 @@ HDFS deployment is connected and healthy for Alluxio to store journals when the 
 
 ### Q: I added some files in under file system. How can I reveal the files in Alluxio?
 
-By default, Alluxio loads the list of files the first time a directory is visited. Alluxio will keep using the
-cached file list regardless of the changes in the under file system. To reveal new files from under file system,
-you can use the command `alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path`
-or by setting the same configuration property in masters' `alluxio-site.properties`. The value for the configuration
-property is used to determine the minimum interval between two syncs. You can read more about loading files from
-underfile system [here]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}#ufs-metadata-sync).
+By default, Alluxio loads the list of files the first time a directory is visited.
+Alluxio will keep using the cached file list regardless of the changes in the under file system.
+To reveal new files from under file system, you can use the command
+`alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path` or by setting the same
+configuration property in masters' `alluxio-site.properties`.
+The value for the configuration property is used to determine the minimum interval between two syncs.
+You can read more about loading files from underfile system 
+[here]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}#ufs-metadata-sync).
 
 ### Q: I see an error "Block ?????? is unavailable in both Alluxio and UFS" while reading some file. Where is my file?
 
