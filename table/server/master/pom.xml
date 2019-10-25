@@ -34,10 +34,6 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.rocksdb</groupId>
-      <artifactId>rocksdbjni</artifactId>
-    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
