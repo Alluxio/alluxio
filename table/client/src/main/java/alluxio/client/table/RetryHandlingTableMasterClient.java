@@ -26,11 +26,13 @@ import alluxio.grpc.table.GetDatabasePRequest;
 import alluxio.grpc.table.GetPartitionColumnStatisticsPRequest;
 import alluxio.grpc.table.GetTableColumnStatisticsPRequest;
 import alluxio.grpc.table.GetTablePRequest;
+import alluxio.grpc.table.GetTransformJobInfoPRequest;
 import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.ReadTablePRequest;
 import alluxio.grpc.table.SyncDatabasePRequest;
 import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
+import alluxio.grpc.table.TransformJobInfo;
 import alluxio.grpc.table.TransformTablePRequest;
 import alluxio.master.MasterClientContext;
 
@@ -172,5 +174,19 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
             .setTableName(tableName)
             .setDefinition(definition)
             .build()).getJobId());
+  }
+
+  @Override
+  public TransformJobInfo getTransformJobInfo(long jobId) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getTransformJobInfo(
+        GetTransformJobInfoPRequest.newBuilder()
+            .setJobId(jobId)
+            .build()).getInfo(0));
+  }
+
+  @Override
+  public List<TransformJobInfo> getAllTransformJobInfo() throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getTransformJobInfo(
+        GetTransformJobInfoPRequest.newBuilder().build()).getInfoList());
   }
 }

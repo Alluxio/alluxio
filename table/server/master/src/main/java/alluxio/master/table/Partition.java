@@ -164,7 +164,7 @@ public class Partition {
   public alluxio.grpc.table.Partition toProto() {
     alluxio.grpc.table.Partition.Builder builder = alluxio.grpc.table.Partition.newBuilder()
         .setPartitionSpec(PartitionSpec.newBuilder().setSpec(mPartitionSpec).build())
-        .setLayout(mBaseLayout.toProto());
+        .setBaseLayout(mBaseLayout.toProto());
     Transformation transformation = mTransformation.get();
     if (transformation != null) {
       builder.addTransformations(transformation.toProto());
@@ -180,7 +180,7 @@ public class Partition {
   public static Partition fromProto(LayoutRegistry layoutRegistry,
       alluxio.grpc.table.Partition proto) {
     Partition partition = new Partition(proto.getPartitionSpec().getSpec(),
-        layoutRegistry.create(proto.getLayout()));
+        layoutRegistry.create(proto.getBaseLayout()));
     List<alluxio.grpc.table.Transformation> transformations = proto.getTransformationsList();
     if (!transformations.isEmpty()) {
       partition.mTransformation.set(Transformation.fromProto(layoutRegistry,
