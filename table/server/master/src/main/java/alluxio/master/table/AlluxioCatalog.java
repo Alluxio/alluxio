@@ -176,9 +176,13 @@ public class AlluxioCatalog implements Journaled {
    */
   public Table getTable(String dbName, String tableName) throws IOException {
     try (LockResource l = getLock(dbName, true)) {
-      Database db = getDatabaseByName(dbName);
-      return db.getTable(tableName);
+      return getTableInternal(dbName, tableName);
     }
+  }
+
+  private Table getTableInternal(String dbName, String tableName) throws IOException {
+    Database db = getDatabaseByName(dbName);
+    return db.getTable(tableName);
   }
 
   /**
@@ -224,7 +228,7 @@ public class AlluxioCatalog implements Journaled {
       List<String> colNames)
       throws IOException {
     try (LockResource l = getLock(dbName, true)) {
-      Table table = getTable(dbName, tableName);
+      Table table = getTableInternal(dbName, tableName);
       return table.getStatistics().stream()
           .filter(info -> colNames.contains(info.getColName())).collect(Collectors.toList());
     }
@@ -242,7 +246,7 @@ public class AlluxioCatalog implements Journaled {
   public Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
       String tableName, List<String> partNames, List<String> colNames) throws IOException {
     try (LockResource l = getLock(dbName, true)) {
-      Table table = getTable(dbName, tableName);
+      Table table = getTableInternal(dbName, tableName);
       List<Partition> partitions = table.getPartitions();
       return partitions.stream().filter(p -> partNames.contains(p.getBaseLayout().getSpec()))
           .map(p -> new Pair<>(p.getBaseLayout().getSpec(),
@@ -265,14 +269,14 @@ public class AlluxioCatalog implements Journaled {
   public List<alluxio.grpc.table.Partition> readTable(String dbName, String tableName,
       Constraint constraint) throws IOException {
     try (LockResource l = getLock(dbName, true)) {
-      Table table = getTable(dbName, tableName);
+      Table table = getTableInternal(dbName, tableName);
       // TODO(david): implement partition pruning
       return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
     }
   }
 
   /**
-   * Updates the layouts of the table's partitions.
+   * Completes table transformation by updating the layouts of the table's partitions.
    *
    * @param journalContext the journal context
    * @param dbName the database name
@@ -280,20 +284,20 @@ public class AlluxioCatalog implements Journaled {
    * @param definition the transformation definition
    * @param transformedLayouts map from partition spec to the transformed layouts
    */
-  public void transformTable(JournalContext journalContext, String dbName, String tableName,
+  public void completeTransformTable(JournalContext journalContext, String dbName, String tableName,
       String definition, Map<String, Layout> transformedLayouts) throws IOException {
     try (LockResource l = getLock(dbName, false)) {
       // Check existence of table.
-      getTable(dbName, tableName);
-      alluxio.proto.journal.Table.TransformTableEntry entry =
-          alluxio.proto.journal.Table.TransformTableEntry.newBuilder()
+      getTableInternal(dbName, tableName);
+      alluxio.proto.journal.Table.CompleteTransformTableEntry entry =
+          alluxio.proto.journal.Table.CompleteTransformTableEntry.newBuilder()
               .setDbName(dbName)
               .setTableName(tableName)
               .setDefinition(definition)
               .putAllTransformedLayouts(Maps.transformValues(transformedLayouts, Layout::toProto))
               .build();
       applyAndJournal(journalContext, Journal.JournalEntry.newBuilder()
-          .setTransformTable(entry).build());
+          .setCompleteTransformTable(entry).build());
     }
   }
 
@@ -306,7 +310,7 @@ public class AlluxioCatalog implements Journaled {
   public List<TransformPlan> getTransformPlan(String dbName, String tableName,
       TransformDefinition definition) throws IOException {
     try (LockResource l = getLock(dbName, true)) {
-      return getTable(dbName, tableName).getTransformPlans(definition);
+      return getTableInternal(dbName, tableName).getTransformPlans(definition);
     }
   }
 
@@ -330,7 +334,7 @@ public class AlluxioCatalog implements Journaled {
     mDBs.remove(dbName);
   }
 
-  private void apply(alluxio.proto.journal.Table.TransformTableEntry entry) {
+  private void apply(alluxio.proto.journal.Table.CompleteTransformTableEntry entry) {
     String dbName = entry.getDbName();
     String tableName = entry.getTableName();
     Table table;
@@ -361,8 +365,8 @@ public class AlluxioCatalog implements Journaled {
     } else if (entry.hasDetachDb()) {
       apply(entry.getDetachDb());
       return true;
-    } else if (entry.hasTransformTable()) {
-      apply(entry.getTransformTable());
+    } else if (entry.hasCompleteTransformTable()) {
+      apply(entry.getCompleteTransformTable());
     }
     return false;
   }

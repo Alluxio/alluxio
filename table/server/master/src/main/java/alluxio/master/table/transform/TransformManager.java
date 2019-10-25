@@ -32,8 +32,8 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.AlluxioCatalog;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.proto.journal.Table.RemoveTransformJobEntry;
-import alluxio.proto.journal.Table.TransformJobEntry;
+import alluxio.proto.journal.Table.RemoveTransformJobInfoEntry;
+import alluxio.proto.journal.Table.AddTransformJobInfoEntry;
 import alluxio.security.user.UserState;
 import alluxio.table.common.Layout;
 import alluxio.table.common.transform.TransformDefinition;
@@ -189,7 +189,7 @@ public class TransformManager implements DelegatingJournaled {
     for (TransformPlan plan : plans) {
       transformedLayouts.put(plan.getBaseLayout().getSpec(), plan.getTransformedLayout());
     }
-    TransformJobEntry journalEntry = TransformJobEntry.newBuilder()
+    AddTransformJobInfoEntry journalEntry = AddTransformJobInfoEntry.newBuilder()
         .setDbName(dbName)
         .setTableName(tableName)
         .setDefinition(definition.getDefinition())
@@ -198,7 +198,7 @@ public class TransformManager implements DelegatingJournaled {
         .build();
     try (JournalContext journalContext = mCreateJournalContext.apply()) {
       applyAndJournal(journalContext, Journal.JournalEntry.newBuilder()
-          .setTransformJob(journalEntry).build());
+          .setAddTransformJobInfo(journalEntry).build());
     }
     return jobId;
   }
@@ -238,15 +238,15 @@ public class TransformManager implements DelegatingJournaled {
   private final class JobMonitor implements HeartbeatExecutor {
     private void onFinish(TransformJobInfo job) {
       mJobHistory.put(job.getJobId(), job);
-      RemoveTransformJobEntry journalEntry = RemoveTransformJobEntry.newBuilder()
+      RemoveTransformJobInfoEntry journalEntry = RemoveTransformJobInfoEntry.newBuilder()
           .setDbName(job.getDb())
           .setTableName(job.getTable())
           .build();
       try (JournalContext journalContext = mCreateJournalContext.apply()) {
         applyAndJournal(journalContext, Journal.JournalEntry.newBuilder()
-            .setRemoveTransformJob(journalEntry).build());
+            .setRemoveTransformJobInfo(journalEntry).build());
       } catch (UnavailableException e) {
-        LOG.error("Failed to create journal for RemoveTransformJob for database {} table {}",
+        LOG.error("Failed to create journal for RemoveTransformJobInfo for database {} table {}",
             job.getDb(), job.getTable());
       }
     }
@@ -271,7 +271,7 @@ public class TransformManager implements DelegatingJournaled {
      */
     private void handleJobSuccess(TransformJobInfo job) {
       try {
-        mCatalog.transformTable(mCreateJournalContext.apply(), job.getDb(), job.getTable(),
+        mCatalog.completeTransformTable(mCreateJournalContext.apply(), job.getDb(), job.getTable(),
             job.getDefinition(), job.getTransformedLayouts());
         job.setJobStatus(Status.COMPLETED);
       } catch (IOException e) {
@@ -394,17 +394,17 @@ public class TransformManager implements DelegatingJournaled {
 
     @Override
     public boolean processJournalEntry(JournalEntry entry) {
-      if (entry.hasTransformJob()) {
-        applyTransformJobEntry(entry.getTransformJob());
-      } else if (entry.hasRemoveTransformJob()) {
-        applyRemoveTransformJobEntry(entry.getRemoveTransformJob());
+      if (entry.hasAddTransformJobInfo()) {
+        applyAddTransformJobInfoEntry(entry.getAddTransformJobInfo());
+      } else if (entry.hasRemoveTransformJobInfo()) {
+        applyRemoveTransformJobInfoEntry(entry.getRemoveTransformJobInfo());
       } else {
         return false;
       }
       return true;
     }
 
-    private void applyTransformJobEntry(TransformJobEntry entry) {
+    private void applyAddTransformJobInfoEntry(AddTransformJobInfoEntry entry) {
       Map<String, alluxio.grpc.table.Layout> layouts = entry.getTransformedLayoutsMap();
       Map<String, Layout> transformedLayouts = Maps.transformValues(layouts,
           layout -> mCatalog.getLayoutRegistry().create(layout));
@@ -414,7 +414,7 @@ public class TransformManager implements DelegatingJournaled {
       mRunningJobs.put(job.getJobId(), job);
     }
 
-    private void applyRemoveTransformJobEntry(RemoveTransformJobEntry entry) {
+    private void applyRemoveTransformJobInfoEntry(RemoveTransformJobInfoEntry entry) {
       Pair<String, String> dbTable = new Pair<>(entry.getDbName(), entry.getTableName());
       long jobId = mRunningJobIds.get(dbTable);
       mRunningJobs.remove(jobId);
@@ -430,7 +430,7 @@ public class TransformManager implements DelegatingJournaled {
     @Override
     public Iterator<JournalEntry> getJournalEntryIterator() {
       return Iterators.transform(mRunningJobs.values().iterator(), job -> {
-        TransformJobEntry journal = TransformJobEntry.newBuilder()
+        AddTransformJobInfoEntry journal = AddTransformJobInfoEntry.newBuilder()
             .setDbName(job.getDb())
             .setTableName(job.getTable())
             .setDefinition(job.getDefinition())
@@ -438,7 +438,7 @@ public class TransformManager implements DelegatingJournaled {
             .putAllTransformedLayouts(Maps.transformValues(
                 job.getTransformedLayouts(), Layout::toProto))
             .build();
-        return JournalEntry.newBuilder().setTransformJob(journal).build();
+        return JournalEntry.newBuilder().setAddTransformJobInfo(journal).build();
       });
     }
 
