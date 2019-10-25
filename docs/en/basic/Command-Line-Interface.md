@@ -294,6 +294,10 @@ The `clearCache` command drops the OS buffer cache.
 
 The `confDocGen` autogenerates configuration documentation based on the current source code.
 
+### table
+
+See [Table Operations](#Table-Operations).
+
 ### version
 
 The `version` command prints Alluxio version.
@@ -1054,3 +1058,114 @@ For example, `unsetTtl` can be used if a regularly managed file requires manual 
 ```console
 $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```
+
+## Table Operations
+
+```
+./bin/alluxio table
+Usage: alluxio table [generic options]
+	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] <udb type> <udb connection uri> <udb db name>]
+	 [detachdb <db name>]
+	 [ls [<db name> [<table name>]]]
+	 [sync <db name>]
+	 [transform <db name> <table name>]
+```
+
+The table subcommand manages the structured data service of Alluxio.
+
+### attachdb
+
+The `attachdb` command attaches an existing "under database" to the Alluxio catalog. This is
+analogous to mounting a under filesystem to the Alluxio filesystem namespace. Once a database is
+attached, it will be exposed through the Alluxio catalog.
+Here is an example of the usage:
+
+```console
+$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name
+```
+
+This command will attach the database `hive_db_name` (of type `hive`) from the URI
+`thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `hive_db_name`.
+
+You can use a different Alluxio database name with the `--db <alluxio db name>` option.
+
+
+For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
+table/partition locations in the specified database, to Alluxio. You can supply the mount options
+for the possible table locations with the
+option `-o udb-hive.mount-option.{scheme/authority}.key=value`.
+
+```console
+$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
+  -o udb-hive.mount-option.{s3a://bucket1}.aws.accessKeyId=abc \
+  -o udb-hive.mount-option.{s3a://bucket2}.aws.accessKeyId=123
+```
+
+This command will attach the database `hive_db_name` (of type `hive`) from the URI
+`thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
+When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
+and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+
+### detachdb
+
+The `detachdb` command is the opposite of the `attachdb` command. Detaching a database will remove
+the connection to the under database, and remove it from the Alluxio catalog. Example usage:
+
+```console
+$ ./bin/alluxio table detachdb alluxio_db_name
+```
+
+This command will detach the database name `alluxio_db_name` from the Alluxio catalog.
+
+### ls
+
+The `ls` command shows information about the Alluxio catalog. Here are some examples:
+
+```console
+$ ./bin/alluxio table ls
+```
+
+This command without any arguments will show all the databases attached in the system.
+
+```console
+$ ./bin/alluxio table ls db_name
+```
+
+This command with 1 argument will show all the tables in the `db_name` database.
+
+```console
+$ ./bin/alluxio table ls db_name table_name
+```
+
+This command with 2 arguments will show the table information of the `table_name` table in
+the `db_name` database.
+
+### sync
+
+The `sync` command syncs the given database name with the under database. Here is an example:
+
+```console
+$ ./bin/alluxio table sync db_name
+```
+
+This will sync the `db_name` database name with the under database.
+
+> In 2.1.0, `sync` will only discover new information (new tables, new partitions) and not update
+> existing metadata. The full sync feature will be implemented in future versions.
+
+### transform
+
+The `transform` command will transform a table for improved efficiency when reading the table.
+Here is an example usage:
+
+```console
+$ ./bin/alluxio table transform db_name table_name
+```
+
+This command will invoke a transformation on the table. The transformation is performed
+asynchronously, and will coalesce to a fewer number of files, and convert into the parquet file
+format.
+
+> In 2.1.0, the types of files which can be transformed are the parquet file format and the csv
+> file format. The output file format is only parquet. Additional formats for input and output
+> will be implemented in future versions.

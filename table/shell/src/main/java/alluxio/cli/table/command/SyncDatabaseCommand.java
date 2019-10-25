@@ -41,12 +41,12 @@ public class SyncDatabaseCommand extends AbstractTableCommand{
 
   @Override
   public String getCommandName() {
-    return "syncdb";
+    return "sync";
   }
 
   @Override
   public String getUsage() {
-    return "syncdb <db name>";
+    return "sync <db name>";
   }
 
   @Override
