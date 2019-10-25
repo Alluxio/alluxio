@@ -12,6 +12,7 @@
 package alluxio.job.transform.format.parquet;
 
 import alluxio.job.transform.format.TableReader;
+import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 
@@ -57,7 +58,7 @@ public final class ParquetReader implements TableReader {
   // TODO(cc): lazily open input streams
   public static ParquetReader create(String scheme, String input) throws IOException {
     Path inputPath = new Path(scheme, "", input);
-    Configuration conf = new Configuration();
+    Configuration conf = ReadWriterUtils.readNoCacheConf();
     InputFile inputFile = HadoopInputFile.fromPath(inputPath, conf);
     org.apache.parquet.hadoop.ParquetReader<Record> reader =
         AvroParquetReader.<Record>builder(inputFile)

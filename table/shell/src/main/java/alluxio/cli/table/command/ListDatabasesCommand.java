@@ -56,7 +56,7 @@ public class ListDatabasesCommand extends AbstractTableCommand {
 
   @Override
   public String getUsage() {
-    return "ls [<database_name> [<table_name>]]";
+    return "ls [<db name> [<table name>]]";
   }
 
   @Override
