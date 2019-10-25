@@ -13,10 +13,12 @@ package alluxio.table;
 
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.Transformation;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -44,6 +46,13 @@ public final class ProtoUtils {
     return Objects.equals(layout.getLayoutType(), "hive");
   }
 
+  private static Layout getCurrentLayout(Partition partition) {
+    List<Transformation> transformations = partition.getTransformationsList();
+    return transformations.isEmpty()
+        ? partition.getBaseLayout()
+        : transformations.get(transformations.size() - 1).getLayout();
+  }
+
   /**
    * @param partition the partition proto
    * @return the hive-specific partition proto
@@ -58,7 +67,7 @@ public final class ProtoUtils {
         throw new IllegalStateException("Cannot parse hive-layout from missing layout");
       }
     }
-    Layout layout = partition.getBaseLayout();
+    Layout layout = getCurrentLayout(partition);
     if (!layout.hasLayoutData()) {
       throw new IllegalStateException("Cannot parse hive-layout from empty layout data");
     }
