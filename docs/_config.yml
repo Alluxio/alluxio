@@ -18,7 +18,7 @@ ALLUXIO_VERSION_STRING: 2.2.0-SNAPSHOT
 # Otherwise the macro name remains in the output.
 ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.2.0-SNAPSHOT-client.jar
 # The version string must match the version of the K8s helm chart
-ALLUXIO_HELM_VERSION_STRING: 0.5.0
+ALLUXIO_HELM_VERSION_STRING: 0.5.1
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:

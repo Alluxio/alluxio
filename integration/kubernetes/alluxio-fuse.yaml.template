@@ -18,7 +18,7 @@ metadata:
   name: alluxio-fuse
   labels:
     app: alluxio
-    chart: alluxio-0.5.0
+    chart: alluxio-0.5.1
     release: alluxio
     heritage: Tiller
     role: alluxio-fuse
@@ -26,7 +26,7 @@ spec:
   selector:
     matchLabels:
       app: alluxio
-      chart: alluxio-0.5.0
+      chart: alluxio-0.5.1
       release: alluxio
       heritage: Tiller
       role: alluxio-fuse
@@ -34,7 +34,7 @@ spec:
     metadata:
       labels:
         app: alluxio
-        chart: alluxio-0.5.0
+        chart: alluxio-0.5.1
         release: alluxio
         heritage: Tiller
         role: alluxio-fuse
@@ -43,9 +43,9 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       affinity:
         podAffinity:
           RequiredDuringSchedulingIgnoredDuringExecution:
