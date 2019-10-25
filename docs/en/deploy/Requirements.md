@@ -17,8 +17,8 @@ Listed below are the generic requirements to run Alluxio in local or cluster mod
   * CentOS - 6.8 or 7
   * RHEL - 7.x
   * Ubuntu - 16.04
-* Alluxio requires version 8 of the JRE. Higher versions are not supported:
-  * Java JRE 8 (Oracle or OpenJDK distributions supported)
+* Alluxio requires version 8 of the JDK. Higher versions are not supported:
+  * Java JDK 8 (Oracle or OpenJDK distributions supported)
 * Alluxio works on IPv4 networks only.
 * Allow the following ports and protocols:
   * Inbound TCP 22 - ssh as a user to install Alluxio components across specified nodes.
