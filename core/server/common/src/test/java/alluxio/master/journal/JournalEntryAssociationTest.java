@@ -93,8 +93,9 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setUpdateInode(UpdateInodeEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setUpdateInodeDirectory(UpdateInodeDirectoryEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setTransformJob(Table.TransformJobEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setRemoveTransformJob(Table.RemoveTransformJobEntry.getDefaultInstance()).build()
+      JournalEntry.newBuilder().setAddTransformJobInfo(Table.AddTransformJobInfoEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setRemoveTransformJobInfo(Table.RemoveTransformJobInfoEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setCompleteTransformTable(Table.CompleteTransformTableEntry.getDefaultInstance()).build()
   );
   // CHECKSTYLE.OFF: LineLengthExceed
 

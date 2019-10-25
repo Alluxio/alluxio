@@ -18,6 +18,7 @@ import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.TableInfo;
+import alluxio.grpc.table.TransformJobInfo;
 import alluxio.master.MasterClientContext;
 
 import java.util.List;
@@ -182,4 +183,15 @@ public interface TableMasterClient extends Client {
    */
   long transformTable(String dbName, String tableName, String definition)
       throws AlluxioStatusException;
+
+  /**
+   * @param jobId the transformation job's ID
+   * @return the job info
+   */
+  TransformJobInfo getTransformJobInfo(long jobId) throws AlluxioStatusException;
+
+  /**
+   * @return a list of information for all transformation jobs
+   */
+  List<TransformJobInfo> getAllTransformJobInfo() throws AlluxioStatusException;
 }
