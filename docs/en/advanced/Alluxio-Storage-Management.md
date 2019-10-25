@@ -161,6 +161,7 @@ alluxio.worker.tieredstore.levels
 alluxio.worker.tieredstore.level{x}.alias
 alluxio.worker.tieredstore.level{x}.dirs.quota
 alluxio.worker.tieredstore.level{x}.dirs.path
+alluxio.worker.tieredstore.level{x}.dirs.mediumtype
 alluxio.worker.tieredstore.level{x}.watermark.high.ratio
 alluxio.worker.tieredstore.level{x}.watermark.low.ratio
 ```
@@ -175,6 +176,8 @@ alluxio.worker.tieredstore.levels=2
 alluxio.worker.tieredstore.level0.alias=MEM
 # defined `/mnt/ramdisk` to be the file path to the first tier
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+# defined MEM to be the medium type of the ramdisk directory
+alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM
 # set the quota for the ramdisk to be `100GB`
 alluxio.worker.tieredstore.level0.dirs.quota=100GB
 # set the ratio of high watermark on top layer to be 90%
@@ -185,6 +188,8 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7
 alluxio.worker.tieredstore.level1.alias=HDD
 # configured 3 separate file paths for the second tier
 alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
+# defined HDD to be the medium type of the second tier
+alluxio.worker.tieredstore.level0.dirs.mediumtype=HDD,HDD,HDD
 # define the quota for each of the 3 file paths of the second tier
 alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
 # set the ratio of high watermark on the second layer to be 90%
