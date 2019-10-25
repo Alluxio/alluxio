@@ -123,9 +123,8 @@ journal:
 # Tiered Storage
 tieredstore:
   levels:
-  - alias: MEM # Medium type
+  - level: 0
     mediumtype: MEM
-    level: 0
     path: /dev/shm
     type: emptyDir
     quota: 1G
