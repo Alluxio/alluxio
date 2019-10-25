@@ -123,7 +123,7 @@ spec:
                       {{- end}}
                     {{- else}}
             - mountPath: {{ .path }}
-              name: {{ .alias | lower }}
+              name: {{ .mediumtype | lower }}
                     {{- end}}
                   {{- end}}
                 {{- end}} 
@@ -210,7 +210,7 @@ spec:
                       {{- end}}
                     {{- else}}
             - mountPath: {{ .path }}
-              name: {{ .alias | lower }}
+              name: {{ .mediumtype | lower }}
                     {{- end}}
                   {{- end}}
                 {{- end}} 
@@ -266,9 +266,9 @@ spec:
         - hostPath:
             path: {{ .path }}
             type: DirectoryOrCreate
-          name: {{ .alias | lower }}
+          name: {{ .mediumtype | lower }}
                   {{- else }}
-        - name: {{ .alias | lower }}
+        - name: {{ .mediumtype | lower }}
           emptyDir:
             medium: "Memory"
                     {{- if .quota }}
