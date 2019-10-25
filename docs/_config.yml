@@ -47,6 +47,7 @@ categoryList:
   - Operations
   - Advanced
   - Client APIs
+  - Structured Data
   - Contributor Resources
   - Reference
 
@@ -78,6 +79,9 @@ categoryInfo:
   Client APIs:
     en: Client APIs
     cn: APIs
+  Structured Data:
+    en: Structured Data
+    cn: 结构化数据
   Contributor Resources:
     en: Contributor Resources
     cn: 开发者资源
