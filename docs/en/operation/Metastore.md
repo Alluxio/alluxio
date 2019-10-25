@@ -29,7 +29,7 @@ high water mark (default 85%) down to a low water mark (default 80%).
 You can explicitly configure Alluxio to use the ROCKS metastore by adding this setting
 in `conf/alluxio-site.properties` for the master nodes.
 
-```
+```properties
 alluxio.master.metastore=ROCKS
 ```
 
@@ -61,6 +61,56 @@ filesystem. With 32GB of Alluxio master memory, Alluxio can support around 40 mi
 To configure Alluxio to use the on-heap metastore, set the following in
 `conf/alluxio-site.properties` for the master nodes:
 
-```
+```properties
 alluxio.master.metastore=HEAP
 ```
+
+## Switching between RocksDB MetaStore and Heap MetaStore
+
+Alluxio master stores different journal information for RocksDB metastore and heap metastore.
+Switching the metastore type of an existing Alluxio requires formatting Alluxio journal which will wipe
+all Alluxio metadata. If you would like to keep the existing data in Alluxio cluster after the switch,
+you will need to perform a journal backup and restore:
+
+First, run the journal backup command while Alluxio master is running.
+
+```console
+$ ./bin/alluxio fsadmin backup
+```
+
+This will print something like
+
+```
+Successfully backed up journal to ${BACKUP_PATH}
+```
+
+`${BACKUP_PATH}` will be determined by the date, and the configuration of your
+journal.
+
+Then stop Alluxio masters:
+
+```console
+$ ./bin/alluxio-stop.sh masters
+```
+
+Update the metastore type in `conf/alluxio-site.properties` for the master nodes:
+
+```properties
+alluxio.master.metastore=<new value>
+```
+
+Format the masters with the following command:
+
+```console
+$ ./bin/alluxio formatMasters
+```
+
+Then restart the masters with the `-i ${BACKUP_PATH}` argument, replacing
+`${BACKUP_PATH}` with your specific backup path.
+
+```console
+$ ./bin/alluxio-start.sh -i ${BACKUP_PATH} masters
+```
+
+See [here]({{ '/en/operation/Journal.html' | relativize_url }}#backing-up-the-journal)
+for more information regarding journal backup.
