@@ -45,8 +45,8 @@ public final class TransformJobInfo {
    * @param jobId the job ID
    * @param transformedLayouts the mapping from a partition spec to its transformed layout
    */
-  public TransformJobInfo(@NotNull String db, @NotNull String table, @NotNull String definition, long jobId,
-      @NotNull Map<String, Layout> transformedLayouts) {
+  public TransformJobInfo(@NotNull String db, @NotNull String table, @NotNull String definition,
+      long jobId, @NotNull Map<String, Layout> transformedLayouts) {
     Preconditions.checkNotNull(db, "db");
     Preconditions.checkNotNull(table, "table");
     Preconditions.checkNotNull(definition, "definition");

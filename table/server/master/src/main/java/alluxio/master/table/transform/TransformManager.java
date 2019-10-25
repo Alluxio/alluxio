@@ -83,9 +83,11 @@ public class TransformManager implements DelegatingJournaled {
    * Each history is kept for a configurable time period.
    * This is not journaled, so after restarting TableMaster, the job history is lost.
    */
-  private final Cache<Long, TransformJobInfo> mJobHistory = CacheBuilder.newBuilder().expireAfterWrite(
-      ServerConfiguration.getMs(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME),
-      TimeUnit.MILLISECONDS).build();
+  private final Cache<Long, TransformJobInfo> mJobHistory = CacheBuilder.newBuilder()
+      .expireAfterWrite(ServerConfiguration.getMs(
+          PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME),
+          TimeUnit.MILLISECONDS)
+      .build();
 
   /** Journaled state. */
   private final State mState = new State();
