@@ -60,7 +60,7 @@ public final class TransformTableCommand extends AbstractTableCommand {
 
   @Override
   public String getUsage() {
-    return COMMAND_NAME + " <database_name> <table_name>";
+    return COMMAND_NAME + " <db name> <table name>";
   }
 
   @Override
