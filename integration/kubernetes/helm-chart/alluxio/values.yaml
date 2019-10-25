@@ -124,6 +124,7 @@ journal:
 tieredstore:
   levels:
   - alias: MEM # Medium type
+    mediumtype: MEM
     level: 0
     path: /dev/shm
     type: emptyDir
