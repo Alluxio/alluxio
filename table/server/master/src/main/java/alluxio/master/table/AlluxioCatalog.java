@@ -339,8 +339,8 @@ public class AlluxioCatalog implements Journaled {
     String tableName = entry.getTableName();
     Table table;
     try {
-      table = mDBs.get(dbName).getTable(tableName);
-    } catch (NotFoundException e) {
+      table = getTableInternal(dbName, tableName);
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
     for (Map.Entry<String, alluxio.grpc.table.Layout> e : entry.getTransformedLayoutsMap()
@@ -349,8 +349,8 @@ public class AlluxioCatalog implements Journaled {
       Layout layout = mLayoutRegistry.create(e.getValue());
       Partition partition = table.getPartition(spec);
       partition.transform(entry.getDefinition(), layout);
-      LOG.debug("Transformed partition {} to {} with definition {}", spec, layout,
-          entry.getDefinition());
+      LOG.debug("Transformed partition {} of database {} table {} to {} with definition {}",
+          spec, dbName, tableName, layout.getLocation(), entry.getDefinition());
     }
   }
 

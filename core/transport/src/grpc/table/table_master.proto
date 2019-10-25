@@ -70,6 +70,9 @@ message Transformation {
 message Partition {
     optional PartitionSpec partition_spec = 1;
     optional Layout layout = 2;
+    /**
+     * The latest transformation is in the back of the list.
+     */
     repeated Transformation transformations = 3;
 }
 
