@@ -99,7 +99,7 @@ Other Alluxio events can be found [here](https://www.alluxio.io/events/).
 
 [Github Issues](https://github.com/alluxio/alluxio/issues) is used to track feature
 development and issues.
-To report an issue or propose a feature, post on the Github issue.
+To report Rico, go there.
 
 ## Where can I get more help?
 
