@@ -17,7 +17,7 @@ metadata:
   name: alluxio-worker
   labels:
     app: alluxio
-    chart: alluxio-0.5.0
+    chart: alluxio-0.5.1
     release: alluxio
     heritage: Tiller
     role: alluxio-worker
@@ -31,7 +31,7 @@ spec:
     metadata:
       labels:
         app: alluxio
-        chart: alluxio-0.5.0
+        chart: alluxio-0.5.1
         release: alluxio
         heritage: Tiller
         role: alluxio-worker
@@ -54,6 +54,9 @@ spec:
         - name: alluxio-worker
           image: alluxio/alluxio:2.1.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -70,8 +73,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          - name: ALLUXIO_WORKER_JAVA_OPTS
-            value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -86,7 +87,16 @@ spec:
             - mountPath: /dev/shm
               name: mem
         - name: alluxio-job-worker
+<<<<<<< HEAD
           image: alluxio/alluxio:2.1.0-SNAPSHOT
+||||||| parent of 30d058152c... Fix Alluxio helm chart deployment issue
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
+=======
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+>>>>>>> 30d058152c... Fix Alluxio helm chart deployment issue
           imagePullPolicy: IfNotPresent
           resources:
             limits:
@@ -103,8 +113,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          - name: ALLUXIO_JOB_WORKER_JAVA_OPTS
-            value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
           envFrom:
           - configMapRef:
               name: alluxio-config
