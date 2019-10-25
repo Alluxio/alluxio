@@ -250,6 +250,17 @@ Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports the following versions of HD
 - Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
 
 Note: Apache Hadoop 1.0 and 1.2 are still supported, but not included in the default download.
+To build this module yourself, build the shaded hadoop client and then the UFS model as demonstrated
+in the example below for hadoop-1.2.0.
+This will provide a jar that should be moved to the `lib/` directory in the Alluxio install directory.
+
+```console
+cd shaded/hadoop/
+mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
+cd ../../underfs/hdfs/
+mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
+
+```
 
 ### Use Hadoop Native Library
 
