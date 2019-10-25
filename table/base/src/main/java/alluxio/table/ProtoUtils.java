@@ -13,10 +13,12 @@ package alluxio.table;
 
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.Transformation;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -28,10 +30,10 @@ public final class ProtoUtils {
    * @return true if the partition has the hive layout, false otherwise
    */
   public static boolean hasHiveLayout(Partition partition) {
-    if (!partition.hasLayout()) {
+    if (!partition.hasBaseLayout()) {
       return false;
     }
-    Layout layout = partition.getLayout();
+    Layout layout = partition.getBaseLayout();
     // TODO(gpang): use a layout registry
     return Objects.equals(layout.getLayoutType(), "hive");
   }
@@ -44,6 +46,13 @@ public final class ProtoUtils {
     return Objects.equals(layout.getLayoutType(), "hive");
   }
 
+  private static Layout getCurrentLayout(Partition partition) {
+    List<Transformation> transformations = partition.getTransformationsList();
+    return transformations.isEmpty()
+        ? partition.getBaseLayout()
+        : transformations.get(transformations.size() - 1).getLayout();
+  }
+
   /**
    * @param partition the partition proto
    * @return the hive-specific partition proto
@@ -51,14 +60,14 @@ public final class ProtoUtils {
   public static PartitionInfo extractHiveLayout(Partition partition)
       throws InvalidProtocolBufferException {
     if (!hasHiveLayout(partition)) {
-      if (partition.hasLayout()) {
+      if (partition.hasBaseLayout()) {
         throw new IllegalStateException(
-            "Cannot parse hive-layout. layoutType: " + partition.getLayout().getLayoutType());
+            "Cannot parse hive-layout. layoutType: " + partition.getBaseLayout().getLayoutType());
       } else {
         throw new IllegalStateException("Cannot parse hive-layout from missing layout");
       }
     }
-    Layout layout = partition.getLayout();
+    Layout layout = getCurrentLayout(partition);
     if (!layout.hasLayoutData()) {
       throw new IllegalStateException("Cannot parse hive-layout from empty layout data");
     }

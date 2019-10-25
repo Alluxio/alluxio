@@ -66,12 +66,12 @@ private static final long serialVersionUID = 0L;
           case 18: {
             alluxio.grpc.table.Layout.Builder subBuilder = null;
             if (((bitField0_ & 0x00000002) == 0x00000002)) {
-              subBuilder = layout_.toBuilder();
+              subBuilder = baseLayout_.toBuilder();
             }
-            layout_ = input.readMessage(alluxio.grpc.table.Layout.PARSER, extensionRegistry);
+            baseLayout_ = input.readMessage(alluxio.grpc.table.Layout.PARSER, extensionRegistry);
             if (subBuilder != null) {
-              subBuilder.mergeFrom(layout_);
-              layout_ = subBuilder.buildPartial();
+              subBuilder.mergeFrom(baseLayout_);
+              baseLayout_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000002;
             break;
@@ -134,36 +134,46 @@ private static final long serialVersionUID = 0L;
     return partitionSpec_ == null ? alluxio.grpc.table.PartitionSpec.getDefaultInstance() : partitionSpec_;
   }
 
-  public static final int LAYOUT_FIELD_NUMBER = 2;
-  private alluxio.grpc.table.Layout layout_;
+  public static final int BASE_LAYOUT_FIELD_NUMBER = 2;
+  private alluxio.grpc.table.Layout baseLayout_;
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+   * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
    */
-  public boolean hasLayout() {
+  public boolean hasBaseLayout() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+   * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
    */
-  public alluxio.grpc.table.Layout getLayout() {
-    return layout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : layout_;
+  public alluxio.grpc.table.Layout getBaseLayout() {
+    return baseLayout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : baseLayout_;
   }
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+   * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
    */
-  public alluxio.grpc.table.LayoutOrBuilder getLayoutOrBuilder() {
-    return layout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : layout_;
+  public alluxio.grpc.table.LayoutOrBuilder getBaseLayoutOrBuilder() {
+    return baseLayout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : baseLayout_;
   }
 
   public static final int TRANSFORMATIONS_FIELD_NUMBER = 3;
   private java.util.List<alluxio.grpc.table.Transformation> transformations_;
   /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
    * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
   public java.util.List<alluxio.grpc.table.Transformation> getTransformationsList() {
     return transformations_;
   }
   /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
    * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
   public java.util.List<? extends alluxio.grpc.table.TransformationOrBuilder> 
@@ -171,18 +181,33 @@ private static final long serialVersionUID = 0L;
     return transformations_;
   }
   /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
    * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
   public int getTransformationsCount() {
     return transformations_.size();
   }
   /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
    * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
   public alluxio.grpc.table.Transformation getTransformations(int index) {
     return transformations_.get(index);
   }
   /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
    * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
    */
   public alluxio.grpc.table.TransformationOrBuilder getTransformationsOrBuilder(
@@ -196,8 +221,8 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
-    if (hasLayout()) {
-      if (!getLayout().isInitialized()) {
+    if (hasBaseLayout()) {
+      if (!getBaseLayout().isInitialized()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -218,7 +243,7 @@ private static final long serialVersionUID = 0L;
       output.writeMessage(1, getPartitionSpec());
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeMessage(2, getLayout());
+      output.writeMessage(2, getBaseLayout());
     }
     for (int i = 0; i < transformations_.size(); i++) {
       output.writeMessage(3, transformations_.get(i));
@@ -237,7 +262,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(2, getLayout());
+        .computeMessageSize(2, getBaseLayout());
     }
     for (int i = 0; i < transformations_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
@@ -264,10 +289,10 @@ private static final long serialVersionUID = 0L;
       result = result && getPartitionSpec()
           .equals(other.getPartitionSpec());
     }
-    result = result && (hasLayout() == other.hasLayout());
-    if (hasLayout()) {
-      result = result && getLayout()
-          .equals(other.getLayout());
+    result = result && (hasBaseLayout() == other.hasBaseLayout());
+    if (hasBaseLayout()) {
+      result = result && getBaseLayout()
+          .equals(other.getBaseLayout());
     }
     result = result && getTransformationsList()
         .equals(other.getTransformationsList());
@@ -286,9 +311,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + PARTITION_SPEC_FIELD_NUMBER;
       hash = (53 * hash) + getPartitionSpec().hashCode();
     }
-    if (hasLayout()) {
-      hash = (37 * hash) + LAYOUT_FIELD_NUMBER;
-      hash = (53 * hash) + getLayout().hashCode();
+    if (hasBaseLayout()) {
+      hash = (37 * hash) + BASE_LAYOUT_FIELD_NUMBER;
+      hash = (53 * hash) + getBaseLayout().hashCode();
     }
     if (getTransformationsCount() > 0) {
       hash = (37 * hash) + TRANSFORMATIONS_FIELD_NUMBER;
@@ -420,7 +445,7 @@ private static final long serialVersionUID = 0L;
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
         getPartitionSpecFieldBuilder();
-        getLayoutFieldBuilder();
+        getBaseLayoutFieldBuilder();
         getTransformationsFieldBuilder();
       }
     }
@@ -432,10 +457,10 @@ private static final long serialVersionUID = 0L;
         partitionSpecBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000001);
-      if (layoutBuilder_ == null) {
-        layout_ = null;
+      if (baseLayoutBuilder_ == null) {
+        baseLayout_ = null;
       } else {
-        layoutBuilder_.clear();
+        baseLayoutBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000002);
       if (transformationsBuilder_ == null) {
@@ -479,10 +504,10 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      if (layoutBuilder_ == null) {
-        result.layout_ = layout_;
+      if (baseLayoutBuilder_ == null) {
+        result.baseLayout_ = baseLayout_;
       } else {
-        result.layout_ = layoutBuilder_.build();
+        result.baseLayout_ = baseLayoutBuilder_.build();
       }
       if (transformationsBuilder_ == null) {
         if (((bitField0_ & 0x00000004) == 0x00000004)) {
@@ -538,8 +563,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasPartitionSpec()) {
         mergePartitionSpec(other.getPartitionSpec());
       }
-      if (other.hasLayout()) {
-        mergeLayout(other.getLayout());
+      if (other.hasBaseLayout()) {
+        mergeBaseLayout(other.getBaseLayout());
       }
       if (transformationsBuilder_ == null) {
         if (!other.transformations_.isEmpty()) {
@@ -573,8 +598,8 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
-      if (hasLayout()) {
-        if (!getLayout().isInitialized()) {
+      if (hasBaseLayout()) {
+        if (!getBaseLayout().isInitialized()) {
           return false;
         }
       }
@@ -723,122 +748,122 @@ private static final long serialVersionUID = 0L;
       return partitionSpecBuilder_;
     }
 
-    private alluxio.grpc.table.Layout layout_ = null;
+    private alluxio.grpc.table.Layout baseLayout_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.table.Layout, alluxio.grpc.table.Layout.Builder, alluxio.grpc.table.LayoutOrBuilder> layoutBuilder_;
+        alluxio.grpc.table.Layout, alluxio.grpc.table.Layout.Builder, alluxio.grpc.table.LayoutOrBuilder> baseLayoutBuilder_;
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
-    public boolean hasLayout() {
+    public boolean hasBaseLayout() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
-    public alluxio.grpc.table.Layout getLayout() {
-      if (layoutBuilder_ == null) {
-        return layout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : layout_;
+    public alluxio.grpc.table.Layout getBaseLayout() {
+      if (baseLayoutBuilder_ == null) {
+        return baseLayout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : baseLayout_;
       } else {
-        return layoutBuilder_.getMessage();
+        return baseLayoutBuilder_.getMessage();
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
-    public Builder setLayout(alluxio.grpc.table.Layout value) {
-      if (layoutBuilder_ == null) {
+    public Builder setBaseLayout(alluxio.grpc.table.Layout value) {
+      if (baseLayoutBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        layout_ = value;
+        baseLayout_ = value;
         onChanged();
       } else {
-        layoutBuilder_.setMessage(value);
+        baseLayoutBuilder_.setMessage(value);
       }
       bitField0_ |= 0x00000002;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
-    public Builder setLayout(
+    public Builder setBaseLayout(
         alluxio.grpc.table.Layout.Builder builderForValue) {
-      if (layoutBuilder_ == null) {
-        layout_ = builderForValue.build();
+      if (baseLayoutBuilder_ == null) {
+        baseLayout_ = builderForValue.build();
         onChanged();
       } else {
-        layoutBuilder_.setMessage(builderForValue.build());
+        baseLayoutBuilder_.setMessage(builderForValue.build());
       }
       bitField0_ |= 0x00000002;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
-    public Builder mergeLayout(alluxio.grpc.table.Layout value) {
-      if (layoutBuilder_ == null) {
+    public Builder mergeBaseLayout(alluxio.grpc.table.Layout value) {
+      if (baseLayoutBuilder_ == null) {
         if (((bitField0_ & 0x00000002) == 0x00000002) &&
-            layout_ != null &&
-            layout_ != alluxio.grpc.table.Layout.getDefaultInstance()) {
-          layout_ =
-            alluxio.grpc.table.Layout.newBuilder(layout_).mergeFrom(value).buildPartial();
+            baseLayout_ != null &&
+            baseLayout_ != alluxio.grpc.table.Layout.getDefaultInstance()) {
+          baseLayout_ =
+            alluxio.grpc.table.Layout.newBuilder(baseLayout_).mergeFrom(value).buildPartial();
         } else {
-          layout_ = value;
+          baseLayout_ = value;
         }
         onChanged();
       } else {
-        layoutBuilder_.mergeFrom(value);
+        baseLayoutBuilder_.mergeFrom(value);
       }
       bitField0_ |= 0x00000002;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
-    public Builder clearLayout() {
-      if (layoutBuilder_ == null) {
-        layout_ = null;
+    public Builder clearBaseLayout() {
+      if (baseLayoutBuilder_ == null) {
+        baseLayout_ = null;
         onChanged();
       } else {
-        layoutBuilder_.clear();
+        baseLayoutBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
-    public alluxio.grpc.table.Layout.Builder getLayoutBuilder() {
+    public alluxio.grpc.table.Layout.Builder getBaseLayoutBuilder() {
       bitField0_ |= 0x00000002;
       onChanged();
-      return getLayoutFieldBuilder().getBuilder();
+      return getBaseLayoutFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
-    public alluxio.grpc.table.LayoutOrBuilder getLayoutOrBuilder() {
-      if (layoutBuilder_ != null) {
-        return layoutBuilder_.getMessageOrBuilder();
+    public alluxio.grpc.table.LayoutOrBuilder getBaseLayoutOrBuilder() {
+      if (baseLayoutBuilder_ != null) {
+        return baseLayoutBuilder_.getMessageOrBuilder();
       } else {
-        return layout_ == null ?
-            alluxio.grpc.table.Layout.getDefaultInstance() : layout_;
+        return baseLayout_ == null ?
+            alluxio.grpc.table.Layout.getDefaultInstance() : baseLayout_;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+     * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.Layout, alluxio.grpc.table.Layout.Builder, alluxio.grpc.table.LayoutOrBuilder> 
-        getLayoutFieldBuilder() {
-      if (layoutBuilder_ == null) {
-        layoutBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+        getBaseLayoutFieldBuilder() {
+      if (baseLayoutBuilder_ == null) {
+        baseLayoutBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
             alluxio.grpc.table.Layout, alluxio.grpc.table.Layout.Builder, alluxio.grpc.table.LayoutOrBuilder>(
-                getLayout(),
+                getBaseLayout(),
                 getParentForChildren(),
                 isClean());
-        layout_ = null;
+        baseLayout_ = null;
       }
-      return layoutBuilder_;
+      return baseLayoutBuilder_;
     }
 
     private java.util.List<alluxio.grpc.table.Transformation> transformations_ =
@@ -854,6 +879,11 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.Transformation, alluxio.grpc.table.Transformation.Builder, alluxio.grpc.table.TransformationOrBuilder> transformationsBuilder_;
 
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public java.util.List<alluxio.grpc.table.Transformation> getTransformationsList() {
@@ -864,6 +894,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public int getTransformationsCount() {
@@ -874,6 +909,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public alluxio.grpc.table.Transformation getTransformations(int index) {
@@ -884,6 +924,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder setTransformations(
@@ -901,6 +946,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder setTransformations(
@@ -915,6 +965,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder addTransformations(alluxio.grpc.table.Transformation value) {
@@ -931,6 +986,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder addTransformations(
@@ -948,6 +1008,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder addTransformations(
@@ -962,6 +1027,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder addTransformations(
@@ -976,6 +1046,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder addAllTransformations(
@@ -991,6 +1066,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder clearTransformations() {
@@ -1004,6 +1084,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public Builder removeTransformations(int index) {
@@ -1017,6 +1102,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public alluxio.grpc.table.Transformation.Builder getTransformationsBuilder(
@@ -1024,6 +1114,11 @@ private static final long serialVersionUID = 0L;
       return getTransformationsFieldBuilder().getBuilder(index);
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public alluxio.grpc.table.TransformationOrBuilder getTransformationsOrBuilder(
@@ -1034,6 +1129,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public java.util.List<? extends alluxio.grpc.table.TransformationOrBuilder> 
@@ -1045,6 +1145,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public alluxio.grpc.table.Transformation.Builder addTransformationsBuilder() {
@@ -1052,6 +1157,11 @@ private static final long serialVersionUID = 0L;
           alluxio.grpc.table.Transformation.getDefaultInstance());
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public alluxio.grpc.table.Transformation.Builder addTransformationsBuilder(
@@ -1060,6 +1170,11 @@ private static final long serialVersionUID = 0L;
           index, alluxio.grpc.table.Transformation.getDefaultInstance());
     }
     /**
+     * <pre>
+     **
+     * The latest transformation is in the back of the list.
+     * </pre>
+     *
      * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
      */
     public java.util.List<alluxio.grpc.table.Transformation.Builder> 

@@ -35,8 +35,17 @@ message AddTableEntry {
     repeated alluxio.grpc.table.Partition partitions = 9;
 }
 
+// next available id: 5
+message CompleteTransformTableEntry {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional string definition = 3;
+    // Map from partition spec to transformed layout
+    map<string, alluxio.grpc.table.Layout> transformed_layouts = 4;
+}
+
 // next available id: 6
-message TransformJobEntry {
+message AddTransformJobInfoEntry {
     optional string db_name = 1;
     optional string table_name = 2;
     optional string definition = 3;
@@ -45,7 +54,7 @@ message TransformJobEntry {
 }
 
 // next available id: 3
-message RemoveTransformJobEntry {
+message RemoveTransformJobInfoEntry {
     optional string db_name = 1;
     optional string table_name = 2;
 }
