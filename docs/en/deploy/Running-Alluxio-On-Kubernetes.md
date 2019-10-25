@@ -220,9 +220,8 @@ secrets:
 ```properties
 tieredstore:
   levels:
-  - alias: MEM
+  - level: 0
     mediumtype: MEM
-    level: 0
     path: /dev/shm
     type: hostPath
     high: 0.95
@@ -234,16 +233,14 @@ tieredstore:
 ```properties
 tieredstore:
   levels:
-  - alias: MEM
+  - level: 0
     mediumtype: MEM
-    level: 0
     path: /dev/shm
     type: hostPath
     high: 0.95
     low: 0.7
-  - alias: SSD
+  - level: 1
     mediumtype: SSD
-    level: 1
     path: /ssd-disk
     type: hostPath
     high: 0.95
@@ -255,9 +252,8 @@ tieredstore:
 ```properties
 tieredstore:
   levels:
-  - alias: MEM
+  - level: 0
     mediumtype: MEM,SSD
-    level: 0
     path: /dev/shm,/alluxio-ssd
     type: hostPath
     quota: 1GB,10GB
@@ -265,7 +261,7 @@ tieredstore:
     low: 0.7
 ```
 
-> There 2 supported volume `type`: `hostPath` and `emptyDir`. `hostPath` mounts the directory from the host node’s filesystem into your Pod. The benifits are that data can be kept even the worker restarted. `emptyDir` is first created when a Pod is assigned to a Node, and exists as long as that Pod is running on that node. As the name says, it is initially empty. The benifit of empty dir is that it can set memory limit in Kubernetes level.
+> There 2 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) and [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
 
 #### Install
 
