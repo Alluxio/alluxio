@@ -16,6 +16,7 @@ import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Partition;
 import alluxio.master.Master;
+import alluxio.master.table.transform.TransformJobInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -118,6 +119,17 @@ public interface TableMaster extends Master {
    * @return the job ID
    */
   long transformTable(String dbName, String tableName, String definition) throws IOException;
+
+  /**
+   * @param jobId the job ID
+   * @return the information for the transformation job
+   */
+  TransformJobInfo getTransformJobInfo(long jobId) throws IOException;
+
+  /**
+   * @return a list of information for all the transformation jobs
+   */
+  List<TransformJobInfo> getAllTransformJobInfo() throws IOException;
 
   /**
    * Syncs a database.

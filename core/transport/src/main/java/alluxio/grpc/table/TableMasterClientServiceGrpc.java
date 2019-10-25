@@ -383,6 +383,38 @@ public final class TableMasterClientServiceGrpc {
      return getTransformTableMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.GetTransformJobInfoPRequest,
+      alluxio.grpc.table.GetTransformJobInfoPResponse> getGetTransformJobInfoMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetTransformJobInfo",
+      requestType = alluxio.grpc.table.GetTransformJobInfoPRequest.class,
+      responseType = alluxio.grpc.table.GetTransformJobInfoPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.table.GetTransformJobInfoPRequest,
+      alluxio.grpc.table.GetTransformJobInfoPResponse> getGetTransformJobInfoMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.table.GetTransformJobInfoPRequest, alluxio.grpc.table.GetTransformJobInfoPResponse> getGetTransformJobInfoMethod;
+    if ((getGetTransformJobInfoMethod = TableMasterClientServiceGrpc.getGetTransformJobInfoMethod) == null) {
+      synchronized (TableMasterClientServiceGrpc.class) {
+        if ((getGetTransformJobInfoMethod = TableMasterClientServiceGrpc.getGetTransformJobInfoMethod) == null) {
+          TableMasterClientServiceGrpc.getGetTransformJobInfoMethod = getGetTransformJobInfoMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.table.GetTransformJobInfoPRequest, alluxio.grpc.table.GetTransformJobInfoPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.table.TableMasterClientService", "GetTransformJobInfo"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.table.GetTransformJobInfoPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.table.GetTransformJobInfoPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetTransformJobInfo"))
+                  .build();
+          }
+        }
+     }
+     return getGetTransformJobInfoMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -519,6 +551,19 @@ public final class TableMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getTransformTableMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Gets information of transformation jobs.
+     * If the job ID exists in the request, the information for that job is returned;
+     * Otherwise, information of all the jobs kept in table master will be returned.
+     * </pre>
+     */
+    public void getTransformJobInfo(alluxio.grpc.table.GetTransformJobInfoPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.table.GetTransformJobInfoPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetTransformJobInfoMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -598,6 +643,13 @@ public final class TableMasterClientServiceGrpc {
                 alluxio.grpc.table.TransformTablePRequest,
                 alluxio.grpc.table.TransformTablePResponse>(
                   this, METHODID_TRANSFORM_TABLE)))
+          .addMethod(
+            getGetTransformJobInfoMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.table.GetTransformJobInfoPRequest,
+                alluxio.grpc.table.GetTransformJobInfoPResponse>(
+                  this, METHODID_GET_TRANSFORM_JOB_INFO)))
           .build();
     }
   }
@@ -739,6 +791,20 @@ public final class TableMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getTransformTableMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Gets information of transformation jobs.
+     * If the job ID exists in the request, the information for that job is returned;
+     * Otherwise, information of all the jobs kept in table master will be returned.
+     * </pre>
+     */
+    public void getTransformJobInfo(alluxio.grpc.table.GetTransformJobInfoPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.table.GetTransformJobInfoPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetTransformJobInfoMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -866,6 +932,19 @@ public final class TableMasterClientServiceGrpc {
     public alluxio.grpc.table.TransformTablePResponse transformTable(alluxio.grpc.table.TransformTablePRequest request) {
       return blockingUnaryCall(
           getChannel(), getTransformTableMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Gets information of transformation jobs.
+     * If the job ID exists in the request, the information for that job is returned;
+     * Otherwise, information of all the jobs kept in table master will be returned.
+     * </pre>
+     */
+    public alluxio.grpc.table.GetTransformJobInfoPResponse getTransformJobInfo(alluxio.grpc.table.GetTransformJobInfoPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetTransformJobInfoMethod(), getCallOptions(), request);
     }
   }
 
@@ -1006,6 +1085,20 @@ public final class TableMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getTransformTableMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Gets information of transformation jobs.
+     * If the job ID exists in the request, the information for that job is returned;
+     * Otherwise, information of all the jobs kept in table master will be returned.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.table.GetTransformJobInfoPResponse> getTransformJobInfo(
+        alluxio.grpc.table.GetTransformJobInfoPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetTransformJobInfoMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_ALL_DATABASES = 0;
@@ -1019,6 +1112,7 @@ public final class TableMasterClientServiceGrpc {
   private static final int METHODID_GET_PARTITION_COLUMN_STATISTICS = 8;
   private static final int METHODID_READ_TABLE = 9;
   private static final int METHODID_TRANSFORM_TABLE = 10;
+  private static final int METHODID_GET_TRANSFORM_JOB_INFO = 11;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1080,6 +1174,10 @@ public final class TableMasterClientServiceGrpc {
         case METHODID_TRANSFORM_TABLE:
           serviceImpl.transformTable((alluxio.grpc.table.TransformTablePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.table.TransformTablePResponse>) responseObserver);
+          break;
+        case METHODID_GET_TRANSFORM_JOB_INFO:
+          serviceImpl.getTransformJobInfo((alluxio.grpc.table.GetTransformJobInfoPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.table.GetTransformJobInfoPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -1153,6 +1251,7 @@ public final class TableMasterClientServiceGrpc {
               .addMethod(getGetPartitionColumnStatisticsMethod())
               .addMethod(getReadTableMethod())
               .addMethod(getTransformTableMethod())
+              .addMethod(getGetTransformJobInfoMethod())
               .build();
         }
       }
