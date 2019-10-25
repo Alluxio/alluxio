@@ -25,6 +25,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.composite.CompositeConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,30 +66,18 @@ import java.util.concurrent.TimeUnit;
 /**
  * Manages transformations.
  */
-public class TransformManager implements Journaled {
+public class TransformManager implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(TransformManager.class);
   private static final long INVALID_JOB_ID = -1;
 
+  /** The function used to create a {@link JournalContext}. */
   private final ThrowingSupplier<JournalContext, UnavailableException> mCreateJournalContext;
-  private final AlluxioCatalog mCatalog;
-  /**
-   * The client to talk to job master.
-   */
-  private final JobMasterClient mJobMasterClient;
 
-  /**
-   * Map from (db, table) to the ID of the running transformation job.
-   * When trying to start a transformation on a table, a placeholder ID is put first.
-   * When removing a job, first remove from {@link #mRunningJobs}, then remove from this map,
-   * otherwise, there might be concurrent transformations running on the same table.
-   */
-  private final ConcurrentHashMap<Pair<String, String>, Long> mRunningJobIds =
-      new ConcurrentHashMap<>();
-  /**
-   * Map from job ID to job info.
-   */
-  private final ConcurrentHashMap<Long, TransformJobInfo> mRunningJobs =
-      new ConcurrentHashMap<>();
+  /** The catalog for retrieving {@link Table}. */
+  private final AlluxioCatalog mCatalog;
+
+  /** The client to talk to job master. */
+  private final JobMasterClient mJobMasterClient;
 
   /**
    * A cache from job ID to the job's information.
@@ -98,6 +88,9 @@ public class TransformManager implements Journaled {
   private final Cache<Long, TransformJobInfo> mJobHistory = CacheBuilder.newBuilder().expireAfterWrite(
       ServerConfiguration.getMs(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME),
       TimeUnit.MILLISECONDS).build();
+
+  /** Journaled state. */
+  private final State mState = new State();
 
   /**
    * An internal job master client will be created.
@@ -163,7 +156,7 @@ public class TransformManager implements Journaled {
     // This PUT does not need to be journaled, because if this PUT succeeds and master crashes,
     // when master restarts, this temporary placeholder entry will not exist, which is correct
     // behavior.
-    Long existingJobId = mRunningJobIds.putIfAbsent(dbTable, INVALID_JOB_ID);
+    Long existingJobId = mState.acquireJobPermit(dbTable);
     if (existingJobId != null) {
       if (existingJobId == INVALID_JOB_ID) {
         throw new IOException("A concurrent transformation request is going to be executed");
@@ -189,7 +182,7 @@ public class TransformManager implements Journaled {
       // The job fails to start, clear the acquired permit for execution.
       // No need to journal this REMOVE, if master crashes, when it restarts, the permit placeholder
       // entry will not exist any more, which is correct behavior.
-      mRunningJobIds.remove(dbTable);
+      mState.releaseJobPermit(dbTable);
       return INVALID_JOB_ID;
     }
 
@@ -216,7 +209,7 @@ public class TransformManager implements Journaled {
    * @return the job information
    */
   public Optional<TransformJobInfo> getTransformJobInfo(long jobId) {
-    TransformJobInfo job = mRunningJobs.get(jobId);
+    TransformJobInfo job = mState.getRunningJob(jobId);
     if (job == null) {
       job = mJobHistory.getIfPresent(jobId);
     }
@@ -229,9 +222,14 @@ public class TransformManager implements Journaled {
    */
   public List<TransformJobInfo> getAllTransformJobInfo() {
     List<TransformJobInfo> jobs = Lists.newArrayList(mJobHistory.asMap().values());
-    jobs.addAll(mRunningJobs.values());
+    jobs.addAll(mState.getRunningJobs());
     jobs.sort(Comparator.comparing(TransformJobInfo::getJobId));
     return jobs;
+  }
+
+  @Override
+  public Journaled getDelegate() {
+    return mState;
   }
 
   /**
@@ -300,7 +298,7 @@ public class TransformManager implements Journaled {
 
     @Override
     public void heartbeat() throws InterruptedException {
-      for (TransformJobInfo job : mRunningJobs.values()) {
+      for (TransformJobInfo job : mState.getRunningJobs()) {
         if (Thread.interrupted()) {
           throw new InterruptedException("JobMonitor interrupted.");
         }
@@ -350,58 +348,116 @@ public class TransformManager implements Journaled {
     }
   }
 
-  @Override
-  public boolean processJournalEntry(JournalEntry entry) {
-    if (entry.hasTransformJob()) {
-      applyTransformJobEntry(entry.getTransformJob());
-    } else if (entry.hasRemoveTransformJob()) {
-      applyRemoveTransformJobEntry(entry.getRemoveTransformJob());
-    } else {
-      return false;
+  /**
+   * Journaled state.
+   *
+   * The internal data structure should never be exposed outside of the class,
+   * all changes to the internal state should happen through applying journal entries.
+   */
+  private final class State implements Journaled {
+    /**
+     * Map from (db, table) to the ID of the running transformation job.
+     * When trying to start a transformation on a table, a placeholder ID is put first.
+     * When removing a job, first remove from {@link #mRunningJobs}, then remove from this map,
+     * otherwise, there might be concurrent transformations running on the same table.
+     */
+    private final ConcurrentHashMap<Pair<String, String>, Long> mRunningJobIds =
+        new ConcurrentHashMap<>();
+    /**
+     * Map from job ID to job info.
+     */
+    private final ConcurrentHashMap<Long, TransformJobInfo> mRunningJobs =
+        new ConcurrentHashMap<>();
+
+    /**
+     *
+     * @return all running jobs
+     */
+    public Collection<TransformJobInfo> getRunningJobs() {
+      return mRunningJobs.values();
     }
-    return true;
-  }
 
-  private void applyTransformJobEntry(TransformJobEntry entry) {
-    Map<String, alluxio.grpc.table.Layout> layouts = entry.getTransformedLayoutsMap();
-    Map<String, Layout> transformedLayouts = Maps.transformValues(layouts,
-        layout -> mCatalog.getLayoutRegistry().create(layout));
-    TransformJobInfo job = new TransformJobInfo(entry.getDbName(), entry.getTableName(),
-        entry.getDefinition(), entry.getJobId(), transformedLayouts);
-    mRunningJobIds.put(job.getDbTable(), job.getJobId());
-    mRunningJobs.put(job.getJobId(), job);
-  }
+    /**
+     * @param jobId the job ID
+     * @return corresponding job or null if not exists
+     */
+    public TransformJobInfo getRunningJob(long jobId) {
+      return mRunningJobs.get(jobId);
+    }
 
-  private void applyRemoveTransformJobEntry(RemoveTransformJobEntry entry) {
-    Pair<String, String> dbTable = new Pair<>(entry.getDbName(), entry.getTableName());
-    long jobId = mRunningJobIds.get(dbTable);
-    mRunningJobs.remove(jobId);
-    mRunningJobIds.remove(dbTable);
-  }
+    /**
+     * Acquires a permit for transforming a table.
+     *
+     * @param dbTable a pair of database and table name
+     * @return the ID of the existing transformation on the table, or null
+     */
+    public Long acquireJobPermit(Pair<String, String> dbTable) {
+      return mRunningJobIds.putIfAbsent(dbTable, INVALID_JOB_ID);
+    }
 
-  @Override
-  public void resetState() {
-    mRunningJobs.clear();
-  }
+    /**
+     * Releases the previously acquired permit for transforming a table.
+     *
+     * @param dbTable a pair of database and table name
+     */
+    public void releaseJobPermit(Pair<String, String> dbTable) {
+      mRunningJobIds.remove(dbTable);
+    }
 
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.transform(mRunningJobs.values().iterator(), job -> {
-      TransformJobEntry journal = TransformJobEntry.newBuilder()
-          .setDbName(job.getDb())
-          .setTableName(job.getTable())
-          .setDefinition(job.getDefinition())
-          .setJobId(job.getJobId())
-          .putAllTransformedLayouts(Maps.transformValues(
-              job.getTransformedLayouts(), Layout::toProto))
-          .build();
-      return JournalEntry.newBuilder().setTransformJob(journal).build();
-    });
-  }
+    @Override
+    public boolean processJournalEntry(JournalEntry entry) {
+      if (entry.hasTransformJob()) {
+        applyTransformJobEntry(entry.getTransformJob());
+      } else if (entry.hasRemoveTransformJob()) {
+        applyRemoveTransformJobEntry(entry.getRemoveTransformJob());
+      } else {
+        return false;
+      }
+      return true;
+    }
 
-  @Override
-  public CheckpointName getCheckpointName() {
-    return CheckpointName.TABLE_MASTER_TRANSFORM_MANAGER;
+    private void applyTransformJobEntry(TransformJobEntry entry) {
+      Map<String, alluxio.grpc.table.Layout> layouts = entry.getTransformedLayoutsMap();
+      Map<String, Layout> transformedLayouts = Maps.transformValues(layouts,
+          layout -> mCatalog.getLayoutRegistry().create(layout));
+      TransformJobInfo job = new TransformJobInfo(entry.getDbName(), entry.getTableName(),
+          entry.getDefinition(), entry.getJobId(), transformedLayouts);
+      mRunningJobIds.put(job.getDbTable(), job.getJobId());
+      mRunningJobs.put(job.getJobId(), job);
+    }
+
+    private void applyRemoveTransformJobEntry(RemoveTransformJobEntry entry) {
+      Pair<String, String> dbTable = new Pair<>(entry.getDbName(), entry.getTableName());
+      long jobId = mRunningJobIds.get(dbTable);
+      mRunningJobs.remove(jobId);
+      mRunningJobIds.remove(dbTable);
+    }
+
+    @Override
+    public void resetState() {
+      mRunningJobs.clear();
+      mRunningJobIds.clear();
+    }
+
+    @Override
+    public Iterator<JournalEntry> getJournalEntryIterator() {
+      return Iterators.transform(mRunningJobs.values().iterator(), job -> {
+        TransformJobEntry journal = TransformJobEntry.newBuilder()
+            .setDbName(job.getDb())
+            .setTableName(job.getTable())
+            .setDefinition(job.getDefinition())
+            .setJobId(job.getJobId())
+            .putAllTransformedLayouts(Maps.transformValues(
+                job.getTransformedLayouts(), Layout::toProto))
+            .build();
+        return JournalEntry.newBuilder().setTransformJob(journal).build();
+      });
+    }
+
+    @Override
+    public CheckpointName getCheckpointName() {
+      return CheckpointName.TABLE_MASTER_TRANSFORM_MANAGER;
+    }
   }
 
   /**
