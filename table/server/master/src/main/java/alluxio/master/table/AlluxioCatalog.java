@@ -23,7 +23,6 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.table.transform.TransformJobInfo;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
 import alluxio.table.common.Layout;
@@ -35,6 +34,7 @@ import alluxio.table.common.udb.UnderDatabaseRegistry;
 import alluxio.util.StreamUtils;
 
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -274,25 +274,33 @@ public class AlluxioCatalog implements Journaled {
   /**
    * Updates the layouts of the table's partitions.
    *
-   * @param job the transformation job's information
+   * @param journalContext the journal context
+   * @param dbName the database name
+   * @param tableName the table name
+   * @param definition the transformation definition
+   * @param transformedLayouts map from partition spec to the transformed layouts
    */
-  public void transformTable(TransformJobInfo job) throws IOException {
-    try (LockResource l = getLock(job.getDb(), false)) {
-      Table table = getTable(job.getDb(), job.getTable());
-      for (Map.Entry<String, Layout> entry : job.getTransformedLayouts().entrySet()) {
-        String spec = entry.getKey();
-        Layout layout = entry.getValue();
-        Partition partition = table.getPartition(spec);
-        partition.transform(job.getDefinition(), layout);
-        LOG.debug("Transformed partition {} to {} with definition {}", spec, layout,
-            job.getDefinition());
-      }
+  public void transformTable(JournalContext journalContext, String dbName, String tableName,
+      String definition, Map<String, Layout> transformedLayouts) throws IOException {
+    try (LockResource l = getLock(dbName, false)) {
+      // Check existence of table.
+      getTable(dbName, tableName);
+      alluxio.proto.journal.Table.TransformTableEntry entry =
+          alluxio.proto.journal.Table.TransformTableEntry.newBuilder()
+              .setDbName(dbName)
+              .setTableName(tableName)
+              .setDefinition(definition)
+              .putAllTransformedLayouts(Maps.transformValues(transformedLayouts, Layout::toProto))
+              .build();
+      applyAndJournal(journalContext, Journal.JournalEntry.newBuilder()
+          .setTransformTable(entry).build());
     }
   }
 
   /**
    * @param dbName the database name
    * @param tableName the table name
+   * @param definition the transformation definition
    * @return the transformation plan for the table
    */
   public List<TransformPlan> getTransformPlan(String dbName, String tableName,
@@ -322,6 +330,26 @@ public class AlluxioCatalog implements Journaled {
     mDBs.remove(dbName);
   }
 
+  private void apply(alluxio.proto.journal.Table.TransformTableEntry entry) {
+    String dbName = entry.getDbName();
+    String tableName = entry.getTableName();
+    Table table;
+    try {
+      table = mDBs.get(dbName).getTable(tableName);
+    } catch (NotFoundException e) {
+      throw new RuntimeException(e);
+    }
+    for (Map.Entry<String, alluxio.grpc.table.Layout> e : entry.getTransformedLayoutsMap()
+        .entrySet()) {
+      String spec = e.getKey();
+      Layout layout = mLayoutRegistry.create(e.getValue());
+      Partition partition = table.getPartition(spec);
+      partition.transform(entry.getDefinition(), layout);
+      LOG.debug("Transformed partition {} to {} with definition {}", spec, layout,
+          entry.getDefinition());
+    }
+  }
+
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
     if (entry.hasAttachDb()) {
@@ -333,6 +361,8 @@ public class AlluxioCatalog implements Journaled {
     } else if (entry.hasDetachDb()) {
       apply(entry.getDetachDb());
       return true;
+    } else if (entry.hasTransformTable()) {
+      apply(entry.getTransformTable());
     }
     return false;
   }

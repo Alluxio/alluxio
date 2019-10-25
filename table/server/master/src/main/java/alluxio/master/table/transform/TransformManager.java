@@ -271,7 +271,8 @@ public class TransformManager implements DelegatingJournaled {
      */
     private void handleJobSuccess(TransformJobInfo job) {
       try {
-        mCatalog.transformTable(job);
+        mCatalog.transformTable(mCreateJournalContext.apply(), job.getDb(), job.getTable(),
+            job.getDefinition(), job.getTransformedLayouts());
         job.setJobStatus(Status.COMPLETED);
       } catch (IOException e) {
         String error = String.format("Failed to update partition layouts for database %s table %s",
