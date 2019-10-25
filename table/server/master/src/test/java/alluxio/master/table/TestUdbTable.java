@@ -11,9 +11,11 @@
 
 package alluxio.master.table;
 
+import alluxio.grpc.table.ColumnStatisticsData;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Layout;
+import alluxio.grpc.table.LongColumnStatsData;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.table.common.UdbPartition;
@@ -36,6 +38,7 @@ public class TestUdbTable implements UdbTable {
   private List<UdbPartition> mTestPartitions;
   private Schema mSchema;
   private List<FieldSchema> mPartitionCols;
+  private List<ColumnStatisticsInfo> mStats;
 
   public TestUdbTable(String dbName, String name, int numOfPartitions) {
     mDbName = dbName;
@@ -50,19 +53,29 @@ public class TestUdbTable implements UdbTable {
         .build();
     FieldSchema col = FieldSchema.newBuilder().setName("col1")
         .setType("int").setId(1).build();
-    mSchema = Schema.newBuilder().addCols(col).build();
+    FieldSchema col2 = FieldSchema.newBuilder().setName("col2")
+        .setType("int").setId(2).build();
+    mSchema = Schema.newBuilder().addCols(col).addCols(col2).build();
     mPartitionCols = Arrays.asList(col);
-    mTestPartitions = Stream.iterate(1, n -> n + 1)
+    ColumnStatisticsInfo stats = ColumnStatisticsInfo.newBuilder().setColName("col2")
+        .setColType("int").setData(ColumnStatisticsData.newBuilder()
+            .setLongStats(LongColumnStatsData.getDefaultInstance()).build()).build();
+    mStats = Arrays.asList(stats);
+    mTestPartitions = Stream.iterate(0, n -> n + 1)
         .limit(numOfPartitions).map(i -> new TestPartition(new HiveLayout(genPartitionInfo(
-            mDbName, mName, i), Collections.emptyList())))
+            mDbName, mName, i), mStats)))
         .collect(Collectors.toList());
+  }
+
+  public static String getPartName(int index) {
+    return "col1=" + index;
   }
 
   private static PartitionInfo genPartitionInfo(String dbName, String tableName, int index) {
     return PartitionInfo.newBuilder()
         .setDbName(dbName)
         .setTableName(tableName)
-        .setPartitionName("col1=" + index).build();
+        .setPartitionName(getPartName(index)).build();
   }
 
   @Override
@@ -97,7 +110,7 @@ public class TestUdbTable implements UdbTable {
 
   @Override
   public List<ColumnStatisticsInfo> getStatistics() {
-    return Collections.emptyList();
+    return mStats;
   }
 
   @Override
