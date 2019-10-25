@@ -880,14 +880,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Checks if the path is the root.
+   * Checks if the path is the root. This method supports full path (e.g. s3://bucket_name/dir)
+   * and stripped path (e.g. /dir).
    *
    * @param path ufs path including scheme and bucket
    * @return true if the path is the root, false otherwise
    */
   protected boolean isRoot(String path) {
-    return PathUtils.normalizePath(path, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
+    String normalizePath = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    return normalizePath.equals(PATH_SEPARATOR)
+        || normalizePath.equals(PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
   }
 
   /**
