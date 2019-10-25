@@ -19,7 +19,6 @@ import com.google.common.base.Preconditions;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.validation.constraints.NotNull;
@@ -33,8 +32,8 @@ public final class TransformJobInfo {
   private final String mDefinition;
   private final Map<String, Layout> mTransformedLayouts;
   private final long mJobId;
-  private AtomicReference<Status> mJobStatus;
-  private AtomicReference<String> mJobErrorMessage;
+  private volatile Status mJobStatus;
+  private volatile String mJobErrorMessage;
 
   /**
    * The default job status on construction is {@link Status#RUNNING}.
@@ -56,8 +55,8 @@ public final class TransformJobInfo {
     mDefinition = definition;
     mTransformedLayouts = Collections.unmodifiableMap(transformedLayouts);
     mJobId = jobId;
-    mJobStatus = new AtomicReference<>(Status.RUNNING);
-    mJobErrorMessage = new AtomicReference<>("");
+    mJobStatus = Status.RUNNING;
+    mJobErrorMessage = "";
   }
 
   /**
@@ -106,7 +105,7 @@ public final class TransformJobInfo {
    * @return the job status
    */
   public Status getJobStatus() {
-    return mJobStatus.get();
+    return mJobStatus;
   }
 
   /**
@@ -116,14 +115,14 @@ public final class TransformJobInfo {
    */
   public void setJobStatus(@NotNull Status status) {
     Preconditions.checkNotNull(status, "status");
-    mJobStatus.set(status);
+    mJobStatus = status;
   }
 
   /**
    * @return the job error message or empty if there is no error
    */
   public String getJobErrorMessage() {
-    return mJobErrorMessage.get();
+    return mJobErrorMessage;
   }
 
   /**
@@ -133,7 +132,7 @@ public final class TransformJobInfo {
    */
   public void setJobErrorMessage(@NotNull String error) {
     Preconditions.checkNotNull(error, "error");
-    mJobErrorMessage.set(error);
+    mJobErrorMessage = error;
   }
 
   /**
