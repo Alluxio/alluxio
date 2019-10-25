@@ -15,6 +15,7 @@ import static org.mockito.Matchers.any;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -317,10 +318,10 @@ public final class PersistenceTest {
     // Create src file and directory, checking the internal state.
     AlluxioURI alluxioDirSrc = new AlluxioURI("/src");
     mFileSystemMaster.createDirectory(alluxioDirSrc,
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     AlluxioURI alluxioFileSrc = new AlluxioURI("/src/in_alluxio");
     FileInfo info = mFileSystemMaster.createFile(alluxioFileSrc,
-        CreateFileContext.defaults().setPersisted(false));
+        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), info.getPersistenceState());
     mFileSystemMaster.completeFile(alluxioFileSrc, CompleteFileContext.defaults());
 
@@ -364,7 +365,7 @@ public final class PersistenceTest {
 
     // Rename the src file before the persist is commited.
     mFileSystemMaster.createDirectory(new AlluxioURI("/dst"),
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     AlluxioURI alluxioFileDst = new AlluxioURI("/dst/in_alluxio");
     mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameContext.defaults());
 
@@ -453,6 +454,7 @@ public final class PersistenceTest {
         CreateFileContext
             .mergeFrom(
                 CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto()))
+            .setWriteType(WriteType.MUST_CACHE)
             .setOwner(owner).setGroup(group));
     mFileSystemMaster.completeFile(path, CompleteFileContext.defaults());
     return path;
