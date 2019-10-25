@@ -130,7 +130,7 @@ spec:
                         {{- end}}
                       {{- else}}
                         {{- if eq .type "hostPath"}}
-            - name: {{ .mediumtype | lower }}
+            - name: {{ .mediumtype | replace "," "-" | lower }}
               mountPath: {{ .path }}
                         {{- else }}
             # report error and exit
@@ -187,7 +187,7 @@ spec:
         - hostPath:
             path: {{ .path }}
             type: DirectoryOrCreate
-          name: {{ .mediumtype | lower }}
+          name: {{ .mediumtype | replace "," "-" | lower }}
                     {{- end }}
                   {{- end }}
                 {{- end}}
