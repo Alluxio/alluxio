@@ -31,8 +31,8 @@ directory:
 $ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
 ```
 
-Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2` (enabled by default),
-`hadoop-3` for the major Hadoop versions 1.x, 2.x and 3.x. If you want to build Alluxio with a specific
+Alluxio provides predefined build profiles for `hadoop-2` (enabled by default) and 
+`hadoop-3` for the major Hadoop versions 2.x and 3.x. If you want to build Alluxio with a specific
 Hadoop release version, you can also specify the version in the command. For example,
 
 ```console
@@ -220,13 +220,13 @@ $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 ```
 
 #### Using Mount Command-line
-When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, by default Alluxio treats it as Apache HDFS 2.2.
+When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, by default Alluxio treats it as Apache HDFS 2.7.
 
-For example, the following commands mount two HDFS deployments—one is HDFS 1.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs12` and `/mnt/hdfs27`.
+For example, the following commands mount two HDFS deployments—one is HDFS 2.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs12` and `/mnt/hdfs27`.
 
 ```console
 $ ./bin/alluxio fs mount \
-  --option alluxio.underfs.version=1.2 \
+  --option alluxio.underfs.version=2.2 \
   /mnt/hdfs12 hdfs://namenode1:8020/
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.version=2.7 \
@@ -240,14 +240,27 @@ following line to the site properties file (`conf/alluxio-site.properties`)
 
 ```
 alluxio.master.mount.table.root.ufs=hdfs://namenode1:8020
-alluxio.master.mount.table.root.option.alluxio.underfs.version=1.2
+alluxio.master.mount.table.root.option.alluxio.underfs.version=2.2
 ```
 
 #### Supported HDFS Versions
 
 Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
-- Apache Hadoop: 1.0, 1.2, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
+- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
+
+Note: Apache Hadoop 1.0 and 1.2 are still supported, but not included in the default download.
+To build this module yourself, build the shaded hadoop client and then the UFS model as demonstrated
+in the example below for hadoop-1.2.0.
+This will provide a jar that should be moved to the `lib/` directory in the Alluxio install directory.
+
+```console
+cd shaded/hadoop/
+mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
+cd ../../underfs/hdfs/
+mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
+
+```
 
 ### Use Hadoop Native Library
 
