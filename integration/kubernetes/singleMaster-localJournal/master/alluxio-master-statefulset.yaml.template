@@ -48,7 +48,7 @@ spec:
         fsGroup: 1000
       initContainers:
       - name: journal-chown
-        image: alluxio/alluxio:2.1.0-SNAPSHOT
+        image: alluxio/alluxio:2.1.0-RC0
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 0
@@ -58,7 +58,7 @@ spec:
           mountPath: /journal
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.1.0-RC0
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
@@ -86,7 +86,7 @@ spec:
             - name: alluxio-journal
               mountPath: /journal
         - name: alluxio-job-master
-          image: alluxio/alluxio:2.1.0-SNAPSHOT
+          image: alluxio/alluxio:2.1.0-RC0
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
