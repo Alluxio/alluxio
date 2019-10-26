@@ -13,6 +13,7 @@ package alluxio.job.transform.format;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.AlluxioURI;
 import alluxio.job.transform.BaseTransformTest;
 import alluxio.job.transform.format.csv.CsvReader;
 import alluxio.job.transform.format.parquet.ParquetReader;
@@ -57,7 +58,8 @@ public final class ReadWriteTest extends BaseTransformTest {
   private void createParquetFile(File file) throws IOException {
     TableSchema schema = new ParquetSchema(SCHEMA);
     TableRow row = new ParquetRow(RECORD);
-    try (TableWriter writer = TableWriter.create(schema, "file", file.getPath())) {
+    AlluxioURI uri = new AlluxioURI("file:///" + file.getPath());
+    try (TableWriter writer = TableWriter.create(schema, uri)) {
       writer.write(row);
     }
   }
@@ -94,7 +96,8 @@ public final class ReadWriteTest extends BaseTransformTest {
           throw new IOException("Unsupported format: " + format);
       }
 
-      try (TableReader reader = TableReader.create("file", file.getPath())) {
+      AlluxioURI uri = new AlluxioURI("file:///" + file.getPath());
+      try (TableReader reader = TableReader.create(uri)) {
         assertEquals(cls, reader.getClass());
       }
     }
@@ -108,14 +111,16 @@ public final class ReadWriteTest extends BaseTransformTest {
 
     TableSchema schema = new ParquetSchema(SCHEMA);
     TableRow row = new ParquetRow(RECORD);
-    try (TableWriter writer = TableWriter.create(schema, "file", file.getPath())) {
+    AlluxioURI uri = new AlluxioURI("file:///" + file.getPath());
+    try (TableWriter writer = TableWriter.create(schema, uri)) {
       for (int r = 0; r < numRows; r++) {
         writer.write(row);
       }
     }
 
     List<TableRow> rows = Lists.newArrayList();
-    try (TableReader reader = TableReader.create("file", file.getPath())) {
+    uri = new AlluxioURI("file:///" + file.getPath());
+    try (TableReader reader = TableReader.create(uri)) {
       assertEquals(schema, reader.getSchema());
       for (TableRow r = reader.read(); r != null; r = reader.read()) {
         rows.add(r);

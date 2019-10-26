@@ -11,7 +11,7 @@
 
 package alluxio.job.transform.format;
 
-import alluxio.Constants;
+import alluxio.AlluxioURI;
 import alluxio.job.transform.format.parquet.ParquetWriter;
 
 import java.io.Closeable;
@@ -23,23 +23,13 @@ import java.io.IOException;
 public interface TableWriter extends Closeable {
   /**
    * @param schema the table schema
-   * @param scheme the scheme of the path, e.g. "alluxio", "file"
-   * @param path the path to the file representing the table
-   * @return the writer for the table
+   * @param uri the URI to the output
+   * @return the writer for the output
    * @throws IOException when failed to create the writer
    */
-  static TableWriter create(TableSchema schema, String scheme, String path) throws IOException {
-    return ParquetWriter.create(schema, scheme, path);
-  }
-
-  /**
-   * @param schema the table schema
-   * @param path the path to the file representing the table
-   * @return the result of {@link #create(TableSchema, String, String)} with scheme set to "alluxio"
-   * @throws IOException when failed to create the writer
-   */
-  static TableWriter create(TableSchema schema, String path) throws IOException {
-    return create(schema, Constants.SCHEME, path);
+  static TableWriter create(TableSchema schema, AlluxioURI uri) throws IOException {
+    ReadWriterUtils.checkUri(uri);
+    return ParquetWriter.create(schema, uri);
   }
 
   /**
