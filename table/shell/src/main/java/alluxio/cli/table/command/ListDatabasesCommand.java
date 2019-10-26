@@ -17,6 +17,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.table.Constraint;
+import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.TableInfo;
 
 import org.apache.commons.cli.CommandLine;
@@ -116,6 +118,9 @@ public class ListDatabasesCommand extends AbstractTableCommand {
   public int listTable(String db, String tableName) throws AlluxioStatusException {
     TableInfo table = mClient.getTable(db, tableName);
     System.out.println(table);
+    List<Partition> partitionList = mClient.readTable(db, tableName,
+        Constraint.getDefaultInstance());
+    partitionList.forEach(System.out::println);
     return 0;
   }
 }
