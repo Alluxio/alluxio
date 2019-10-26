@@ -170,6 +170,10 @@ public enum ExceptionMessage {
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 
+  // table master
+  DATABASE_DOES_NOT_EXIST("Database {0} does not exist"),
+  TABLE_DOES_NOT_EXIST("Table {0} does not exist in database {1}"),
+
   // safe mode
   MASTER_IN_SAFEMODE("Alluxio master is in safe mode. Please try again later."),
 

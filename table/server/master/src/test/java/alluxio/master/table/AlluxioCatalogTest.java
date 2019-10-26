@@ -15,6 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsData;
 import alluxio.grpc.table.ColumnStatisticsInfo;
@@ -25,6 +28,8 @@ import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
+import alluxio.table.common.transform.TransformDefinition;
+import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
@@ -48,6 +53,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class AlluxioCatalogTest {
+  private static final TransformDefinition TRANSFORM_DEFINITION =
+      TransformDefinition.parse("write(hive).option(hive.num.files, 100);");
 
   private AlluxioCatalog mCatalog;
 
@@ -218,6 +225,76 @@ public class AlluxioCatalogTest {
     // empty
     assertEquals(0, mCatalog.getTableColumnStatistics("test", "test",
         Lists.newArrayList()).size());
+  }
+
+  @Test
+  public void getTransformPlanForNonExistingDatabase() throws IOException {
+    String dbName = "doesnotexist";
+    mException.expect(NotFoundException.class);
+    mException.expectMessage(ExceptionMessage.DATABASE_DOES_NOT_EXIST.getMessage(dbName));
+    mCatalog.getTransformPlan(dbName, "table", TRANSFORM_DEFINITION);
+  }
+
+  @Test
+  public void getTransformPlanForNonExistingTable() throws IOException {
+    String dbName = "existingdb";
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
+        Collections.emptyMap());
+    assertEquals(1, mCatalog.getAllDatabases().size());
+    assertEquals(0, mCatalog.getAllTables(dbName).size());
+    String tableName = "doesnotexist";
+    mException.expect(NotFoundException.class);
+    mException.expectMessage(ExceptionMessage.TABLE_DOES_NOT_EXIST.getMessage(tableName, dbName));
+    mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
+  }
+
+  @Test
+  public void getTransformPlan() throws Exception {
+    String dbName = "testdb";
+    TestDatabase.genTable(1, 1);
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
+        Collections.emptyMap());
+    assertEquals(1, mCatalog.getAllDatabases().size());
+    assertEquals(1, mCatalog.getAllTables(dbName).size());
+    String tableName = TestDatabase.getTableName(0);
+    // When generating transform plan, the authority of the output path
+    // will be determined based on this hostname configuration.
+    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
+    assertEquals(1, plans.size());
+    Table table = mCatalog.getTable(dbName, tableName);
+    assertEquals(1, table.getPartitions().size());
+    assertEquals(table.getPartitions().get(0).getLayout(), plans.get(0).getBaseLayout());
+  }
+
+  @Test
+  public void getTransformPlanOutputUri() throws Exception {
+    String dbName = "testdb";
+    TestDatabase.genTable(1, 1);
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
+        Collections.emptyMap());
+    String tableName = TestDatabase.getTableName(0);
+    Table table = mCatalog.getTable(dbName, tableName);
+
+    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, "8080");
+    List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
+    assertEquals("alluxio://localhost:8080/",
+        plans.get(0).getTransformedLayout().getLocation().getRootPath());
+
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, "host1:1,host2:2");
+    plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
+    assertEquals("alluxio://host1:1,host2:2/",
+        plans.get(0).getTransformedLayout().getLocation().getRootPath());
+
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, "host:1000");
+    plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
+    assertEquals("alluxio://zk@host:1000/",
+        plans.get(0).getTransformedLayout().getLocation().getRootPath());
   }
 
   /**
