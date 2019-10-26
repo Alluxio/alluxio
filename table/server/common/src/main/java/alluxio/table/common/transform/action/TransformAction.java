@@ -11,6 +11,7 @@
 
 package alluxio.table.common.transform.action;
 
+import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
 import alluxio.table.common.Layout;
 
@@ -54,7 +55,8 @@ public interface TransformAction {
       while (!definition.isEmpty()) {
         Matcher matcher = COMPONENT_REGEX.matcher(definition);
         if (!matcher.find()) {
-          throw new IllegalArgumentException("Failed to parse transform action at: " + definition);
+          throw new IllegalArgumentException(
+              ExceptionMessage.TRANSFORM_ACTION_PARSE_FAILED.getMessage(definition));
         }
         String name = matcher.group("name");
         String args = matcher.group("args");

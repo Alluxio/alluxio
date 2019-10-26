@@ -39,6 +39,13 @@ public class TestDatabase implements UnderDatabase {
   }
 
   /**
+   * Resets the db by clearing out all tables.
+   */
+  public static void reset() {
+    DATABASE.mUdbTables.clear();
+  }
+
+  /**
    * Creates an instance.
    *
    * @param udbContext the db context

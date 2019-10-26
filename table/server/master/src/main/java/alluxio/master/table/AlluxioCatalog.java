@@ -15,6 +15,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.ColumnStatisticsList;
@@ -198,7 +199,7 @@ public class AlluxioCatalog implements Journaled {
   private Database getDatabaseByName(String dbName) throws NotFoundException {
     Database db = mDBs.get(dbName);
     if (db == null) {
-      throw new NotFoundException("Database " + dbName + " does not exist");
+      throw new NotFoundException(ExceptionMessage.DATABASE_DOES_NOT_EXIST.getMessage(dbName));
     }
     return db;
   }
