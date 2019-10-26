@@ -28,6 +28,7 @@ public interface TableReader extends Closeable {
    * @throws IOException when failed to create the reader
    */
   static TableReader create(AlluxioURI uri) throws IOException {
+    ReadWriterUtils.checkUri(uri);
     if (Format.isCsv(uri.getPath())) {
       return CsvReader.create(uri);
     } else if (Format.isParquet(uri.getPath())) {

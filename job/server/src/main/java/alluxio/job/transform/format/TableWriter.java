@@ -28,6 +28,7 @@ public interface TableWriter extends Closeable {
    * @throws IOException when failed to create the writer
    */
   static TableWriter create(TableSchema schema, AlluxioURI uri) throws IOException {
+    ReadWriterUtils.checkUri(uri);
     return ParquetWriter.create(schema, uri);
   }
 
