@@ -11,6 +11,7 @@
 
 package alluxio.job.transform.format.parquet;
 
+import alluxio.AlluxioURI;
 import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
@@ -52,17 +53,17 @@ public final class ParquetWriter implements TableWriter {
    * Creates a Parquet writer.
    *
    * @param schema the schema
-   * @param scheme the scheme of the output, e.g. "alluxio", "file"
-   * @param output the output Parquet file
+   * @param uri the URI to the output
    * @return the writer
    * @throws IOException when failed to create the writer
    */
-  public static ParquetWriter create(TableSchema schema, String scheme, String output)
+  public static ParquetWriter create(TableSchema schema, AlluxioURI uri)
       throws IOException {
     Configuration conf = ReadWriterUtils.writeThroughConf();
     ParquetSchema parquetSchema = schema.toParquet();
     return new ParquetWriter(AvroParquetWriter.<Record>builder(
-        HadoopOutputFile.fromPath(new Path(scheme, "", output), conf))
+        HadoopOutputFile.fromPath(
+            new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()), conf))
         .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
         .withConf(conf)
         .withCompressionCodec(CompressionCodecName.SNAPPY)
