@@ -37,7 +37,7 @@ public class TableMasterJournalIntegrationTest {
       new LocalAlluxioClusterResource.Builder().setStartCluster(false)
           .build();
 
-  private static final String DB_NAME = TestDatabase.DB_NAME;
+  private static final String DB_NAME = TestDatabase.TEST_UDB_NAME;
 
   @Before
   public void before() throws Exception {
