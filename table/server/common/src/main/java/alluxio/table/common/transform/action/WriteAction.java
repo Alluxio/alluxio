@@ -11,6 +11,7 @@
 
 package alluxio.table.common.transform.action;
 
+import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
 import alluxio.job.transform.CompactConfig;
 import alluxio.table.common.Layout;
@@ -49,11 +50,14 @@ public class WriteAction implements TransformAction {
     @Override
     public TransformAction create(String definition, List<String> args,
         Map<String, String> options) {
-      Preconditions.checkArgument(args.size() == 1, "Number of arguments should be 1");
+      Preconditions.checkArgument(args.size() == 1,
+          ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_ARGS.toString());
       String type = args.get(0);
       int numFiles = options.containsKey(NUM_FILES_OPTION)
           ? Integer.parseInt(options.get(NUM_FILES_OPTION))
           : DEFAULT_NUM_FILES;
+      Preconditions.checkArgument(numFiles > 0,
+          ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES);
       return new WriteAction(type, numFiles);
     }
   }

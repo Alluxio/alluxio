@@ -11,6 +11,7 @@
 
 package alluxio.master.table;
 
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
 import alluxio.grpc.table.Schema;
@@ -129,7 +130,8 @@ public class Database implements Journaled {
   public Table getTable(String tableName) throws NotFoundException {
     Table table = mTables.get(tableName);
     if (table == null) {
-      throw new NotFoundException("Table " + tableName + " does not exist.");
+      throw new NotFoundException(ExceptionMessage.TABLE_DOES_NOT_EXIST
+          .getMessage(tableName, mName));
     }
     return table;
   }
