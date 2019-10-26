@@ -44,7 +44,7 @@ import java.util.function.Function;
  */
 public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
   // Helper function to create a set of files in the file system
-  private void createFiles(String user) throws Exception {
+  private FileSystem createFiles(String user) throws Exception {
     FileSystem fs = mFileSystem;
     if (user != null) {
       fs = mLocalAlluxioCluster.getClient(FileSystemContext
@@ -55,6 +55,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     FileSystemTestUtils
         .createByteFile(fs, "/testRoot/testDir/testFileB", WritePType.MUST_CACHE, 20);
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileC", WritePType.THROUGH, 30);
+    return fs;
   }
 
   /**
