@@ -248,10 +248,10 @@ public class AlluxioCatalog implements Journaled {
     try (LockResource l = getLock(dbName, true)) {
       Table table = getTableInternal(dbName, tableName);
       List<Partition> partitions = table.getPartitions();
-      return partitions.stream().filter(p -> partNames.contains(p.getBaseLayout().getSpec()))
-          .map(p -> new Pair<>(p.getBaseLayout().getSpec(),
+      return partitions.stream().filter(p -> partNames.contains(p.getSpec()))
+          .map(p -> new Pair<>(p.getSpec(),
               ColumnStatisticsList.newBuilder().addAllStatistics(
-                  p.getBaseLayout().getColumnStatsData().entrySet().stream()
+                  p.getLayout().getColumnStatsData().entrySet().stream()
                       .filter(entry -> colNames.contains(entry.getKey()))
                       .map(Map.Entry::getValue).collect(Collectors.toList())).build()))
           .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (e1, e2) -> e2));
