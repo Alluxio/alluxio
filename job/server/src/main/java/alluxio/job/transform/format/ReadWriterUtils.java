@@ -11,10 +11,15 @@
 
 package alluxio.job.transform.format;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.uri.NoAuthority;
 
+import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
 
 /**
@@ -23,6 +28,21 @@ import org.apache.hadoop.conf.Configuration;
 public final class ReadWriterUtils {
   private static final String ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE =
       "fs.alluxio.impl.disable.cache";
+
+  /**
+   * Checks preconditions of uri.
+   *
+   * @param uri the URI to check
+   */
+  public static void checkUri(AlluxioURI uri) {
+    Preconditions.checkArgument(uri.getScheme() != null && !uri.getScheme().isEmpty(),
+        ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_SCHEME.getMessage(uri));
+    if (uri.getScheme().equals(Constants.SCHEME)) {
+      Preconditions.checkArgument(uri.getAuthority() != null
+              && !uri.getAuthority().equals(NoAuthority.INSTANCE),
+          ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_AUTHORITY.getMessage(uri));
+    }
+  }
 
   /**
    * @return a new Hadoop conf with alluxio read type set to no cache
@@ -45,4 +65,6 @@ public final class ReadWriterUtils {
     conf.setBoolean(ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE, true);
     return conf;
   }
+
+  private ReadWriterUtils() {} // Prevent initialization
 }
