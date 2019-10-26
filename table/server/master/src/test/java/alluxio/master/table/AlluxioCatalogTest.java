@@ -12,6 +12,7 @@
 package alluxio.master.table;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +27,7 @@ import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.StringColumnStatsData;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.table.common.Layout;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.transform.TransformDefinition;
@@ -35,6 +37,7 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,6 +67,7 @@ public class AlluxioCatalogTest {
   @Before
   public void before() {
     mCatalog = new AlluxioCatalog();
+    TestDatabase.reset();
   }
 
   @Test
@@ -295,6 +299,60 @@ public class AlluxioCatalogTest {
     plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
     assertEquals("alluxio://zk@host:1000/",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
+  }
+
+  @Test
+  public void completeTransformNonExistingDatabase() throws IOException {
+    String dbName = "doesnotexist";
+    mException.expect(NotFoundException.class);
+    mException.expectMessage(ExceptionMessage.DATABASE_DOES_NOT_EXIST.getMessage(dbName));
+    mCatalog.completeTransformTable(NoopJournalContext.INSTANCE, dbName, "table",
+        TRANSFORM_DEFINITION.getDefinition(), Collections.emptyMap());
+  }
+
+  @Test
+  public void completeTransformNonExistingTable() throws IOException {
+    String dbName = "existingdb";
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
+        Collections.emptyMap());
+    assertEquals(1, mCatalog.getAllDatabases().size());
+    assertEquals(0, mCatalog.getAllTables(dbName).size());
+    String tableName = "doesnotexist";
+    mException.expect(NotFoundException.class);
+    mException.expectMessage(ExceptionMessage.TABLE_DOES_NOT_EXIST.getMessage(tableName, dbName));
+    mCatalog.completeTransformTable(NoopJournalContext.INSTANCE, dbName, tableName,
+        TRANSFORM_DEFINITION.getDefinition(), Collections.emptyMap());
+  }
+
+  @Test
+  public void completeTransformTable() throws IOException {
+    String dbName = "testdb";
+    TestDatabase.genTable(1, 10);
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
+        Collections.emptyMap());
+    String tableName = TestDatabase.getTableName(0);
+
+    Table table = mCatalog.getTable(dbName, tableName);
+    table.getPartitions().forEach(partition ->
+        assertFalse(partition.isTransformed(TRANSFORM_DEFINITION)));
+
+    // When generating transform plan, the authority of the output path
+    // will be determined based on this hostname configuration.
+    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
+
+    Map<String, Layout> transformedLayouts = Maps.newHashMapWithExpectedSize(plans.size());
+    plans.forEach(plan ->
+        transformedLayouts.put(plan.getBaseLayout().getSpec(), plan.getTransformedLayout()));
+    mCatalog.completeTransformTable(NoopJournalContext.INSTANCE, dbName, tableName,
+        TRANSFORM_DEFINITION.getDefinition(), transformedLayouts);
+
+    table.getPartitions().forEach(partition -> {
+      assertTrue(partition.isTransformed(TRANSFORM_DEFINITION));
+      assertEquals(transformedLayouts.get(partition.getSpec()), partition.getLayout());
+    });
   }
 
   /**

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -127,5 +128,26 @@ public class HiveLayout implements Layout {
         + outputPath.getPath());
     HiveLayout transformedLayout = transformLayout(outputUri);
     return new TransformPlan(this, transformedLayout, definition);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof HiveLayout)) {
+      return false;
+    }
+    HiveLayout that = (HiveLayout) obj;
+    return Objects.equals(mPartitionInfo, that.mPartitionInfo)
+        && Objects.equals(mPartitionStatsInfo, that.mPartitionStatsInfo);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mPartitionInfo, mPartitionStatsInfo);
   }
 }
