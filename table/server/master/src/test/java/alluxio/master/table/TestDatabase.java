@@ -11,6 +11,7 @@
 
 package alluxio.master.table;
 
+import alluxio.exception.status.NotFoundException;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -26,7 +27,7 @@ import java.util.Map;
  * A udb implementation which does nothing, used for testing.
  */
 public class TestDatabase implements UnderDatabase {
-  public static final String DB_NAME = "test_udb_name";
+  public static final String TEST_UDB_NAME = "test_udb_name";
   public static final String TABLE_NAME_PREFIX = "test_table_name";
   private static final TestDatabase DATABASE = new TestDatabase();
 
@@ -50,6 +51,12 @@ public class TestDatabase implements UnderDatabase {
     return DATABASE;
   }
 
+  private void checkDbName() throws NotFoundException {
+    if (!getUdbContext().getUdbDbName().equals(TEST_UDB_NAME)) {
+      throw new NotFoundException("Database " + getUdbContext().getDbName() + " does not exist.");
+    }
+  }
+
   @Override
   public String getType() {
     return TestUdbFactory.TYPE;
@@ -57,16 +64,21 @@ public class TestDatabase implements UnderDatabase {
 
   @Override
   public String getName() {
-    return DB_NAME;
+    return TEST_UDB_NAME;
   }
 
   @Override
   public List<String> getTableNames() throws IOException {
+    checkDbName();
     return new ArrayList<>(mUdbTables.keySet());
   }
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
+    checkDbName();
+    if (!mUdbTables.containsKey(tableName)) {
+      throw new NotFoundException("Table " + tableName + " does not exist.");
+    }
     return mUdbTables.get(tableName);
   }
 
@@ -78,7 +90,7 @@ public class TestDatabase implements UnderDatabase {
     DATABASE.mUdbTables.clear();
     for (int i = 0; i < numOfTable; i++) {
       DATABASE.mUdbTables.put(getTableName(i),
-          new TestUdbTable(DB_NAME, getTableName(i), numOfPartitions));
+          new TestUdbTable(TEST_UDB_NAME, getTableName(i), numOfPartitions));
     }
   }
 
