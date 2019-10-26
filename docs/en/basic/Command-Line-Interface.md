@@ -83,12 +83,6 @@ Warning: `formatWorker` should only be called while the cluster is not running.
 $ ./bin/alluxio formatWorker
 ```
 
-### fsadmin
-
-The `fsadmin` command is meant for administrators of the Alluxio cluster. It provides added tools for
-diagnostics and troubleshooting. For more information see the
-[main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
-
 ### bootstrapConf
 
 The `bootstrapConf` command generates the bootstrap configuration file
@@ -103,6 +97,16 @@ in accordance to the state of the machine:
 ```console
 $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
+
+### fs
+
+See [File System Operations](#File-System-Operations).
+
+### fsadmin
+
+The `fsadmin` command is meant for administrators of the Alluxio cluster.
+It provides added tools for diagnostics and troubleshooting.
+For more information see the [main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
 ### getConf
 
@@ -139,6 +143,38 @@ $ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
 $ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
 ```
 
+### job
+
+The `job` command is a tool for interacting with the job service.
+
+The usage is `job [generic options]`
+where `[generic options]` can be one of the following values:
+* `leader`: Prints the hostname of the job master service leader.
+* `ls`: Prints the IDs of the most recent jobs, running and finished, in the history up to the capacity set in `alluxio.job.master.job.capacity`.
+* `stat [-v] <id>`:Displays the status info for the specific job. Use -v flag to display the status of every task.
+
+```console
+# Prints the hostname of the job master service leader.
+$ ./bin/alluxio job leader
+
+# Prints the IDs of the most recent jobs, running and finished.
+$ ./bin/alluxio job ls
+1571865684755
+1571865684754
+1571865684753
+1571865684759
+1571865684758
+1571865684757
+
+# Displays the status info for the specific job.
+$ ./bin/alluxio job stat -v 1571936656625
+ID: 1571936656625
+Name: Persist
+Status: COMPLETED
+Task 0
+	Status: COMPLETED
+```
+
 ### logLevel
 
 The `logLevel` command returns the current value of or updates the log level of a particular class
@@ -168,6 +204,15 @@ $ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
   --target=workers
 ```
 
+### runClass
+
+The `runClass` command runs the main method of an Alluxio class.
+
+For example, to run the multi-mount demo:
+```console
+$ ./bin/alluxio runClass alluxio.examples.MultiMount <HDFS_URL>
+```
+
 ### runTests
 
 The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
@@ -175,6 +220,16 @@ The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a 
 ```console
 $ ./bin/alluxio runTests
 ```
+
+### runJournalCrashTest
+
+The `runJournalCrashTest` simulates a failover to test recovery from the journal.
+Note that this command will stop any Alluxio services running on the machine.
+
+### runMesosTest
+
+The `runMesosTest` validates the Alluxio Mesos integration.
+Note that this command will stop any Alluxio services running on the machine.
 
 ### runUfsTests
 
@@ -188,7 +243,7 @@ The usage of this command includes:
 * Test if the given UFS credentials are valid before mounting the UFS to an Alluxio cluster.
 * If the given UFS is S3, this test can also be used as a S3 compatibility test to test if the target under filesystem can
   fulfill the minimum S3 compatibility requirements in order to work well with Alluxio.
-* Validate the contract between Alluxio and the given UFS. This is primarily intended for Alluxio developers. 
+* Validate the contract between Alluxio and the given UFS. This is primarily intended for Alluxio developers.
   Developers are required to add test coverage for changes to an Alluxio UFS module and run those tests to validate.
 
 ```console
@@ -200,6 +255,11 @@ $ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
   -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key> \
   -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
+
+### readJournal
+
+The `readJournal` command parses the current journal and outputs a human readable version to the local folder.
+Note this command may take a while depending on the size of the journal.
 
 ### upgradeJournal
 
@@ -213,6 +273,11 @@ It is assumed to be the same as the v1 journal directory if not set.
 $ ./bin/alluxio upgradeJournal
 ```
 
+### killAll
+
+The `killAll` command kills all processes containing the specified word.
+Note this kills non-Alluxio processes as well.
+
 ### copyDir
 
 The `copyDir` command copies the directory at `PATH` to all worker nodes listed in `conf/workers`.
@@ -220,6 +285,18 @@ The `copyDir` command copies the directory at `PATH` to all worker nodes listed 
 ```console
 $ ./bin/alluxio copyDir conf/alluxio-site.properties
 ```
+
+### clearCache
+
+The `clearCache` command drops the OS buffer cache.
+
+### confDocGen
+
+The `confDocGen` autogenerates configuration documentation based on the current source code.
+
+### table
+
+See [Table Operations](#Table-Operations).
 
 ### version
 
@@ -528,22 +605,6 @@ File Size     In Alluxio       Path
 4352B         4352B (100%)     /testFolder
 ```
 
-### fileInfo
-
-The `fileInfo` command is deprecated since Alluxio version 1.5.
-Please use `alluxio fs stat <path>` command instead.
-
-The `fileInfo` command dumps the FileInfo representation of a file to the console.
-It is primarily intended to assist power users in debugging their system.
-Generally viewing the file info in the UI is much easier to understand.
-
-For example, `fileInfo` can be used to debug the block locations of a file.
-This is useful when trying to achieve locality for compute workloads.
-
-```console
-$ ./bin/alluxio fs fileInfo /data/2015/logs-1.txt
-```
-
 ### free
 
 The `free` command sends a request to the master to evict all blocks of a file from the Alluxio workers.
@@ -704,7 +765,7 @@ $ ./bin/alluxio fs ls /s3/data/
 
 # Forces loading metadata.
 $ aws s3 cp /tmp/somedata s3://data-bucket/somedata
-$ ./bin/alluxio fs ls -f /s3/data 
+$ ./bin/alluxio fs ls -f /s3/data
 
 # Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
 $ aws s3 rm s3://data-bucket/somedata
@@ -997,3 +1058,114 @@ For example, `unsetTtl` can be used if a regularly managed file requires manual 
 ```console
 $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```
+
+## Table Operations
+
+```
+./bin/alluxio table
+Usage: alluxio table [generic options]
+	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] <udb type> <udb connection uri> <udb db name>]
+	 [detachdb <db name>]
+	 [ls [<db name> [<table name>]]]
+	 [sync <db name>]
+	 [transform <db name> <table name>]
+```
+
+The table subcommand manages the structured data service of Alluxio.
+
+### attachdb
+
+The `attachdb` command attaches an existing "under database" to the Alluxio catalog. This is
+analogous to mounting a under filesystem to the Alluxio filesystem namespace. Once a database is
+attached, it will be exposed through the Alluxio catalog.
+Here is an example of the usage:
+
+```console
+$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name
+```
+
+This command will attach the database `hive_db_name` (of type `hive`) from the URI
+`thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `hive_db_name`.
+
+You can use a different Alluxio database name with the `--db <alluxio db name>` option.
+
+
+For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
+table/partition locations in the specified database, to Alluxio. You can supply the mount options
+for the possible table locations with the
+option `-o udb-hive.mount-option.{scheme/authority}.key=value`.
+
+```console
+$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
+  -o udb-hive.mount-option.{s3a://bucket1}.aws.accessKeyId=abc \
+  -o udb-hive.mount-option.{s3a://bucket2}.aws.accessKeyId=123
+```
+
+This command will attach the database `hive_db_name` (of type `hive`) from the URI
+`thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
+When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
+and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+
+### detachdb
+
+The `detachdb` command is the opposite of the `attachdb` command. Detaching a database will remove
+the connection to the under database, and remove it from the Alluxio catalog. Example usage:
+
+```console
+$ ./bin/alluxio table detachdb alluxio_db_name
+```
+
+This command will detach the database name `alluxio_db_name` from the Alluxio catalog.
+
+### ls
+
+The `ls` command shows information about the Alluxio catalog. Here are some examples:
+
+```console
+$ ./bin/alluxio table ls
+```
+
+This command without any arguments will show all the databases attached in the system.
+
+```console
+$ ./bin/alluxio table ls db_name
+```
+
+This command with 1 argument will show all the tables in the `db_name` database.
+
+```console
+$ ./bin/alluxio table ls db_name table_name
+```
+
+This command with 2 arguments will show the table information of the `table_name` table in
+the `db_name` database.
+
+### sync
+
+The `sync` command syncs the given database name with the under database. Here is an example:
+
+```console
+$ ./bin/alluxio table sync db_name
+```
+
+This will sync the `db_name` database name with the under database.
+
+> In 2.1.0, `sync` will only discover new information (new tables, new partitions) and not update
+> existing metadata. The full sync feature will be implemented in future versions.
+
+### transform
+
+The `transform` command will transform a table for improved efficiency when reading the table.
+Here is an example usage:
+
+```console
+$ ./bin/alluxio table transform db_name table_name
+```
+
+This command will invoke a transformation on the table. The transformation is performed
+asynchronously, and will coalesce to a fewer number of files, and convert into the parquet file
+format.
+
+> In 2.1.0, the types of files which can be transformed are the parquet file format and the csv
+> file format. The output file format is only parquet. Additional formats for input and output
+> will be implemented in future versions.

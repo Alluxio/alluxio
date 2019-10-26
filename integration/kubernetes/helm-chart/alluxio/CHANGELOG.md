@@ -26,3 +26,9 @@
 - Added multiple template directories for sample use cases
 - Merged helm-generate.sh which generates the templates 
 
+
+0.5.1
+
+- Fix tiered store issue
+- Fix the issue of the user group of worker is not configurable
+

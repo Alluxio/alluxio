@@ -4793,8 +4793,8 @@ public final class Table {
 
   }
 
-  public interface TransformJobEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.TransformJobEntry)
+  public interface CompleteTransformTableEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.CompleteTransformTableEntry)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -4826,19 +4826,32 @@ public final class Table {
         getTableNameBytes();
 
     /**
-     * <code>optional int64 job_id = 3;</code>
+     * <code>optional string definition = 3;</code>
      */
-    boolean hasJobId();
+    boolean hasDefinition();
     /**
-     * <code>optional int64 job_id = 3;</code>
+     * <code>optional string definition = 3;</code>
      */
-    long getJobId();
+    java.lang.String getDefinition();
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getDefinitionBytes();
 
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
     int getTransformedLayoutsCount();
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
     boolean containsTransformedLayouts(
@@ -4850,11 +4863,19 @@ public final class Table {
     java.util.Map<java.lang.String, alluxio.grpc.table.Layout>
     getTransformedLayouts();
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
     java.util.Map<java.lang.String, alluxio.grpc.table.Layout>
     getTransformedLayoutsMap();
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
 
@@ -4862,6 +4883,10 @@ public final class Table {
         java.lang.String key,
         alluxio.grpc.table.Layout defaultValue);
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
 
@@ -4873,21 +4898,21 @@ public final class Table {
    * next available id: 5
    * </pre>
    *
-   * Protobuf type {@code alluxio.proto.journal.TransformJobEntry}
+   * Protobuf type {@code alluxio.proto.journal.CompleteTransformTableEntry}
    */
-  public  static final class TransformJobEntry extends
+  public  static final class CompleteTransformTableEntry extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.TransformJobEntry)
-      TransformJobEntryOrBuilder {
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.CompleteTransformTableEntry)
+      CompleteTransformTableEntryOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use TransformJobEntry.newBuilder() to construct.
-    private TransformJobEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use CompleteTransformTableEntry.newBuilder() to construct.
+    private CompleteTransformTableEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private TransformJobEntry() {
+    private CompleteTransformTableEntry() {
       dbName_ = "";
       tableName_ = "";
-      jobId_ = 0L;
+      definition_ = "";
     }
 
     @java.lang.Override
@@ -4895,7 +4920,7 @@ public final class Table {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private TransformJobEntry(
+    private CompleteTransformTableEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -4933,9 +4958,10 @@ public final class Table {
               tableName_ = bs;
               break;
             }
-            case 24: {
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
-              jobId_ = input.readInt64();
+              definition_ = bs;
               break;
             }
             case 34: {
@@ -4965,7 +4991,7 @@ public final class Table {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_TransformJobEntry_descriptor;
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor;
     }
 
     @SuppressWarnings({"rawtypes"})
@@ -4981,9 +5007,9 @@ public final class Table {
     }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_TransformJobEntry_fieldAccessorTable
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.proto.journal.Table.TransformJobEntry.class, alluxio.proto.journal.Table.TransformJobEntry.Builder.class);
+              alluxio.proto.journal.Table.CompleteTransformTableEntry.class, alluxio.proto.journal.Table.CompleteTransformTableEntry.Builder.class);
     }
 
     private int bitField0_;
@@ -5071,19 +5097,46 @@ public final class Table {
       }
     }
 
-    public static final int JOB_ID_FIELD_NUMBER = 3;
-    private long jobId_;
+    public static final int DEFINITION_FIELD_NUMBER = 3;
+    private volatile java.lang.Object definition_;
     /**
-     * <code>optional int64 job_id = 3;</code>
+     * <code>optional string definition = 3;</code>
      */
-    public boolean hasJobId() {
+    public boolean hasDefinition() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 job_id = 3;</code>
+     * <code>optional string definition = 3;</code>
      */
-    public long getJobId() {
-      return jobId_;
+    public java.lang.String getDefinition() {
+      java.lang.Object ref = definition_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          definition_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDefinitionBytes() {
+      java.lang.Object ref = definition_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        definition_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int TRANSFORMED_LAYOUTS_FIELD_NUMBER = 4;
@@ -5092,7 +5145,7 @@ public final class Table {
           java.lang.String, alluxio.grpc.table.Layout> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, alluxio.grpc.table.Layout>newDefaultInstance(
-                  alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_TransformJobEntry_TransformedLayoutsEntry_descriptor, 
+                  alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_TransformedLayoutsEntry_descriptor, 
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.MESSAGE,
@@ -5113,6 +5166,10 @@ public final class Table {
       return internalGetTransformedLayouts().getMap().size();
     }
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
 
@@ -5129,6 +5186,10 @@ public final class Table {
       return getTransformedLayoutsMap();
     }
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
 
@@ -5136,6 +5197,10 @@ public final class Table {
       return internalGetTransformedLayouts().getMap();
     }
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
 
@@ -5148,6 +5213,10 @@ public final class Table {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Map from partition spec to transformed layout
+     * </pre>
+     *
      * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
      */
 
@@ -5187,7 +5256,7 @@ public final class Table {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeInt64(3, jobId_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, definition_);
       }
       com.google.protobuf.GeneratedMessageV3
         .serializeStringMapTo(
@@ -5210,8 +5279,7 @@ public final class Table {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, jobId_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, definition_);
       }
       for (java.util.Map.Entry<java.lang.String, alluxio.grpc.table.Layout> entry
            : internalGetTransformedLayouts().getMap().entrySet()) {
@@ -5233,10 +5301,10 @@ public final class Table {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof alluxio.proto.journal.Table.TransformJobEntry)) {
+      if (!(obj instanceof alluxio.proto.journal.Table.CompleteTransformTableEntry)) {
         return super.equals(obj);
       }
-      alluxio.proto.journal.Table.TransformJobEntry other = (alluxio.proto.journal.Table.TransformJobEntry) obj;
+      alluxio.proto.journal.Table.CompleteTransformTableEntry other = (alluxio.proto.journal.Table.CompleteTransformTableEntry) obj;
 
       boolean result = true;
       result = result && (hasDbName() == other.hasDbName());
@@ -5249,10 +5317,10 @@ public final class Table {
         result = result && getTableName()
             .equals(other.getTableName());
       }
-      result = result && (hasJobId() == other.hasJobId());
-      if (hasJobId()) {
-        result = result && (getJobId()
-            == other.getJobId());
+      result = result && (hasDefinition() == other.hasDefinition());
+      if (hasDefinition()) {
+        result = result && getDefinition()
+            .equals(other.getDefinition());
       }
       result = result && internalGetTransformedLayouts().equals(
           other.internalGetTransformedLayouts());
@@ -5275,10 +5343,9 @@ public final class Table {
         hash = (37 * hash) + TABLE_NAME_FIELD_NUMBER;
         hash = (53 * hash) + getTableName().hashCode();
       }
-      if (hasJobId()) {
-        hash = (37 * hash) + JOB_ID_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getJobId());
+      if (hasDefinition()) {
+        hash = (37 * hash) + DEFINITION_FIELD_NUMBER;
+        hash = (53 * hash) + getDefinition().hashCode();
       }
       if (!internalGetTransformedLayouts().getMap().isEmpty()) {
         hash = (37 * hash) + TRANSFORMED_LAYOUTS_FIELD_NUMBER;
@@ -5289,69 +5356,69 @@ public final class Table {
       return hash;
     }
 
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(byte[] data)
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(java.io.InputStream input)
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseDelimitedFrom(java.io.InputStream input)
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseDelimitedFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Table.TransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -5363,7 +5430,7 @@ public final class Table {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(alluxio.proto.journal.Table.TransformJobEntry prototype) {
+    public static Builder newBuilder(alluxio.proto.journal.Table.CompleteTransformTableEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() {
@@ -5382,15 +5449,15 @@ public final class Table {
      * next available id: 5
      * </pre>
      *
-     * Protobuf type {@code alluxio.proto.journal.TransformJobEntry}
+     * Protobuf type {@code alluxio.proto.journal.CompleteTransformTableEntry}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.TransformJobEntry)
-        alluxio.proto.journal.Table.TransformJobEntryOrBuilder {
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.CompleteTransformTableEntry)
+        alluxio.proto.journal.Table.CompleteTransformTableEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_TransformJobEntry_descriptor;
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor;
       }
 
       @SuppressWarnings({"rawtypes"})
@@ -5417,12 +5484,12 @@ public final class Table {
       }
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_TransformJobEntry_fieldAccessorTable
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                alluxio.proto.journal.Table.TransformJobEntry.class, alluxio.proto.journal.Table.TransformJobEntry.Builder.class);
+                alluxio.proto.journal.Table.CompleteTransformTableEntry.class, alluxio.proto.journal.Table.CompleteTransformTableEntry.Builder.class);
       }
 
-      // Construct using alluxio.proto.journal.Table.TransformJobEntry.newBuilder()
+      // Construct using alluxio.proto.journal.Table.CompleteTransformTableEntry.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -5443,7 +5510,7 @@ public final class Table {
         bitField0_ = (bitField0_ & ~0x00000001);
         tableName_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
-        jobId_ = 0L;
+        definition_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
         internalGetMutableTransformedLayouts().clear();
         return this;
@@ -5451,23 +5518,23 @@ public final class Table {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_TransformJobEntry_descriptor;
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor;
       }
 
-      public alluxio.proto.journal.Table.TransformJobEntry getDefaultInstanceForType() {
-        return alluxio.proto.journal.Table.TransformJobEntry.getDefaultInstance();
+      public alluxio.proto.journal.Table.CompleteTransformTableEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.Table.CompleteTransformTableEntry.getDefaultInstance();
       }
 
-      public alluxio.proto.journal.Table.TransformJobEntry build() {
-        alluxio.proto.journal.Table.TransformJobEntry result = buildPartial();
+      public alluxio.proto.journal.Table.CompleteTransformTableEntry build() {
+        alluxio.proto.journal.Table.CompleteTransformTableEntry result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public alluxio.proto.journal.Table.TransformJobEntry buildPartial() {
-        alluxio.proto.journal.Table.TransformJobEntry result = new alluxio.proto.journal.Table.TransformJobEntry(this);
+      public alluxio.proto.journal.Table.CompleteTransformTableEntry buildPartial() {
+        alluxio.proto.journal.Table.CompleteTransformTableEntry result = new alluxio.proto.journal.Table.CompleteTransformTableEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -5481,7 +5548,7 @@ public final class Table {
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.jobId_ = jobId_;
+        result.definition_ = definition_;
         result.transformedLayouts_ = internalGetTransformedLayouts();
         result.transformedLayouts_.makeImmutable();
         result.bitField0_ = to_bitField0_;
@@ -5516,16 +5583,16 @@ public final class Table {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof alluxio.proto.journal.Table.TransformJobEntry) {
-          return mergeFrom((alluxio.proto.journal.Table.TransformJobEntry)other);
+        if (other instanceof alluxio.proto.journal.Table.CompleteTransformTableEntry) {
+          return mergeFrom((alluxio.proto.journal.Table.CompleteTransformTableEntry)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(alluxio.proto.journal.Table.TransformJobEntry other) {
-        if (other == alluxio.proto.journal.Table.TransformJobEntry.getDefaultInstance()) return this;
+      public Builder mergeFrom(alluxio.proto.journal.Table.CompleteTransformTableEntry other) {
+        if (other == alluxio.proto.journal.Table.CompleteTransformTableEntry.getDefaultInstance()) return this;
         if (other.hasDbName()) {
           bitField0_ |= 0x00000001;
           dbName_ = other.dbName_;
@@ -5536,8 +5603,10 @@ public final class Table {
           tableName_ = other.tableName_;
           onChanged();
         }
-        if (other.hasJobId()) {
-          setJobId(other.getJobId());
+        if (other.hasDefinition()) {
+          bitField0_ |= 0x00000004;
+          definition_ = other.definition_;
+          onChanged();
         }
         internalGetMutableTransformedLayouts().mergeFrom(
             other.internalGetTransformedLayouts());
@@ -5559,11 +5628,11 @@ public final class Table {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        alluxio.proto.journal.Table.TransformJobEntry parsedMessage = null;
+        alluxio.proto.journal.Table.CompleteTransformTableEntry parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (alluxio.proto.journal.Table.TransformJobEntry) e.getUnfinishedMessage();
+          parsedMessage = (alluxio.proto.journal.Table.CompleteTransformTableEntry) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -5726,33 +5795,1406 @@ public final class Table {
         return this;
       }
 
-      private long jobId_ ;
+      private java.lang.Object definition_ = "";
       /**
-       * <code>optional int64 job_id = 3;</code>
+       * <code>optional string definition = 3;</code>
        */
-      public boolean hasJobId() {
+      public boolean hasDefinition() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional int64 job_id = 3;</code>
+       * <code>optional string definition = 3;</code>
+       */
+      public java.lang.String getDefinition() {
+        java.lang.Object ref = definition_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            definition_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDefinitionBytes() {
+        java.lang.Object ref = definition_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          definition_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder setDefinition(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        definition_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder clearDefinition() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        definition_ = getDefaultInstance().getDefinition();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder setDefinitionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        definition_ = value;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, alluxio.grpc.table.Layout> transformedLayouts_;
+      private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.table.Layout>
+      internalGetTransformedLayouts() {
+        if (transformedLayouts_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              TransformedLayoutsDefaultEntryHolder.defaultEntry);
+        }
+        return transformedLayouts_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.table.Layout>
+      internalGetMutableTransformedLayouts() {
+        onChanged();;
+        if (transformedLayouts_ == null) {
+          transformedLayouts_ = com.google.protobuf.MapField.newMapField(
+              TransformedLayoutsDefaultEntryHolder.defaultEntry);
+        }
+        if (!transformedLayouts_.isMutable()) {
+          transformedLayouts_ = transformedLayouts_.copy();
+        }
+        return transformedLayouts_;
+      }
+
+      public int getTransformedLayoutsCount() {
+        return internalGetTransformedLayouts().getMap().size();
+      }
+      /**
+       * <pre>
+       * Map from partition spec to transformed layout
+       * </pre>
+       *
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       */
+
+      public boolean containsTransformedLayouts(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetTransformedLayouts().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getTransformedLayoutsMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, alluxio.grpc.table.Layout> getTransformedLayouts() {
+        return getTransformedLayoutsMap();
+      }
+      /**
+       * <pre>
+       * Map from partition spec to transformed layout
+       * </pre>
+       *
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       */
+
+      public java.util.Map<java.lang.String, alluxio.grpc.table.Layout> getTransformedLayoutsMap() {
+        return internalGetTransformedLayouts().getMap();
+      }
+      /**
+       * <pre>
+       * Map from partition spec to transformed layout
+       * </pre>
+       *
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       */
+
+      public alluxio.grpc.table.Layout getTransformedLayoutsOrDefault(
+          java.lang.String key,
+          alluxio.grpc.table.Layout defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, alluxio.grpc.table.Layout> map =
+            internalGetTransformedLayouts().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Map from partition spec to transformed layout
+       * </pre>
+       *
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       */
+
+      public alluxio.grpc.table.Layout getTransformedLayoutsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, alluxio.grpc.table.Layout> map =
+            internalGetTransformedLayouts().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearTransformedLayouts() {
+        internalGetMutableTransformedLayouts().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Map from partition spec to transformed layout
+       * </pre>
+       *
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       */
+
+      public Builder removeTransformedLayouts(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableTransformedLayouts().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, alluxio.grpc.table.Layout>
+      getMutableTransformedLayouts() {
+        return internalGetMutableTransformedLayouts().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Map from partition spec to transformed layout
+       * </pre>
+       *
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       */
+      public Builder putTransformedLayouts(
+          java.lang.String key,
+          alluxio.grpc.table.Layout value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableTransformedLayouts().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <pre>
+       * Map from partition spec to transformed layout
+       * </pre>
+       *
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       */
+
+      public Builder putAllTransformedLayouts(
+          java.util.Map<java.lang.String, alluxio.grpc.table.Layout> values) {
+        internalGetMutableTransformedLayouts().getMutableMap()
+            .putAll(values);
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.CompleteTransformTableEntry)
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.CompleteTransformTableEntry)
+    private static final alluxio.proto.journal.Table.CompleteTransformTableEntry DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Table.CompleteTransformTableEntry();
+    }
+
+    public static alluxio.proto.journal.Table.CompleteTransformTableEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<CompleteTransformTableEntry>
+        PARSER = new com.google.protobuf.AbstractParser<CompleteTransformTableEntry>() {
+      public CompleteTransformTableEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CompleteTransformTableEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<CompleteTransformTableEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompleteTransformTableEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.Table.CompleteTransformTableEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface AddTransformJobInfoEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.AddTransformJobInfoEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional string db_name = 1;</code>
+     */
+    boolean hasDbName();
+    /**
+     * <code>optional string db_name = 1;</code>
+     */
+    java.lang.String getDbName();
+    /**
+     * <code>optional string db_name = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getDbNameBytes();
+
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    boolean hasTableName();
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    java.lang.String getTableName();
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getTableNameBytes();
+
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    boolean hasDefinition();
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    java.lang.String getDefinition();
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getDefinitionBytes();
+
+    /**
+     * <code>optional int64 job_id = 4;</code>
+     */
+    boolean hasJobId();
+    /**
+     * <code>optional int64 job_id = 4;</code>
+     */
+    long getJobId();
+
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+    int getTransformedLayoutsCount();
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+    boolean containsTransformedLayouts(
+        java.lang.String key);
+    /**
+     * Use {@link #getTransformedLayoutsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, alluxio.grpc.table.Layout>
+    getTransformedLayouts();
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+    java.util.Map<java.lang.String, alluxio.grpc.table.Layout>
+    getTransformedLayoutsMap();
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+
+    alluxio.grpc.table.Layout getTransformedLayoutsOrDefault(
+        java.lang.String key,
+        alluxio.grpc.table.Layout defaultValue);
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+
+    alluxio.grpc.table.Layout getTransformedLayoutsOrThrow(
+        java.lang.String key);
+  }
+  /**
+   * <pre>
+   * next available id: 6
+   * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.AddTransformJobInfoEntry}
+   */
+  public  static final class AddTransformJobInfoEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.AddTransformJobInfoEntry)
+      AddTransformJobInfoEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use AddTransformJobInfoEntry.newBuilder() to construct.
+    private AddTransformJobInfoEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private AddTransformJobInfoEntry() {
+      dbName_ = "";
+      tableName_ = "";
+      definition_ = "";
+      jobId_ = 0L;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private AddTransformJobInfoEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              dbName_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              tableName_ = bs;
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              definition_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              jobId_ = input.readInt64();
+              break;
+            }
+            case 42: {
+              if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+                transformedLayouts_ = com.google.protobuf.MapField.newMapField(
+                    TransformedLayoutsDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x00000010;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.table.Layout>
+              transformedLayouts__ = input.readMessage(
+                  TransformedLayoutsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              transformedLayouts_.getMutableMap().put(
+                  transformedLayouts__.getKey(), transformedLayouts__.getValue());
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 5:
+          return internalGetTransformedLayouts();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.Table.AddTransformJobInfoEntry.class, alluxio.proto.journal.Table.AddTransformJobInfoEntry.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int DB_NAME_FIELD_NUMBER = 1;
+    private volatile java.lang.Object dbName_;
+    /**
+     * <code>optional string db_name = 1;</code>
+     */
+    public boolean hasDbName() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional string db_name = 1;</code>
+     */
+    public java.lang.String getDbName() {
+      java.lang.Object ref = dbName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          dbName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string db_name = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDbNameBytes() {
+      java.lang.Object ref = dbName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        dbName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TABLE_NAME_FIELD_NUMBER = 2;
+    private volatile java.lang.Object tableName_;
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    public boolean hasTableName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    public java.lang.String getTableName() {
+      java.lang.Object ref = tableName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          tableName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string table_name = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getTableNameBytes() {
+      java.lang.Object ref = tableName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        tableName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DEFINITION_FIELD_NUMBER = 3;
+    private volatile java.lang.Object definition_;
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    public boolean hasDefinition() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    public java.lang.String getDefinition() {
+      java.lang.Object ref = definition_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          definition_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string definition = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDefinitionBytes() {
+      java.lang.Object ref = definition_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        definition_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int JOB_ID_FIELD_NUMBER = 4;
+    private long jobId_;
+    /**
+     * <code>optional int64 job_id = 4;</code>
+     */
+    public boolean hasJobId() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int64 job_id = 4;</code>
+     */
+    public long getJobId() {
+      return jobId_;
+    }
+
+    public static final int TRANSFORMED_LAYOUTS_FIELD_NUMBER = 5;
+    private static final class TransformedLayoutsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, alluxio.grpc.table.Layout> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, alluxio.grpc.table.Layout>newDefaultInstance(
+                  alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_TransformedLayoutsEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                  alluxio.grpc.table.Layout.getDefaultInstance());
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, alluxio.grpc.table.Layout> transformedLayouts_;
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.table.Layout>
+    internalGetTransformedLayouts() {
+      if (transformedLayouts_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            TransformedLayoutsDefaultEntryHolder.defaultEntry);
+      }
+      return transformedLayouts_;
+    }
+
+    public int getTransformedLayoutsCount() {
+      return internalGetTransformedLayouts().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+
+    public boolean containsTransformedLayouts(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetTransformedLayouts().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getTransformedLayoutsMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.table.Layout> getTransformedLayouts() {
+      return getTransformedLayoutsMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+
+    public java.util.Map<java.lang.String, alluxio.grpc.table.Layout> getTransformedLayoutsMap() {
+      return internalGetTransformedLayouts().getMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+
+    public alluxio.grpc.table.Layout getTransformedLayoutsOrDefault(
+        java.lang.String key,
+        alluxio.grpc.table.Layout defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.table.Layout> map =
+          internalGetTransformedLayouts().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
+     */
+
+    public alluxio.grpc.table.Layout getTransformedLayoutsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.table.Layout> map =
+          internalGetTransformedLayouts().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      for (alluxio.grpc.table.Layout item : getTransformedLayoutsMap().values()) {
+        if (!item.isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, definition_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt64(4, jobId_);
+      }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetTransformedLayouts(),
+          TransformedLayoutsDefaultEntryHolder.defaultEntry,
+          5);
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, definition_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, jobId_);
+      }
+      for (java.util.Map.Entry<java.lang.String, alluxio.grpc.table.Layout> entry
+           : internalGetTransformedLayouts().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.table.Layout>
+        transformedLayouts__ = TransformedLayoutsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(5, transformedLayouts__);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Table.AddTransformJobInfoEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Table.AddTransformJobInfoEntry other = (alluxio.proto.journal.Table.AddTransformJobInfoEntry) obj;
+
+      boolean result = true;
+      result = result && (hasDbName() == other.hasDbName());
+      if (hasDbName()) {
+        result = result && getDbName()
+            .equals(other.getDbName());
+      }
+      result = result && (hasTableName() == other.hasTableName());
+      if (hasTableName()) {
+        result = result && getTableName()
+            .equals(other.getTableName());
+      }
+      result = result && (hasDefinition() == other.hasDefinition());
+      if (hasDefinition()) {
+        result = result && getDefinition()
+            .equals(other.getDefinition());
+      }
+      result = result && (hasJobId() == other.hasJobId());
+      if (hasJobId()) {
+        result = result && (getJobId()
+            == other.getJobId());
+      }
+      result = result && internalGetTransformedLayouts().equals(
+          other.internalGetTransformedLayouts());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasDbName()) {
+        hash = (37 * hash) + DB_NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getDbName().hashCode();
+      }
+      if (hasTableName()) {
+        hash = (37 * hash) + TABLE_NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getTableName().hashCode();
+      }
+      if (hasDefinition()) {
+        hash = (37 * hash) + DEFINITION_FIELD_NUMBER;
+        hash = (53 * hash) + getDefinition().hashCode();
+      }
+      if (hasJobId()) {
+        hash = (37 * hash) + JOB_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getJobId());
+      }
+      if (!internalGetTransformedLayouts().getMap().isEmpty()) {
+        hash = (37 * hash) + TRANSFORMED_LAYOUTS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetTransformedLayouts().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(alluxio.proto.journal.Table.AddTransformJobInfoEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * next available id: 6
+     * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.AddTransformJobInfoEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.AddTransformJobInfoEntry)
+        alluxio.proto.journal.Table.AddTransformJobInfoEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetTransformedLayouts();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetMutableTransformedLayouts();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.Table.AddTransformJobInfoEntry.class, alluxio.proto.journal.Table.AddTransformJobInfoEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.Table.AddTransformJobInfoEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        dbName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        tableName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        definition_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
+        jobId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        internalGetMutableTransformedLayouts().clear();
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor;
+      }
+
+      public alluxio.proto.journal.Table.AddTransformJobInfoEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.Table.AddTransformJobInfoEntry.getDefaultInstance();
+      }
+
+      public alluxio.proto.journal.Table.AddTransformJobInfoEntry build() {
+        alluxio.proto.journal.Table.AddTransformJobInfoEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.journal.Table.AddTransformJobInfoEntry buildPartial() {
+        alluxio.proto.journal.Table.AddTransformJobInfoEntry result = new alluxio.proto.journal.Table.AddTransformJobInfoEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.dbName_ = dbName_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.tableName_ = tableName_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.definition_ = definition_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.jobId_ = jobId_;
+        result.transformedLayouts_ = internalGetTransformedLayouts();
+        result.transformedLayouts_.makeImmutable();
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.Table.AddTransformJobInfoEntry) {
+          return mergeFrom((alluxio.proto.journal.Table.AddTransformJobInfoEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.Table.AddTransformJobInfoEntry other) {
+        if (other == alluxio.proto.journal.Table.AddTransformJobInfoEntry.getDefaultInstance()) return this;
+        if (other.hasDbName()) {
+          bitField0_ |= 0x00000001;
+          dbName_ = other.dbName_;
+          onChanged();
+        }
+        if (other.hasTableName()) {
+          bitField0_ |= 0x00000002;
+          tableName_ = other.tableName_;
+          onChanged();
+        }
+        if (other.hasDefinition()) {
+          bitField0_ |= 0x00000004;
+          definition_ = other.definition_;
+          onChanged();
+        }
+        if (other.hasJobId()) {
+          setJobId(other.getJobId());
+        }
+        internalGetMutableTransformedLayouts().mergeFrom(
+            other.internalGetTransformedLayouts());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        for (alluxio.grpc.table.Layout item : getTransformedLayoutsMap().values()) {
+          if (!item.isInitialized()) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.Table.AddTransformJobInfoEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.Table.AddTransformJobInfoEntry) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object dbName_ = "";
+      /**
+       * <code>optional string db_name = 1;</code>
+       */
+      public boolean hasDbName() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       */
+      public java.lang.String getDbName() {
+        java.lang.Object ref = dbName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            dbName_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDbNameBytes() {
+        java.lang.Object ref = dbName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          dbName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       */
+      public Builder setDbName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        dbName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       */
+      public Builder clearDbName() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        dbName_ = getDefaultInstance().getDbName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       */
+      public Builder setDbNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        dbName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object tableName_ = "";
+      /**
+       * <code>optional string table_name = 2;</code>
+       */
+      public boolean hasTableName() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       */
+      public java.lang.String getTableName() {
+        java.lang.Object ref = tableName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            tableName_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getTableNameBytes() {
+        java.lang.Object ref = tableName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          tableName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       */
+      public Builder setTableName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        tableName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       */
+      public Builder clearTableName() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        tableName_ = getDefaultInstance().getTableName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       */
+      public Builder setTableNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        tableName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object definition_ = "";
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public boolean hasDefinition() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public java.lang.String getDefinition() {
+        java.lang.Object ref = definition_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            definition_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDefinitionBytes() {
+        java.lang.Object ref = definition_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          definition_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder setDefinition(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        definition_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder clearDefinition() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        definition_ = getDefaultInstance().getDefinition();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string definition = 3;</code>
+       */
+      public Builder setDefinitionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        definition_ = value;
+        onChanged();
+        return this;
+      }
+
+      private long jobId_ ;
+      /**
+       * <code>optional int64 job_id = 4;</code>
+       */
+      public boolean hasJobId() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional int64 job_id = 4;</code>
        */
       public long getJobId() {
         return jobId_;
       }
       /**
-       * <code>optional int64 job_id = 3;</code>
+       * <code>optional int64 job_id = 4;</code>
        */
       public Builder setJobId(long value) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000008;
         jobId_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 job_id = 3;</code>
+       * <code>optional int64 job_id = 4;</code>
        */
       public Builder clearJobId() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000008);
         jobId_ = 0L;
         onChanged();
         return this;
@@ -5785,7 +7227,7 @@ public final class Table {
         return internalGetTransformedLayouts().getMap().size();
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public boolean containsTransformedLayouts(
@@ -5801,14 +7243,14 @@ public final class Table {
         return getTransformedLayoutsMap();
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public java.util.Map<java.lang.String, alluxio.grpc.table.Layout> getTransformedLayoutsMap() {
         return internalGetTransformedLayouts().getMap();
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public alluxio.grpc.table.Layout getTransformedLayoutsOrDefault(
@@ -5820,7 +7262,7 @@ public final class Table {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public alluxio.grpc.table.Layout getTransformedLayoutsOrThrow(
@@ -5840,7 +7282,7 @@ public final class Table {
         return this;
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public Builder removeTransformedLayouts(
@@ -5859,7 +7301,7 @@ public final class Table {
         return internalGetMutableTransformedLayouts().getMutableMap();
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
       public Builder putTransformedLayouts(
           java.lang.String key,
@@ -5871,7 +7313,7 @@ public final class Table {
         return this;
       }
       /**
-       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 4;</code>
+       * <code>map&lt;string, .alluxio.grpc.table.Layout&gt; transformed_layouts = 5;</code>
        */
 
       public Builder putAllTransformedLayouts(
@@ -5891,46 +7333,46 @@ public final class Table {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.TransformJobEntry)
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.AddTransformJobInfoEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.TransformJobEntry)
-    private static final alluxio.proto.journal.Table.TransformJobEntry DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.AddTransformJobInfoEntry)
+    private static final alluxio.proto.journal.Table.AddTransformJobInfoEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new alluxio.proto.journal.Table.TransformJobEntry();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Table.AddTransformJobInfoEntry();
     }
 
-    public static alluxio.proto.journal.Table.TransformJobEntry getDefaultInstance() {
+    public static alluxio.proto.journal.Table.AddTransformJobInfoEntry getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<TransformJobEntry>
-        PARSER = new com.google.protobuf.AbstractParser<TransformJobEntry>() {
-      public TransformJobEntry parsePartialFrom(
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<AddTransformJobInfoEntry>
+        PARSER = new com.google.protobuf.AbstractParser<AddTransformJobInfoEntry>() {
+      public AddTransformJobInfoEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new TransformJobEntry(input, extensionRegistry);
+        return new AddTransformJobInfoEntry(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<TransformJobEntry> parser() {
+    public static com.google.protobuf.Parser<AddTransformJobInfoEntry> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<TransformJobEntry> getParserForType() {
+    public com.google.protobuf.Parser<AddTransformJobInfoEntry> getParserForType() {
       return PARSER;
     }
 
-    public alluxio.proto.journal.Table.TransformJobEntry getDefaultInstanceForType() {
+    public alluxio.proto.journal.Table.AddTransformJobInfoEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface RemoveTransformJobEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.RemoveTransformJobEntry)
+  public interface RemoveTransformJobInfoEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.RemoveTransformJobInfoEntry)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -5966,18 +7408,18 @@ public final class Table {
    * next available id: 3
    * </pre>
    *
-   * Protobuf type {@code alluxio.proto.journal.RemoveTransformJobEntry}
+   * Protobuf type {@code alluxio.proto.journal.RemoveTransformJobInfoEntry}
    */
-  public  static final class RemoveTransformJobEntry extends
+  public  static final class RemoveTransformJobInfoEntry extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.RemoveTransformJobEntry)
-      RemoveTransformJobEntryOrBuilder {
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.RemoveTransformJobInfoEntry)
+      RemoveTransformJobInfoEntryOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use RemoveTransformJobEntry.newBuilder() to construct.
-    private RemoveTransformJobEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use RemoveTransformJobInfoEntry.newBuilder() to construct.
+    private RemoveTransformJobInfoEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private RemoveTransformJobEntry() {
+    private RemoveTransformJobInfoEntry() {
       dbName_ = "";
       tableName_ = "";
     }
@@ -5987,7 +7429,7 @@ public final class Table {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private RemoveTransformJobEntry(
+    private RemoveTransformJobInfoEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -6039,14 +7481,14 @@ public final class Table {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobEntry_descriptor;
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobEntry_fieldAccessorTable
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.proto.journal.Table.RemoveTransformJobEntry.class, alluxio.proto.journal.Table.RemoveTransformJobEntry.Builder.class);
+              alluxio.proto.journal.Table.RemoveTransformJobInfoEntry.class, alluxio.proto.journal.Table.RemoveTransformJobInfoEntry.Builder.class);
     }
 
     private int bitField0_;
@@ -6176,10 +7618,10 @@ public final class Table {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof alluxio.proto.journal.Table.RemoveTransformJobEntry)) {
+      if (!(obj instanceof alluxio.proto.journal.Table.RemoveTransformJobInfoEntry)) {
         return super.equals(obj);
       }
-      alluxio.proto.journal.Table.RemoveTransformJobEntry other = (alluxio.proto.journal.Table.RemoveTransformJobEntry) obj;
+      alluxio.proto.journal.Table.RemoveTransformJobInfoEntry other = (alluxio.proto.journal.Table.RemoveTransformJobInfoEntry) obj;
 
       boolean result = true;
       result = result && (hasDbName() == other.hasDbName());
@@ -6216,69 +7658,69 @@ public final class Table {
       return hash;
     }
 
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(byte[] data)
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(java.io.InputStream input)
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseDelimitedFrom(java.io.InputStream input)
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseDelimitedFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry parseFrom(
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -6290,7 +7732,7 @@ public final class Table {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(alluxio.proto.journal.Table.RemoveTransformJobEntry prototype) {
+    public static Builder newBuilder(alluxio.proto.journal.Table.RemoveTransformJobInfoEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() {
@@ -6309,25 +7751,25 @@ public final class Table {
      * next available id: 3
      * </pre>
      *
-     * Protobuf type {@code alluxio.proto.journal.RemoveTransformJobEntry}
+     * Protobuf type {@code alluxio.proto.journal.RemoveTransformJobInfoEntry}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.RemoveTransformJobEntry)
-        alluxio.proto.journal.Table.RemoveTransformJobEntryOrBuilder {
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.RemoveTransformJobInfoEntry)
+        alluxio.proto.journal.Table.RemoveTransformJobInfoEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobEntry_descriptor;
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobEntry_fieldAccessorTable
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                alluxio.proto.journal.Table.RemoveTransformJobEntry.class, alluxio.proto.journal.Table.RemoveTransformJobEntry.Builder.class);
+                alluxio.proto.journal.Table.RemoveTransformJobInfoEntry.class, alluxio.proto.journal.Table.RemoveTransformJobInfoEntry.Builder.class);
       }
 
-      // Construct using alluxio.proto.journal.Table.RemoveTransformJobEntry.newBuilder()
+      // Construct using alluxio.proto.journal.Table.RemoveTransformJobInfoEntry.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -6353,23 +7795,23 @@ public final class Table {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobEntry_descriptor;
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor;
       }
 
-      public alluxio.proto.journal.Table.RemoveTransformJobEntry getDefaultInstanceForType() {
-        return alluxio.proto.journal.Table.RemoveTransformJobEntry.getDefaultInstance();
+      public alluxio.proto.journal.Table.RemoveTransformJobInfoEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.Table.RemoveTransformJobInfoEntry.getDefaultInstance();
       }
 
-      public alluxio.proto.journal.Table.RemoveTransformJobEntry build() {
-        alluxio.proto.journal.Table.RemoveTransformJobEntry result = buildPartial();
+      public alluxio.proto.journal.Table.RemoveTransformJobInfoEntry build() {
+        alluxio.proto.journal.Table.RemoveTransformJobInfoEntry result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public alluxio.proto.journal.Table.RemoveTransformJobEntry buildPartial() {
-        alluxio.proto.journal.Table.RemoveTransformJobEntry result = new alluxio.proto.journal.Table.RemoveTransformJobEntry(this);
+      public alluxio.proto.journal.Table.RemoveTransformJobInfoEntry buildPartial() {
+        alluxio.proto.journal.Table.RemoveTransformJobInfoEntry result = new alluxio.proto.journal.Table.RemoveTransformJobInfoEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -6412,16 +7854,16 @@ public final class Table {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof alluxio.proto.journal.Table.RemoveTransformJobEntry) {
-          return mergeFrom((alluxio.proto.journal.Table.RemoveTransformJobEntry)other);
+        if (other instanceof alluxio.proto.journal.Table.RemoveTransformJobInfoEntry) {
+          return mergeFrom((alluxio.proto.journal.Table.RemoveTransformJobInfoEntry)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(alluxio.proto.journal.Table.RemoveTransformJobEntry other) {
-        if (other == alluxio.proto.journal.Table.RemoveTransformJobEntry.getDefaultInstance()) return this;
+      public Builder mergeFrom(alluxio.proto.journal.Table.RemoveTransformJobInfoEntry other) {
+        if (other == alluxio.proto.journal.Table.RemoveTransformJobInfoEntry.getDefaultInstance()) return this;
         if (other.hasDbName()) {
           bitField0_ |= 0x00000001;
           dbName_ = other.dbName_;
@@ -6445,11 +7887,11 @@ public final class Table {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        alluxio.proto.journal.Table.RemoveTransformJobEntry parsedMessage = null;
+        alluxio.proto.journal.Table.RemoveTransformJobInfoEntry parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (alluxio.proto.journal.Table.RemoveTransformJobEntry) e.getUnfinishedMessage();
+          parsedMessage = (alluxio.proto.journal.Table.RemoveTransformJobInfoEntry) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -6622,39 +8064,39 @@ public final class Table {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.RemoveTransformJobEntry)
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.RemoveTransformJobInfoEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.RemoveTransformJobEntry)
-    private static final alluxio.proto.journal.Table.RemoveTransformJobEntry DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.RemoveTransformJobInfoEntry)
+    private static final alluxio.proto.journal.Table.RemoveTransformJobInfoEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new alluxio.proto.journal.Table.RemoveTransformJobEntry();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Table.RemoveTransformJobInfoEntry();
     }
 
-    public static alluxio.proto.journal.Table.RemoveTransformJobEntry getDefaultInstance() {
+    public static alluxio.proto.journal.Table.RemoveTransformJobInfoEntry getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<RemoveTransformJobEntry>
-        PARSER = new com.google.protobuf.AbstractParser<RemoveTransformJobEntry>() {
-      public RemoveTransformJobEntry parsePartialFrom(
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<RemoveTransformJobInfoEntry>
+        PARSER = new com.google.protobuf.AbstractParser<RemoveTransformJobInfoEntry>() {
+      public RemoveTransformJobInfoEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new RemoveTransformJobEntry(input, extensionRegistry);
+        return new RemoveTransformJobInfoEntry(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<RemoveTransformJobEntry> parser() {
+    public static com.google.protobuf.Parser<RemoveTransformJobInfoEntry> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<RemoveTransformJobEntry> getParserForType() {
+    public com.google.protobuf.Parser<RemoveTransformJobInfoEntry> getParserForType() {
       return PARSER;
     }
 
-    public alluxio.proto.journal.Table.RemoveTransformJobEntry getDefaultInstanceForType() {
+    public alluxio.proto.journal.Table.RemoveTransformJobInfoEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -6686,20 +8128,30 @@ public final class Table {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_AddTableEntry_ParametersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_proto_journal_TransformJobEntry_descriptor;
+    internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_proto_journal_TransformJobEntry_fieldAccessorTable;
+      internal_static_alluxio_proto_journal_CompleteTransformTableEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_proto_journal_TransformJobEntry_TransformedLayoutsEntry_descriptor;
+    internal_static_alluxio_proto_journal_CompleteTransformTableEntry_TransformedLayoutsEntry_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_proto_journal_TransformJobEntry_TransformedLayoutsEntry_fieldAccessorTable;
+      internal_static_alluxio_proto_journal_CompleteTransformTableEntry_TransformedLayoutsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_proto_journal_RemoveTransformJobEntry_descriptor;
+    internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_proto_journal_RemoveTransformJobEntry_fieldAccessorTable;
+      internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_TransformedLayoutsEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_TransformedLayoutsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -6728,15 +8180,23 @@ public final class Table {
       "ols\030\010 \003(\0132\037.alluxio.grpc.table.FieldSche" +
       "ma\0221\n\npartitions\030\t \003(\0132\035.alluxio.grpc.ta" +
       "ble.Partition\0321\n\017ParametersEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\376\001\n\021TransformJo" +
-      "bEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 " +
-      "\001(\t\022\016\n\006job_id\030\003 \001(\003\022]\n\023transformed_layou" +
-      "ts\030\004 \003(\0132@.alluxio.proto.journal.Transfo" +
-      "rmJobEntry.TransformedLayoutsEntry\032U\n\027Tr" +
-      "ansformedLayoutsEntry\022\013\n\003key\030\001 \001(\t\022)\n\005va" +
-      "lue\030\002 \001(\0132\032.alluxio.grpc.table.Layout:\0028" +
-      "\001\">\n\027RemoveTransformJobEntry\022\017\n\007db_name\030" +
-      "\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t"
+      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\226\002\n\033CompleteTra" +
+      "nsformTableEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntab" +
+      "le_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022g\n\023tra" +
+      "nsformed_layouts\030\004 \003(\0132J.alluxio.proto.j" +
+      "ournal.CompleteTransformTableEntry.Trans" +
+      "formedLayoutsEntry\032U\n\027TransformedLayouts" +
+      "Entry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.allu" +
+      "xio.grpc.table.Layout:\0028\001\"\240\002\n\030AddTransfo" +
+      "rmJobInfoEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable" +
+      "_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022\016\n\006job_i" +
+      "d\030\004 \001(\003\022d\n\023transformed_layouts\030\005 \003(\0132G.a" +
+      "lluxio.proto.journal.AddTransformJobInfo" +
+      "Entry.TransformedLayoutsEntry\032U\n\027Transfo" +
+      "rmedLayoutsEntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002" +
+      " \001(\0132\032.alluxio.grpc.table.Layout:\0028\001\"B\n\033" +
+      "RemoveTransformJobInfoEntry\022\017\n\007db_name\030\001" +
+      " \001(\t\022\022\n\ntable_name\030\002 \001(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -6781,23 +8241,35 @@ public final class Table {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddTableEntry_ParametersEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_alluxio_proto_journal_TransformJobEntry_descriptor =
+    internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor =
       getDescriptor().getMessageTypes().get(3);
-    internal_static_alluxio_proto_journal_TransformJobEntry_fieldAccessorTable = new
+    internal_static_alluxio_proto_journal_CompleteTransformTableEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_TransformJobEntry_descriptor,
-        new java.lang.String[] { "DbName", "TableName", "JobId", "TransformedLayouts", });
-    internal_static_alluxio_proto_journal_TransformJobEntry_TransformedLayoutsEntry_descriptor =
-      internal_static_alluxio_proto_journal_TransformJobEntry_descriptor.getNestedTypes().get(0);
-    internal_static_alluxio_proto_journal_TransformJobEntry_TransformedLayoutsEntry_fieldAccessorTable = new
+        internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor,
+        new java.lang.String[] { "DbName", "TableName", "Definition", "TransformedLayouts", });
+    internal_static_alluxio_proto_journal_CompleteTransformTableEntry_TransformedLayoutsEntry_descriptor =
+      internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_journal_CompleteTransformTableEntry_TransformedLayoutsEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_TransformJobEntry_TransformedLayoutsEntry_descriptor,
+        internal_static_alluxio_proto_journal_CompleteTransformTableEntry_TransformedLayoutsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_alluxio_proto_journal_RemoveTransformJobEntry_descriptor =
+    internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor =
       getDescriptor().getMessageTypes().get(4);
-    internal_static_alluxio_proto_journal_RemoveTransformJobEntry_fieldAccessorTable = new
+    internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_RemoveTransformJobEntry_descriptor,
+        internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor,
+        new java.lang.String[] { "DbName", "TableName", "Definition", "JobId", "TransformedLayouts", });
+    internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_TransformedLayoutsEntry_descriptor =
+      internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_TransformedLayoutsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_TransformedLayoutsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor,
         new java.lang.String[] { "DbName", "TableName", });
     alluxio.grpc.table.TableMasterProto.getDescriptor();
   }

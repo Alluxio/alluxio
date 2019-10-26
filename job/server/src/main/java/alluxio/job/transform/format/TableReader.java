@@ -11,7 +11,7 @@
 
 package alluxio.job.transform.format;
 
-import alluxio.Constants;
+import alluxio.AlluxioURI;
 import alluxio.job.transform.format.csv.CsvReader;
 import alluxio.job.transform.format.parquet.ParquetReader;
 
@@ -23,28 +23,19 @@ import java.io.IOException;
  */
 public interface TableReader extends Closeable {
   /**
-   * @param scheme the scheme of the path, e.g. "alluxio", "file"
-   * @param path the path to the file representing the table
-   * @return the reader for the table
+   * @param uri the URI to the input
+   * @return the reader for the input
    * @throws IOException when failed to create the reader
    */
-  static TableReader create(String scheme, String path) throws IOException {
-    if (Format.isCsv(path)) {
-      return CsvReader.create(scheme, path);
-    } else if (Format.isParquet(path)) {
-      return ParquetReader.create(scheme, path);
+  static TableReader create(AlluxioURI uri) throws IOException {
+    ReadWriterUtils.checkUri(uri);
+    if (Format.isCsv(uri.getPath())) {
+      return CsvReader.create(uri);
+    } else if (Format.isParquet(uri.getPath())) {
+      return ParquetReader.create(uri);
     } else {
-      throw new IOException("Unsupported file format for " + path);
+      throw new IOException("Unsupported file format for " + uri);
     }
-  }
-
-  /**
-   * @param path the path to the file representing the table
-   * @return the result of {@link #create(String, String)} with scheme set to "alluxio"
-   * @throws IOException when failed to create the reader
-   */
-  static TableReader create(String path) throws IOException {
-    return create(Constants.SCHEME, path);
   }
 
   /**

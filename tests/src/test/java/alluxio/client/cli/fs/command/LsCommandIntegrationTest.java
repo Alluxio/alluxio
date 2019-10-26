@@ -44,7 +44,7 @@ import java.util.function.Function;
  */
 public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
   // Helper function to create a set of files in the file system
-  private void createFiles(String user) throws Exception {
+  private FileSystem createFiles(String user) throws Exception {
     FileSystem fs = mFileSystem;
     if (user != null) {
       fs = mLocalAlluxioCluster.getClient(FileSystemContext
@@ -55,6 +55,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     FileSystemTestUtils
         .createByteFile(fs, "/testRoot/testDir/testFileB", WritePType.MUST_CACHE, 20);
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileC", WritePType.THROUGH, 30);
+    return fs;
   }
 
   /**
@@ -71,6 +72,23 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
         "             30       PERSISTED .+ .+   0% /testRoot/testFileC");
+  }
+
+  /**
+   * Tests ls command when arguments are multiple directories and security is not enabled.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsMultipleDirs() throws Exception {
+    createFiles(null);
+    mFsShell.run("ls", "/testRoot", "/testRoot/testDir/");
+    checkOutput(
+            "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
+            "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
+            "             30       PERSISTED .+ .+   0% /testRoot/testFileC",
+            "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB");
   }
 
   /**

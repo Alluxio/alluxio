@@ -37,7 +37,7 @@ import java.util.ServiceLoader;
  */
 public class UnderDatabaseRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UnderDatabaseRegistry.class);
-  private static final String UDB_EXTENSION_PATTERN = "alluxio-table-server-under-*.jar";
+  private static final String UDB_EXTENSION_PATTERN = "alluxio-table-server-underdb-*.jar";
 
   private volatile Map<String, UnderDatabaseFactory> mFactories;
 

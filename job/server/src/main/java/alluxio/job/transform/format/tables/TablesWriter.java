@@ -11,7 +11,7 @@
 
 package alluxio.job.transform.format.tables;
 
-import alluxio.Constants;
+import alluxio.AlluxioURI;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 import alluxio.job.transform.format.TableWriter;
@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 
 /**
  * Writes a stream of rows to a list of tables, when {@link Committer} determines that the current
@@ -32,18 +31,16 @@ public class TablesWriter implements TableWriter {
 
   private final Committer mCommitter;
   private final TableSchema mSchema;
-  private final String mScheme;
-  private final String mOutputDirectory;
+  private final AlluxioURI mOutputDir;
   private TableWriter mWriter;
   private int mPart;
   private int mRows;
   private int mBytes;
 
-  private TablesWriter(TableSchema schema, Committer committer, String scheme, String outputDir,
+  private TablesWriter(TableSchema schema, Committer committer, AlluxioURI outputDir,
       TableWriter initialWriter) {
-    mOutputDirectory = outputDir;
+    mOutputDir = outputDir;
     mSchema = schema;
-    mScheme = scheme;
     mWriter = initialWriter;
     mCommitter = committer;
     mPart = 0;
@@ -54,28 +51,13 @@ public class TablesWriter implements TableWriter {
   /**
    * @param schema the table schema
    * @param committer the committer
-   * @param scheme the scheme of the outputDir
    * @param outputDir the output directory
    * @return a new writer
    * @throws IOException when failed to create an internal table writer
    */
-  public static TablesWriter create(TableSchema schema, Committer committer,
-      String scheme, String outputDir) throws IOException {
-    return new TablesWriter(schema, committer, scheme, outputDir,
-        createWriter(schema, scheme, outputDir, 0));
-  }
-
-  /**
-   * @param schema the table schema
-   * @param committer the committer
-   * @param outputDir the output directory
-   * @return a new writer with "alluxio" as scheme
-   * @throws IOException when failed to create an internal table writer
-   */
-  public static TablesWriter create(TableSchema schema, Committer committer, String outputDir)
+  public static TablesWriter create(TableSchema schema, Committer committer, AlluxioURI outputDir)
       throws IOException {
-    return new TablesWriter(schema, committer, Constants.SCHEME, outputDir,
-        createWriter(schema, Constants.SCHEME, outputDir, 0));
+    return new TablesWriter(schema, committer, outputDir, createWriter(schema, outputDir, 0));
   }
 
   @Override
@@ -85,7 +67,7 @@ public class TablesWriter implements TableWriter {
       mRows += mWriter.getRows();
       mBytes += mWriter.getBytes();
       mWriter.close();
-      mWriter = createWriter(mSchema, mScheme, mOutputDirectory, ++mPart);
+      mWriter = createWriter(mSchema, mOutputDir, ++mPart);
     }
   }
 
@@ -104,9 +86,9 @@ public class TablesWriter implements TableWriter {
     return mBytes + mWriter.getBytes();
   }
 
-  private static TableWriter createWriter(TableSchema schema, String scheme, String outputDir,
-      int part) throws IOException {
+  private static TableWriter createWriter(TableSchema schema, AlluxioURI outputDir, int part)
+      throws IOException {
     String filename = String.format(FILE_NAME_PATTERN, part);
-    return TableWriter.create(schema, scheme, Paths.get(outputDir, filename).toString());
+    return TableWriter.create(schema, outputDir.join(filename));
   }
 }

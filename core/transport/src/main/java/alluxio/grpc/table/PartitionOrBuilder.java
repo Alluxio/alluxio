@@ -21,15 +21,64 @@ public interface PartitionOrBuilder extends
   alluxio.grpc.table.PartitionSpecOrBuilder getPartitionSpecOrBuilder();
 
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+   * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
    */
-  boolean hasLayout();
+  boolean hasBaseLayout();
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+   * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
    */
-  alluxio.grpc.table.Layout getLayout();
+  alluxio.grpc.table.Layout getBaseLayout();
   /**
-   * <code>optional .alluxio.grpc.table.Layout layout = 2;</code>
+   * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
    */
-  alluxio.grpc.table.LayoutOrBuilder getLayoutOrBuilder();
+  alluxio.grpc.table.LayoutOrBuilder getBaseLayoutOrBuilder();
+
+  /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  java.util.List<alluxio.grpc.table.Transformation> 
+      getTransformationsList();
+  /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  alluxio.grpc.table.Transformation getTransformations(int index);
+  /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  int getTransformationsCount();
+  /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  java.util.List<? extends alluxio.grpc.table.TransformationOrBuilder> 
+      getTransformationsOrBuilderList();
+  /**
+   * <pre>
+   **
+   * The latest transformation is in the back of the list.
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.table.Transformation transformations = 3;</code>
+   */
+  alluxio.grpc.table.TransformationOrBuilder getTransformationsOrBuilder(
+      int index);
 }

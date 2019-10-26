@@ -25,18 +25,28 @@ public class TransformDefinition {
   private final List<TransformAction> mActions;
 
   /**
-   * Creates an instance.
+   * The user-provided definition is normalized by:
+   * 1. trimming whitespaces and semicolon from the beginning and end;
+   * 2. normalize to lower case.
    *
    * @param definition the string definition
    * @param actions the list of actions
    */
   private TransformDefinition(String definition, List<TransformAction> actions) {
-    mDefinition = definition;
+    mDefinition = normalize(definition);
     mActions = actions;
   }
 
+  private String normalize(String definition) {
+    definition = definition.trim();
+    if (definition.endsWith(";")) {
+      definition = definition.substring(0, definition.length() - 1);
+    }
+    return definition.toLowerCase();
+  }
+
   /**
-   * @return the string definition
+   * @return the normalized user-provided definition
    */
   public String getDefinition() {
     return mDefinition;

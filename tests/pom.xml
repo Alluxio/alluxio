@@ -85,6 +85,10 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-avro</artifactId>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
@@ -220,7 +224,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-table-server-under-hive</artifactId>
+      <artifactId>alluxio-table-server-underdb-hive</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

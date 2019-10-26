@@ -11,8 +11,10 @@
 
 package alluxio.job.transform.format.csv;
 
+import alluxio.AlluxioURI;
 import alluxio.job.transform.format.Format;
 import alluxio.job.transform.format.TableReader;
+import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 
@@ -60,18 +62,16 @@ public final class CsvReader implements TableReader {
   /**
    * Creates a CSV reader.
    *
-   * @param scheme the scheme of the source, e.g. "alluxio", "file"
-   * @param input the input file
+   * @param uri the URI to the input
    * @return the reader
    * @throws IOException when failed to create the reader
    */
-  // TODO(cc): lazily open input streams
-  public static CsvReader create(String scheme, String input) throws IOException {
+  public static CsvReader create(AlluxioURI uri) throws IOException {
     CSVProperties props = new CSVProperties.Builder()
         .hasHeader()
         .build();
-    Path inputPath = new Path(scheme, "", input);
-    Configuration conf = new Configuration();
+    Path inputPath = new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
+    Configuration conf = ReadWriterUtils.readNoCacheConf();
     FileSystem fs = inputPath.getFileSystem(conf);
     Schema schema;
     try (InputStream inputStream = open(fs, inputPath)) {

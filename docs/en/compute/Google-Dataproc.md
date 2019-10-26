@@ -38,7 +38,7 @@ When creating a Dataproc cluster, Alluxio can be installed using an
 [initialization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions)
 
 1. The Alluxio initialization action is hosted in a publicly readable
-GCS location **gs://alluxio-public/dataproc/2.0.1/alluxio-dataproc.sh**.
+GCS location **gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-dataproc.sh**.
 * A required argument is the root UFS URI using **alluxio_root_ufs_uri**.
 * `alluxio_version` is an an optional parameter to override the default Alluxio version to install.
 * Additional properties can be specified using the metadata key **alluxio_site_properties** delimited

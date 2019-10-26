@@ -12,6 +12,7 @@
 package alluxio.table.under.hive;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.NotFoundException;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -117,6 +119,10 @@ public class HiveDatabase implements UnderDatabase {
 
   private String mountAlluxioPath(String tableName, AlluxioURI ufsUri, AlluxioURI tableUri)
       throws IOException, AlluxioException {
+    if (Objects.equals(ufsUri.getScheme(), Constants.SCHEME)) {
+      // already an alluxio uri, return the alluxio uri
+      return ufsUri.toString();
+    }
     try {
       tableUri = mUdbContext.getFileSystem().reverseResolve(ufsUri);
       LOG.info("Trying to mount table {} location {}, but it is already mounted at location {}",

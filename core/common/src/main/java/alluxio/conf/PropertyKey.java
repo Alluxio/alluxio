@@ -3749,6 +3749,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
+      new Builder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
+          .setDefaultValue("300sec")
+          .setDescription("The length of time the Alluxio Table Master should keep information "
+              + "about finished transformation jobs before they are discarded.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   /**
    * @deprecated This key is used for testing. It is always deprecated.
@@ -4488,6 +4496,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
         "alluxio.table.transform.manager.job.monitor.interval";
+    public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
+        "alluxio.table.transform.manager.job.history.retention.time";
 
     private Name() {} // prevent instantiation
   }

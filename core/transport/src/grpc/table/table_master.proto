@@ -7,6 +7,7 @@ option java_outer_classname = "TableMasterProto";
 package alluxio.grpc.table;
 
 import "grpc/common.proto";
+import "grpc/job_master.proto";
 
 message FieldSchema {
     optional uint32 id = 1;
@@ -61,9 +62,18 @@ message Layout {
   map<string, ColumnStatisticsInfo> stats = 4;
 }
 
+message Transformation {
+    optional Layout layout = 1;
+    optional string definition = 2;
+}
+
 message Partition {
     optional PartitionSpec partition_spec = 1;
-    optional Layout layout = 2;
+    optional Layout base_layout = 2;
+    /**
+     * The latest transformation is in the back of the list.
+     */
+    repeated Transformation transformations = 3;
 }
 
 message ColumnStatisticsInfo {
@@ -292,6 +302,23 @@ message TransformTablePResponse {
     optional int64 job_id = 1;
 }
 
+message GetTransformJobInfoPRequest {
+    optional int64 job_id = 1;
+}
+
+message TransformJobInfo {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional string definition = 3;
+    optional int64 job_id = 4;
+    optional alluxio.grpc.job.Status job_status = 5;
+    optional string job_error = 6;
+}
+
+message GetTransformJobInfoPResponse {
+    repeated TransformJobInfo info = 1;
+}
+
 /**
  * This interface contains table master service endpoints for Alluxio clients.
  */
@@ -339,4 +366,11 @@ service TableMasterClientService {
     rpc ReadTable(ReadTablePRequest) returns (ReadTablePResponse);
 
     rpc TransformTable(TransformTablePRequest) returns (TransformTablePResponse);
+
+    /**
+     * Gets information of transformation jobs.
+     * If the job ID exists in the request, the information for that job is returned;
+     * Otherwise, information of all the jobs kept in table master will be returned.
+     */
+    rpc GetTransformJobInfo(GetTransformJobInfoPRequest) returns (GetTransformJobInfoPResponse);
 }

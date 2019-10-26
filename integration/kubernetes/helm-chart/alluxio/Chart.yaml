@@ -12,7 +12,7 @@
 name: alluxio
 apiVersion: 2.2.0-SNAPSHOT
 description: Open source data orchestration for analytics and machine learning in any cloud.
-version: 0.5.0
+version: 0.5.1
 home: https://www.alluxio.io/
 maintainers:
 - name: Adit Madan
