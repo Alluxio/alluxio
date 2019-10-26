@@ -275,6 +275,10 @@ public enum ExceptionMessage {
       "{0} already exists. The overwrite flag cannot be used to overwrite directories"),
   MIGRATE_TO_FILE_AS_DIRECTORY("Cannot migrate to {0}. {1} is a file, not a directory"),
 
+  // transform job
+  TRANSFORM_TABLE_URI_LACKS_SCHEME("URI {0} lacks scheme"),
+  TRANSFORM_TABLE_URI_LACKS_AUTHORITY("URI {0} lacks authority"),
+
   // job service
   NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK(
       "Cannot find a local block worker to replicate blockId {0,number,#}"),
