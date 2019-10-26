@@ -172,24 +172,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         end
         config_google(n, i, Total, name)
       end
-
-
-      if Provider == "openstack"
-        if (defined?(@os)).nil?
-          @os = YAML.load_file('conf/openstack.yml')
-          puts @os.inspect
-          FLAVOR = @os['Flavor']
-          IMAGE =  @os['Image']
-          KEY_PATH = @os['Key_Path']
-          KEYPAIR_NAME = @os['Keypair_Name']
-          TENENT = @os['Tenent']
-          KEYSTONE = @os['Keystone_URL']
-          SECURITY_GROUP = @os['Security_Group']
-          SSH_USERNAME = @os['SSH_Username']
-          TAG = @os['Tag']
-        end
-        config_os(n, i, Total, name)
-      end
     end
   end
 end
