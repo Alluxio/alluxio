@@ -14,17 +14,14 @@ package alluxio.table.common.transform.action;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.grpc.table.layout.hive.PartitionInfo;
-import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.job.JobConfig;
 import alluxio.job.transform.CompactConfig;
+import alluxio.table.common.TableTestUtils;
 import alluxio.table.common.layout.HiveLayout;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.Collections;
 
 public class WriteActionTest {
   @Rule
@@ -66,8 +63,8 @@ public class WriteActionTest {
     assertEquals(WriteAction.class, action.getClass());
     WriteAction writeAction = (WriteAction) action;
 
-    HiveLayout from = createLayout("/from");
-    HiveLayout to = createLayout("/to");
+    HiveLayout from = TableTestUtils.createLayout("/from");
+    HiveLayout to = TableTestUtils.createLayout("/to");
     JobConfig job = writeAction.generateJobConfig(from, to);
     assertEquals(CompactConfig.class, job.getClass());
 
@@ -76,12 +73,5 @@ public class WriteActionTest {
     assertEquals("/from", compact.getInput());
     assertEquals("/to", compact.getOutput());
     assertEquals(12, compact.getNumFiles());
-  }
-
-  private HiveLayout createLayout(String location) {
-    PartitionInfo partitionInfo = PartitionInfo.newBuilder()
-        .setStorage(Storage.newBuilder().setLocation(location).build())
-        .build();
-    return new HiveLayout(partitionInfo, Collections.emptyList());
   }
 }
