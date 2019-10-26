@@ -104,13 +104,6 @@ public class Partition {
   }
 
   /**
-   * @return the base layout
-   */
-  public Layout getBaseLayout() {
-    return mBaseLayout;
-  }
-
-  /**
    * @return the current layout
    */
   public Layout getLayout() {

@@ -62,8 +62,9 @@ public class AlluxioCatalogTest {
   @Test
   public void attachDb() throws Exception {
     String dbName = "testdb";
+    TestDatabase.genTable(1, 2);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
-        TestUdbFactory.TYPE, "connect_URI", dbName, dbName,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
         Collections.emptyMap());
     List<String> dbs = mCatalog.getAllDatabases();
     assertEquals(1, dbs.size());
@@ -79,8 +80,9 @@ public class AlluxioCatalogTest {
   @Test
   public void detachDb() throws Exception {
     String dbName = "testdb";
+    TestDatabase.genTable(1, 2);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
-        TestUdbFactory.TYPE, "connect_URI", dbName, dbName,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
         Collections.emptyMap());
     assertEquals(1, mCatalog.getAllDatabases().size());
     assertTrue(mCatalog.detachDatabase(NoopJournalContext.INSTANCE, dbName));
@@ -91,8 +93,9 @@ public class AlluxioCatalogTest {
   public void testGetAllDatabase() throws Exception {
     addMockDbs();
     assertEquals(2, mCatalog.getAllDatabases().size());
+    TestDatabase.genTable(1, 2);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
-        TestUdbFactory.TYPE, "connect_URI", "noop", "noop",
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, "testdb",
         Collections.emptyMap());
     assertEquals(3, mCatalog.getAllDatabases().size());
   }
@@ -150,6 +153,37 @@ public class AlluxioCatalogTest {
     db.addTable(tbl.getName(), Table.create(db, tbl));
     addDbToCatalog(db);
     assertEquals(2, mCatalog.getTable("test", "test").getPartitions().size());
+  }
+
+  @Test
+  public void testGetPartitionColumnStats() throws Exception {
+    String dbName = "testdb";
+    TestDatabase.genTable(1, 2);
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
+        Collections.emptyMap());
+    // single partition
+    assertEquals(1, mCatalog.getPartitionColumnStatistics(dbName,
+        TestDatabase.getTableName(0),
+        Arrays.asList(TestUdbTable.getPartName(0)), Arrays.asList("col2")).size());
+
+    // multiple partitions
+    assertEquals(2, mCatalog.getPartitionColumnStatistics(dbName,
+        TestDatabase.getTableName(0),
+        Arrays.asList(TestUdbTable.getPartName(0), TestUdbTable.getPartName(1)),
+        Arrays.asList("col2")).size());
+
+    // unknown column
+    assertEquals(2, mCatalog.getPartitionColumnStatistics(dbName,
+        TestDatabase.getTableName(0),
+        Arrays.asList(TestUdbTable.getPartName(0), TestUdbTable.getPartName(1)),
+        Arrays.asList("col3")).size());
+
+    // unknown partition
+    assertEquals(0, mCatalog.getPartitionColumnStatistics(dbName,
+        TestDatabase.getTableName(0),
+        Arrays.asList(TestUdbTable.getPartName(3)),
+        Arrays.asList("col2")).size());
   }
 
   @Test
