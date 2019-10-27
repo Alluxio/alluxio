@@ -30,6 +30,7 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.AlluxioCatalog;
+import alluxio.master.table.Partition;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Table.RemoveTransformJobInfoEntry;
@@ -63,6 +64,21 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Manages transformations.
+ *
+ * It executes a transformation by submitting a job to the job service.
+ *
+ * A background thread periodically checks whether the job succeeds, fails, or is still running,
+ * the period is configurable by {@link PropertyKey#TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL}.
+ *
+ * It keeps information about all running transformations not only in memory,
+ * but also in the journal,so even if it is restarted, the information of the previous running
+ * transformations is not lost.
+ *
+ * It keeps history of all succeeded or failed transformations in memory for a time period which is
+ * configurable by {@link PropertyKey#TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME}.
+ *
+ * If the job succeeds, it updates the {@link Partition}'s location by
+ * {@link AlluxioCatalog#completeTransformTable(JournalContext, String, String, String, Map)}.
  */
 public class TransformManager implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(TransformManager.class);
