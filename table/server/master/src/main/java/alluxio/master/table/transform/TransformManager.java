@@ -291,9 +291,6 @@ public class TransformManager implements DelegatingJournaled {
           throw new InterruptedException("JobMonitor interrupted.");
         }
         long jobId = job.getJobId();
-        if (jobId == INVALID_JOB_ID) {
-          continue;
-        }
         try (JobMasterClient client = JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
           LOG.debug("Polling for status of transformation job {}", jobId);
