@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,20 +54,18 @@ public class TableMasterJournalIntegrationTest {
 
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
-    List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
-
-    assertEquals(2, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(0))
-        .getPartitions().size());
+    checkTable(tableMaster, DB_NAME, 1, 2);
 
     // Update Udb, the table should stay the same, until we sync
     TestDatabase.genTable(2, 3);
+    checkTable(tableMaster, DB_NAME, 1, 2);
+    assertEquals(TestDatabase.getTableName(0), tableMaster.getAllTables(DB_NAME).get(0));
+    assertEquals(1, tableMaster.getAllTables(DB_NAME).size());
+    assertEquals(2, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(0))
+        .getPartitions().size());
 
     tableMaster.syncDatabase(DB_NAME);
-    assertEquals(2, tableMaster.getAllTables(DB_NAME).size());
-    assertEquals(3, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(0))
-        .getPartitions().size());
-    assertEquals(3, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(1))
-        .getPartitions().size());
+    checkTable(tableMaster, DB_NAME, 2, 3);
 
     mCluster.stopMasters();
     mCluster.startMasters();
@@ -74,11 +73,16 @@ public class TableMasterJournalIntegrationTest {
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     tableMasterRestart.syncDatabase(DB_NAME);
-    assertEquals(2, tableMasterRestart.getAllTables(DB_NAME).size());
-    assertEquals(3, tableMasterRestart.getTable(DB_NAME, TestDatabase.getTableName(0))
-        .getPartitions().size());
-    assertEquals(3, tableMasterRestart.getTable(DB_NAME, TestDatabase.getTableName(1))
-        .getPartitions().size());
+    checkTable(tableMasterRestart, DB_NAME, 2, 3);
+  }
+
+  private void checkTable(TableMaster tableMaster, String dbName, int numTables, int numPartitions)
+      throws IOException {
+    assertEquals(numTables, tableMaster.getAllTables(dbName).size());
+    for (int i = 0; i < numTables; i++) {
+      assertEquals(numPartitions, tableMaster.getTable(dbName, TestDatabase.getTableName(i))
+          .getPartitions().size());
+    }
   }
 
   @Test
