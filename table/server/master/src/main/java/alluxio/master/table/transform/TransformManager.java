@@ -370,7 +370,6 @@ public class TransformManager implements DelegatingJournaled {
         new ConcurrentHashMap<>();
 
     /**
-     *
      * @return all running jobs
      */
     public Collection<TransformJobInfo> getRunningJobs() {
