@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.Server;
 import alluxio.client.job.JobMasterClient;
 import alluxio.clock.SystemClock;
+import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.table.ColumnStatisticsInfo;
@@ -134,7 +135,7 @@ public class DefaultTableMaster extends CoreMaster
   public TransformJobInfo getTransformJobInfo(long jobId) throws IOException {
     Optional<TransformJobInfo> info = mTransformManager.getTransformJobInfo(jobId);
     if (!info.isPresent()) {
-      throw new IOException("No transformation information for job ID " + jobId);
+      throw new IOException(ExceptionMessage.TRANSFORM_JOB_DOES_NOT_EXIST.getMessage(jobId));
     }
     return info.get();
   }

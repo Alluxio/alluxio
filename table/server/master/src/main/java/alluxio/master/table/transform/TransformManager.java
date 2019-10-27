@@ -11,11 +11,11 @@
 
 package alluxio.master.table.transform;
 
-import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -33,13 +33,12 @@ import alluxio.master.table.AlluxioCatalog;
 import alluxio.master.table.Partition;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.proto.journal.Table.RemoveTransformJobInfoEntry;
 import alluxio.proto.journal.Table.AddTransformJobInfoEntry;
+import alluxio.proto.journal.Table.RemoveTransformJobInfoEntry;
 import alluxio.security.user.UserState;
 import alluxio.table.common.Layout;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
-import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -163,8 +162,8 @@ public class TransformManager implements DelegatingJournaled {
       throws IOException {
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, definition);
     if (plans.isEmpty()) {
-      throw new IOException(String.format("Database %s table %s has already been transformed by "
-          + "definition '%s'", dbName, tableName, definition.getDefinition()));
+      throw new IOException(ExceptionMessage.TABLE_ALREADY_TRANSFORMED.getMessage(
+          dbName, tableName, definition.getDefinition()));
     }
     Pair<String, String> dbTable = new Pair<>(dbName, tableName);
     // Atomically try to acquire the permit to execute the transformation job.
@@ -176,9 +175,8 @@ public class TransformManager implements DelegatingJournaled {
       if (existingJobId == INVALID_JOB_ID) {
         throw new IOException("A concurrent transformation request is going to be executed");
       } else {
-        throw new IOException(
-            String.format("Existing job (%d) is transforming table (%s) in database (%s)",
-            existingJobId, tableName, dbName));
+        throw new IOException(ExceptionMessage.TABLE_BEING_TRANSFORMED
+            .getMessage(existingJobId, tableName, dbName));
       }
     }
 
@@ -303,8 +301,9 @@ public class TransformManager implements DelegatingJournaled {
     @Override
     public void heartbeat() throws InterruptedException {
       for (TransformJobInfo job : mState.getRunningJobs()) {
-        if (Thread.interrupted()) {
-          throw new InterruptedException("JobMonitor interrupted.");
+        if (Thread.currentThread().isInterrupted()) {
+          throw new InterruptedException(ExceptionMessage.TRANSFORM_MANAGER_HEARTBEAT_INTERRUPTED
+              .getMessage());
         }
         long jobId = job.getJobId();
         try {
@@ -331,9 +330,8 @@ public class TransformManager implements DelegatingJournaled {
               throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
           }
         } catch (NotFoundException e) {
-          String error = String.format(
-              "Transformation job %d for database %s table %s no longer exists",
-              jobId, job.getDb(), job.getTable());
+          String error = ExceptionMessage.TRANSFORM_JOB_ID_NOT_FOUND_IN_JOB_SERVICE.getMessage(
+              jobId, job.getDb(), job.getTable(), e.getMessage());
           LOG.warn(error);
           handleJobError(job, Status.FAILED, error);
         } catch (IOException e) {
