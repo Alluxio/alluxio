@@ -13,6 +13,7 @@ package alluxio.master.table;
 
 import alluxio.Constants;
 import alluxio.Server;
+import alluxio.client.job.JobMasterClient;
 import alluxio.clock.SystemClock;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -61,12 +62,13 @@ public class DefaultTableMaster extends CoreMaster
    * Constructor for DefaultTableMaster.
    *
    * @param context core master context
+   * @param jobMasterClient the job master client for transformation
    */
-  public DefaultTableMaster(CoreMasterContext context) {
+  public DefaultTableMaster(CoreMasterContext context, JobMasterClient jobMasterClient) {
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.TABLE_MASTER_NAME));
     mCatalog = new AlluxioCatalog();
-    mTransformManager = new TransformManager(this::createJournalContext, mCatalog);
+    mTransformManager = new TransformManager(this::createJournalContext, mCatalog, jobMasterClient);
     mJournaledComponents = new JournaledGroup(Lists.newArrayList(mCatalog, mTransformManager),
         CheckpointName.TABLE_MASTER);
   }

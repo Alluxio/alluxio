@@ -113,14 +113,14 @@ public class TransformManager implements DelegatingJournaled {
    *
    * @param createJournalContext journal context creator
    * @param catalog the table catalog
+   * @param jobMasterClient the job master client
    */
   public TransformManager(
       ThrowingSupplier<JournalContext, UnavailableException> createJournalContext,
-      AlluxioCatalog catalog) {
+      AlluxioCatalog catalog, JobMasterClient jobMasterClient) {
     mCreateJournalContext = createJournalContext;
     mCatalog = catalog;
-    mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(
-        ClientContext.create(ServerConfiguration.global())).build());
+    mJobMasterClient = jobMasterClient;
   }
 
   /**
