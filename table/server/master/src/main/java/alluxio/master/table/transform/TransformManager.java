@@ -307,10 +307,9 @@ public class TransformManager implements DelegatingJournaled {
           throw new InterruptedException("JobMonitor interrupted.");
         }
         long jobId = job.getJobId();
-        try (JobMasterClient client = JobMasterClient.Factory.create(JobMasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+        try {
           LOG.debug("Polling for status of transformation job {}", jobId);
-          JobInfo jobInfo = client.getStatus(jobId);
+          JobInfo jobInfo = mJobMasterClient.getStatus(jobId);
           switch (jobInfo.getStatus()) {
             case FAILED: // fall through
             case CANCELED: // fall through
