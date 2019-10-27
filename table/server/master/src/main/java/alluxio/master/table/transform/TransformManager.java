@@ -436,6 +436,8 @@ public class TransformManager implements DelegatingJournaled {
     public void resetState() {
       mRunningJobs.clear();
       mRunningJobIds.clear();
+      mJobHistory.invalidateAll();
+      mJobHistory.cleanUp();
     }
 
     @Override
