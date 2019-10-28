@@ -176,6 +176,12 @@ public enum ExceptionMessage {
   TRANSFORM_ACTION_PARSE_FAILED("Failed to parse transform action at: {0}"),
   TRANSFORM_WRITE_ACTION_INVALID_ARGS("Write action must have exactly one argument"),
   TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES("Write action must have positive number of files"),
+  TABLE_BEING_TRANSFORMED("Existing job {0} is transforming table {1} in database {2}"),
+  TABLE_ALREADY_TRANSFORMED("Database {0} table {1} has been transformed by definition {2}"),
+  TRANSFORM_JOB_DOES_NOT_EXIST("No transformation information for job ID {0}"),
+  TRANSFORM_MANAGER_HEARTBEAT_INTERRUPTED("TransformManager's heartbeat was interrupted"),
+  TRANSFORM_JOB_ID_NOT_FOUND_IN_JOB_SERVICE("Transformation job {0} for database {1} table {2} "
+      + "was not found in job master, maybe the job master was restarted: {3}"),
 
   // safe mode
   MASTER_IN_SAFEMODE("Alluxio master is in safe mode. Please try again later."),

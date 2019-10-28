@@ -124,9 +124,9 @@ public class Partition {
    * @param definition the transformation definition
    * @return whether the latest transformation of Partition has the same definition
    */
-  public boolean isTransformed(TransformDefinition definition) {
+  public boolean isTransformed(String definition) {
     return mTransformation != null
-        && mTransformation.getDefinition().equals(definition.getDefinition());
+        && mTransformation.getDefinition().equals(definition);
   }
 
   /**

@@ -368,6 +368,7 @@ public class AlluxioCatalog implements Journaled {
       return true;
     } else if (entry.hasCompleteTransformTable()) {
       apply(entry.getCompleteTransformTable());
+      return true;
     }
     return false;
   }
