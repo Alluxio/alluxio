@@ -76,7 +76,7 @@ public final class TransformTableCommand extends AbstractTableCommand {
         + "\n\n"
         + "Definition is in format like 'write(hive).option(hive.num.files, 100)',"
         + "currently, the only modification you can do to the example definition is "
-        + "the number of files in the option."
+        + "the number of files in the option.";
   }
 
   @Override
