@@ -13,11 +13,12 @@ package alluxio.job.transform.format.csv;
 
 import alluxio.AlluxioURI;
 import alluxio.job.transform.format.Format;
-import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.ReadWriterUtils;
+import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 
+import com.google.common.io.Closer;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
@@ -41,17 +42,32 @@ public final class CsvReader implements TableReader {
 
   private final FileSystem mFs;
   private final AvroCSVReader<Record> mReader;
+  private final Closer mCloser;
   private final CsvSchema mSchema;
 
   /**
    * @param fs the hdfs compatible client
-   * @param reader the CSV reader
-   * @param schema the schema
+   * @param inputPath the input path
+   * @throws IOException when failed to open the input
    */
-  private CsvReader(FileSystem fs, AvroCSVReader<Record> reader, Schema schema) {
+  private CsvReader(FileSystem fs, Path inputPath) throws IOException {
+    mCloser = Closer.create();
     mFs = fs;
-    mReader = reader;
-    mSchema = new CsvSchema(schema);
+    mCloser.register(mFs);
+    CSVProperties props = new CSVProperties.Builder()
+        .hasHeader()
+        .build();
+    Schema schema;
+    try (InputStream inputStream = open(fs, inputPath)) {
+      String schemaName = inputPath.getName();
+      if (schemaName.contains(".")) {
+        schemaName = schemaName.substring(0, schemaName.indexOf("."));
+      }
+      schema = AvroCSV.inferSchema(schemaName, inputStream, props);
+      mSchema = new CsvSchema(schema);
+    }
+    mReader = new AvroCSVReader<>(open(fs, inputPath), props, schema, Record.class, false);
+    mCloser.register(mReader);
   }
 
   private static InputStream open(FileSystem fs, Path path) throws IOException {
@@ -70,23 +86,10 @@ public final class CsvReader implements TableReader {
    * @throws IOException when failed to create the reader
    */
   public static CsvReader create(AlluxioURI uri) throws IOException {
-    CSVProperties props = new CSVProperties.Builder()
-        .hasHeader()
-        .build();
     Path inputPath = new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
     Configuration conf = ReadWriterUtils.readNoCacheConf();
     FileSystem fs = inputPath.getFileSystem(conf);
-    Schema schema;
-    try (InputStream inputStream = open(fs, inputPath)) {
-      String schemaName = inputPath.getName();
-      if (schemaName.contains(".")) {
-        schemaName = schemaName.substring(0, schemaName.indexOf("."));
-      }
-      schema = AvroCSV.inferSchema(schemaName, inputStream, props);
-    }
-    AvroCSVReader<Record> reader = new AvroCSVReader<>(open(fs, inputPath), props, schema,
-        Record.class, false);
-    return new CsvReader(fs, reader, schema);
+    return new CsvReader(fs, inputPath);
   }
 
   @Override
@@ -101,7 +104,6 @@ public final class CsvReader implements TableReader {
 
   @Override
   public void close() throws IOException {
-    mReader.close();
-    mFs.close();
+    mCloser.close();
   }
 }
