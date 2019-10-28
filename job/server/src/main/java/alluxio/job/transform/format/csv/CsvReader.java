@@ -39,14 +39,17 @@ import java.util.zip.GZIPInputStream;
 public final class CsvReader implements TableReader {
   private static final Logger LOG = LoggerFactory.getLogger(CsvReader.class);
 
+  private final FileSystem mFs;
   private final AvroCSVReader<Record> mReader;
   private final CsvSchema mSchema;
 
   /**
+   * @param fs the hdfs compatible client
    * @param reader the CSV reader
    * @param schema the schema
    */
-  private CsvReader(AvroCSVReader<Record> reader, Schema schema) {
+  private CsvReader(FileSystem fs, AvroCSVReader<Record> reader, Schema schema) {
+    mFs = fs;
     mReader = reader;
     mSchema = new CsvSchema(schema);
   }
@@ -83,7 +86,7 @@ public final class CsvReader implements TableReader {
     }
     AvroCSVReader<Record> reader = new AvroCSVReader<>(open(fs, inputPath), props, schema,
         Record.class, false);
-    return new CsvReader(reader, schema);
+    return new CsvReader(fs, reader, schema);
   }
 
   @Override
@@ -99,5 +102,6 @@ public final class CsvReader implements TableReader {
   @Override
   public void close() throws IOException {
     mReader.close();
+    mFs.close();
   }
 }
