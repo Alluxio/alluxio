@@ -105,7 +105,7 @@ properties:
 
 To view the complete list of supported properties run the `helm inspect` command:
 ```console
-$ helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
+$ helm inspect values alluxio-local/alluxio
 ```
 
 The remainder of this section describes various configuration options with examples.
@@ -293,7 +293,7 @@ tieredstore:
 
 Once the configuration is finalized in a file named `config.yaml`, install as follows:
 ```console
-helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
+helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_HELM_VERSION_STRING}}
 ```
 
 #### Uninstall
