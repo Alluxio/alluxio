@@ -334,12 +334,12 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path1> <path2>...";
+    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path> ...";
   }
 
   @Override
   public String getDescription() {
-    return "Displays information for all files and directories directly under the specified path, "
+    return "Displays information for all files and directories directly under the specified paths, "
         + "including permission, owner, group, size (bytes for files or the number of children "
         + "for directories, persistence state, last modified time, the percentage of content"
         + " already in Alluxio and the path in order.";
