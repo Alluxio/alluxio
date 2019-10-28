@@ -118,7 +118,7 @@ public class TestUdbTable implements UdbTable {
     return mTestPartitions;
   }
 
-  private class TestPartition implements UdbPartition{
+  private class TestPartition implements UdbPartition {
     private HiveLayout mLayout;
 
     private TestPartition(HiveLayout hiveLayout) {

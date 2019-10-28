@@ -11,11 +11,11 @@
 
 package alluxio.master.table.transform;
 
-import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -30,15 +30,15 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.AlluxioCatalog;
+import alluxio.master.table.Partition;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.proto.journal.Table.RemoveTransformJobInfoEntry;
 import alluxio.proto.journal.Table.AddTransformJobInfoEntry;
+import alluxio.proto.journal.Table.RemoveTransformJobInfoEntry;
 import alluxio.security.user.UserState;
 import alluxio.table.common.Layout;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
-import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -63,6 +63,21 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Manages transformations.
+ *
+ * It executes a transformation by submitting a job to the job service.
+ *
+ * A background thread periodically checks whether the job succeeds, fails, or is still running,
+ * the period is configurable by {@link PropertyKey#TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL}.
+ *
+ * It keeps information about all running transformations not only in memory,
+ * but also in the journal,so even if it is restarted, the information of the previous running
+ * transformations is not lost.
+ *
+ * It keeps history of all succeeded or failed transformations in memory for a time period which is
+ * configurable by {@link PropertyKey#TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME}.
+ *
+ * If the job succeeds, it updates the {@link Partition}'s location by
+ * {@link AlluxioCatalog#completeTransformTable(JournalContext, String, String, String, Map)}.
  */
 public class TransformManager implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(TransformManager.class);
@@ -97,14 +112,14 @@ public class TransformManager implements DelegatingJournaled {
    *
    * @param createJournalContext journal context creator
    * @param catalog the table catalog
+   * @param jobMasterClient the job master client
    */
   public TransformManager(
       ThrowingSupplier<JournalContext, UnavailableException> createJournalContext,
-      AlluxioCatalog catalog) {
+      AlluxioCatalog catalog, JobMasterClient jobMasterClient) {
     mCreateJournalContext = createJournalContext;
     mCatalog = catalog;
-    mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(
-        ClientContext.create(ServerConfiguration.global())).build());
+    mJobMasterClient = jobMasterClient;
   }
 
   /**
@@ -147,8 +162,8 @@ public class TransformManager implements DelegatingJournaled {
       throws IOException {
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, definition);
     if (plans.isEmpty()) {
-      throw new IOException(String.format("Database %s table %s has already been transformed by "
-          + "definition '%s'", dbName, tableName, definition.getDefinition()));
+      throw new IOException(ExceptionMessage.TABLE_ALREADY_TRANSFORMED.getMessage(
+          dbName, tableName, definition.getDefinition()));
     }
     Pair<String, String> dbTable = new Pair<>(dbName, tableName);
     // Atomically try to acquire the permit to execute the transformation job.
@@ -160,9 +175,8 @@ public class TransformManager implements DelegatingJournaled {
       if (existingJobId == INVALID_JOB_ID) {
         throw new IOException("A concurrent transformation request is going to be executed");
       } else {
-        throw new IOException(
-            String.format("Existing job (%d) is transforming table (%s) in database (%s)",
-            existingJobId, tableName, dbName));
+        throw new IOException(ExceptionMessage.TABLE_BEING_TRANSFORMED
+            .getMessage(existingJobId, tableName, dbName));
       }
     }
 
@@ -287,17 +301,14 @@ public class TransformManager implements DelegatingJournaled {
     @Override
     public void heartbeat() throws InterruptedException {
       for (TransformJobInfo job : mState.getRunningJobs()) {
-        if (Thread.interrupted()) {
-          throw new InterruptedException("JobMonitor interrupted.");
+        if (Thread.currentThread().isInterrupted()) {
+          throw new InterruptedException(ExceptionMessage.TRANSFORM_MANAGER_HEARTBEAT_INTERRUPTED
+              .getMessage());
         }
         long jobId = job.getJobId();
-        if (jobId == INVALID_JOB_ID) {
-          continue;
-        }
-        try (JobMasterClient client = JobMasterClient.Factory.create(JobMasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+        try {
           LOG.debug("Polling for status of transformation job {}", jobId);
-          JobInfo jobInfo = client.getStatus(jobId);
+          JobInfo jobInfo = mJobMasterClient.getStatus(jobId);
           switch (jobInfo.getStatus()) {
             case FAILED: // fall through
             case CANCELED: // fall through
@@ -319,9 +330,8 @@ public class TransformManager implements DelegatingJournaled {
               throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
           }
         } catch (NotFoundException e) {
-          String error = String.format(
-              "Transformation job %d for database %s table %s no longer exists",
-              jobId, job.getDb(), job.getTable());
+          String error = ExceptionMessage.TRANSFORM_JOB_ID_NOT_FOUND_IN_JOB_SERVICE.getMessage(
+              jobId, job.getDb(), job.getTable(), e.getMessage());
           LOG.warn(error);
           handleJobError(job, Status.FAILED, error);
         } catch (IOException e) {
@@ -358,7 +368,6 @@ public class TransformManager implements DelegatingJournaled {
         new ConcurrentHashMap<>();
 
     /**
-     *
      * @return all running jobs
      */
     public Collection<TransformJobInfo> getRunningJobs() {
@@ -425,6 +434,8 @@ public class TransformManager implements DelegatingJournaled {
     public void resetState() {
       mRunningJobs.clear();
       mRunningJobIds.clear();
+      mJobHistory.invalidateAll();
+      mJobHistory.cleanUp();
     }
 
     @Override

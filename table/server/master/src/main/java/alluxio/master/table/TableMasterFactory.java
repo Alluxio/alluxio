@@ -11,12 +11,15 @@
 
 package alluxio.master.table;
 
+import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.client.job.JobMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
+import alluxio.worker.job.JobMasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +51,10 @@ public final class TableMasterFactory implements MasterFactory<CoreMasterContext
   @Override
   public TableMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", TableMaster.class.getName());
-    TableMaster master = new DefaultTableMaster(context);
+
+    JobMasterClient jobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+    TableMaster master = new DefaultTableMaster(context, jobMasterClient);
     registry.add(TableMaster.class, master);
     return master;
   }
