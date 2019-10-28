@@ -734,7 +734,7 @@ alluxio.worker.data.server.domain.socket.address=/opt/domain
 Compute application containers **must** mount the domain socket volume to the same path
 (`/opt/domain`) as configured for the Alluxio workers.
 
-#### Verify
+***Verify***
 
 To verify short-circuit reads and writes monitor the metrics displayed under:
 1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
