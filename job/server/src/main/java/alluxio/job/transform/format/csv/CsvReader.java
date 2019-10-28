@@ -53,8 +53,7 @@ public final class CsvReader implements TableReader {
     mCloser = Closer.create();
     try {
       Configuration conf = ReadWriterUtils.readNoCacheConf();
-      mFs = inputPath.getFileSystem(conf);
-      mCloser.register(mFs);
+      mFs = mCloser.register(inputPath.getFileSystem(conf));
       CSVProperties props = new CSVProperties.Builder()
           .hasHeader()
           .build();
@@ -67,8 +66,8 @@ public final class CsvReader implements TableReader {
         schema = AvroCSV.inferSchema(schemaName, inputStream, props);
         mSchema = new CsvSchema(schema);
       }
-      mReader = new AvroCSVReader<>(open(mFs, inputPath), props, schema, Record.class, false);
-      mCloser.register(mReader);
+      mReader = mCloser.register(
+          new AvroCSVReader<>(open(mFs, inputPath), props, schema, Record.class, false));
     } catch (IOException e) {
       try {
         mCloser.close();
