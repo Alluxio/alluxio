@@ -268,6 +268,17 @@ public class TransformManagerTest {
     mException.expectMessage(msg);
   }
 
+  /**
+   * Assert that the transform job information is expected.
+   * If status is {@link Status#COMPLETED}, assert that the partitions' locations are updated.
+   *
+   * @param info the transform job info
+   * @param table the expected table name
+   * @param definition the expected transform definition
+   * @param jobId the expected job ID
+   * @param status the expected job status
+   * @param error the expected job error
+   */
   private void checkTransformJobInfo(TransformJobInfo info, String table, String definition,
       long jobId, Status status, @Nullable String error) throws Exception {
     assertEquals(DB, info.getDb());
