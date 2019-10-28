@@ -199,16 +199,21 @@ public class TransformManagerTest {
 
     // Verifies that job status has been updated by the heartbeat.
     assertEquals(3, mTableMaster.getAllTransformJobInfo().size());
-    checkTransformJobInfo(mTableMaster.getTransformJobInfo(jobId1), TABLE1, DEFINITION1, jobId1,
+    TransformJobInfo job1Info = mTableMaster.getTransformJobInfo(jobId1);
+    checkTransformJobInfo(job1Info, TABLE1, DEFINITION1, jobId1,
         Status.COMPLETED, null);
     checkTransformJobInfo(mTableMaster.getTransformJobInfo(jobId2), TABLE2, DEFINITION2, jobId2,
         Status.FAILED, "error");
     checkTransformJobInfo(mTableMaster.getTransformJobInfo(jobId3), TABLE3, DEFINITION1, jobId3,
         Status.RUNNING, null);
 
+    restart();
+
+    // Checks that the layout for job1 is the transformed layout.
+    checkLayout(job1Info, TABLE1);
+
     // Restarting table master will lose history for finished jobs,
     // but history for running jobs are journaled and replayed.
-    restart();
     assertEquals(1, mTableMaster.getAllTransformJobInfo().size());
     checkTransformJobInfo(mTableMaster.getTransformJobInfo(jobId3), TABLE3, DEFINITION1, jobId3,
         Status.RUNNING, null);
@@ -292,13 +297,23 @@ public class TransformManagerTest {
       assertEquals("", info.getJobErrorMessage());
     }
     if (status == Status.COMPLETED) {
-      for (Map.Entry<String, Layout> specLayouts : info.getTransformedLayouts().entrySet()) {
-        String spec = specLayouts.getKey();
-        Layout layout = specLayouts.getValue();
-        Partition partition = mTableMaster.getTable(DB, table).getPartition(spec);
-        assertTrue(partition.isTransformed(info.getDefinition()));
-        assertEquals(layout, partition.getLayout());
-      }
+      checkLayout(info, table);
+    }
+  }
+
+  /**
+   * Checks that the layouts of table partitions are the transformed layouts in info.
+   *
+   * @param info the job information
+   * @param table the table
+   */
+  private void checkLayout(TransformJobInfo info, String table) throws IOException {
+    for (Map.Entry<String, Layout> specLayouts : info.getTransformedLayouts().entrySet()) {
+      String spec = specLayouts.getKey();
+      Layout layout = specLayouts.getValue();
+      Partition partition = mTableMaster.getTable(DB, table).getPartition(spec);
+      assertTrue(partition.isTransformed(info.getDefinition()));
+      assertEquals(layout, partition.getLayout());
     }
   }
 
