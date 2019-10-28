@@ -46,19 +46,19 @@ public final class CsvReader implements TableReader {
   private final CsvSchema mSchema;
 
   /**
-   * @param fs the hdfs compatible client
    * @param inputPath the input path
    * @throws IOException when failed to open the input
    */
-  private CsvReader(FileSystem fs, Path inputPath) throws IOException {
+  private CsvReader(Path inputPath) throws IOException {
     mCloser = Closer.create();
-    mFs = fs;
+    Configuration conf = ReadWriterUtils.readNoCacheConf();
+    mFs = inputPath.getFileSystem(conf);
     mCloser.register(mFs);
     CSVProperties props = new CSVProperties.Builder()
         .hasHeader()
         .build();
     Schema schema;
-    try (InputStream inputStream = open(fs, inputPath)) {
+    try (InputStream inputStream = open(mFs, inputPath)) {
       String schemaName = inputPath.getName();
       if (schemaName.contains(".")) {
         schemaName = schemaName.substring(0, schemaName.indexOf("."));
@@ -66,7 +66,7 @@ public final class CsvReader implements TableReader {
       schema = AvroCSV.inferSchema(schemaName, inputStream, props);
       mSchema = new CsvSchema(schema);
     }
-    mReader = new AvroCSVReader<>(open(fs, inputPath), props, schema, Record.class, false);
+    mReader = new AvroCSVReader<>(open(mFs, inputPath), props, schema, Record.class, false);
     mCloser.register(mReader);
   }
 
@@ -86,10 +86,7 @@ public final class CsvReader implements TableReader {
    * @throws IOException when failed to create the reader
    */
   public static CsvReader create(AlluxioURI uri) throws IOException {
-    Path inputPath = new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
-    Configuration conf = ReadWriterUtils.readNoCacheConf();
-    FileSystem fs = inputPath.getFileSystem(conf);
-    return new CsvReader(fs, inputPath);
+    return new CsvReader(new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()));
   }
 
   @Override
