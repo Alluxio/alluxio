@@ -202,8 +202,11 @@ class Hadoop
   end
 
   def alluxio_dist(alluxio_version)
-    hadoop_major_minor_version = @version.split('.')[0..1].join('.')
-    return "alluxio-#{alluxio_version}-hadoop-#{hadoop_major_minor_version}-bin.tar.gz"
+		if alluxio_version.start_with?("1")
+    	hadoop_major_minor_version = @version.split('.')[0..1].join('.')
+    	return "alluxio-#{alluxio_version}-hadoop-#{hadoop_major_minor_version}-bin.tar.gz"
+		end
+    return "alluxio-#{alluxio_version}-bin.tar.gz"
   end
 end
 
