@@ -60,7 +60,7 @@ public final class TransformTableCommand extends AbstractTableCommand {
 
   @Override
   public String getUsage() {
-    return COMMAND_NAME + " <db name> <table name>";
+    return COMMAND_NAME + " <db name> <table name> [-d <definition>]";
   }
 
   @Override
@@ -72,7 +72,9 @@ public final class TransformTableCommand extends AbstractTableCommand {
   public String getDescription() {
     return "Transform files representing a structured table under an Alluxio directory."
         + "\n\n"
-        + "Files are coalesced and converted to parquet format.";
+        + "Files are coalesced and converted to parquet format."
+        + "\n\n"
+        + "Definition is in format like 'write(hive).option(hive.num.files, 100)'.";
   }
 
   @Override
