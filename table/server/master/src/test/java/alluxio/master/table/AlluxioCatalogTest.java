@@ -336,7 +336,7 @@ public class AlluxioCatalogTest {
 
     Table table = mCatalog.getTable(dbName, tableName);
     table.getPartitions().forEach(partition ->
-        assertFalse(partition.isTransformed(TRANSFORM_DEFINITION)));
+        assertFalse(partition.isTransformed(TRANSFORM_DEFINITION.getDefinition())));
 
     // When generating transform plan, the authority of the output path
     // will be determined based on this hostname configuration.
@@ -350,7 +350,7 @@ public class AlluxioCatalogTest {
         TRANSFORM_DEFINITION.getDefinition(), transformedLayouts);
 
     table.getPartitions().forEach(partition -> {
-      assertTrue(partition.isTransformed(TRANSFORM_DEFINITION));
+      assertTrue(partition.isTransformed(TRANSFORM_DEFINITION.getDefinition()));
       assertEquals(transformedLayouts.get(partition.getSpec()), partition.getLayout());
     });
   }

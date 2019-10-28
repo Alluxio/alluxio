@@ -196,7 +196,7 @@ public class Table {
   public List<TransformPlan> getTransformPlans(TransformDefinition definition) throws IOException {
     List<TransformPlan> plans = new ArrayList<>(getPartitions().size());
     for (Partition partition : getPartitions()) {
-      if (!partition.isTransformed(definition)) {
+      if (!partition.isTransformed(definition.getDefinition())) {
         TransformContext transformContext =
             new TransformContext(mDatabase.getName(), mName, partition.getSpec());
         plans.add(partition.getTransformPlan(transformContext, definition));
