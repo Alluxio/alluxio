@@ -347,7 +347,8 @@ The format of Alluxio audit log entry is shown in the table below:
 </tr>
 </table>
 
-This is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/hadoop/HowToConfigure).
+This is similar to the format of HDFS audit log
+[wiki](https://cwiki.apache.org/confluence/display/HADOOP2/HowToConfigure#HowToConfigure-AuditLogging).
 
 To enable Alluxio audit logging, set the JVM property
 `alluxio.master.audit.logging.enabled` to `true` in `alluxio-env.sh`.
