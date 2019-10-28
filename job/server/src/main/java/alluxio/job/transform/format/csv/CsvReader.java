@@ -51,23 +51,32 @@ public final class CsvReader implements TableReader {
    */
   private CsvReader(Path inputPath) throws IOException {
     mCloser = Closer.create();
-    Configuration conf = ReadWriterUtils.readNoCacheConf();
-    mFs = inputPath.getFileSystem(conf);
-    mCloser.register(mFs);
-    CSVProperties props = new CSVProperties.Builder()
-        .hasHeader()
-        .build();
-    Schema schema;
-    try (InputStream inputStream = open(mFs, inputPath)) {
-      String schemaName = inputPath.getName();
-      if (schemaName.contains(".")) {
-        schemaName = schemaName.substring(0, schemaName.indexOf("."));
+    try {
+      Configuration conf = ReadWriterUtils.readNoCacheConf();
+      mFs = inputPath.getFileSystem(conf);
+      mCloser.register(mFs);
+      CSVProperties props = new CSVProperties.Builder()
+          .hasHeader()
+          .build();
+      Schema schema;
+      try (InputStream inputStream = open(mFs, inputPath)) {
+        String schemaName = inputPath.getName();
+        if (schemaName.contains(".")) {
+          schemaName = schemaName.substring(0, schemaName.indexOf("."));
+        }
+        schema = AvroCSV.inferSchema(schemaName, inputStream, props);
+        mSchema = new CsvSchema(schema);
       }
-      schema = AvroCSV.inferSchema(schemaName, inputStream, props);
-      mSchema = new CsvSchema(schema);
+      mReader = new AvroCSVReader<>(open(mFs, inputPath), props, schema, Record.class, false);
+      mCloser.register(mReader);
+    } catch (IOException e) {
+      try {
+        mCloser.close();
+      } catch (IOException ioe) {
+        e.addSuppressed(ioe);
+      }
+      throw e;
     }
-    mReader = new AvroCSVReader<>(open(mFs, inputPath), props, schema, Record.class, false);
-    mCloser.register(mReader);
   }
 
   private static InputStream open(FileSystem fs, Path path) throws IOException {
