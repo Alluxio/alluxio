@@ -78,16 +78,16 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
-                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsMultipleDirs() throws Exception {
     createFiles(null);
     mFsShell.run("ls", "/testRoot", "/testRoot/testDir/");
     checkOutput(
-            "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
-            "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
-            "             30       PERSISTED .+ .+   0% /testRoot/testFileC",
-            "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB");
+        "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
+        "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
+        "             30       PERSISTED .+ .+   0% /testRoot/testFileC",
+        "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB");
   }
 
   /**
