@@ -58,12 +58,14 @@ for documentation.
 Now that you have set up all that Helm needs, you can use the helper script `helm-generate.sh` to help you quickly generate the templates(overwriting the existing ones).
 The script takes only one argument, the target setup name.
 
+> Note: `helm-generate.sh` uses `helm template` command under the hood.
+Templates ignored with `.helmignore` file will not be generated.  
+
 ```bash
 # Example: This will regenerate the templates for singleMaster-localJournal
 bash helm-generate.sh single-ufs local
 # Example: This will regenerate the templates for multiMaster-embeddedJournal
 bash helm-generate.sh multi-embedded
-
 ```
 
 For all modes the script relies on the `config.yaml` file in the corresponding template directory.

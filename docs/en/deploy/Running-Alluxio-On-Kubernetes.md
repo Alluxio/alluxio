@@ -289,11 +289,37 @@ tieredstore:
     low: 0.7
 ```
 
+#### Update Ignore List
+Some resources are for specific use only and should be ignored for Helm installation.
+You should append the below to the end of `.helmignore` file.
+```properties
+# Ignore resources that should not be part of Helm installation
+# Jobs are for specific tasks only
+templates/job
+# Fuse is by default turned off
+templates/fuse
+```
+
+* Jobs defined in `templates/job` are for specific manual tasks.
+* If you want to enable Fuse, you can remove the `templates/fuse` line from `.helmignore`, to include Fuse into Helm installation.
+* If you don't need a Persistent Volume for the journal,
+  you can remove them from Helm installation by adding `templates/master/journal-pv.yaml` and `templates/master/journal-pvc.yaml` to `.helmignore`.
+
+Once you made change to `.helmignore` you should prepare the Helm repository again.
+
 #### Install
 
 Once the configuration is finalized in a file named `config.yaml`, install as follows:
 ```console
 helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_HELM_VERSION_STRING}}
+```
+
+#### Check Status
+If the installation is successful, you can see the Alluxio deployment with `helm list`.
+```console
+$ helm list
+NAME   	REVISION	UPDATED                 	STATUS  	CHART        	APP VERSION	NAMESPACE
+alluxio	1       	Mon Oct 28 23:36:54 2019	DEPLOYED	alluxio-0.5.1	           	default 
 ```
 
 #### Uninstall
