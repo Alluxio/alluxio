@@ -186,17 +186,18 @@ public class TransformManager implements DelegatingJournaled {
     }
     CompositeConfig transformJob = new CompositeConfig(concurrentJobs, false);
 
-    long jobId = INVALID_JOB_ID;
+    long jobId;
     try {
       jobId = mJobMasterClient.run(transformJob);
     } catch (IOException e) {
-      LOG.warn("Job (id={}) fails to start to transform table {} in database {}",
-          jobId, tableName, dbName);
       // The job fails to start, clear the acquired permit for execution.
       // No need to journal this REMOVE, if master crashes, when it restarts, the permit placeholder
       // entry will not exist any more, which is correct behavior.
       mState.releaseJobPermit(dbTable);
-      return INVALID_JOB_ID;
+      String error = String.format("Fails to start job to transform table {} in database {}",
+          tableName, dbName);
+      LOG.error(error, e);
+      throw new IOException(error, e);
     }
 
     Map<String, Layout> transformedLayouts = new HashMap<>(plans.size());
