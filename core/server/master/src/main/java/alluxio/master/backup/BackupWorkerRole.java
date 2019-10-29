@@ -112,15 +112,9 @@ public class BackupWorkerRole extends AbstractBackupRole {
   @Override
   public void stop() throws IOException {
     LOG.info("Stopping backup-worker role.");
-    // Close leader close listener.
-    // This will ensure, connection won't be re-established when closed during stop.
-    if (mLeaderConnectionCloseListener != null) {
-      mLeaderConnectionCloseListener.close();
-    }
-    // Close the connection with the leader.
-    if (mLeaderConnection != null) {
-      mLeaderConnection.close();
-      mLeaderConnection = null;
+    // Cancel suspend timeout.
+    if (mBackupTimeoutTask != null && !mBackupTimeoutTask.isDone()) {
+      mBackupTimeoutTask.cancel(true);
     }
     // Cancel ongoing backup task.
     if (mBackupFuture != null) {
@@ -130,9 +124,15 @@ public class BackupWorkerRole extends AbstractBackupRole {
     if (mBackupProgressFuture != null) {
       mBackupProgressFuture.cancel(true);
     }
-    // Cancel suspend timeout.
-    if (mBackupTimeoutTask != null && !mBackupTimeoutTask.isDone()) {
-      mBackupTimeoutTask.cancel(true);
+    // Close leader close listener.
+    // This will ensure, connection won't be re-established when closed during stop.
+    if (mLeaderConnectionCloseListener != null) {
+      mLeaderConnectionCloseListener.close();
+    }
+    // Close the connection with the leader.
+    if (mLeaderConnection != null) {
+      mLeaderConnection.close();
+      mLeaderConnection = null;
     }
     // Stopping the base after because closing connection uses the base executor.
     super.stop();
@@ -198,7 +198,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     }
 
     // Spawn a task for advancing journals to target sequences, then taking the backup.
-    mExecutorService.submit(() -> {
+    mBackupFuture = mExecutorService.submit(() -> {
       // Mark state as transitioning.
       mBackupTracker.updateState(BackupState.TRANSITIONING);
       try {
