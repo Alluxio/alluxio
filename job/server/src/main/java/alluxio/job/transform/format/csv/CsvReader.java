@@ -12,9 +12,10 @@
 package alluxio.job.transform.format.csv;
 
 import alluxio.AlluxioURI;
-import alluxio.job.transform.format.Format;
-import alluxio.job.transform.format.TableReader;
+import alluxio.job.transform.Format;
+import alluxio.job.transform.PartitionInfo;
 import alluxio.job.transform.format.ReadWriterUtils;
+import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 
@@ -54,9 +55,9 @@ public final class CsvReader implements TableReader {
     mSchema = new CsvSchema(schema);
   }
 
-  private static InputStream open(FileSystem fs, Path path) throws IOException {
+  private static InputStream open(FileSystem fs, Path path, boolean isGzipped) throws IOException {
     InputStream stream = fs.open(path);
-    if (Format.isGzipped(path.toString())) {
+    if (isGzipped) {
       stream = new GZIPInputStream(stream);
     }
     return stream;
@@ -66,10 +67,12 @@ public final class CsvReader implements TableReader {
    * Creates a CSV reader.
    *
    * @param uri the URI to the input
+   * @param pInfo the partition info
    * @return the reader
    * @throws IOException when failed to create the reader
    */
-  public static CsvReader create(AlluxioURI uri) throws IOException {
+  public static CsvReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
+    boolean isGzipped = pInfo.getFormat().equals(Format.GZIP_CSV);
     CSVProperties props = new CSVProperties.Builder()
         .hasHeader()
         .build();
@@ -77,15 +80,15 @@ public final class CsvReader implements TableReader {
     Configuration conf = ReadWriterUtils.readNoCacheConf();
     FileSystem fs = inputPath.getFileSystem(conf);
     Schema schema;
-    try (InputStream inputStream = open(fs, inputPath)) {
+    try (InputStream inputStream = open(fs, inputPath, isGzipped)) {
       String schemaName = inputPath.getName();
       if (schemaName.contains(".")) {
         schemaName = schemaName.substring(0, schemaName.indexOf("."));
       }
       schema = AvroCSV.inferSchema(schemaName, inputStream, props);
     }
-    AvroCSVReader<Record> reader = new AvroCSVReader<>(open(fs, inputPath), props, schema,
-        Record.class, false);
+    AvroCSVReader<Record> reader = new AvroCSVReader<>(open(fs, inputPath, isGzipped), props,
+        schema, Record.class, false);
     return new CsvReader(fs, reader, schema);
   }
 

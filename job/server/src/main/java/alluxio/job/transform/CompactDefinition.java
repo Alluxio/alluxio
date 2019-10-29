@@ -115,7 +115,7 @@ public final class CompactDefinition
       TableWriter writer = null;
       try {
         for (String input : inputs) {
-          readers.add(TableReader.create(new AlluxioURI(input)));
+          readers.add(TableReader.create(new AlluxioURI(input), config.getPartitionInfo()));
         }
         TableSchema schema = readers.get(0).getSchema();
         writer = TableWriter.create(schema, new AlluxioURI(output));

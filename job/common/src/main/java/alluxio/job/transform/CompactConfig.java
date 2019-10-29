@@ -35,6 +35,7 @@ public final class CompactConfig implements JobConfig {
 
   private static final String NAME = "Compact";
 
+  private final PartitionInfo mPartitionInfo;
   /**
    * Files directly under this directory are compacted.
    */
@@ -53,19 +54,29 @@ public final class CompactConfig implements JobConfig {
   private final int mNumFiles;
 
   /**
+   * @param partitionInfo the partition info
    * @param input the input directory
    * @param output the output directory
    * @param databaseType the type of database to write the compacted table to
    * @param numFiles the number of files after compaction
    */
-  public CompactConfig(@JsonProperty("input") String input,
+  public CompactConfig(@JsonProperty("partitionInfo") PartitionInfo partitionInfo,
+      @JsonProperty("input") String input,
       @JsonProperty("output") String output,
       @JsonProperty("databaseType") String databaseType,
       @JsonProperty("numFiles") Integer numFiles) {
+    mPartitionInfo = partitionInfo;
     mInput = Preconditions.checkNotNull(input, "input");
     mOutput = Preconditions.checkNotNull(output, "output");
     mDatabaseType = Preconditions.checkNotNull(databaseType, "databaseType");
     mNumFiles = Preconditions.checkNotNull(numFiles, "numFiles");
+  }
+
+  /**
+   * @return the partition info
+   */
+  public PartitionInfo getPartitionInfo() {
+    return mPartitionInfo;
   }
 
   /**
@@ -108,7 +119,8 @@ public final class CompactConfig implements JobConfig {
       return false;
     }
     CompactConfig that = (CompactConfig) obj;
-    return mInput.equals(that.mInput)
+    return mPartitionInfo.equals(that.mPartitionInfo)
+        && mInput.equals(that.mInput)
         && mDatabaseType.equals(that.mDatabaseType)
         && mOutput.equals(that.mOutput)
         && mNumFiles == that.mNumFiles;
@@ -116,12 +128,13 @@ public final class CompactConfig implements JobConfig {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mInput, mOutput, mDatabaseType, mNumFiles);
+    return Objects.hashCode(mPartitionInfo, mInput, mOutput, mDatabaseType, mNumFiles);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("partitionInfo", mPartitionInfo)
         .add("input", mInput)
         .add("output", mOutput)
         .add("databaseType", mDatabaseType)

@@ -12,6 +12,7 @@
 package alluxio.job.transform.format;
 
 import alluxio.AlluxioURI;
+import alluxio.job.transform.PartitionInfo;
 import alluxio.job.transform.format.csv.CsvReader;
 import alluxio.job.transform.format.parquet.ParquetReader;
 
@@ -24,17 +25,21 @@ import java.io.IOException;
 public interface TableReader extends Closeable {
   /**
    * @param uri the URI to the input
+   * @param pInfo the partition info from catalog service
    * @return the reader for the input
    * @throws IOException when failed to create the reader
    */
-  static TableReader create(AlluxioURI uri) throws IOException {
+  static TableReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
     ReadWriterUtils.checkUri(uri);
-    if (Format.isCsv(uri.getPath())) {
-      return CsvReader.create(uri);
-    } else if (Format.isParquet(uri.getPath())) {
-      return ParquetReader.create(uri);
-    } else {
-      throw new IOException("Unsupported file format for " + uri);
+    switch (pInfo.getFormat()) {
+      case CSV:
+        // fall through
+      case GZIP_CSV:
+        return CsvReader.create(uri, pInfo);
+      case PARQUET:
+        return ParquetReader.create(uri);
+      default:
+        throw new IOException("Unsupported format: " + pInfo.getFormat());
     }
   }
 

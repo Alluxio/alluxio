@@ -15,8 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.job.transform.BaseTransformTest;
-import alluxio.job.transform.format.csv.CsvReader;
-import alluxio.job.transform.format.parquet.ParquetReader;
+import alluxio.job.transform.PartitionInfo;
 import alluxio.job.transform.format.parquet.ParquetRow;
 import alluxio.job.transform.format.parquet.ParquetSchema;
 
@@ -30,9 +29,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -41,6 +40,9 @@ import java.util.zip.GZIPOutputStream;
 public final class ReadWriteTest extends BaseTransformTest {
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
+
+  private PartitionInfo mPartitionInfo = new PartitionInfo("serde", "inputformat", new HashMap<>(),
+      new ArrayList<>());
 
   private void createCsvFile(File file, boolean gzipped) throws IOException {
     OutputStream outputStream = new FileOutputStream(file);
@@ -65,45 +67,6 @@ public final class ReadWriteTest extends BaseTransformTest {
   }
 
   @Test
-  public void create() throws IOException {
-    Map<String, Class> fileToReader = new HashMap<String, Class>() {
-      {
-        put("test.csv", CsvReader.class);
-        put("test.csv.gz", CsvReader.class);
-        put("test.parquet", ParquetReader.class);
-        put("test.sorted.parquet", ParquetReader.class);
-      }
-    };
-
-    for (Map.Entry<String, Class> entry : fileToReader.entrySet()) {
-      String fileName = entry.getKey();
-      Class cls = entry.getValue();
-
-      File file = mTempFolder.newFile(fileName);
-      Files.delete(file.toPath());
-      Format format = Format.of(fileName);
-      switch (format) {
-        case CSV:
-          createCsvFile(file, false);
-          break;
-        case GZIP_CSV:
-          createCsvFile(file, true);
-          break;
-        case PARQUET:
-          createParquetFile(file);
-          break;
-        default:
-          throw new IOException("Unsupported format: " + format);
-      }
-
-      AlluxioURI uri = new AlluxioURI("file:///" + file.getPath());
-      try (TableReader reader = TableReader.create(uri)) {
-        assertEquals(cls, reader.getClass());
-      }
-    }
-  }
-
-  @Test
   public void readWrite() throws Exception {
     final File file = mTempFolder.newFile("test.parquet");
     Files.delete(file.toPath());
@@ -120,7 +83,7 @@ public final class ReadWriteTest extends BaseTransformTest {
 
     List<TableRow> rows = Lists.newArrayList();
     uri = new AlluxioURI("file:///" + file.getPath());
-    try (TableReader reader = TableReader.create(uri)) {
+    try (TableReader reader = TableReader.create(uri, mPartitionInfo)) {
       assertEquals(schema, reader.getSchema());
       for (TableRow r = reader.read(); r != null; r = reader.read()) {
         rows.add(r);
