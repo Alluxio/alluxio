@@ -19,6 +19,7 @@ import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 
+import com.google.common.io.Closer;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
@@ -42,17 +43,41 @@ public final class CsvReader implements TableReader {
 
   private final FileSystem mFs;
   private final AvroCSVReader<Record> mReader;
+  private final Closer mCloser;
   private final CsvSchema mSchema;
 
   /**
-   * @param fs the hdfs compatible client
-   * @param reader the CSV reader
-   * @param schema the schema
+   * @param inputPath the input path
+   * @param isGzipped whether it's gzipped csv
+   * @throws IOException when failed to open the input
    */
-  private CsvReader(FileSystem fs, AvroCSVReader<Record> reader, Schema schema) {
-    mFs = fs;
-    mReader = reader;
-    mSchema = new CsvSchema(schema);
+  private CsvReader(Path inputPath, boolean isGzipped) throws IOException {
+    mCloser = Closer.create();
+    try {
+      Configuration conf = ReadWriterUtils.readNoCacheConf();
+      mFs = mCloser.register(inputPath.getFileSystem(conf));
+      CSVProperties props = new CSVProperties.Builder()
+          .hasHeader()
+          .build();
+      Schema schema;
+      try (InputStream inputStream = open(mFs, inputPath, isGzipped)) {
+        String schemaName = inputPath.getName();
+        if (schemaName.contains(".")) {
+          schemaName = schemaName.substring(0, schemaName.indexOf("."));
+        }
+        schema = AvroCSV.inferSchema(schemaName, inputStream, props);
+        mSchema = new CsvSchema(schema);
+      }
+      mReader = mCloser.register(
+          new AvroCSVReader<>(open(mFs, inputPath, isGzipped), props, schema, Record.class, false));
+    } catch (IOException e) {
+      try {
+        mCloser.close();
+      } catch (IOException ioe) {
+        e.addSuppressed(ioe);
+      }
+      throw e;
+    }
   }
 
   private static InputStream open(FileSystem fs, Path path, boolean isGzipped) throws IOException {
@@ -72,24 +97,8 @@ public final class CsvReader implements TableReader {
    * @throws IOException when failed to create the reader
    */
   public static CsvReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
-    boolean isGzipped = pInfo.getFormat().equals(Format.GZIP_CSV);
-    CSVProperties props = new CSVProperties.Builder()
-        .hasHeader()
-        .build();
-    Path inputPath = new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
-    Configuration conf = ReadWriterUtils.readNoCacheConf();
-    FileSystem fs = inputPath.getFileSystem(conf);
-    Schema schema;
-    try (InputStream inputStream = open(fs, inputPath, isGzipped)) {
-      String schemaName = inputPath.getName();
-      if (schemaName.contains(".")) {
-        schemaName = schemaName.substring(0, schemaName.indexOf("."));
-      }
-      schema = AvroCSV.inferSchema(schemaName, inputStream, props);
-    }
-    AvroCSVReader<Record> reader = new AvroCSVReader<>(open(fs, inputPath, isGzipped), props,
-        schema, Record.class, false);
-    return new CsvReader(fs, reader, schema);
+    return new CsvReader(new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()),
+        pInfo.getFormat().equals(Format.GZIP_CSV));
   }
 
   @Override
@@ -104,7 +113,6 @@ public final class CsvReader implements TableReader {
 
   @Override
   public void close() throws IOException {
-    mReader.close();
-    mFs.close();
+    mCloser.close();
   }
 }
