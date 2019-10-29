@@ -41,6 +41,8 @@ public final class CompactDefinition
     extends AbstractVoidJobDefinition<CompactConfig, ArrayList<CompactTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(CompactDefinition.class);
   private static final String COMPACTED_FILE_PATTERN = "part-%d.parquet";
+  private static final String SUCCESS_FILENAME = "_SUCCESS";
+  private static final String CRC_FILENAME_SUFFIX = ".crc";
 
   /**
    * Constructs a new {@link CompactDefinition}.
@@ -58,6 +60,12 @@ public final class CompactDefinition
         .toString();
   }
 
+  private boolean shouldIgnore(URIStatus status) {
+    return status.isFolder()
+        || status.getName().equals(SUCCESS_FILENAME)
+        || status.getName().endsWith(CRC_FILENAME_SUFFIX);
+  }
+
   @Override
   public Map<WorkerInfo, ArrayList<CompactTask>> selectExecutors(CompactConfig config,
       List<WorkerInfo> jobWorkers, SelectExecutorsContext context) throws Exception {
@@ -67,7 +75,7 @@ public final class CompactDefinition
 
     List<URIStatus> files = Lists.newArrayList();
     for (URIStatus status : context.getFileSystem().listStatus(inputDir)) {
-      if (!status.isFolder()) {
+      if (!shouldIgnore(status)) {
         files.add(status);
       }
     }
