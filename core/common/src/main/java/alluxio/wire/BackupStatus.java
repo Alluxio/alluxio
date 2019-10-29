@@ -196,8 +196,11 @@ public class BackupStatus {
   public BackupPStatus toProto() {
     BackupPStatus.Builder builder = BackupPStatus.newBuilder()
         .setBackupState(mState)
-        .setBackupHost(mBackupHost)
         .setEntryCount(mEntryCount);
+
+    if (mBackupHost != null) {
+      builder.setBackupHost(mBackupHost);
+    }
 
     if (mError != null) {
       builder.setBackupError(ByteString.copyFrom(SerializationUtils.serialize(mError)));
