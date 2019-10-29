@@ -88,7 +88,7 @@ $ helm package helm-chart/alluxio/
 $ mkdir -p helm-chart/charts/
 $ cp alluxio-{{site.ALLUXIO_HELM_VERSION_STRING}}.tgz helm-chart/charts/
 $ helm repo index helm-chart/charts/
-$ helm serve --repo-path helm-chart/charts
+$ helm serve --repo-path helm-chart/charts &
 $ helm repo add alluxio-local http://127.0.0.1:8879
 $ helm repo update alluxio-local
 ```
