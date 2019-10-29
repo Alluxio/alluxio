@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.job.transform.Format;
 import alluxio.job.transform.PartitionInfo;
 import alluxio.job.transform.SchemaField;
-import alluxio.job.transform.format.HiveSerdeConstants;
+import alluxio.job.transform.HiveSerdeConstants;
 import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
@@ -63,7 +63,7 @@ public final class CsvReader implements TableReader {
 
       Configuration conf = ReadWriterUtils.readNoCacheConf();
       mFs = mCloser.register(inputPath.getFileSystem(conf));
-      // TODO(cc)
+      // TODO(cc): is GZIP_CSV ever returned?
       boolean isGzipped = pInfo.getFormat().equals(Format.GZIP_CSV);
       InputStream input = open(mFs, inputPath, isGzipped);
 
@@ -95,7 +95,7 @@ public final class CsvReader implements TableReader {
 
   private Schema buildSchema(List<SchemaField> fields) {
     SchemaBuilder.FieldAssembler<Schema> assembler =
-        SchemaBuilder.record("").namespace("").fields();
+        SchemaBuilder.record("row").namespace("alluxio").fields();
     for (SchemaField field : fields) {
       assembler = buildField(assembler, field);
     }
@@ -116,11 +116,11 @@ public final class CsvReader implements TableReader {
     } else if (HiveSerdeConstants.PrimitiveTypes.isFloat(type)) {
       return optional ? assembler.optionalFloat(name) : assembler.requiredFloat(name);
     } else if (HiveSerdeConstants.PrimitiveTypes.isInt(type)) {
-      return optional ? assembler.optionalInt(type) : assembler.requiredInt(type);
+      return optional ? assembler.optionalInt(name) : assembler.requiredInt(name);
     } else if (HiveSerdeConstants.PrimitiveTypes.isLong(type)) {
-      return optional ? assembler.optionalLong(type) : assembler.requiredLong(type);
+      return optional ? assembler.optionalLong(name) : assembler.requiredLong(name);
     } else if (HiveSerdeConstants.PrimitiveTypes.isString(type)) {
-      return optional ? assembler.optionalString(type) : assembler.requiredString(type);
+      return optional ? assembler.optionalString(name) : assembler.requiredString(name);
     }
     throw new IllegalArgumentException("Unknown type: " + type + " for field " + name);
   }

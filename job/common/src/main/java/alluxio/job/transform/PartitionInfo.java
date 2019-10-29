@@ -26,12 +26,6 @@ import java.util.HashMap;
 public class PartitionInfo implements Serializable {
   private static final long serialVersionUID = 6905153658064056381L;
 
-  private static final String PARQUET_SERDE_CLASS =
-      "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe";
-  private static final String CSV_SERDE_CLASS =
-      "org.apache.hadoop.hive.serde2.OpenCSVSerde";
-  private static final String TEXT_FILE_INPUT_CLASS =
-      "org.apache.hadoop.mapred.TextInputFormat";
 
   private final String mSerdeClass;
   private final String mInputFormatClass;
@@ -59,16 +53,16 @@ public class PartitionInfo implements Serializable {
    */
   @JsonIgnore
   public Format getFormat() {
-    if (mSerdeClass.equals(PARQUET_SERDE_CLASS)) {
+    if (mSerdeClass.equals(HiveSerdeConstants.PARQUET_SERDE_CLASS)) {
       return Format.PARQUET;
-    } else if (mSerdeClass.equals(CSV_SERDE_CLASS)
-        || (mInputFormatClass.equals(TEXT_FILE_INPUT_CLASS)
-        && mProperties.containsKey("serialization.format"))) {
+    } else if (mSerdeClass.equals(HiveSerdeConstants.CSV_SERDE_CLASS)
+        || (mInputFormatClass.equals(HiveSerdeConstants.TEXT_FILE_INPUT_CLASS)
+        && mProperties.containsKey(HiveSerdeConstants.SERIALIZATION_FORMAT))) {
       return Format.CSV;
     }
     // Needs to also look at extension to determine if it is Gzipped,
     // that info is not in hive metadata
-    return Format.GZIP;
+    return Format.CSV;
   }
 
   /**

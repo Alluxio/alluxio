@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.transform.format;
+package alluxio.job.transform;
 
 public class HiveSerdeConstants {
   private HiveSerdeConstants() {} // Prevents initialization
@@ -19,6 +19,12 @@ public class HiveSerdeConstants {
    */
   public static final String SKIP_HEADER = "skip.header.line.count";
   public static final String FIELD_DELIM = "field.delim";
+  public static final String SERIALIZATION_FORMAT = "serialization.format";
+  public static final String PARQUET_SERDE_CLASS =
+      "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe";
+  public static final String CSV_SERDE_CLASS = "org.apache.hadoop.hive.serde2.OpenCSVSerde";
+  public static final String TEXT_FILE_INPUT_CLASS = "org.apache.hadoop.mapred.TextInputFormat";
+
 
   /**
    * Primitive types retrieved from

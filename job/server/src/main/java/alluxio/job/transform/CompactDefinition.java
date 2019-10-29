@@ -53,8 +53,8 @@ public final class CompactDefinition
     return CompactConfig.class;
   }
 
-  private String getOutputPath(String outputDir, int outputIndex) {
-    return new AlluxioURI(outputDir).join(String.format(COMPACTED_FILE_PATTERN, outputIndex))
+  private String getOutputPath(AlluxioURI outputDir, int outputIndex) {
+    return outputDir.join(String.format(COMPACTED_FILE_PATTERN, outputIndex))
         .toString();
   }
 
@@ -62,8 +62,11 @@ public final class CompactDefinition
   public Map<WorkerInfo, ArrayList<CompactTask>> selectExecutors(CompactConfig config,
       List<WorkerInfo> jobWorkers, SelectExecutorsContext context) throws Exception {
     Preconditions.checkState(!jobWorkers.isEmpty(), "No job worker");
+    AlluxioURI inputDir = new AlluxioURI(config.getInput());
+    AlluxioURI outputDir = new AlluxioURI(config.getOutput());
+
     List<URIStatus> files = Lists.newArrayList();
-    for (URIStatus status : context.getFileSystem().listStatus(new AlluxioURI(config.getInput()))) {
+    for (URIStatus status : context.getFileSystem().listStatus(inputDir)) {
       if (!status.isFolder()) {
         files.add(status);
       }
@@ -84,7 +87,7 @@ public final class CompactDefinition
     int outputIndex = 0;
     for (int i = 0; i < files.size(); i++) {
       URIStatus file = files.get(i);
-      group.add(file.toString());
+      group.add(inputDir.join(file.getName()).toString());
       if (group.size() == groupSize || i == files.size() - 1) {
         WorkerInfo worker = jobWorkers.get(workerIndex++);
         if (workerIndex == jobWorkers.size()) {
@@ -94,7 +97,7 @@ public final class CompactDefinition
           assignments.put(worker, new ArrayList<>());
         }
         ArrayList<CompactTask> tasks = assignments.get(worker);
-        tasks.add(new CompactTask(group, getOutputPath(config.getOutput(), outputIndex++)));
+        tasks.add(new CompactTask(group, getOutputPath(outputDir, outputIndex++)));
         group = new ArrayList<>(groupSize);
       }
     }
