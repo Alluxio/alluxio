@@ -44,6 +44,7 @@ message JobServiceSummary {
   repeated StatusSummary summaryPerStatus = 1;
   repeated JobInfo recentActivities = 2;
   repeated JobInfo recentFailures = 3;
+  repeated JobInfo longestRunning = 4;
 }
 
 message JobCommand {

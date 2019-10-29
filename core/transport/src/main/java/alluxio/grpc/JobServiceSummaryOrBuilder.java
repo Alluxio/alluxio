@@ -78,4 +78,28 @@ public interface JobServiceSummaryOrBuilder extends
    */
   alluxio.grpc.JobInfoOrBuilder getRecentFailuresOrBuilder(
       int index);
+
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  java.util.List<alluxio.grpc.JobInfo> 
+      getLongestRunningList();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  alluxio.grpc.JobInfo getLongestRunning(int index);
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  int getLongestRunningCount();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
+      getLongestRunningOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo longestRunning = 4;</code>
+   */
+  alluxio.grpc.JobInfoOrBuilder getLongestRunningOrBuilder(
+      int index);
 }
