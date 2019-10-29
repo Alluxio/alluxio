@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.job.transform.Format;
 import alluxio.job.transform.PartitionInfo;
 import alluxio.job.transform.SchemaField;
+import alluxio.job.transform.format.HiveSerdeConstants;
 import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
@@ -43,7 +44,6 @@ import java.util.zip.GZIPInputStream;
  */
 public final class CsvReader implements TableReader {
   private static final Logger LOG = LoggerFactory.getLogger(CsvReader.class);
-  private static final String SKIP_HEADER = "skip.header.line.count";
 
   private final FileSystem mFs;
   private final AvroCSVReader<Record> mReader;
@@ -63,6 +63,7 @@ public final class CsvReader implements TableReader {
 
       Configuration conf = ReadWriterUtils.readNoCacheConf();
       mFs = mCloser.register(inputPath.getFileSystem(conf));
+      // TODO(cc)
       boolean isGzipped = pInfo.getFormat().equals(Format.GZIP_CSV);
       InputStream input = open(mFs, inputPath, isGzipped);
 
@@ -81,19 +82,47 @@ public final class CsvReader implements TableReader {
 
   private CSVProperties buildProperties(Map<String, String> properties) {
     CSVProperties.Builder propsBuilder = new CSVProperties.Builder();
-    if (properties.containsKey(SKIP_HEADER) && Integer.parseInt(properties.get(SKIP_HEADER)) >= 1) {
+    // TODO(cc): will SKIP_HEADER ever be set and < 1?
+    if (properties.containsKey(HiveSerdeConstants.SKIP_HEADER)
+        && Integer.parseInt(properties.get(HiveSerdeConstants.SKIP_HEADER)) >= 1) {
       propsBuilder.hasHeader();
+    }
+    if (properties.containsKey(HiveSerdeConstants.FIELD_DELIM)) {
+      propsBuilder.delimiter(properties.get(HiveSerdeConstants.FIELD_DELIM));
     }
     return propsBuilder.build();
   }
 
   private Schema buildSchema(List<SchemaField> fields) {
-    // TODO(cc)
-    return SchemaBuilder.record("HandshakeRequest").namespace("org.apache.avro.ipc").fields()
-        .name("clientHash").type().fixed("MD5").size(16).noDefault()
-        .name("clientProtocol").type().nullable().stringType().noDefault()
-        .name("serverHash").type("MD5").noDefault()
-        .endRecord();
+    SchemaBuilder.FieldAssembler<Schema> assembler =
+        SchemaBuilder.record("").namespace("").fields();
+    for (SchemaField field : fields) {
+      assembler = buildField(assembler, field);
+    }
+    return assembler.endRecord();
+  }
+
+  private SchemaBuilder.FieldAssembler<Schema> buildField(
+      SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) {
+    String name = field.getName();
+    String type = field.getType();
+    boolean optional = field.isOptional();
+    if (HiveSerdeConstants.PrimitiveTypes.isBoolean(type)) {
+      return optional ? assembler.optionalBoolean(name) : assembler.requiredBoolean(name);
+    } else if (HiveSerdeConstants.PrimitiveTypes.isBytes(type)) {
+      return optional ? assembler.optionalBytes(name) : assembler.requiredBytes(name);
+    } else if (HiveSerdeConstants.PrimitiveTypes.isDouble(type)) {
+      return optional ? assembler.optionalDouble(name) : assembler.requiredDouble(name);
+    } else if (HiveSerdeConstants.PrimitiveTypes.isFloat(type)) {
+      return optional ? assembler.optionalFloat(name) : assembler.requiredFloat(name);
+    } else if (HiveSerdeConstants.PrimitiveTypes.isInt(type)) {
+      return optional ? assembler.optionalInt(type) : assembler.requiredInt(type);
+    } else if (HiveSerdeConstants.PrimitiveTypes.isLong(type)) {
+      return optional ? assembler.optionalLong(type) : assembler.requiredLong(type);
+    } else if (HiveSerdeConstants.PrimitiveTypes.isString(type)) {
+      return optional ? assembler.optionalString(type) : assembler.requiredString(type);
+    }
+    throw new IllegalArgumentException("Unknown type: " + type + " for field " + name);
   }
 
   private static InputStream open(FileSystem fs, Path path, boolean isGzipped) throws IOException {
