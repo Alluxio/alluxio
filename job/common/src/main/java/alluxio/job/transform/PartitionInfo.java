@@ -24,6 +24,8 @@ import java.util.HashMap;
  * Metadata about a partition in Alluxio catalog service.
  */
 public class PartitionInfo implements Serializable {
+  private static final long serialVersionUID = 6905153658064056381L;
+
   private static final String PARQUET_SERDE_CLASS =
       "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe";
 
