@@ -13,50 +13,50 @@ priority: 0
 
 ## Overview
 
-Alluxio 2.1.0 introduces a new service within Alluxio called {{feature_name}}.
-{{feature_name}} is a service for managing access to structured data, which serves a purpose similar to the
+Alluxio 2.1.0 introduces a new service within Alluxio called the Alluxio Catalog Service.
+The Alluxio Catalog Service is a service for managing access to structured data, which serves a purpose similar to the
 [Apache Hive Metastore](https://cwiki.apache.org/confluence/display/Hive/Design#Design-Metastore)
 
 SQL engines, i.e. [Starburst Presto](https://starburstdata.com), leverage these metastore-like
 services to determine which, and how much data to read when executing queries.
 They store information about different database catalogs, tables, storage formats, data
 location, and more.
-{{feature_name}} is designed to make it simple and straightforward to retrieve and serve structured table
+The Alluxio Catalog Service is designed to make it simple and straightforward to retrieve and serve structured table
 metadata to these SQL engines.
 
 
 ## Architecture
 
-{{feature_name}} is designed in a way very similar to the normal Alluxio filesystem.
+The Alluxio Catalog Service is designed in a way very similar to the normal Alluxio filesystem.
 The service itself is not responsible for retaining all data, but is rather a caching service for
 metadata that originates in another location (i.e. MySQL, Hive).
 These are called **UDBs** (**U**nder **D**ata**B**ase).
 UDBs are responsible for the management and storage of the metadata.
 Currently, Hive is the only supported UDB.
-{{feature_name}} caches and makes the metadata available universally through the Alluxio filesystem
+The Alluxio Catalog Service caches and makes the metadata available universally through the Alluxio filesystem
 namespace.
 
 ```
-Query Engine     Metadata service            Under meta service
-+--------+       +-------------------+       +----------------+
-| Presto | <---> | {{feature_name}}  | <---> | Hive Metastore |
-+--------+       +-------------------+       +----------------+
+Query Engine     Metadata service                   Under meta service
++--------+       +--------------------------+       +----------------+
+| Presto | <---> | Alluxio Catalog Service  | <---> | Hive Metastore |
++--------+       +--------------------------+       +----------------+
 ```
 
 Users that have tables which span multiple storage services (i.e. AWS S3, HDFS, GCS) - would
 typically need to configure their SQL engines to connect to each one of these services individually
 in order to make requests.
-Using {{feature_name}}, all the user needs to do is configure a single Alluxio client, and data any
+Using catalog service, all the user needs to do is configure a single Alluxio client, and data any
 supported under storage systems locations can be served and read through Alluxio.
 
-## Using {{feature_name}}
+## Using The Alluxio Catalog Service
 
-Here are the basic configuration parameters and ways to interact with {{feature_name}}. More details
+Here are the basic configuration parameters and ways to interact with the Alluxio Catalog Service. More details
 can be found in the [command line interface documentation]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#table-operations).
 
 ### Alluxio Server Configuration
 
-By default, {{feature_name}} is enabled. To explicitly disable it, add the following
+By default, the catalog service is enabled. To explicitly disable it, add the following
 line to your `alluxio-site.properties`
 
 ```properties
@@ -64,7 +64,7 @@ alluxio.table.enabled=false
 ```
 
 By default, mounted databases and tables will exist underneath `/catalog` directory in Alluxio.
-Configure the root directory for structured data {{feature_name}} by configuring
+Configure the root directory for the catalog service by configuring
 
 ```properties
 alluxio.table.catalog.path=</desired/alluxio/path>
@@ -212,11 +212,11 @@ nor would it change the existing tables or partitions.
 
 ## Using Alluxio Structured Data with Presto
 
-{{feature_name}} is built to be used as connector in Presto.
+The Alluxio Catalog Service is built to be used with the connector in Presto.
 The latest Alluxio distribution contains a presto connector jar which can be dropped into the
-`${PRESTO_HOME}/plugins` directory to enable connectivity to {{feature_name}} via Presto.
+`${PRESTO_HOME}/plugins` directory to enable connectivity to the catalog service via Presto.
 
-### Enabling {{feature_name}} with Presto
+### Enabling the Alluxio Catalog Service with Presto
 
 Assuming you have Alluxio and Presto installation on your local machine at `${ALLUXIO_HOME}` and
 `${PRESTO_HOME}` respectively:
@@ -235,7 +235,7 @@ hive.metastore=alluxio
 
 Once configured on each node, restart all presto coordinators and workers
 
-### Using {{feature_name}} with Presto
+### Using the Alluxio Catalog Service with Presto
 
 In order to utilize the Alluxio Presto plugin start the presto CLI with the following (assuming
 the `/etc/catalog/hive-alluxio.properties` file has been created)

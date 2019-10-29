@@ -1062,7 +1062,7 @@ $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
 ## Table Operations
 
 ```console
-./bin/alluxio table
+$ ./bin/alluxio table
 Usage: alluxio table [generic options]
 	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] <udb type> <udb connection uri> <udb db name>]
 	 [detachdb <db name>]
