@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.job.transform.BaseTransformTest;
+import alluxio.job.transform.HiveConstants;
 import alluxio.job.transform.PartitionInfo;
 import alluxio.job.transform.format.parquet.ParquetRow;
 import alluxio.job.transform.format.parquet.ParquetSchema;
@@ -41,8 +42,8 @@ public final class ReadWriteTest extends BaseTransformTest {
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
 
-  private PartitionInfo mPartitionInfo = new PartitionInfo("serde", "inputformat", new HashMap<>(),
-      new ArrayList<>());
+  private PartitionInfo mPartitionInfo = new PartitionInfo(HiveConstants.PARQUET_SERDE_CLASS,
+      HiveConstants.PARQUET_INPUT_FORMAT_CLASS, new HashMap<>(), new ArrayList<>());
 
   private void createCsvFile(File file, boolean gzipped) throws IOException {
     OutputStream outputStream = new FileOutputStream(file);
