@@ -55,7 +55,7 @@ public final class CompactDefinition
 
   private String getOutputPath(String outputDir, int outputIndex) {
     return new AlluxioURI(outputDir).join(String.format(COMPACTED_FILE_PATTERN, outputIndex))
-        .getPath();
+        .toString();
   }
 
   @Override
@@ -84,7 +84,7 @@ public final class CompactDefinition
     int outputIndex = 0;
     for (int i = 0; i < files.size(); i++) {
       URIStatus file = files.get(i);
-      group.add(file.getPath());
+      group.add(file.toString());
       if (group.size() == groupSize || i == files.size() - 1) {
         WorkerInfo worker = jobWorkers.get(workerIndex++);
         if (workerIndex == jobWorkers.size()) {
