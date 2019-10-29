@@ -83,8 +83,8 @@ public final class CsvReader implements TableReader {
   private CSVProperties buildProperties(Map<String, String> properties) {
     CSVProperties.Builder propsBuilder = new CSVProperties.Builder();
     // TODO(cc): will SKIP_HEADER ever be set and < 1?
-    if (properties.containsKey(HiveSerdeConstants.SKIP_HEADER)
-        && Integer.parseInt(properties.get(HiveSerdeConstants.SKIP_HEADER)) >= 1) {
+    if (!properties.containsKey(HiveSerdeConstants.SKIP_HEADER)
+        || Integer.parseInt(properties.get(HiveSerdeConstants.SKIP_HEADER)) < 1) {
       propsBuilder.hasHeader();
     }
     if (properties.containsKey(HiveSerdeConstants.FIELD_DELIM)) {
