@@ -82,28 +82,15 @@ public final class CompactDefinition
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
     int groupSize = (files.size() + 1) / config.getNumFiles();
     if  (groupSize == 0) {
-      if (config.getPartitionInfo().getFormat().equals(Format.CSV)) {
-        // Assign each file to a worker in a round-robin fashion
-        // to convert each CSV to Parquet.
-        int workerIndex = 0;
-        int outputIndex = 0;
-        for (URIStatus file : files) {
-          WorkerInfo worker = jobWorkers.get(workerIndex++);
-          if (workerIndex == jobWorkers.size()) {
-            workerIndex = 0;
-          }
-          if (!assignments.containsKey(worker)) {
-            assignments.put(worker, new ArrayList<>());
-          }
-          AlluxioURI input = inputDir.join(file.getName());
-          assignments.get(worker).add(new CompactTask(Lists.newArrayList(input.toString()),
-              getOutputPath(outputDir, outputIndex++)));
-        }
+      if (!config.getPartitionInfo().getFormat().equals(Format.CSV)) {
+        // Number of existing files is less than the expected number of files after compaction,
+        // and no need to convert CSV,
+        // so there is no need to compact any files.
+        return assignments;
       }
-      // else
-      // Number of existing files is less than the expected number of files after compaction,
-      // so there is no need to compact any files.
-      return assignments;
+      // Otherwise, even if no compaction happens, each file needs to be converted from CSV to
+      // Parquet.
+      groupSize = 1;
     }
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
