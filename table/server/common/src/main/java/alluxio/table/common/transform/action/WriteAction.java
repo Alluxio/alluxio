@@ -12,12 +12,18 @@
 package alluxio.table.common.transform.action;
 
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.job.JobConfig;
 import alluxio.job.transform.CompactConfig;
+import alluxio.job.transform.SchemaField;
+import alluxio.table.ProtoUtils;
 import alluxio.table.common.Layout;
 
 import com.google.common.base.Preconditions;
+import com.google.protobuf.InvalidProtocolBufferException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -69,8 +75,26 @@ public class WriteAction implements TransformAction {
 
   @Override
   public JobConfig generateJobConfig(Layout base, Layout transformed) {
-    // TODO: set partition info
-    return new CompactConfig(null, base.getLocation().toString(),
+    PartitionInfo partitionInfo;
+    try {
+      partitionInfo = ProtoUtils.toHiveLayout(base.toProto());
+    } catch (InvalidProtocolBufferException e) {
+      return new CompactConfig(null, base.getLocation().toString(),
+          transformed.getLocation().toString(),
+          mLayoutType, mNumFiles);
+    }
+    String serdeClass = partitionInfo.getStorage().getStorageFormat().getSerde();
+    String inputFormat = partitionInfo.getStorage().getStorageFormat().getInputFormat();
+
+    ArrayList<SchemaField> colList = new ArrayList<>(partitionInfo.getDataColsList().size());
+    for (FieldSchema col : partitionInfo.getDataColsList()) {
+      colList.add(new SchemaField(col.getId(), col.getName(), col.getType(),
+          col.getOptional(), col.getComment()));
+    }
+    alluxio.job.transform.PartitionInfo transformPartInfo
+        = new alluxio.job.transform.PartitionInfo(serdeClass, inputFormat,
+        partitionInfo.getStorage().getSerdeParametersMap(), colList);
+    return new CompactConfig(transformPartInfo, base.getLocation().toString(),
         transformed.getLocation().toString(),
         mLayoutType, mNumFiles);
   }

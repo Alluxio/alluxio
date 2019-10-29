@@ -17,8 +17,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Metadata about a partition in Alluxio catalog service.
@@ -26,11 +26,15 @@ import java.util.HashMap;
 public class PartitionInfo implements Serializable {
   private static final String PARQUET_SERDE_CLASS =
       "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe";
+  private static final String CSV_SERDE_CLASS =
+      "org.apache.hadoop.hive.serde2.OpenCSVSerde";
+  private static final String TEXT_FILE_INPUT_CLASS =
+      "org.apache.hadoop.mapred.TextInputFormat";
 
   private final String mSerdeClass;
   private final String mInputFormatClass;
-  private final HashMap<String, String> mProperties;
-  private final ArrayList<SchemaField> mFields;
+  private final Map<String, String> mProperties;
+  private final List<SchemaField> mFields;
 
   /**
    * @param serdeClass the full serde class name
@@ -40,8 +44,8 @@ public class PartitionInfo implements Serializable {
    */
   public PartitionInfo(@JsonProperty("serdeClass") String serdeClass,
       @JsonProperty("inputFormatClass") String inputFormatClass,
-      @JsonProperty("properties") HashMap<String, String> properties,
-      @JsonProperty("fields") ArrayList<SchemaField> fields) {
+      @JsonProperty("properties") Map<String, String> properties,
+      @JsonProperty("fields") List<SchemaField> fields) {
     mSerdeClass = serdeClass;
     mInputFormatClass = inputFormatClass;
     mProperties = properties;
@@ -53,8 +57,16 @@ public class PartitionInfo implements Serializable {
    */
   @JsonIgnore
   public Format getFormat() {
-    // TODO
-    return Format.PARQUET;
+    if (mSerdeClass.equals(PARQUET_SERDE_CLASS)) {
+      return Format.PARQUET;
+    } else if (mSerdeClass.equals(CSV_SERDE_CLASS)
+        || (mInputFormatClass.equals(TEXT_FILE_INPUT_CLASS)
+        && mProperties.containsKey("serialization.format"))) {
+      return Format.CSV;
+    }
+    // Needs to also look at extension to determine if it is Gzipped,
+    // that info is not in hive metadata
+    return Format.GZIP;
   }
 
   /**
@@ -74,14 +86,14 @@ public class PartitionInfo implements Serializable {
   /**
    * @return the properties
    */
-  public HashMap<String, String> getProperties() {
+  public Map<String, String> getProperties() {
     return mProperties;
   }
 
   /**
    * @return the fields
    */
-  public ArrayList<SchemaField> getFields() {
+  public List<SchemaField> getFields() {
     return mFields;
   }
 
