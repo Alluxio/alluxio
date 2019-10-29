@@ -62,85 +62,41 @@ public class HiveConstants {
   public static final class PrimitiveTypes {
     private PrimitiveTypes() {} // Prevents initialization
 
-    // TODO(cc): how to support VOID?
-    private static final String VOID = "void";
-    private static final String BOOLEAN = "boolean";
-    private static final String TINYINT = "tinyint";
-    private static final String SMALLINT = "smallint";
-    private static final String INT = "int";
-    private static final String BIGINT = "bigint";
-    private static final String FLOAT = "float";
-    private static final String DOUBLE = "double";
-    private static final String STRING = "string";
-    private static final String VARCHAR = "varchar";
-    private static final String CHAR = "char";
-    private static final String DATE = "date";
-    private static final String DATETIME = "datetime";
-    private static final String TIMESTAMP = "timestamp";
-    private static final String INTERVAL_YEAR_MONTH = "interval_year_month";
-    private static final String INTERVAL_DAY_TIME = "interval_day_time";
-    private static final String DECIMAL = "decimal";
-    private static final String BINARY = "binary";
-    private static final String TIMESTAMP_LOCAL = "timestamp with local time zone";
+    // TODO(cc): how to support the following?
+    // public static final String VOID = "void";
+    // public static final String INTERVAL_YEAR_MONTH = "interval_year_month";
+    // public static final String INTERVAL_DAY_TIME = "interval_day_time";
+    // public static final String TIMESTAMP_LOCAL = "timestamp with local time zone";
 
-    /**
-     * @param type the type
-     * @return whether is CSV boolean
-     */
-    public static boolean isBoolean(String type) {
-      return type.equals(BOOLEAN);
-    }
-
-    /**
-     * @param type the type
-     * @return whether is CSV int
-     */
-    public static boolean isInt(String type) {
-      return type.equals(TINYINT) || type.equals(SMALLINT) || type.equals(INT);
-    }
-
-    /**
-     * @param type the type
-     * @return whether is CSV long
-     */
-    public static boolean isLong(String type) {
-      return type.equals(BIGINT);
-    }
-
-    /**
-     * @param type the type
-     * @return whether is CSV float
-     */
-    public static boolean isFloat(String type) {
-      return type.equals(FLOAT);
-    }
-
-    /**
-     * @param type the type
-     * @return whether is CSV double
-     */
-    public static boolean isDouble(String type) {
-      return type.equals(DOUBLE) || type.startsWith(DECIMAL);
-    }
-
-    /**
-     * @param type the type
-     * @return whether is CSV string
-     */
-    public static boolean isString(String type) {
-      return type.equals(STRING) || type.equals(DATE) || type.equals(DATETIME)
-          || type.equals(INTERVAL_YEAR_MONTH) || type.equals(INTERVAL_DAY_TIME)
-          || type.equals(TIMESTAMP) || type.equals(TIMESTAMP_LOCAL)
-          || type.startsWith(CHAR) || type.startsWith(VARCHAR)
-          || type.equals(BINARY);
-    }
-
-    /**
-     * @param type the type
-     * @return whether is CSV bytes
-     */
-    public static boolean isBytes(String type) {
-      return false;
-    }
+    /** Hive bool type. */
+    public static final String BOOLEAN = "boolean";
+    /** Hive tiny int type. */
+    public static final String TINYINT = "tinyint";
+    /** Hive small int type. */
+    public static final String SMALLINT = "smallint";
+    /** Hive int type. */
+    public static final String INT = "int";
+    /** Hive big int type. */
+    public static final String BIGINT = "bigint";
+    /** Hive float type. */
+    public static final String FLOAT = "float";
+    /** Hive double type. */
+    public static final String DOUBLE = "double";
+    /** Hive string type. */
+    public static final String STRING = "string";
+    /** Hive varchar type. */
+    public static final String VARCHAR = "varchar";
+    /** Hive char type. */
+    public static final String CHAR = "char";
+    /** Hive date type. */
+    public static final String DATE = "date";
+    /** Hive datetime type. */
+    public static final String DATETIME = "datetime";
+    /** Hive timestamp type. */
+    public static final String TIMESTAMP = "timestamp";
+    /** Hive decimal type. */
+    public static final String DECIMAL = "decimal";
+    /** Hive binary type. */
+    public static final String BINARY = "binary";
   }
 }
