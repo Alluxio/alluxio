@@ -32,7 +32,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb hive thrift://localhost:9083 defaul
 The following command coalesce files under each partition of table "test" to one file.
 
 ```console
-$ ${ALLUXIO_HOME}/bin/alluxio table transform default test -d "write(hive).option(hive.num.files, 1)"
+$ ${ALLUXIO_HOME}/bin/alluxio table transform default test
 ```
 
 After running the above command, you'll see output like:

@@ -51,12 +51,16 @@ supported under storage systems locations can be served and read through Alluxio
 
 ## Using {{feature_name}}
 
-### Alluxio configuration
+Here are the basic configuration parameters and ways to interact with {{feature_name}}. More details
+can be found in the [command line interface documentation]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#table-operations).
 
-To enable {{feature_name}}, add the following line to your `alluxio-site.properties`
+### Alluxio Server Configuration
+
+By default, {{feature_name}} is enabled. To explicitly disable it, add the following
+line to your `alluxio-site.properties`
 
 ```properties
-alluxio.table.enabled=true
+alluxio.table.enabled=false
 ```
 
 By default, mounted databases and tables will exist underneath `/catalog` directory in Alluxio.
@@ -85,9 +89,9 @@ Usage: alluxio table [generic options]
 ```
 
 To attach a database use the `attachdb` command. Currently, only `hive` is supported as the
-`dbType`.
-This command maps the hive database `default` into a database in Alluxio called `alluxio_db` from
-the metastore located at `thrift://metastore_host:9083`
+`<udb type>`.
+The following command maps the hive database `default` into a database in Alluxio called
+`alluxio_db` from the metastore located at `thrift://metastore_host:9083`
 
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
@@ -187,13 +191,11 @@ $ ${ALLUXIO_HOME}/bin/alluxio table detachdb alluxio_db
 ```
 
 Running `alluxio table ls` afterwards will not display the database any more.
-Continue to the next section to see how to use {{feature_name}} with presto
 
 ### Syncing databases
 
 When new tables or new partitions are added to the UDB, users can invoke the sync command
 to refresh the information stored in the Alluxio namespace. 
-
 
 ```console
 $ alluxio table sync <database name>
@@ -208,7 +210,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio table sync alluxio_db
 Note that the sync operation will not remove any tables or partitions from the Alluxio namespace,
 nor would it change the existing tables or partitions.
 
-## Alluxio Structured Data with Presto
+## Using Alluxio Structured Data with Presto
 
 {{feature_name}} is built to be used as connector in Presto.
 The latest Alluxio distribution contains a presto connector jar which can be dropped into the
