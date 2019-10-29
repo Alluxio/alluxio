@@ -206,7 +206,11 @@ public final class CsvReader implements TableReader {
 
   @Override
   public TableRow read() throws IOException {
-    return mReader.hasNext() ? new CsvRow(mReader.next()) : null;
+    try {
+      return mReader.hasNext() ? new CsvRow(mReader.next()) : null;
+    } catch (Throwable e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
