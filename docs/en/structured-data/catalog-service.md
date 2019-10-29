@@ -97,8 +97,9 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
 > **Note:** When databases are attached, all tables will be synced from the configured UDB.
 If out-of-band updates occur to the database or table and the user wants query results to reflect
 the updates, the user must detach ([See Detaching Databases](#detaching-databases)) and then
-re-attach the database to reflect up any updates. Alternatively, if the only changes to the database
-are additional tables and partitions, sync command ([See Syncing Databases](#syncing-databases)) can be used. 
+re-attach the database to reflect up any updates.
+Alternatively, if the only changes to the database are additional tables and partitions,
+sync command ([See Syncing Databases](#syncing-databases)) can be used.
 
 ### Exploring Attached Databases
 
@@ -110,8 +111,8 @@ alluxio_db
 ```
 
 List the tables underneath the database with `alluxio tables ls <db_name>`.
-If any tables exist underneath the corresponding database in hive, they will appear when executing
-this command.
+If any tables exist underneath the corresponding database in hive,
+they will appear when executing this command.
 
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table ls alluxio_db
