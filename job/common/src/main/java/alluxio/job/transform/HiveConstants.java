@@ -131,7 +131,8 @@ public class HiveConstants {
       return type.equals(STRING) || type.equals(DATE) || type.equals(DATETIME)
           || type.equals(INTERVAL_YEAR_MONTH) || type.equals(INTERVAL_DAY_TIME)
           || type.equals(TIMESTAMP) || type.equals(TIMESTAMP_LOCAL)
-          || type.startsWith(CHAR) || type.startsWith(VARCHAR);
+          || type.startsWith(CHAR) || type.startsWith(VARCHAR)
+          || type.equals(BINARY);
     }
 
     /**
@@ -139,7 +140,7 @@ public class HiveConstants {
      * @return whether is CSV bytes
      */
     public static boolean isBytes(String type) {
-      return type.equals(BINARY);
+      return false;
     }
   }
 }
