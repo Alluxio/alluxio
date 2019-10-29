@@ -14,6 +14,7 @@ package alluxio.job.transform.format.csv;
 import alluxio.AlluxioURI;
 import alluxio.job.transform.Format;
 import alluxio.job.transform.PartitionInfo;
+import alluxio.job.transform.SchemaField;
 import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
@@ -21,11 +22,11 @@ import alluxio.job.transform.format.TableSchema;
 
 import com.google.common.io.Closer;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.parquet.cli.csv.AvroCSV;
 import org.apache.parquet.cli.csv.AvroCSVReader;
 import org.apache.parquet.cli.csv.CSVProperties;
 import org.slf4j.Logger;
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -40,6 +43,7 @@ import java.util.zip.GZIPInputStream;
  */
 public final class CsvReader implements TableReader {
   private static final Logger LOG = LoggerFactory.getLogger(CsvReader.class);
+  private static final String SKIP_HEADER = "skip.header.line.count";
 
   private final FileSystem mFs;
   private final AvroCSVReader<Record> mReader;
@@ -48,28 +52,23 @@ public final class CsvReader implements TableReader {
 
   /**
    * @param inputPath the input path
-   * @param isGzipped whether it's gzipped csv
+   * @param pInfo the partition info
    * @throws IOException when failed to open the input
    */
-  private CsvReader(Path inputPath, boolean isGzipped) throws IOException {
+  private CsvReader(Path inputPath, PartitionInfo pInfo) throws IOException {
     mCloser = Closer.create();
     try {
+      Schema schema = buildSchema(pInfo.getFields());
+      mSchema = new CsvSchema(schema);
+
       Configuration conf = ReadWriterUtils.readNoCacheConf();
       mFs = mCloser.register(inputPath.getFileSystem(conf));
-      CSVProperties props = new CSVProperties.Builder()
-          .hasHeader()
-          .build();
-      Schema schema;
-      try (InputStream inputStream = open(mFs, inputPath, isGzipped)) {
-        String schemaName = inputPath.getName();
-        if (schemaName.contains(".")) {
-          schemaName = schemaName.substring(0, schemaName.indexOf("."));
-        }
-        schema = AvroCSV.inferSchema(schemaName, inputStream, props);
-        mSchema = new CsvSchema(schema);
-      }
-      mReader = mCloser.register(
-          new AvroCSVReader<>(open(mFs, inputPath, isGzipped), props, schema, Record.class, false));
+      boolean isGzipped = pInfo.getFormat().equals(Format.GZIP_CSV);
+      InputStream input = open(mFs, inputPath, isGzipped);
+
+      CSVProperties props = buildProperties(pInfo.getProperties());
+
+      mReader = mCloser.register(new AvroCSVReader<>(input, props, schema, Record.class, false));
     } catch (IOException e) {
       try {
         mCloser.close();
@@ -78,6 +77,18 @@ public final class CsvReader implements TableReader {
       }
       throw e;
     }
+  }
+
+  private CSVProperties buildProperties(HashMap<String, String> properties) {
+    CSVProperties.Builder propsBuilder = new CSVProperties.Builder();
+    if (properties.containsKey(SKIP_HEADER) && Integer.parseInt(properties.get(SKIP_HEADER)) >= 1) {
+      propsBuilder.hasHeader();
+    }
+    return propsBuilder.build();
+  }
+
+  private Schema buildSchema(ArrayList<SchemaField> fields) {
+    // TODO(cc)
   }
 
   private static InputStream open(FileSystem fs, Path path, boolean isGzipped) throws IOException {
@@ -98,7 +109,7 @@ public final class CsvReader implements TableReader {
    */
   public static CsvReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
     return new CsvReader(new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()),
-        pInfo.getFormat().equals(Format.GZIP_CSV));
+        pInfo);
   }
 
   @Override
