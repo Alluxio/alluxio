@@ -6,8 +6,6 @@ group: Structured Data
 priority: 0
 ---
 
-{% assign feature_name="the Alluxio Catalog Service" %}
-
 * Table of Contents
 {:toc}
 
