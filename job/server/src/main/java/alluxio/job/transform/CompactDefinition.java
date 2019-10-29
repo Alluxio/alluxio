@@ -80,18 +80,7 @@ public final class CompactDefinition
       }
     }
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
-    int groupSize = (files.size() + 1) / config.getNumFiles();
-    if  (groupSize == 0) {
-      if (!config.getPartitionInfo().getFormat().equals(Format.CSV)) {
-        // Number of existing files is less than the expected number of files after compaction,
-        // and no need to convert CSV,
-        // so there is no need to compact any files.
-        return assignments;
-      }
-      // Otherwise, even if no compaction happens, each file needs to be converted from CSV to
-      // Parquet.
-      groupSize = 1;
-    }
+    int groupSize = Math.max(1, (files.size() + 1) / config.getNumFiles());
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
     // one task is to compact one group of files,
