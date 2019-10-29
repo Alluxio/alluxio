@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.Constants;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
+import alluxio.master.journal.AdvanceFuture;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,6 +102,42 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     } catch (IOException e) {
       throw new RuntimeException("Failed to downgrade journal to secondary", e);
     }
+  }
+
+  @Override
+  public void suspend() throws IOException {
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      LOG.info("Suspending journal: {}", journalEntry.getKey());
+      journalEntry.getValue().suspend();
+    }
+  }
+
+  @Override
+  public void resume() throws IOException {
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      LOG.info("Resuming journal: {}", journalEntry.getKey());
+      journalEntry.getValue().resume();
+    }
+  }
+
+  @Override
+  public AdvanceFuture advance(Map<String, Long> masterStateMap) throws IOException {
+    List<AdvanceFuture> futures = new ArrayList<>(masterStateMap.size());
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      long resumeSequence = masterStateMap.get(journalEntry.getKey());
+      LOG.info("Advancing journal :{} to sequence: {}", journalEntry.getKey(), resumeSequence);
+      futures.add(journalEntry.getValue().advance(resumeSequence));
+    }
+    return AdvanceFuture.allOf(futures);
+  }
+
+  @Override
+  public Map<String, Long> getCurrentSequences() {
+    Map<String, Long> sequenceMap = new HashMap<>();
+    for (String master : mJournals.keySet()) {
+      sequenceMap.put(master, mJournals.get(master).getNextSequenceNumberToWrite() - 1);
+    }
+    return sequenceMap;
   }
 
   @Override
