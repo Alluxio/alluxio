@@ -89,6 +89,11 @@ public final class CsvReader implements TableReader {
 
   private Schema buildSchema(ArrayList<SchemaField> fields) {
     // TODO(cc)
+    return SchemaBuilder.record("HandshakeRequest").namespace("org.apache.avro.ipc").fields()
+        .name("clientHash").type().fixed("MD5").size(16).noDefault()
+        .name("clientProtocol").type().nullable().stringType().noDefault()
+        .name("serverHash").type("MD5").noDefault()
+        .endRecord();
   }
 
   private static InputStream open(FileSystem fs, Path path, boolean isGzipped) throws IOException {
