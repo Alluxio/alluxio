@@ -8,25 +8,29 @@ public interface BackupPOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string targetDirectory = 1;</code>
-   */
-  boolean hasTargetDirectory();
-  /**
-   * <code>optional string targetDirectory = 1;</code>
-   */
-  java.lang.String getTargetDirectory();
-  /**
-   * <code>optional string targetDirectory = 1;</code>
-   */
-  com.google.protobuf.ByteString
-      getTargetDirectoryBytes();
-
-  /**
-   * <code>optional bool localFileSystem = 2;</code>
+   * <code>optional bool localFileSystem = 1;</code>
    */
   boolean hasLocalFileSystem();
   /**
-   * <code>optional bool localFileSystem = 2;</code>
+   * <code>optional bool localFileSystem = 1;</code>
    */
   boolean getLocalFileSystem();
+
+  /**
+   * <code>optional bool runAsync = 2;</code>
+   */
+  boolean hasRunAsync();
+  /**
+   * <code>optional bool runAsync = 2;</code>
+   */
+  boolean getRunAsync();
+
+  /**
+   * <code>optional bool allowLeader = 3;</code>
+   */
+  boolean hasAllowLeader();
+  /**
+   * <code>optional bool allowLeader = 3;</code>
+   */
+  boolean getAllowLeader();
 }
