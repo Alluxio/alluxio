@@ -120,7 +120,7 @@ public class HiveConstants {
      * @return whether is CSV double
      */
     public static boolean isDouble(String type) {
-      return type.equals(DOUBLE) || type.equals(DECIMAL);
+      return type.equals(DOUBLE) || type.startsWith(DECIMAL);
     }
 
     /**
@@ -131,7 +131,7 @@ public class HiveConstants {
       return type.equals(STRING) || type.equals(DATE) || type.equals(DATETIME)
           || type.equals(INTERVAL_YEAR_MONTH) || type.equals(INTERVAL_DAY_TIME)
           || type.equals(TIMESTAMP) || type.equals(TIMESTAMP_LOCAL)
-          || type.equals(CHAR) || type.equals(VARCHAR);
+          || type.startsWith(CHAR) || type.startsWith(VARCHAR);
     }
 
     /**
