@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -50,6 +51,8 @@ public final class CsvReader implements TableReader {
   private final AvroCSVReader<Record> mReader;
   private final Closer mCloser;
   private final CsvSchema mSchema;
+
+  public static final String JAVA_CLASS_FLAG = "java-class";
 
   /**
    * @param inputPath the input path
@@ -106,6 +109,11 @@ public final class CsvReader implements TableReader {
     return assembler.endRecord();
   }
 
+  private Schema makeOptional(Schema schema, boolean optional) {
+    return optional ? Schema.createUnion(Arrays.asList(Schema.create(Schema.Type.NULL), schema))
+        : schema;
+  }
+
   private SchemaBuilder.FieldAssembler<Schema> buildField(
       SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) {
     String name = field.getName();
@@ -126,7 +134,6 @@ public final class CsvReader implements TableReader {
     } else if (type.equals(HiveConstants.PrimitiveTypes.STRING)) {
       return optional ? assembler.optionalString(name) : assembler.requiredString(name);
     } else if (type.startsWith(HiveConstants.PrimitiveTypes.DECIMAL)) {
-      // TODO(cc): handle optional
       int precision = 10;
       int scale = 0;
       if (type.contains("(")) {
@@ -139,20 +146,34 @@ public final class CsvReader implements TableReader {
           precision = Integer.parseInt(param);
         }
       }
-      return assembler.name(name).type(LogicalTypes.decimal(precision, scale)
-          .addToSchema(Schema.create(Schema.Type.BYTES))).noDefault();
+      Schema schema = LogicalTypes.decimal(precision, scale)
+          .addToSchema(Schema.create(Schema.Type.BYTES));
+      schema = makeOptional(schema, optional);
+      return assembler.name(name).type(schema).noDefault();
     } else if (type.startsWith(HiveConstants.PrimitiveTypes.CHAR)) {
-      // TODO(cc)
+      Schema schema = SchemaBuilder.builder().stringBuilder().prop(JAVA_CLASS_FLAG,
+          Character.class.getCanonicalName())
+          .endString();
+      schema = makeOptional(schema, optional);
+      return assembler.name(name).type(schema).noDefault();
     } else if (type.startsWith(HiveConstants.PrimitiveTypes.VARCHAR)) {
-      // TODO(cc)
+      // perhaps this will work??
+      return optional ? assembler.optionalString(name) : assembler.requiredString(name);
     } else if (type.equals(HiveConstants.PrimitiveTypes.BINARY)) {
-      // TODO(cc)
+      return optional ? assembler.optionalBytes(name) : assembler.requiredBytes(name);
     } else if (type.equals(HiveConstants.PrimitiveTypes.DATE)) {
-      // TODO(cc)
+      Schema schema = LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT));
+      schema = makeOptional(schema, optional);
+      return assembler.name(name).type(schema).noDefault();
     } else if (type.equals(HiveConstants.PrimitiveTypes.DATETIME)) {
-      // TODO(cc)
+      Schema schema = LogicalTypes.timeMillis().addToSchema(Schema.create(Schema.Type.INT));
+      schema = makeOptional(schema, optional);
+      return assembler.name(name).type(schema).noDefault();
     } else if (type.equals(HiveConstants.PrimitiveTypes.TIMESTAMP)) {
-      // TODO(cc)
+      Schema schema =  LogicalTypes.timestampMillis()
+          .addToSchema(Schema.create(Schema.Type.LONG));
+      schema = makeOptional(schema, optional);
+      return assembler.name(name).type(schema).noDefault();
     }
     throw new IllegalArgumentException("Unknown type: " + type + " for field " + name);
   }
