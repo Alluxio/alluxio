@@ -194,7 +194,7 @@ public class TransformManager implements DelegatingJournaled {
       // No need to journal this REMOVE, if master crashes, when it restarts, the permit placeholder
       // entry will not exist any more, which is correct behavior.
       mState.releaseJobPermit(dbTable);
-      String error = String.format("Fails to start job to transform table {} in database {}",
+      String error = String.format("Fails to start job to transform table %s in database %s",
           tableName, dbName);
       LOG.error(error, e);
       throw new IOException(error, e);
