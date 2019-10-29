@@ -134,22 +134,12 @@ public final class CsvReader implements TableReader {
     } else if (type.equals(HiveConstants.PrimitiveTypes.STRING)) {
       return optional ? assembler.optionalString(name) : assembler.requiredString(name);
     } else if (type.startsWith(HiveConstants.PrimitiveTypes.DECIMAL)) {
-      int precision = 10;
-      int scale = 0;
-      if (type.contains("(")) {
-        String param = type.substring(8, type.length() - 1).trim();
-        if (type.contains(",")) {
-          String[] params = param.split(",");
-          precision = Integer.parseInt(params[0].trim());
-          scale = Integer.parseInt(params[1].trim());
-        } else {
-          precision = Integer.parseInt(param);
-        }
-      }
-      Schema schema = LogicalTypes.decimal(precision, scale)
-          .addToSchema(Schema.create(Schema.Type.BYTES));
-      schema = makeOptional(schema, optional);
-      return assembler.name(name).type(schema).noDefault();
+      String param = type.substring(8, type.length() - 1).trim();
+      String[] params = param.split(",");
+      int precision = Integer.parseInt(params[0].trim());
+      int scale = Integer.parseInt(params[1].trim());
+      return assembler.name(name).type(LogicalTypes.decimal(precision, scale)
+          .addToSchema(Schema.create(Schema.Type.BYTES))).noDefault();
     } else if (type.startsWith(HiveConstants.PrimitiveTypes.CHAR)) {
       Schema schema = SchemaBuilder.builder().stringBuilder().prop(JAVA_CLASS_FLAG,
           Character.class.getCanonicalName())
