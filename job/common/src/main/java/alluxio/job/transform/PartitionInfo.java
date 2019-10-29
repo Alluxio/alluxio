@@ -17,8 +17,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Metadata about a partition in Alluxio catalog service.
@@ -35,8 +35,8 @@ public class PartitionInfo implements Serializable {
 
   private final String mSerdeClass;
   private final String mInputFormatClass;
-  private final Map<String, String> mProperties;
-  private final List<SchemaField> mFields;
+  private final HashMap<String, String> mProperties;
+  private final ArrayList<SchemaField> mFields;
 
   /**
    * @param serdeClass the full serde class name
@@ -46,8 +46,8 @@ public class PartitionInfo implements Serializable {
    */
   public PartitionInfo(@JsonProperty("serdeClass") String serdeClass,
       @JsonProperty("inputFormatClass") String inputFormatClass,
-      @JsonProperty("properties") Map<String, String> properties,
-      @JsonProperty("fields") List<SchemaField> fields) {
+      @JsonProperty("properties") HashMap<String, String> properties,
+      @JsonProperty("fields") ArrayList<SchemaField> fields) {
     mSerdeClass = serdeClass;
     mInputFormatClass = inputFormatClass;
     mProperties = properties;
@@ -88,14 +88,14 @@ public class PartitionInfo implements Serializable {
   /**
    * @return the properties
    */
-  public Map<String, String> getProperties() {
+  public HashMap<String, String> getProperties() {
     return mProperties;
   }
 
   /**
    * @return the fields
    */
-  public List<SchemaField> getFields() {
+  public ArrayList<SchemaField> getFields() {
     return mFields;
   }
 

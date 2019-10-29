@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +94,7 @@ public class WriteAction implements TransformAction {
     }
     alluxio.job.transform.PartitionInfo transformPartInfo
         = new alluxio.job.transform.PartitionInfo(serdeClass, inputFormat,
-        partitionInfo.getStorage().getSerdeParametersMap(), colList);
+        new HashMap<>(partitionInfo.getStorage().getSerdeParametersMap()), colList);
     return new CompactConfig(transformPartInfo, base.getLocation().toString(),
         transformed.getLocation().toString(),
         mLayoutType, mNumFiles);
