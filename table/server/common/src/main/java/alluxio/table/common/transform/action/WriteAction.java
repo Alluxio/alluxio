@@ -69,7 +69,7 @@ public class WriteAction implements TransformAction {
 
   @Override
   public JobConfig generateJobConfig(Layout base, Layout transformed) {
-    // TODO: set partition info
+    // TODO(cc): set partition info
     return new CompactConfig(null, base.getLocation().toString(),
         transformed.getLocation().toString(),
         mLayoutType, mNumFiles);
