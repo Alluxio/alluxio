@@ -22,6 +22,7 @@ import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 
 import com.google.common.io.Closer;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData.Record;
@@ -125,7 +126,21 @@ public final class CsvReader implements TableReader {
     } else if (type.equals(HiveConstants.PrimitiveTypes.STRING)) {
       return optional ? assembler.optionalString(name) : assembler.requiredString(name);
     } else if (type.startsWith(HiveConstants.PrimitiveTypes.DECIMAL)) {
-      // TODO(cc)
+      // TODO(cc): handle optional
+      int precision = 10;
+      int scale = 0;
+      if (type.contains("(")) {
+        String param = type.substring(8, type.length() - 1).trim();
+        if (type.contains(",")) {
+          String[] params = param.split(",");
+          precision = Integer.parseInt(params[0].trim());
+          scale = Integer.parseInt(params[1].trim());
+        } else {
+          precision = Integer.parseInt(param);
+        }
+      }
+      return assembler.name(name).type(LogicalTypes.decimal(precision, scale)
+          .addToSchema(Schema.create(Schema.Type.BYTES))).noDefault();
     } else if (type.startsWith(HiveConstants.PrimitiveTypes.CHAR)) {
       // TODO(cc)
     } else if (type.startsWith(HiveConstants.PrimitiveTypes.VARCHAR)) {
