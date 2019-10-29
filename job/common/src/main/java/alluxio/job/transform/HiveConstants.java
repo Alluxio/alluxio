@@ -44,7 +44,17 @@ public class HiveConstants {
   /**
    * Text input format.
    */
-  public static final String TEXT_FILE_INPUT_CLASS = "org.apache.hadoop.mapred.TextInputFormat";
+  public static final String TEXT_INPUT_FORMAT_CLASS = "org.apache.hadoop.mapred.TextInputFormat";
+  /**
+   * Parquet input format.
+   */
+  public static final String PARQUET_INPUT_FORMAT_CLASS =
+      "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat";
+  /**
+   * Parquet output format.
+   */
+  public static final String PARQUET_OUTPUT_FORMAT_CLASS =
+      "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat";
 
   /**
    * Primitive types supported by Hive.

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
+import alluxio.job.transform.HiveConstants;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutFactory;
 import alluxio.table.common.transform.TransformContext;
@@ -110,8 +111,14 @@ public class HiveLayout implements Layout {
   }
 
   private HiveLayout transformLayout(AlluxioURI transformedUri) {
+    // TODO(cc): assumption here is the transformed data is in Parquet format.
     PartitionInfo info = mPartitionInfo.toBuilder()
         .setStorage(mPartitionInfo.getStorage().toBuilder()
+            .setStorageFormat(mPartitionInfo.getStorage().getStorageFormat().toBuilder()
+                .setSerde(HiveConstants.PARQUET_SERDE_CLASS)
+                .setInputFormat(HiveConstants.PARQUET_INPUT_FORMAT_CLASS)
+                .setOutputFormat(HiveConstants.PARQUET_OUTPUT_FORMAT_CLASS)
+                .build())
             .setLocation(transformedUri.toString())
             .build())
         .build();

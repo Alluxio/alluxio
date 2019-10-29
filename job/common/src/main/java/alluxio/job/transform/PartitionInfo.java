@@ -55,7 +55,7 @@ public class PartitionInfo implements Serializable {
     if (mSerdeClass.equals(HiveConstants.PARQUET_SERDE_CLASS)) {
       return Format.PARQUET;
     } else if (mSerdeClass.equals(HiveConstants.CSV_SERDE_CLASS)
-        || (mInputFormatClass.equals(HiveConstants.TEXT_FILE_INPUT_CLASS)
+        || (mInputFormatClass.equals(HiveConstants.TEXT_INPUT_FORMAT_CLASS)
         && mProperties.containsKey(HiveConstants.SERIALIZATION_FORMAT))) {
       return Format.CSV;
     }
