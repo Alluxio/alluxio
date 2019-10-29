@@ -58,7 +58,7 @@ public final class CsvReader implements TableReader {
   private CsvReader(Path inputPath, PartitionInfo pInfo) throws IOException {
     mCloser = Closer.create();
     try {
-      Schema schema = buildSchema(pInfo.getFields());
+      Schema schema = buildSchema(Schema.Type.RECORD.getName(), pInfo.getFields());
       mSchema = new CsvSchema(schema);
 
       Configuration conf = ReadWriterUtils.readNoCacheConf();
@@ -69,7 +69,11 @@ public final class CsvReader implements TableReader {
 
       CSVProperties props = buildProperties(pInfo.getProperties());
 
-      mReader = mCloser.register(new AvroCSVReader<>(input, props, schema, Record.class, false));
+      try {
+        mReader = mCloser.register(new AvroCSVReader<>(input, props, schema, Record.class, false));
+      } catch (RuntimeException e) {
+        throw new IOException("Failed to create CSV reader", e);
+      }
     } catch (IOException e) {
       try {
         mCloser.close();
@@ -82,10 +86,9 @@ public final class CsvReader implements TableReader {
 
   private CSVProperties buildProperties(Map<String, String> properties) {
     CSVProperties.Builder propsBuilder = new CSVProperties.Builder();
-    // TODO(cc): will SKIP_HEADER ever be set and < 1?
-    if (!properties.containsKey(HiveSerdeConstants.SKIP_HEADER)
-        || Integer.parseInt(properties.get(HiveSerdeConstants.SKIP_HEADER)) < 1) {
+    if (properties.containsKey(HiveSerdeConstants.LINES_TO_SKIP)) {
       propsBuilder.hasHeader();
+      propsBuilder.linesToSkip(Integer.parseInt(properties.get(HiveSerdeConstants.LINES_TO_SKIP)));
     }
     if (properties.containsKey(HiveSerdeConstants.FIELD_DELIM)) {
       propsBuilder.delimiter(properties.get(HiveSerdeConstants.FIELD_DELIM));
@@ -93,9 +96,9 @@ public final class CsvReader implements TableReader {
     return propsBuilder.build();
   }
 
-  private Schema buildSchema(List<SchemaField> fields) {
+  private Schema buildSchema(String name, List<SchemaField> fields) {
     SchemaBuilder.FieldAssembler<Schema> assembler =
-        SchemaBuilder.record("row").namespace("alluxio").fields();
+        SchemaBuilder.record(name).fields();
     for (SchemaField field : fields) {
       assembler = buildField(assembler, field);
     }
