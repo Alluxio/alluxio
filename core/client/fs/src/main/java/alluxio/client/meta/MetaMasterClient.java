@@ -12,11 +12,11 @@
 package alluxio.client.meta;
 
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetricValue;
-import alluxio.wire.BackupResponse;
+import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 
 import java.io.Closeable;
@@ -28,14 +28,28 @@ import java.util.Set;
  * Interface for a meta master client.
  */
 public interface MetaMasterClient extends Closeable {
+
   /**
-   * Writes a backup of the journal to the specified directory. The backup is written to the
-   * directory with a file name containing the date when the file was written.
+   * Takes a backup.
    *
-   * @param options backup options
-   * @return the server response
+   * Note: If backup request ask for async execution, it will return after initiating the backup.
+   *       Status for the in-progress backup will be returned. {@link #getBackupStatus} should
+   *       be called for querying the status of the on-going backup.
+   *
+   * Note: When leader has no secondary in an HA cluster, it will reject backup. This could
+   *       be allowed by passing "AllowLeader" option in the request.
+   *
+   * @param backupRequest the backup request
+   * @return status of backup
+   * @throws IOException
    */
-  BackupResponse backup(BackupPOptions options) throws IOException;
+  BackupStatus backup(BackupPRequest backupRequest) throws IOException;
+
+  /**
+   * @return the status of the latest backup
+   * @throws IOException
+   */
+  BackupStatus getBackupStatus() throws IOException;
 
   /**
    * Gets the server-side configuration check report.

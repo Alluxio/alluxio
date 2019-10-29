@@ -15,8 +15,9 @@ import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.BackupPResponse;
+import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.BackupPStatus;
+import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.CheckpointPOptions;
 import alluxio.grpc.CheckpointPResponse;
 import alluxio.grpc.GetConfigReportPOptions;
@@ -60,11 +61,16 @@ public final class MetaMasterClientServiceHandler
   }
 
   @Override
-  public void backup(BackupPOptions options, StreamObserver<BackupPResponse> responseObserver) {
+  public void backup(BackupPRequest request, StreamObserver<BackupPStatus> responseObserver) {
+    RpcUtils.call(LOG, () -> mMetaMaster.backup(request).toProto(),
+        "backup", "request=%s", responseObserver, request);
+  }
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BackupPResponse>) () -> {
-      return mMetaMaster.backup(options).toProto();
-    }, "backup", "options=%s", responseObserver, options);
+  @Override
+  public void getBackupStatus(BackupStatusPRequest request,
+      StreamObserver<BackupPStatus> responseObserver) {
+    RpcUtils.call(LOG, () -> mMetaMaster.getBackupStatus().toProto(),
+        "getBackupStatus", "request=%s", responseObserver, request);
   }
 
   @Override

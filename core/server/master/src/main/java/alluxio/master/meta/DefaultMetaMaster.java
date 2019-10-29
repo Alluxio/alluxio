@@ -11,7 +11,6 @@
 
 package alluxio.master.meta;
 
-import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
@@ -23,10 +22,11 @@ import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaCommand;
@@ -36,10 +36,12 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.BackupManager;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
+import alluxio.master.backup.BackupLeaderRole;
+import alluxio.master.backup.BackupRole;
+import alluxio.master.backup.BackupWorkerRole;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -47,21 +49,16 @@ import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
-import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
-import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
-import alluxio.wire.BackupResponse;
+import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
@@ -71,12 +68,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -84,7 +77,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -113,6 +105,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           return o.getAddress();
         }
       };
+
+  /** Core master context. */
+  private final CoreMasterContext mCoreMasterContext;
 
   /** Handle to the block master. */
   private final BlockMaster mBlockMaster;
@@ -160,6 +155,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   /** Value to be used for the cluster ID when not assigned. */
   public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
+
+  /** Used to manage backup role. */
+  private BackupRole mBackupRole;
 
   /**
    * Journaled state for MetaMaster.
@@ -239,6 +237,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
+    mCoreMasterContext = masterContext;
     mMasterAddress =
         new Address().setHost(ServerConfiguration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
             "localhost"))
@@ -263,6 +262,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         new GrpcService(new MetaMasterClientServiceHandler(this)));
     services.put(ServiceType.META_MASTER_MASTER_SERVICE,
         new GrpcService(new MetaMasterMasterServiceHandler(this)));
+    // Add backup role services.
+    services.putAll(mBackupRole.getRoleServices());
     return services;
   }
 
@@ -328,6 +329,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       } else {
         LOG.info("Detected existing cluster ID {}", mState.getClusterID());
       }
+      mBackupRole = new BackupLeaderRole(mCoreMasterContext);
     } else {
       if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
@@ -341,6 +343,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
       }
+      // Enable worker role if backup delegation is enabled.
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)) {
+        mBackupRole = new BackupWorkerRole(mCoreMasterContext);
+      }
+    }
+    if (mBackupRole != null) {
+      mBackupRole.start();
     }
   }
 
@@ -350,64 +359,21 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       mDailyBackup.stop();
       mDailyBackup = null;
     }
+    if (mBackupRole != null) {
+      mBackupRole.stop();
+      mBackupRole = null;
+    }
     super.stop();
   }
 
   @Override
-  public BackupResponse backup(BackupPOptions options) throws IOException {
-    String dir = options.hasTargetDirectory() ? options.getTargetDirectory()
-        : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    try (CloseableResource<UnderFileSystem> ufsResource =
-             mUfsManager.getRoot().acquireUfsResource()) {
-      UnderFileSystem ufs = ufsResource.get();
-      if (options.getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
-        // TODO(lu) Support getting UFS based on type from UfsManager
-        ufs = UnderFileSystem.Factory.create("/",
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
-        LOG.info("Backing up to local filesystem in directory {}", dir);
-      } else {
-        LOG.info("Backing up to root UFS in directory {}", dir);
-      }
-      if (!ufs.isDirectory(dir)) {
-        if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
-            .setCreateParent(true))) {
-          throw new IOException(String.format("Failed to create directory %s", dir));
-        }
-      }
-      String backupFilePath;
-      AtomicLong entryCount = new AtomicLong(0);
-      try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
-        Instant now = Instant.now();
-        String backupFileName = String.format(BackupManager.BACKUP_FILE_FORMAT,
-            DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
-            now.toEpochMilli());
-        backupFilePath = PathUtils.concatPath(dir, backupFileName);
-        try {
-          try (OutputStream ufsStream = ufs.create(backupFilePath)) {
-            mBackupManager.backup(ufsStream, entryCount);
-          }
-        } catch (Throwable t) {
-          try {
-            ufs.deleteExistingFile(backupFilePath);
-          } catch (Throwable t2) {
-            LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
-            t.addSuppressed(t2);
-          }
-          throw t;
-        }
-      }
-      String rootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      if (options.getLocalFileSystem()) {
-        rootUfs = "file:///";
-      }
-      AlluxioURI backupUri =
-          new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
-      return new BackupResponse(
-          backupUri,
-          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-              ServerConfiguration.global()),
-          entryCount.get());
-    }
+  public BackupStatus backup(BackupPRequest request) throws AlluxioException {
+    return mBackupRole.backup(request);
+  }
+
+  @Override
+  public BackupStatus getBackupStatus() throws AlluxioException {
+    return mBackupRole.getBackupStatus();
   }
 
   @Override
