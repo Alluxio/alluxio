@@ -199,7 +199,7 @@ public final class CsvReader implements TableReader {
     try {
       return mReader.hasNext() ? new CsvRow(mReader.next()) : null;
     } catch (Throwable e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage(), e.getCause());
     }
   }
 
