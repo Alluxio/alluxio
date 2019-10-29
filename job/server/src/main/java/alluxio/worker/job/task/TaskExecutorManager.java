@@ -98,7 +98,9 @@ public class TaskExecutorManager {
     Pair<Long, Integer> id = new Pair<>(jobId, taskId);
     TaskInfo.Builder taskInfo = mUnfinishedTasks.get(id);
     taskInfo.setStatus(Status.FAILED);
-    taskInfo.setErrorMessage(errorMessage);
+    if (errorMessage != null) {
+      taskInfo.setErrorMessage(errorMessage);
+    }
     finishTask(id);
     LOG.info("Task {} for job {} failed: {}", taskId, jobId, errorMessage);
   }
