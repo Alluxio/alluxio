@@ -34,8 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -79,7 +79,7 @@ public final class CsvReader implements TableReader {
     }
   }
 
-  private CSVProperties buildProperties(HashMap<String, String> properties) {
+  private CSVProperties buildProperties(Map<String, String> properties) {
     CSVProperties.Builder propsBuilder = new CSVProperties.Builder();
     if (properties.containsKey(SKIP_HEADER) && Integer.parseInt(properties.get(SKIP_HEADER)) >= 1) {
       propsBuilder.hasHeader();
@@ -87,7 +87,7 @@ public final class CsvReader implements TableReader {
     return propsBuilder.build();
   }
 
-  private Schema buildSchema(ArrayList<SchemaField> fields) {
+  private Schema buildSchema(List<SchemaField> fields) {
     // TODO(cc)
     return SchemaBuilder.record("HandshakeRequest").namespace("org.apache.avro.ipc").fields()
         .name("clientHash").type().fixed("MD5").size(16).noDefault()
