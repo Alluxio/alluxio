@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.job.transform.Format;
 import alluxio.job.transform.PartitionInfo;
 import alluxio.job.transform.SchemaField;
-import alluxio.job.transform.HiveSerdeConstants;
+import alluxio.job.transform.HiveConstants;
 import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
@@ -86,12 +86,12 @@ public final class CsvReader implements TableReader {
 
   private CSVProperties buildProperties(Map<String, String> properties) {
     CSVProperties.Builder propsBuilder = new CSVProperties.Builder();
-    if (properties.containsKey(HiveSerdeConstants.LINES_TO_SKIP)) {
+    if (properties.containsKey(HiveConstants.LINES_TO_SKIP)) {
       propsBuilder.hasHeader();
-      propsBuilder.linesToSkip(Integer.parseInt(properties.get(HiveSerdeConstants.LINES_TO_SKIP)));
+      propsBuilder.linesToSkip(Integer.parseInt(properties.get(HiveConstants.LINES_TO_SKIP)));
     }
-    if (properties.containsKey(HiveSerdeConstants.FIELD_DELIM)) {
-      propsBuilder.delimiter(properties.get(HiveSerdeConstants.FIELD_DELIM));
+    if (properties.containsKey(HiveConstants.FIELD_DELIM)) {
+      propsBuilder.delimiter(properties.get(HiveConstants.FIELD_DELIM));
     }
     return propsBuilder.build();
   }
@@ -110,19 +110,19 @@ public final class CsvReader implements TableReader {
     String name = field.getName();
     String type = field.getType();
     boolean optional = field.isOptional();
-    if (HiveSerdeConstants.PrimitiveTypes.isBoolean(type)) {
+    if (HiveConstants.PrimitiveTypes.isBoolean(type)) {
       return optional ? assembler.optionalBoolean(name) : assembler.requiredBoolean(name);
-    } else if (HiveSerdeConstants.PrimitiveTypes.isBytes(type)) {
+    } else if (HiveConstants.PrimitiveTypes.isBytes(type)) {
       return optional ? assembler.optionalBytes(name) : assembler.requiredBytes(name);
-    } else if (HiveSerdeConstants.PrimitiveTypes.isDouble(type)) {
+    } else if (HiveConstants.PrimitiveTypes.isDouble(type)) {
       return optional ? assembler.optionalDouble(name) : assembler.requiredDouble(name);
-    } else if (HiveSerdeConstants.PrimitiveTypes.isFloat(type)) {
+    } else if (HiveConstants.PrimitiveTypes.isFloat(type)) {
       return optional ? assembler.optionalFloat(name) : assembler.requiredFloat(name);
-    } else if (HiveSerdeConstants.PrimitiveTypes.isInt(type)) {
+    } else if (HiveConstants.PrimitiveTypes.isInt(type)) {
       return optional ? assembler.optionalInt(name) : assembler.requiredInt(name);
-    } else if (HiveSerdeConstants.PrimitiveTypes.isLong(type)) {
+    } else if (HiveConstants.PrimitiveTypes.isLong(type)) {
       return optional ? assembler.optionalLong(name) : assembler.requiredLong(name);
-    } else if (HiveSerdeConstants.PrimitiveTypes.isString(type)) {
+    } else if (HiveConstants.PrimitiveTypes.isString(type)) {
       return optional ? assembler.optionalString(name) : assembler.requiredString(name);
     }
     throw new IllegalArgumentException("Unknown type: " + type + " for field " + name);

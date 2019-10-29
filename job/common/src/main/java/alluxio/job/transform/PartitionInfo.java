@@ -26,7 +26,6 @@ import java.util.HashMap;
 public class PartitionInfo implements Serializable {
   private static final long serialVersionUID = 6905153658064056381L;
 
-
   private final String mSerdeClass;
   private final String mInputFormatClass;
   private final HashMap<String, String> mProperties;
@@ -53,11 +52,11 @@ public class PartitionInfo implements Serializable {
    */
   @JsonIgnore
   public Format getFormat() {
-    if (mSerdeClass.equals(HiveSerdeConstants.PARQUET_SERDE_CLASS)) {
+    if (mSerdeClass.equals(HiveConstants.PARQUET_SERDE_CLASS)) {
       return Format.PARQUET;
-    } else if (mSerdeClass.equals(HiveSerdeConstants.CSV_SERDE_CLASS)
-        || (mInputFormatClass.equals(HiveSerdeConstants.TEXT_FILE_INPUT_CLASS)
-        && mProperties.containsKey(HiveSerdeConstants.SERIALIZATION_FORMAT))) {
+    } else if (mSerdeClass.equals(HiveConstants.CSV_SERDE_CLASS)
+        || (mInputFormatClass.equals(HiveConstants.TEXT_FILE_INPUT_CLASS)
+        && mProperties.containsKey(HiveConstants.SERIALIZATION_FORMAT))) {
       return Format.CSV;
     }
     // Needs to also look at extension to determine if it is Gzipped,

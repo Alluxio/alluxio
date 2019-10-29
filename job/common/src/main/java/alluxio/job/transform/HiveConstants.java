@@ -11,30 +11,48 @@
 
 package alluxio.job.transform;
 
-public class HiveSerdeConstants {
-  private HiveSerdeConstants() {} // Prevents initialization
+/**
+ * Constants related to Hive.
+ *
+ * @see <a href="https://github.com/apache/hive/blob/master/serde/src/gen/thrift/gen-javabean/org/
+ * apache/hadoop/hive/serde/serdeConstants.java">SerdeConstants.java</a>
+ */
+public class HiveConstants {
+  private HiveConstants() {} // Prevents initialization
 
   /**
-   * Skip header.
+   * Number of lines to skip when reading from CSV.
    */
   public static final String LINES_TO_SKIP = "skip.header.line.count";
+  /**
+   * Field delimiter for CSV.
+   */
   public static final String FIELD_DELIM = "field.delim";
+  /**
+   * Serialization format.
+   */
   public static final String SERIALIZATION_FORMAT = "serialization.format";
+  /**
+   * Parquet serde class.
+   */
   public static final String PARQUET_SERDE_CLASS =
       "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe";
+  /**
+   * CSV serde class.
+   */
   public static final String CSV_SERDE_CLASS = "org.apache.hadoop.hive.serde2.OpenCSVSerde";
+  /**
+   * Text input format.
+   */
   public static final String TEXT_FILE_INPUT_CLASS = "org.apache.hadoop.mapred.TextInputFormat";
 
-
   /**
-   * Primitive types retrieved from
-   * https://github.com/apache/hive/blob/master/serde/src/gen/thrift/gen-javabean/org/apache/hadoop/
-   * hive/serde/serdeConstants.java
+   * Primitive types supported by Hive.
    */
   public static final class PrimitiveTypes {
     private PrimitiveTypes() {} // Prevents initialization
 
-    // TODO(cc): what's void?
+    // TODO(cc): how to support VOID?
     private static final String VOID = "void";
     private static final String BOOLEAN = "boolean";
     private static final String TINYINT = "tinyint";
@@ -55,26 +73,50 @@ public class HiveSerdeConstants {
     private static final String BINARY = "binary";
     private static final String TIMESTAMP_LOCAL = "timestamp with local time zone";
 
+    /**
+     * @param type the type
+     * @return whether is CSV boolean
+     */
     public static boolean isBoolean(String type) {
       return type.equals(BOOLEAN);
     }
 
+    /**
+     * @param type the type
+     * @return whether is CSV int
+     */
     public static boolean isInt(String type) {
       return type.equals(TINYINT) || type.equals(SMALLINT) || type.equals(INT);
     }
 
+    /**
+     * @param type the type
+     * @return whether is CSV long
+     */
     public static boolean isLong(String type) {
       return type.equals(BIGINT);
     }
 
+    /**
+     * @param type the type
+     * @return whether is CSV float
+     */
     public static boolean isFloat(String type) {
       return type.equals(FLOAT);
     }
 
+    /**
+     * @param type the type
+     * @return whether is CSV double
+     */
     public static boolean isDouble(String type) {
       return type.equals(DOUBLE) || type.equals(DECIMAL);
     }
 
+    /**
+     * @param type the type
+     * @return whether is CSV string
+     */
     public static boolean isString(String type) {
       return type.equals(STRING) || type.equals(DATE) || type.equals(DATETIME)
           || type.equals(INTERVAL_YEAR_MONTH) || type.equals(INTERVAL_DAY_TIME)
@@ -82,6 +124,10 @@ public class HiveSerdeConstants {
           || type.equals(CHAR) || type.equals(VARCHAR);
     }
 
+    /**
+     * @param type the type
+     * @return whether is CSV bytes
+     */
     public static boolean isBytes(String type) {
       return type.equals(BINARY);
     }
