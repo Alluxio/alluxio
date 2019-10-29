@@ -76,9 +76,12 @@ databases from Alluxio.
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table
 Usage: alluxio table [generic options]
-         [attachdb <dbName> <dbType> [-o|--option <key=value>]]
-         [detachdb <db name>]
-         [ls [<database_name> [<table_name>]]]
+	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] <udb type> <udb connection uri> <udb db name>]
+	 [detachdb <db name>]
+	 [ls [<db name> [<table name>]]]
+	 [sync <db name>]
+	 [transform <db name> <table name>]
+	 [transformStatus [<job ID>]]
 ```
 
 To attach a database use the `attachdb` command. Currently, only `hive` is supported as the
@@ -87,15 +90,16 @@ This command maps the hive database `default` into a database in Alluxio called 
 the metastore located at `thrift://metastore_host:9083`
 
 ```console
-$ ${ALLUXIO_HOME}/bin/alluxio table attachdb alluxio_db hive \
-    --option hive.database-name=default \
-    --option hive.metastore.uris=thrift://metastore_host:9083
+$ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
+    thrift://metastore_host:9083 default
 ```
 
 > **Note:** When databases are attached, all tables will be synced from the configured UDB.
 If out-of-band updates occur to the database or table and the user wants query results to reflect
 the updates, the user must detach ([See Detaching Databases](#detaching-databases)) and then
 re-attach the database to reflect up any updates.
+Alternatively, if the only changes to the database are additional tables and partitions,
+sync command ([See Syncing Databases](#syncing-databases)) can be used.
 
 ### Exploring Attached Databases
 
@@ -107,8 +111,8 @@ alluxio_db
 ```
 
 List the tables underneath the database with `alluxio tables ls <db_name>`.
-If any tables exist underneath the corresponding database in hive, they will appear when executing
-this command.
+If any tables exist underneath the corresponding database in hive,
+they will appear when executing this command.
 
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table ls alluxio_db
@@ -184,6 +188,25 @@ $ ${ALLUXIO_HOME}/bin/alluxio table detachdb alluxio_db
 
 Running `alluxio table ls` afterwards will not display the database any more.
 Continue to the next section to see how to use {{feature_name}} with presto
+
+### Syncing databases
+
+When new tables or new partitions are added to the UDB, users can invoke the sync command
+to refresh the information stored in the Alluxio namespace. 
+
+
+```console
+$ alluxio table sync <database name>
+```
+
+For the previous examples, to sync we would run:
+
+```console
+$ ${ALLUXIO_HOME}/bin/alluxio table sync alluxio_db
+```
+
+Note that the sync operation will not remove any tables or partitions from the Alluxio namespace,
+nor would it change the existing tables or partitions.
 
 ## Alluxio Structured Data with Presto
 
