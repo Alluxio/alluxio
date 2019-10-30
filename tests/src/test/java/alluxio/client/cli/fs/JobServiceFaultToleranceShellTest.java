@@ -25,6 +25,7 @@ import alluxio.testutils.IntegrationTestUtils;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -36,6 +37,7 @@ import java.io.PrintStream;
 /**
  * Tests that the job service is available to the shell when running in fault-tolerant mode.
  */
+@Ignore("Flaky test")
 public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest {
   private MultiMasterLocalAlluxioCluster mLocalAlluxioCluster;
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster;
