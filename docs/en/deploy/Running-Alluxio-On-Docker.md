@@ -79,22 +79,22 @@ Alluxio UFS root mount point in the Alluxio docker image:
   ```console
   $ docker run -v /alluxio_ufs:/opt/alluxio/underFSStorage   ...
   ```
-Of course, you can choose different path `/alluxio_ufs` you like to mount but please make sure it
-is writable.
-> Note: Alluxio v2.1 docker image runs as user `alluxio` by default. It has UID 1000 and GID 1000.  
+Of course, you can choose to mount a different path instead of `/alluxio_ufs`.
+Please make sure it is writable by the user the Docker image is run as.
+> Note: Alluxio v2.1 Docker image runs as user `alluxio` by default. It has UID 1000 and GID 1000.  
 
 ## Launch Alluxio Containers for Master and Worker
 
 The Alluxio clients (local or remote) need to communicate with
-both Alluxio master and workers. Therefore it is important to make sure the clients can reach
+both Alluxio master and workers. Therefore it is important to make sure clients can reach
 both of the following services:
 
 + Master RPC on port 19998
 + Worker RPC on port 29999
 
 We are going to launch Alluxio master and worker containers on the same Docker host machine.
-In order to make sure it works for either local or remote clients, we have to set up the
-docker network and expose the required ports correctly.
+In order to make sure this works for either local or remote clients, we have to set up the
+Docker network and expose the required ports correctly.
 
 There are two ways to launch Alluxio Docker containers on the Docker host:
  + A. Use host network
