@@ -126,7 +126,11 @@ public final class CompactDefinition
       } catch (Throwable t) {
         closer.close();
         closed = true;
-        context.getFileSystem().delete(output); // output is the compacted file
+        try {
+          context.getFileSystem().delete(output); // output is the compacted file
+        } catch (Throwable e) {
+          t.addSuppressed(e);
+        }
         closer.rethrow(t);
       } finally {
         if (!closed) {
