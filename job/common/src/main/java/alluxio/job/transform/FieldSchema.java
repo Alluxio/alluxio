@@ -26,25 +26,21 @@ public class FieldSchema implements Serializable {
   private final int mId;
   private final String mName;
   private final String mType;
-  private final boolean mOptional;
   private final String mComment;
 
   /**
    * @param id  the id
    * @param name the name
    * @param type the type
-   * @param optional whether optional
    * @param comment the comment
    */
   public FieldSchema(@JsonProperty("id") int id,
       @JsonProperty("name") String name,
       @JsonProperty("type") String type,
-      @JsonProperty("optional") boolean optional,
       @JsonProperty("comment") String comment) {
     mId = id;
     mName = name;
     mType = type;
-    mOptional = optional;
     mComment = comment;
   }
 
@@ -70,13 +66,6 @@ public class FieldSchema implements Serializable {
   }
 
   /**
-   * @return whether the field is optional
-   */
-  public boolean isOptional() {
-    return true;
-  }
-
-  /**
    * @return the comment of the field
    */
   public String getComment() {
@@ -98,13 +87,12 @@ public class FieldSchema implements Serializable {
     return mId == that.mId
         && mName.equals(that.mName)
         && mType.equals(that.mType)
-        && mOptional == that.mOptional
         && mComment.equals(that.mComment);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mName, mType, mOptional, mComment);
+    return Objects.hashCode(mId, mName, mType, mComment);
   }
 
   @Override
@@ -113,7 +101,6 @@ public class FieldSchema implements Serializable {
         .add("id", mId)
         .add("name", mName)
         .add("type", mType)
-        .add("optional", mOptional)
         .add("comment", mComment)
         .toString();
   }

@@ -123,9 +123,8 @@ public final class CsvSchema implements TableSchema {
     return assembler.endRecord();
   }
 
-  private Schema makeOptional(Schema schema, boolean optional) {
-    return optional ? Schema.createUnion(Arrays.asList(Schema.create(Schema.Type.NULL), schema))
-        : schema;
+  private Schema makeOptional(Schema schema) {
+    return Schema.createUnion(Arrays.asList(Schema.create(Schema.Type.NULL), schema));
   }
 
   private SchemaBuilder.FieldAssembler<Schema> buildConsistentField(
@@ -133,30 +132,29 @@ public final class CsvSchema implements TableSchema {
     // Builds the fields that are consistent for read and write schema.
     String name = field.getName();
     String type = field.getType();
-    boolean optional = field.isOptional();
     if (type.equals(HiveConstants.Types.BOOLEAN)) {
-      return optional ? assembler.optionalBoolean(name) : assembler.requiredBoolean(name);
+      return assembler.optionalBoolean(name);
     } else if (type.equals(HiveConstants.Types.TINYINT)
         || type.equals(HiveConstants.Types.SMALLINT)
         || type.equals(HiveConstants.Types.INT)
     ) {
-      return optional ? assembler.optionalInt(name) : assembler.requiredInt(name);
+      return assembler.optionalInt(name);
     } else if (type.equals(HiveConstants.Types.DOUBLE)) {
-      return optional ? assembler.optionalDouble(name) : assembler.requiredDouble(name);
+      return assembler.optionalDouble(name);
     } else if (type.equals(HiveConstants.Types.FLOAT)) {
-      return optional ? assembler.optionalFloat(name) : assembler.requiredFloat(name);
+      return assembler.optionalFloat(name);
     } else if (type.equals(HiveConstants.Types.BIGINT)) {
-      return optional ? assembler.optionalLong(name) : assembler.requiredLong(name);
+      return assembler.requiredLong(name);
     } else if (type.equals(HiveConstants.Types.STRING)) {
-      return optional ? assembler.optionalString(name) : assembler.requiredString(name);
+      return assembler.optionalString(name);
     } else if (type.startsWith(HiveConstants.Types.CHAR)) {
       Schema schema = SchemaBuilder.builder().stringBuilder().prop(JAVA_CLASS_FLAG,
           Character.class.getCanonicalName())
           .endString();
-      schema = makeOptional(schema, optional);
+      schema = makeOptional(schema);
       return assembler.name(name).type(schema).noDefault();
     } else if (type.startsWith(HiveConstants.Types.VARCHAR)) {
-      return optional ? assembler.optionalString(name) : assembler.requiredString(name);
+      return assembler.optionalString(name);
     }
     throw new IOException("Unsupported type " + type + " for field " + name);
   }
@@ -168,13 +166,12 @@ public final class CsvSchema implements TableSchema {
     }
 
     String name = field.getName();
-    boolean optional = field.isOptional();
     // 1. Use string for arbitrary precision for decimal.
     // 2. Use string for UTF-8 encoded binary values.
     // 3. Use string for CSV text format of date and timestamp:
     //    date: 2019-01-02
     //    timestamp: 2019-10-29 10:17:42.338
-    return optional ? assembler.optionalString(name) : assembler.requiredString(name);
+    return assembler.optionalString(name);
   }
 
   private SchemaBuilder.FieldAssembler<Schema> buildWriteField(
@@ -185,24 +182,23 @@ public final class CsvSchema implements TableSchema {
 
     String name = field.getName();
     String type = field.getType();
-    boolean optional = field.isOptional();
     if (type.startsWith(HiveConstants.Types.DECIMAL)) {
       Decimal decimal = new Decimal(type);
       Schema schema = LogicalTypes.decimal(decimal.getPrecision(), decimal.getScale())
           .addToSchema(Schema.create(Schema.Type.BYTES));
-      schema = makeOptional(schema, optional);
+      schema = makeOptional(schema);
       return assembler.name(name).type(schema).noDefault();
     }
     if (type.equals(HiveConstants.Types.BINARY)) {
-      return optional ? assembler.optionalBytes(name) : assembler.requiredBytes(name);
+      return assembler.optionalBytes(name);
     }
     if (type.equals(HiveConstants.Types.DATE)) {
       Schema schema = LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT));
-      schema = makeOptional(schema, optional);
+      schema = makeOptional(schema);
       return assembler.name(name).type(schema).noDefault();
     } else if (type.equals(HiveConstants.Types.TIMESTAMP)) {
       Schema schema = LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG));
-      schema = makeOptional(schema, optional);
+      schema = makeOptional(schema);
       return assembler.name(name).type(schema).noDefault();
     }
     throw new IOException("Unsupported type " + type + " for field " + name);
